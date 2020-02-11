@@ -5,7 +5,7 @@
  *
  */
 
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Simulator;
@@ -19,7 +19,15 @@ public abstract class AgentController : MonoBehaviour
 
     public bool Active { get; set; }
     public AgentConfig Config { get; set; }
+    public virtual SensorsController AgentSensorsController { get; set; }
     public uint GTID { get; set; }
 
     public List<SensorBase> AgentSensors = new List<SensorBase>();
+
+    public event Action<AgentController> SensorsChanged;
+
+    protected void OnSensorsChanged()
+    {
+        SensorsChanged?.Invoke(this);
+    }
 }

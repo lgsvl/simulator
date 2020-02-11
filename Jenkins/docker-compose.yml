@@ -25,6 +25,7 @@ services:
       - S3_DOWNLOAD_HOST
       - SIM_ENVIRONMENTS
       - SIM_VEHICLES
+      - SIMULATOR_CONTROLLABLES
       - CLOUD_URL
       - JENKINS_BUILD_ID
       - GIT_COMMIT

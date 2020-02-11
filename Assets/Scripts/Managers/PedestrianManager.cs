@@ -6,13 +6,23 @@
  */
 
 using System.Collections.Generic;
-using UnityEngine;
+using System.Net;
 using Simulator.Map;
+using UnityEngine;
+using Simulator.Network.Core.Client;
+using Simulator.Network.Core.Client.Components;
+using Simulator.Network.Core.Server;
+using Simulator.Network.Core.Server.Components;
+using Simulator.Network.Core.Shared;
+using Simulator.Network.Core.Shared.Connection;
+using Simulator.Network.Core.Shared.Messaging;
+using Simulator.Network.Core.Shared.Messaging.Data;
+using Simulator.Network.Shared.Messages;
 using Simulator.Utilities;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 
-public class PedestrianManager : MonoBehaviour
+public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
 {
     public GameObject pedPrefab;
     public List<GameObject> pedModels = new List<GameObject>();
@@ -22,12 +32,13 @@ public class PedestrianManager : MonoBehaviour
     private Vector3 SpawnBoundsSize;
     private bool DebugSpawnArea = false;
     private LayerMask PedSpawnCheckBitmask;
+    public string Key => "PedestrianManager"; //Network IMessageSender key
 
     private int PedMaxCount = 0;
     private int ActivePedCount = 0;
 
     private System.Random RandomGenerator;
-    private System.Random PEDSeedGenerator;  // Only use this for initializing a new pedestrian
+    private System.Random PEDSeedGenerator; // Only use this for initializing a new pedestrian
     private int Seed = new System.Random().Next();
 
     private MapOrigin MapOrigin;
@@ -51,11 +62,15 @@ public class PedestrianManager : MonoBehaviour
         SimulatorCamera = SimulatorManager.Instance.CameraManager.SimulatorCamera;
 
         SpawnInfo[] spawnInfos = FindObjectsOfType<SpawnInfo>();
+        SimulatorManager.Instance.Network.MessagesManager?.RegisterObject(this);
         var pt = Vector3.zero;
         if (spawnInfos.Length > 0)
         {
             pt = spawnInfos[0].transform.position;
         }
+        if (SimulatorManager.Instance.Network.IsClient)
+            return;
+
         NavMeshHit hit;
         if (NavMesh.SamplePosition(pt, out hit, 1f, NavMesh.AllAreas))
         {
@@ -71,8 +86,15 @@ public class PedestrianManager : MonoBehaviour
         }
     }
 
+    private void OnDestroy()
+    {
+        SimulatorManager.Instance.Network.MessagesManager?.UnregisterObject(this);
+    }
+
     public void PhysicsUpdate()
     {
+        if (SimulatorManager.Instance.Network.IsClient)
+            return;
         foreach (var ped in currentPedPool)
         {
             if (ped.gameObject.activeInHierarchy)
@@ -80,6 +102,7 @@ public class PedestrianManager : MonoBehaviour
                 ped.PhysicsUpdate();
             }
         }
+
         if (!SimulatorManager.Instance.IsAPI)
         {
             if (PedestriansActive)
@@ -149,12 +172,29 @@ public class PedestrianManager : MonoBehaviour
     private GameObject SpawnPedestrian()
     {
         GameObject ped = Instantiate(pedPrefab, Vector3.zero, Quaternion.identity, transform);
+        //Ensure sure all pedestrians get unique names
+        HierarchyUtility.ChangeToUniqueName(ped);
         var pedController = ped.GetComponent<PedestrianController>();
         pedController.SetGroundTruthBox();
-        Instantiate(pedModels[RandomGenerator.Next(pedModels.Count)], ped.transform);
+        var modelIndex = RandomGenerator.Next(pedModels.Count);
+        var model = pedModels[modelIndex];
+        Instantiate(model, ped.transform);
         ped.SetActive(false);
         SimulatorManager.Instance.UpdateSemanticTags(ped);
         currentPedPool.Add(pedController);
+
+        //Add required components for distributing rigidbody from master to clients
+        if (SimulatorManager.Instance.Network.IsMaster)
+        {
+            if (ped.GetComponent<DistributedObject>() == null)
+                ped.AddComponent<DistributedObject>();
+            if (ped.GetComponent<DistributedRigidbody>() == null)
+                ped.AddComponent<DistributedRigidbody>();
+            BroadcastMessage(new Message(Key,
+                GetSpawnMessage(ped.name, modelIndex, ped.transform.position, ped.transform.rotation),
+                MessageType.ReliableUnordered));
+        }
+
         return ped;
     }
 
@@ -202,6 +242,12 @@ public class PedestrianManager : MonoBehaviour
     public void DespawnPedestrianApi(PedestrianController ped)
     {
         ped.StopPEDCoroutines();
+        if (SimulatorManager.Instance.Network.IsMaster)
+        {
+            var index = currentPedPool.FindIndex(pedestrian => pedestrian.gameObject == ped.gameObject);
+            BroadcastMessage(new Message(Key, GetDespawnMessage(index),
+                MessageType.ReliableUnordered));
+        }
         currentPedPool.Remove(ped);
         Destroy(ped.gameObject);
     }
@@ -266,5 +312,81 @@ public class PedestrianManager : MonoBehaviour
         if (!DebugSpawnArea) return;
         DrawSpawnArea();
     }
+    #endregion
+
+    #region network
+
+    private BytesStack GetSpawnMessage(string pedestrianName, int modelIndex, Vector3 position, Quaternion rotation)
+    {
+        var bytesStack = new BytesStack();
+        bytesStack.PushCompressedRotation(rotation);
+        bytesStack.PushCompressedPosition(position);
+        bytesStack.PushInt(modelIndex, 2);
+        bytesStack.PushString(pedestrianName);
+        bytesStack.PushEnum<PedestrianManagerCommandType>((int) PedestrianManagerCommandType.SpawnPedestrian);
+        return bytesStack;
+    }
+
+    private void SpawnPedestrianMock(string pedestrianName, int modelIndex, Vector3 position, Quaternion rotation)
+    {
+        GameObject ped = Instantiate(pedPrefab, position, rotation, transform);
+        ped.name = pedestrianName;
+        ped.SetActive(false);
+        if (ped.GetComponent<MockedObject>() == null)
+            ped.AddComponent<MockedObject>().Initialize();
+        if (ped.GetComponent<MockedRigidbody>() == null)
+            ped.AddComponent<MockedRigidbody>();
+        var pedController = ped.GetComponent<PedestrianController>();
+        pedController.SetGroundTruthBox();
+        var model = pedModels[modelIndex];
+        Instantiate(model, ped.transform);
+        pedController.Control = PedestrianController.ControlType.Manual;
+        pedController.enabled = false;
+        currentPedPool.Add(pedController);
+    }
+
+    private BytesStack GetDespawnMessage(int orderNumber)
+    {
+        var bytesStack = new BytesStack();
+        bytesStack.PushInt(orderNumber, 2);
+        bytesStack.PushEnum<PedestrianManagerCommandType>((int) PedestrianManagerCommandType.DespawnPedestrian);
+        return bytesStack;
+    }
+
+    public void ReceiveMessage(IPeerManager sender, Message message)
+    {
+        var commandType = message.Content.PopEnum<PedestrianManagerCommandType>();
+        switch (commandType)
+        {
+            case PedestrianManagerCommandType.SpawnPedestrian:
+                var pedestrianName = message.Content.PopString();
+                var modelIndex = message.Content.PopInt(2);
+                SpawnPedestrianMock(pedestrianName, modelIndex, message.Content.PopDecompressedPosition(),
+                    message.Content.PopDecompressedRotation());
+                break;
+            case PedestrianManagerCommandType.DespawnPedestrian:
+                var pedestrianId = message.Content.PopInt(2);
+                //TODO Preserve despawn command if it arrives before spawn command
+                if (pedestrianId >= 0 && pedestrianId < currentPedPool.Count)
+                    Destroy(currentPedPool[pedestrianId].gameObject);
+                break;
+        }
+    }
+
+    public void UnicastMessage(IPEndPoint endPoint, Message message)
+    {
+        SimulatorManager.Instance.Network.MessagesManager?.UnicastMessage(endPoint, message);
+    }
+
+    public void BroadcastMessage(Message message)
+    {
+        SimulatorManager.Instance.Network.MessagesManager?.BroadcastMessage(message);
+    }
+
+    void IMessageSender.UnicastInitialMessages(IPEndPoint endPoint)
+    {
+        //TODO support reconnection - send instantiation messages to the peer
+    }
+
     #endregion
 }

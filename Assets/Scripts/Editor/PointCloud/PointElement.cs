@@ -1,4 +1,11 @@
-﻿namespace Simulator.Editor.PointCloud
+/**
+ * Copyright (c) 2019 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
+namespace Simulator.Editor.PointCloud
 {
     using System;
 

@@ -13,6 +13,10 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 using Simulator;
 using Simulator.Map;
 using Simulator.Network;
+using Simulator.Network.Core.Shared.Messaging;
+using Simulator.Network.Core.Shared.Messaging.Data;
+using Simulator.Network.Master;
+using Simulator.Network.Shared;
 
 public enum TimeOfDayStateTypes
 {
@@ -145,8 +149,9 @@ public class EnvironmentEffectsManager : MonoBehaviour
         UpdateSunPosition();
         //UpdateMoonPosition();
 
-        if (MasterManager.Instance != null)
+        if (SimulatorManager.Instance.Network.IsMaster)
         {
+            var masterManager = SimulatorManager.Instance.Network.Master;
             if (state.Fog != fog || state.Rain != rain || state.Wet != wet || state.Cloud != cloud || state.TimeOfDay != currentTimeOfDay)
             {
                 state.Fog = fog;
@@ -155,7 +160,8 @@ public class EnvironmentEffectsManager : MonoBehaviour
                 state.Cloud = cloud;
                 state.TimeOfDay = currentTimeOfDay;
 
-                MasterManager.Instance.SendEnvironmentState(state);
+                var message = new BytesStack(masterManager.PacketsProcessor.Write(state), false);
+                masterManager.BroadcastMessage(new Message(masterManager.Key, message, MessageType.ReliableUnordered));
             }
         }
     }

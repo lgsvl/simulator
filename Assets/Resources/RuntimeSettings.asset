@@ -21,6 +21,7 @@ MonoBehaviour:
   AAWireBoxShader: {fileID: 4800000, guid: b1e5437621738c44ca30e61cf15ebdb9, type: 3}
   WireframeBoxShader: {fileID: 4800000, guid: baede0d38d433654eb6da9f35febf7dd, type: 3}
   PointCloudShader: {fileID: 4800000, guid: f4f8cf0585f6c5e4f9b9f1ccb82908ee, type: 3}
+  LensDistortion: {fileID: 7200000, guid: e4b91d1426a38e147adb9d9901e38273, type: 3}
   SensorPrefabs:
   - {fileID: 8467934662373045936, guid: e618f21f22ef0364788fb588f682d093, type: 3}
   - {fileID: 2783041447292560516, guid: 450bb485b5d0e754c9c26870ebaf1bdf, type: 3}
@@ -44,3 +45,5 @@ MonoBehaviour:
   - {fileID: 8926320593265141670, guid: 823225f8334c708988ff56b6fdf3c722, type: 3}
   - {fileID: 6798236283089428316, guid: b916b47d1234714418d5d1b2d71d2f8c, type: 3}
   - {fileID: 3075028223651123413, guid: c14ccc8ff9f29b3438cdd0f4bcebd180, type: 3}
+  - {fileID: 3840905552177509838, guid: e41b78f2c24856c4faa54e1d44f637e2, type: 3}
+  - {fileID: 1914788297095550360, guid: cb991f61c2e0e5d4087b1a10bbfbe9ee, type: 3}

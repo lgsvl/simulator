@@ -1,0 +1,19 @@
+{
+    "name": "Simulator.Network.Core.Tests.Editor",
+    "references": [
+        "GUID:76dd2468be63a2f4c92b1bfffe8c082f"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": []
+}

@@ -55,7 +55,8 @@ A `SENSOR` is defined in the JSON configuration in the following format:
 		|`Frame`|defines the frame_id if the sensor publishes a ROS message. See [ROS Header Message](http://docs.ros.org/melodic/api/std_msgs/html/msg/Header.html) for more information|`null`|
 
 - `transform` is the location and rotation of the sensor relative to the local position of the vehicle. 
-The Unity left-hand coordinate system is used (+x right, +y up, +z forward, +pitch tilts the front down, +yaw rotates clockwise when viewed from above, +roll tilts the left side down).
+The Unity left-hand coordinate system is used (+x right, +y up, +z forward, +pitch tilts the front down,
+ +yaw rotates clockwise when viewed from above, +roll tilts the left side down).
 	- `x` is the position of the sensor along the x-axis
 	- `y` is the position of the sensor along the y-axis
 	- `z` is the position of the sensor along the z-axis
@@ -76,6 +77,12 @@ This is the type of sensor that would be used for the `Main Camera` in Apollo.
 |`FieldOfView`|defines the vertical angle that the camera sees|degrees|Float|60|1|90
 |`MinDistance`|defines how far an object must be from the sensor for it to be detected|meters|Float|0.1|0.01|1000|
 |`MaxDistance`|defines how close an object must be to the sensor for it to be detected|meters|Float|1000|0.01|2000|
+|`Distorted`|defines if the image is distorted||Bool|`true`|||
+|`DistortionParameters`|parameters used by distortion*||List of Float|empty list|||
+
+\* If `Distorted` is `true`, `DistortionParameters` must be an empty list or a list of FOUR floats. 
+The values in this list should come from calibration result of real camera. Setting arbitrary values may cause undefined result. 
+If `Distorted` is `false`, `DistortionParameters` is ignored.
 
 ```JSON
 {
@@ -90,7 +97,11 @@ This is the type of sensor that would be used for the `Main Camera` in Apollo.
       "MinDistance": 0.1,
       "MaxDistance": 1000,
       "Topic": "/simulator/main_camera",
-      "Frame": "camera"
+      "Frame": "camera",
+      "Distorted": true,
+      "DistortionParameters": [
+        -0.25349, 0.11868, 0, 0
+      ]
     },
     "transform": {
       "x": 0,
@@ -115,6 +126,10 @@ This sensor returns an image where the shades on the grey-scale correspond to th
 |`FieldOfView`|defines the vertical angle that the camera sees|degrees|Float|60|1|90
 |`MinDistance`|defines how far an object must be from the sensor for it to be detected|meters|Float|0.1|0.01|1000|
 |`MaxDistance`|defines how close an object must be to the sensor for it to be detected|meters|Float|1000|0.01|2000|
+|`Distorted`|defines if the image is distorted||Bool|`true`|||
+|`DistortionParameters`|parameters used by distortion*||List of Float|empty list|||
+
+\* See notes on `DistortionParameters` for Color Camera.
 
 ```JSON
 {
@@ -166,6 +181,10 @@ This sensor returns an image where objects are colored corresponding to their ta
 |`FieldOfView`|defines the vertical angle that the camera sees|degrees|Float|60|1|90
 |`MinDistance`|defines how far an object must be from the sensor for it to be detected|meters|Float|0.1|0.01|1000|
 |`MaxDistance`|defines how close an object must be to the sensor for it to be detected|meters|Float|1000|0.01|2000|
+|`Distorted`|defines if the image is distorted||Bool|`true`|||
+|`DistortionParameters`|parameters used by distortion*||List of Float|empty list|||
+
+\* See notes on `DistortionParameters` for Color Camera.
 
 ```JSON
 {
@@ -196,29 +215,69 @@ This sensor returns a point cloud after 1 revolution.
 
 |Parameter|Description|Unit|Type|Default Value|Minimum|Maximum|
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+|`VerticalRayAngles`|defines vertical angle for each laser beam*||List of Float|empty list|||
 |`LaserCount`|defines how many vertically stacked laser beams there are||Int|32|1|128|
+|`FieldOfView`|defines the vertical angle between bottom and top ray|degrees|Float|41.33|1|45|
+|`CenterAngle`|defines the center of the FieldOfView cone to the horizon (+ means below horizon)|degrees|Float|10|-45|45|
 |`MinDistance`|defines how far an object must be from the sensor for it to be detected|meters|Float|0.5|0.01|1000|
 |`MaxDistance`|defines how close an object must be to the sensor for it to be detected|meters|Float|100|0.01|2000|
 |`RotationFrequency`|defines how fast the sensor rotates|Hertz|Float|10|1|30|
 |`MeasurementsPerRotation`|defines how many measurements each beam takes per rotation||Int|1500|18|6000|
-|`FieldOfView`|defines the vertical angle between bottom and top ray|degrees|Float|41.33|1|45|
-|`CenterAngle`|defines the center of the FieldOfView cone to the horizon (+ means below horizon)|degrees|Float|10|-45|45|
 |`Compensated`|defines whether or not the point cloud is compensated for the movement of the vehicle||Bool|`true`|||
 |`PointSize`|defines how large of points are visualized|pixels|Float|2|1|10|
 |`PointColor`|defines the color of visualized points|rgba in hex|Color|#FF0000FF|||
 
+\* If `VerticalRayAngles` is not empty, `LaserCount` will be automatically set to the length of `VerticalRayAngles`, and `FieldOfView` and `CenterAngle` will be ignored.
+
+A sample of uniformly distributed angles:
 ```JSON
 {
     "type": "Lidar",
-    "name": "Lidar",
+    "name": "Lidar-Uniform",
     "params": {
       "LaserCount": 32,
+      "FieldOfView": 41.33,
+      "CenterAngle": 10,
       "MinDistance": 0.5,
       "MaxDistance": 100,
       "RotationFrequency": 10,
       "MeasurementsPerRotation": 360,
-      "FieldOfView": 41.33,
-      "CenterAngle": 10,
+      "Compensated": true,
+      "PointColor": "#ff000000",
+      "Topic": "/point_cloud",
+      "Frame": "velodyne"
+    },
+    "transform": {
+      "x": 0,
+      "y": 2.312,
+      "z": -0.3679201,
+      "pitch": 0,
+      "yaw": 0,
+      "roll": 0
+    }
+}
+```
+
+A sample of non-uniformly distributed angles:
+```JSON
+{
+    "type": "Lidar",
+    "name": "Lidar-NonUniform",
+    "params": {
+      "VerticalRayAngles": [
+        -25.0,   -1.0,    -1.667,  -15.639,
+        -11.31,   0.0,    -0.667,   -8.843,
+        -7.254,  0.333,  -0.333,   -6.148,
+        -5.333,  1.333,   0.667,   -4.0,
+        -4.667,  1.667,   1.0,     -3.667,
+        -3.333,  3.333,   2.333,   -2.667,
+        -3.0,    7.0,     4.667,   -2.333,
+        -2.0,   15.0,    10.333,   -1.333
+      ],
+      "MinDistance": 0.5,
+      "MaxDistance": 100,
+      "RotationFrequency": 10,
+      "MeasurementsPerRotation": 360,
       "Compensated": true,
       "PointColor": "#ff000000",
       "Topic": "/point_cloud",

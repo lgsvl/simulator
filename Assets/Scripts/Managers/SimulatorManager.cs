@@ -12,6 +12,7 @@ using Simulator.Utilities;
 using Simulator;
 using Simulator.Api;
 using Simulator.Controllable;
+using Simulator.Network;
 
 public class SimulatorManager : MonoBehaviour
 {
@@ -36,6 +37,7 @@ public class SimulatorManager : MonoBehaviour
     public MapManager mapManagerPrefab;
     public NPCManager npcManagerPrefab;
     public PedestrianManager pedestrianManagerPrefab;
+    public ControllableManager controllableManagerPrefab;
     public EnvironmentEffectsManager environmentEffectsManagerPrefab;
     public CameraManager cameraManagerPrefab;
     public UIManager uiManagerPrefab;
@@ -45,9 +47,12 @@ public class SimulatorManager : MonoBehaviour
     public MapManager MapManager { get; private set; }
     public NPCManager NPCManager { get; private set; }
     public PedestrianManager PedestrianManager { get; private set; }
+    public ControllableManager ControllableManager { get; private set; }
     public CameraManager CameraManager { get; private set; }
     public EnvironmentEffectsManager EnvironmentEffectsManager { get; private set; }
     public UIManager UIManager { get; private set; }
+    public SimulationNetwork Network { get; } = new SimulationNetwork();
+    public SimulatorTimeManager TimeManager { get;  } = new SimulatorTimeManager();
 
     private GameObject ManagerHolder;
 
@@ -81,10 +86,11 @@ public class SimulatorManager : MonoBehaviour
     private DateTime unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
 
     public bool IsAPI = false;
-    [HideInInspector]
-    public List<IControllable> Controllables = new List<IControllable>();
+    
     [HideInInspector]
     public MonoBehaviour FixedUpdateManager;
+    
+    private bool IsInitialized { get; set; }
     public uint GTIDs { get; set; }
     public uint SignalIDs { get; set; }
 
@@ -141,6 +147,7 @@ public class SimulatorManager : MonoBehaviour
         ManagerHolder.transform.SetParent(transform);
         AgentManager = Instantiate(agentManagerPrefab, ManagerHolder.transform);
         CameraManager = Instantiate(cameraManagerPrefab, ManagerHolder.transform);
+        ControllableManager = Instantiate(controllableManagerPrefab, ManagerHolder.transform);
         MapManager = Instantiate(mapManagerPrefab, ManagerHolder.transform);
         NPCManager = Instantiate(npcManagerPrefab, ManagerHolder.transform);
         NPCManager.InitRandomGenerator(rand.Next());
@@ -196,11 +203,6 @@ public class SimulatorManager : MonoBehaviour
             {
                 controls.Disable();
             }
-
-            if (config.Interactive)
-            {
-                SetTimeScale(0.0f);
-            }
         }
         SIM.APIOnly = apiMode;
         SIM.LogSimulation(SIM.Simulation.SimulationStart, simulationName);
@@ -218,6 +220,8 @@ public class SimulatorManager : MonoBehaviour
         SIM.LogSimulation(SIM.Simulation.CloudinessStart, cloud == 0f ? EnvironmentEffectsManager.cloud.ToString() : cloud.ToString());
         InitSemanticTags();
         WireframeBoxes = gameObject.AddComponent<WireframeBoxes>();
+        TimeManager.Initialize(Network.MessagesManager);
+        IsInitialized = true;
     }
 
     public long GetElapsedTime(double startTime)
@@ -237,22 +241,37 @@ public class SimulatorManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        controls.Disable();
-        var elapsedTime = GetElapsedTime(SessionStartTime);
-        SIM.LogSimulation(SIM.Simulation.HeadlessModeStop, value: elapsedTime, state: headless);
-        SIM.LogSimulation(SIM.Simulation.InteractiveModeStop, value: elapsedTime, state: interactive);
-        SIM.LogSimulation(SIM.Simulation.UsePredefinedSeedStop, state: useSeed);
-        SIM.LogSimulation(SIM.Simulation.NPCStop, value: elapsedTime, state: npc);
-        SIM.LogSimulation(SIM.Simulation.RandomPedestrianStop, value: elapsedTime, state: pedestrian);
-        SIM.LogSimulation(SIM.Simulation.TimeOfDayStop, timeOfDay == "" ? string.Format("{0:hh}:{0:mm}", TimeSpan.FromHours(EnvironmentEffectsManager.currentTimeOfDay)) : timeOfDay, value: elapsedTime);
-        SIM.LogSimulation(SIM.Simulation.RainStop, rain == 0f ? EnvironmentEffectsManager.rain.ToString() : rain.ToString(), elapsedTime);
-        SIM.LogSimulation(SIM.Simulation.WetnessStop, wet == 0f ? EnvironmentEffectsManager.wet.ToString() : wet.ToString(), elapsedTime);
-        SIM.LogSimulation(SIM.Simulation.FogStop, fog == 0f ? EnvironmentEffectsManager.fog.ToString() : fog.ToString(), elapsedTime);
-        SIM.LogSimulation(SIM.Simulation.CloudinessStop, cloud == 0f ? EnvironmentEffectsManager.cloud.ToString() : cloud.ToString(), elapsedTime);
-        SIM.LogSimulation(SIM.Simulation.MapStop, string.IsNullOrEmpty(mapName) ? UnityEngine.SceneManagement.SceneManager.GetActiveScene().name : mapName, elapsedTime);
-        SIM.LogSimulation(SIM.Simulation.ClusterNameStop, clusterName, elapsedTime);
-        SIM.LogSimulation(SIM.Simulation.SimulationStop, simulationName, elapsedTime);
-        SIM.StopSession();
+        if (IsInitialized)
+        {
+            controls.Disable();
+            var elapsedTime = GetElapsedTime(SessionStartTime);
+            SIM.LogSimulation(SIM.Simulation.HeadlessModeStop, value: elapsedTime, state: headless);
+            SIM.LogSimulation(SIM.Simulation.InteractiveModeStop, value: elapsedTime, state: interactive);
+            SIM.LogSimulation(SIM.Simulation.UsePredefinedSeedStop, state: useSeed);
+            SIM.LogSimulation(SIM.Simulation.NPCStop, value: elapsedTime, state: npc);
+            SIM.LogSimulation(SIM.Simulation.RandomPedestrianStop, value: elapsedTime, state: pedestrian);
+            SIM.LogSimulation(SIM.Simulation.TimeOfDayStop,
+                timeOfDay == ""
+                    ? string.Format("{0:hh}:{0:mm}", TimeSpan.FromHours(EnvironmentEffectsManager.currentTimeOfDay))
+                    : timeOfDay, value: elapsedTime);
+            SIM.LogSimulation(SIM.Simulation.RainStop,
+                rain == 0f ? EnvironmentEffectsManager.rain.ToString() : rain.ToString(), elapsedTime);
+            SIM.LogSimulation(SIM.Simulation.WetnessStop,
+                wet == 0f ? EnvironmentEffectsManager.wet.ToString() : wet.ToString(), elapsedTime);
+            SIM.LogSimulation(SIM.Simulation.FogStop,
+                fog == 0f ? EnvironmentEffectsManager.fog.ToString() : fog.ToString(), elapsedTime);
+            SIM.LogSimulation(SIM.Simulation.CloudinessStop,
+                cloud == 0f ? EnvironmentEffectsManager.cloud.ToString() : cloud.ToString(), elapsedTime);
+            SIM.LogSimulation(SIM.Simulation.MapStop,
+                string.IsNullOrEmpty(mapName)
+                    ? UnityEngine.SceneManagement.SceneManager.GetActiveScene().name
+                    : mapName, elapsedTime);
+            SIM.LogSimulation(SIM.Simulation.ClusterNameStop, clusterName, elapsedTime);
+            SIM.LogSimulation(SIM.Simulation.SimulationStop, simulationName, elapsedTime);
+            SIM.StopSession();
+        }
+
+        TimeManager.Deinitialize();
 
         DestroyImmediate(ManagerHolder);
     }
@@ -351,19 +370,10 @@ public class SimulatorManager : MonoBehaviour
 
     public static void SetTimeScale(float scale)
     {
-        Time.timeScale = scale;
-
-        // we want FixedUpdate to be called with 100Hz normally
-        if (scale == 0)
-        {
-            Physics.autoSimulation = false;
-            Time.fixedDeltaTime = 0.01f;
-        }
+        if (Instance != null)
+            Instance.TimeManager.TimeScale = scale;
         else
-        {
-            Physics.autoSimulation = true;
-            Time.fixedDeltaTime = 0.01f / scale;
-        }
+            SimulatorTimeManager.SetUnityTimeScale(scale);
     }
 
     void Update()
@@ -394,33 +404,5 @@ public class SimulatorManager : MonoBehaviour
     {
         NPCManager.PhysicsUpdate();
         PedestrianManager.PhysicsUpdate();
-    }
-}
-
-namespace Simulator.Controllable
-{
-    public struct ControlAction
-    {
-        public string Action;
-        public string Value;
-    }
-
-    public interface IControllable
-    {
-        Transform transform { get; }
-
-        string ControlType { get; set; }  // Control type of a controllable object (i.e., signal)
-        string CurrentState { get; set; }  // Current state of a controllable object (i.e., green)
-        string[] ValidStates { get; }  // Valid states (i.e., green, yellow, red)
-        string[] ValidActions { get; }  // Valid actions (i.e., trigger, wait)
-
-        // Control policy defines rules for control actions
-        string DefaultControlPolicy { get; set; }  // Default control policy
-        string CurrentControlPolicy { get; set; }  // Control policy that's currently active
-
-        /// <summary>Control a controllable object with a new control policy</summary>
-        /// <param name="controlPolicy">A new control policy to control this object</param>
-        /// <param name="errorMsg">Error message for invalid control policy</param>
-        void Control(List<ControlAction> controlActions);
     }
 }

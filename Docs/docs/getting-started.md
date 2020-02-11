@@ -15,7 +15,7 @@ It currently has integration with the TierIV's [Autoware](https://github.com/lgs
 and [Apollo 3.0](https://github.com/lgsvl/apollo) platforms, can generate HD maps, and be immediately used for testing and validation of a whole system with little need for custom integrations. 
 We hope to build a collaborative community among robotics and autonomous vehicle developers by open sourcing our efforts. 
 
-*To use the simulator with Apollo, after following the [build steps](build-instructions.md) for the simulator, follow the guide on our [Apollo 5.0 fork](https://github.com/lgsvl/apollo-5.0.).*
+*To use the simulator with Apollo, after following the [build steps](build-instructions.md) for the simulator, follow the guide on our [Apollo 5.0 fork](https://github.com/lgsvl/apollo-5.0).*
 
 *To use the simulator with Autoware, build the simulator then follow the guide on our [Autoware fork](https://github.com/lgsvl/Autoware).*
 
@@ -42,6 +42,8 @@ For the latest functionality or if you want to modify the simulator for your own
 Currently, running the simulator in Windows yields better performance than running on Linux. 
 
 If running Apollo or Autoware on the same system as the Simulator, it is recommended to upgrade to a GPU with at least 10GB memory.
+
+If running Apollo or Autoware on a different system as the Simulator, a gigabit connection between the systems is required (a gigabit switch is sufficient, gigabit internet is not required).
 
 ### Downloading and starting simulator [[top]] {: #downloading-and-starting-simulator data-toc-label='Downloading and starting simulator'}
 

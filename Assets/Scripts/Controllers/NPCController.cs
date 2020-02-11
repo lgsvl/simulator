@@ -5,15 +5,24 @@
  *
  */
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using UnityEngine;
 using Simulator.Api;
 using Simulator.Map;
+using Simulator.Network.Core.Client.Components;
+using Simulator.Network.Core.Server;
+using Simulator.Network.Core.Server.Components;
+using Simulator.Network.Core.Shared;
+using Simulator.Network.Core.Shared.Connection;
+using Simulator.Network.Core.Shared.Messaging;
+using Simulator.Network.Core.Shared.Messaging.Data;
 using Simulator.Utilities;
 
-public class NPCController : MonoBehaviour
+public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
 {
     public enum ControlType
     {
@@ -137,6 +146,11 @@ public class NPCController : MonoBehaviour
     private List<Light> indicatorLeftLights = new List<Light>();
     private List<Light> indicatorRightLights = new List<Light>();
     private Light indicatorReverseLight;
+    
+    //Network
+    private MessagesManager messagesManager;
+    private string key;
+    public string Key => key ?? (key = $"{HierarchyUtility.GetPath(transform)}NPCController");
 
     public enum NPCWaypointState
     {
@@ -210,6 +224,12 @@ public class NPCController : MonoBehaviour
     #endregion
 
     #region mono
+    private void Start()
+    {
+        messagesManager = SimulatorManager.Instance.Network.MessagesManager;
+        messagesManager?.RegisterObject(this);
+    }
+    
     private void OnEnable()
     {
         SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged += OnTimeOfDayChange;
@@ -315,6 +335,7 @@ public class NPCController : MonoBehaviour
     private void OnDestroy()
     {
         Resources.UnloadUnusedAssets();
+        messagesManager?.UnregisterObject(this);
     }
     #endregion
 
@@ -364,13 +385,29 @@ public class NPCController : MonoBehaviour
         foreach (Renderer child in allRenderers)
         {
             if (child.name.Contains("RightFront"))
+            {
                 wheelFR = child.transform;
+                DistributeTransform(wheelFR);
+            }
+
             if (child.name.Contains("LeftFront"))
+            {
                 wheelFL = child.transform;
+                DistributeTransform(wheelFL);
+            }
+            
             if (child.name.Contains("LeftRear"))
+            {
                 wheelRL = child.transform;
+                DistributeTransform(wheelRL);
+            }
+            
             if (child.name.Contains("RightRear"))
+            {
                 wheelRR = child.transform;
+                DistributeTransform(wheelRR);
+            }
+            
             if (child.name.Contains("Body"))
             {
                 bodyRenderer = child;
@@ -1333,6 +1370,15 @@ public class NPCController : MonoBehaviour
         currentNPCLightState = (NPCLightStateTypes)state;
         SetHeadLights();
         SetRunningLights();
+        
+        if (SimulatorManager.Instance.Network.IsMaster)
+        {
+            var content = new BytesStack();
+            content.PushInt(state);
+            content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.SetLights);
+            var message = new Message(key, content, MessageType.ReliableOrdered);
+            BroadcastMessage(message);
+        }
     }
 
     private void SetHeadLights()
@@ -1479,6 +1525,15 @@ public class NPCController : MonoBehaviour
                 }
                 break;
         }
+        
+        if (SimulatorManager.Instance.Network.IsMaster)
+        {
+            var content = new BytesStack();
+            content.PushBool(state);
+            content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.SetBrakeLights);
+            var message = new Message(key, content, MessageType.ReliableOrdered);
+            BroadcastMessage(message);
+        }
     }
 
     private void ToggleBrakeLights()
@@ -1501,6 +1556,18 @@ public class NPCController : MonoBehaviour
             FixedUpdateManager.StopCoroutine(turnSignalIE);
         turnSignalIE = StartTurnSignal();
         Coroutines[(int)CoroutineID.StartTurnSignal] = FixedUpdateManager.StartCoroutine(turnSignalIE);
+        
+        if (SimulatorManager.Instance.Network.IsMaster)
+        {
+            //Force setting turn signals on clients
+            var content = new BytesStack();
+            content.PushBool(isRightTurn);
+            content.PushBool(isLeftTurn);
+            content.PushBool(true);
+            content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.SetNPCTurnSignal);
+            var message = new Message(key, content, MessageType.ReliableOrdered);
+            BroadcastMessage(message);
+        }
     }
 
     public void SetNPCHazards(bool state = false)
@@ -1515,6 +1582,15 @@ public class NPCController : MonoBehaviour
         {
             hazardSignalIE = StartHazardSignal();
             Coroutines[(int)CoroutineID.StartHazardSignal] = FixedUpdateManager.StartCoroutine(hazardSignalIE);
+        }
+        
+        if (SimulatorManager.Instance.Network.IsMaster)
+        {
+            var content = new BytesStack();
+            content.PushBool(state);
+            content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.SetNPCHazards);
+            var message = new Message(key, content, MessageType.ReliableOrdered);
+            BroadcastMessage(message);
         }
     }
 
@@ -1589,6 +1665,15 @@ public class NPCController : MonoBehaviour
         mats[indicatorReverseMatIndex].SetVector("_EmissiveColor", state ? Color.white * 10 : Color.black);
         bodyRenderer.materials = mats;
         indicatorReverseLight.enabled = state;
+        
+        if (SimulatorManager.Instance.Network.IsMaster)
+        {
+            var content = new BytesStack();
+            content.PushBool(state);
+            content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.SetIndicatorReverse);
+            var message = new Message(key, content, MessageType.ReliableOrdered);
+            BroadcastMessage(message);
+        }
     }
 
     private void ResetLights()
@@ -1603,6 +1688,14 @@ public class NPCController : MonoBehaviour
             FixedUpdateManager.StopCoroutine(hazardSignalIE);
         SetTurnIndicator(isReset: true);
         SetIndicatorReverse(false);
+        
+        if (SimulatorManager.Instance.Network.IsMaster)
+        {
+            var content = new BytesStack();
+            content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.ResetLights);
+            var message = new Message(key, content, MessageType.ReliableOrdered);
+            BroadcastMessage(message);
+        }
     }
     #endregion
 
@@ -1881,4 +1974,81 @@ public class NPCController : MonoBehaviour
             yield return new WaitForFixedUpdate();
         }
     }
+
+
+    #region network
+    /// <summary>
+    /// Adds required components to make transform distributed from master to clients
+    /// </summary>
+    /// <param name="transformToDistribute">Transform that will be distributed</param>
+    private void DistributeTransform(Transform transformToDistribute)
+    {
+        var network = SimulatorManager.Instance.Network;
+        if (transformToDistribute.gameObject.GetComponent<DistributedTransform>() != null)
+            return;
+        if (network.IsMaster)
+            transformToDistribute.gameObject.AddComponent<DistributedTransform>();
+        else if (network.IsClient)
+            transformToDistribute.gameObject.AddComponent<MockedTransform>();
+    }
+    
+    /// <inheritdoc/>
+    public void ReceiveMessage(IPeerManager sender, Message message)
+    {
+        var methodName = message.Content.PopEnum<NPCControllerMethodName>();
+        switch (methodName)
+        {
+            case NPCControllerMethodName.SetLights:
+                SetLights(message.Content.PopInt());
+                break;
+            case NPCControllerMethodName.SetBrakeLights:
+                SetBrakeLights(message.Content.PopBool());
+                break;
+            case NPCControllerMethodName.SetNPCTurnSignal:
+                SetNPCTurnSignal(message.Content.PopBool(), message.Content.PopBool(), message.Content.PopBool());
+                break;
+            case NPCControllerMethodName.SetNPCHazards:
+                SetNPCHazards(message.Content.PopBool());
+                break;
+            case NPCControllerMethodName.SetIndicatorReverse:
+                SetIndicatorReverse(message.Content.PopBool());
+                break;
+            case NPCControllerMethodName.ResetLights:
+                ResetLights();
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    /// <inheritdoc/>
+    public void UnicastMessage(IPEndPoint endPoint, Message message)
+    {
+        if (Key != null)
+            messagesManager?.UnicastMessage(endPoint, message);
+    }
+
+    /// <inheritdoc/>
+    public void BroadcastMessage(Message message)
+    {
+        if (Key != null)
+            messagesManager?.BroadcastMessage(message);
+    }
+
+    /// <inheritdoc/>
+    void IMessageSender.UnicastInitialMessages(IPEndPoint endPoint)
+    {
+        //TODO support reconnection - send instantiation messages to the peer
+    }
+
+    private enum NPCControllerMethodName
+    {
+        SetLights = 0,
+        SetBrakeLights = 1,
+        SetNPCTurnSignal = 2,
+        SetNPCHazards = 3,
+        SetIndicatorReverse = 4,
+        ResetLights = 5
+    }
+    #endregion
 }

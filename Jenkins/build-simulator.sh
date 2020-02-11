@@ -53,6 +53,12 @@ else
   fi
 fi
 
+if [ ! -z ${SIMULATOR_CONTROLLABLES+x} ]; then
+  CONTROLLABLES="-buildBundles -buildControllables ${SIMULATOR_CONTROLLABLES}"
+else
+  CONTROLLABLES=
+fi
+
 function finish
 {
   /opt/Unity/Editor/Unity \
@@ -135,6 +141,9 @@ else
 
 fi
 
+rm -Rf /mnt/AssetBundles/Controllables || true
+mkdir -p /mnt/AssetBundles/Controllables || true
+
 /opt/Unity/Editor/Unity ${DEVELOPMENT_BUILD} \
   -serial ${UNITY_SERIAL} \
   -username ${UNITY_USERNAME} \
@@ -147,8 +156,8 @@ fi
   -executeMethod Simulator.Editor.Build.Run \
   -buildTarget ${BUILD_TARGET} \
   -buildPlayer /tmp/${BUILD_OUTPUT} \
+  ${CONTROLLABLES} \
   -logFile /dev/stdout
-
 
 if [ ! -f /tmp/${BUILD_OUTPUT}/${BUILD_CHECK} ]; then
   echo "ERROR: *****************************************************************"
@@ -182,6 +191,9 @@ cp /mnt/LICENSE /tmp/${BUILD_OUTPUT}/LICENSE.txt
 cp /mnt/LICENSE-3RD-PARTY /tmp/${BUILD_OUTPUT}/LICENSE-3RD-PARTY.txt
 cp /mnt/PRIVACY /tmp/${BUILD_OUTPUT}/PRIVACY.txt
 cp /mnt/README.md /tmp/${BUILD_OUTPUT}/README.txt
+
+mkdir -p /tmp/${BUILD_OUTPUT}/AssetBundles/Controllables
+cp /mnt/AssetBundles/Controllables/controllable_* /tmp/${BUILD_OUTPUT}/AssetBundles/Controllables
 
 cd /tmp
 zip -r /mnt/${BUILD_OUTPUT}.zip ${BUILD_OUTPUT}

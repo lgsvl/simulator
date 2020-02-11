@@ -328,7 +328,6 @@ public class SimulatorCameraController : MonoBehaviour
     public void SetFollowCameraState(GameObject target)
     {
         SimulatorManager.Instance?.UIManager?.ResetCinematicAlpha();
-        SimulatorManager.Instance.UIManager.SetEnvironmentButton(false);
         Debug.Assert(target != null);
         transform.SetParent(SimulatorManager.Instance?.CameraManager.transform);
         CurrentCameraState = CameraStateType.Follow;
@@ -347,7 +346,6 @@ public class SimulatorCameraController : MonoBehaviour
     public void SetFreeCameraState()
     {
         SimulatorManager.Instance?.UIManager?.ResetCinematicAlpha();
-        SimulatorManager.Instance.UIManager.SetEnvironmentButton(false);
         transform.SetParent(SimulatorManager.Instance?.CameraManager.transform);
         CurrentCameraState = CameraStateType.Free;
         targetObject = null;
@@ -363,7 +361,6 @@ public class SimulatorCameraController : MonoBehaviour
     public void SetCinematicCameraState()
     {
         SimulatorManager.Instance?.UIManager?.FadeOutIn(1f);
-        SimulatorManager.Instance.UIManager.SetEnvironmentButton(true);
         CurrentCameraState = CameraStateType.Cinematic;
         targetObject = SimulatorManager.Instance.AgentManager.CurrentActiveAgent.transform;
         transform.position = targetObject.position + offset;

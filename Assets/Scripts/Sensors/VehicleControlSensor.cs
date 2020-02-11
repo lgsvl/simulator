@@ -43,9 +43,10 @@ namespace Simulator.Sensors
         private enum ControlType
         {
             None,
-            Autoware,
+            AutowareAi,
             Apollo,
             LGSVL,
+            AutowareAuto,
         };
         ControlType controlType = ControlType.None;
 
@@ -89,7 +90,7 @@ namespace Simulator.Sensors
 
                 if (data.Velocity.HasValue) // autoware
                 {
-                    controlType = ControlType.Autoware;
+                    controlType = ControlType.AutowareAi;
                     if (data.ShiftGearUp || data.ShiftGearDown)
                     {
                         if (data.ShiftGearUp) Dynamics.GearboxShiftUp();
@@ -150,6 +151,12 @@ namespace Simulator.Sensors
                     controlType = ControlType.LGSVL;
                     ADSteerInput = data.SteerInput.GetValueOrDefault();
                 }
+                else if (data.Acceleration.HasValue)
+                {
+                    controlType = ControlType.AutowareAuto;
+                    ADAccelInput = data.Acceleration.GetValueOrDefault() - data.Breaking.GetValueOrDefault();
+                    ADSteerInput = data.SteerAngle.GetValueOrDefault();
+                }
                 else
                 {
                     controlType = ControlType.None;
@@ -174,7 +181,7 @@ namespace Simulator.Sensors
             {
                 case ControlType.None:
                     break;
-                case ControlType.Autoware:
+                case ControlType.AutowareAi:
                     if (controlData == null)
                     {
                         return;
@@ -186,6 +193,15 @@ namespace Simulator.Sensors
                     graphData.Add("Steer Angle", controlData.SteerAngle.GetValueOrDefault());
                     graphData.Add("Velocity", controlData.Velocity.GetValueOrDefault());
                     graphData.Add("Steer Angle Velocity", controlData.SteerAngularVelocity.GetValueOrDefault());
+                    break;
+                case ControlType.AutowareAuto:
+                    if (controlData == null)
+                    {
+                        return;
+                    }
+                    graphData.Add("Acceleration", controlData.Acceleration.GetValueOrDefault());
+                    graphData.Add("Braking", controlData.Breaking.GetValueOrDefault());
+                    graphData.Add("Steer Angle", controlData.SteerAngle.GetValueOrDefault());
                     break;
                 case ControlType.Apollo:
                     if (controlData == null)

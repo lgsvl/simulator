@@ -15,6 +15,7 @@ using YamlDotNet.Serialization;
 using ICSharpCode.SharpZipLib.Zip;
 using Simulator.Database;
 using UnityEngine.SceneManagement;
+using System.IO;
 
 namespace Simulator.Api.Commands
 {
@@ -24,7 +25,7 @@ namespace Simulator.Api.Commands
         Ego = 1,
         Npc = 2,
         Pedestrian = 3,
-    }
+    };
 
     class AddAgent : ICommand
     {
@@ -192,8 +193,13 @@ namespace Simulator.Api.Commands
                         return null;
                     }
 
-                    var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_textures"));
-                    var textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+                    AssetBundle textureBundle = null;
+
+                    if (zip.FindEntry($"{manifest.bundleGuid}_vehicle_textures", true) != -1)
+                    {
+                        var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_textures"));
+                        textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+                    }
 
                     string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
                     var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_main_{platform}"));
@@ -216,7 +222,7 @@ namespace Simulator.Api.Commands
 
                         if (!AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
                         {
-                            textureBundle.LoadAllAssets();
+                            textureBundle?.LoadAllAssets();
                         }
 
                         var prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
@@ -225,7 +231,7 @@ namespace Simulator.Api.Commands
                     }
                     finally
                     {
-                        textureBundle.Unload(false);
+                        textureBundle?.Unload(false);
                         vehicleBundle.Unload(false);
                     }
                 }

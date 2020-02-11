@@ -16,6 +16,7 @@ using WebSocketSharp;
 using SimpleJSON;
 using Simulator.Bridge.Data;
 using Simulator.Bridge.Ros.LGSVL;
+using Simulator.Bridge.Ros.Autoware;
 
 namespace Simulator.Bridge.Ros
 {
@@ -132,14 +133,29 @@ namespace Simulator.Bridge.Ros
                 }
                 else if (Version == 2)
                 {
-                    type = typeof(TwistStamped);
-                    converter = (JSONNode json) => Conversions.ConvertTo((TwistStamped)Unserialize(json, type));
+                    // Since there is no mapping acceleration to throttle, VehicleControlCommand is not supported for now.
+                    // After supporting it, VehicleControlCommand will replace RawControlCommand.
+                    // type = typeof(Autoware.VehicleControlCommand);
+                    // converter = (JSONNode json) => Conversions.ConvertTo((Autoware.VehicleControlCommand)Unserialize(json, type));
+
+                    type = typeof(Autoware.RawControlCommand);
+                    converter = (JSONNode json) => Conversions.ConvertTo((Autoware.RawControlCommand)Unserialize(json, type));
                 }
                 else
                 {
                     type = typeof(Autoware.VehicleCmd);
                     converter = (JSONNode json) => Conversions.ConvertTo((Autoware.VehicleCmd)Unserialize(json, type));
                 }
+            }
+            else if (type == typeof(VehicleStateData))
+            {
+                type = typeof(Autoware.VehicleStateCommand);
+                converter = (JSONNode json) => Conversions.ConvertTo((Autoware.VehicleStateCommand)Unserialize(json, type));
+            }
+            else if (BridgeConfig.bridgeConverters.ContainsKey(type))
+            {
+                converter = (JSONNode json) => (BridgeConfig.bridgeConverters[type] as IDataConverter<T>).GetConverter(this);
+                type = (BridgeConfig.bridgeConverters[type] as IDataConverter<T>).GetOutputType(this);
             }
             else
             {
@@ -231,8 +247,16 @@ namespace Simulator.Bridge.Ros
             }
             else if (type == typeof(CanBusData))
             {
-                type = typeof(Apollo.ChassisMsg);
-                writer = new Writer<CanBusData, Apollo.ChassisMsg>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                if (Version == 2 && !Apollo)
+                {
+                    type = typeof(VehicleStateReport);
+                    writer = new Writer<CanBusData, VehicleStateReport>(this, topic, Conversions.ROS2ConvertFrom) as IWriter<T>;
+                }
+                else
+                {
+                    type = typeof(Apollo.ChassisMsg);
+                    writer = new Writer<CanBusData, Apollo.ChassisMsg>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                }
             }
             else if (type == typeof(GpsData))
             {
@@ -272,6 +296,11 @@ namespace Simulator.Bridge.Ros
                     type = typeof(Apollo.Gps);
                     writer = new Writer<GpsOdometryData, Apollo.Gps>(this, topic, Conversions.ApolloConvertFrom) as IWriter<T>;
                 }
+                else if (Version == 2 && !Apollo)
+                {
+                    type = typeof(VehicleOdometry);
+                    writer = new Writer<GpsOdometryData, VehicleOdometry>(this, topic, Conversions.ROS2ConvertFrom) as IWriter<T>;
+                }
                 else
                 {
                     type = typeof(Odometry);
@@ -282,6 +311,11 @@ namespace Simulator.Bridge.Ros
             {
                 type = typeof(Ros.Clock);
                 writer = new Writer<ClockData, Ros.Clock>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+            }
+            else if (BridgeConfig.bridgeConverters.ContainsKey(type))
+            {
+                writer = new Writer<T, object>(this, topic, (BridgeConfig.bridgeConverters[type] as IDataConverter<T>).GetConverter(this)) as IWriter<T>;
+                type = (BridgeConfig.bridgeConverters[type] as IDataConverter<T>).GetOutputType(this);
             }
             else
             {
@@ -327,7 +361,6 @@ namespace Simulator.Bridge.Ros
 
         public void AddService<Argument, Result>(string topic, Func<Argument, Result> callback)
         {
-            
             var argtype = typeof(Argument);
             var restype = typeof(Result);
 

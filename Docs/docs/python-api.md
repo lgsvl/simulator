@@ -376,10 +376,10 @@ and the third is the world position of the contact point.
 
 In addition to Agent callbacks, EgoVehicle has one extra callback.
 
-`on_custom` - called when a custom Sensor Plugin sends a callback; accepts three arguments:
-`(agent, kind, context)` - agent instance, kind of custom sensor as string, JSON context
+`on_custom` - called when a Sensor Plugin sends a callback; accepts three arguments:
+`(agent, kind, context)` - agent instance, kind of sensor plugin as string, JSON context
 
-See [Sensor Plugins](sensor-plugins.md) for more information on Custom Sensors.
+See [Sensor Plugins](sensor-plugins.md) for more information.
 
 ### [NpcVehicle](#npc-vehicles) Callbacks [[top]] {: #npcvehicle-callbacks data-toc-label='NpcVehicle Callbacks'}
 
@@ -543,6 +543,8 @@ Available controllable object types:
 
  * **signal**
 
+All Controllable objects can be added or removed dynamically. When reset() is called, all Controllables are removed and the ones in the map (if any) are added back. Controllable objects can be loaded plugins at runtime.  Plugin must include IControllable and be built using the Simulator build process from Assets/External/Controllables folder.
+
 To get a list of controllable objects in a scene:
 
 ```python
@@ -573,6 +575,34 @@ To change a current control policy, you can create a new control policy and call
 control_policy = "trigger=50;green=1;yellow=1.5;red=2;loop"
 signal.control(control_policy)
 ```
+
+To add a plugin controllable and set object state
+
+```python
+state = lgsvl.ObjectState()
+state.transform.position = lgsvl.Vector(0,0,0)
+state.transform.rotation = lgsvl.Vector(0,0,0)
+state.velocity = lgsvl.Vector(0,10,0)
+state.angular_velocity = lgsvl.Vector(6.5,0,0)
+
+cone = sim.controllable_add("TrafficCone", state)
+```
+
+To get plugin controllable object state
+
+```python
+cone.object_state
+```
+
+To set plugin controllable object state
+
+```python
+state = lgsvl.ObjectState()
+state.transform.position = lgsvl.Vector(0, 0, -10)
+cone.object_state = state
+```
+
+
 
 ## Helper Functions [[top]] {: #helper-functions data-toc-label='Helper Functions'}
 
@@ -619,6 +649,9 @@ When raycasting you should specify a `layer_mask` argument that specifies which 
 collision with. It corressponds to layers in the Unity project - check the project for actual values.
 
 ## Changelog [[top]] {: #changelog data-toc-label='Changelog'}
+
+* 2020-01-30
+        * Extended controllable objects to support plugins - see [controllable plugins](controllable-plugins.md)
 
 * 2019-09-05
         * Extended `DriveWaypoint` to support angle, idle time and trigger distance

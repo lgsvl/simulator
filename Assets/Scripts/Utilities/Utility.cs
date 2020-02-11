@@ -434,5 +434,13 @@ namespace Simulator.Utilities
             float defaultDpi = 96f;
             return Screen.dpi / defaultDpi;
         }
+
+        public static void SetKeyword(this Material material, string keyword, bool state)
+        {
+            if (state)
+                material.EnableKeyword(keyword);
+            else
+                material.DisableKeyword(keyword);
+        }
     }
 }

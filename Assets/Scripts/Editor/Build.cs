@@ -19,6 +19,7 @@ using Simulator.Map;
 using YamlDotNet.Serialization;
 using System.Net;
 using UnityEditor.Compilation;
+using Simulator.Controllable;
 using System.Reflection;
 using System.Text;
 
@@ -47,10 +48,12 @@ namespace Simulator.Editor
         Vector2 EnvironmentScroll;
         Vector2 VehicleScroll;
         Vector2 SensorScroll;
+        Vector2 ControllableScroll;
 
         Dictionary<string, bool?> Environments = new Dictionary<string, bool?>();
         Dictionary<string, bool?> Vehicles = new Dictionary<string, bool?>();
         Dictionary<string, bool?> Sensors = new Dictionary<string, bool?>();
+        Dictionary<string, bool?> Controllables = new Dictionary<string, bool?>();
 
         [SerializeField] BuildTarget Target;
         [SerializeField] bool BuildPlayer = false;
@@ -215,6 +218,48 @@ namespace Simulator.Editor
 
             EditorGUILayout.EndScrollView();
 
+            GUILayout.Label("Controllables", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox("Following Controllables were automatically detected:", UnityEditor.MessageType.None);
+
+            ControllableScroll = EditorGUILayout.BeginScrollView(ControllableScroll);
+
+            if (Controllables.Keys.Count != 0)
+            {
+                EditorGUILayout.BeginHorizontal(GUILayout.ExpandHeight(false));
+                if (GUILayout.Button("Select All", GUILayout.ExpandWidth(false)))
+                {
+                    foreach (var key in Controllables.Keys.ToArray())
+                    {
+                        Controllables[key] = true;
+                    }
+                }
+                if (GUILayout.Button("Select None", GUILayout.ExpandWidth(false)))
+                {
+                    foreach (var key in Controllables.Keys.ToArray())
+                    {
+                        Controllables[key] = false;
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
+            }
+
+            foreach (var name in Controllables.Keys.OrderBy(name => name))
+            {
+                var check = Controllables[name];
+                if (check.HasValue)
+                {
+                    Controllables[name] = GUILayout.Toggle(check.Value, name);
+                }
+                else
+                {
+                    EditorGUI.BeginDisabledGroup(true);
+                    GUILayout.Toggle(false, $"{name} (missing Controllables/{name}/{name}.{PrefabExtension} file)");
+                    EditorGUI.EndDisabledGroup();
+                }
+            }
+
+            EditorGUILayout.EndScrollView();
+
             GUILayout.Label("Options", EditorStyles.boldLabel);
 
             Target = (BuildTarget)EditorGUILayout.EnumPopup("Executable Platform:", Target);
@@ -260,9 +305,11 @@ namespace Simulator.Editor
                     var environments = Environments.Where(kv => kv.Value.HasValue && kv.Value.Value).Select(kv => kv.Key);
                     var vehicles = Vehicles.Where(kv => kv.Value.HasValue && kv.Value.Value).Select(kv => kv.Key);
                     var sensors = Sensors.Where(kv => kv.Value.HasValue && kv.Value.Value).Select(kv => kv.Key);
+                    var controllables = Controllables.Where(kv => kv.Value.HasValue && kv.Value.Value).Select(kv => kv.Key);
 
                     RunAssetBundleBuild(assetBundlesLocation, environments.ToList(), vehicles.ToList());
                     RunSensorsBuild(assetBundlesLocation, sensors.ToList());
+                    RunControllablesBuild(assetBundlesLocation, controllables.ToList());
                 }
                 finally
                 {
@@ -278,6 +325,7 @@ namespace Simulator.Editor
             Refresh(Environments, Path.Combine(external, "Environments"), SceneExtension);
             Refresh(Vehicles, Path.Combine(external, "Vehicles"), PrefabExtension);
             Refresh(Sensors, Path.Combine(external, "Sensors"), PrefabExtension);
+            Refresh(Controllables, Path.Combine(external, "Controllables"), PrefabExtension);
         }
 
         public static void Refresh(Dictionary<string, bool?> items, string folder, string suffix)
@@ -440,7 +488,18 @@ namespace Simulator.Editor
                         using (ZipFile archive = ZipFile.Create(Path.Combine(folder, $"environment_{manifest.assetName}")))
                         {
                             archive.BeginUpdate();
-                            archive.Add(new StaticDiskDataSource(Path.Combine(folder, textureBuild.assetBundleName)), textureBuild.assetBundleName, CompressionMethod.Stored, true);
+                            if (File.Exists(Path.Combine(folder, textureBuild.assetBundleName)))
+                            {
+                                archive.Add(new StaticDiskDataSource(Path.Combine(folder, textureBuild.assetBundleName)), textureBuild.assetBundleName, CompressionMethod.Stored, true);
+                            }
+                            else
+                            {
+                                if (textureBuild.assetNames.Length > 0)
+                                {
+                                    throw new Exception("Failed to build texture bundle! Fix texture errors and rebuild.");
+                                }
+                            }
+
                             archive.Add(new StaticDiskDataSource(Path.Combine(folder, linuxBuild.assetBundleName)), linuxBuild.assetBundleName, CompressionMethod.Stored, true);
                             archive.Add(new StaticDiskDataSource(Path.Combine(folder, windowsBuild.assetBundleName)), windowsBuild.assetBundleName, CompressionMethod.Stored, true);
                             archive.Add(new StaticDiskDataSource(Path.Combine(folder, "manifest")), "manifest", CompressionMethod.Stored, true);
@@ -507,7 +566,18 @@ namespace Simulator.Editor
                         using (ZipFile archive = ZipFile.Create(Path.Combine(folder, $"vehicle_{manifest.assetName}")))
                         {
                             archive.BeginUpdate();
-                            archive.Add(new StaticDiskDataSource(Path.Combine(folder, textureBuild.assetBundleName)), textureBuild.assetBundleName, CompressionMethod.Stored, true);
+                            if (File.Exists(Path.Combine(folder, textureBuild.assetBundleName)))
+                            {
+                                archive.Add(new StaticDiskDataSource(Path.Combine(folder, textureBuild.assetBundleName)), textureBuild.assetBundleName, CompressionMethod.Stored, true);
+                            }
+                            else
+                            {
+                                if (textureBuild.assetNames.Length > 0)
+                                {
+                                    throw new Exception("Failed to build texture bundle! Fix texture errors and rebuild.");
+                                }
+                            }
+
                             archive.Add(new StaticDiskDataSource(Path.Combine(folder, linuxBuild.assetBundleName)), linuxBuild.assetBundleName, CompressionMethod.Stored, true);
                             archive.Add(new StaticDiskDataSource(Path.Combine(folder, windowsBuild.assetBundleName)), windowsBuild.assetBundleName, CompressionMethod.Stored, true);
                             archive.Add(new StaticDiskDataSource(Path.Combine(folder, "manifest")), "manifest", CompressionMethod.Stored, true);
@@ -529,7 +599,6 @@ namespace Simulator.Editor
 
                     files = di.GetFiles($"AssetBundles*");
                     Array.ForEach(files, f => f.Delete());
-
                 }
             }
         }
@@ -635,6 +704,8 @@ namespace Simulator.Editor
                 }
                 f.WriteLine("</ul>");
 
+                // TODO api objects
+
                 f.WriteLine("</body></html>");
             }
         }
@@ -737,6 +808,8 @@ namespace Simulator.Editor
         {
             List<string> environments = new List<string>();
             List<string> vehicles = new List<string>();
+            List<string> sensors = new List<string>();
+            List<string> controllables = new List<string>();
             BuildTarget? buildTarget = null;
 
             string buildPlayer = null;
@@ -811,6 +884,30 @@ namespace Simulator.Editor
                         throw new Exception("-buildVehicles expects comma seperated vehicle names!");
                     }
                 }
+                else if (args[i] == "-buildSensors")
+                {
+                    if (i < args.Length - 1)
+                    {
+                        i++;
+                        sensors.AddRange(args[i].Split(','));
+                    }
+                    else
+                    {
+                        throw new Exception("-buildSensors expects comma seperated sensor names!");
+                    }
+                }
+                else if (args[i] == "-buildControllables")
+                {
+                    if (i < args.Length - 1)
+                    {
+                        i++;
+                        controllables.AddRange(args[i].Split(','));
+                    }
+                    else
+                    {
+                        throw new Exception("-buildControllables expects comma seperated Controllable names!");
+                    }
+                }
                 else if (args[i] == "-buildPlayer")
                 {
                     if (i < args.Length - 1)
@@ -842,10 +939,14 @@ namespace Simulator.Editor
             {
                 var availEnvironments = new Dictionary<string, bool?>();
                 var availVehicles = new Dictionary<string, bool?>();
+                var availSensors = new Dictionary<string, bool?>();
+                var availControllables = new Dictionary<string, bool?>();
 
                 var external = Path.Combine(Application.dataPath, "External");
                 Refresh(availEnvironments, Path.Combine(external, "Environments"), SceneExtension);
                 Refresh(availVehicles, Path.Combine(external, "Vehicles"), PrefabExtension);
+                Refresh(availSensors, Path.Combine(external, "Sensors"), PrefabExtension);
+                Refresh(availControllables, Path.Combine(external, "Controllables"), PrefabExtension);
 
                 if (environments.Count == 1 && environments[0] == "all")
                 {
@@ -877,9 +978,39 @@ namespace Simulator.Editor
                     }
                 }
 
-                if (environments.Count == 0 && vehicles.Count == 0)
+                if (sensors.Count == 1 && sensors[0] == "all")
                 {
-                    throw new Exception($"No environments or vehicles to build");
+                    sensors = availSensors.Where(kv => kv.Value.HasValue).Select(kv => kv.Key).ToList();
+                }
+                else
+                {
+                    foreach (var sensor in sensors)
+                    {
+                        if (!availSensors.ContainsKey(sensor))
+                        {
+                            throw new Exception($"Sensor '{sensor}' is not available");
+                        }
+                    }
+                }
+
+                if (controllables.Count == 1 && controllables[0] == "all")
+                {
+                    controllables = availControllables.Where(kv => kv.Value.HasValue).Select(kv => kv.Key).ToList();
+                }
+                else
+                {
+                    foreach (var obj in controllables)
+                    {
+                        if (!availControllables.ContainsKey(obj))
+                        {
+                            throw new Exception($"Controllable '{obj}' is not available");
+                        }
+                    }
+                }
+
+                if (environments.Count == 0 && vehicles.Count == 0 && sensors.Count == 0 && controllables.Count == 0)
+                {
+                    throw new Exception($"No environments, vehicles, sensors or controllables to build");
                 }
             }
 
@@ -895,6 +1026,8 @@ namespace Simulator.Editor
                 {
                     var assetBundlesLocation = Path.Combine(Application.dataPath, "..", "AssetBundles");
                     RunAssetBundleBuild(assetBundlesLocation, environments, vehicles);
+                    RunSensorsBuild(assetBundlesLocation, sensors);
+                    RunControllablesBuild(assetBundlesLocation, controllables);
                 }
 
                 if (saveBundleLinks != null)
@@ -941,6 +1074,8 @@ namespace Simulator.Editor
                     asmdefContents.name = filename;
                     asmdefContents.references = sensorsAsmDef.references;
                     File.WriteAllText(Path.Combine(externalSensors, filename, $"{filename}.asmdef"), JsonUtility.ToJson(asmdefContents));
+
+                    AssetDatabase.Refresh();
 
                     Manifest manifest = new Manifest
                     {
@@ -1073,6 +1208,184 @@ namespace Simulator.Editor
 
                     SilentDelete(Path.Combine(externalSensors, filename, $"{filename}.asmdef"));
                     SilentDelete(Path.Combine(externalSensors, filename, $"{filename}.asmdef.meta"));
+                }
+            }
+        }
+
+        static void RunControllablesBuild(string outputFolder, List<string> controllables)
+        {
+            outputFolder = Path.Combine(outputFolder, "Controllables");
+            Directory.CreateDirectory(outputFolder);
+
+            var externalControllables = Path.Combine(Application.dataPath, "External", "Controllables");
+            List<DirectoryInfo> directories = new List<DirectoryInfo>();
+            foreach (var s in controllables)
+            {
+                directories.Add(new DirectoryInfo(Path.Combine(Application.dataPath, "External", "Controllables", s)));
+            }
+
+            var controllablesAsmDefPath = Path.Combine(externalControllables, "Simulator.Controllables.asmdef");
+            var controllablesAsmDef = JsonUtility.FromJson<AsmdefBody>(File.ReadAllText(controllablesAsmDefPath));
+
+            foreach (var directoryInfo in directories)
+            {
+                string bundleGuid = Guid.NewGuid().ToString();
+                string filename = directoryInfo.Name;
+
+                try
+                {
+                    var prefab = Path.Combine("Assets", "External", "Controllables", filename, $"{filename}.prefab");
+                    if (!File.Exists(Path.Combine(Application.dataPath, "..", prefab)))
+                    {
+                        Debug.LogError($"Building of {filename} failed: {prefab} not found");
+                        break;
+                    }
+
+                    AsmdefBody asmdefContents = new AsmdefBody();
+                    asmdefContents.name = filename;
+                    asmdefContents.references = controllablesAsmDef.references;
+                    File.WriteAllText(Path.Combine(externalControllables, filename, $"{filename}.asmdef"), JsonUtility.ToJson(asmdefContents));
+
+                    AssetDatabase.Refresh();
+
+                    Manifest manifest = new Manifest
+                    {
+                        assetName = filename,
+                        bundleGuid = bundleGuid,
+                        bundleFormat = BundleConfig.ControllableBundleFormatVersion,
+                        description = "",
+                        licenseName = "",
+                        authorName = "",
+                        authorUrl = "",
+                    };
+
+                    var textureBuild = new AssetBundleBuild()
+                    {
+                        assetBundleName = $"{manifest.bundleGuid}_controllable_textures",
+                        assetNames = AssetDatabase.GetDependencies(prefab).Where(a => a.EndsWith(".png") || a.EndsWith(".jpg")).ToArray()
+                    };
+
+                    var windowsBuild = new AssetBundleBuild()
+                    {
+                        assetBundleName = $"{bundleGuid}_controllable_main_windows",
+                        assetNames = new[] { prefab },
+                    };
+
+                    BuildPipeline.BuildAssetBundles(
+                            outputFolder,
+                            new[] { textureBuild, windowsBuild },
+                            BuildAssetBundleOptions.ChunkBasedCompression | BuildAssetBundleOptions.StrictMode,
+                            UnityEditor.BuildTarget.StandaloneWindows64);
+
+                    if (!File.Exists(Path.Combine(outputFolder, windowsBuild.assetBundleName)))
+                    {
+                        Debug.LogError($"Failed to find Windows asset bundle of {filename}. Please correct other errors and try again.");
+                        return;
+                    }
+
+                    var linuxBuild = new AssetBundleBuild()
+                    {
+                        assetBundleName = $"{bundleGuid}_controllable_main_linux",
+                        assetNames = new[] { prefab },
+                    };
+
+                    BuildPipeline.BuildAssetBundles(
+                            outputFolder,
+                            new[] { textureBuild, linuxBuild },
+                            BuildAssetBundleOptions.ChunkBasedCompression | BuildAssetBundleOptions.StrictMode,
+                            UnityEditor.BuildTarget.StandaloneLinux64);
+
+                    if (!File.Exists(Path.Combine(outputFolder, linuxBuild.assetBundleName)))
+                    {
+                        Debug.LogError($"Failed to find Linux asset bundle of {filename}. Please correct other errors and try again.");
+                        return;
+                    }
+
+                    DirectoryInfo prefabDir = new DirectoryInfo(Path.Combine(externalControllables, filename));
+                    var scripts = prefabDir.GetFiles("*.cs", SearchOption.AllDirectories).Select(script => script.FullName).ToArray();
+
+                    var outputAssembly = Path.Combine(outputFolder, $"{filename}.dll");
+                    var assemblyBuilder = new AssemblyBuilder(outputAssembly, scripts);
+
+                    var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+                    var modules = assemblies.Where(asm =>
+                                                    asm.GetName().Name == "UnityEngine" ||
+                                                    asm.GetName().Name == "UnityEngine.JSONSerializeModule" ||
+                                                    asm.GetName().Name == "UnityEngine.CoreModule" ||
+                                                    asm.GetName().Name == "UnityEngine.PhysicsModule").ToArray();
+
+                    assemblyBuilder.additionalReferences = modules.Select(a => a.Location).ToArray();
+
+                    assemblyBuilder.buildFinished += delegate (string assemblyPath, CompilerMessage[] compilerMessages)
+                    {
+                        var errorCount = compilerMessages.Count(m => m.type == CompilerMessageType.Error);
+                        var warningCount = compilerMessages.Count(m => m.type == CompilerMessageType.Warning);
+
+                        try
+                        {
+                            Debug.Log($"Assembly build finished for {assemblyPath}");
+                            if (errorCount != 0)
+                            {
+                                Debug.Log($"Found {errorCount} errors");
+
+                                foreach (CompilerMessage message in compilerMessages)
+                                {
+                                    if (message.type == CompilerMessageType.Error)
+                                    {
+                                        Debug.LogError(message.message);
+                                        return;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                var manifestOutput = Path.Combine(outputFolder, "manifest");
+                                File.WriteAllText(manifestOutput, new Serializer().Serialize(manifest));
+
+                                using (ZipFile archive = ZipFile.Create(Path.Combine(outputFolder, $"controllable_{filename}")))
+                                {
+                                    archive.BeginUpdate();
+                                    archive.Add(new StaticDiskDataSource(Path.Combine(outputFolder, textureBuild.assetBundleName)), textureBuild.assetBundleName, CompressionMethod.Stored, true);
+                                    archive.Add(new StaticDiskDataSource(Path.Combine(outputFolder, linuxBuild.assetBundleName)), linuxBuild.assetBundleName, CompressionMethod.Stored, true);
+                                    archive.Add(new StaticDiskDataSource(Path.Combine(outputFolder, windowsBuild.assetBundleName)), windowsBuild.assetBundleName, CompressionMethod.Stored, true);
+                                    archive.Add(new StaticDiskDataSource(outputAssembly), $"{filename}.dll", CompressionMethod.Stored, true);
+                                    archive.Add(new StaticDiskDataSource(manifestOutput), "manifest", CompressionMethod.Stored, true);
+                                    archive.CommitUpdate();
+                                    archive.Close();
+                                }
+
+                            }
+                        }
+                        finally
+                        {
+                            var di = new DirectoryInfo(outputFolder);
+                            SilentDelete(Path.Combine(outputFolder, $"{filename}.dll"));
+                            SilentDelete(Path.Combine(outputFolder, $"{filename}.pdb"));
+                            SilentDelete(Path.Combine(outputFolder, "manifest"));
+                        }
+                    };
+
+                    // Start build of assembly
+                    if (!assemblyBuilder.Build())
+                    {
+                        Debug.LogErrorFormat("Failed to start build of assembly {0}!", assemblyBuilder.assemblyPath);
+                        return;
+                    }
+
+                    while (assemblyBuilder.status != AssemblyBuilderStatus.Finished) { }
+                }
+                finally
+                {
+                    var di = new DirectoryInfo(outputFolder);
+
+                    var files = di.GetFiles($"{bundleGuid}*");
+                    Array.ForEach(files, f => SilentDelete(f.FullName));
+
+                    SilentDelete(Path.Combine(outputFolder, "Controllables"));
+                    SilentDelete(Path.Combine(outputFolder, "Controllables.manifest"));
+
+                    SilentDelete(Path.Combine(externalControllables, filename, $"{filename}.asmdef"));
+                    SilentDelete(Path.Combine(externalControllables, filename, $"{filename}.asmdef.meta"));
                 }
             }
         }

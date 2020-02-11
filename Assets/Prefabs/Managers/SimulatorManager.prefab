@@ -51,6 +51,8 @@ MonoBehaviour:
     type: 3}
   pedestrianManagerPrefab: {fileID: 7152559145184925812, guid: 4a1c6dfde4163e149a4592ffd94376b2,
     type: 3}
+  controllableManagerPrefab: {fileID: 7724403096658008543, guid: 75626b12824a07c419bf9027e0a33919,
+    type: 3}
   environmentEffectsManagerPrefab: {fileID: 9207118781026612424, guid: d8795d0520e821f44918c827b3009cf4,
     type: 3}
   cameraManagerPrefab: {fileID: 4458818060005220018, guid: bc6fb6c957e13a2419f15503fd2a9e42,

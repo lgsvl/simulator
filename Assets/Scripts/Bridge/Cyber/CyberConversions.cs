@@ -415,7 +415,7 @@ namespace Simulator.Bridge.Cyber
                     }).ToArray(),
             };
         }
-        
+
         public static VehicleControlData ConvertTo(apollo.control.ControlCommand data)
         {
             var vehicleControlData = new VehicleControlData()

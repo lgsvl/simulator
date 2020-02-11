@@ -17,6 +17,7 @@ using Simulator.Sensors;
 using Simulator.Components;
 using System.Text;
 using System.Collections.Concurrent;
+using System.Linq;
 
 public class UIManager : MonoBehaviour
 {
@@ -58,6 +59,7 @@ public class UIManager : MonoBehaviour
     public Button EnvironmentButton;
     public Button VisualizerButton;
     public Button ResetButton;
+    public Button DisableAllButton;
     public Button BridgeButton;
     public Text PlayText;
     public Text PauseText;
@@ -69,7 +71,9 @@ public class UIManager : MonoBehaviour
     public Transform BridgeContent;
     private BridgeClient BridgeClient;
     private Text BridgeClientStatusText;
-    private Dictionary<string, Text> CurrentBridgeInfo = new Dictionary<string, Text>();
+    private bool paused = false;
+    private Dictionary<string, Text> CurrentBridgePublisherInfo = new Dictionary<string, Text>();
+    private Dictionary<string, Text> CurrentBridgeSubscriberInfo = new Dictionary<string, Text>();
 
     [Space(10)]
 
@@ -143,19 +147,28 @@ public class UIManager : MonoBehaviour
     {
         PauseButton.gameObject.SetActive(false);
         EnvironmentButton.gameObject.SetActive(false);
+        MenuHolder.SetActive(false);
 
         var config = Loader.Instance?.SimConfig;
         if (config != null)
         {
-            if (config.Headless)
+            if (config.Headless) //TODO api and headless? reset?
             {
                 LoaderUICanvas.gameObject.SetActive(true);
                 SimulatorCanvas.gameObject.SetActive(false);
                 SimulatorManager.Instance.CameraManager.SimulatorCamera.cullingMask = 1  << LayerMask.NameToLayer("UI");
             }
 
-            PauseButton.gameObject.SetActive(config.Interactive);
+            var usePauseButton = config.Interactive;
+            PauseButton.gameObject.SetActive(usePauseButton);
+            if (usePauseButton)
+            {
+                PauseSimulation();
+                SimulatorManager.Instance.TimeManager.TimeScaleLocksChanged += UpdatePauseButton;
+            }
+
             EnvironmentButton.gameObject.SetActive(config.Interactive);
+            MenuHolder.SetActive(config.Interactive);
 
             if (config.Interactive)
             {
@@ -192,16 +205,12 @@ public class UIManager : MonoBehaviour
         EnvironmentButton.onClick.AddListener(EnvironmentButtonOnClick);
         VisualizerButton.onClick.AddListener(VisualizerButtonOnClick);
         ResetButton.onClick.AddListener(ResetOnClick);
+        DisableAllButton.onClick.AddListener(DisableAllOnClick);
         BridgeButton.onClick.AddListener(BridgeButtonOnClick);
         AgentDropdown.onValueChanged.AddListener(OnAgentSelected);
         CameraButton.onClick.AddListener(CameraButtonOnClick);
 
-        LockedText.gameObject.SetActive(true);
-        UnlockedText.gameObject.SetActive(false);
-        CinematicText.gameObject.SetActive(false);
-        
-        SetAgentDropdown();
-        MenuHolder.SetActive(true);
+        SetCameraButtonState();
     }
 
     private void Update()
@@ -247,11 +256,24 @@ public class UIManager : MonoBehaviour
         ControlsButton.onClick.RemoveListener(ControlsButtonOnClick);
         EnvironmentButton.onClick.RemoveListener(EnvironmentButtonOnClick);
         VisualizerButton.onClick.RemoveListener(VisualizerButtonOnClick);
-        ResetButton.onClick.AddListener(ResetOnClick);
+        ResetButton.onClick.RemoveListener(ResetOnClick);
+        DisableAllButton.onClick.RemoveListener(DisableAllOnClick);
         BridgeButton.onClick.RemoveListener(BridgeButtonOnClick);
         AgentDropdown.onValueChanged.RemoveListener(OnAgentSelected);
         CameraButton.onClick.RemoveListener(CameraButtonOnClick);
         CloseButton.onClick.RemoveListener(CloseButtonOnClick);
+        if (Loader.Instance != null && Loader.Instance.SimConfig != null) // TODO fix for Editor needs SimConfig
+        {
+            if (Loader.Instance.SimConfig.Interactive)
+                SimulatorManager.Instance.TimeManager.TimeScaleLocksChanged -= UpdatePauseButton;
+        }
+            
+    }
+
+    public void Reset() //api
+    {
+        SetCameraButtonState();
+        CloseButtonOnClick();
     }
 
     public void SetCameraButtonState()
@@ -283,12 +305,16 @@ public class UIManager : MonoBehaviour
         SimulatorManager.Instance.CameraManager.ToggleCameraState();
     }
 
-    private void SetAgentDropdown()
+    public void SetAgentsDropdown()
     {
+        AgentDropdown.options.Clear();
+        AgentDropdown.ClearOptions();
         for (int i = 0; i < SimulatorManager.Instance.AgentManager.ActiveAgents.Count; i++)
         {
             AgentDropdown.options.Add(new Dropdown.OptionData((i + 1) + " - " + SimulatorManager.Instance.AgentManager.ActiveAgents[i].name));
         }
+        AgentDropdown.value = SimulatorManager.Instance.AgentManager.GetCurrentActiveAgentIndex();
+        AgentDropdown.RefreshShownValue();
     }
 
     public void OnAgentSelected(int value)
@@ -365,7 +391,8 @@ public class UIManager : MonoBehaviour
 
     private void SetAgentBridgeInfo(GameObject agent)
     {
-        CurrentBridgeInfo.Clear();
+        CurrentBridgePublisherInfo.Clear();
+        CurrentBridgeSubscriberInfo.Clear();
         BridgeClient = null;
         BridgeClientStatusText = null;
         var temp = BridgeContent.GetComponentsInChildren<InfoTextOnClick>();
@@ -380,7 +407,7 @@ public class UIManager : MonoBehaviour
             CreateBridgeInfo($"Vehicle: {agent.name}");
             CreateBridgeInfo($"Bridge Status: {BridgeClient.BridgeStatus}", true);
             CreateBridgeInfo($"Address: {BridgeClient.PrettyAddress.ToString()}");
-            
+
             foreach (var pub in BridgeClient.Bridge.TopicPublishers)
             {
                 sb.Clear();
@@ -389,9 +416,12 @@ public class UIManager : MonoBehaviour
                 sb.AppendLine($"Type: {pub.Type}");
                 sb.AppendLine($"Frequency: {pub.Frequency:F2} Hz");
                 sb.AppendLine($"Count: {pub.Count}");
-                CurrentBridgeInfo.Add(pub.Topic, CreateBridgeInfo(sb.ToString()));
+                if (!CurrentBridgePublisherInfo.ContainsKey(pub.Topic))
+                {
+                    CurrentBridgePublisherInfo.Add(pub.Topic, CreateBridgeInfo(sb.ToString()));
+                }
             }
-            
+
             foreach (var sub in BridgeClient.Bridge.TopicSubscriptions)
             {
                 sb.Clear();
@@ -400,7 +430,10 @@ public class UIManager : MonoBehaviour
                 sb.AppendLine($"Type: {sub.Type}");
                 sb.AppendLine($"Frequency: {sub.Frequency:F2} Hz");
                 sb.AppendLine($"Count: {sub.Count}");
-                CurrentBridgeInfo.Add(sub.Topic, CreateBridgeInfo(sb.ToString()));
+                if (!CurrentBridgeSubscriberInfo.ContainsKey(sub.Topic))
+                {
+                    CurrentBridgeSubscriberInfo.Add(sub.Topic, CreateBridgeInfo(sb.ToString()));
+                }
             }
         }
         else
@@ -409,7 +442,7 @@ public class UIManager : MonoBehaviour
             CreateBridgeInfo("Bridge Status: Null");
         }
     }
-    
+
     private Text CreateBridgeInfo(string text, bool isBridgeStatus = false)
     {
         var bridgeInfo = Instantiate(InfoTextPrefab, BridgeContent);
@@ -434,15 +467,16 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        if (CurrentBridgeInfo == null)
+        if (CurrentBridgePublisherInfo == null && CurrentBridgeSubscriberInfo == null)
         {
             return;
         }
 
         foreach (var pub in BridgeClient.Bridge.TopicPublishers)
         {
-            if (CurrentBridgeInfo.TryGetValue(pub.Topic, out Text ui))
+            if (CurrentBridgePublisherInfo.ContainsKey(pub.Topic))
             {
+                Text ui = CurrentBridgePublisherInfo[pub.Topic];
                 if (pub.ElapsedTime >= 1 && pub.Count > pub.StartCount)
                 {
                     pub.Frequency = (pub.Count - pub.StartCount) / pub.ElapsedTime;
@@ -466,8 +500,9 @@ public class UIManager : MonoBehaviour
 
         foreach (var sub in BridgeClient.Bridge.TopicSubscriptions)
         {
-            if (CurrentBridgeInfo.TryGetValue(sub.Topic, out Text ui))
+            if (CurrentBridgeSubscriberInfo.ContainsKey(sub.Topic))
             {
+                Text ui = CurrentBridgeSubscriberInfo[sub.Topic];
                 if (sub.ElapsedTime >= 1 && sub.Count > sub.StartCount)
                 {
                     sub.Frequency = (sub.Count - sub.StartCount) / sub.ElapsedTime;
@@ -546,10 +581,43 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        bool paused = Time.timeScale == 0.0f;
-        SimulatorManager.SetTimeScale(paused ? 1f : 0f);
-        PlayText.gameObject.SetActive(!paused);
-        PauseText.gameObject.SetActive(paused);
+        if (paused)
+            ContinueSimulation();
+        else
+            PauseSimulation();
+    }
+
+    private void PauseSimulation()
+    {
+        if (paused)
+            return;
+        var timeManager = SimulatorManager.Instance.TimeManager;
+        timeManager.LockTimeScale();
+        paused = true;
+        UpdatePauseButton(timeManager.TimeScaleLocks);
+    }
+
+    private void ContinueSimulation()
+    {
+        if (!paused)
+            return;
+        var timeManager = SimulatorManager.Instance.TimeManager;
+        timeManager.UnlockTimeScale();
+        //TODO integrate all scripts with the lock/unlock timescale and remove setting timescale here
+        if (timeManager.IsTimeScaleUnlocked && Mathf.Approximately(timeManager.TimeScale, 0.0f))
+            timeManager.TimeScale = 1.0f;
+        paused = false;
+        UpdatePauseButton(timeManager.TimeScaleLocks);
+    }
+
+    private void UpdatePauseButton(float timeScaleLocks)
+    {
+        PlayText.gameObject.SetActive(paused);
+        PauseText.gameObject.SetActive(!paused);
+        var externalPause = timeScaleLocks - (paused ? 1 : 0) > 0;
+        PauseButton.interactable = !externalPause;
+        //TODO better visual effect for disabled button
+        (paused ? PlayText : PauseText).color = (externalPause ? new Color(0.3f, 0.3f, 0.3f) : new Color(0.8f, 0.8f, 0.8f));
     }
 
     private void InfoButtonOnClick()
@@ -561,7 +629,7 @@ public class UIManager : MonoBehaviour
     private void ClearButtonOnClick()
     {
         var temp = InfoContent.GetComponentsInChildren<InfoTextOnClick>();
-        
+
         for (int i = 0; i < temp.Length; i++)
         {
             if (!temp[i].BuildInfo)
@@ -573,20 +641,6 @@ public class UIManager : MonoBehaviour
     {
         currentPanelType = PanelType.Controls;
         SetCurrentPanel();
-    }
-
-    public void SetEnvironmentButton(bool state)
-    {
-        // if interactive environment button is active
-        var config = Loader.Instance?.SimConfig;
-        if (config != null && config.Interactive)
-            return;
-
-        EnvironmentButton.gameObject.SetActive(state);
-        if (!state)
-        {
-            EnvironmentPanel.SetActive(false);
-        }
     }
 
     private void EnvironmentButtonOnClick()
@@ -609,7 +663,7 @@ public class UIManager : MonoBehaviour
         currentPanelType = PanelType.Environment;
         SetCurrentPanel();
     }
-    
+
     private void VisualizerButtonOnClick()
     {
         currentPanelType = PanelType.Visualizer;
@@ -621,7 +675,7 @@ public class UIManager : MonoBehaviour
         currentPanelType = PanelType.Bridge;
         SetCurrentPanel();
     }
-    
+
     public void TimeOfDayOnValueChanged(float value)
     {
         if (SimulatorManager.Instance == null) return;
@@ -681,7 +735,7 @@ public class UIManager : MonoBehaviour
         visualizerToggles.Add(tog);
         tog.VisualizerNameText.text = sensor.Name;
         tog.Sensor = sensor;
-        
+
         var vis = Instantiate(VisualizerPrefab, VisualizerCanvasGO.transform);
         visualizers.Add(vis);
         vis.transform.localPosition = Vector2.zero;
@@ -711,6 +765,11 @@ public class UIManager : MonoBehaviour
         }
         LayoutRebuilder.ForceRebuildLayoutImmediate(VisualizerCanvasGO.GetComponent<RectTransform>());
         VisualizerGridLayoutGroup.enabled = false;
+    }
+
+    private void DisableAllOnClick()
+    {
+        visualizers.ForEach(x => x.gameObject.SetActive(false));
     }
 
     public void ToggleVisualizers()

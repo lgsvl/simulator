@@ -1,4 +1,11 @@
-﻿namespace Simulator.Editor.PropertyDrawers
+/**
+ * Copyright (c) 2019 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
+namespace Simulator.Editor.PropertyDrawers
 {
     using System.IO;
     using UnityEditor;

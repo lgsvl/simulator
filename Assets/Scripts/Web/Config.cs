@@ -6,12 +6,14 @@
  */
 using ICSharpCode.SharpZipLib.Zip;
 using Simulator.Bridge;
+using Simulator.Controllable;
 using Simulator.Sensors;
 using Simulator.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using UnityEngine;
 using YamlDotNet.Serialization;
@@ -45,6 +47,8 @@ namespace Simulator.Web
         public static List<SensorConfig> Sensors;
         public static List<IBridgeFactory> Bridges;
 
+        public static Dictionary<string, IControllable> Controllables;
+
         public static int DefaultPageSize = 100;
 
         public static byte[] salt { get; set; }
@@ -59,6 +63,7 @@ namespace Simulator.Web
             Root = Path.Combine(Application.dataPath, "..");
             PersistentDataPath = Application.persistentDataPath;
             SensorPrefabs = LoadSensorPlugins();
+            Controllables = LoadControllablePlugins();
             Sensors = SensorTypes.ListSensorFields(SensorPrefabs);
             Bridges = BridgeTypes.GetBridgeTypes();
 
@@ -134,7 +139,21 @@ namespace Simulator.Web
                                 throw new Exception("BundleFormat version mismatch");
                             }
 
-                            System.Reflection.Assembly.Load(GetFile(zip, $"{manifest.assetName}.dll"));
+                            Assembly pluginSource = Assembly.Load(GetFile(zip, $"{manifest.assetName}.dll"));
+                            foreach (Type ty in pluginSource.GetTypes())
+                            {
+                                Type interfaceType = ty.GetInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IDataConverter<>));
+                                if (interfaceType != null)
+                                {
+                                    Type converterType = interfaceType.GetGenericArguments()[0];
+                                    if (!BridgeConfig.bridgeConverters.ContainsKey(converterType))
+                                    {
+                                        object instance = Activator.CreateInstance(ty);
+                                        BridgeConfig.bridgeConverters.Add(converterType, instance as IDataConverter);
+                                    }
+                                }
+                            }
+
                             string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
                             var pluginStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_sensor_main_{platform}"));
                             AssetBundle pluginBundle = AssetBundle.LoadFromStream(pluginStream);
@@ -146,6 +165,55 @@ namespace Simulator.Web
                     {
                         Debug.LogException(ex);
                         Debug.LogError($"Failed to load sensor plugin {file.FullName}, skipping it.");
+                    }
+                }
+            }
+
+            return prefabs;
+        }
+
+        public static Dictionary<string, IControllable> LoadControllablePlugins()
+        {
+            AssetBundle.UnloadAllAssetBundles(false);
+            Dictionary<string, IControllable> prefabs = new Dictionary<string, IControllable>();
+
+            var controllableDirectory = Path.Combine(Application.dataPath, "..", "AssetBundles", "Controllables");
+            if (Directory.Exists(controllableDirectory))
+            {
+                DirectoryInfo dir = new DirectoryInfo(controllableDirectory);
+                foreach (FileInfo file in dir.GetFiles())
+                {
+                    try
+                    {
+                        var path = file.FullName;
+                        using (ZipFile zip = new ZipFile(path))
+                        {
+                            string manfile = Encoding.UTF8.GetString(GetFile(zip, "manifest"));
+                            Manifest manifest = new Deserializer().Deserialize<Manifest>(manfile);
+                            if (manifest.bundleFormat != BundleConfig.ControllableBundleFormatVersion)
+                            {
+                                throw new Exception("BundleFormat version mismatch");
+                            }
+
+                            var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_controllable_textures"));
+                            var textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+
+                            Assembly.Load(GetFile(zip, $"{manifest.assetName}.dll"));
+                            string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
+                            var pluginStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_controllable_main_{platform}"));
+                            AssetBundle pluginBundle = AssetBundle.LoadFromStream(pluginStream);
+                            var pluginAssets = pluginBundle.GetAllAssetNames();
+                            if (!AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
+                            {
+                                textureBundle.LoadAllAssets();
+                            }
+                            prefabs.Add(manifest.assetName, pluginBundle.LoadAsset<GameObject>(pluginAssets[0]).GetComponent<IControllable>());
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogException(ex);
+                        Debug.LogError($"Failed to load controllable plugin {file.FullName}, skipping it.");
                     }
                 }
             }

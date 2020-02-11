@@ -61,4 +61,9 @@ public class CameraManager : MonoBehaviour
     {
         return CameraController.CurrentCameraState;
     }
+
+    public void Reset()
+    {
+        CameraController.SetFollowCameraState(gameObject);
+    }
 }

@@ -28,9 +28,16 @@ using ICSharpCode.SharpZipLib.Zip;
 using YamlDotNet.Serialization;
 using System.Net.Http;
 using SimpleJSON;
+using Simulator.Network.Client;
+using Simulator.Network.Core.Shared.Configs;
+using Simulator.Network.Core.Shared.Threading;
+using MasterManager = Simulator.Network.Master.MasterManager;
+
 
 namespace Simulator
 {
+    using Network;
+
     public class AgentConfig
     {
         public string Name;
@@ -70,11 +77,12 @@ namespace Simulator
         public string Address { get; private set; }
 
         private NancyHost Server;
+        private MasterManager masterManager;
+        private ClientManager clientManager;
         public SimulatorManager SimulatorManagerPrefab;
         public ApiManager ApiManagerPrefab;
 
-        public Network.MasterManager Master;
-        public Network.ClientManager Client;
+        public NetworkSettings NetworkSettings;
 
         public LoaderUI LoaderUI => FindObjectOfType<LoaderUI>();
 
@@ -82,7 +90,7 @@ namespace Simulator
         public SimulationModel CurrentSimulation;
 
         ConcurrentQueue<Action> Actions = new ConcurrentQueue<Action>();
-        string LoaderScene;
+        public string LoaderScene { get; private set; }
 
         public SimulationConfig SimConfig;
 
@@ -93,8 +101,10 @@ namespace Simulator
         private void Awake()
         {
             stopWatch.Start();
-            SIM.Identify();
             RenderLimiter.RenderLimitEnabled();
+
+            var info = Resources.Load<BuildInfo>("BuildInfo");
+            SIM.Init(info == null ? "Development" : info.Version);
 
             if (PlayerPrefs.HasKey("Salt"))
             {
@@ -117,12 +127,16 @@ namespace Simulator
                 Destroy(gameObject);
                 return;
             }
-
+            
             if (!Config.RunAsMaster)
             {
                 // TODO: change UI and do not run rest of code
-                var obj = new GameObject("ClientManager");
-                obj.AddComponent<Network.ClientManager>();
+                var clientGameObject = new GameObject("ClientManager");
+                clientManager = clientGameObject.AddComponent<ClientManager>();
+                clientManager.SetSettings(NetworkSettings);
+                clientGameObject.AddComponent<MainThreadDispatcher>();
+                clientManager.StartConnection();
+                DontDestroyOnLoad(clientGameObject);
             }
 
             DatabaseManager.Init();
@@ -160,11 +174,6 @@ namespace Simulator
             }
 
             LoaderScene = SceneManager.GetActiveScene().name;
-            var version = "Development";
-            var info = Resources.Load<BuildInfo>("BuildInfo");
-            if (info != null)
-                version = info.Version;
-            SIM.Init(version);
             SIM.LogSimulation(SIM.Simulation.ApplicationStart);
 
             DontDestroyOnLoad(this);
@@ -451,19 +460,22 @@ namespace Simulator
                                     throw new ZipException("BundleFormat version mismatch");
                                 }
 
-                                var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_textures"));
-                                textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+                                if (zip.FindEntry($"{manifest.bundleGuid}_environment_textures", false) != -1)
+                                {
+                                    var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_textures"));
+                                    textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+                                }
 
                                 string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
                                 var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_main_{platform}"));
                                 mapBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
 
-                                if (mapBundle == null || textureBundle == null)
+                                if (mapBundle == null)
                                 {
                                     throw new Exception($"Failed to load environment from '{mapModel.Name}' asset bundle");
                                 }
 
-                                textureBundle.LoadAllAssets();
+                                textureBundle?.LoadAllAssets();
 
                                 var scenes = mapBundle.GetAllScenePaths();
                                 if (scenes.Length != 1)
@@ -475,12 +487,17 @@ namespace Simulator
                                 Instance.SimConfig.MapName = sceneName;
                                 Instance.SimConfig.MapUrl = mapModel.Url;
 
-                                var loader = SceneManager.LoadSceneAsync(sceneName);
+                                var isMasterSimulation = Instance.SimConfig.Clusters.Length > 0;
+                                var loader = 
+                                    SceneManager.LoadSceneAsync(sceneName, 
+                                        isMasterSimulation? LoadSceneMode.Additive : LoadSceneMode.Single);
                                 loader.completed += op =>
                                 {
                                     if (op.isDone)
                                     {
-                                        textureBundle.Unload(false);
+                                        if (isMasterSimulation)
+                                            SceneManager.SetActiveScene(SceneManager.GetSceneByName(sceneName));
+                                        textureBundle?.Unload(false);
                                         mapBundle.Unload(false);
                                         zip.Close();
                                         SetupScene(simulation);
@@ -543,6 +560,9 @@ namespace Simulator
         {
             Debug.Assert(Instance.CurrentSimulation != null);
 
+            if (Instance.masterManager != null)
+                Instance.masterManager.BroadcastSimulationStop();
+
             Instance.Actions.Enqueue(() =>
             {
                 var simulation = Instance.CurrentSimulation;
@@ -569,6 +589,8 @@ namespace Simulator
                                 simulation.Status = "Valid";
                                 NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
                                 Instance.CurrentSimulation = null;
+                                if (Instance.masterManager != null)
+                                    Instance.masterManager.StopConnection();
                             }
                         };
                     }
@@ -652,7 +674,7 @@ namespace Simulator
                                 // TODO: make this async
                                 if (!AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
                                 {
-                                    textureBundle.LoadAllAssets();
+                                    textureBundle?.LoadAllAssets();
                                 }
 
                                 agentConfig.Prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
@@ -660,7 +682,7 @@ namespace Simulator
                             }
                             finally
                             {
-                                textureBundle.Unload(false);
+                                textureBundle?.Unload(false);
                                 vehicleBundle.Unload(false);
                             }
                         }
@@ -668,22 +690,15 @@ namespace Simulator
 
                     var sim = CreateSimulationManager();
 
-                    // TODO: properly connect to cluster instances
-                    //if (Instance.SimConfig.Clusters.Length > 0)
-                    //{
-                    //    SimulatorManager.SetTimeScale(0);
-
-                    //    StartNetworkMaster();
-                    //    Instance.Master.AddClients(Instance.SimConfig.Clusters);
-                    //}
-                    //else
+                    Instance.CurrentSimulation = simulation;
+                    Instance.CurrentSimulation.Status = "Running";
+                    // Notify WebUI simulation is running
+                    NotificationManager.SendNotification("simulation",
+                        SimulationResponse.Create(Loader.Instance.CurrentSimulation),
+                        Loader.Instance.CurrentSimulation.Owner);
+                    
+                    if (Instance.SimConfig.Clusters.Length == 0)
                     {
-                        Instance.CurrentSimulation = simulation;
-
-                        // Notify WebUI simulation is running
-                        Instance.CurrentSimulation.Status = "Running";
-                        NotificationManager.SendNotification("simulation", SimulationResponse.Create(Instance.CurrentSimulation), Instance.CurrentSimulation.Owner);
-
                         // Flash main window to let user know simulation is ready
                         WindowFlasher.Flash();
                     }
@@ -751,15 +766,45 @@ namespace Simulator
         static void StartNetworkMaster()
         {
             var obj = new GameObject("NetworkMaster");
-            Instance.Master = obj.AddComponent<Network.MasterManager>();
-            Instance.Master.Simulation = Instance.SimConfig;
+            var masterManager = obj.AddComponent<MasterManager>();
+            obj.AddComponent<MainThreadDispatcher>();
+            Instance.masterManager = masterManager;
+            SimulatorManager.Instance.Network.Master = Instance.masterManager;
+            SimulatorManager.Instance.Network.MessagesManager = Instance.masterManager.MessagesManager;
+            masterManager.SetSettings(Instance.NetworkSettings);
+            masterManager.Simulation = Instance.SimConfig;
+            masterManager.StartConnection();
+            masterManager.ConnectToClients();
         }
 
         public static SimulatorManager CreateSimulationManager()
         {
             var sim = Instantiate(Instance.SimulatorManagerPrefab);
             sim.name = "SimulatorManager";
+            
+            //Initialize network fields
+            if (Instance.SimConfig.Clusters == null)
+            {
+                if (Config.RunAsMaster)
+                    sim.Network.Initialize(SimulationNetwork.ClusterNodeType.NotClusterNode, Instance.NetworkSettings);
+                else
+                {
+                    sim.Network.Initialize(SimulationNetwork.ClusterNodeType.Client, Instance.NetworkSettings);
+                    sim.Network.Client = Instance.clientManager;
+                    sim.Network.MessagesManager = Instance.clientManager.MessagesManager;
+                }
+            }
+            else if (Instance.SimConfig.Clusters.Length == 0)
+                sim.Network.Initialize(SimulationNetwork.ClusterNodeType.NotClusterNode, Instance.NetworkSettings);
+            else if (Config.RunAsMaster)
+            {
+                sim.Network.Initialize(SimulationNetwork.ClusterNodeType.Master, Instance.NetworkSettings);
+                StartNetworkMaster();
+            }
+
+            //Initialize Simulator Manager
             sim.Init();
+            
             return sim;
         }
     }

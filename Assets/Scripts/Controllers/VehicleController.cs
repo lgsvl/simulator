@@ -15,6 +15,7 @@ public class VehicleController : AgentController
 {
     private VehicleDynamics dynamics;
     private VehicleActions actions;
+    private SensorsController sensorsController;
 
     private List<IVehicleInputs> inputs = new List<IVehicleInputs>();
 
@@ -26,6 +27,21 @@ public class VehicleController : AgentController
     public float AccelInput { get; set; } = 0f;
     public float SteerInput { get; set; } = 0f;
     public float BrakeInput { get; set; } = 0f;
+
+    public override SensorsController AgentSensorsController
+    {
+        get => sensorsController;
+        set
+        {
+            if (sensorsController == value)
+                return;
+            if (sensorsController != null)
+                sensorsController.SensorsChanged -= SensorsControllerOnSensorsChanged;
+            sensorsController = value;
+            if (sensorsController != null)
+                sensorsController.SensorsChanged += SensorsControllerOnSensorsChanged;
+        }
+    }
 
     private float turnSignalTriggerThreshold = 0.2f;
     private float turnSignalOffThreshold = 0.1f;
@@ -149,6 +165,11 @@ public class VehicleController : AgentController
         {
             SIM.LogSimulation(SIM.Simulation.SensorStop, sensor["name"].Value, elapsedTime);
         }
+    }
+
+    private void SensorsControllerOnSensorsChanged()
+    {
+        OnSensorsChanged();
     }
 
     public override void ResetPosition()

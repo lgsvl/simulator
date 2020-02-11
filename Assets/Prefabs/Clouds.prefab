@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2245379038603724771}
   - component: {fileID: 2245379038603724768}
   - component: {fileID: 2787227399892788088}
-  m_Layer: 0
+  m_Layer: 31
   m_Name: CloudsMesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -99,7 +99,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1641667489515634140}
-  m_Layer: 0
+  m_Layer: 31
   m_Name: Clouds
   m_TagString: Untagged
   m_Icon: {fileID: 0}

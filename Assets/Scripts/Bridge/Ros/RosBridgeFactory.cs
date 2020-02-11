@@ -32,6 +32,7 @@ namespace Simulator.Bridge.Ros
             typeof(EmptySrv),
             typeof(SetBoolSrv),
             typeof(TriggerSrv),
+            typeof(VehicleStateData),
         };
 
         public abstract IBridge Create();

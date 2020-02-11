@@ -6,6 +6,7 @@
  */
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Unity.Jobs;
@@ -34,6 +35,7 @@ namespace Simulator.Sensors
         int CurrentLaserCount;
         int CurrentMeasurementsPerRotation;
         float CurrentFieldOfView;
+        List<float> CurrentVerticalRayAngles;
         float CurrentCenterAngle;
         float CurrentMinDistance;
         float CurrentMaxDistance;
@@ -41,9 +43,33 @@ namespace Simulator.Sensors
         // Horizontal FOV of the camera
         const float HorizontalAngleLimit = 15.0f;
 
+        // List vertical angles for each ray.
+        //
+        // For models with uniformly distributed vertical angles,
+        // this list should be empty (i.e. Count == 0).
+        // For models with non-uniformly distributed vertical angles,
+        // this Count of this list should equals to LaserCount.
+        // Angle values follows Velodyne's convetion:
+        // 0 means horizontal;
+        // Positive means tilting up; 
+        // Negative means tilting down.
+        //
+        // Refer to LidarSensorEditor.cs for more details of the relationship
+        // between VerticalRayAngles and LaserCount/FieldOfView/CenterAngle.
+        [SensorParameter]
+        public List<float> VerticalRayAngles;
+
         [SensorParameter]
         [Range(1, 128)]
         public int LaserCount = 32;
+
+        [SensorParameter]
+        [Range(1.0f, 45.0f)]
+        public float FieldOfView = 40.0f;
+
+        [SensorParameter]
+        [Range(-45.0f, 45.0f)]
+        public float CenterAngle = 10.0f;
 
         [SensorParameter]
         [Range(0.01f, 1000f)]
@@ -60,14 +86,6 @@ namespace Simulator.Sensors
         [SensorParameter]
         [Range(18, 6000)] // minmimum is 360/HorizontalAngleLimit
         public int MeasurementsPerRotation = 1500; // for each ray
-
-        [SensorParameter]
-        [Range(1.0f, 45.0f)]
-        public float FieldOfView = 40.0f;
-
-        [SensorParameter]
-        [Range(-45.0f, 45.0f)]
-        public float CenterAngle = 10.0f;
 
         [SensorParameter]
         public bool Compensated = true;
@@ -93,8 +111,21 @@ namespace Simulator.Sensors
 
         Material PointCloudMaterial;
 
-        private Camera Camera;
         private bool updated;
+        private NativeArray<float> SinLatitudeAngles;
+        private NativeArray<float> CosLatitudeAngles;
+        private Camera sensorCamera;
+
+        private Camera SensorCamera
+        {
+            get
+            {
+                if (sensorCamera == null)
+                    sensorCamera = GetComponentInChildren<Camera>();
+
+                return sensorCamera;
+            }
+        }
 
         struct ReadRequest
         {
@@ -118,17 +149,11 @@ namespace Simulator.Sensors
         float AngleStart;
         float AngleDelta;
 
-        float AngleTopPart;
-
         float MaxAngle;
         int RenderTextureWidth;
         int RenderTextureHeight;
-        float SinStartLatitudeAngle;
-        float CosStartLatitudeAngle;
         float SinStartLongitudeAngle;
         float CosStartLongitudeAngle;
-        float SinDeltaLatitudeAngle;
-        float CosDeltaLatitudeAngle;
         float SinDeltaLongitudeAngle;
         float CosDeltaLongitudeAngle;
 
@@ -136,13 +161,14 @@ namespace Simulator.Sensors
         float XScale;
         float YScale;
         
-        float FixupAngle;
         float IgnoreNewRquests;
 
         ProfilerMarker UpdateMarker = new ProfilerMarker("Lidar.Update");
         ProfilerMarker VisualizeMarker = new ProfilerMarker("Lidar.Visualzie");
         ProfilerMarker BeginReadMarker = new ProfilerMarker("Lidar.BeginRead");
         ProfilerMarker EndReadMarker = new ProfilerMarker("Lidar.EndRead");
+        
+        public override bool CanBeDelegatedToClient => true;
 
         public void ApplyTemplate()
         {
@@ -153,6 +179,7 @@ namespace Simulator.Sensors
             RotationFrequency = values.RotationFrequency;
             MeasurementsPerRotation = values.MeasurementsPerRotation;
             FieldOfView = values.FieldOfView;
+            VerticalRayAngles = new List<float>(values.VerticalRayAngles);
             CenterAngle = values.CenterAngle;
         }
 
@@ -189,8 +216,7 @@ namespace Simulator.Sensors
 
         public void Init()
         {
-            Camera = GetComponentInChildren<Camera>();
-            Camera.GetComponent<HDAdditionalCameraData>().customRender += CustomRender;
+            SensorCamera.GetComponent<HDAdditionalCameraData>().customRender += CustomRender;
             PointCloudMaterial = new Material(RuntimeSettings.Instance.PointCloudShader);
             PointCloudLayer = LayerMask.NameToLayer("Sensor Effects");
 
@@ -253,19 +279,30 @@ namespace Simulator.Sensors
                 Points.Dispose();
             }
 
-            FixupAngle = AngleStart = 0.0f;
+            AngleStart = 0.0f;
             // Assuming center of view frustum is horizontal, find the vertical FOV (of view frustum) that can encompass the tilted Lidar FOV.
             // "MaxAngle" is half of the vertical FOV of view frustum.
-            MaxAngle = Mathf.Abs(CenterAngle) + FieldOfView / 2.0f;
-
-            float startLatitudeAngle = 90.0f + MaxAngle;
-            //If the Lidar is tilted up, ignore lower part of the vertical FOV.
-            if (CenterAngle < 0.0f)
+            float startLatitudeAngle, endLatitudeAngle;
+            if (VerticalRayAngles.Count == 0)
             {
-                startLatitudeAngle -= MaxAngle * 2.0f - FieldOfView;
+                MaxAngle = Mathf.Abs(CenterAngle) + FieldOfView / 2.0f;
+
+                startLatitudeAngle = 90.0f + MaxAngle;
+                //If the Lidar is tilted up, ignore lower part of the vertical FOV.
+                if (CenterAngle < 0.0f)
+                {
+                    startLatitudeAngle -= MaxAngle * 2.0f - FieldOfView;
+                }
+                endLatitudeAngle = startLatitudeAngle - FieldOfView;
             }
-            SinStartLatitudeAngle = Mathf.Sin(startLatitudeAngle * Mathf.Deg2Rad);
-            CosStartLatitudeAngle = Mathf.Cos(startLatitudeAngle * Mathf.Deg2Rad);
+            else
+            {
+                LaserCount = VerticalRayAngles.Count;
+                startLatitudeAngle = 90.0f - VerticalRayAngles.Min();
+                endLatitudeAngle = 90.0f - VerticalRayAngles.Max();
+                FieldOfView = startLatitudeAngle - endLatitudeAngle;
+                MaxAngle = Mathf.Max(startLatitudeAngle - 90.0f, 90.0f - endLatitudeAngle);
+            }
 
             float startLongitudeAngle = 90.0f + HorizontalAngleLimit / 2.0f;
             SinStartLongitudeAngle = Mathf.Sin(startLongitudeAngle * Mathf.Deg2Rad);
@@ -275,21 +312,50 @@ namespace Simulator.Sensors
             // Because the scan curve for a particular laser ray is a hyperbola (intersection of a conic surface and a vertical plane),
             // the vertical FOV should be enlarged toward left and right ends.
             float startFovAngle = CalculateFovAngle(startLatitudeAngle, startLongitudeAngle);
-            float endLatitudeAngle = startLatitudeAngle - FieldOfView;
             float endFovAngle = CalculateFovAngle(endLatitudeAngle, startLongitudeAngle);
             MaxAngle = Mathf.Max(MaxAngle, Mathf.Max(startFovAngle, endFovAngle));
 
-            float deltaLatitudeAngle = FieldOfView / LaserCount;
-            SinDeltaLatitudeAngle = Mathf.Sin(deltaLatitudeAngle * Mathf.Deg2Rad);
-            CosDeltaLatitudeAngle = Mathf.Cos(deltaLatitudeAngle * Mathf.Deg2Rad);
+            // Calculate sin/cos of latitude angle of each ray.
+            if (SinLatitudeAngles.IsCreated)
+            {
+                SinLatitudeAngles.Dispose();
+            }
+            if (CosLatitudeAngles.IsCreated)
+            {
+                CosLatitudeAngles.Dispose();
+            }
+            SinLatitudeAngles = new NativeArray<float>(LaserCount, Allocator.Persistent);
+            CosLatitudeAngles = new NativeArray<float>(LaserCount, Allocator.Persistent);
+            // If VerticalRayAngles array is not provided, use uniformly distributed angles.
+            if (VerticalRayAngles.Count == 0)
+            {
+                float deltaLatitudeAngle = FieldOfView / LaserCount;
+                int index = 0;
+                float angle = startLatitudeAngle;
+                while (index < LaserCount)
+                {
+                    SinLatitudeAngles[index] = Mathf.Sin(angle * Mathf.Deg2Rad);
+                    CosLatitudeAngles[index] = Mathf.Cos(angle * Mathf.Deg2Rad);
+                    index++;
+                    angle -= deltaLatitudeAngle;
+                }
+            }
+            else
+            {
+                for (int index = 0; index < LaserCount; index++)
+                {
+                    SinLatitudeAngles[index] = Mathf.Sin((90.0f - VerticalRayAngles[index]) * Mathf.Deg2Rad);
+                    CosLatitudeAngles[index] = Mathf.Cos((90.0f - VerticalRayAngles[index]) * Mathf.Deg2Rad);
+                }
+            }
 
             int count = (int)(HorizontalAngleLimit / (360.0f / MeasurementsPerRotation));
             float deltaLongitudeAngle = (float)HorizontalAngleLimit / (float)count;
             SinDeltaLongitudeAngle = Mathf.Sin(deltaLongitudeAngle * Mathf.Deg2Rad);
             CosDeltaLongitudeAngle = Mathf.Cos(deltaLongitudeAngle * Mathf.Deg2Rad);
 
-            // Enlarged the texture by factor of 8 to mitigate alias.
-            RenderTextureHeight = 8 * (int)(2.0f * MaxAngle * LaserCount / FieldOfView);
+            // Enlarged the texture by some factors to mitigate alias.
+            RenderTextureHeight = 16 * (int)(2.0f * MaxAngle * LaserCount / FieldOfView);
             RenderTextureWidth = 8 * (int)(HorizontalAngleLimit / (360.0f / MeasurementsPerRotation));
 
             // View frustum size at the near plane.
@@ -312,9 +378,9 @@ namespace Simulator.Sensors
                 new Vector4(0, 0, a, -1),
                 new Vector4(0, 0, b, 0));
 
-            Camera.nearClipPlane = MinDistance;
-            Camera.farClipPlane = MaxDistance;
-            Camera.projectionMatrix = projection;
+            SensorCamera.nearClipPlane = MinDistance;
+            SensorCamera.farClipPlane = MaxDistance;
+            SensorCamera.projectionMatrix = projection;
 
             int totalCount = LaserCount * MeasurementsPerRotation;
             PointCloudBuffer = new ComputeBuffer(totalCount, UnsafeUtility.SizeOf<Vector4>());
@@ -325,6 +391,7 @@ namespace Simulator.Sensors
             CurrentLaserCount = LaserCount;
             CurrentMeasurementsPerRotation = MeasurementsPerRotation;
             CurrentFieldOfView = FieldOfView;
+            CurrentVerticalRayAngles = new List<float>(VerticalRayAngles);
             CurrentCenterAngle = CenterAngle;
             CurrentMinDistance = MinDistance;
             CurrentMaxDistance = MaxDistance;
@@ -352,7 +419,8 @@ namespace Simulator.Sensors
                 FieldOfView != CurrentFieldOfView ||
                 CenterAngle != CurrentCenterAngle ||
                 MinDistance != CurrentMinDistance ||
-                MaxDistance != CurrentMaxDistance)
+                MaxDistance != CurrentMaxDistance ||
+                !Enumerable.SequenceEqual(VerticalRayAngles, CurrentVerticalRayAngles))
             {
                 if (MinDistance > 0 && MaxDistance > 0 && LaserCount > 0 && MeasurementsPerRotation >= (360.0f / HorizontalAngleLimit))
                 {
@@ -428,7 +496,7 @@ namespace Simulator.Sensors
                 {
                     float angle = AngleStart + HorizontalAngleLimit / 2.0f;
                     var rotation = Quaternion.AngleAxis(angle, Vector3.up);
-                    Camera.transform.localRotation = rotation;
+                    SensorCamera.transform.localRotation = rotation;
                     if (Top != null)
                     {
                         Top.transform.localRotation = rotation;
@@ -473,7 +541,7 @@ namespace Simulator.Sensors
                 DestroyImmediate(tex);
             }
 
-            PointCloudBuffer.Release();
+            PointCloudBuffer?.Release();
 
             if (Points.IsCreated)
             {
@@ -484,8 +552,17 @@ namespace Simulator.Sensors
             {
                 DestroyImmediate(PointCloudMaterial);
             }
+
+            if (SinLatitudeAngles.IsCreated)
+            {
+                SinLatitudeAngles.Dispose();
+            }
+            if (CosLatitudeAngles.IsCreated)
+            {
+                CosLatitudeAngles.Dispose();
+            }
         }
-        
+
         bool BeginReadRequest(int count, ref ReadRequest req)
         {
             if (count == 0)
@@ -512,17 +589,17 @@ namespace Simulator.Sensors
             }
             texture.Create();
 
-            Camera.targetTexture = texture;
-            Camera.Render();
+            SensorCamera.targetTexture = texture;
+            SensorCamera.Render();
 
             req = new ReadRequest()
             {
                 RenderTexture = texture,
                 Index = CurrentIndex,
                 Count = count,
-                Origin = Camera.transform.position,
+                Origin = SensorCamera.transform.position,
 
-                CameraToWorldMatrix = Camera.cameraToWorldMatrix,
+                CameraToWorldMatrix = SensorCamera.cameraToWorldMatrix,
             };
 
             if (!Compensated)
@@ -552,12 +629,13 @@ namespace Simulator.Sensors
             // Origin of the camera coordinate system
             public Vector3 Origin;
 
-            public float SinStartLatitudeAngle;
-            public float CosStartLatitudeAngle;
+            [ReadOnly, NativeDisableContainerSafetyRestriction]
+            public NativeArray<float> SinLatitudeAngles;
+            [ReadOnly, NativeDisableContainerSafetyRestriction]
+            public NativeArray<float> CosLatitudeAngles;
+
             public float SinStartLongitudeAngle;
             public float CosStartLongitudeAngle;
-            public float SinDeltaLatitudeAngle;
-            public float CosDeltaLatitudeAngle;
             public float SinDeltaLongitudeAngle;
             public float CosDeltaLongitudeAngle;
             // Scales between world coordinates and texture coordinates
@@ -589,12 +667,12 @@ namespace Simulator.Sensors
 
             public void Execute()
             {
-                float sinLatitudeAngle = SinStartLatitudeAngle;
-                float cosLatitudeAngle = CosStartLatitudeAngle;
-                
                 // In the following loop, x/y are in texture space, and xx/yy are in world space
                 for (int j = 0; j < LaserCount; j++)
                 {
+                    float sinLatitudeAngle = SinLatitudeAngles[j];
+                    float cosLatitudeAngle = CosLatitudeAngles[j];
+
                     int indexOffset = j * MeasurementsPerRotation;
                     float dy = cosLatitudeAngle;
                     float rProjected = sinLatitudeAngle;
@@ -636,7 +714,6 @@ namespace Simulator.Sensors
                         {
                             byte a = Input[yOffset + x * 4 + 3];
                             float intensity = a / 255.0f;
-                            intensity = 1f;
 
                             // Note that CameraToWorldMatrix follows OpenGL convention, i.e. camera is facing negative Z axis.
                             // So we have "z" component of the direction as "-MinDistance".
@@ -660,13 +737,6 @@ namespace Simulator.Sensors
                         sinLongitudeAngle = sinNewLongitudeAngle;
                         cosLongitudeAngle = cosNewLongitudeAngle;
                     }
-
-                    // We will update latitudeAngle as "latitudeAngle -= DeltaLatitudeAngle".
-                    // Calculation of cos/sin of the new latitudeAngle is same as above for longitudeAngle.
-                    float sinNewLatitudeAngle = sinLatitudeAngle * CosDeltaLatitudeAngle - cosLatitudeAngle * SinDeltaLatitudeAngle;
-                    float cosNewLatitudeAngle = cosLatitudeAngle * CosDeltaLatitudeAngle + sinLatitudeAngle * SinDeltaLatitudeAngle;
-                    sinLatitudeAngle = sinNewLatitudeAngle;
-                    cosLatitudeAngle = cosNewLatitudeAngle;
                 }
             }
         }
@@ -687,12 +757,11 @@ namespace Simulator.Sensors
                 Transform = req.Transform,
                 CameraToWorldMatrix = req.CameraToWorldMatrix,
 
-                SinStartLatitudeAngle = SinStartLatitudeAngle,
-                CosStartLatitudeAngle = CosStartLatitudeAngle,
+                SinLatitudeAngles = SinLatitudeAngles,
+                CosLatitudeAngles = CosLatitudeAngles,
+
                 SinStartLongitudeAngle = SinStartLongitudeAngle,
                 CosStartLongitudeAngle = CosStartLongitudeAngle,
-                SinDeltaLatitudeAngle = SinDeltaLatitudeAngle,
-                CosDeltaLatitudeAngle = CosDeltaLatitudeAngle,
                 SinDeltaLongitudeAngle = SinDeltaLongitudeAngle,
                 CosDeltaLongitudeAngle = CosDeltaLongitudeAngle,
                 XScale = XScale,
@@ -752,7 +821,8 @@ namespace Simulator.Sensors
                     RotationFrequency != values.RotationFrequency ||
                     MeasurementsPerRotation != values.MeasurementsPerRotation ||
                     FieldOfView != values.FieldOfView ||
-                    CenterAngle != values.CenterAngle)
+                    CenterAngle != values.CenterAngle ||
+                    !Enumerable.SequenceEqual(VerticalRayAngles, values.VerticalRayAngles))
                 {
                     TemplateIndex = 0;
                 }
@@ -814,7 +884,7 @@ namespace Simulator.Sensors
                 for (int i = 0; i < rotationCount; i++)
                 {
                     var rotation = Quaternion.AngleAxis(angle, Vector3.up);
-                    Camera.transform.localRotation = rotation;
+                    SensorCamera.transform.localRotation = rotation;
 
                     var req = new ReadRequest();
                     if (BeginReadRequest(count, ref req))
@@ -874,7 +944,7 @@ namespace Simulator.Sensors
                 for (int i = 0; i < rotationCount; i++)
                 {
                     var rotation = Quaternion.AngleAxis(angle, Vector3.up);
-                    Camera.transform.localRotation = rotation;
+                    SensorCamera.transform.localRotation = rotation;
 
                     if (BeginReadRequest(count, ref active[i]))
                     {
@@ -955,7 +1025,7 @@ namespace Simulator.Sensors
 
         public override bool CheckVisible(Bounds bounds)
         {
-            var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(Camera);
+            var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(SensorCamera);
             return GeometryUtility.TestPlanesAABB(activeCameraPlanes, bounds);
         }
     }

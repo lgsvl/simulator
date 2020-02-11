@@ -1,9 +1,17 @@
-﻿namespace Simulator.PointCloud.Trees
+/**
+ * Copyright (c) 2019 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
+namespace Simulator.PointCloud.Trees
 {
     using System;
     using System.Collections.Generic;
     using Unity.Collections.LowLevel.Unsafe;
     using UnityEngine;
+    using UnityEngine.Rendering;
 
     /// <summary>
     /// Class used to build buffers used in point cloud rendering.
@@ -46,11 +54,16 @@
             this.maxBufferElements = maxBufferElements;
             this.rebuildSteps = rebuildSteps;
             
+            // DX11 for some reason doesn't work with SubUpdate mode in this case
+            var bufferMode = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan
+                ? ComputeBufferMode.SubUpdates
+                : ComputeBufferMode.Immutable; 
+            
             bufferA = new ComputeBuffer(maxBufferElements, UnsafeUtility.SizeOf<PointCloudPoint>(),
-                ComputeBufferType.Default, ComputeBufferMode.Immutable);
+                ComputeBufferType.Default, bufferMode);
             
             bufferB = new ComputeBuffer(maxBufferElements, UnsafeUtility.SizeOf<PointCloudPoint>(),
-                ComputeBufferType.Default, ComputeBufferMode.Immutable);
+                ComputeBufferType.Default, bufferMode);
         }
 
         /// <summary>

@@ -196,7 +196,12 @@ namespace Simulator.Bridge.Cyber
             IWriter<T> writer;
 
             var type = typeof(T);
-            if (type == typeof(ImageData))
+            if (type == typeof(TrafficLightData))
+            {
+                type = typeof(apollo.perception.TrafficLightDetection);
+                writer = new Writer<TrafficLightData, apollo.perception.TrafficLightDetection>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+            }
+            else if (type == typeof(ImageData))
             {
                 type = typeof(apollo.drivers.CompressedImage);
                 writer = new Writer<ImageData, apollo.drivers.CompressedImage>(this, topic, Conversions.ConvertFrom) as IWriter<T>;

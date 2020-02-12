@@ -17,7 +17,7 @@ using Simulator.Map;
 
 namespace Simulator.Sensors
 {
-    [SensorType("3D Ground Truth", new[] { typeof(Detected3DObjectData) })]
+    [SensorType("3D Ground Truth", new[] { typeof(Detected3DObjectData), typeof(TrafficLightData) })]
     public class GroundTruth3DSensor : SensorBase
     {
         [SensorParameter]
@@ -37,7 +37,7 @@ namespace Simulator.Sensors
         private float nextSend;
 
         private IBridge Bridge;
-        private IWriter<Detected3DObjectData> Writer;
+        private IWriter<Detected3DObjectData> obstacleWriter;
 
         private Dictionary<Collider, Detected3DObject> Detected = new Dictionary<Collider, Detected3DObject>();
         private Collider[] Visualized = Array.Empty<Collider>();
@@ -45,6 +45,9 @@ namespace Simulator.Sensors
         public override bool CanBeDelegatedToClient => true;
 
         // Traffic Light
+        private uint tlSeqId;
+        private string trafficLightTopic = "/apollo/perception/traffic_light";
+        private IWriter<TrafficLightData> trafficLightWriter;
         private MapLane closestLane;
 
         void Start()
@@ -65,7 +68,7 @@ namespace Simulator.Sensors
                 }
                 nextSend = Time.time + 1.0f / Frequency;
 
-                Writer.Write(new Detected3DObjectData()
+                obstacleWriter.Write(new Detected3DObjectData()
                 {
                     Name = Name,
                     Frame = Frame,
@@ -73,28 +76,31 @@ namespace Simulator.Sensors
                     Sequence = seqId++,
                     Data = Detected.Values.ToArray(),
                 });
+
+                closestLane = SimulatorManager.Instance.MapManager.GetEgoCurrentLane(transform.parent.transform.position);
+
+                if (closestLane != null)
+                {
+                    trafficLightWriter.Write(new TrafficLightData()
+                    {
+                        Time = SimulatorManager.Instance.CurrentTime,
+                        Sequence = tlSeqId++,
+                        blink = false,
+                        confidence = 1.0f,
+                        color = closestLane.stopLine?.currentState.ToString()
+                });
+                }
             }
 
             Visualized = Detected.Keys.ToArray();
             Detected.Clear();
-
-            // Get ego current lane for traffic light
-            closestLane = SimulatorManager.Instance.MapManager.GetEgoCurrentLane(transform.parent.transform.position);
-            if (closestLane != null)
-            {
-                Debug.Log("current closest lane: " + closestLane.laneNumber);
-                Debug.Log("current traffic light: " + closestLane.stopLine?.currentState);
-            }
-            else
-            {
-                Debug.Log("closest lane is null");
-            }
         }
 
         public override void OnBridgeSetup(IBridge bridge)
         {
             Bridge = bridge;
-            Writer = Bridge.AddWriter<Detected3DObjectData>(Topic);
+            obstacleWriter = Bridge.AddWriter<Detected3DObjectData>(Topic);
+            trafficLightWriter = Bridge.AddWriter<TrafficLightData>(trafficLightTopic);
         }
 
         void WhileInRange(Collider other)

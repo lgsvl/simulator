@@ -24,6 +24,47 @@ namespace Simulator.Bridge.Cyber
             return result;
         }
 
+
+        public static apollo.perception.TrafficLightDetection ConvertFrom(TrafficLightData data)
+        {
+            var tl = new apollo.perception.TrafficLightDetection()
+            {
+                header = new apollo.common.Header()
+                {
+                    timestamp_sec = data.Time,
+                    sequence_num = data.Sequence
+                },
+                contain_lights = true,
+            };
+
+            apollo.perception.TrafficLight.Color convertedColor;
+            switch (data.color)
+            {
+                case "Red":
+                    convertedColor = apollo.perception.TrafficLight.Color.Red;
+                    break;
+                case "Green":
+                    convertedColor = apollo.perception.TrafficLight.Color.Green;
+                    break;
+                case "Yellow":
+                    convertedColor = apollo.perception.TrafficLight.Color.Yellow;
+                    break;
+                default:
+                    convertedColor = apollo.perception.TrafficLight.Color.Unknown;
+                    break;
+            }
+
+            tl.traffic_light.Add(new apollo.perception.TrafficLight()
+            {
+                color = convertedColor,
+                confidence = data.confidence,
+                blink = data.blink,
+            }); ;
+
+            return tl;
+        }
+
+
         public static apollo.drivers.CompressedImage ConvertFrom(ImageData data)
         {
             return new apollo.drivers.CompressedImage()
@@ -426,7 +467,7 @@ namespace Simulator.Bridge.Cyber
                 SteerTarget = (float)data.steering_target / 100,
                 TimeStampSec = data.header.timestamp_sec,
             };
-            
+
             switch (data.gear_location)
             {
                 case global::apollo.canbus.Chassis.GearPosition.GearNeutral:
@@ -494,7 +535,7 @@ namespace Simulator.Bridge.Cyber
             };
         }
 
-        
+
         public static Detected2DObjectArray ConvertTo(apollo.common.Detection2DArray data)
         {
             return new Detected2DObjectArray()

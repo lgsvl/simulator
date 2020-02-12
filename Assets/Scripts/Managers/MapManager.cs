@@ -63,7 +63,8 @@ public class MapManager : MonoBehaviour
                     var p1 = lane.mapWorldPositions[i + 1];
 
                     float d = Utility.SqrDistanceToSegment(p0, p1, position);
-                    if (d < minDist)
+                    // use 3 meters as threshold. return null if ego vehicle distance is too far away.
+                    if (d < minDist && d <= 3f)
                     {
                         minDist = d;
                         result = lane;
@@ -78,7 +79,7 @@ public class MapManager : MonoBehaviour
     {
         float minDist = float.PositiveInfinity;
         int index = -1;
-        
+
         for (int i = 0; i < lane.mapWorldPositions.Count - 1; i++)
         {
             var p0 = lane.mapWorldPositions[i];

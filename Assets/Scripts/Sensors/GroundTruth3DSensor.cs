@@ -13,6 +13,7 @@ using Simulator.Bridge;
 using Simulator.Bridge.Data;
 using Simulator.Utilities;
 using Simulator.Sensors.UI;
+using Simulator.Map;
 
 namespace Simulator.Sensors
 {
@@ -42,6 +43,9 @@ namespace Simulator.Sensors
         private Collider[] Visualized = Array.Empty<Collider>();
         
         public override bool CanBeDelegatedToClient => true;
+
+        // Traffic Light
+        private MapLane closestLane;
 
         void Start()
         {
@@ -73,6 +77,14 @@ namespace Simulator.Sensors
 
             Visualized = Detected.Keys.ToArray();
             Detected.Clear();
+            closestLane = SimulatorManager.Instance.MapManager.GetClosestLane(transform.parent.transform.position);
+            if (closestLane != null)
+            {
+                Debug.Log("current closest lane: " + closestLane.laneNumber);
+                Debug.Log("current traffic light: " + closestLane.stopLine?.currentState);
+            } else {
+                Debug.Log("closest lane is null");
+            }
         }
 
         public override void OnBridgeSetup(IBridge bridge)

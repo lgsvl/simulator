@@ -7,7 +7,6 @@
 
 namespace Simulator.Network.Core.Messaging
 {
-    using System;
     using System.Collections.Generic;
     using System.Net;
     using Connection;
@@ -130,23 +129,17 @@ namespace Simulator.Network.Core.Messaging
                 if (awaitingIncomingMessages.TryGetValue(id, out var awaitingMessages))
                     try
                     {
-                        //Clear messages that wait too long
-                        var timeTicksNow = DateTime.UtcNow.Ticks;
-                        var timeoutTicks = IncomingMessagesTimeout * 10000;
-                        var numberOfMessagesToRemove = 0;
-                        for (var i=0; i<awaitingMessages.Count; i++)
-                            if (timeTicksNow - awaitingMessages[i].Message.Timestamp.Ticks > timeoutTicks)
-                                numberOfMessagesToRemove = i + 1;
-                            else break;
-                        // if (numberOfMessagesToRemove>0)
-                        //     Log.Info($"Removing {numberOfMessagesToRemove} messages for receiver with id {id} ({identifiedObject.Key}) due to timeout.");
-                        awaitingMessages.RemoveRange(0, numberOfMessagesToRemove);
-                        
                         //Pass still valid messages
                         foreach (var awaitingMessage in awaitingMessages)
                         {
                             //Ignore messages with outdated assigned identifiers
-                            if (awaitingMessage.Message.Timestamp < idsRegister.InternalIdBindUtcTime)
+                            var registrationTimestamp = idsRegister.GetRegistrationTimestamp(id);
+                            if (registrationTimestamp == null)
+                            {
+                                Log.Error($"Registration event called without the timestamp set for the object with id {id}.");
+                                break;
+                            }
+                            if (awaitingMessage.Message.Timestamp < registrationTimestamp)
                                 continue;
                             awaitingMessage.Message.AddressKey = identifiedObject.Key;
                             receiver.ReceiveMessage(connectionManager.GetConnectedPeerManager(awaitingMessage.EndPoint),
@@ -231,20 +224,6 @@ namespace Simulator.Network.Core.Messaging
                 {
                     messages = new List<AwaitingMessage>();
                     awaitingIncomingMessages.Add(id, messages);
-                }
-                else
-                {
-                    //Clear messages that wait too long
-                    var timeTicksNow = DateTime.UtcNow.Ticks;
-                    var timeoutTicks = IncomingMessagesTimeout * 10000;
-                    var numberOfMessagesToRemove = 0;
-                    for (var i=0; i<messages.Count; i++)
-                        if (timeTicksNow - messages[i].Message.Timestamp.Ticks > timeoutTicks)
-                            numberOfMessagesToRemove = i + 1;
-                        else break;
-                    // if (numberOfMessagesToRemove>0)
-                    //     Log.Info($"Removing {numberOfMessagesToRemove} messages for receiver with id {id} due to timeout.");
-                    messages.RemoveRange(0, numberOfMessagesToRemove);
                 }
 
                 var awaitingMessage = new AwaitingMessage()

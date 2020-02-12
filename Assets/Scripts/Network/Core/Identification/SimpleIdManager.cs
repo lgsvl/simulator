@@ -33,11 +33,10 @@ namespace Simulator.Network.Core.Identification
         /// <inheritdoc/>
         public void ReturnId(int id)
         {
-            // Reusing ids is currently disabled
-            // if (id == nextId - 1)
-            //     nextId--;
-            // else
-            //     returnedIds.Push(id);
+            if (id == nextId - 1)
+                nextId--;
+            else
+                returnedIds.Push(id);
         }
     }
 }

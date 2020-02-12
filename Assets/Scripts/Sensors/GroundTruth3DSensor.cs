@@ -31,7 +31,7 @@ namespace Simulator.Sensors
         public RangeTrigger rangeTrigger;
 
         WireframeBoxes WireframeBoxes;
-
+        
         private uint seqId;
         private uint objId;
         private float nextSend;
@@ -45,6 +45,7 @@ namespace Simulator.Sensors
         public override bool CanBeDelegatedToClient => true;
 
         // Traffic Light
+        public bool publishTrafficLight;
         private uint tlSeqId;
         private string trafficLightTopic = "/apollo/perception/traffic_light";
         private IWriter<TrafficLightData> trafficLightWriter;
@@ -56,6 +57,9 @@ namespace Simulator.Sensors
             rangeTrigger.SetCallbacks(WhileInRange);
             rangeTrigger.transform.localScale = MaxDistance * Vector3.one;
             nextSend = Time.time + 1.0f / Frequency;
+
+            // traffic light
+            publishTrafficLight = true;
         }
 
         void Update()
@@ -77,18 +81,20 @@ namespace Simulator.Sensors
                     Data = Detected.Values.ToArray(),
                 });
 
-                closestLane = SimulatorManager.Instance.MapManager.GetEgoCurrentLane(transform.parent.transform.position);
+                if (publishTrafficLight) {
+                    closestLane = SimulatorManager.Instance.MapManager.GetEgoCurrentLane(transform.parent.transform.position);
 
-                if (closestLane != null)
-                {
-                    trafficLightWriter.Write(new TrafficLightData()
+                    if (closestLane != null)
                     {
-                        Time = SimulatorManager.Instance.CurrentTime,
-                        Sequence = tlSeqId++,
-                        blink = false,
-                        confidence = 1.0f,
-                        color = closestLane.stopLine?.currentState.ToString()
-                });
+                        trafficLightWriter.Write(new TrafficLightData()
+                        {
+                            Time = SimulatorManager.Instance.CurrentTime,
+                            Sequence = tlSeqId++,
+                            blink = false,
+                            confidence = 1.0f,
+                            color = closestLane.stopLine?.currentState.ToString()
+                        });
+                    }
                 }
             }
 

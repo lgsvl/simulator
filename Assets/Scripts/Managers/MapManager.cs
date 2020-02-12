@@ -63,6 +63,32 @@ public class MapManager : MonoBehaviour
                     var p1 = lane.mapWorldPositions[i + 1];
 
                     float d = Utility.SqrDistanceToSegment(p0, p1, position);
+                    if (d < minDist)
+                    {
+                        minDist = d;
+                        result = lane;
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    public MapLane GetEgoCurrentLane(Vector3 position)
+    {
+        MapLane result = null;
+        float minDist = float.PositiveInfinity;
+
+        foreach (var lane in trafficLanes)
+        {
+            if (lane.mapWorldPositions.Count >= 2)
+            {
+                for (int i = 0; i < lane.mapWorldPositions.Count - 1; i++)
+                {
+                    var p0 = lane.mapWorldPositions[i];
+                    var p1 = lane.mapWorldPositions[i + 1];
+
+                    float d = Utility.SqrDistanceToSegment(p0, p1, position);
                     // use 3 meters as threshold. return null if ego vehicle distance is too far away.
                     if (d < minDist && d <= 3f)
                     {

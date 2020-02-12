@@ -41,7 +41,7 @@ namespace Simulator.Sensors
 
         private Dictionary<Collider, Detected3DObject> Detected = new Dictionary<Collider, Detected3DObject>();
         private Collider[] Visualized = Array.Empty<Collider>();
-        
+
         public override bool CanBeDelegatedToClient => true;
 
         // Traffic Light
@@ -77,12 +77,16 @@ namespace Simulator.Sensors
 
             Visualized = Detected.Keys.ToArray();
             Detected.Clear();
-            closestLane = SimulatorManager.Instance.MapManager.GetClosestLane(transform.parent.transform.position);
+
+            // Get ego current lane for traffic light
+            closestLane = SimulatorManager.Instance.MapManager.GetEgoCurrentLane(transform.parent.transform.position);
             if (closestLane != null)
             {
                 Debug.Log("current closest lane: " + closestLane.laneNumber);
                 Debug.Log("current traffic light: " + closestLane.stopLine?.currentState);
-            } else {
+            }
+            else
+            {
                 Debug.Log("closest lane is null");
             }
         }

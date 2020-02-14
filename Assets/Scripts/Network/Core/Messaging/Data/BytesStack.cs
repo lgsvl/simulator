@@ -243,6 +243,57 @@ namespace Simulator.Network.Core.Messaging.Data
         /// </summary>
         /// <param name="value">Value to be pushed, must use little endian encoding</param>
         /// <param name="bytesCount">Bytes count used to push this data</param>
+        public void PushUint(uint value, int bytesCount = 4)
+        {
+            Push((byte) (value));
+            if (bytesCount > 1)
+                Push((byte) (value >> 8));
+            if (bytesCount > 2)
+                Push((byte) (value >> 16));
+            if (bytesCount > 3)
+                Push((byte) (value >> 24));
+        }
+
+        /// <summary>
+        /// Pop value encoded as little endian from the buffer using given bytes count
+        /// </summary>
+        /// <param name="bytesCount">Bytes count data uses in the buffer</param>
+        /// <returns>Value returned from the buffer</returns>
+        public uint PopUint(int bytesCount = 4)
+        {
+            uint result = 0;
+            for (var i = 0; i < bytesCount; i++)
+            {
+                result <<= 8;
+                result |= Pop();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Peek value encoded as little endian from the buffer using given bytes count
+        /// </summary>
+        /// <param name="bytesCount">Bytes count data uses in the buffer</param>
+        /// <param name="offset">Offset from the stack top</param>
+        /// <returns>Value returned from the buffer</returns>
+        public uint PeekUint(int bytesCount = 4, int offset = 0)
+        {
+            uint result = 0;
+            for (var i = 0; i < bytesCount; i++)
+            {
+                result <<= 8;
+                result |= data[position - 1 - offset - i];
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Push value as little endian to the buffer using given bytes count
+        /// </summary>
+        /// <param name="value">Value to be pushed, must use little endian encoding</param>
+        /// <param name="bytesCount">Bytes count used to push this data</param>
         public void PushLong(long value, int bytesCount = 8)
         {
             Push((byte) (value));

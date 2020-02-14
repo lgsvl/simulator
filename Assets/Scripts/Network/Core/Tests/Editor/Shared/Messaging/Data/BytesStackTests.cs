@@ -73,6 +73,26 @@ namespace Simulator.Network.Core.Tests.Editor.Shared.Messaging.Data
             Assert.True(value == result, "PopInt returns different value than was pushed.");
             Assert.True(bytesStack.Count == 0, "BytesStack is not empty after PopInt alone integer.");
         }
+
+        /// <summary>
+        /// Tests push and pop methods for unsigned integers
+        /// </summary>
+        /// <param name="value">Integer value to be tested</param>
+        [TestCase(4u)]
+        [TestCase(0u)]
+        [TestCase(uint.MinValue)]
+        [TestCase(uint.MaxValue)]
+        public void PushPeekPopIntTests(uint value)
+        {
+            var bytesCount = ByteCompression.RequiredBytes(value);
+            var bytesStack = new BytesStack(bytesCount);
+            bytesStack.PushUint(value, bytesCount);
+            var result = bytesStack.PeekUint(bytesCount);
+            Assert.True(value == result, "PeekUint returns different value than was pushed.");
+            result = bytesStack.PopUint(bytesCount);
+            Assert.True(value == result, "PopUint returns different value than was pushed.");
+            Assert.True(bytesStack.Count == 0, "BytesStack is not empty after PopUint alone integer.");
+        }
         
         /// <summary>
         /// Tests push and pop methods for long

@@ -447,6 +447,7 @@ namespace Simulator.Network.Core.Messaging
                     if (awaitingKeyIdBinds.TryGetValue(key, out awaitingId) && awaitingId == id)
                     {
                         awaitingKeyIdBinds.Remove(key);
+                        idRegistrationTimestamp.Remove(id);
                         return;
                     }
                     //Check if object have not been unbounded already

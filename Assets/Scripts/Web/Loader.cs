@@ -97,8 +97,28 @@ namespace Simulator
         public static Loader Instance { get; private set; }
         private System.Diagnostics.Stopwatch stopWatch = new System.Diagnostics.Stopwatch();
 
-        private void Awake()
+        public bool EditorLoader { get; set; } = false;
+
+        private void Start()
         {
+            if (!EditorLoader)
+            {
+                Init();
+            }
+            else
+            {
+                EditorInit();
+            }
+        }
+
+        private void Init()
+        {
+            if (Instance != null)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
             stopWatch.Start();
             RenderLimiter.RenderLimitEnabled();
 
@@ -116,15 +136,6 @@ namespace Simulator
                 rng.GetBytes(Config.salt);
                 PlayerPrefs.SetString("Salt", ByteArrayToString(Config.salt));
                 PlayerPrefs.Save();
-            }
-        }
-
-        void Start()
-        {
-            if (Instance != null)
-            {
-                Destroy(gameObject);
-                return;
             }
 
             if (Config.RunAsMaster)
@@ -187,6 +198,51 @@ namespace Simulator
 
             DontDestroyOnLoad(this);
             Instance = this;
+        }
+
+        private void EditorInit()
+        {
+#if UNITY_EDITOR
+            stopWatch.Start();
+            var info = Resources.Load<BuildInfo>("BuildInfo");
+            SIM.Init(info == null ? "Development" : info.Version);
+            SIM.LogSimulation(SIM.Simulation.ApplicationStart);
+            Instance = this;
+
+            var sim = Instantiate(Instance.SimulatorManagerPrefab);
+            sim.name = "SimulatorManager";
+            bool useSeed = false;
+            int? seed = null;
+            bool enableNPCs = false;
+            bool enablePEDs = false;
+
+            var data = UnityEditor.EditorPrefs.GetString("Simulator/DevelopmentSettings");
+            if (data != null)
+            {
+                try
+                {
+                    var json = JSONNode.Parse(data);
+
+                    useSeed = json["UseSeed"];
+                    if (useSeed)
+                    {
+                        seed = json["Seed"];
+                    }
+
+                    enableNPCs = json["EnableNPCs"];
+                    enablePEDs = json["EnablePEDs"];
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogException(ex);
+                }
+            }
+
+            sim.Init(seed);
+            sim.AgentManager.SetupDevAgents();
+            sim.NPCManager.NPCActive = enableNPCs;
+            sim.PedestrianManager.PedestriansActive = enablePEDs;
+#endif
         }
 
         async void LoginAsync()

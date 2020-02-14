@@ -94,9 +94,19 @@ MonoBehaviour:
   Width: 1920
   Height: 1080
   Frequency: 5
+  JpegQuality: 75
   FieldOfView: 60
   MinDistance: 0.1
   MaxDistance: 1000
+  Distorted: 0
+  DistortionParameters:
+  - 0
+  - 0
+  - 0
+  - 0
+  Fisheye: 0
+  Xi: 0
+  CubemapSize: 1024
 --- !u!114 &6574896113943451337
 MonoBehaviour:
   m_ObjectHideFlags: 0

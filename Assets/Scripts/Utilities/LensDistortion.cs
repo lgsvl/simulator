@@ -14,17 +14,18 @@ namespace Simulator.Utilities
     public class LensDistortion 
     {
         private ComputeShader lensDistortionShader;
-        private int plumBobDistortionKernel;
+        private int plumBobDistortionKernel, unifiedProjectionDistortionKernel;
         private float distortionFactor;
 
         public LensDistortion()
         {
             lensDistortionShader = GameObject.Instantiate(RuntimeSettings.Instance.LensDistortion);
             plumBobDistortionKernel = lensDistortionShader.FindKernel("PlumBobDistortion");
+            unifiedProjectionDistortionKernel = lensDistortionShader.FindKernel("UnifiedProjectionDistortion");
         }
 
         // Refer https://wiki.lgsvl.com/display/AUT/Lens+Distortion for more details.
-        public void InitDistortion(List<float> distortionParameters, float frustumWidth, float frustumHeight)
+        public void InitDistortion(List<float> distortionParameters, float frustumWidth, float frustumHeight, float xi)
         { 
             double a1, a2, a3, a4;
             a1 = distortionParameters[0];
@@ -54,6 +55,8 @@ namespace Simulator.Utilities
             lensDistortionShader.SetFloat("b2", b2);
             lensDistortionShader.SetFloat("b3", b3);
             lensDistortionShader.SetFloat("b4", b4);
+
+            lensDistortionShader.SetFloat("xi", xi);
         }
 
         public void CalculateRenderTextureSize(int width, int height, out int newWidth, out int newHeight)
@@ -62,12 +65,20 @@ namespace Simulator.Utilities
             newHeight = (int)(height / (1 + distortionFactor));
         }
 
-        public void Distort(RenderTexture inputTexture, RenderTexture distortedTexture)
+        public void PlumbBobDistort(RenderTexture inputTexture, RenderTexture distortedTexture)
         {
             lensDistortionShader.SetTexture(plumBobDistortionKernel, "_InputTexture", inputTexture);
             lensDistortionShader.SetTexture(plumBobDistortionKernel, "_DistortedTexture", distortedTexture);
 
             lensDistortionShader.Dispatch(plumBobDistortionKernel, (distortedTexture.width +7) / 8, (distortedTexture.height + 7) / 8, 1);
+        }
+
+        public void UnifiedProjectionDistort(RenderTexture inputCubemapTexture, RenderTexture distortedTexture)
+        {
+            lensDistortionShader.SetTexture(unifiedProjectionDistortionKernel, "_InputCubemapTexture", inputCubemapTexture);
+            lensDistortionShader.SetTexture(unifiedProjectionDistortionKernel, "_DistortedTexture", distortedTexture);
+
+            lensDistortionShader.Dispatch(unifiedProjectionDistortionKernel, (distortedTexture.width + 7) / 8, (distortedTexture.height + 7) / 8, 1);
         }
     }
 }

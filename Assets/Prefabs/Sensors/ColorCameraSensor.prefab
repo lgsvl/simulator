@@ -105,6 +105,9 @@ MonoBehaviour:
   - 0
   - 0
   - 0
+  Fisheye: 0
+  Xi: 0
+  CubemapSize: 1024
 --- !u!114 &8467934662373045937
 MonoBehaviour:
   m_ObjectHideFlags: 0

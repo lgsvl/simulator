@@ -80,12 +80,20 @@ This is the type of sensor that would be used for the `Main Camera` in Apollo.
 |`FieldOfView`|defines the vertical angle that the camera sees|degrees|Float|60|1|90
 |`MinDistance`|defines how far an object must be from the sensor for it to be detected|meters|Float|0.1|0.01|1000|
 |`MaxDistance`|defines how close an object must be to the sensor for it to be detected|meters|Float|1000|0.01|2000|
-|`Distorted`|defines if the image is distorted||Bool|`true`|||
-|`DistortionParameters`|parameters used by distortion*||List of Float|empty list|||
+|`Distorted`|defines if the image is distorted||Bool|`false`|||
+|`DistortionParameters`|parameters used by distortion *||List of Float|empty list|||
+|`Fisheye`|defines if the camera has fisheye lens||Bool|`false`|||
+|`Xi`|parameter used by fisheye distortion **||Float|0.0|||
+|`Cubemap Size`|size of the cubemap used by fisheye distortion ***|pixels|Int|1024|512|2048|
 
 \* If `Distorted` is `true`, `DistortionParameters` must be an empty list or a list of FOUR floats. 
 The values in this list should come from calibration result of real camera. Setting arbitrary values may cause undefined result. 
 If `Distorted` is `false`, `DistortionParameters` is ignored.
+
+\*\* If `Fisheye` is `true`, `Xi` should be a value from calibration result of real camera. Setting arbitrary value may cause undefined result.
+If `Fisheye` is `false`, `Xi` is ignored.
+
+\*\*\* `Cubemap Size` should only be 512, 1024, or 2048.
 
 ```JSON
 {
@@ -129,10 +137,17 @@ This sensor returns an image where the shades on the grey-scale correspond to th
 |`FieldOfView`|defines the vertical angle that the camera sees|degrees|Float|60|1|90
 |`MinDistance`|defines how far an object must be from the sensor for it to be detected|meters|Float|0.1|0.01|1000|
 |`MaxDistance`|defines how close an object must be to the sensor for it to be detected|meters|Float|1000|0.01|2000|
-|`Distorted`|defines if the image is distorted||Bool|`true`|||
+|`Distorted`|defines if the image is distorted||Bool|`false`|||
 |`DistortionParameters`|parameters used by distortion*||List of Float|empty list|||
+|`Fisheye`|defines if the camera has fisheye lens||Bool|`false`|||
+|`Xi`|parameter used by fisheye distortion **||Float|0.0|||
+|`Cubemap Size`|size of the cubemap used by fisheye distortion ***|pixels|Int|1024|512|2048|
 
 \* See notes on `DistortionParameters` for Color Camera.
+
+\*\* See notes on `Xi` for Color Camera.
+
+\*\*\* See notes on `Cubemap Size` for Color Camera.
 
 ```JSON
 {
@@ -184,10 +199,17 @@ This sensor returns an image where objects are colored corresponding to their ta
 |`FieldOfView`|defines the vertical angle that the camera sees|degrees|Float|60|1|90
 |`MinDistance`|defines how far an object must be from the sensor for it to be detected|meters|Float|0.1|0.01|1000|
 |`MaxDistance`|defines how close an object must be to the sensor for it to be detected|meters|Float|1000|0.01|2000|
-|`Distorted`|defines if the image is distorted||Bool|`true`|||
+|`Distorted`|defines if the image is distorted||Bool|`false`|||
 |`DistortionParameters`|parameters used by distortion*||List of Float|empty list|||
+|`Fisheye`|defines if the camera has fisheye lens||Bool|`false`|||
+|`Xi`|parameter used by fisheye distortion **||Float|0.0|||
+|`Cubemap Size`|size of the cubemap used by fisheye distortion ***|pixels|Int|1024|512|2048|
 
 \* See notes on `DistortionParameters` for Color Camera.
+
+\*\* See notes on `Xi` for Color Camera.
+
+\*\*\* See notes on `Cubemap Size` for Color Camera.
 
 ```JSON
 {

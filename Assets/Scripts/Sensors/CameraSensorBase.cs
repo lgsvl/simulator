@@ -52,9 +52,16 @@ namespace Simulator.Sensors
         public float MaxDistance = 1000.0f;
 
         [SensorParameter]
-        public bool Distorted;
+        public bool Distorted = false;
+
         [SensorParameter]
         public List<float> DistortionParameters;
+
+        [SensorParameter]
+        public bool Fisheye = false;
+
+        [SensorParameter]
+        public float Xi = 0.0f;
 
         IBridge Bridge;
         IWriter<ImageData> ImageWriter;
@@ -83,10 +90,17 @@ namespace Simulator.Sensors
         private float CurrentFieldOfView;
         private bool CurrentDistorted;
         private List<float> CurrentDistortionParameters;
+        private float CurrentXi;
+        private int CurrentCubemapSize;
 
         private LensDistortion LensDistortion;
         private RenderTexture DistortedTexture;
         float FrustumWidth, FrustumHeight;
+
+        [SensorParameter]
+        public int CubemapSize = 1024;
+        private RenderTexture CubemapTexture;
+        private int faceMask;
 
         private struct CameraCapture
         {
@@ -106,6 +120,8 @@ namespace Simulator.Sensors
             CurrentFieldOfView = FieldOfView;
             CurrentDistorted = Distorted;
             CurrentDistortionParameters = new List<float>(DistortionParameters);
+            CurrentXi = Xi;
+            CurrentCubemapSize = CubemapSize;
         }
 
         public void OnDestroy()
@@ -153,9 +169,15 @@ namespace Simulator.Sensors
                 throw new Exception("Length of DistortionParameters is not 4.");
             }
 
+            if (Fisheye && !Distorted)
+            {
+                throw new Exception("Distorted must be true for fisheye lens.");
+            }
+
             if (LensDistortion == null || CurrentWidth != Width || CurrentHeight != Height || 
                 CurrentFieldOfView != FieldOfView || CurrentDistorted != Distorted || 
-                !Enumerable.SequenceEqual(DistortionParameters, CurrentDistortionParameters))
+                !Enumerable.SequenceEqual(DistortionParameters, CurrentDistortionParameters) ||
+                (Fisheye && CurrentXi != Xi))
             {
                 // View frustum size at the focal plane.
                 FrustumHeight = 2 * Mathf.Tan(FieldOfView / 2 * Mathf.Deg2Rad);
@@ -164,18 +186,26 @@ namespace Simulator.Sensors
                 {
                     LensDistortion = new LensDistortion();
                 }
-                LensDistortion.InitDistortion(DistortionParameters, FrustumWidth, FrustumHeight);
+
+                LensDistortion.InitDistortion(DistortionParameters, FrustumWidth, FrustumHeight, Fisheye ? Xi : 0);
                 LensDistortion.CalculateRenderTextureSize(Width, Height, out RenderTextureWidth, out RenderTextureHeight);
                 if (RenderTextureWidth <= 0 || RenderTextureHeight <= 0)
                 {
                     throw new Exception("Distortion parameters cause texture size invalid (<= 0).");
                 }
+                faceMask = 0;
+                faceMask |= 1 << (int)(CubemapFace.PositiveX); // right face
+                faceMask |= 1 << (int)(CubemapFace.NegativeX); // left face
+                faceMask |= 1 << (int)(CubemapFace.PositiveY); // top face
+                faceMask |= 1 << (int)(CubemapFace.NegativeY); // bottom face
+                faceMask |= 1 << (int)(CubemapFace.PositiveZ); // front face
 
                 CurrentWidth = Width;
                 CurrentHeight = Height;
                 CurrentFieldOfView = FieldOfView;
                 CurrentDistorted = Distorted;
                 CurrentDistortionParameters = new List<float>(DistortionParameters);
+                CurrentXi = Xi;
             }
         }
 
@@ -187,35 +217,64 @@ namespace Simulator.Sensors
 
         void CheckTexture()
         {
-            // if this is not first time
-            if (SensorCamera.targetTexture != null)
+            if (!Distorted || !Fisheye) // No-distortion and non-fisheye distortion use Camera.Render().
             {
-                if (RenderTextureWidth != SensorCamera.targetTexture.width || RenderTextureHeight != SensorCamera.targetTexture.height)
+                // if this is not first time
+                if (SensorCamera.targetTexture != null)
                 {
-                    // if camera capture size has changed
-                    SensorCamera.targetTexture.Release();
-                    SensorCamera.targetTexture = null;
+                    if (RenderTextureWidth != SensorCamera.targetTexture.width || RenderTextureHeight != SensorCamera.targetTexture.height)
+                    {
+                        // if camera capture size has changed
+                        SensorCamera.targetTexture.Release();
+                        SensorCamera.targetTexture = null;
+                    }
+                    else if (!SensorCamera.targetTexture.IsCreated())
+                    {
+                        // if we have lost rendertexture due to Unity window resizing or otherwise
+                        SensorCamera.targetTexture.Release();
+                        SensorCamera.targetTexture = null;
+                    }
                 }
-                else if (!SensorCamera.targetTexture.IsCreated())
+
+                if (SensorCamera.targetTexture == null)
                 {
-                    // if we have lost rendertexture due to Unity window resizing or otherwise
-                    SensorCamera.targetTexture.Release();
-                    SensorCamera.targetTexture = null;
+                    SensorCamera.targetTexture = new RenderTexture(RenderTextureWidth, RenderTextureHeight, 24,
+                        RenderTextureFormat.ARGB32, CameraTargetTextureReadWriteType)
+                    {
+                        dimension = TextureDimension.Tex2D,
+                        antiAliasing = 1,
+                        useMipMap = false,
+                        useDynamicScale = false,
+                        wrapMode = TextureWrapMode.Clamp,
+                        filterMode = FilterMode.Bilinear,
+                    };
                 }
             }
-
-            if (SensorCamera.targetTexture == null)
+            else // Fisheye camera uses Camera.RenderToCubemap(...), and thus do not need normal RenderTexture.
             {
-                SensorCamera.targetTexture = new RenderTexture(RenderTextureWidth, RenderTextureHeight, 24, 
-                    RenderTextureFormat.ARGB32, CameraTargetTextureReadWriteType)
+                // Although Camera.RenderToCubemap has its own target texture as parameter,
+                // setting Camera.targetTexture will still affect its result.
+                // So we set Camera.targetTexture to null to make sure its result is correct.
+                SensorCamera.targetTexture = null;
+
+                if (CurrentCubemapSize != CubemapSize)
                 {
-                    dimension = TextureDimension.Tex2D,
-                    antiAliasing = 1,
-                    useMipMap = false,
-                    useDynamicScale = false,
-                    wrapMode = TextureWrapMode.Clamp,
-                    filterMode = FilterMode.Bilinear,
-                };
+                    CubemapTexture.Release();
+                    CubemapTexture = null;
+                }
+                if (CubemapTexture == null)
+                {
+                    CubemapTexture = new RenderTexture(CubemapSize, CubemapSize, 24, RenderTextureFormat.ARGB32, CameraTargetTextureReadWriteType)
+                    {
+                        dimension = TextureDimension.Cube,
+                        antiAliasing = 1,
+                        useMipMap = false,
+                        useDynamicScale = false,
+                        wrapMode = TextureWrapMode.Clamp,
+                        filterMode = FilterMode.Bilinear,
+                    };
+                    CubemapTexture.Create();
+                }
             }
 
             if (Distorted && DistortedTexture == null)
@@ -234,16 +293,33 @@ namespace Simulator.Sensors
             }
         }
 
-        void CheckCapture()
+        void RenderCamera()
         {
-            if (Time.time >= NextCaptureTime)
+            if (!Distorted || !Fisheye)
             {
                 SensorCamera.Render();
                 if (Distorted)
                 {
-                    LensDistortion.Distort(SensorCamera.targetTexture, DistortedTexture);
+                    LensDistortion.PlumbBobDistort(SensorCamera.targetTexture, DistortedTexture);
                 }
+            }
+            else
+            {
+                // Monoscopic mode of RenderToCubemap generates the result ALWAYS aligned with world coordinate system.
+                // Stereoscopi mode of RenderToCubemap can generate the result rotate with camera correctly.
+                // Setting Camera.stereoSeparation to 0 makes the result from Left/Right eye same as monoscopic mode.
+                SensorCamera.stereoSeparation = 0f;
+                SensorCamera.RenderToCubemap(CubemapTexture, faceMask, Camera.MonoOrStereoscopicEye.Left);
 
+                LensDistortion.UnifiedProjectionDistort(CubemapTexture, DistortedTexture);
+            }
+        }
+
+        void CheckCapture()
+        {
+            if (Time.time >= NextCaptureTime)
+            {
+                RenderCamera();
                 var capture = new CameraCapture()
                 {
                     CaptureTime = SimulatorManager.Instance.CurrentTime,
@@ -314,11 +390,7 @@ namespace Simulator.Sensors
         public bool Save(string path, int quality, int compression)
         {
             CheckTexture();
-            SensorCamera.Render();
-            if (Distorted)
-            {
-                LensDistortion.Distort(SensorCamera.targetTexture, DistortedTexture);
-            }
+            RenderCamera();
             var readback = AsyncGPUReadback.Request(Distorted ? DistortedTexture : SensorCamera.targetTexture, 0, TextureFormat.RGBA32);
             readback.WaitForCompletion();
 

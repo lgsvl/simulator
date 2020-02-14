@@ -7,18 +7,22 @@
 
 #include "UnityCG.cginc"
 #pragma kernel PlumBobDistortion
+#pragma kernel UnifiedProjectionDistortion
 
 Texture2D<float4> _InputTexture;
 SamplerState sampler_InputTexture;
+TextureCube<float4> _InputCubemapTexture;
+SamplerState sampler_InputCubemapTexture; 
 RWTexture2D<float4> _DistortedTexture;
 
 float enlargeFactorA, enlargeFactorB;
 float frustumWidth, frustumHeight;
 float b1, b2, b3, b4;
+float xi;
 
 // Distort UV using Plumb Bob model.
 // Refer https://wiki.lgsvl.com/display/AUT/Lens+Distortion for more details.
-float2 undistortUv(float2 uv)
+float2 UndistortUvPlumbBob(float2 uv)
 {
 	float2 scaledUv = enlargeFactorA * uv + enlargeFactorB;
 	float2 pos = (scaledUv - 0.5) * float2(frustumWidth, frustumHeight);
@@ -41,8 +45,46 @@ void PlumBobDistortion(uint3 id : SV_DispatchThreadID)
 	}
 
 	float2 normalizedUv = id.xy / float2(distortedTextureWidth, distortedTextureHeight);
-	float2 undistortedUv = undistortUv(normalizedUv);
+	float2 undistortedUv = UndistortUvPlumbBob(normalizedUv);
 	float3 color = _InputTexture.SampleLevel(sampler_InputTexture, undistortedUv, 0).rgb;
+	// Since _DistortedTexture is bound to RWTexture2D,
+	// the value written into it is always linear.
+	// But the texture is created as sRGB, so we need to do gamma correction here.
+	color = LinearToGammaSpace(color);
+	_DistortedTexture[id.xy] = float4(color, 1);
+}
+
+// Distort UV using Unified Projection model.
+// Refer https://wiki.lgsvl.com/display/AUT/Lens+Distortion for more details.
+float3 UndistortUvUnifiedProjection(float2 uv)
+{
+	float2 pos = (uv - 0.5) * float2(frustumWidth, frustumHeight);
+	float r2 = dot(pos, pos);
+	float r4 = r2 * r2;
+	float2 undistortedPos = pos * (1 + b1 * r2 + b2 * r4 + b3 * r2 * r4 + b4 * r4 * r4);
+
+	float l2 = dot(undistortedPos, undistortedPos);
+	float lamda = (xi + sqrt(1 + (1 - xi * xi) * l2)) / (l2 + 1);
+	float3 cubeTexCoord;
+	cubeTexCoord.xy = lamda * undistortedPos;
+	cubeTexCoord.z = lamda - xi;
+
+	return cubeTexCoord;
+}
+
+[numthreads(8, 8, 1)]
+void UnifiedProjectionDistortion(uint3 id : SV_DispatchThreadID)
+{
+	float distortedTextureWidth, distortedTextureHeight;
+	_DistortedTexture.GetDimensions(distortedTextureWidth, distortedTextureHeight);
+
+	if (id.x >= uint(distortedTextureWidth) || id.y >= uint(distortedTextureHeight)) {
+		return;
+	}
+
+	float2 normalizedUv = id.xy / float2(distortedTextureWidth, distortedTextureHeight);
+	float3 cubeTexCoord = UndistortUvUnifiedProjection(normalizedUv);
+	float3 color = _InputCubemapTexture.SampleLevel(sampler_InputCubemapTexture, cubeTexCoord, 0).rgb;
 	// Since _DistortedTexture is bound to RWTexture2D,
 	// the value written into it is always linear.
 	// But the texture is created as sRGB, so we need to do gamma correction here.

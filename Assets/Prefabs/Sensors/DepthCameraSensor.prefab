@@ -98,6 +98,15 @@ MonoBehaviour:
   FieldOfView: 60
   MinDistance: 0.1
   MaxDistance: 1000
+  Distorted: 0
+  DistortionParameters:
+  - 0
+  - 0
+  - 0
+  - 0
+  Fisheye: 0
+  Xi: 0
+  CubemapSize: 1024
 --- !u!114 &2783041447292560515
 MonoBehaviour:
   m_ObjectHideFlags: 0

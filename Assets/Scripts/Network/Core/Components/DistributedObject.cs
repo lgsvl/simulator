@@ -8,9 +8,11 @@
 namespace Simulator.Network.Core.Components
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Net;
     using Connection;
+    using Identification;
     using Messaging;
     using Messaging.Data;
     using UnityEngine;
@@ -35,6 +37,11 @@ namespace Simulator.Network.Core.Components
         private DistributedObjectsRoot root;
 
         /// <summary>
+        /// Sibling component that has GUID assigned, if available used as the Key base
+        /// </summary>
+        private IGloballyUniquelyIdentified guidSource;
+
+        /// <summary>
         /// Cached IMessageSender key
         /// </summary>
         private string key;
@@ -53,7 +60,7 @@ namespace Simulator.Network.Core.Components
         /// Is this distributed object initialized
         /// </summary>
         public bool IsInitialized { get; private set; }
-        
+
         /// <summary>
         /// Is this distributed component authoritative (sends data to other components)
         /// </summary>
@@ -65,12 +72,18 @@ namespace Simulator.Network.Core.Components
         public bool WillBeDestroyed { get; private set; }
 
         /// <inheritdoc/>
-        public string Key => key ?? (key = HierarchyUtility.GetRelativePath(Root.transform, transform));
+        public string Key => string.IsNullOrEmpty(key)
+            ? GuidSource == null
+                ? key = $"{HierarchyUtility.GetRelativePath(Root.transform, transform)}DistributedObject"
+                : GuidSource.GUID == null
+                    ? null
+                    : key = $"{GuidSource.GUID}/DistributedObject"
+            : key;
 
         /// <summary>
         /// Root component for this distributed object
         /// </summary>
-        public DistributedObjectsRoot Root => root ? root : (root = LocateRoot());
+        public DistributedObjectsRoot Root => root != null ? root : (root = LocateRoot());
 
         /// <summary>
         /// Determines if this object is distributed only to selected endpoints
@@ -80,6 +93,12 @@ namespace Simulator.Network.Core.Components
             get => selectiveDistribution;
             set => selectiveDistribution = value;
         }
+
+        /// <summary>
+        /// Sibling component that has GUID assigned, if available used as the Key base
+        /// </summary>
+        private IGloballyUniquelyIdentified GuidSource =>
+            guidSource ?? (guidSource = GetComponent<IGloballyUniquelyIdentified>());
 
         /// <summary>
         /// Event invoked when distributed object is initialized
@@ -106,16 +125,7 @@ namespace Simulator.Network.Core.Components
         /// </summary>
         protected virtual void Start()
         {
-            if (Root == null)
-            {
-                WillBeDestroyed = true;
-                DestroyCalled?.Invoke();
-                Destroy(this);
-            }
-            else
-            {
-                Initialize();
-            }
+            CallInitialize();
         }
 
         /// <summary>
@@ -133,8 +143,9 @@ namespace Simulator.Network.Core.Components
         {
             if (!IsInitialized)
                 return;
+
             var enableCommand = new BytesStack();
-            enableCommand.PushEnum<DistributedObjectCommandType>((int)DistributedObjectCommandType.Enable);
+            enableCommand.PushEnum<DistributedObjectCommandType>((int) DistributedObjectCommandType.Enable);
             BroadcastMessage(new Message(Key, enableCommand, MessageType.ReliableUnordered));
         }
 
@@ -145,9 +156,47 @@ namespace Simulator.Network.Core.Components
         {
             if (!IsInitialized)
                 return;
+
             var enableCommand = new BytesStack();
-            enableCommand.PushEnum<DistributedObjectCommandType>((int)DistributedObjectCommandType.Disable);
+            enableCommand.PushEnum<DistributedObjectCommandType>((int) DistributedObjectCommandType.Disable);
             BroadcastMessage(new Message(Key, enableCommand, MessageType.ReliableUnordered));
+        }
+
+        /// <summary>
+        /// Calls initialize method, may be delayed if the GUID in the guidSource is not set yet
+        /// </summary>
+        private void CallInitialize()
+        {
+            if (Root == null)
+            {
+                WillBeDestroyed = true;
+                DestroyCalled?.Invoke();
+                Destroy(this);
+            }
+            else
+            {
+                if (GuidSource == null)
+                    Initialize();
+                else
+                {
+                    if (string.IsNullOrEmpty(GuidSource.GUID))
+                        StartCoroutine(WaitForGUID(Initialize));
+                    else
+                        Initialize();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Method waiting while the GUID in the guidSource is not set
+        /// </summary>
+        /// <param name="callback">Callback called after GUID is set</param>
+        /// <returns>IEnumerator</returns>
+        private IEnumerator WaitForGUID(Action callback)
+        {
+            while (GuidSource != null && string.IsNullOrEmpty(GuidSource.GUID))
+                yield return new WaitForEndOfFrame();
+            callback();
         }
 
         /// <summary>
@@ -163,9 +212,9 @@ namespace Simulator.Network.Core.Components
             Initialized?.Invoke();
             var enableCommand = new BytesStack();
             if (gameObject.activeInHierarchy)
-                enableCommand.PushEnum<DistributedObjectCommandType>((int)DistributedObjectCommandType.Enable);
+                enableCommand.PushEnum<DistributedObjectCommandType>((int) DistributedObjectCommandType.Enable);
             else
-                enableCommand.PushEnum<DistributedObjectCommandType>((int)DistributedObjectCommandType.Disable);
+                enableCommand.PushEnum<DistributedObjectCommandType>((int) DistributedObjectCommandType.Disable);
             BroadcastMessage(new Message(Key, enableCommand, MessageType.ReliableUnordered));
         }
 
@@ -276,10 +325,13 @@ namespace Simulator.Network.Core.Components
             foreach (var registeredComponent in registeredComponents)
                 registeredComponent.UnicastInitialMessages(endPoint);
         }
-        
+
         /// <inheritdoc/>
         public void ReceiveMessage(IPeerManager sender, Message message)
         {
+            //Check if game object is not destroyed
+            if (this ==null || gameObject == null)
+                return;
             var commandType = message.Content.PopEnum<DistributedObjectCommandType>();
             switch (commandType)
             {

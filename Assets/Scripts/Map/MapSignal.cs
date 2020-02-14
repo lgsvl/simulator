@@ -36,6 +36,7 @@ namespace Simulator.Map
 
         public string Key => UID;
 
+        public string GUID => UID;
         public string ControlType { get; set; } = "signal";
         public string CurrentState { get; set; }
         public string[] ValidStates { get; set; } = new string[] { "green", "yellow", "red", "black" };

@@ -40,7 +40,7 @@ namespace Simulator.Network.Core.Components
 
         /// <inheritdoc/>
         public string Key => key ?? (key =
-                                 $"{ParentObject.Key}{HierarchyUtility.GetRelativePath(ParentObject.transform, transform)}{ComponentKey}"
+                                 $"{ParentObject.Key}/{HierarchyUtility.GetRelativePath(ParentObject.transform, transform)}{ComponentKey}"
                              );
 
         /// <summary>

@@ -12,6 +12,8 @@ using UnityEngine;
 
 namespace Simulator.Controllable
 {
+    using Network.Core.Identification;
+
     public class ControllableManager : MonoBehaviour
     {
         public IControllable SpawnControllable(GameObject prefab, Vector3 pos, Quaternion rot, Vector3 velocity, Vector3 angVelocity)
@@ -85,7 +87,7 @@ namespace Simulator.Controllable
         public string Value;
     }
 
-    public interface IControllable
+    public interface IControllable : IGloballyUniquelyIdentified
     {
         Transform transform { get; }
         GameObject gameObject { get; }

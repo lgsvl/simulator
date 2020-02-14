@@ -81,6 +81,16 @@ namespace Simulator.Network.Core.Components
         private Rigidbody cachedRigidbody;
 
         /// <summary>
+        /// Coroutine of the UpdateSnapshots method
+        /// </summary>
+        private IEnumerator updateSnapshotsCoroutine;
+
+        /// <summary>
+        /// Coroutine of the ExtrapolateVelocities method
+        /// </summary>
+        private IEnumerator extrapolateCoroutine;
+
+        /// <summary>
         /// Cached rigidbody component reference
         /// </summary>
         public Rigidbody CachedRigidbody =>
@@ -114,38 +124,83 @@ namespace Simulator.Network.Core.Components
             base.Initialize();
             if (!IsInitialized)
                 return;
-            if (!ParentObject.IsAuthoritative)
+            if (ParentObject.IsAuthoritative)
             {
-                CachedRigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
-                CachedRigidbody.isKinematic = true;
-                CachedRigidbody.interpolation = RigidbodyInterpolation.None;
-                var colliders = CachedRigidbody.GetComponentsInChildren<Collider>();
-                for (var i = 0; i < colliders.Length; i++)
-                {
-                    var childCollider = colliders[i];
-                    childCollider.isTrigger = true;
-                }
-
-                if (SimulationType != MockingSimulationType.ApplySnapshotsOnly)
-                {
-                    StartCoroutine(ExtrapolateSnapshots());
-                }
+                if (updateSnapshotsCoroutine != null)
+                    return;
+                updateSnapshotsCoroutine = UpdateSnapshots();
+                StartCoroutine(updateSnapshotsCoroutine);
+                return;
             }
+            CachedRigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+            CachedRigidbody.isKinematic = true;
+            CachedRigidbody.interpolation = RigidbodyInterpolation.None;
+            var colliders = CachedRigidbody.GetComponentsInChildren<Collider>();
+            for (var i = 0; i < colliders.Length; i++)
+            {
+                var childCollider = colliders[i];
+                childCollider.isTrigger = true;
+            }
+                
+            if (SimulationType != MockingSimulationType.ApplySnapshotsOnly &&
+                extrapolateCoroutine == null)
+            {
+                extrapolateCoroutine = ExtrapolateSnapshots();
+                StartCoroutine(extrapolateCoroutine);
+            }
+        }
+        
+        /// <summary>
+        /// Unity OnEnable method
+        /// </summary>
+        protected void OnEnable()
+        {
+            if (ParentObject.IsAuthoritative)
+            {
+                if (updateSnapshotsCoroutine != null)
+                    return;
+                updateSnapshotsCoroutine = UpdateSnapshots();
+                StartCoroutine(updateSnapshotsCoroutine);
+            }
+            else
+            {
+                if (SimulationType == MockingSimulationType.ApplySnapshotsOnly ||
+                    extrapolateCoroutine != null) return;
+                extrapolateCoroutine = ExtrapolateSnapshots();
+                StartCoroutine(extrapolateCoroutine);
+            }
+        }
+
+        /// <summary>
+        /// Unity OnDisable method
+        /// </summary>
+        protected void OnDisable()
+        {
+            updateSnapshotsCoroutine = null;
+            extrapolateCoroutine = null;
         }
 
         /// <summary>
         /// Unity LateUpdate method
         /// </summary>
-        protected void LateUpdate()
+        protected IEnumerator UpdateSnapshots()
         {
-            if (ParentObject.IsAuthoritative && Time.time >= lastSnapshotTime + 1.0f / SnapshotsPerSecondLimit)
+            while (IsInitialized)
             {
+                if (!(Time.time >= lastSnapshotTime + 1.0f / SnapshotsPerSecondLimit))
+                {
+                    yield return new WaitForEndOfFrame();
+                    continue;
+                }
                 //Check if rigidbody is sleeping
                 if (CachedRigidbody.IsSleeping() && Math.Abs(CachedRigidbody.velocity.magnitude) < 0.1f &&
                     Mathf.Abs(CachedRigidbody.angularVelocity.magnitude) < 0.1f)
                 {
                     if (IsSleeping)
-                        return;
+                    {
+                        yield return new WaitForEndOfFrame();
+                        continue;
+                    }
                     BroadcastSnapshot(true);
                     isSleeping = true;
                 }
@@ -156,32 +211,10 @@ namespace Simulator.Network.Core.Components
                 }
 
                 lastSnapshotTime = Time.time;
+                yield return new WaitForEndOfFrame();
             }
-        }
 
-        /// <inheritdoc/>
-        protected override BytesStack GetSnapshot()
-        {
-            //Reverse order when writing to the stack
-            var localPosition = CachedRigidbody.position - transform.parent.position;
-            BytesStack bytesStack;
-            switch (SimulationType)
-            {
-                case MockingSimulationType.ExtrapolateVelocities:
-                    bytesStack = new BytesStack(ByteCompression.PositionRequiredBytes +
-                                                ByteCompression.RotationMaxRequiredBytes + 2 * 3 * 3);
-                    bytesStack.PushCompressedVector3(CachedRigidbody.angularVelocity, -10.0f, 10.0f, 2);
-                    bytesStack.PushCompressedVector3(CachedRigidbody.velocity, -200.0f, 200.0f, 2);
-                    bytesStack.PushCompressedRotation(CachedRigidbody.rotation);
-                    bytesStack.PushCompressedPosition(localPosition);
-                    return bytesStack;
-                default:
-                    bytesStack = new BytesStack(ByteCompression.PositionRequiredBytes +
-                                                ByteCompression.RotationMaxRequiredBytes);
-                    bytesStack.PushCompressedRotation(CachedRigidbody.rotation);
-                    bytesStack.PushCompressedPosition(localPosition);
-                    return bytesStack;
-            }
+            updateSnapshotsCoroutine = null;
         }
 
         /// <summary>
@@ -194,7 +227,7 @@ namespace Simulator.Network.Core.Components
             {
                 if (newestSnapshot.Timestamp == DateTime.MinValue)
                 {
-                    yield return new WaitForEndOfFrame();
+                    yield return null;
                     continue;
                 }
 
@@ -205,7 +238,7 @@ namespace Simulator.Network.Core.Components
                 {
                     CachedRigidbody.position = newestSnapshot.LocalPosition + transform.parent.position;
                     CachedRigidbody.rotation = newestSnapshot.Rotation;
-                    yield return new WaitForEndOfFrame();
+                    yield return null;
                     continue;
                 }
 
@@ -240,7 +273,34 @@ namespace Simulator.Network.Core.Components
                         break;
                 }
 
-                yield return new WaitForEndOfFrame();
+                yield return null;
+            }
+
+            extrapolateCoroutine = null;
+        }
+
+        /// <inheritdoc/>
+        protected override BytesStack GetSnapshot()
+        {
+            //Reverse order when writing to the stack
+            var localPosition = CachedRigidbody.position - transform.parent.position;
+            BytesStack bytesStack;
+            switch (SimulationType)
+            {
+                case MockingSimulationType.ExtrapolateVelocities:
+                    bytesStack = new BytesStack(ByteCompression.PositionRequiredBytes +
+                                                ByteCompression.RotationMaxRequiredBytes + 2 * 3 * 3);
+                    bytesStack.PushCompressedVector3(CachedRigidbody.angularVelocity, -10.0f, 10.0f, 2);
+                    bytesStack.PushCompressedVector3(CachedRigidbody.velocity, -200.0f, 200.0f, 2);
+                    bytesStack.PushCompressedRotation(CachedRigidbody.rotation);
+                    bytesStack.PushCompressedPosition(localPosition);
+                    return bytesStack;
+                default:
+                    bytesStack = new BytesStack(ByteCompression.PositionRequiredBytes +
+                                                ByteCompression.RotationMaxRequiredBytes);
+                    bytesStack.PushCompressedRotation(CachedRigidbody.rotation);
+                    bytesStack.PushCompressedPosition(localPosition);
+                    return bytesStack;
             }
         }
 

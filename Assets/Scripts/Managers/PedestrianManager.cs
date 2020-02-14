@@ -160,7 +160,6 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
                 continue;
 
             currentPedPool[i].InitPed(spawnPos, path.mapWorldPositions, PEDSeedGenerator.Next());
-            currentPedPool[i].GTID = ++SimulatorManager.Instance.GTIDs;
             currentPedPool[i].gameObject.SetActive(true);
             ActivePedCount++;
         }
@@ -170,8 +169,6 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
     private GameObject SpawnPedestrian()
     {
         GameObject ped = Instantiate(pedPrefab, Vector3.zero, Quaternion.identity, transform);
-        //Ensure sure all pedestrians get unique names
-        HierarchyUtility.ChangeToUniqueName(ped);
         var pedController = ped.GetComponent<PedestrianController>();
         pedController.SetGroundTruthBox();
         var modelIndex = RandomGenerator.Next(pedModels.Count);
@@ -179,18 +176,21 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         Instantiate(model, ped.transform);
         ped.SetActive(false);
         SimulatorManager.Instance.UpdateSemanticTags(ped);
+        pedController.GTID = ++SimulatorManager.Instance.GTIDs;
+        pedController.GUID = $"Pedestrian{pedController.GTID}";
         currentPedPool.Add(pedController);
 
         //Add required components for distributing rigidbody from master to clients
-        if (Loader.Instance.Network.IsMaster)
+        if (Loader.Instance.Network.IsClusterSimulation)
         {
             if (ped.GetComponent<DistributedObject>() == null)
                 ped.AddComponent<DistributedObject>();
             if (ped.GetComponent<DistributedRigidbody>() == null)
                 ped.AddComponent<DistributedRigidbody>();
-            BroadcastMessage(new Message(Key,
-                GetSpawnMessage(ped.name, modelIndex, ped.transform.position, ped.transform.rotation),
-                MessageType.ReliableUnordered));
+            if (Loader.Instance.Network.IsMaster)
+                BroadcastMessage(new Message(Key,
+                    GetSpawnMessage(pedController.GUID, modelIndex, ped.transform.position, ped.transform.rotation),
+                    MessageType.ReliableUnordered));
         }
 
         return ped;
@@ -225,7 +225,6 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         }
 
         GameObject ped = Instantiate(pedPrefab, Vector3.zero, Quaternion.identity, transform);
-        ped.name = $"{ped.name}{uid}";
         var pedC = ped.GetComponent<PedestrianController>();
         var rb = ped.GetComponent<Rigidbody>();
         Instantiate(prefab, ped.transform);
@@ -233,13 +232,17 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         currentPedPool.Add(pedC);
 
         pedC.InitManual(position, rotation, PEDSeedGenerator.Next());
+        pedC.GUID = uid;
         pedC.GTID = ++SimulatorManager.Instance.GTIDs;
         pedC.SetGroundTruthBox();
-        
-        if (ped.GetComponent<DistributedObject>() == null)
-            ped.AddComponent<DistributedObject>();
-        if (rb !=null && rb.gameObject.GetComponent<DistributedRigidbody>() == null)
-            rb.gameObject.AddComponent<DistributedRigidbody>();
+
+        if (Loader.Instance.Network.IsClusterSimulation)
+        {
+            if (ped.GetComponent<DistributedObject>() == null)
+                ped.AddComponent<DistributedObject>();
+            if (rb != null && rb.gameObject.GetComponent<DistributedRigidbody>() == null)
+                rb.gameObject.AddComponent<DistributedRigidbody>();
+        }
 
         return ped;
     }
@@ -315,27 +318,27 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
     #region network
 
-    private BytesStack GetSpawnMessage(string pedestrianName, int modelIndex, Vector3 position, Quaternion rotation)
+    private BytesStack GetSpawnMessage(string GUID, int modelIndex, Vector3 position, Quaternion rotation)
     {
         var bytesStack = new BytesStack();
         bytesStack.PushCompressedRotation(rotation);
         bytesStack.PushCompressedPosition(position);
         bytesStack.PushInt(modelIndex, 2);
-        bytesStack.PushString(pedestrianName);
+        bytesStack.PushString(GUID);
         bytesStack.PushEnum<PedestrianManagerCommandType>((int) PedestrianManagerCommandType.SpawnPedestrian);
         return bytesStack;
     }
 
-    private void SpawnPedestrianMock(string pedestrianName, int modelIndex, Vector3 position, Quaternion rotation)
+    private void SpawnPedestrianMock(string GUID, int modelIndex, Vector3 position, Quaternion rotation)
     {
         GameObject ped = Instantiate(pedPrefab, position, rotation, transform);
-        ped.name = pedestrianName;
         ped.SetActive(false);
+        var pedController = ped.GetComponent<PedestrianController>();
+        pedController.GUID = GUID;
         if (ped.GetComponent<DistributedObject>() == null)
             ped.AddComponent<DistributedObject>().Initialize();
         if (ped.GetComponent<DistributedRigidbody>() == null)
             ped.AddComponent<DistributedRigidbody>();
-        var pedController = ped.GetComponent<PedestrianController>();
         pedController.SetGroundTruthBox();
         var model = pedModels[modelIndex];
         Instantiate(model, ped.transform);
@@ -358,9 +361,9 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         switch (commandType)
         {
             case PedestrianManagerCommandType.SpawnPedestrian:
-                var pedestrianName = message.Content.PopString();
+                var pedestrianGUID = message.Content.PopString();
                 var modelIndex = message.Content.PopInt(2);
-                SpawnPedestrianMock(pedestrianName, modelIndex, message.Content.PopDecompressedPosition(),
+                SpawnPedestrianMock(pedestrianGUID, modelIndex, message.Content.PopDecompressedPosition(),
                     message.Content.PopDecompressedRotation());
                 break;
             case PedestrianManagerCommandType.DespawnPedestrian:

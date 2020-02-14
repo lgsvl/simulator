@@ -13,6 +13,7 @@ using UnityEngine.AI;
 using Simulator.Api;
 using Simulator.Map;
 using Simulator.Network.Core.Components;
+using Simulator.Network.Core.Identification;
 using Simulator.Utilities;
 
 public enum PedestrianState
@@ -23,7 +24,7 @@ public enum PedestrianState
     Crossing
 };
 
-public class PedestrianController : MonoBehaviour
+public class PedestrianController : MonoBehaviour, IGloballyUniquelyIdentified
 {
     public enum ControlType
     {
@@ -71,6 +72,7 @@ public class PedestrianController : MonoBehaviour
     private Vector3 LastRBPosition;
     private Quaternion LastRBRotation;
     public uint GTID { get; set; }
+    public string GUID { get; set; }
     public Bounds Bounds;
 
     private enum CoroutineID

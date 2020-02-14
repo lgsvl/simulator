@@ -17,11 +17,12 @@ using Simulator.Map;
 using Simulator.Network.Core.Components;
 using Simulator.Network.Core;
 using Simulator.Network.Core.Connection;
+using Simulator.Network.Core.Identification;
 using Simulator.Network.Core.Messaging;
 using Simulator.Network.Core.Messaging.Data;
 using Simulator.Utilities;
 
-public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
+public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IGloballyUniquelyIdentified
 {
     public enum ControlType
     {
@@ -150,7 +151,8 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
     //Network
     private MessagesManager messagesManager;
     private string key;
-    public string Key => key ?? (key = $"{HierarchyUtility.GetPath(transform)}NPCController");
+    public string GUID => id;
+    public string Key => key ?? (string.IsNullOrEmpty(GUID) ? null : key = $"{GUID}/NPCController");
 
 
     private double wakeUpTime;
@@ -253,7 +255,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
     private void Start()
     {
         messagesManager = Loader.Instance.Network.MessagesManager;
-        messagesManager?.RegisterObject(this);
+        StartCoroutine(WaitForId(() => messagesManager?.RegisterObject(this)));
     }
     
     private void OnEnable()
@@ -2331,6 +2333,18 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
 
 
     #region network
+    /// <summary>
+    /// Method waiting while the GUID in the guidSource is not set
+    /// </summary>
+    /// <param name="callback">Callback called after GUID is set</param>
+    /// <returns>IEnumerator</returns>
+    private IEnumerator WaitForId(Action callback)
+    {
+        while (string.IsNullOrEmpty(id))
+            yield return null;
+        callback();
+    }
+    
     /// <summary>
     /// Adds required components to make transform distributed from master to clients
     /// </summary>

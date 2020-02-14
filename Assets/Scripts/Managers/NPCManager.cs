@@ -180,11 +180,14 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         SimulatorManager.Instance.UpdateSemanticTags(go);
         go.transform.SetPositionAndRotation(position, rotation); // TODO check for incorrect calc speed
         npcC.SetLastPosRot(position, rotation);
-        
-        if (go.GetComponent<DistributedObject>() == null)
-            go.AddComponent<DistributedObject>();
-        if (rb.gameObject.GetComponent<DistributedRigidbody>() == null)
-            rb.gameObject.AddComponent<DistributedRigidbody>();
+
+        if (Loader.Instance.Network.IsClusterSimulation)
+        {
+            if (go.GetComponent<DistributedObject>() == null)
+                go.AddComponent<DistributedObject>();
+            if (rb.gameObject.GetComponent<DistributedRigidbody>() == null)
+                rb.gameObject.AddComponent<DistributedRigidbody>();
+        }
 
         return go;
     }
@@ -245,14 +248,18 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         SimulatorManager.Instance.UpdateSemanticTags(go);
         
         //Add required components for distributing rigidbody from master to clients
-        if (go.GetComponent<DistributedObject>() == null)
-            go.AddComponent<DistributedObject>();
-        if (rb.gameObject.GetComponent<DistributedRigidbody>() == null)
-            rb.gameObject.AddComponent<DistributedRigidbody>();
-        if (Loader.Instance.Network.IsMaster)
-            BroadcastMessage(new Message(Key, 
-                GetSpawnMessage(genId, npcData, npcControllerSeed, color, go.transform.position, go.transform.rotation),
-                MessageType.ReliableUnordered));
+        if (Loader.Instance.Network.IsClusterSimulation)
+        {
+            if (go.GetComponent<DistributedObject>() == null)
+                go.AddComponent<DistributedObject>();
+            if (rb.gameObject.GetComponent<DistributedRigidbody>() == null)
+                rb.gameObject.AddComponent<DistributedRigidbody>();
+            if (Loader.Instance.Network.IsMaster)
+                BroadcastMessage(new Message(Key,
+                    GetSpawnMessage(genId, npcData, npcControllerSeed, color, go.transform.position,
+                        go.transform.rotation),
+                    MessageType.ReliableUnordered));
+        }
     }
 
     private void SpawnNPCPool()

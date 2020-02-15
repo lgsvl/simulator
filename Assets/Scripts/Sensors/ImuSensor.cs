@@ -125,7 +125,7 @@ namespace Simulator.Sensors
             var acceleration = (velocity - LastVelocity) / Time.fixedDeltaTime;
             LastVelocity = velocity;
 
-            acceleration += transform.InverseTransformDirection(Physics.gravity);
+            acceleration -= transform.InverseTransformDirection(Physics.gravity);
 
             var angularVelocity = RigidBody.angularVelocity;
 

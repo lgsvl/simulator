@@ -1,13 +1,16 @@
-# <a name="top"></a>Controllable Plugins
+# Controllable Plugins [](#top)
 
-Controllable plugins are custom controllables that can be added to a scene at runtime with the API. Controllable plugins must be built by the simulator using Simulator Build menu before running the simulator (running the executable or pressing `Play` in the Editor).
+
+Controllable plugins are custom controllables that can be added to a scene at runtime with the API. Before running the simulator (running the executable or pressing `Play` in the Editor) controllable plugins must be built by the simulator using `Simulator -> Build...` menu and the built asset placed in the `AssetBundles/Controllables` folder.
 
 Open-source example:
 
 - [TrafficCone](https://github.com/lgsvl/TrafficCone)
 
+<h2> Table of Contents</h2>
+[TOC]
 
-**Building controllable plugins**   
+## Building Controllable Plugins [[top]] {: #building-controllable-plugins data-toc-label='Building Controllable Plugins'}
 
 1. Open `Simulator -> Build...` menu item   
 2. Select controllable plugins in "Controllables" section of build window   
@@ -15,11 +18,11 @@ Open-source example:
 
 [![](images/controllables-build.png)](images/full_size_images/controllables-build.png)
 
-The bundle named `controllable_XXX` will be placed in the `AssetBundles/Controllables` folder. If building the binary, this folder is included in the downloaded .zip.
+The bundle named `controllable_XXX` will be placed in the `AssetBundles/Controllables` folder. If building the binary, this folder is included in the target destination.
 
 See [build instructions](build-instructions) for more details.
 
-**Creating controllable plugin**
+## Creating Controllable Plugins [[top]] {: #creating-controllable-plugins data-toc-label='Creating Controllable Plugins'}
 
 Create a folder in `Assets/External/Controllables ` , e.g. Assets/External/Controllables/TrafficCone.
 
@@ -45,13 +48,13 @@ To create a prefab:
 
 
 
-**Controllable Logic**
+## Controllable Logic [[top]] {: #controllable-logic data-toc-label='Controllable Logic'}
 
-Additionally place a C# script which will be compiled & bundled with prefab, as well as any additional Unity resources (shaders, materials, textures, etc...). This is required even for simple objects such as a Traffic Cone.
+Additionally place a C# script which will be compiled & bundled with prefab, as well as any additional Unity resources (shaders, materials, textures, etc...). **This is required even for simple objects such as a Traffic Cone.**
 
 Controllable scripts must inherit interface `IControllable` which allows controllables to receive API commands. In addition, it must implement all interface variables and methods.  See the below code block from TrafficCone.cs:
 
-```C#
+```c#
 namespace Simulator.Controllable
 {
     public class TrafficCone : MonoBehaviour, IControllable,

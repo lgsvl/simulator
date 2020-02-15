@@ -382,7 +382,7 @@ namespace Simulator.Bridge.Ros
                     seq = data.Sequence, 
                     frame_id = data.Frame,
                 },
-                child_frame_id = "base_link",
+                child_frame_id = data.ChildFrame,
                 pose = new PoseWithCovariance()
                 {
                     pose = new Pose()

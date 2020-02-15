@@ -69,7 +69,7 @@ pip3 install --user .
 
 ### Install the ROS2 Web Bridge [[top]] {: #install-ros2-web-bridge data-toc-label='Install Ros2 Web Bridge'}
 
-- Clone the [ROS2 web bridge](https://github.com/RobotWebTools/ros2-web-bridge):
+###### Clone the [ROS2 web bridge](https://github.com/RobotWebTools/ros2-web-bridge)
 
 ```bash
 cd ~/adehome/AutowareAuto
@@ -78,7 +78,7 @@ ade enter
 git clone -b 0.2.7 https://github.com/RobotWebTools/ros2-web-bridge.git
 ```
 
-- Install nodejs v10:
+###### Install nodejs v10 {: #node-js}
 
 ```bash
 curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
@@ -87,7 +87,7 @@ cd ros2-web-bridge
 npm install    # If node.js packages are not installed, run this.
 ```
 
-## Run Simulator alongside Autoware.Auto
+## Run Simulator alongside Autoware.Auto [[top]] {: #run-simulator-alongside-autoware-auto data-toc-label='Run Simulator alongside Autoware.Auto'}
 The ROS2 web bridge allows the simulator and Autoware.auto to communicate. To test this connection we can visualize sensor data from the simulator in rviz2 (running in the Autoware.auto container).
 
 - Start the Autoware.Auto containers:
@@ -123,6 +123,8 @@ rviz2 -d /home/"${USER}"/AutowareAuto/install/autoware_auto_examples/share/autow
     Select the simulation and press the play button in the bottom right corner of the screen
 
 - Launch ROS2 web bridge in a new terminal:
+
+**NOTE** [Node.js](#node-js) will need to be reinstalled in the container every time it is started
 
 ```bash
 ade enter      # ros2 web bridge should be run in ade environment.

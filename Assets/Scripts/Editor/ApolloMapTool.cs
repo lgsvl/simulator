@@ -75,24 +75,24 @@ namespace Simulator.Editor
 
         public string selfReverseLaneId;
 
+        public static Dictionary<string, ADMapLane> id2ADMapLane = new Dictionary<string, ADMapLane>();
+        public static Dictionary<string, MapLane> id2MapLane = new Dictionary<string, MapLane>();
         public ADMapLane() {}
 
         public ADMapLane(MapLane lane)
         {
             Id = lane.id;
-            needSelfReverseLane = lane.needSelfReverseLane;
-            isSelfReverseLane = lane.isSelfReverseLane;
-            laneCount = lane.laneCount;
-            laneNumber = lane.laneNumber;
-            laneTurnType = lane.laneTurnType;
-            BoundaryLineConversion(lane, out leftBoundType, out rightBoundType);
-            speedLimit = lane.speedLimit;
 
-            mapWorldPositions = new List<Vector3>(lane.mapWorldPositions);
-        }
-        public ADMapLane(MapLane lane, string id)
-        {
-            Id = id;
+            if (!id2ADMapLane.ContainsKey(lane.id))
+            {
+                id2ADMapLane.Add(lane.id, this);
+                id2MapLane.Add(lane.id, lane);
+            }
+            else
+            {
+                Debug.LogError($"You should not add same lane {lane.id} twice!");
+            }
+
             needSelfReverseLane = lane.needSelfReverseLane;
             isSelfReverseLane = lane.isSelfReverseLane;
             laneCount = lane.laneCount;
@@ -517,6 +517,22 @@ namespace Simulator.Editor
         // Parking Space
         Dictionary<string, ParkingSpaceOverlapInfo> parkingSpaceOverlapsInfo;
 
+        void CopyLaneRelations()
+        {    
+            var id2MapLane = ADMapLane.id2MapLane;
+            var id2ADMapLane = ADMapLane.id2ADMapLane;
+            foreach (var entry in id2ADMapLane)
+            {
+                var id = entry.Key;
+                var lane = id2MapLane[id];
+                var ADMapLane = entry.Value;
+                if (lane.leftLaneForward != null) ADMapLane.leftLaneForward = id2ADMapLane[lane.leftLaneForward.id];
+                if (lane.rightLaneForward != null) ADMapLane.rightLaneForward = id2ADMapLane[lane.rightLaneForward.id];
+                if (lane.leftLaneReverse != null) ADMapLane.leftLaneReverse = id2ADMapLane[lane.leftLaneReverse.id];
+                if (lane.rightLaneReverse != null) ADMapLane.rightLaneReverse = id2ADMapLane[lane.rightLaneReverse.id];
+            }
+        }
+
         bool Calculate()
         {
             MapAnnotationData = new MapManagerData();
@@ -579,8 +595,12 @@ namespace Simulator.Editor
             adMapSignals = new List<ADMapSignal>();
             adMapSigns = new List<ADMapSign>();
 
+            ADMapLane.id2MapLane.Clear();
+            ADMapLane.id2ADMapLane.Clear();
             // Copy annotation(eg. lane, parking space, etc.) into ad container with id, which can be key.
             GetMapData<MapLane, ADMapLane, LaneOverlapInfo>("lane", MapAnnotationData, adMapLanes, laneOverlapsInfo, mapLane => new ADMapLane(mapLane));
+            CopyLaneRelations();
+
             GetMapData<MapParkingSpace, ADMapParkingSpace, ParkingSpaceOverlapInfo>("PS", MapAnnotationData, adMapParkingSpaces, parkingSpaceOverlapsInfo, mapParkingSpace => new ADMapParkingSpace(mapParkingSpace));
             GetMapData<MapSpeedBump, ADMapSpeedBump, SpeedBumpOverlapInfo>("SB", MapAnnotationData, adMapSpeedBumps, speedBumpOverlapsInfo, mapSpeedBump => new ADMapSpeedBump(mapSpeedBump));
             GetMapData<MapClearArea, ADMapClearArea, ClearAreaOverlapInfo>("CA", MapAnnotationData, adMapClearAreas, clearAreaOverlapsInfo, mapClearArea => new ADMapClearArea(mapClearArea));
@@ -743,13 +763,13 @@ namespace Simulator.Editor
             };
 
             HashSet<HD.Road> roadSet = new HashSet<HD.Road>();
-
-            var visitedLanes = new Dictionary<string, HD.Road>();
-
+            var visitedLanes2Road = new Dictionary<string, HD.Road>();
+            var visitedLanes = new HashSet<string>();
             {
+                var allRoadLanes = new List<List<ADMapLane>>();
                 foreach (var adMapLane in adMapLanes)
                 {
-                    if (visitedLanes.ContainsKey(adMapLane.Id))
+                    if (visitedLanes.Contains(adMapLane.Id))
                     {
                         continue;
                     }
@@ -769,6 +789,51 @@ namespace Simulator.Editor
                         roadLanes.Add(adMapLane);
                         roadLanes.AddRange(rights);
                     }
+                    foreach (var lane in roadLanes)
+                    {
+                        visitedLanes.Add(lane.Id);
+                    }
+                    allRoadLanes.Add(roadLanes);
+                }
+
+                var mergedRoadLanes = new List<List<ADMapLane>>();
+                var visited = new bool[allRoadLanes.Count];
+                for (int i = 0; i < allRoadLanes.Count; ++i)
+                {
+                    if (visited[i]) continue;
+                    var roadLanes = allRoadLanes[i];
+                    var leftMostLane = roadLanes.First();
+                    var rightMostLane = roadLanes.Last();
+                    var found = false;
+                    for (int j = 0; j < allRoadLanes.Count; ++j)
+                    {
+                        if (i == j || visited[j]) continue;
+                        var otherRoadLanes = allRoadLanes[j];
+                        var otherLeftMostLane = otherRoadLanes.First();
+                        var otherRightMostLane = otherRoadLanes.Last();
+                        if (leftMostLane.leftLaneReverse == otherLeftMostLane && otherLeftMostLane.leftLaneReverse == leftMostLane) // left hand traffic
+                        {
+                            roadLanes.Reverse();
+                            roadLanes.AddRange(otherRoadLanes);
+                            mergedRoadLanes.Add(roadLanes);
+                            visited[j] = true;
+                            found = true;
+                        }
+                        else if (rightMostLane.rightLaneReverse == otherRightMostLane && otherRightMostLane.rightLaneReverse == rightMostLane) // right hand traffic
+                        {
+                            otherRoadLanes.Reverse();
+                            roadLanes.AddRange(otherRoadLanes);
+                            mergedRoadLanes.Add(roadLanes);
+                            visited[j] = true;
+                            found = true;
+                        }
+                    }
+
+                    if (!found) mergedRoadLanes.Add(roadLanes);
+                }
+
+                foreach (var roadLanes in mergedRoadLanes)
+                {
                     var roadSection = new HD.RoadSection()
                     {
                         id = HdId($"1"),
@@ -794,9 +859,9 @@ namespace Simulator.Editor
 
                     foreach (var l in roadLanes)
                     {
-                        if (!visitedLanes.ContainsKey(l.Id))
+                        if (!visitedLanes2Road.ContainsKey(l.Id))
                         {
-                            visitedLanes.Add(l.Id, road);
+                            visitedLanes2Road.Add(l.Id, road);
                         }
                     }
 
@@ -819,8 +884,6 @@ namespace Simulator.Editor
                         LanesIds.Add(lane_id);
                     }
                     roadIdToLanes.Add(road.id.id, LanesIds);
-
-
                 }
             }
 
@@ -1099,7 +1162,7 @@ namespace Simulator.Editor
                 // Add boundary to road
                 if (adMapLane.leftLaneForward == null || adMapLane.rightLaneForward == null)
                 {
-                    var road = visitedLanes[adMapLane.Id];
+                    var road = visitedLanes2Road[adMapLane.Id];
 
                     roadSet.Remove(road);
 
@@ -2256,7 +2319,7 @@ namespace Simulator.Editor
                 if (!lanes[0].needSelfReverseLane || !lanes[1].needSelfReverseLane)
                     continue;
 
-                List<Vector3> centerLinePoints = ComputeCenterLine(lanes[0], lanes[1]);
+                List<Vector3> centerLinePoints = ComputeCenterLine(lanes[0].mapWorldPositions, lanes[1].mapWorldPositions);
                 List<Vector3> firstSelfReversePts = new List<Vector3>(centerLinePoints);
                 List<Vector3> secondSelfReversePts = new List<Vector3>(centerLinePoints);
                 secondSelfReversePts.Reverse();
@@ -2367,11 +2430,9 @@ namespace Simulator.Editor
             }
         }
 
-        List<Vector3> ComputeCenterLine(MapLane leftLane, MapLane rightLane)
+        public List<Vector3> ComputeCenterLine(List<Vector3> leftLinePoints, List<Vector3> rightLinePoints)
         {
             List<Vector3> centerLinePoints = new List<Vector3>();
-            List<Vector3> leftLinePoints = leftLane.mapWorldPositions;
-            List<Vector3> rightLinePoints = rightLane.mapWorldPositions;
             var leftFirstPoint = leftLinePoints[0];
             var leftLastPoint = leftLinePoints[leftLinePoints.Count-1];
             var rightFirstPoint = rightLinePoints[0];

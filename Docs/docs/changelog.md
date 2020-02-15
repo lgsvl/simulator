@@ -19,6 +19,8 @@ All notable changes and release notes for LGSVL Simulator will be documented in 
  - Fixed lagging of 2D Ground Truth boxes (in visualization and data)
  - ComfortSensor included with Simulator binary
  - TrafficCone included with Simulator binary
+ - Fixed exported HD map lane relations
+ - Fixed ROS2 GPS
 
 ## [2019.12] - 2020-01-21
 

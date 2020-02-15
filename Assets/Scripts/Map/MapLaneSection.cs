@@ -45,11 +45,6 @@ namespace Simulator.Map
                 var minDistLeft = 50f;
                 var minDistRight = 50f;
 
-                lane.leftLaneForward = null;
-                lane.leftLaneReverse = null;
-                lane.rightLaneForward = null;
-                lane.rightLaneReverse = null;
-
                 for (var j = 0; j < lanes.Count; j++)
                 {
                     var otherLane = lanes[j];
@@ -65,28 +60,8 @@ namespace Simulator.Map
                         isSameDirection = false;
                     }
 
-                    var cross = Vector3.Cross(laneDir, (otherLane.mapWorldPositions[1] - lane.mapWorldPositions[1]).normalized).y;
-                    var dist = Mathf.RoundToInt(FindDistanceToLine(lane.mapWorldPositions[1], otherLane.mapWorldPositions[0], otherLane.mapWorldPositions[1]));
-
                     if (isSameDirection) // same direction
                     {
-                        if (cross < 0) // otherLane is left of lane
-                        {
-                            if (dist < minDistLeft) // closest lane left of lane is otherLane
-                            {
-                                minDistLeft = dist;
-                                lane.leftLaneForward = otherLane;
-                            }
-                        }
-                        else if (cross > 0) // otherLane is right of lane
-                        {
-                            if (dist < minDistRight) // closest lane right of lane is otherLane
-                            {
-                                minDistRight = dist;
-                                lane.rightLaneForward = otherLane;
-                            }
-                        }
-
                         if (!lanesForward.Contains(lane) && !lanesReverse.Contains(lane))
                             lanesForward.Add(lane);
                         if (!lanesForward.Contains(otherLane) && !lanesReverse.Contains(otherLane))
@@ -96,34 +71,18 @@ namespace Simulator.Map
                     {
                         isOneWay = false;
 
-                        if (cross < 0) // otherLane is left of lane
-                        {
-                            if (dist < minDistLeft) // closest lane left of lane is otherLane
-                            {
-                                minDistLeft = dist;
-                                lane.leftLaneReverse = otherLane;
-                            }
-                        }
-                        else if (cross > 0) // otherLane is right of lane
-                        {
-                            if (dist < minDistRight) // closest lane right of lane is otherLane
-                            {
-                                minDistRight = dist;
-                                lane.rightLaneReverse = otherLane;
-                            }
-                        }
-
                         if (!lanesForward.Contains(lane) && !lanesReverse.Contains(lane))
                             lanesForward.Add(lane);
                         if (!lanesReverse.Contains(otherLane) && !lanesForward.Contains(otherLane))
                             lanesReverse.Add(otherLane);
                     }
-                    if (lane.leftLaneForward != null) lane.leftLaneReverse = null; // null lane left reverse if not inside lane TODO right side
                 }
             }
 
             if (isOneWay == null)
                 return;
+
+            setLaneRelations(lanes);
 
             int wayCount = isOneWay.Value ? 1 : 2;
             for (int i = 0; i < wayCount; i++)
@@ -188,6 +147,84 @@ namespace Simulator.Map
             var c = p2 - p1;
 
             return Vector3.Cross(a, b).magnitude / c.magnitude;
+        }
+
+        // TODO: we might need to make this a button in Map annotation window
+        public void setLaneRelations(List<MapLane> lanes)
+        {
+            var lineAsLeft2Lanes = new Dictionary<MapLine, List<MapLane>>();
+            var lineAsRight2Lanes = new Dictionary<MapLine, List<MapLane>>();
+            foreach (var lane in lanes)
+            {
+                lane.leftLaneForward = null;
+                lane.leftLaneReverse = null;
+                lane.rightLaneForward = null;
+                lane.rightLaneReverse = null;
+
+                lineAsLeft2Lanes.CreateOrAdd(lane.leftLineBoundry, lane);
+                lineAsRight2Lanes.CreateOrAdd(lane.rightLineBoundry, lane);
+            }
+
+            foreach (var entry in lineAsLeft2Lanes)
+            {
+                if (entry.Value.Count > 2)
+                {
+                    Debug.LogError($"Boundary line {entry.Key} has more than 2 lanes associated, please check!");
+                }
+                else if (entry.Value.Count == 2)
+                {
+                    entry.Value[0].leftLaneReverse = entry.Value[1];
+                    entry.Value[1].leftLaneReverse = entry.Value[0];
+
+                }
+                else
+                {
+                    if (lineAsRight2Lanes.ContainsKey(entry.Key))
+                    {
+                        entry.Value[0].leftLaneForward = lineAsRight2Lanes[entry.Key][0];
+                        lineAsRight2Lanes[entry.Key][0].rightLaneForward = entry.Value[0];
+                    }
+                }
+            }
+
+            foreach (var entry in lineAsRight2Lanes)
+            {
+                if (entry.Value.Count > 2)
+                {
+                    Debug.LogError($"Boundary line {entry.Key} has more than 2 lanes associated, please check!");
+                }
+                else if (entry.Value.Count == 2)
+                {
+                    entry.Value[0].rightLaneReverse = entry.Value[1];
+                    entry.Value[1].rightLaneReverse = entry.Value[0];
+
+                }
+                else
+                {
+                    if (lineAsLeft2Lanes.ContainsKey(entry.Key))
+                    {
+                        entry.Value[0].rightLaneForward = lineAsLeft2Lanes[entry.Key][0];
+                        lineAsLeft2Lanes[entry.Key][0].leftLaneForward = entry.Value[0];
+                    }
+                }
+            }
+        }
+    }
+
+    public static class Helper
+    {
+        public static void CreateOrAdd<TKey, TValue> (this IDictionary<TKey, List<TValue>> dict, TKey key, TValue val)
+        {
+            if (dict.TryGetValue(key, out var list))
+            {
+               dict[key].Add(val);
+            }
+            else
+            {
+                list = new List<TValue>();
+                list.Add(val);
+                dict.Add(key, list);
+            }
         }
     }
 }

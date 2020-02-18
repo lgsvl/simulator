@@ -18,100 +18,169 @@ using Simulator.Network.Core.Identification;
 
 namespace Simulator.Api.Commands
 {
+    using System;
+    using Database;
+    using Web;
+
     class LoadScene : ICommand, IDistributedObject
     {
         public string Name => "simulator/load_scene";
 
-        static IEnumerator DoLoad(string name, int? seed = null)
+        private void LoadMap(JSONNode args, string name, int? seed = null)
         {
             var api = ApiManager.Instance;
-
+            //Lock executing other API commands while map is being downloaded
+            api.ActionsSemaphore.Lock();
             using (var db = Database.DatabaseManager.Open())
             {
                 var sql = Sql.Builder.From("maps").Where("name = @0", name);
                 var map = db.FirstOrDefault<Database.MapModel>(sql);
                 if (map == null)
                 {
-                    api.SendError($"Environment '{name}' is not available");
+                    var url = args["url"].Value;
+                    //Disable using url on master simulation
+                    if (Loader.Instance.Network.IsMaster || string.IsNullOrEmpty(url))
+                    {
+                        api.SendError($"Environment '{name}' is not available");
+                        return;
+                    }
+
+                    DownloadMapFromUrl(args, name, seed, url);
+                    return;
+                }
+                // Add uid key to arguments, as it will be distributed to the clients' simulations
+                if (Loader.Instance.Network.IsMaster)
+                    args.Add("url", map.Url);
+
+                api.StartCoroutine(LoadMapAssets(map, name, seed));
+            }
+        }
+
+        static IEnumerator LoadMapAssets(MapModel map, string name, int? seed = null)
+        {
+            var api = ApiManager.Instance;
+
+            AssetBundle textureBundle = null;
+            AssetBundle mapBundle = null;
+
+            ZipFile zip = new ZipFile(map.LocalPath);
+            try
+            {
+                Manifest manifest;
+                ZipEntry entry = zip.GetEntry("manifest");
+                using (var ms = zip.GetInputStream(entry))
+                {
+                    int streamSize = (int) entry.Size;
+                    byte[] buffer = new byte[streamSize];
+                    streamSize = ms.Read(buffer, 0, streamSize);
+                    manifest = new Deserializer().Deserialize<Manifest>(Encoding.UTF8.GetString(buffer));
+                }
+
+                if (manifest.bundleFormat != BundleConfig.MapBundleFormatVersion)
+                {
+                    api.SendError(
+                        "Out of date Map AssetBundle. Please check content website for updated bundle or rebuild the bundle.");
+                    api.ActionsSemaphore.Unlock();
                     yield break;
                 }
 
-                AssetBundle textureBundle = null;
-                AssetBundle mapBundle = null;
-
-                ZipFile zip = new ZipFile(map.LocalPath);
-                try
+                if (zip.FindEntry($"{manifest.bundleGuid}_environment_textures", true) != -1)
                 {
-                    Manifest manifest;
-                    ZipEntry entry = zip.GetEntry("manifest");
-                    using (var ms = zip.GetInputStream(entry))
-                    {
-                        int streamSize = (int)entry.Size;
-                        byte[] buffer = new byte[streamSize];
-                        streamSize = ms.Read(buffer, 0, streamSize);
-                        manifest = new Deserializer().Deserialize<Manifest>(Encoding.UTF8.GetString(buffer));
-                    }
-
-                    if (manifest.bundleFormat != BundleConfig.MapBundleFormatVersion)
-                    {
-                        api.SendError("Out of date Map AssetBundle. Please check content website for updated bundle or rebuild the bundle.");
-                        yield break;
-                    }
-
-                    if (zip.FindEntry($"{manifest.bundleGuid}_environment_textures", true) != -1)
-                    {
-                        var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_textures"));
-                        textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
-                    }
-
-                    string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
-                    var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_main_{platform}"));
-                    mapBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
-
-                    if (mapBundle == null)
-                    {
-                        api.SendError($"Failed to load environment from '{map.Name}' asset bundle");
-                        yield break;
-                    }
-
-                    textureBundle?.LoadAllAssets();
-
-                    var scenes = mapBundle.GetAllScenePaths();
-                    if (scenes.Length != 1)
-                    {
-                        api.SendError($"Unsupported environment in '{map.Name}' asset bundle, only 1 scene expected");
-                        yield break;
-                    }
-
-                    var sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
-
-                    var isMasterSimulation = Loader.Instance.SimConfig.Clusters.Length != 0;
-                    var loader = SceneManager.LoadSceneAsync(sceneName, 
-                        isMasterSimulation? LoadSceneMode.Additive : LoadSceneMode.Single);
-                    yield return new WaitUntil(() => loader.isDone);
-                    if (isMasterSimulation)
-                        SceneManager.SetActiveScene(SceneManager.GetSceneByName(sceneName));
-                    SIM.LogAPI(SIM.API.SimulationLoad, sceneName);
-                    
-                    Loader.Instance.SimConfig.Seed = seed;
-                    Loader.Instance.SimConfig.MapName = name;
-                    Loader.Instance.SimConfig.MapUrl = map.Url;
-                    var sim = Loader.CreateSimulatorManager();
-                    sim.Init(seed);
-                    if (isMasterSimulation)
-                        Loader.Instance.Network.Master.InitializeSimulation(sim.gameObject);
-                }
-                finally
-                {
-                    textureBundle?.Unload(false);
-                    mapBundle?.Unload(false);
-                    zip.Close();
+                    var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_textures"));
+                    textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
                 }
 
-                api.Reset();
-                api.CurrentScene = name;
-                api.SendResult();
+                string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows
+                    ? "windows"
+                    : "linux";
+                var mapStream =
+                    zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_main_{platform}"));
+                mapBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
+
+                if (mapBundle == null)
+                {
+                    api.SendError($"Failed to load environment from '{map.Name}' asset bundle");
+                    api.ActionsSemaphore.Unlock();
+                    yield break;
+                }
+
+                textureBundle?.LoadAllAssets();
+
+                var scenes = mapBundle.GetAllScenePaths();
+                if (scenes.Length != 1)
+                {
+                    api.SendError($"Unsupported environment in '{map.Name}' asset bundle, only 1 scene expected");
+                    api.ActionsSemaphore.Unlock();
+                    yield break;
+                }
+
+                var sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
+
+                var clusters = Loader.Instance.SimConfig.Clusters;
+                var isMasterSimulation = clusters != null && clusters.Length != 0;
+                var loadAdditive = isMasterSimulation &&
+                                   SceneManager.GetSceneByName(Loader.Instance.LoaderScene).isLoaded;
+                var loader = SceneManager.LoadSceneAsync(sceneName,
+                    loadAdditive ? LoadSceneMode.Additive : LoadSceneMode.Single);
+                yield return new WaitUntil(() => loader.isDone);
+                if (loadAdditive)
+                    SceneManager.SetActiveScene(SceneManager.GetSceneByName(sceneName));
+                SIM.LogAPI(SIM.API.SimulationLoad, sceneName);
+
+                Loader.Instance.SimConfig.Seed = seed;
+                Loader.Instance.SimConfig.MapName = name;
+                Loader.Instance.SimConfig.MapUrl = map.Url;
+                var sim = Loader.CreateSimulatorManager();
+                sim.Init(seed);
+                if (isMasterSimulation)
+                    Loader.Instance.Network.Master.InitializeSimulation(sim.gameObject);
+                else if (Loader.Instance.Network.IsClient)
+                    Loader.Instance.Network.Client.InitializeSimulation(sim.gameObject);
             }
+            finally
+            {
+                textureBundle?.Unload(false);
+                mapBundle?.Unload(false);
+                zip.Close();
+            }
+
+            api.Reset();
+            api.CurrentScene = name;
+            api.ActionsSemaphore.Unlock();
+            api.SendResult();
+        }
+
+        private static void DownloadMapFromUrl(JSONNode args, string name, int? seed, string url)
+        {
+            //Remove url from args, so download won't be retried
+            args.Remove("url");
+            var localPath = WebUtilities.GenerateLocalPath("Maps");
+            DownloadManager.AddDownloadToQueue(new Uri(url), localPath, null, (success, ex) =>
+            {
+                if (success)
+                {
+                    var map = new MapModel()
+                    {
+                        Name = name,
+                        Url = url,
+                        LocalPath = localPath
+                    };
+
+                    using (var db = DatabaseManager.Open())
+                    {
+                        db.Insert(map);
+                    }
+
+                    ApiManager.Instance.StartCoroutine(LoadMapAssets(map, name, seed));
+                }
+                else
+                {
+                    Debug.LogError(
+                        $"Vehicle '{name}' is not available. Error occured while downloading from url: {ex}.");
+                    ApiManager.Instance.SendError($"Vehicle '{name}' is not available");
+                    ApiManager.Instance.ActionsSemaphore.Unlock();
+                }
+            });
         }
 
         public void Execute(JSONNode args)
@@ -123,7 +192,8 @@ namespace Simulator.Api.Commands
             {
                 seed = args["seed"].AsInt;
             }
-            api.StartCoroutine(DoLoad(name, seed));
+
+            LoadMap(args, name, seed);
         }
     }
 }

@@ -5,12 +5,12 @@
  *
  */
 
-using System;
 using System.Net;
 using Simulator;
 using Simulator.Network.Core.Connection;
 using Simulator.Network.Core.Messaging;
 using Simulator.Network.Core.Messaging.Data;
+using Simulator.Network.Core.Threading;
 using UnityEngine;
 
 /// <summary>
@@ -37,48 +37,23 @@ public class SimulatorTimeManager : IMessageReceiver, IMessageSender
     public string Key { get; } = "SimulatorTimeManager";
 
     /// <summary>
-    /// Count of the time scale locks, unlock the time scale when equals 0
+    /// Semaphore for locking the simulation time scale, if locked timescale 0.0f is applied
     /// </summary>
-    public int TimeScaleLocks { get; private set; }
-
-    /// <summary>
-    /// Is the time scale currently locked to 0.0f
-    /// </summary>
-    public bool IsTimeScaleLocked => TimeScaleLocks > 0;
-    
-    /// <summary>
-    /// Is the time scale currently unlocked, set time scale is applied
-    /// </summary>
-    public bool IsTimeScaleUnlocked => TimeScaleLocks == 0;
+    public LockingSemaphore TimeScaleSemaphore { get; } = new LockingSemaphore();
 
     /// <summary>
     /// Time scale which is applied when time scale is unlocked
     /// </summary>
     public float TimeScale
     {
-        get => IsTimeScaleUnlocked ? timeScale : 0.0f;
+        get => TimeScaleSemaphore.IsUnlocked ? timeScale : 0.0f;
         set
         {
             timeScale = value;
-            if (IsTimeScaleUnlocked) 
+            if (TimeScaleSemaphore.IsUnlocked) 
                 SetUnityTimeScale(timeScale);
         }
     }
-
-    /// <summary>
-    /// Event invoked when the time scale gets locked
-    /// </summary>
-    public event Action TimeScaleLocked;
-
-    /// <summary>
-    /// Event invoked when the time scale gets unlocked
-    /// </summary>
-    public event Action TimeScaleUnlocked;
-    
-    /// <summary>
-    /// Event invoked when the count of time scale locks changes
-    /// </summary>
-    public event Action<float> TimeScaleLocksChanged;
 
     /// <summary>
     /// Initialization method required to distribute the timescale
@@ -86,6 +61,8 @@ public class SimulatorTimeManager : IMessageReceiver, IMessageSender
     /// <param name="messagesManager">Messages manager handling the distributed messages</param>
     protected internal void Initialize(MessagesManager messagesManager)
     {
+        TimeScaleSemaphore.Locked += TimeScaleSemaphoreOnLocked;
+        TimeScaleSemaphore.Unlocked += TimeScaleSemaphoreOnUnlocked;
         this.messagesManager = messagesManager;
         messagesManager?.RegisterObject(this);
         Debug.Assert(instance==null);
@@ -97,41 +74,27 @@ public class SimulatorTimeManager : IMessageReceiver, IMessageSender
     /// </summary>
     protected internal void Deinitialize()
     {
+        TimeScaleSemaphore.Locked -= TimeScaleSemaphoreOnLocked;
+        TimeScaleSemaphore.Unlocked -= TimeScaleSemaphoreOnUnlocked;
         messagesManager?.UnregisterObject(this);
         messagesManager = null;
         instance = null;
     }
 
     /// <summary>
-    /// Raises the time scale lock by one, time scale is set to 0.0f while locked
+    /// Method called when the time scale semaphore becomes unlocked
     /// </summary>
-    public void LockTimeScale()
+    private void TimeScaleSemaphoreOnUnlocked()
     {
-        if (TimeScaleLocks++ != 0)
-        {
-            TimeScaleLocksChanged?.Invoke(TimeScaleLocks);
-            return;
-        }
-        SetUnityTimeScale(0.0f);
-        TimeScaleLocked?.Invoke();
-        TimeScaleLocksChanged?.Invoke(TimeScaleLocks);
+        SetUnityTimeScale(timeScale);
     }
 
     /// <summary>
-    /// Lowers the time scale lock by one, time scale value is applied when gets unlocked
+    /// Method called when the time scale semaphore becomes locked
     /// </summary>
-    public void UnlockTimeScale()
+    private void TimeScaleSemaphoreOnLocked()
     {
-        if (TimeScaleLocks == 0)
-        {
-            Debug.LogWarning("Trying to unlock already unlocked time scale.");
-        }
-        else if (--TimeScaleLocks == 0)
-        {
-            SetUnityTimeScale(TimeScale);
-            TimeScaleUnlocked?.Invoke();
-        }
-        TimeScaleLocksChanged?.Invoke(TimeScaleLocks);
+        SetUnityTimeScale(0.0f);
     }
 
     /// <summary>

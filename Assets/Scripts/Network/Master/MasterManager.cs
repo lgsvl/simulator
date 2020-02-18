@@ -49,6 +49,11 @@ namespace Simulator.Network.Master
         private MasterObjectsRoot objectsRoot;
 
         /// <summary>
+        /// Determines if time scale was locked from this script
+        /// </summary>
+        private bool timescaleLockCalled = false;
+
+        /// <summary>
         /// All current clients connected or trying to connect to the master
         /// </summary>
         private readonly List<ClientConnection> clients = new List<ClientConnection>();
@@ -143,13 +148,21 @@ namespace Simulator.Network.Master
         /// <param name="rootGameObject">Root game object where new component will be added</param>
         public void InitializeSimulation(GameObject rootGameObject)
         {
-            SimulatorManager.Instance.TimeManager.LockTimeScale();
-            Loader.Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.PROGRESS);
-            if (ObjectsRoot!=null)
+            if (!timescaleLockCalled)
+            {
+                SimulatorManager.Instance.TimeManager.TimeScaleSemaphore.Lock();
+                timescaleLockCalled = true;
+            }
+
+            if (Loader.Instance.LoaderUI != null)
+                Loader.Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.PROGRESS);
+            if (ObjectsRoot != null)
                 Log.Warning("Setting new master objects root, but previous one is still available on the scene.");
             objectsRoot = rootGameObject.AddComponent<MasterObjectsRoot>();
             ObjectsRoot.SetMessagesManager(MessagesManager);
             ObjectsRoot.SetSettings(settings);
+            if (clients.Count == 0)
+                ConnectToClients();
         }
 
         /// <summary>
@@ -242,7 +255,7 @@ namespace Simulator.Network.Master
             var client = Clients.Find(c => c.Peer == clientPeerManager);
             Debug.Assert(client != null);
             Clients.Remove(client);
-            
+
             if (Loader.Instance.CurrentSimulation != null && State != SimulationState.Initial)
                 Loader.StopAsync();
 
@@ -393,7 +406,7 @@ namespace Simulator.Network.Master
 
                 // Notify WebUI simulation is running
                 Loader.Instance.CurrentSimulation.Status = "Running";
-                
+
                 // Flash main window to let user know simulation is ready
                 WindowFlasher.Flash();
 
@@ -404,7 +417,11 @@ namespace Simulator.Network.Master
                 }
 
                 SceneManager.UnloadSceneAsync(Loader.Instance.LoaderScene);
-                SimulatorManager.Instance.TimeManager.UnlockTimeScale();
+                if (timescaleLockCalled)
+                {
+                    SimulatorManager.Instance.TimeManager.TimeScaleSemaphore.Unlock();
+                    timescaleLockCalled = false;
+                }
             }
         }
 
@@ -421,6 +438,11 @@ namespace Simulator.Network.Master
         private void RevertChangesInSimulator()
         {
             DisconnectFromClients();
+            if (timescaleLockCalled)
+            {
+                SimulatorManager.Instance.TimeManager.TimeScaleSemaphore.Unlock();
+                timescaleLockCalled = false;
+            }
         }
     }
 }

@@ -164,7 +164,7 @@ public class UIManager : MonoBehaviour
             if (usePauseButton)
             {
                 PauseSimulation();
-                SimulatorManager.Instance.TimeManager.TimeScaleLocksChanged += UpdatePauseButton;
+                SimulatorManager.Instance.TimeManager.TimeScaleSemaphore.LocksCountChanged += UpdatePauseButton;
             }
 
             EnvironmentButton.gameObject.SetActive(config.Interactive);
@@ -265,7 +265,7 @@ public class UIManager : MonoBehaviour
         if (Loader.Instance != null && Loader.Instance.SimConfig != null) // TODO fix for Editor needs SimConfig
         {
             if (Loader.Instance.SimConfig.Interactive)
-                SimulatorManager.Instance.TimeManager.TimeScaleLocksChanged -= UpdatePauseButton;
+                SimulatorManager.Instance.TimeManager.TimeScaleSemaphore.LocksCountChanged -= UpdatePauseButton;
         }
             
     }
@@ -592,9 +592,9 @@ public class UIManager : MonoBehaviour
         if (paused)
             return;
         var timeManager = SimulatorManager.Instance.TimeManager;
-        timeManager.LockTimeScale();
+        timeManager.TimeScaleSemaphore.Lock();
         paused = true;
-        UpdatePauseButton(timeManager.TimeScaleLocks);
+        UpdatePauseButton(timeManager.TimeScaleSemaphore.Locks);
     }
 
     private void ContinueSimulation()
@@ -602,12 +602,12 @@ public class UIManager : MonoBehaviour
         if (!paused)
             return;
         var timeManager = SimulatorManager.Instance.TimeManager;
-        timeManager.UnlockTimeScale();
+        timeManager.TimeScaleSemaphore.Unlock();
         //TODO integrate all scripts with the lock/unlock timescale and remove setting timescale here
-        if (timeManager.IsTimeScaleUnlocked && Mathf.Approximately(timeManager.TimeScale, 0.0f))
+        if (timeManager.TimeScaleSemaphore.IsUnlocked && Mathf.Approximately(timeManager.TimeScale, 0.0f))
             timeManager.TimeScale = 1.0f;
         paused = false;
-        UpdatePauseButton(timeManager.TimeScaleLocks);
+        UpdatePauseButton(timeManager.TimeScaleSemaphore.Locks);
     }
 
     private void UpdatePauseButton(float timeScaleLocks)

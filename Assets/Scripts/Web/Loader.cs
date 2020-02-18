@@ -899,8 +899,6 @@ namespace Simulator
         {
             var sim = Instantiate(Instance.SimulatorManagerPrefab);
             sim.name = "SimulatorManager";
-            if (Instance.SimConfig.Clusters != null && Instance.SimConfig.Clusters.Length != 0 && Config.RunAsMaster)
-                Instance.Network.Master.ConnectToClients();
             
             return sim;
         }

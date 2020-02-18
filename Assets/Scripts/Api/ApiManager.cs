@@ -25,6 +25,8 @@ using Simulator.Network.Core.Messaging.Data;
 
 namespace Simulator.Api
 {
+    using Network.Core.Threading;
+
     public class ApiManager : MonoBehaviour, IMessageSender, IMessageReceiver
     {
         [NonSerialized]
@@ -78,6 +80,11 @@ namespace Simulator.Api
         int roadLayer;
 
         public static ApiManager Instance { get; private set; }
+        
+        /// <summary>
+        /// Locking semaphore that disables executing actions while semaphore is locked
+        /// </summary>
+        public LockingSemaphore ActionsSemaphore { get; } = new LockingSemaphore();
 
         static ApiManager()
         {
@@ -377,7 +384,7 @@ namespace Simulator.Api
 
         void Update()
         {
-            while (Actions.TryDequeue(out var action))
+            while (ActionsSemaphore.IsUnlocked && Actions.TryDequeue(out var action))
             {
                 try
                 {
@@ -442,8 +449,8 @@ namespace Simulator.Api
                 SimulatorManager.SetTimeScale(0.0f);
                 return;
             }
-
-            if (Time.timeScale != 0.0f)
+            
+            if (ActionsSemaphore.IsUnlocked && Time.timeScale != 0.0f)
             {
                 if (FrameLimit != 0 && CurrentFrame >= FrameLimit)
                 {

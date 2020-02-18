@@ -81,14 +81,12 @@ namespace Simulator.Sensors
                     {
                         Vector3 relPos = egoGO.transform.InverseTransformPoint(signal.gameObject.transform.position);
                         relPos.Set(relPos.z, -relPos.x, relPos.y);
-                        
+
                         var forwardDistance = relPos.x;
                         if (forwardDistance > 0 && forwardDistance < MaxDistance)
                         {
                             Quaternion relRot = Quaternion.Inverse(egoGO.transform.rotation) * signal.gameObject.transform.rotation;
-                            var euler = relRot.eulerAngles;
-                            euler.Set(-euler.z, euler.x, -euler.y);
-                            relRot = Quaternion.Euler(euler);
+                            relRot.Set(-relRot.z, relRot.x, -relRot.y, relRot.w);
 
                             Vector3 size = signal.signalLightMesh.bounds.size;
                             size.Set(size.z, size.x, size.y);

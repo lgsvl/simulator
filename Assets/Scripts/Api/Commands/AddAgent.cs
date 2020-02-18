@@ -74,7 +74,8 @@ namespace Simulator.Api.Commands
                     if (vehicle == null)
                     {
                         var url = args["url"];
-                        if (string.IsNullOrEmpty(url))
+                        //Disable using url on master simulation
+                        if (Loader.Instance.Network.IsMaster || string.IsNullOrEmpty(url))
                         {
                             api.SendError($"Vehicle '{name}' is not available");
                             return;
@@ -122,9 +123,7 @@ namespace Simulator.Api.Commands
                         rb.angularVelocity = angular_velocity;
                         // Add url key to arguments, as it will be distributed to the clients' simulations
                         if (Loader.Instance.Network.IsMaster)
-                        {
                             args.Add("url", vehicle.Url);
-                        }
                     }
                 }
 

@@ -146,6 +146,17 @@ namespace Simulator.Network.Client
         }
 
         /// <summary>
+        /// Initializes the simulation, adds <see cref="ClientObjectsRoot"/> component to the root game object
+        /// </summary>
+        /// <param name="rootGameObject">Root game object where new component will be added</param>
+        public void InitializeSimulation(GameObject rootGameObject)
+        {
+            objectsRoot = rootGameObject.AddComponent<ClientObjectsRoot>();
+            ObjectsRoot.SetMessagesManager(MessagesManager);
+            ObjectsRoot.SetSettings(settings);
+        }
+
+        /// <summary>
         /// Start the connection listening for incoming packets
         /// </summary>
         public void StartConnection()
@@ -249,7 +260,7 @@ namespace Simulator.Network.Client
                 MapModel map;
                 using (var db = DatabaseManager.Open())
                 {
-                    var sql = Sql.Builder.Where("url = @0", load.MapUrl);
+                    var sql = Sql.Builder.Where("name = @0", load.MapName);
                     map = db.SingleOrDefault<MapModel>(sql);
                 }
 
@@ -396,7 +407,7 @@ namespace Simulator.Network.Client
                     VehicleModel vehicleModel;
                     using (var db = DatabaseManager.Open())
                     {
-                        var sql = Sql.Builder.Where("url = @0", agents[i].Url);
+                        var sql = Sql.Builder.Where("name = @0", agents[i].Name);
                         vehicleModel = db.SingleOrDefault<VehicleModel>(sql);
                     }
 
@@ -696,10 +707,8 @@ namespace Simulator.Network.Client
                                     simulatorManager.Init(load.Seed);
                                 else
                                     simulatorManager.Init();
-                                objectsRoot = SimulatorManager.Instance.gameObject.AddComponent<ClientObjectsRoot>();
-                                ObjectsRoot.SetMessagesManager(MessagesManager);
-                                ObjectsRoot.SetSettings(settings);
-
+                                InitializeSimulation(simulatorManager.gameObject);
+                                
                                 // Notify WebUI simulation is running
                                 NotificationManager.SendNotification("simulation",
                                     SimulationResponse.Create(Loader.Instance.CurrentSimulation),

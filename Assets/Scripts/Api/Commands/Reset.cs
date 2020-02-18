@@ -25,7 +25,7 @@ namespace Simulator.Api.Commands
 
                 foreach (var sensor in sensors)
                 {
-                    var suid = api.SensorUID[sensor];
+                    if (!api.SensorUID.TryGetValue(sensor, out var suid)) continue;
                     api.Sensors.Remove(suid);
                     api.SensorUID.Remove(sensor);
                 }

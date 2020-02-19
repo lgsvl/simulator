@@ -78,7 +78,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
 
     public string Key =>
         key ?? (key =
-            $"{HierarchyUtility.GetPath(transform)}SensorsController"
+            $"{HierarchyUtilities.GetPath(transform)}SensorsController"
         );
 
     public MessagesManager MessagesManager =>

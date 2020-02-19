@@ -15,6 +15,7 @@ using Simulator.Network.Core.Components;
 using Simulator.Network.Core.Connection;
 using Simulator.Network.Core.Messaging;
 using Simulator.Network.Core.Messaging.Data;
+using Simulator.Network.Shared;
 using Simulator.Network.Shared.Messages;
 using Simulator.Utilities;
 using UnityEngine.AI;
@@ -183,10 +184,8 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         //Add required components for distributing rigidbody from master to clients
         if (Loader.Instance.Network.IsClusterSimulation)
         {
-            if (ped.GetComponent<DistributedObject>() == null)
-                ped.AddComponent<DistributedObject>();
-            if (ped.GetComponent<DistributedRigidbody>() == null)
-                ped.AddComponent<DistributedRigidbody>();
+            //Add required components for cluster simulation
+            ClusterSimulationUtilities.AddDistributedComponents(ped);
             if (Loader.Instance.Network.IsMaster)
                 BroadcastMessage(new Message(Key,
                     GetSpawnMessage(pedController.GUID, modelIndex, ped.transform.position, ped.transform.rotation),
@@ -238,10 +237,8 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
         if (Loader.Instance.Network.IsClusterSimulation)
         {
-            if (ped.GetComponent<DistributedObject>() == null)
-                ped.AddComponent<DistributedObject>();
-            if (rb != null && rb.gameObject.GetComponent<DistributedRigidbody>() == null)
-                rb.gameObject.AddComponent<DistributedRigidbody>();
+            //Add required components for cluster simulation
+            ClusterSimulationUtilities.AddDistributedComponents(ped);
         }
 
         return ped;
@@ -335,15 +332,16 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         ped.SetActive(false);
         var pedController = ped.GetComponent<PedestrianController>();
         pedController.GUID = GUID;
-        if (ped.GetComponent<DistributedObject>() == null)
-            ped.AddComponent<DistributedObject>().Initialize();
-        if (ped.GetComponent<DistributedRigidbody>() == null)
-            ped.AddComponent<DistributedRigidbody>();
+        //Add required components for cluster simulation
+        ClusterSimulationUtilities.AddDistributedComponents(ped);
         pedController.SetGroundTruthBox();
         var model = pedModels[modelIndex];
         Instantiate(model, ped.transform);
         pedController.Control = PedestrianController.ControlType.Manual;
         pedController.enabled = false;
+        //Force distributed component initialization, as gameobject will stay disabled
+        pedController.InitPed(position, new List<Vector3>(), 0);
+        pedController.Initialize();
         currentPedPool.Add(pedController);
     }
 
@@ -363,7 +361,8 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
             case PedestrianManagerCommandType.SpawnPedestrian:
                 var pedestrianGUID = message.Content.PopString();
                 var modelIndex = message.Content.PopInt(2);
-                SpawnPedestrianMock(pedestrianGUID, modelIndex, message.Content.PopDecompressedPosition(),
+                SpawnPedestrianMock(pedestrianGUID, modelIndex, 
+                    message.Content.PopDecompressedPosition(),
                     message.Content.PopDecompressedRotation());
                 break;
             case PedestrianManagerCommandType.DespawnPedestrian:

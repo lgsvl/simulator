@@ -1315,7 +1315,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1078072012845680205}
   - component: {fileID: 2352237567993547605}
-  - component: {fileID: 1342494734739919443}
   m_Layer: 0
   m_Name: Presley
   m_TagString: Untagged
@@ -1359,18 +1358,6 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
---- !u!114 &1342494734739919443
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1078072012845521517}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b81626f74cc0784bba1a594d797e6a7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1078072012845521519
 GameObject:
   m_ObjectHideFlags: 0

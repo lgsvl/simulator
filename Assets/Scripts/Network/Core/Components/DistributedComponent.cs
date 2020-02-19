@@ -38,9 +38,14 @@ namespace Simulator.Network.Core.Components
         /// </summary>
         protected abstract string ComponentKey { get; }
 
+        /// <summary>
+        /// Should the component be destroyed when the parent object is not available
+        /// </summary>
+        protected virtual bool DestroyWithoutParent { get; } = false;
+
         /// <inheritdoc/>
         public string Key => key ?? (key =
-                                 $"{ParentObject.Key}/{HierarchyUtility.GetRelativePath(ParentObject.transform, transform)}{ComponentKey}"
+                                 $"{ParentObject.Key}/{HierarchyUtilities.GetRelativePath(ParentObject.transform, transform)}{ComponentKey}"
                              );
 
         /// <summary>
@@ -55,15 +60,17 @@ namespace Simulator.Network.Core.Components
         {
             if (ParentObject == null)
             {
-                SelfDestroy();
+                if (DestroyWithoutParent)
+                    SelfDestroy();
             }
             else
             {
                 if (ParentObject.IsInitialized)
                     Initialize();
-                else if (ParentObject.WillBeDestroyed)
-                    SelfDestroy();
-                else
+                else if (ParentObject.WillBeDestroyed){
+                    if (DestroyWithoutParent)
+                        SelfDestroy();
+                } else
                 {
                     ParentObject.Initialized += Initialize;
                     ParentObject.DestroyCalled += SelfDestroy;
@@ -141,7 +148,8 @@ namespace Simulator.Network.Core.Components
         /// <inheritdoc/>
         public void UnicastInitialMessages(IPEndPoint endPoint)
         {
-            UnicastSnapshot(endPoint);
+            if (IsInitialized)
+                UnicastSnapshot(endPoint);
         }
 
         /// <summary>

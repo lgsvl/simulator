@@ -28,19 +28,17 @@ using ICSharpCode.SharpZipLib.Zip;
 using YamlDotNet.Serialization;
 using System.Net.Http;
 using SimpleJSON;
+using Simulator.Network.Shared;
 using Simulator.Network.Client;
 using Simulator.Network.Core.Configs;
 using Simulator.Network.Core.Threading;
 using MasterManager = Simulator.Network.Master.MasterManager;
+using ICSharpCode.SharpZipLib.Core;
+using Simulator.FMU;
 
 
 namespace Simulator
 {
-    using ICSharpCode.SharpZipLib.Core;
-    using Network;
-    using Simulator.FMU;
-    using System.Reflection;
-
     public class AgentConfig
     {
         public string Name;

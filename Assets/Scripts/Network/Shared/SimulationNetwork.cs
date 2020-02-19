@@ -5,9 +5,7 @@
  *
  */
 
-using System;
-
-namespace Simulator.Network
+namespace Simulator.Network.Shared
 {
     using Client;
     using Core.Configs;

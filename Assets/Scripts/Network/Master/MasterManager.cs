@@ -148,12 +148,6 @@ namespace Simulator.Network.Master
         /// <param name="rootGameObject">Root game object where new component will be added</param>
         public void InitializeSimulation(GameObject rootGameObject)
         {
-            if (!timescaleLockCalled)
-            {
-                SimulatorManager.Instance.TimeManager.TimeScaleSemaphore.Lock();
-                timescaleLockCalled = true;
-            }
-
             if (Loader.Instance.LoaderUI != null)
                 Loader.Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.PROGRESS);
             if (ObjectsRoot != null)
@@ -162,7 +156,14 @@ namespace Simulator.Network.Master
             ObjectsRoot.SetMessagesManager(MessagesManager);
             ObjectsRoot.SetSettings(settings);
             if (clients.Count == 0)
+            {
+                if (!timescaleLockCalled)
+                {
+                    SimulatorManager.Instance.TimeManager.TimeScaleSemaphore.Lock();
+                    timescaleLockCalled = true;
+                }
                 ConnectToClients();
+            }
         }
 
         /// <summary>
@@ -432,7 +433,7 @@ namespace Simulator.Network.Master
         {
             BroadcastMessage(new Message(Key, new BytesStack(PacketsProcessor.Write(new Commands.Stop()), false),
                 MessageType.ReliableOrdered));
-            ThreadingUtility.DispatchToMainThread(RevertChangesInSimulator);
+            ThreadingUtilities.DispatchToMainThread(RevertChangesInSimulator);
         }
 
         private void RevertChangesInSimulator()

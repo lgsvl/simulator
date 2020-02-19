@@ -23,8 +23,8 @@ using ICSharpCode.SharpZipLib.Zip;
 using ICSharpCode.SharpZipLib.Core;
 using Simulator.Network.Core.Components;
 using Simulator.Network.Core.Messaging;
-using System.Reflection;
 using Simulator.FMU;
+using Simulator.Network.Shared;
 
 public class AgentManager : MonoBehaviour
 {
@@ -92,14 +92,16 @@ public class AgentManager : MonoBehaviour
                     vehicleDynamics.enabled = false;
             }
             
-            if (go.GetComponent<DistributedObject>() == null)
-                go.AddComponent<DistributedObject>();
+            //Change the simulation type only if it's not set in the prefab
             var distributedRigidbody = go.GetComponent<DistributedRigidbody>();
             if (distributedRigidbody == null)
             {
                 distributedRigidbody = go.AddComponent<DistributedRigidbody>();
                 distributedRigidbody.SimulationType = DistributedRigidbody.MockingSimulationType.ExtrapolateVelocities;
             }
+
+            //Add the rest required components for cluster simulation
+            ClusterSimulationUtilities.AddDistributedComponents(go);
         }
 
         go.transform.position = config.Position;

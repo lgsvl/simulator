@@ -99,6 +99,9 @@ namespace Simulator.Network.Core.Components
         /// <inheritdoc/>
         protected override string ComponentKey { get; } = "DistributedRigidbody";
 
+        /// <inheritdoc/>
+        protected override bool DestroyWithoutParent { get; } = true;
+
         /// <summary>
         /// Maximum snapshots sent per second
         /// </summary>

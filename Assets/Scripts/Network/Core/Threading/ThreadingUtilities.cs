@@ -14,7 +14,7 @@ namespace Simulator.Network.Core.Threading
     /// <summary>
     /// Utility methods for threading in the Unity
     /// </summary>
-    public static class ThreadingUtility
+    public static class ThreadingUtilities
     {
         /// <summary>
         /// Events dispatched to be called from the Unity main thread

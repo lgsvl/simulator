@@ -15,6 +15,7 @@ using Simulator.Network.Core.Components;
 using Simulator.Network.Core.Connection;
 using Simulator.Network.Core.Messaging;
 using Simulator.Network.Core.Messaging.Data;
+using Simulator.Network.Shared;
 using Simulator.Network.Shared.Messages;
 
 public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
@@ -183,10 +184,8 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
         if (Loader.Instance.Network.IsClusterSimulation)
         {
-            if (go.GetComponent<DistributedObject>() == null)
-                go.AddComponent<DistributedObject>();
-            if (rb.gameObject.GetComponent<DistributedRigidbody>() == null)
-                rb.gameObject.AddComponent<DistributedRigidbody>();
+            //Add required components for cluster simulation
+            ClusterSimulationUtilities.AddDistributedComponents(go);
         }
 
         return go;
@@ -250,10 +249,8 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         //Add required components for distributing rigidbody from master to clients
         if (Loader.Instance.Network.IsClusterSimulation)
         {
-            if (go.GetComponent<DistributedObject>() == null)
-                go.AddComponent<DistributedObject>();
-            if (rb.gameObject.GetComponent<DistributedRigidbody>() == null)
-                rb.gameObject.AddComponent<DistributedRigidbody>();
+            //Add required components for cluster simulation
+            ClusterSimulationUtilities.AddDistributedComponents(go);
             if (Loader.Instance.Network.IsMaster)
                 BroadcastMessage(new Message(Key,
                     GetSpawnMessage(genId, npcData, npcControllerSeed, color, go.transform.position,
@@ -538,11 +535,8 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
         SimulatorManager.Instance.UpdateSemanticTags(go);
 
-        //Add required components for distributing rigidbody from master to clients
-        if (go.GetComponent<DistributedObject>() == null)
-            go.AddComponent<DistributedObject>().Initialize();
-        if (rb.gameObject.GetComponent<DistributedRigidbody>() == null)
-            rb.gameObject.AddComponent<DistributedRigidbody>();
+        //Add required components for cluster simulation
+        ClusterSimulationUtilities.AddDistributedComponents(go);
     }
 
     private BytesStack GetDespawnMessage(int orderNumber)

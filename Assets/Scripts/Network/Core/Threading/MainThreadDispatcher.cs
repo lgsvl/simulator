@@ -19,7 +19,7 @@ namespace Simulator.Network.Core.Threading
         /// </summary>
         private void Awake()
         {
-            ThreadingUtility.Dispatcher = this;
+            ThreadingUtilities.Dispatcher = this;
         }
 
         /// <summary>
@@ -27,8 +27,8 @@ namespace Simulator.Network.Core.Threading
         /// </summary>
         private void OnDestroy()
         {
-            if (ThreadingUtility.Dispatcher == this)
-                ThreadingUtility.Dispatcher = null;
+            if (ThreadingUtilities.Dispatcher == this)
+                ThreadingUtilities.Dispatcher = null;
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace Simulator.Network.Core.Threading
         /// </summary>
         private void Update()
         {
-            ThreadingUtility.InvokeDispatchedEvents();
+            ThreadingUtilities.InvokeDispatchedEvents();
         }
     }
 }

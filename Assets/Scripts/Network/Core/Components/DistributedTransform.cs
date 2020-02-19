@@ -44,6 +44,9 @@ namespace Simulator.Network.Core.Components
         /// <inheritdoc/>
         protected override string ComponentKey { get; } = "DistributedTransform";
 
+        /// <inheritdoc/>
+        protected override bool DestroyWithoutParent { get; } = true;
+
         /// <summary>
         /// Last snapshot data which has been sent
         /// </summary>

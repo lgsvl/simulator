@@ -74,7 +74,7 @@ namespace Simulator.Network.Core.Components
         /// <inheritdoc/>
         public string Key => string.IsNullOrEmpty(key)
             ? GuidSource == null
-                ? key = $"{HierarchyUtility.GetRelativePath(Root.transform, transform)}DistributedObject"
+                ? key = $"{HierarchyUtilities.GetRelativePath(Root.transform, transform)}DistributedObject"
                 : GuidSource.GUID == null
                     ? null
                     : key = $"{GuidSource.GUID}/DistributedObject"

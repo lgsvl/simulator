@@ -185,7 +185,7 @@ namespace Simulator.Network.Core.Components
                 var instantiatedObject = instantiatedObjects[i];
                 if (instantiatedObject.DistributedObject == null)
                     continue;
-                var bytesStack = GetInstantiationMessage(instantiatedObject.PrefabId, HierarchyUtility.GetRelativePath(
+                var bytesStack = GetInstantiationMessage(instantiatedObject.PrefabId, HierarchyUtilities.GetRelativePath(
                     transform,
                     instantiatedObject.DistributedObject.transform), instantiatedObject.DistributedObject.name);
                 UnicastMessage(endPoint, new Message(Key, bytesStack, MessageType.ReliableUnordered));
@@ -205,9 +205,9 @@ namespace Simulator.Network.Core.Components
             if (prefabId < 0 || prefabId >= Settings.DistributedObjectPrefabs.Length)
                 throw new ArgumentException(
                     $"Prefab of distributed object with id {prefabId} is not defined in {typeof(NetworkSettings).Name}.");
-            var distributedObjectParent = HierarchyUtility.GetOrCreateChild(transform, relativePath);
+            var distributedObjectParent = HierarchyUtilities.GetOrCreateChild(transform, relativePath);
             var newGameObject = Instantiate(Settings.DistributedObjectPrefabs[prefabId], distributedObjectParent);
-            HierarchyUtility.ChangeToUniqueName(newGameObject);
+            HierarchyUtilities.ChangeToUniqueName(newGameObject);
             var distributedObject = newGameObject.GetComponent<DistributedObject>();
             if (distributedObject == null)
                 throw new ArgumentException(
@@ -302,7 +302,7 @@ namespace Simulator.Network.Core.Components
             var newGameObject = Instantiate(Settings.DistributedObjectPrefabs[prefabId],
                 rootTransform.position,
                 rootTransform.rotation,
-                HierarchyUtility.GetOrCreateChild(rootTransform, relativePath));
+                HierarchyUtilities.GetOrCreateChild(rootTransform, relativePath));
             newGameObject.name = objectName;
             var distributedObject = newGameObject.GetComponent<DistributedObject>();
             if (distributedObject == null)

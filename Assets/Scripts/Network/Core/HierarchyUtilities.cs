@@ -15,7 +15,7 @@ namespace Simulator.Network.Core
     /// <summary>
     /// Utility methods for Unity hierarchy management
     /// </summary>
-    public static class HierarchyUtility
+    public static class HierarchyUtilities
     {
         /// <summary>
         /// Nodes separator in the relative path

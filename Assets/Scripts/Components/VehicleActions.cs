@@ -46,7 +46,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
     //Network
     private MessagesManager messagesManager;
     private string key;
-    public string Key => key ?? (key = $"{HierarchyUtility.GetPath(transform)}VehicleActions");
+    public string Key => key ?? (key = $"{HierarchyUtilities.GetPath(transform)}VehicleActions");
     
     public enum HeadLightState { OFF = 0, LOW = 1, HIGH = 2 };
     private HeadLightState _currentHeadLightState = HeadLightState.OFF;

@@ -9,11 +9,11 @@ using Simulator.Api;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using Simulator.Network.Core.Identification;
+using Simulator.Network.Shared;
 
 namespace Simulator.Controllable
 {
-    using Network.Core.Identification;
-
     public class ControllableManager : MonoBehaviour
     {
         public IControllable SpawnControllable(GameObject prefab, Vector3 pos, Quaternion rot, Vector3 velocity, Vector3 angVelocity)
@@ -45,6 +45,12 @@ namespace Simulator.Controllable
 
             api.Controllables.Add(uid, controllable);
             api.ControllablesUID.Add(controllable, uid);
+
+            if (Loader.Instance.Network.IsClusterSimulation)
+            {
+                //Add required components for cluster simulation
+                ClusterSimulationUtilities.AddDistributedComponents(obj);
+            }
 
             return controllable;
         }

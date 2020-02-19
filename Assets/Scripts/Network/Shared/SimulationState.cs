@@ -11,7 +11,7 @@ namespace Simulator.Network.Shared
     {
         Initial,
         Connecting, // waiting from "init" command
-        Connected,  // init" command is received
+        Connected,  // "init" command is received
         Loading,    // client is loading bundles
         Ready,      // client finished all bundle loading
         Running,    // simulation is running

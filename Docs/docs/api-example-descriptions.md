@@ -47,6 +47,6 @@ For this scenario, the destinaion is the end of the lane. The same destination c
 
 ### Automated Driving System Test Cases [[top]] {: #automated-driving-system-test-cases data-toc-label='Automated Driving System Test Cases'}
 * The United States National Highway Traffic Safety Administration released a report describing a framework for establishing sample preliminary tests. The report is available online: [A Framework for Automated Driving System Testable Cases and Scenarios](https://www.nhtsa.gov/sites/nhtsa.dot.gov/files/documents/13882-automateddrivingsystems_092618_v1a_tag.pdf)
-* We created several of the described tests available here: [NHTSA-sample-tests](https://github.com/lgsvl/PythonAPI/blob/master/Api/examples/NHTSA-sample-tests/)
+* We created several of the described tests available here: [NHTSA-sample-tests](https://github.com/lgsvl/PythonAPI/tree/master/examples/NHTSA-sample-tests)
 * These tests run the ADS at different speeds. To accomplish this with Apollo, the speed limit in the HD map of the appropriate lanes needs to be adjusted and the planning configuration should also be changed to limit Apollo's top speed.
 * The ADS destination is described in the report. For our implementation of the Perform Lane Change tests, the same destination as the above Overtaker and Traffic Jam scenarios is used.

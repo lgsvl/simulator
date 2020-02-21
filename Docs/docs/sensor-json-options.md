@@ -779,13 +779,13 @@ This sensor outputs control calibration criteria collected by AD Stacks (Apollo,
 
 ### Transform Sensor [[top]] {: #transform-sensor data-toc-label='Transform Sensor'}
 This sensor is specifically used to parent other sensors.
-For example, if there is a cluster of sensors a `Transform Sensor` can be added at the location of the cluster
-and then the individual sensors can have a transform that is relative to the location of the `Transform Sensor`.
+For example, if there is a cluster of sensors a `Transform` sensor can be added at the location of the cluster
+and then the individual sensors can have a transform that is relative to the location of the `Transform` sensor`.
 
 Example usage
 ```json
 {
-    "type": "Transform Sensor",
+    "type": "Transform",
     "name": "Cluster Reference",
     "transform": {
       "x": 0.75,

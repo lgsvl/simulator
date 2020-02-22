@@ -1,97 +1,103 @@
 # Autoware.AI 1.12.0 with LGSVL Simulator [](#top)
 
-**The software and source code in this repository are intended only for use with LG Automotive Simulator and *should not* be used in a real vehicle.**
+**The software and source code in this repository are intended only for use with the LGSVL simulator and *should not* be used in a real vehicle.**
 
 [![](images/autoware-sim.png)](images/full_size_images/autoware-sim.png)
 
-<h2> Table of Contents</h2>
+<h2>Table of Contents</h2>
 [TOC]
 
 ## General [[top]] {: #general data-toc-label='General'}
 
-This guide goes through how to run Autoware.AI with the LG SVL Simulator.
+This guide goes through how to run Autoware.AI with the LGSVL simulator.
 
-In order to run Autoware with the LGSVL simulator, it is easiest to pull an official Autoware docker image (see [official guide](https://gitlab.com/autowarefoundation/autoware.ai/autoware/wikis/Generic-x86-Docker)), but it is also possible to [build autoware from source](https://gitlab.com/autowarefoundation/autoware.ai/autoware/wikis/Source-Build).
+In order to run Autoware with the LGSVL simulator, it is easiest to pull the official Autoware Docker image (see the [official guide, Case 1](https://gitlab.com/autowarefoundation/autoware.ai/autoware/-/wikis/Generic-x86-Docker#case-1-using-autoware-docker-containers-with-pre-built-source-code-included) for more details), but it is also possible to [build Autoware from source](https://gitlab.com/autowarefoundation/autoware.ai/autoware/wikis/Source-Build).
 
-Autoware communicates with the simulator using the rosbridge_suite, which provides JSON interfacing with ROS publishers/subscribers. The official autoware docker containers have rosbridge_suite included.
+Autoware communicates with the LGSVL simulator using the rosbridge_suite, which provides JSON interfacing with ROS publishers/subscribers. The official Autoware Docker containers have rosbridge_suite included.
 
 ## Setup [[top]] {: #setup data-toc-label='Setup'}
 
 ### Requirements [[top]] {: #requirements data-toc-label='Requirements'}
 
 - Linux operating system
-- Nvidia graphics card
+- NVIDIA graphics card
 
-#### Installing Docker CE [[top]] {: #installing-docker-ce data-toc-label='Installing Docker CE'}
+### Install Docker CE [[top]] {: #install-docker-ce data-toc-label='Install Docker CE'}
 
 To install Docker CE please refer to the [official documentation](https://docs.docker.com/install/linux/docker-ce/ubuntu/). We also suggest following through with the [post installation steps](https://docs.docker.com/install/linux/linux-postinstall/).
 
-#### Installing Nvidia Docker [[top]] {: #installing-nvidia-docker data-toc-label='Installing Nvidia Docker'}
+### Install NVIDIA Container Toolkit [[top]] {: #install-nvidia-container-toolkit data-toc-label='Install NVIDIA Container Toolkit'}
 
-Before installing nvidia-docker make sure that you have an appropriate Nvidia driver installed. To test if nvidia drivers are properly installed enter `nvidia-smi` in a terminal. If the drivers are installed properly an output similar to the following should appear.
+Before installing the NVIDIA Container Toolkit (nvidia-docker), make sure that you have an appropriate NVIDIA driver installed. To test if the NVIDIA drivers are properly installed enter `nvidia-smi` in a terminal. If the drivers are installed properly an output similar to the following should appear:
 
 ```
-    +-----------------------------------------------------------------------------+
-    | NVIDIA-SMI 390.87                 Driver Version: 390.87                    |
-    |-------------------------------+----------------------+----------------------+
-    | GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
-    | Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
-    |===============================+======================+======================|
-    |   0  GeForce GTX 108...  Off  | 00000000:65:00.0  On |                  N/A |
-    |  0%   59C    P5    22W / 250W |   1490MiB / 11175MiB |      4%      Default |
-    +-------------------------------+----------------------+----------------------+
-                                                                                
-    +-----------------------------------------------------------------------------+
-    | Processes:                                                       GPU Memory |
-    |  GPU       PID   Type   Process name                             Usage      |
-    |=============================================================================|
-    |    0      1187      G   /usr/lib/xorg/Xorg                           863MiB |
-    |    0      3816      G   /usr/bin/gnome-shell                         305MiB |
-    |    0      4161      G   ...-token=7171B24E50C2F2C595566F55F1E4D257    68MiB |
-    |    0      4480      G   ...quest-channel-token=3330599186510203656   147MiB |
-    |    0     17936      G   ...-token=5299D28BAAD9F3087B25687A764851BB   103MiB |
-    +-----------------------------------------------------------------------------+
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 440.59       Driver Version: 440.59       CUDA Version: 10.2     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|===============================+======================+======================|
+|   0  GeForce GTX 108...  Off  | 00000000:65:00.0  On |                  N/A |
+|  0%   59C    P5    22W / 250W |   1490MiB / 11175MiB |      4%      Default |
++-------------------------------+----------------------+----------------------+
+
++-----------------------------------------------------------------------------+
+| Processes:                                                       GPU Memory |
+|  GPU       PID   Type   Process name                             Usage      |
+|=============================================================================|
+|    0      1187      G   /usr/lib/xorg/Xorg                           863MiB |
+|    0      3816      G   /usr/bin/gnome-shell                         305MiB |
+|    0      4161      G   ...-token=7171B24E50C2F2C595566F55F1E4D257    68MiB |
+|    0      4480      G   ...quest-channel-token=3330599186510203656   147MiB |
+|    0     17936      G   ...-token=5299D28BAAD9F3087B25687A764851BB   103MiB |
++-----------------------------------------------------------------------------+
 ```
 
-### Simulator installation [[top]] {: #simulator-installation data-toc-label='Simulator Installation'}
+Install the NVIDIA Container Toolkit by following the instructions [here](https://github.com/NVIDIA/nvidia-docker#quickstart).
 
-Follow the instructions on our simulator Github page [here](https://github.com/lgsvl/simulator).
+### Install LGSVL Simulator [[top]] {: #install-lgsvl-simulator data-toc-label='Install LGSVL Simulator'}
 
+Follow the instructions [here](https://github.com/lgsvl/simulator).
 
-## Launching Autoware alongside LGSVL Simulator [[top]] {: #launching-autoware-alongside-lgsvl-simulator data-toc-label='Launching Autoware alongside LGSVL Simulator'}
+### Install Autoware [[top]] {: #install-autoware data-toc-label='Install Autoware'}
 
-Before launching, you need to create a directory called `shared_dir` in the home directory to hold maps and launch files for the simulator. The autoware docker container will mount this folder:
+Make sure you have [Git Large File Storage](https://git-lfs.github.com/) (LFS) installed **before** cloning the repository in the next step. If `git lfs` outputs `git: 'lfs' is not a git command.`, then you need to install it:
+
+- Instructions for installation are [here](https://help.github.com/en/articles/installing-git-large-file-storage).
+
+- Verify the installation:
+
+        $ git lfs install
+        Git LFS initialized.
+
+Create a directory called `shared_dir` in your home directory to hold HD maps and launch files for the simulator. The Autoware Docker container will mount this folder.
 ```bash
 mkdir ~/shared_dir
 cd ~/shared_dir
 git clone https://github.com/lgsvl/autoware-data.git
 ```
 
-To launch Autoware, first bring up the Docker container following these steps (see [official guide](https://gitlab.com/autowarefoundation/autoware.ai/autoware/wikis/Generic-x86-Docker#case-1-using-pre-built-autoware-docker-images) for more details):
+If there wasn't a line beginning with `Filtering content:` output, then Git LFS hasn't been installed. Remove the `autoware-data` directory, install Git LFS with `git lfs install`, and then re-issue the `git clone`.
 
-- Clone the `docker` repository from `autoware.ai`:
+Clone the `docker` repository from `autoware.ai` into a working directory:
+
 ```bash
+cd WORKING-DIRECTORY
 git clone https://gitlab.com/autowarefoundation/autoware.ai/docker.git
 ```
-- Navigate to:
+
+If you are using the latest Docker and NVIDIA Container Toolkit, the `docker/generic/run.sh` script will need to be modified. To determine whether you need to do this run `type nvidia-docker` in a terminal. If you get output similar to: `nvidia-docker is /usr/bin/nvidia-docker`, the script will work as is. If not, then modify it as described below:
+
+- In `docker/generic/run.sh`, find the following block at line 139:
+
 ```bash
-cd docker/generic
+if [ $CUDA == "on" ]; then
+    SUFFIX=$SUFFIX"-cuda"
+    RUNTIME="--runtime=nvidia"
+fi
 ```
 
-**NOTE** With the latest Docker and Nvidia-docker versions, the docker option `--runtime=nvidia` has been deprecated. If you have Docker CE version 19.03 and Nvidia-docker release v2.2.2 please run the following to check if docker containers will have access to your GPU.
-
-- In a terminal run `type nvidia-docker` .
-    1. If you get the ouput similar to this: `nvidia-docker is /usr/bin/nvidia-docker`, the run script will work fine. 
-    2. If you get the following output `bash: type: nvidia-docker: not found`, you need to modify the run script as shown below.
-
-- In `run.sh` find the following at line 139:
-
-        if [ $CUDA == "on" ]; then
-            SUFFIX=$SUFFIX"-cuda"
-            RUNTIME="--runtime=nvidia"
-        fi
-
-    Replace them with:
+- Replace it with:
 
 ```bash
 DOCKER_VERSION=$(docker version --format '{{.Client.Version}}' | cut -d'.' -f1)
@@ -105,12 +111,22 @@ if [ $CUDA == "on" ]; then
 fi
 ```
 
-- Pull the image and run (for release 1.12.0):
+## Launch Autoware Alongside LGSVL Simulator [[top]] {: #launch-autoware-alongside-lgsvl-simulator data-toc-label='Launch Autoware Alongside LGSVL Simulator'}
+
+Run the Autoware 1.12.0 container and enter into it:
+
 ```bash
+cd WORKING-DIRECTORY/docker/generic
 ./run.sh -t 1.12.0
 ```
 
-Once inside the container, launch the runtime manager:
+Once inside the container, install a missing ROS package:
+
+```bash
+sudo apt update && sudo apt install ros-$ROS_DISTRO-image-transport-plugins -y
+```
+
+Launch the runtime manager:
 
 ```bash
 roslaunch runtime_manager runtime_manager.launch
@@ -126,10 +142,10 @@ A few terminals will open, as well as a GUI for the runtime manager. In the runt
 
 [![](images/autoware-runtime-manager.png)](images/autoware-runtime-manager.png)
 
-Click "Map" to load the launch file pertaining to the HD maps. An "Ok" should appear to the right of the "Ref" button when successfully loaded. Then click "Sensing" which also launches rosbridge. 
+Click "Map" to load the launch file pertaining to the HD maps. An "Ok" should appear to the right of the "Ref" button when successfully loaded. Then click "Sensing" which also launches rosbridge.
 
-- Run the LG SVL simulator
-- Create a Simulation choosing `BorregasAve` map and `Jaguar2015XE (Autoware)` or another Autoware compatible vehicle. 
+- Run the LGSVL simulator
+- Create a Simulation choosing `BorregasAve` map and `Jaguar2015XE (Autoware)` or another Autoware compatible vehicle.
 - Enter `localhost:9090` for the Bridge Connection String.
 - Run the created Simulation
 
@@ -137,7 +153,7 @@ A vehicle should appear in Borregas Ave in Sunnyvale, CA.
 
 In the Autoware Runtime Manager, continue loading the other launch files - click "Localization" and wait for the time to display to the right of "Ref".
 
-Then click "Rviz" to launch Rviz - the vector map and location of the vehicle in the map should show. 
+Then click "Rviz" to launch Rviz - the vector map and location of the vehicle in the map should show.
 
 The vehicle may be mis-localized as the initial pose is important for NDT matching. To fix this, click "2D Pose Estimate" in Rviz, then click an approximate position for the vehicle on the map and drag in the direction it is facing before releasing the mouse button. This should allow NDT matching to find the vehicle pose (it may take a few tries). Note that the point cloud will not show up in rviz until ndt matching starts publishing a pose.
 
@@ -163,7 +179,7 @@ A basic functionality of Autoware is to follow a prerecorded map while obeying t
 
 Now you can drive around the map using the keyboard. Once you are satisfied with your route, uncheck the box for `waypoint_saver` to end the route.
 
-To drive the route using autoware:
+To drive the route using Autoware:
 
 - Enable `waypoint_loader` while making sure the correct route file is selected in the `app` settings.
 - Enable `lane_rule`, `lane_stop`, and `lane_select` to follow traffic rules based on the vector map.
@@ -173,7 +189,7 @@ To drive the route using autoware:
 The ego vehicle should try to follow the waypoints at the velocity which they were originally recorded at. You can modify this velocity by manually editing the values csv file.
 
 ### Adding a Vehicle [[top]] {: #adding-a-vehicle data-toc-label='Adding a Vehicle'}
-The default vehicles have the calibration files included in the [LGSVL Autoware Data](https://github.com/lgsvl/autoware-data) Github repository. 
+The default vehicles have the calibration files included in the [LGSVL Autoware Data](https://github.com/lgsvl/autoware-data) Github repository.
 
 ### Adding an HD Map [[top]] {: #adding-an-hd-map data-toc-label='Adding an HD Map'}
 The default maps have the Vector map files included in the [LGSVL Autoware Data](https://github.com/lgsvl/autoware-data) Github repository.

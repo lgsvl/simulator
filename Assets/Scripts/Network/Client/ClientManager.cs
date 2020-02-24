@@ -280,12 +280,12 @@ namespace Simulator.Network.Client
                         db.Insert(map);
                     }
 
-                    processedDownloads.Add(map.Url);
+                    processedDownloads.Add(map.Name);
                     DownloadManager.AddDownloadToQueue(new Uri(map.Url), map.LocalPath, null, (success, ex) =>
                     {
-                        processedDownloads.Remove(map.Url);
+                        processedDownloads.Remove(map.Name);
                         //Check if downloaded map is still valid in current load command
-                        if (CurrentLoadCommand.MapUrl != map.Url)
+                        if (CurrentLoadCommand.MapName != map.Name)
                             return;
                         if (ex != null)
                         {
@@ -402,8 +402,11 @@ namespace Simulator.Network.Client
                 for (int i = 0; i < agentsToDownload; i++)
                 {
                     //Check if downloading is already being processed, if true this may be a quick rerun of the simulation
-                    if (processedDownloads.Contains(agents[i].Url))
+                    if (processedDownloads.Contains(agents[i].Name))
+                    {
+                        Interlocked.Increment(ref count);
                         continue;
+                    }
                     VehicleModel vehicleModel;
                     using (var db = DatabaseManager.Open())
                     {
@@ -425,14 +428,14 @@ namespace Simulator.Network.Client
                         };
                         bundles.Add(vehicleModel.LocalPath);
 
-                        processedDownloads.Add(vehicleModel.Url);
+                        processedDownloads.Add(vehicleModel.Name);
                         DownloadManager.AddDownloadToQueue(new Uri(vehicleModel.Url), vehicleModel.LocalPath, null,
                             (success, ex) =>
                             {
                                 //Check if downloaded vehicle model is still valid in current load command
-                                if (CurrentLoadCommand.Agents.All(loadAgent => loadAgent.Url != vehicleModel.Url))
+                                if (CurrentLoadCommand.Agents.All(loadAgent => loadAgent.Name != vehicleModel.Name))
                                     return;
-                                processedDownloads.Remove(vehicleModel.Url);
+                                processedDownloads.Remove(vehicleModel.Name);
                                 if (ex != null)
                                 {
                                     var err = new Commands.LoadResult()

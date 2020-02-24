@@ -16,6 +16,7 @@ using Simulator.Network.Core;
 using Simulator.Network.Core.Connection;
 using Simulator.Network.Core.Messaging;
 using Simulator.Network.Core.Messaging.Data;
+using Simulator.Network.Shared;
 using Simulator.Sensors;
 using Simulator.Utilities;
 using UnityEngine;
@@ -118,8 +119,13 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         if (!string.IsNullOrEmpty(sensors) && !network.IsClient)
         {
             InstantiateSensors(sensors);
-            if (network.IsMaster && network.Master.Clients.Count > 0)
-                DistributeSensors();
+            if (network.IsMaster)
+            {
+                if (network.Master.State == SimulationState.Running)
+                    DistributeSensors();
+                else
+                    network.Master.StateChanged += MasterOnStateChanged;
+            }
         }
     }
 
@@ -415,6 +421,15 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         }
 
         SensorsChanged?.Invoke();
+    }
+
+    private void MasterOnStateChanged(SimulationState state)
+    {
+        if (state == SimulationState.Running)
+        {
+            Loader.Instance.Network.Master.StateChanged -= MasterOnStateChanged;
+            DistributeSensors();
+        }
     }
 
     public void ReceiveMessage(IPeerManager sender, Message message)

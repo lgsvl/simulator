@@ -44,6 +44,11 @@ namespace Simulator.Network.Master
         private NetworkSettings settings;
 
         /// <summary>
+        /// Current state of the simulation on the server
+        /// </summary>
+        private SimulationState state;
+
+        /// <summary>
         /// Root of the distributed objects
         /// </summary>
         private MasterObjectsRoot objectsRoot;
@@ -76,7 +81,17 @@ namespace Simulator.Network.Master
         /// <summary>
         /// Current state of the simulation on the server
         /// </summary>
-        private SimulationState State { get; set; } = SimulationState.Initial;
+        public SimulationState State
+        {
+            get => state;
+            private set
+            {
+                if (state == value)
+                    return;
+                state = value;
+                StateChanged?.Invoke(state);
+            }
+        }
 
         /// <summary>
         /// Connection manager for this server simulation
@@ -98,6 +113,11 @@ namespace Simulator.Network.Master
         /// Root of the distributed objects
         /// </summary>
         public MasterObjectsRoot ObjectsRoot => objectsRoot;
+
+        /// <summary>
+        /// Event invoked when the simulation state changes
+        /// </summary>
+        public event Action<SimulationState> StateChanged;
 
         /// <summary>
         /// Constructor

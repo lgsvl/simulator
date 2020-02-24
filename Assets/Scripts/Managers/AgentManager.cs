@@ -21,6 +21,7 @@ using PetaPoco;
 using YamlDotNet.Serialization;
 using ICSharpCode.SharpZipLib.Zip;
 using ICSharpCode.SharpZipLib.Core;
+using Simulator.Network.Core;
 using Simulator.Network.Core.Components;
 using Simulator.Network.Core.Messaging;
 using Simulator.FMU;
@@ -83,6 +84,7 @@ public class AgentManager : MonoBehaviour
         var network = Loader.Instance.Network;
         if (network.IsClusterSimulation)
         {
+            HierarchyUtilities.ChangeToUniqueName(go);
             if (network.IsClient)
             {
                 //Disable controller and dynamics on clients so it will not interfere mocked components

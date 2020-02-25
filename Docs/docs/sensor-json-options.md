@@ -14,6 +14,10 @@ Example JSON configurations are available here:
 - [Apollo 5.0 JSON](apollo5-0-json-example.md)
 - [Autoware JSON](autoware-json-example.md)
 - [Data Collection JSON](ground-truth-json-example.md)
+- Some Lidar sensor JSONs:
+    - [Velodyne VLP-16](velodyne-json-examples.md#vlp-16)
+    - [Velodyne VLP-32C](velodyne-json-examples.md#vlp-32c)
+    - [Velodyne VLS-128](velodyne-json-examples.md#vls-128)
 
 ### How to Specify a Sensor [[top]] {: #how-to-specify-a-sensor data-toc-label='How to Specify a Sensor'}
 A vehicle configuration is in the following format:

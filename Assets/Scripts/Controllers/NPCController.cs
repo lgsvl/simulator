@@ -368,7 +368,6 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
 
         updatedWaypoints = false;
         isFirstRun = false;
-        wakeUpTime = SimulatorManager.Instance.CurrentTime;
         checkReachBlocked = false;
     }
 
@@ -815,10 +814,12 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
                 if (currentIndex+1 == laneData.Count-1)
                 {
                     checkReachBlocked = true;
-                    if (currentIdle != -1 && currentDeactivate)
+                    if (laneIdle[currentIndex+1] == -1 && currentDeactivate)
                     {
                         waypointDriveState = WaypointDriveState.Despawn;
                     }
+                    else if (laneIdle[currentIndex+1] == 0)
+                        waypointDriveState = WaypointDriveState.Wait;
                 }
                 else if (time > laneTime[currentIndex+1])
                     currentIndex++;
@@ -829,17 +830,22 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
         }
         else if (currentIndex == laneData.Count-1)
         {
-            if (currentIdle != -1 && currentDeactivate)
+            if (laneIdle[currentIndex] == -1 && currentDeactivate)
             {
                 waypointDriveState = WaypointDriveState.Despawn;
             }
+            else if (laneIdle[currentIndex] == 0)
+                waypointDriveState = WaypointDriveState.Wait;
             return;
         }
 
         (position, rotation) = NPCPoseInterpolate(time, laneData, laneAngle, laneTime, currentIndex);
 
-        rb.MovePosition(position);
-        rb.MoveRotation(rotation);
+        if (!float.IsNaN(position.x))
+        {
+            rb.MovePosition(position);
+            rb.MoveRotation(rotation);
+        }
 
         if (currentIndex < laneData.Count-1)
         {
@@ -2284,6 +2290,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
             gameObject.SetActive(true);
         }
         thisNPCWaypointState = NPCWaypointState.Driving;
+        wakeUpTime = SimulatorManager.Instance.CurrentTime;
         activateNPC = true;
         waypointDriveState = WaypointDriveState.Drive;
 

@@ -47,13 +47,13 @@ namespace Simulator.Network.Core.Connection
         }
         
         /// <inheritdoc/>
-        public void Send(Message message)
+        public void Send(DistributedMessage distributedMessage)
         {
-            var dataToSent = message.Content.GetDataCopy();
+            var dataToSent = distributedMessage.Content.GetDataCopy();
             try
             {
                 NetworkStatistics.ReportSentPackage(dataToSent);
-                Peer.Send(dataToSent, GetDeliveryMethod(message.Type));
+                Peer.Send(dataToSent, GetDeliveryMethod(distributedMessage.Type));
             }
             catch (TooBigPacketException)
             {
@@ -64,11 +64,11 @@ namespace Simulator.Network.Core.Connection
         /// <summary>
         /// Gets LiteNetLib DeliveryMethod corresponding to the given MessageType
         /// </summary>
-        /// <param name="messageType">Message type</param>
+        /// <param name="distributedMessageType">Message type</param>
         /// <returns>Corresponding LiteNetLib DeliveryMethod to the given MessageType</returns>
-        public static DeliveryMethod GetDeliveryMethod(MessageType messageType)
+        public static DeliveryMethod GetDeliveryMethod(DistributedMessageType distributedMessageType)
         {
-            return (DeliveryMethod) messageType;
+            return (DeliveryMethod) distributedMessageType;
         }
 
         /// <summary>
@@ -76,9 +76,9 @@ namespace Simulator.Network.Core.Connection
         /// </summary>
         /// <param name="deliveryMethod">Delivery method</param>
         /// <returns>Corresponding MessageType to the given LiteNetLib DeliveryMethod</returns>
-        public static MessageType GetDeliveryMethod(DeliveryMethod deliveryMethod)
+        public static DistributedMessageType GetDeliveryMethod(DeliveryMethod deliveryMethod)
         {
-            return (MessageType) deliveryMethod;
+            return (DistributedMessageType) deliveryMethod;
         }
     }
 }

@@ -308,17 +308,17 @@ namespace Simulator.Network.Core.Components
         }
 
         /// <inheritdoc/>
-        protected override void ApplySnapshot(Message message)
+        protected override void ApplySnapshot(DistributedMessage distributedMessage)
         {
-            if (message.Timestamp <= newestSnapshot.Timestamp)
+            if (distributedMessage.Timestamp <= newestSnapshot.Timestamp)
                 return;
             previousSnapshot = newestSnapshot;
 
             //Parse incoming snapshot
-            newestSnapshot.LocalPosition = message.Content.PopDecompressedPosition();
+            newestSnapshot.LocalPosition = distributedMessage.Content.PopDecompressedPosition();
             var position = newestSnapshot.LocalPosition + transform.parent.position;
-            newestSnapshot.Rotation = message.Content.PopDecompressedRotation();
-            newestSnapshot.Timestamp = message.Timestamp;
+            newestSnapshot.Rotation = distributedMessage.Content.PopDecompressedRotation();
+            newestSnapshot.Timestamp = distributedMessage.Timestamp;
             switch (SimulationType)
             {
                 case MockingSimulationType.ApplySnapshotsOnly:
@@ -326,10 +326,10 @@ namespace Simulator.Network.Core.Components
                     CachedRigidbody.rotation = newestSnapshot.Rotation;
                     break;
                 case MockingSimulationType.ExtrapolateVelocities:
-                    if (message.Content.Count > 0)
+                    if (distributedMessage.Content.Count > 0)
                     {
-                        newestSnapshot.Velocity = message.Content.PopDecompressedVector3(-200.0f, 200.0f, 2);
-                        newestSnapshot.AngularVelocity = message.Content.PopDecompressedVector3(-10.0f, 10.0f, 2);
+                        newestSnapshot.Velocity = distributedMessage.Content.PopDecompressedVector3(-200.0f, 200.0f, 2);
+                        newestSnapshot.AngularVelocity = distributedMessage.Content.PopDecompressedVector3(-10.0f, 10.0f, 2);
                     }
 
                     break;
@@ -338,7 +338,7 @@ namespace Simulator.Network.Core.Components
             }
 
             //Other than unreliable messages include keyframes and require instant apply
-            if (message.Type != MessageType.Unreliable)
+            if (distributedMessage.Type != DistributedMessageType.Unreliable)
             {
                 var cachedTransform = transform;
                 cachedTransform.localPosition = newestSnapshot.LocalPosition;

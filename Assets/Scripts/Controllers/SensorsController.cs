@@ -409,6 +409,8 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                 overloadedClients++;
             Debug.LogWarning($"Running cluster simulation with {overloadedClients} overloaded instances. Decrease sensors count or extend the cluster for best performance.");
         }
+        else if (masterLoad > 1.0f)
+            Debug.LogWarning($"Running cluster simulation with overloaded master simulation. Used sensors cannot be distributed to the slaves.");
 
         //Send sensors data to clients
         for (var i = 0; i < clientsCount; i++)
@@ -416,7 +418,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
             var client = network.Master.Clients[i];
             var content = new BytesStack();
             content.PushString(clientsSensors[i].ToString());
-            var message = new Message(Key, content, MessageType.ReliableUnordered);
+            var message = new DistributedMessage(Key, content, DistributedMessageType.ReliableUnordered);
             UnicastMessage(client.Peer.PeerEndPoint, message);
         }
 
@@ -432,24 +434,24 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         }
     }
 
-    public void ReceiveMessage(IPeerManager sender, Message message)
+    public void ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
     {
-        var sensors = message.Content.PopString();
+        var sensors = distributedMessage.Content.PopString();
         InstantiateSensors(sensors);
     }
 
     /// <inheritdoc/>
-    public void UnicastMessage(IPEndPoint endPoint, Message message)
+    public void UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage)
     {
         if (Key != null)
-            MessagesManager?.UnicastMessage(endPoint, message);
+            MessagesManager?.UnicastMessage(endPoint, distributedMessage);
     }
 
     /// <inheritdoc/>
-    public void BroadcastMessage(Message message)
+    public void BroadcastMessage(DistributedMessage distributedMessage)
     {
         if (Key != null)
-            MessagesManager?.BroadcastMessage(message);
+            MessagesManager?.BroadcastMessage(distributedMessage);
     }
 
     /// <inheritdoc/>

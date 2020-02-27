@@ -146,7 +146,7 @@ namespace Simulator.Network.Core.Components
 
             var enableCommand = new BytesStack();
             enableCommand.PushEnum<DistributedObjectCommandType>((int) DistributedObjectCommandType.Enable);
-            BroadcastMessage(new Message(Key, enableCommand, MessageType.ReliableUnordered));
+            BroadcastMessage(new DistributedMessage(Key, enableCommand, DistributedMessageType.ReliableUnordered));
         }
 
         /// <summary>
@@ -159,7 +159,7 @@ namespace Simulator.Network.Core.Components
 
             var enableCommand = new BytesStack();
             enableCommand.PushEnum<DistributedObjectCommandType>((int) DistributedObjectCommandType.Disable);
-            BroadcastMessage(new Message(Key, enableCommand, MessageType.ReliableUnordered));
+            BroadcastMessage(new DistributedMessage(Key, enableCommand, DistributedMessageType.ReliableUnordered));
         }
 
         /// <summary>
@@ -210,12 +210,17 @@ namespace Simulator.Network.Core.Components
             Root.RegisterObject(this);
             IsInitialized = true;
             Initialized?.Invoke();
-            var enableCommand = new BytesStack();
+            BroadcastMessage(new DistributedMessage(Key, GetCurrentStateMessage(), DistributedMessageType.ReliableUnordered));
+        }
+
+        protected virtual BytesStack GetCurrentStateMessage()
+        {
+            var command = new BytesStack();
             if (gameObject.activeInHierarchy)
-                enableCommand.PushEnum<DistributedObjectCommandType>((int) DistributedObjectCommandType.Enable);
+                command.PushEnum<DistributedObjectCommandType>((int) DistributedObjectCommandType.Enable);
             else
-                enableCommand.PushEnum<DistributedObjectCommandType>((int) DistributedObjectCommandType.Disable);
-            BroadcastMessage(new Message(Key, enableCommand, MessageType.ReliableUnordered));
+                command.PushEnum<DistributedObjectCommandType>((int) DistributedObjectCommandType.Disable);
+            return command;
         }
 
         /// <summary>
@@ -301,38 +306,39 @@ namespace Simulator.Network.Core.Components
         }
 
         /// <inheritdoc/>
-        public void UnicastMessage(IPEndPoint endPoint, Message message)
+        public void UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage)
         {
             if (IsAuthoritative && (!SelectiveDistribution || AddressedEndPoints.Contains(endPoint)))
-                Root.UnicastMessage(endPoint, message);
+                Root.UnicastMessage(endPoint, distributedMessage);
         }
 
         /// <inheritdoc/>
-        public void BroadcastMessage(Message message)
+        public void BroadcastMessage(DistributedMessage distributedMessage)
         {
             if (!IsAuthoritative)
                 return;
             if (SelectiveDistribution)
                 foreach (var addressedEndPoint in AddressedEndPoints)
-                    Root.UnicastMessage(addressedEndPoint, message);
+                    Root.UnicastMessage(addressedEndPoint, distributedMessage);
             else
-                Root.BroadcastMessage(message);
+                Root.BroadcastMessage(distributedMessage);
         }
 
         /// <inheritdoc/>
         public void UnicastInitialMessages(IPEndPoint endPoint)
         {
+            UnicastMessage(endPoint, new DistributedMessage(Key, GetCurrentStateMessage(), DistributedMessageType.ReliableUnordered));
             foreach (var registeredComponent in registeredComponents)
                 registeredComponent.UnicastInitialMessages(endPoint);
         }
 
         /// <inheritdoc/>
-        public void ReceiveMessage(IPeerManager sender, Message message)
+        public void ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
         {
             //Check if game object is not destroyed
             if (this ==null || gameObject == null)
                 return;
-            var commandType = message.Content.PopEnum<DistributedObjectCommandType>();
+            var commandType = distributedMessage.Content.PopEnum<DistributedObjectCommandType>();
             switch (commandType)
             {
                 case DistributedObjectCommandType.Enable:

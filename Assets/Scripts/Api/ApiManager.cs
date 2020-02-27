@@ -396,7 +396,7 @@ namespace Simulator.Api
                         var content = new BytesStack();
                         content.PushString(action.Arguments.ToString());
                         content.PushString(action.Command.Name);
-                        BroadcastMessage(new Message(Key, content, MessageType.ReliableOrdered));
+                        BroadcastMessage(new DistributedMessage(Key, content, DistributedMessageType.ReliableOrdered));
                     }
                 }
                 catch (Exception ex)
@@ -470,10 +470,10 @@ namespace Simulator.Api
             }
         }
             
-        public void ReceiveMessage(IPeerManager sender, Message message)
+        public void ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
         {
-            var command = message.Content.PopString();
-            var arguments = JSONNode.Parse(message.Content.PopString());
+            var command = distributedMessage.Content.PopString();
+            var arguments = JSONNode.Parse(distributedMessage.Content.PopString());
             Actions.Enqueue(new ClientAction
             {
                 Command = Commands[command],
@@ -481,14 +481,14 @@ namespace Simulator.Api
             });
         }
 
-        public void UnicastMessage(IPEndPoint endPoint, Message message)
+        public void UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage)
         {
-            Loader.Instance.Network.MessagesManager?.UnicastMessage(endPoint, message);
+            Loader.Instance.Network.MessagesManager?.UnicastMessage(endPoint, distributedMessage);
         }
 
-        public void BroadcastMessage(Message message)
+        public void BroadcastMessage(DistributedMessage distributedMessage)
         {
-            Loader.Instance.Network.MessagesManager?.BroadcastMessage(message);
+            Loader.Instance.Network.MessagesManager?.BroadcastMessage(distributedMessage);
         }
 
         public void UnicastInitialMessages(IPEndPoint endPoint)

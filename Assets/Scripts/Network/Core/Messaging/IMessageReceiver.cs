@@ -20,7 +20,7 @@ namespace Simulator.Network.Core.Messaging
         /// Method handling incoming message to this receiver
         /// </summary>
         /// <param name="sender">The peer from which message has been received</param>
-        /// <param name="message">Received message</param>
-        void ReceiveMessage(IPeerManager sender, Message message);
+        /// <param name="distributedMessage">Received message</param>
+        void ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage);
     }
 }

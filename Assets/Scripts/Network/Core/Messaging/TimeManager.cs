@@ -28,23 +28,23 @@ namespace Simulator.Network.Core.Messaging
         /// <summary>
         /// Pushes current time difference from epoch time to the message (in milliseconds)
         /// </summary>
-        /// <param name="message">Message where time difference will be pushed</param>
-        public void PushTimeDifference(Message message)
+        /// <param name="distributedMessage">Message where time difference will be pushed</param>
+        public void PushTimeDifference(DistributedMessage distributedMessage)
         {
-            message.TimeTicksDifference = CurrentTicksDifference;
-            message.Content.PushLong(message.TimeTicksDifference);
+            distributedMessage.TimeTicksDifference = CurrentTicksDifference;
+            distributedMessage.Content.PushLong(distributedMessage.TimeTicksDifference);
         }
 
         /// <summary>
         /// Pops and sets the time difference (in ticks) and the timestamp in the message
         /// </summary>
-        /// <param name="message">Message with the time difference in the content</param>
+        /// <param name="distributedMessage">Message with the time difference in the content</param>
         /// <param name="remoteTimeTicksDifference">Difference between local time and remote time in ticks count</param>
-        public void PopTimeDifference(Message message, long remoteTimeTicksDifference)
+        public void PopTimeDifference(DistributedMessage distributedMessage, long remoteTimeTicksDifference)
         {
-            var timeDifference = message.Content.PopLong();
-            message.TimeTicksDifference = timeDifference;
-            message.Timestamp = GetTimestamp(timeDifference-remoteTimeTicksDifference);
+            var timeDifference = distributedMessage.Content.PopLong();
+            distributedMessage.TimeTicksDifference = timeDifference;
+            distributedMessage.Timestamp = GetTimestamp(timeDifference-remoteTimeTicksDifference);
         }
 
         /// <summary>

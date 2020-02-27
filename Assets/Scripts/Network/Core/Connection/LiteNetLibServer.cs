@@ -54,7 +54,7 @@ namespace Simulator.Network.Core.Connection
         public event Action<IPeerManager> PeerDisconnected;
 
         /// <inheritdoc/>
-        public event Action<IPeerManager, Message> MessageReceived;
+        public event Action<IPeerManager, DistributedMessage> MessageReceived;
 
         /// <inheritdoc/>
         public bool Start(int port)
@@ -88,16 +88,16 @@ namespace Simulator.Network.Core.Connection
         }
 
         /// <inheritdoc/>
-        public void Unicast(IPEndPoint endPoint, Message message)
+        public void Unicast(IPEndPoint endPoint, DistributedMessage distributedMessage)
         {
-            peers[endPoint].Send(message);
+            peers[endPoint].Send(distributedMessage);
         }
 
         /// <inheritdoc/>
-        public void Broadcast(Message message)
+        public void Broadcast(DistributedMessage distributedMessage)
         {
             foreach (var peer in peers)
-                peer.Value.Send(message);
+                peer.Value.Send(distributedMessage);
         }
 
         /// <inheritdoc/>
@@ -133,7 +133,7 @@ namespace Simulator.Network.Core.Connection
         {
             if (MessageReceived == null)
                 return;
-            var message = new Message(new BytesStack(reader.GetRemainingBytes(), false));
+            var message = new DistributedMessage(new BytesStack(reader.GetRemainingBytes(), false));
             MessageReceived?.Invoke(peers[peer.EndPoint], message);
         }
 

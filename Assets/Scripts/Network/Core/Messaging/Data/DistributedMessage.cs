@@ -12,7 +12,7 @@ namespace Simulator.Network.Core.Messaging.Data
     /// <summary>
     /// Message distributed between peers
     /// </summary>
-    public class Message
+    public class DistributedMessage
     {
         /// <summary>
         /// Address key defining where message should be passed. 
@@ -28,7 +28,7 @@ namespace Simulator.Network.Core.Messaging.Data
         /// <summary>
         /// Type defining how message should be delivered
         /// </summary>
-        public MessageType Type { get; set; } = MessageType.ReliableOrdered;
+        public DistributedMessageType Type { get; set; } = DistributedMessageType.ReliableOrdered;
         
         /// <summary>
         /// Utc time stamp of the message, may be become invalid when new authoritative correction arrives. 
@@ -46,7 +46,7 @@ namespace Simulator.Network.Core.Messaging.Data
         /// Constructor
         /// </summary>
         /// <param name="content">The content of message</param>
-        public Message(BytesStack content)
+        public DistributedMessage(BytesStack content)
         {
             Content = content;
         }
@@ -56,12 +56,12 @@ namespace Simulator.Network.Core.Messaging.Data
         /// </summary>
         /// <param name="addressKey">Address key defining where message should be passed</param>
         /// <param name="content">The content of message</param>
-        /// <param name="messageType">Type defining how message should be delivered</param>
-        public Message(string addressKey, BytesStack content, MessageType messageType)
+        /// <param name="distributedMessageType">Type defining how message should be delivered</param>
+        public DistributedMessage(string addressKey, BytesStack content, DistributedMessageType distributedMessageType)
         {
             AddressKey = addressKey;
             Content = content;
-            Type = messageType;
+            Type = distributedMessageType;
         }
     }
 }

@@ -31,7 +31,7 @@ namespace Simulator.Network.Core.Messaging
             /// <summary>
             /// Message awaiting in the queue
             /// </summary>
-            public Message Message { get; set; }
+            public DistributedMessage DistributedMessage { get; set; }
         }
 
         /// <summary>
@@ -139,11 +139,11 @@ namespace Simulator.Network.Core.Messaging
                                 Log.Error($"Registration event called without the timestamp set for the object with id {id}.");
                                 break;
                             }
-                            if (awaitingMessage.Message.Timestamp < registrationTimestamp)
+                            if (awaitingMessage.DistributedMessage.Timestamp < registrationTimestamp)
                                 continue;
-                            awaitingMessage.Message.AddressKey = identifiedObject.Key;
+                            awaitingMessage.DistributedMessage.AddressKey = identifiedObject.Key;
                             receiver.ReceiveMessage(connectionManager.GetConnectedPeerManager(awaitingMessage.EndPoint),
-                                awaitingMessage.Message);
+                                awaitingMessage.DistributedMessage);
                         }
                     }
                     finally
@@ -159,9 +159,9 @@ namespace Simulator.Network.Core.Messaging
                         foreach (var awaitingMessage in awaitingMessages)
                         {
                             if (Equals(awaitingMessage.EndPoint.Address, IPAddress.Broadcast))
-                                BroadcastMessage(awaitingMessage.Message);
+                                BroadcastMessage(awaitingMessage.DistributedMessage);
                             else
-                                UnicastMessage(awaitingMessage.EndPoint, awaitingMessage.Message);
+                                UnicastMessage(awaitingMessage.EndPoint, awaitingMessage.DistributedMessage);
                         }
                     }
                     finally
@@ -184,39 +184,39 @@ namespace Simulator.Network.Core.Messaging
         /// Method handling received message from the connection manager
         /// </summary>
         /// <param name="sender">The peer from which message has been received</param>
-        /// <param name="message">Received message</param>
-        private void ConnectionManagerOnMessageReceived(IPeerManager sender, Message message)
+        /// <param name="distributedMessage">Received message</param>
+        private void ConnectionManagerOnMessageReceived(IPeerManager sender, DistributedMessage distributedMessage)
         {
-            MessageReceived(sender, message);
+            MessageReceived(sender, distributedMessage);
         }
 
         /// <summary>
         /// Method handling incoming message to this receiver
         /// </summary>
         /// <param name="sender">The peer from which message has been received</param>
-        /// <param name="message">Received message</param>
-        private void MessageReceived(IPeerManager sender, Message message)
+        /// <param name="distributedMessage">Received message</param>
+        private void MessageReceived(IPeerManager sender, DistributedMessage distributedMessage)
         {
             //Check if peer is still connected
             if (sender == null)
                 return;
-            TimeManager.PopTimeDifference(message, sender.RemoteTimeTicksDifference);
-            var id = idsRegister.PopId(message.Content);
+            TimeManager.PopTimeDifference(distributedMessage, sender.RemoteTimeTicksDifference);
+            var id = idsRegister.PopId(distributedMessage.Content);
             var identifiedObject = idsRegister.ResolveObject(id);
             if (identifiedObject is IMessageReceiver receiver)
             {
                 //Forward message to proper receiver
-                message.AddressKey = identifiedObject.Key;
-                receiver.ReceiveMessage(sender, message);
+                distributedMessage.AddressKey = identifiedObject.Key;
+                receiver.ReceiveMessage(sender, distributedMessage);
             }
             else
             {
                 //Check if it is initialization message for IdsRegister - first sent message
-                if (idsRegister.IsInitializationMessage(sender, message))
+                if (idsRegister.IsInitializationMessage(sender, distributedMessage))
                     return;
 
                 //Ignore messages with outdated assigned identifiers
-                if (message.Timestamp < idsRegister.InternalIdBindUtcTime)
+                if (distributedMessage.Timestamp < idsRegister.InternalIdBindUtcTime)
                     return;
 
                 //Hold message until proper receiver registers
@@ -229,7 +229,7 @@ namespace Simulator.Network.Core.Messaging
                 var awaitingMessage = new AwaitingMessage()
                 {
                     EndPoint = sender.PeerEndPoint,
-                    Message = message
+                    DistributedMessage = distributedMessage
                 };
                 messages.Add(awaitingMessage);
             }
@@ -239,20 +239,20 @@ namespace Simulator.Network.Core.Messaging
         /// Unicast message to connected peer within given address
         /// </summary>
         /// <param name="endPoint">End point of the target peer</param>
-        /// <param name="message">Message to be sent</param>
-        public void UnicastMessage(IPEndPoint endPoint, Message message)
+        /// <param name="distributedMessage">Message to be sent</param>
+        public void UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage)
         {
-            var id = idsRegister.ResolveId(message.AddressKey);
+            var id = idsRegister.ResolveId(distributedMessage.AddressKey);
             if (id != null)
             {
-                idsRegister.PushId(message);
-                TimeManager.PushTimeDifference(message);
-                connectionManager.Unicast(endPoint, message);
+                idsRegister.PushId(distributedMessage);
+                TimeManager.PushTimeDifference(distributedMessage);
+                connectionManager.Unicast(endPoint, distributedMessage);
                 return;
             }
 
             //Hold message until proper sender registers
-            var key = message.AddressKey;
+            var key = distributedMessage.AddressKey;
             if (!awaitingOutgoingMessages.TryGetValue(key, out var messages))
             {
                 messages = new List<AwaitingMessage>();
@@ -262,7 +262,7 @@ namespace Simulator.Network.Core.Messaging
             var awaitingMessage = new AwaitingMessage()
             {
                 EndPoint = endPoint,
-                Message = message
+                DistributedMessage = distributedMessage
             };
             messages.Add(awaitingMessage);
         }
@@ -270,20 +270,20 @@ namespace Simulator.Network.Core.Messaging
         /// <summary>
         /// Broadcast message to all connected peers
         /// </summary>
-        /// <param name="message">Message to be sent</param>
-        public void BroadcastMessage(Message message)
+        /// <param name="distributedMessage">Message to be sent</param>
+        public void BroadcastMessage(DistributedMessage distributedMessage)
         {
-            var id = idsRegister.ResolveId(message.AddressKey);
+            var id = idsRegister.ResolveId(distributedMessage.AddressKey);
             if (id != null)
             {
-                idsRegister.PushId(message);
-                TimeManager.PushTimeDifference(message);
-                connectionManager.Broadcast(message);
+                idsRegister.PushId(distributedMessage);
+                TimeManager.PushTimeDifference(distributedMessage);
+                connectionManager.Broadcast(distributedMessage);
                 return;
             }
 
             //Hold message until proper sender registers
-            var key = message.AddressKey;
+            var key = distributedMessage.AddressKey;
             if (!awaitingOutgoingMessages.TryGetValue(key, out var messages))
             {
                 messages = new List<AwaitingMessage>();
@@ -293,7 +293,7 @@ namespace Simulator.Network.Core.Messaging
             var awaitingMessage = new AwaitingMessage()
             {
                 EndPoint = new IPEndPoint(IPAddress.Broadcast, connectionManager.Port),
-                Message = message
+                DistributedMessage = distributedMessage
             };
             messages.Add(awaitingMessage);
         }

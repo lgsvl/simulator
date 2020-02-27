@@ -49,7 +49,7 @@ namespace Simulator.Network.Core.Connection
         /// <summary>
         /// Event invoked when any peer had received message
         /// </summary>
-        event Action<IPeerManager, Message> MessageReceived;
+        event Action<IPeerManager, DistributedMessage> MessageReceived;
 
         /// <summary>
         /// Starts the manager, begins listening for events on given port
@@ -78,14 +78,14 @@ namespace Simulator.Network.Core.Connection
         /// Sends the message to peer at the given address
         /// </summary>
         /// <param name="endPoint">End point of target peer</param>
-        /// <param name="message">Message to be sent</param>
-        void Unicast(IPEndPoint endPoint, Message message);
+        /// <param name="distributedMessage">Message to be sent</param>
+        void Unicast(IPEndPoint endPoint, DistributedMessage distributedMessage);
 
         /// <summary>
         /// Sends the message to all connected peers
         /// </summary>
-        /// <param name="message">Message to be sent</param>
-        void Broadcast(Message message);
+        /// <param name="distributedMessage">Message to be sent</param>
+        void Broadcast(DistributedMessage distributedMessage);
 
         /// <summary>
         /// Gets the peer manager for the given address

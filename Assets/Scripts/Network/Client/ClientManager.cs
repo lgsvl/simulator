@@ -200,8 +200,8 @@ namespace Simulator.Network.Client
             };
             State = SimulationState.Connected;
             Loader.Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.PROGRESS);
-            UnicastMessage(peer.PeerEndPoint, new Message(Key, new BytesStack(PacketsProcessor.Write(info), false),
-                MessageType.ReliableOrdered));
+            UnicastMessage(peer.PeerEndPoint, new DistributedMessage(Key, new BytesStack(PacketsProcessor.Write(info), false),
+                DistributedMessageType.ReliableOrdered));
         }
 
         /// <summary>
@@ -217,15 +217,15 @@ namespace Simulator.Network.Client
         }
 
         /// <inheritdoc />
-        public void UnicastMessage(IPEndPoint endPoint, Message message)
+        public void UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage)
         {
-            MessagesManager.UnicastMessage(endPoint, message);
+            MessagesManager.UnicastMessage(endPoint, distributedMessage);
         }
 
         /// <inheritdoc />
-        public void BroadcastMessage(Message message)
+        public void BroadcastMessage(DistributedMessage distributedMessage)
         {
-            MessagesManager.BroadcastMessage(message);
+            MessagesManager.BroadcastMessage(distributedMessage);
         }
 
         /// <inheritdoc />
@@ -234,10 +234,10 @@ namespace Simulator.Network.Client
         }
 
         /// <inheritdoc />
-        public void ReceiveMessage(IPeerManager sender, Message message)
+        public void ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
         {
             Debug.Assert(MasterPeer == null || MasterPeer == sender);
-            PacketsProcessor.ReadAllPackets(new NetDataReader(message.Content.GetDataCopy()), sender);
+            PacketsProcessor.ReadAllPackets(new NetDataReader(distributedMessage.Content.GetDataCopy()), sender);
         }
 
         /// <summary>
@@ -309,9 +309,9 @@ namespace Simulator.Network.Client
                                 Success = false,
                                 ErrorMessage = ex.ToString(),
                             };
-                            UnicastMessage(MasterPeer.PeerEndPoint, new Message(Key,
+                            UnicastMessage(MasterPeer.PeerEndPoint, new DistributedMessage(Key,
                                 new BytesStack(PacketsProcessor.Write(err), false),
-                                MessageType.ReliableOrdered));
+                                DistributedMessageType.ReliableOrdered));
                             return;
                         }
                     });
@@ -331,9 +331,9 @@ namespace Simulator.Network.Client
                     Success = false,
                     ErrorMessage = ex.ToString(),
                 };
-                UnicastMessage(MasterPeer.PeerEndPoint, new Message(Key,
+                UnicastMessage(MasterPeer.PeerEndPoint, new DistributedMessage(Key,
                     new BytesStack(PacketsProcessor.Write(err), false),
-                    MessageType.ReliableOrdered));
+                    DistributedMessageType.ReliableOrdered));
 
                 Loader.ResetLoaderScene();
             }
@@ -443,9 +443,9 @@ namespace Simulator.Network.Client
                                         Success = false,
                                         ErrorMessage = ex.ToString(),
                                     };
-                                    UnicastMessage(MasterPeer.PeerEndPoint, new Message(Key,
+                                    UnicastMessage(MasterPeer.PeerEndPoint, new DistributedMessage(Key,
                                         new BytesStack(PacketsProcessor.Write(err), false),
-                                        MessageType.ReliableOrdered));
+                                        DistributedMessageType.ReliableOrdered));
                                     return;
                                 }
 
@@ -482,9 +482,9 @@ namespace Simulator.Network.Client
                     Success = false,
                     ErrorMessage = ex.ToString(),
                 };
-                UnicastMessage(MasterPeer.PeerEndPoint, new Message(Key,
+                UnicastMessage(MasterPeer.PeerEndPoint, new DistributedMessage(Key,
                     new BytesStack(PacketsProcessor.Write(err), false),
-                    MessageType.ReliableOrdered));
+                    DistributedMessageType.ReliableOrdered));
 
                 Loader.ResetLoaderScene();
             }
@@ -731,9 +731,9 @@ namespace Simulator.Network.Client
                                     Loader.ResetLoaderScene();
                                     return;
                                 }
-                                UnicastMessage(MasterPeer.PeerEndPoint, new Message(Key,
+                                UnicastMessage(MasterPeer.PeerEndPoint, new DistributedMessage(Key,
                                     new BytesStack(PacketsProcessor.Write(result), false),
-                                    MessageType.ReliableOrdered));
+                                    DistributedMessageType.ReliableOrdered));
 
                                 State = SimulationState.Ready;
                             }
@@ -746,9 +746,9 @@ namespace Simulator.Network.Client
                                     Success = false,
                                     ErrorMessage = ex.ToString(),
                                 };
-                                UnicastMessage(MasterPeer.PeerEndPoint, new Message(Key,
+                                UnicastMessage(MasterPeer.PeerEndPoint, new DistributedMessage(Key,
                                     new BytesStack(PacketsProcessor.Write(err), false),
-                                    MessageType.ReliableOrdered));
+                                    DistributedMessageType.ReliableOrdered));
 
                                 Loader.ResetLoaderScene();
                             }

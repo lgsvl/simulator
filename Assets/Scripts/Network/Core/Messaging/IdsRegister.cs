@@ -146,7 +146,7 @@ namespace Simulator.Network.Core.Messaging
         /// </summary>
         /// <returns>Initialization message</returns>
         /// <exception cref="ArgumentException">Cannot create initial message in register which does not assign ids.</exception>
-        private Message GetInitializationMessage()
+        private DistributedMessage GetInitializationMessage()
         {
             if (!assignIds)
                 throw new ArgumentException("Cannot create initial message in register which does not assign ids.");
@@ -158,7 +158,7 @@ namespace Simulator.Network.Core.Messaging
             bytesStack.PushInt(id.Value, BytesPerId);
             bytesStack.PushString(Key);
             bytesStack.PushInt((int) IdsRegisterCommandType.BindIdAndKey, BytesPerCommandType);
-            return new Message(Key, bytesStack, MessageType.ReliableOrdered);
+            return new DistributedMessage(Key, bytesStack, DistributedMessageType.ReliableOrdered);
         }
 
         /// <summary>
@@ -167,7 +167,7 @@ namespace Simulator.Network.Core.Messaging
         /// <param name="commandType">Command type</param>
         /// <param name="identifiedObject">Identified object which is command target</param>
         /// <returns>Register command in bytes stack</returns>
-        private Message GetCommandMessage(IdsRegisterCommandType commandType, IIdentifiedObject identifiedObject)
+        private DistributedMessage GetCommandMessage(IdsRegisterCommandType commandType, IIdentifiedObject identifiedObject)
         {
             var bytesStack = new BytesStack();
             var id = ResolveId(identifiedObject);
@@ -176,7 +176,7 @@ namespace Simulator.Network.Core.Messaging
             bytesStack.PushInt(id.Value, BytesPerId);
             bytesStack.PushString(identifiedObject.Key);
             bytesStack.PushInt((int) commandType, BytesPerCommandType);
-            return new Message(Key, bytesStack, MessageType.ReliableOrdered);
+            return new DistributedMessage(Key, bytesStack, DistributedMessageType.ReliableOrdered);
         }
 
         /// <summary>
@@ -193,27 +193,27 @@ namespace Simulator.Network.Core.Messaging
         /// Check if bytes stack contains internal id for the register
         /// </summary>
         /// <param name="sender">The peer from which message has been received</param>
-        /// <param name="message">Checked message</param>
+        /// <param name="distributedMessage">Checked message</param>
         /// <returns>True if bytes stack contains internal id for register, false otherwise</returns>
-        public bool IsInitializationMessage(IPeerManager sender, Message message)
+        public bool IsInitializationMessage(IPeerManager sender, DistributedMessage distributedMessage)
         {
             if (isInternalIdBound) return false;
 
             //Check if this is not an initial message
-            var command = (IdsRegisterCommandType) message.Content.PeekInt(BytesPerCommandType);
+            var command = (IdsRegisterCommandType) distributedMessage.Content.PeekInt(BytesPerCommandType);
             if (command != IdsRegisterCommandType.BindIdAndKey)
                 return false;
             try
             {
                 var offset = BytesPerCommandType;
-                var key = message.Content.PeekString(offset);
+                var key = distributedMessage.Content.PeekString(offset);
                 if (Key == key)
                 {
                     offset += 4 + Encoding.UTF8.GetBytes(key).Length;
-                    var id = message.Content.PeekInt(BytesPerId, offset);
+                    var id = distributedMessage.Content.PeekInt(BytesPerId, offset);
                     offset += BytesPerId;
                     isInternalIdBound = true;
-                    var timeDifference = message.Content.PeekLong(8, offset);
+                    var timeDifference = distributedMessage.Content.PeekLong(8, offset);
                     InternalIdBindUtcTime =
                         messagesManager.TimeManager.GetTimestamp(timeDifference - sender.RemoteTimeTicksDifference);
                     idRegistrationTimestamp.Add(id, InternalIdBindUtcTime);
@@ -412,13 +412,13 @@ namespace Simulator.Network.Core.Messaging
         }
 
         /// <inheritdoc/>
-        public void ReceiveMessage(IPeerManager sender, Message message)
+        public void ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
         {
             var command =
-                (IdsRegisterCommandType) message.Content.PopInt(ByteCompression
+                (IdsRegisterCommandType) distributedMessage.Content.PopInt(ByteCompression
                     .RequiredBytes<IdsRegisterCommandType>());
-            var key = message.Content.PopString();
-            var id = message.Content.PopInt(BytesPerId);
+            var key = distributedMessage.Content.PopString();
+            var id = distributedMessage.Content.PopInt(BytesPerId);
             IIdentifiedObject registeredObject;
             int awaitingId;
             switch (command)
@@ -436,7 +436,7 @@ namespace Simulator.Network.Core.Messaging
                         UnbindKeyId(key, id);
                         idRegistrationTimestamp.Remove(id);
                     }
-                    idRegistrationTimestamp.Add(id, message.Timestamp);
+                    idRegistrationTimestamp.Add(id, distributedMessage.Timestamp);
                     TryBindReceiver(key, id);
                     break;
                 case IdsRegisterCommandType.UnbindIdAndKey:
@@ -465,29 +465,29 @@ namespace Simulator.Network.Core.Messaging
         /// <summary>
         /// Pushes to the message identifier bound to address key in the message
         /// </summary>
-        /// <param name="message">Message where identifier will be pushed</param>
+        /// <param name="distributedMessage">Message where identifier will be pushed</param>
         /// <exception cref="ArgumentException">Cannot resolve identifier for this address key</exception>
-        public void PushId(Message message)
+        public void PushId(DistributedMessage distributedMessage)
         {
-            if (string.IsNullOrEmpty(message.AddressKey))
+            if (string.IsNullOrEmpty(distributedMessage.AddressKey))
                 throw new ArgumentException("Cannot send message with empty address key.");
-            var id = ResolveId(message.AddressKey);
+            var id = ResolveId(distributedMessage.AddressKey);
             if (id == null)
                 throw new ArgumentException(
-                    $"Cannot resolve identifier for address key {message.AddressKey}. Check if key is bound to identifier calling this method.");
-            message.Content.PushInt(id.Value, BytesPerId);
+                    $"Cannot resolve identifier for address key {distributedMessage.AddressKey}. Check if key is bound to identifier calling this method.");
+            distributedMessage.Content.PushInt(id.Value, BytesPerId);
         }
 
         /// <inheritdoc/>
-        public void UnicastMessage(IPEndPoint endPoint, Message message)
+        public void UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage)
         {
-            messagesManager.UnicastMessage(endPoint, message);
+            messagesManager.UnicastMessage(endPoint, distributedMessage);
         }
 
         /// <inheritdoc/>
-        public void BroadcastMessage(Message message)
+        public void BroadcastMessage(DistributedMessage distributedMessage)
         {
-            messagesManager.BroadcastMessage(message);
+            messagesManager.BroadcastMessage(distributedMessage);
         }
 
         /// <inheritdoc/>

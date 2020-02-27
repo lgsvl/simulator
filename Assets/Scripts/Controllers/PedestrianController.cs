@@ -541,9 +541,9 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
         return messageContent;
     }
 
-    protected override void ApplySnapshot(Message message)
+    protected override void ApplySnapshot(DistributedMessage distributedMessage)
     {
-        ThisPedState = message.Content.PopEnum<PedestrianState>();
+        ThisPedState = distributedMessage.Content.PopEnum<PedestrianState>();
         //Validate animator, as snapshot can be received before it is initialized
         if (anim != null && anim.isActiveAndEnabled && anim.runtimeAnimatorController!=null)
             SetAnimationControllerParameters();

@@ -119,16 +119,16 @@ namespace Simulator.Network.Core.Components
         }
 
         /// <inheritdoc/>
-        protected override void ApplySnapshot(Message message)
+        protected override void ApplySnapshot(DistributedMessage distributedMessage)
         {
-            if (message.Timestamp <= lastReceivedSnapshotTimestamp)
+            if (distributedMessage.Timestamp <= lastReceivedSnapshotTimestamp)
                 return;
-            lastReceivedSnapshotTimestamp = message.Timestamp;
+            lastReceivedSnapshotTimestamp = distributedMessage.Timestamp;
 
             //Parse incoming snapshot
-            transform.localPosition = message.Content.PopDecompressedPosition();
-            transform.localRotation = message.Content.PopDecompressedRotation();
-            transform.localScale = message.Content.PopUncompressedVector3();
+            transform.localPosition = distributedMessage.Content.PopDecompressedPosition();
+            transform.localRotation = distributedMessage.Content.PopDecompressedRotation();
+            transform.localScale = distributedMessage.Content.PopUncompressedVector3();
         }
     }
 }

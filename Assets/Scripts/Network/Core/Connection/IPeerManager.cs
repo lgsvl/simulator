@@ -38,7 +38,7 @@ namespace Simulator.Network.Core.Connection
         /// <summary>
         /// Send message directly to the peer
         /// </summary>
-        /// <param name="message">Message to be sent</param>
-        void Send(Message message);
+        /// <param name="distributedMessage">Message to be sent</param>
+        void Send(DistributedMessage distributedMessage);
     }
 }

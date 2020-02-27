@@ -10,7 +10,7 @@ namespace Simulator.Network.Core.Messaging
     /// <summary>
     /// Sending message type
     /// </summary>
-    public enum MessageType
+    public enum DistributedMessageType
     {
         /// <summary>
         /// Reliable. Packets won't be dropped, won't be duplicated, can arrive without order.

@@ -166,15 +166,15 @@ namespace Simulator.Network.Core.Components
         }
 
         /// <inheritdoc/>
-        public void UnicastMessage(IPEndPoint endPoint, Message message)
+        public void UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage)
         {
-            MessagesManager.UnicastMessage(endPoint, message);
+            MessagesManager.UnicastMessage(endPoint, distributedMessage);
         }
 
         /// <inheritdoc/>
-        public void BroadcastMessage(Message message)
+        public void BroadcastMessage(DistributedMessage distributedMessage)
         {
-            MessagesManager.BroadcastMessage(message);
+            MessagesManager.BroadcastMessage(distributedMessage);
         }
 
         /// <inheritdoc/>
@@ -188,7 +188,7 @@ namespace Simulator.Network.Core.Components
                 var bytesStack = GetInstantiationMessage(instantiatedObject.PrefabId, HierarchyUtilities.GetRelativePath(
                     transform,
                     instantiatedObject.DistributedObject.transform), instantiatedObject.DistributedObject.name);
-                UnicastMessage(endPoint, new Message(Key, bytesStack, MessageType.ReliableUnordered));
+                UnicastMessage(endPoint, new DistributedMessage(Key, bytesStack, DistributedMessageType.ReliableUnordered));
                 instantiatedObject.DistributedObject.UnicastInitialMessages(endPoint);
             }
         }
@@ -244,8 +244,8 @@ namespace Simulator.Network.Core.Components
         public DistributedObject InstantiatePrefabAndBroadcast(int prefabId, string relativePath)
         {
             var distributedObject = InstantiatePrefab(prefabId, relativePath);
-            BroadcastMessage(new Message(Key, GetInstantiationMessage(prefabId, relativePath, distributedObject.name),
-                MessageType.ReliableUnordered));
+            BroadcastMessage(new DistributedMessage(Key, GetInstantiationMessage(prefabId, relativePath, distributedObject.name),
+                DistributedMessageType.ReliableUnordered));
             return distributedObject;
         }
 
@@ -265,25 +265,25 @@ namespace Simulator.Network.Core.Components
             foreach (var endPoint in endPoints)
             {
                 distributedObject.AddEndPointToSelectiveDistribution(endPoint);
-                UnicastMessage(endPoint, new Message(Key,
+                UnicastMessage(endPoint, new DistributedMessage(Key,
                     GetInstantiationMessage(prefabId, relativePath, distributedObject.name),
-                    MessageType.ReliableUnordered));
+                    DistributedMessageType.ReliableUnordered));
             }
 
             return distributedObject;
         }
 
         /// <inheritdoc/>
-        public void ReceiveMessage(IPeerManager sender, Message message)
+        public void ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
         {
-            var commandType = (DistributedRootCommandType) message.Content.PopInt(
+            var commandType = (DistributedRootCommandType) distributedMessage.Content.PopInt(
                 ByteCompression.RequiredBytes<DistributedRootCommandType>());
             switch (commandType)
             {
                 case DistributedRootCommandType.InstantiateDistributedObject:
-                    InstantiatePrefab(message.Content.PopInt(),
-                        message.Content.PopString(),
-                        message.Content.PopString());
+                    InstantiatePrefab(distributedMessage.Content.PopInt(),
+                        distributedMessage.Content.PopString(),
+                        distributedMessage.Content.PopString());
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

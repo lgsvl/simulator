@@ -62,7 +62,7 @@ namespace Simulator.Network.Core.Connection
         public event Action<IPeerManager> PeerDisconnected;
         
         /// <inheritdoc/>
-        public event Action<IPeerManager, Message> MessageReceived;
+        public event Action<IPeerManager, DistributedMessage> MessageReceived;
         
         /// <summary>
         /// Event invoked when the latency changes
@@ -99,16 +99,16 @@ namespace Simulator.Network.Core.Connection
         }
 
         /// <inheritdoc/>
-        public void Unicast(IPEndPoint endPoint, Message message)
+        public void Unicast(IPEndPoint endPoint, DistributedMessage distributedMessage)
         {
             if (Equals(masterPeer.PeerEndPoint, endPoint))
-                masterPeer.Send(message);
+                masterPeer.Send(distributedMessage);
         }
 
         /// <inheritdoc/>
-        public void Broadcast(Message message)
+        public void Broadcast(DistributedMessage distributedMessage)
         {
-            masterPeer?.Send(message);
+            masterPeer?.Send(distributedMessage);
         }
 
         /// <inheritdoc/>
@@ -147,7 +147,7 @@ namespace Simulator.Network.Core.Connection
         {
             if (MessageReceived == null)
                 return;
-            var message = new Message(new BytesStack(reader.GetRemainingBytes(), false));
+            var message = new DistributedMessage(new BytesStack(reader.GetRemainingBytes(), false));
             message.Type = LiteNetLibPeerManager.GetDeliveryMethod(deliveryMethod);
             MessageReceived?.Invoke(masterPeer, message);
         }

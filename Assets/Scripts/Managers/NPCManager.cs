@@ -142,8 +142,8 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         if (Loader.Instance.Network.IsMaster)
         {
             var index = CurrentPooledNPCs.IndexOf(obj);
-            BroadcastMessage(new Message(Key, GetDespawnMessage(index),
-                MessageType.ReliableUnordered));
+            BroadcastMessage(new DistributedMessage(Key, GetDespawnMessage(index),
+                DistributedMessageType.ReliableUnordered));
         }
 
         obj.StopNPCCoroutines();
@@ -252,10 +252,10 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             //Add required components for cluster simulation
             ClusterSimulationUtilities.AddDistributedComponents(go);
             if (Loader.Instance.Network.IsMaster)
-                BroadcastMessage(new Message(Key,
+                BroadcastMessage(new DistributedMessage(Key,
                     GetSpawnMessage(genId, npcData, npcControllerSeed, color, go.transform.position,
                         go.transform.rotation),
-                    MessageType.ReliableUnordered));
+                    DistributedMessageType.ReliableUnordered));
         }
     }
 
@@ -266,8 +266,8 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             if (Loader.Instance.Network.IsMaster)
             {
                 var index = CurrentPooledNPCs.IndexOf(CurrentPooledNPCs[i]);
-                BroadcastMessage(new Message(Key, GetDespawnMessage(index),
-                    MessageType.ReliableUnordered));
+                BroadcastMessage(new DistributedMessage(Key, GetDespawnMessage(index),
+                    DistributedMessageType.ReliableUnordered));
             }
 
             Destroy(CurrentPooledNPCs[i]);
@@ -547,18 +547,18 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         return bytesStack;
     }
 
-    public void ReceiveMessage(IPeerManager sender, Message message)
+    public void ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
     {
-        var commandType = message.Content.PopEnum<NPCManagerCommandType>();
+        var commandType = distributedMessage.Content.PopEnum<NPCManagerCommandType>();
         switch (commandType)
         {
             case NPCManagerCommandType.SpawnNPC:
-                SpawnNPCMock(message.Content.PopString(), NPCVehicles[message.Content.PopInt(2)],
-                    message.Content.PopInt(), message.Content.PopDecompressedColor(1),
-                    message.Content.PopDecompressedPosition(), message.Content.PopDecompressedRotation());
+                SpawnNPCMock(distributedMessage.Content.PopString(), NPCVehicles[distributedMessage.Content.PopInt(2)],
+                    distributedMessage.Content.PopInt(), distributedMessage.Content.PopDecompressedColor(1),
+                    distributedMessage.Content.PopDecompressedPosition(), distributedMessage.Content.PopDecompressedRotation());
                 break;
             case NPCManagerCommandType.DespawnNPC:
-                var npcId = message.Content.PopInt(2);
+                var npcId = distributedMessage.Content.PopInt(2);
                 //TODO Preserve despawn command if it arrives before spawn command
                 if (npcId >= 0 && npcId < CurrentPooledNPCs.Count)
                     Destroy(CurrentPooledNPCs[npcId].gameObject);
@@ -566,14 +566,14 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         }
     }
 
-    public void UnicastMessage(IPEndPoint endPoint, Message message)
+    public void UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage)
     {
-        Loader.Instance.Network.MessagesManager?.UnicastMessage(endPoint, message);
+        Loader.Instance.Network.MessagesManager?.UnicastMessage(endPoint, distributedMessage);
     }
 
-    public void BroadcastMessage(Message message)
+    public void BroadcastMessage(DistributedMessage distributedMessage)
     {
-        Loader.Instance.Network.MessagesManager?.BroadcastMessage(message);
+        Loader.Instance.Network.MessagesManager?.BroadcastMessage(distributedMessage);
     }
 
     void IMessageSender.UnicastInitialMessages(IPEndPoint endPoint)

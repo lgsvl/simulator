@@ -284,15 +284,15 @@ namespace Simulator.Network.Master
         }
 
         /// <inheritdoc/>
-        public void UnicastMessage(IPEndPoint endPoint, Message message)
+        public void UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage)
         {
-            MessagesManager.UnicastMessage(endPoint, message);
+            MessagesManager.UnicastMessage(endPoint, distributedMessage);
         }
 
         /// <inheritdoc/>
-        public void BroadcastMessage(Message message)
+        public void BroadcastMessage(DistributedMessage distributedMessage)
         {
-            MessagesManager.BroadcastMessage(message);
+            MessagesManager.BroadcastMessage(distributedMessage);
         }
 
         /// <inheritdoc/>
@@ -301,9 +301,9 @@ namespace Simulator.Network.Master
         }
 
         /// <inheritdoc/>
-        public void ReceiveMessage(IPeerManager sender, Message message)
+        public void ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
         {
-            PacketsProcessor.ReadAllPackets(new NetDataReader(message.Content.GetDataCopy()), sender);
+            PacketsProcessor.ReadAllPackets(new NetDataReader(distributedMessage.Content.GetDataCopy()), sender);
         }
 
         /// <summary>
@@ -361,9 +361,9 @@ namespace Simulator.Network.Master
 
                 foreach (var c in Clients)
                 {
-                    UnicastMessage(c.Peer.PeerEndPoint, new Message(Key,
+                    UnicastMessage(c.Peer.PeerEndPoint, new DistributedMessage(Key,
                         new BytesStack(PacketsProcessor.Write(load), false),
-                        MessageType.ReliableOrdered));
+                        DistributedMessageType.ReliableOrdered));
                     c.State = SimulationState.Loading;
                 }
 
@@ -417,9 +417,9 @@ namespace Simulator.Network.Master
                 var run = new Commands.Run();
                 foreach (var c in Clients)
                 {
-                    UnicastMessage(c.Peer.PeerEndPoint, new Message(Key,
+                    UnicastMessage(c.Peer.PeerEndPoint, new DistributedMessage(Key,
                         new BytesStack(PacketsProcessor.Write(run), false),
-                        MessageType.ReliableOrdered));
+                        DistributedMessageType.ReliableOrdered));
                     c.State = SimulationState.Running;
                 }
 
@@ -451,8 +451,8 @@ namespace Simulator.Network.Master
         /// </summary>
         public void BroadcastSimulationStop()
         {
-            BroadcastMessage(new Message(Key, new BytesStack(PacketsProcessor.Write(new Commands.Stop()), false),
-                MessageType.ReliableOrdered));
+            BroadcastMessage(new DistributedMessage(Key, new BytesStack(PacketsProcessor.Write(new Commands.Stop()), false),
+                DistributedMessageType.ReliableOrdered));
             ThreadingUtilities.DispatchToMainThread(RevertChangesInSimulator);
         }
 

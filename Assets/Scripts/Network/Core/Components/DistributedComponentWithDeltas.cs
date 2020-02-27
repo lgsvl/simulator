@@ -21,8 +21,8 @@ namespace Simulator.Network.Core.Components
         {
             var snapshot = GetSnapshot();
             snapshot.PushEnum<ComponentMessageType>((int) ComponentMessageType.Snapshot);
-            BroadcastMessage(new Message(Key, snapshot,
-                reliableSnapshot ? MessageType.ReliableUnordered : MessageType.Unreliable));
+            BroadcastMessage(new DistributedMessage(Key, snapshot,
+                reliableSnapshot ? DistributedMessageType.ReliableUnordered : DistributedMessageType.Unreliable));
         }
 
         /// <inheritdoc/>
@@ -30,8 +30,8 @@ namespace Simulator.Network.Core.Components
         {
             var snapshot = GetSnapshot();
             snapshot.PushEnum<ComponentMessageType>((int) ComponentMessageType.Snapshot);
-            UnicastMessage(endPoint, new Message(Key, snapshot,
-                reliableSnapshot ? MessageType.ReliableUnordered : MessageType.Unreliable));
+            UnicastMessage(endPoint, new DistributedMessage(Key, snapshot,
+                reliableSnapshot ? DistributedMessageType.ReliableUnordered : DistributedMessageType.Unreliable));
         }
 
         /// <summary>
@@ -39,27 +39,27 @@ namespace Simulator.Network.Core.Components
         /// </summary>
         /// <param name="deltaMessage">Delta message to send</param>
         /// <param name="deltaType">Delta message type</param>
-        protected void SendDelta(BytesStack deltaMessage, MessageType deltaType = MessageType.ReliableOrdered)
+        protected void SendDelta(BytesStack deltaMessage, DistributedMessageType deltaType = DistributedMessageType.ReliableOrdered)
         {
             deltaMessage.PushEnum<ComponentMessageType>((int) ComponentMessageType.Delta);
-            BroadcastMessage(new Message(Key, deltaMessage, deltaType));
+            BroadcastMessage(new DistributedMessage(Key, deltaMessage, deltaType));
         }
         
         /// <inheritdoc/>
-        protected override void ParseMessage(Message message)
+        protected override void ParseMessage(DistributedMessage distributedMessage)
         {
-            var messageType = message.Content.PopEnum<ComponentMessageType>();
+            var messageType = distributedMessage.Content.PopEnum<ComponentMessageType>();
             if (messageType == ComponentMessageType.Snapshot)
-                ApplySnapshot(message);
+                ApplySnapshot(distributedMessage);
             else if (messageType == ComponentMessageType.Delta)
-                ApplyDelta(message);
+                ApplyDelta(distributedMessage);
                 
         }
         
         /// <summary>
         /// Parsing received delta
         /// </summary>
-        /// <param name="message">Received delta in a message</param>
-        protected abstract void ApplyDelta(Message message);
+        /// <param name="distributedMessage">Received delta in a message</param>
+        protected abstract void ApplyDelta(DistributedMessage distributedMessage);
     }
 }

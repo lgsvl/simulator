@@ -132,17 +132,17 @@ namespace Simulator.Network.Core.Components
         }
 
         /// <inheritdoc/>
-        public void UnicastMessage(IPEndPoint endPoint, Message message)
+        public void UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage)
         {
             if (IsInitialized)
-                ParentObject.UnicastMessage(endPoint, message);
+                ParentObject.UnicastMessage(endPoint, distributedMessage);
         }
 
         /// <inheritdoc/>
-        public void BroadcastMessage(Message message)
+        public void BroadcastMessage(DistributedMessage distributedMessage)
         {
             if (IsInitialized)
-                ParentObject.BroadcastMessage(message);
+                ParentObject.BroadcastMessage(distributedMessage);
         }
 
         /// <inheritdoc/>
@@ -164,8 +164,8 @@ namespace Simulator.Network.Core.Components
         /// <param name="reliableSnapshot">Should the snapshot be reliable</param>
         public virtual void BroadcastSnapshot(bool reliableSnapshot = false)
         {
-            BroadcastMessage(new Message(Key, GetSnapshot(),
-                reliableSnapshot ? MessageType.ReliableUnordered : MessageType.Unreliable));
+            BroadcastMessage(new DistributedMessage(Key, GetSnapshot(),
+                reliableSnapshot ? DistributedMessageType.ReliableUnordered : DistributedMessageType.Unreliable));
         }
 
         /// <summary>
@@ -175,30 +175,30 @@ namespace Simulator.Network.Core.Components
         /// <param name="reliableSnapshot">Should the snapshot be reliable</param>
         protected virtual void UnicastSnapshot(IPEndPoint endPoint, bool reliableSnapshot = false)
         {
-            UnicastMessage(endPoint, new Message(Key, GetSnapshot(),
-                reliableSnapshot ? MessageType.ReliableUnordered : MessageType.Unreliable));
+            UnicastMessage(endPoint, new DistributedMessage(Key, GetSnapshot(),
+                reliableSnapshot ? DistributedMessageType.ReliableUnordered : DistributedMessageType.Unreliable));
         }
 
         /// <inheritdoc/>
-        public void ReceiveMessage(IPeerManager sender, Message message)
+        public void ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
         {
             if (!ParentObject.IsAuthoritative)
-                ParseMessage(message);
+                ParseMessage(distributedMessage);
         }
 
         /// <summary>
         /// Parses the received message and calls proper abstract method
         /// </summary>
-        /// <param name="message">Received snapshot in the message</param>
-        protected virtual void ParseMessage(Message message)
+        /// <param name="distributedMessage">Received snapshot in the message</param>
+        protected virtual void ParseMessage(DistributedMessage distributedMessage)
         {
-            ApplySnapshot(message);
+            ApplySnapshot(distributedMessage);
         }
 
         /// <summary>
         /// Parsing received snapshot
         /// </summary>
-        /// <param name="message">Received snapshot in the message</param>
-        protected abstract void ApplySnapshot(Message message);
+        /// <param name="distributedMessage">Received snapshot in the message</param>
+        protected abstract void ApplySnapshot(DistributedMessage distributedMessage);
     }
 }

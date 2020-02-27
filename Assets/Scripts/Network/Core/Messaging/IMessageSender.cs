@@ -20,14 +20,14 @@ namespace Simulator.Network.Core.Messaging
         /// Unicast message to connected peer within given address
         /// </summary>
         /// <param name="endPoint">End point of the target peer</param>
-        /// <param name="message">Message to be sent</param>
-        void UnicastMessage(IPEndPoint endPoint, Message message);
+        /// <param name="distributedMessage">Message to be sent</param>
+        void UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage);
 
         /// <summary>
         /// Broadcast message to all connected peers
         /// </summary>
-        /// <param name="message">Message to be sent</param>
-        void BroadcastMessage(Message message);
+        /// <param name="distributedMessage">Message to be sent</param>
+        void BroadcastMessage(DistributedMessage distributedMessage);
 
         /// <summary>
         /// Get initial messages that have to be sent to new peers

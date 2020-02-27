@@ -120,25 +120,25 @@ public class SimulatorTimeManager : IMessageReceiver, IMessageSender
         if (instance == null || !network.IsMaster) return;
         var content = new BytesStack();
         content.PushFloat(Time.timeScale);
-        instance.BroadcastMessage(new Message(instance.Key, content, MessageType.ReliableOrdered));
+        instance.BroadcastMessage(new DistributedMessage(instance.Key, content, DistributedMessageType.ReliableOrdered));
     }
     
     /// <inheritdoc/>
-    public void ReceiveMessage(IPeerManager sender, Message message)
+    public void ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
     {
-        SetUnityTimeScale(message.Content.PopFloat());
+        SetUnityTimeScale(distributedMessage.Content.PopFloat());
     }
 
     /// <inheritdoc/>
-    public void UnicastMessage(IPEndPoint endPoint, Message message)
+    public void UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage)
     {
-        messagesManager?.UnicastMessage(endPoint, message);
+        messagesManager?.UnicastMessage(endPoint, distributedMessage);
     }
 
     /// <inheritdoc/>
-    public void BroadcastMessage(Message message)
+    public void BroadcastMessage(DistributedMessage distributedMessage)
     {
-        messagesManager?.BroadcastMessage(message);
+        messagesManager?.BroadcastMessage(distributedMessage);
     }
 
     /// <inheritdoc/>
@@ -146,6 +146,6 @@ public class SimulatorTimeManager : IMessageReceiver, IMessageSender
     {
         var content = new BytesStack();
         content.PushFloat(Time.timeScale);
-        UnicastMessage(endPoint, new Message(Key, content, MessageType.ReliableOrdered));
+        UnicastMessage(endPoint, new DistributedMessage(Key, content, DistributedMessageType.ReliableOrdered));
     }
 }

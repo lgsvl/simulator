@@ -159,7 +159,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
                 state.TimeOfDay = currentTimeOfDay;
 
                 var message = new BytesStack(masterManager.PacketsProcessor.Write(state), false);
-                masterManager.BroadcastMessage(new Message(masterManager.Key, message, MessageType.ReliableUnordered));
+                masterManager.BroadcastMessage(new DistributedMessage(masterManager.Key, message, DistributedMessageType.ReliableUnordered));
             }
         }
     }

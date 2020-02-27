@@ -1713,7 +1713,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
             var content = new BytesStack();
             content.PushInt(state);
             content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.SetLights);
-            var message = new Message(key, content, MessageType.ReliableOrdered);
+            var message = new DistributedMessage(key, content, DistributedMessageType.ReliableOrdered);
             BroadcastMessage(message);
         }
     }
@@ -1868,7 +1868,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
             var content = new BytesStack();
             content.PushBool(state);
             content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.SetBrakeLights);
-            var message = new Message(key, content, MessageType.ReliableOrdered);
+            var message = new DistributedMessage(key, content, DistributedMessageType.ReliableOrdered);
             BroadcastMessage(message);
         }
     }
@@ -1902,7 +1902,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
             content.PushBool(isLeftTurn);
             content.PushBool(true);
             content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.SetNPCTurnSignal);
-            var message = new Message(key, content, MessageType.ReliableOrdered);
+            var message = new DistributedMessage(key, content, DistributedMessageType.ReliableOrdered);
             BroadcastMessage(message);
         }
     }
@@ -1926,7 +1926,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
             var content = new BytesStack();
             content.PushBool(state);
             content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.SetNPCHazards);
-            var message = new Message(key, content, MessageType.ReliableOrdered);
+            var message = new DistributedMessage(key, content, DistributedMessageType.ReliableOrdered);
             BroadcastMessage(message);
         }
     }
@@ -2008,7 +2008,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
             var content = new BytesStack();
             content.PushBool(state);
             content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.SetIndicatorReverse);
-            var message = new Message(key, content, MessageType.ReliableOrdered);
+            var message = new DistributedMessage(key, content, DistributedMessageType.ReliableOrdered);
             BroadcastMessage(message);
         }
     }
@@ -2030,7 +2030,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         {
             var content = new BytesStack();
             content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.ResetLights);
-            var message = new Message(key, content, MessageType.ReliableOrdered);
+            var message = new DistributedMessage(key, content, DistributedMessageType.ReliableOrdered);
             BroadcastMessage(message);
         }
     }
@@ -2361,25 +2361,25 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
     }
     
     /// <inheritdoc/>
-    public void ReceiveMessage(IPeerManager sender, Message message)
+    public void ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
     {
-        var methodName = message.Content.PopEnum<NPCControllerMethodName>();
+        var methodName = distributedMessage.Content.PopEnum<NPCControllerMethodName>();
         switch (methodName)
         {
             case NPCControllerMethodName.SetLights:
-                SetLights(message.Content.PopInt());
+                SetLights(distributedMessage.Content.PopInt());
                 break;
             case NPCControllerMethodName.SetBrakeLights:
-                SetBrakeLights(message.Content.PopBool());
+                SetBrakeLights(distributedMessage.Content.PopBool());
                 break;
             case NPCControllerMethodName.SetNPCTurnSignal:
-                SetNPCTurnSignal(message.Content.PopBool(), message.Content.PopBool(), message.Content.PopBool());
+                SetNPCTurnSignal(distributedMessage.Content.PopBool(), distributedMessage.Content.PopBool(), distributedMessage.Content.PopBool());
                 break;
             case NPCControllerMethodName.SetNPCHazards:
-                SetNPCHazards(message.Content.PopBool());
+                SetNPCHazards(distributedMessage.Content.PopBool());
                 break;
             case NPCControllerMethodName.SetIndicatorReverse:
-                SetIndicatorReverse(message.Content.PopBool());
+                SetIndicatorReverse(distributedMessage.Content.PopBool());
                 break;
             case NPCControllerMethodName.ResetLights:
                 ResetLights();
@@ -2390,17 +2390,17 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
     }
 
     /// <inheritdoc/>
-    public void UnicastMessage(IPEndPoint endPoint, Message message)
+    public void UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage)
     {
         if (!string.IsNullOrEmpty(key))
-            messagesManager?.UnicastMessage(endPoint, message);
+            messagesManager?.UnicastMessage(endPoint, distributedMessage);
     }
 
     /// <inheritdoc/>
-    public void BroadcastMessage(Message message)
+    public void BroadcastMessage(DistributedMessage distributedMessage)
     {
         if (!string.IsNullOrEmpty(key))
-            messagesManager?.BroadcastMessage(message);
+            messagesManager?.BroadcastMessage(distributedMessage);
     }
 
     /// <inheritdoc/>

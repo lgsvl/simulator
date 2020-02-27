@@ -187,9 +187,9 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
             //Add required components for cluster simulation
             ClusterSimulationUtilities.AddDistributedComponents(ped);
             if (Loader.Instance.Network.IsMaster)
-                BroadcastMessage(new Message(Key,
+                BroadcastMessage(new DistributedMessage(Key,
                     GetSpawnMessage(pedController.GUID, modelIndex, ped.transform.position, ped.transform.rotation),
-                    MessageType.ReliableUnordered));
+                    DistributedMessageType.ReliableUnordered));
         }
 
         return ped;
@@ -353,20 +353,20 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         return bytesStack;
     }
 
-    public void ReceiveMessage(IPeerManager sender, Message message)
+    public void ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
     {
-        var commandType = message.Content.PopEnum<PedestrianManagerCommandType>();
+        var commandType = distributedMessage.Content.PopEnum<PedestrianManagerCommandType>();
         switch (commandType)
         {
             case PedestrianManagerCommandType.SpawnPedestrian:
-                var pedestrianGUID = message.Content.PopString();
-                var modelIndex = message.Content.PopInt(2);
+                var pedestrianGUID = distributedMessage.Content.PopString();
+                var modelIndex = distributedMessage.Content.PopInt(2);
                 SpawnPedestrianMock(pedestrianGUID, modelIndex, 
-                    message.Content.PopDecompressedPosition(),
-                    message.Content.PopDecompressedRotation());
+                    distributedMessage.Content.PopDecompressedPosition(),
+                    distributedMessage.Content.PopDecompressedRotation());
                 break;
             case PedestrianManagerCommandType.DespawnPedestrian:
-                var pedestrianId = message.Content.PopInt(2);
+                var pedestrianId = distributedMessage.Content.PopInt(2);
                 //TODO Preserve despawn command if it arrives before spawn command
                 if (pedestrianId >= 0 && pedestrianId < currentPedPool.Count)
                     Destroy(currentPedPool[pedestrianId].gameObject);
@@ -374,14 +374,14 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         }
     }
 
-    public void UnicastMessage(IPEndPoint endPoint, Message message)
+    public void UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage)
     {
-        Loader.Instance.Network.MessagesManager?.UnicastMessage(endPoint, message);
+        Loader.Instance.Network.MessagesManager?.UnicastMessage(endPoint, distributedMessage);
     }
 
-    public void BroadcastMessage(Message message)
+    public void BroadcastMessage(DistributedMessage distributedMessage)
     {
-        Loader.Instance.Network.MessagesManager?.BroadcastMessage(message);
+        Loader.Instance.Network.MessagesManager?.BroadcastMessage(distributedMessage);
     }
 
     void IMessageSender.UnicastInitialMessages(IPEndPoint endPoint)

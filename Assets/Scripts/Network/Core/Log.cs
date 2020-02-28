@@ -17,7 +17,7 @@ namespace Simulator.Network.Core
         /// <summary>
         /// Are infos enabled for logging system
         /// </summary>
-        public static bool InfosEnabled = true;
+        public static bool InfosEnabled = false;
         
         /// <summary>
         /// Are warnings enabled for logging system

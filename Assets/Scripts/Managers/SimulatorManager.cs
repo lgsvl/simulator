@@ -13,6 +13,9 @@ using Simulator;
 using Simulator.Api;
 using Simulator.Controllable;
 using Simulator.Network;
+using Simulator.Network.Core.Messaging.Data;
+
+using UnityEngine.SceneManagement;
 
 public class SimulatorManager : MonoBehaviour
 {
@@ -139,6 +142,10 @@ public class SimulatorManager : MonoBehaviour
 
         var masterSeed = seed ?? config?.Seed ?? new System.Random().Next();
         System.Random rand = new System.Random(masterSeed);
+        
+        //Calculate map bounds and limit position compression
+        if (Loader.Instance!=null && Loader.Instance.Network.IsClusterSimulation)
+            ByteCompression.SetPositionBounds(CalculateMapBounds());
 
         ManagerHolder = new GameObject("ManagerHolder");
         ManagerHolder.transform.SetParent(transform);
@@ -219,6 +226,22 @@ public class SimulatorManager : MonoBehaviour
         WireframeBoxes = gameObject.AddComponent<WireframeBoxes>();
         if (Loader.Instance != null) TimeManager.Initialize(Loader.Instance.Network.MessagesManager);
         IsInitialized = true;
+    }
+
+    private Bounds CalculateMapBounds()
+    {
+        var gameObjectsOnScene = SceneManager.GetActiveScene().GetRootGameObjects();
+        var b = new Bounds(Vector3.zero, Vector3.zero);
+        for (var i = 0; i < gameObjectsOnScene.Length; i++)
+        {
+            var gameObjectOnScene = gameObjectsOnScene[i];
+            foreach (Renderer r in gameObjectOnScene.GetComponentsInChildren<Renderer>())
+            {
+                b.Encapsulate(r.bounds);
+            }
+        }
+
+        return b;
     }
 
     public long GetElapsedTime(double startTime)

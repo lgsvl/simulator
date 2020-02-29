@@ -25,12 +25,12 @@ namespace Simulator.Sensors
         VehicleStateData StateData;
 
         VehicleActions Actions;
-        VehicleDynamics Dynamics;
+        IVehicleDynamics Dynamics;
 
         void Start()
         {
             Actions = GetComponentInParent<VehicleActions>();
-            Dynamics = GetComponentInParent<VehicleDynamics>();
+            Dynamics = GetComponentInParent<IVehicleDynamics>();
             StateData = new VehicleStateData();
         }
 

@@ -6,6 +6,7 @@
  */
 
 using System;
+using System.IO;
 using System.Text;
 using System.Linq;
 using System.Collections.Generic;
@@ -19,8 +20,11 @@ using SimpleJSON;
 using PetaPoco;
 using YamlDotNet.Serialization;
 using ICSharpCode.SharpZipLib.Zip;
+using ICSharpCode.SharpZipLib.Core;
 using Simulator.Network.Core.Components;
 using Simulator.Network.Core.Messaging;
+using System.Reflection;
+using Simulator.FMU;
 
 public class AgentManager : MonoBehaviour
 {
@@ -83,7 +87,7 @@ public class AgentManager : MonoBehaviour
             {
                 //Disable controller and dynamics on clients so it will not interfere mocked components
                 agentController.enabled = false;
-                var vehicleDynamics = agentController.GetComponent<VehicleDynamics>();
+                var vehicleDynamics = agentController.GetComponent<IVehicleDynamics>() as MonoBehaviour;
                 if (vehicleDynamics != null)
                     vehicleDynamics.enabled = false;
             }
@@ -165,7 +169,6 @@ public class AgentManager : MonoBehaviour
 
                                     AssetBundle textureBundle = null;
 
-
                                     if (zip.FindEntry($"{manifest.bundleGuid}_vehicle_textures", true) != -1)
                                     {
                                         var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_textures"));
@@ -190,6 +193,51 @@ public class AgentManager : MonoBehaviour
                                         }
 
                                         textureBundle?.LoadAllAssets();
+
+                                        if (manifest.fmuName != "")
+                                        {
+                                            var fmuDirectory = Path.Combine(Application.persistentDataPath, manifest.assetName);
+                                            if (platform == "windows")
+                                            {
+                                                var dll = zip.GetEntry($"{manifest.fmuName}_windows.dll");
+                                                if (dll == null)
+                                                {
+                                                    throw new ArgumentException($"{manifest.fmuName}.dll not found in Zip");
+                                                }
+
+                                                using (Stream s = zip.GetInputStream(dll))
+                                                {
+                                                    byte[] buffer = new byte[4096];
+                                                    Directory.CreateDirectory(fmuDirectory);
+                                                    var path = Path.Combine(Application.persistentDataPath, manifest.assetName, $"{manifest.fmuName}.dll");
+                                                    using (FileStream streamWriter = File.Create(path))
+                                                    {
+                                                        StreamUtils.Copy(s, streamWriter, buffer);
+                                                    }
+                                                    vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]).GetComponent<VehicleFMU>().FMUData.Path = path;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                var dll = zip.GetEntry($"{manifest.fmuName}_linux.so");
+                                                if (dll == null)
+                                                {
+                                                    throw new ArgumentException($"{manifest.fmuName}.so not found in Zip");
+                                                }
+
+                                                using (Stream s = zip.GetInputStream(dll))
+                                                {
+                                                    byte[] buffer = new byte[4096];
+                                                    Directory.CreateDirectory(fmuDirectory);
+                                                    var path = Path.Combine(Application.persistentDataPath, manifest.assetName, $"{manifest.fmuName}.so");
+                                                    using (FileStream streamWriter = File.Create(path))
+                                                    {
+                                                        StreamUtils.Copy(s, streamWriter, buffer);
+                                                    }
+                                                    vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]).GetComponent<VehicleFMU>().FMUData.Path = path;
+                                                }
+                                            }
+                                        }
 
                                         var prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
                                         var config = new AgentConfig()
@@ -395,5 +443,14 @@ public class AgentManager : MonoBehaviour
 
             positions[current % count] += Vector3.up * bounds.size.y;
         }
+    }
+
+    static byte[] GetFile(ZipFile zip, string entryName)
+    {
+        var entry = zip.GetEntry(entryName);
+        int streamSize = (int)entry.Size;
+        byte[] buffer = new byte[streamSize];
+        zip.GetInputStream(entry).Read(buffer, 0, streamSize);
+        return buffer;
     }
 }

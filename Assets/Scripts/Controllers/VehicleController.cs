@@ -13,7 +13,7 @@ using System.Linq;
 
 public class VehicleController : AgentController
 {
-    private VehicleDynamics dynamics;
+    private IVehicleDynamics dynamics;
     private VehicleActions actions;
     private SensorsController sensorsController;
 
@@ -70,7 +70,7 @@ public class VehicleController : AgentController
     {
         startTime = SimulatorManager.Instance.CurrentTime;
         vehicleName = transform.root.name;
-        dynamics = GetComponent<VehicleDynamics>();
+        dynamics = GetComponent<IVehicleDynamics>();
         actions = GetComponent<VehicleActions>();
         inputs.AddRange(GetComponentsInChildren<IVehicleInputs>());
         initialPosition = transform.position;

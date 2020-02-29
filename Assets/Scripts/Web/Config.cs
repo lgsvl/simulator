@@ -48,6 +48,7 @@ namespace Simulator.Web
         public static List<IBridgeFactory> Bridges;
 
         public static Dictionary<string, IControllable> Controllables;
+        public static Dictionary<string, IntPtr> FMUs = new Dictionary<string, IntPtr>(); // managed by FMU.cs
 
         public static int DefaultPageSize = 100;
 

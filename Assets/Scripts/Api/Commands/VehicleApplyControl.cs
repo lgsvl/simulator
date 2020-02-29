@@ -26,7 +26,7 @@ namespace Simulator.Api.Commands
 
                 var vc = obj.GetComponent<VehicleController>();
                 var va = obj.GetComponent<VehicleActions>();
-                var vd = obj.GetComponent<VehicleDynamics>();
+                var vd = obj.GetComponent<IVehicleDynamics>();
 
                 var steering = control["steering"].AsFloat;
                 var throttle = control["throttle"].AsFloat;
@@ -42,7 +42,7 @@ namespace Simulator.Api.Commands
                     vd.ShiftFirstGear();
 
                 var handbrake = args["control"]["handbrake"].AsBool;
-                vd.HandBrake = handbrake;
+                vd.SetHandBrake(handbrake);
 
                 if (args["control"]["headlights"] != null)
                 {

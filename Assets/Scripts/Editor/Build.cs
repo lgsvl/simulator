@@ -22,6 +22,7 @@ using UnityEditor.Compilation;
 using Simulator.Controllable;
 using System.Reflection;
 using System.Text;
+using Simulator.FMU;
 
 namespace Simulator.Editor
 {
@@ -432,6 +433,8 @@ namespace Simulator.Editor
                     throw new Exception($"Build failed: Vehicle info on {name} not found. Please add a VehicleInfo component and rebuild.");
                 }
 
+                var fmu = AssetDatabase.LoadAssetAtPath<GameObject>(prefab).GetComponent<VehicleFMU>();
+
                 var manifest = new Manifest
                 {
                     assetName = name,
@@ -441,6 +444,7 @@ namespace Simulator.Editor
                     licenseName = info.LicenseName,
                     authorName = "",
                     authorUrl = "",
+                    fmuName = fmu == null ? "" : fmu.FMUData.Name,
                 };
 
                 vehicleManifests.Add(manifest);
@@ -580,6 +584,19 @@ namespace Simulator.Editor
 
                             archive.Add(new StaticDiskDataSource(Path.Combine(folder, linuxBuild.assetBundleName)), linuxBuild.assetBundleName, CompressionMethod.Stored, true);
                             archive.Add(new StaticDiskDataSource(Path.Combine(folder, windowsBuild.assetBundleName)), windowsBuild.assetBundleName, CompressionMethod.Stored, true);
+                            if (manifest.fmuName != "")
+                            {
+                                var fmuPathWindows = Path.Combine("Assets", "External", "Vehicles", manifest.assetName, manifest.fmuName, "binaries", "win64", $"{manifest.fmuName}.dll");
+                                var fmuPathLinux = Path.Combine("Assets", "External", "Vehicles", manifest.assetName, manifest.fmuName, "binaries", "linux64", $"{manifest.fmuName}.so");
+                                if (File.Exists(fmuPathWindows))
+                                {
+                                    archive.Add(new StaticDiskDataSource(fmuPathWindows), $"{manifest.fmuName}_windows.dll", CompressionMethod.Stored, true);
+                                }
+                                if (File.Exists(fmuPathLinux))
+                                {
+                                    archive.Add(new StaticDiskDataSource(fmuPathLinux), $"{manifest.fmuName}_linux.so", CompressionMethod.Stored, true);
+                                }
+                            }
                             archive.Add(new StaticDiskDataSource(Path.Combine(folder, "manifest")), "manifest", CompressionMethod.Stored, true);
                             archive.CommitUpdate();
                             archive.Close();

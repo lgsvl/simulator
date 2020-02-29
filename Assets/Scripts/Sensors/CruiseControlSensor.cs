@@ -20,7 +20,7 @@ namespace Simulator.Sensors
         [Range(0.0f, 200f)]
         public float CruiseSpeed = 0f;
 
-        private VehicleDynamics dynamics;
+        private IVehicleDynamics dynamics;
         private VehicleController controller;
 
         public float SteerInput { get; private set; } = 0f;
@@ -29,7 +29,7 @@ namespace Simulator.Sensors
 
         private void Start()
         {
-            dynamics = GetComponentInParent<VehicleDynamics>();
+            dynamics = GetComponentInParent<IVehicleDynamics>();
             controller = GetComponentInParent<VehicleController>();
         }
 
@@ -38,7 +38,9 @@ namespace Simulator.Sensors
             Debug.Assert(dynamics != null);
 
             if (controller.AccelInput >= 0)
-                AccelInput = dynamics.CurrentSpeed < CruiseSpeed ? 1f : 0f;
+            {
+                AccelInput = dynamics.RB.velocity.magnitude < CruiseSpeed ? 1f : 0f;
+            }
         }
         
         public override void OnBridgeSetup(IBridge bridge)
@@ -55,10 +57,9 @@ namespace Simulator.Sensors
                 {"Cruise Speed", CruiseSpeed},
                 {"Steer Input", SteerInput},
                 {"Accel Input", AccelInput},
-                {"Speed", dynamics.CurrentSpeed},
-                {"Speed Measured", dynamics.CurrentSpeedMeasured},
+                {"Speed", dynamics.RB.velocity.magnitude},
                 {"Hand Brake", dynamics.HandBrake},
-                {"Ignition", dynamics.IgnitionStatus},
+                {"Ignition", dynamics.CurrentIgnitionStatus},
                 {"Reverse", dynamics.Reverse},
                 {"Gear", dynamics.CurrentGear},
                 {"RPM", dynamics.CurrentRPM},

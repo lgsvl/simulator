@@ -74,6 +74,7 @@ nav:
   - 'NPC Map Navigation': 'npc-map-navigation.md'
   - 'Sensor Plugins': 'sensor-plugins.md'
   - 'Controllable Plugins': 'controllable-plugins.md'
+  - 'Dynamics': 'ego-vehicle-dynamics.md'
 - 'Support':
   - 'FAQ': 'faq.md'
   - 'Contributing': 'contributing.md'

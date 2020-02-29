@@ -46,13 +46,13 @@ namespace Simulator.Sensors
         IWriter<GpsOdometryData> Writer;
 
         Rigidbody RigidBody;
-        VehicleDynamics Dynamics;
+        IVehicleDynamics Dynamics;
         MapOrigin MapOrigin;
 
         private void Awake()
         {
             RigidBody = GetComponentInParent<Rigidbody>();
-            Dynamics = GetComponentInParent<VehicleDynamics>();
+            Dynamics = GetComponentInParent<IVehicleDynamics>();
             MapOrigin = MapOrigin.Find();
         }
 
@@ -152,7 +152,7 @@ namespace Simulator.Sensors
                 ForwardSpeed = Vector3.Dot(RigidBody.velocity, transform.forward),
                 Velocity = RigidBody.velocity,
                 AngularVelocity = RigidBody.angularVelocity,
-                WheelAngle = (Dynamics.axles[0].left.steerAngle + Dynamics.axles[0].right.steerAngle) * 0.5f,
+                WheelAngle = Dynamics.WheelAngle,
             };
             
             lock (MessageQueue)

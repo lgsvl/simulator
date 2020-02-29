@@ -18,7 +18,7 @@ namespace Simulator.Sensors
     public class ManualControlSensor : SensorBase, IVehicleInputs
     {
         private SimulatorControls controls;
-        private VehicleDynamics dynamics;
+        private IVehicleDynamics dynamics;
         private VehicleActions actions;
 
         public float SteerInput { get; private set; } = 0f;
@@ -33,7 +33,7 @@ namespace Simulator.Sensors
         {
             AgentController = GetComponentInParent<AgentController>();
 
-            dynamics = GetComponentInParent<VehicleDynamics>();
+            dynamics = GetComponentInParent<IVehicleDynamics>();
             actions = GetComponentInParent<VehicleActions>();
 
             Debug.Assert(dynamics != null);
@@ -198,10 +198,9 @@ namespace Simulator.Sensors
             {
                 {"Accel", AccelInput},
                 {"Steer", SteerInput},
-                {"Speed", dynamics.CurrentSpeed},
-                {"Speed Measured", dynamics.CurrentSpeedMeasured},
+                {"Speed", dynamics.RB.velocity.magnitude},
                 {"Hand Brake", dynamics.HandBrake},
-                {"Ignition", dynamics.IgnitionStatus},
+                {"Ignition", dynamics.CurrentIgnitionStatus},
                 {"Reverse", dynamics.Reverse},
                 {"Gear", dynamics.CurrentGear},
                 {"RPM", dynamics.CurrentRPM},

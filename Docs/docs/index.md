@@ -61,6 +61,7 @@ Visit our Github here: [https://github.com/lgsvl/simulator](https://github.com/l
 * [NPC Map Navigation](npc-map-navigation.md)
 * [Sensor Plugins](sensor-plugins.md)
 * [Controllable Plugins](controllable-plugins.md)
+* [Dynamics](ego-vehicle-dynamics.md)
 
 ### Support
 

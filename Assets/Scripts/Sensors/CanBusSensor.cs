@@ -29,7 +29,7 @@ namespace Simulator.Sensors
         IWriter<CanBusData> Writer;
 
         Rigidbody RigidBody;
-        VehicleDynamics Dynamics;
+        IVehicleDynamics Dynamics;
         VehicleActions Actions;
         MapOrigin MapOrigin;
 
@@ -39,7 +39,7 @@ namespace Simulator.Sensors
         {
             RigidBody = GetComponentInParent<Rigidbody>();
             Actions = GetComponentInParent<VehicleActions>();
-            Dynamics = GetComponentInParent<VehicleDynamics>();
+            Dynamics = GetComponentInParent<IVehicleDynamics>();
             MapOrigin = MapOrigin.Find();
         }
 
@@ -98,7 +98,7 @@ namespace Simulator.Sensors
                 InReverse = Dynamics.Reverse,
                 Gear = Mathf.RoundToInt(Dynamics.CurrentGear),
 
-                EngineOn = Dynamics.IgnitionStatus == IgnitionStatus.On,
+                EngineOn = Dynamics.CurrentIgnitionStatus == IgnitionStatus.On,
                 EngineRPM = Dynamics.CurrentRPM,
 
                 Latitude = gps.Latitude,

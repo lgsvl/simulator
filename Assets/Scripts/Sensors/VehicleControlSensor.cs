@@ -20,7 +20,7 @@ namespace Simulator.Sensors
     {
         VehicleControlData Data;
         VehicleController Controller;
-        VehicleDynamics Dynamics;
+        IVehicleDynamics Dynamics;
 
         double LastControlUpdate = 0f;
         float ActualLinVel = 0f;
@@ -54,7 +54,7 @@ namespace Simulator.Sensors
         {
             LastControlUpdate = SimulatorManager.Instance.CurrentTime;
             Controller = GetComponentInParent<VehicleController>();
-            Dynamics = GetComponentInParent<VehicleDynamics>();
+            Dynamics = GetComponentInParent<IVehicleDynamics>();
         }
 
         private void Update()

@@ -24,7 +24,7 @@ namespace Simulator.Sensors
         private float brake = 0f;
 
         private SimulatorControls controls;
-        private VehicleDynamics dynamics;
+        private IVehicleDynamics dynamics;
         private VehicleActions actions;
         private AgentController AgentController;
 
@@ -39,7 +39,7 @@ namespace Simulator.Sensors
         {
             AgentController = GetComponentInParent<AgentController>();
 
-            dynamics = GetComponentInParent<VehicleDynamics>();
+            dynamics = GetComponentInParent<IVehicleDynamics>();
             actions = GetComponentInParent<VehicleActions>();
 
             Debug.Assert(dynamics != null);
@@ -225,10 +225,9 @@ namespace Simulator.Sensors
                 {"Accel", accel},
                 {"Steer", steer},
                 {"Brake", brake},
-                {"Speed", dynamics.CurrentSpeed},
-                {"Speed Measured", dynamics.CurrentSpeedMeasured},
+                {"Speed", dynamics.RB.velocity.magnitude},
                 {"Hand Brake", dynamics.HandBrake},
-                {"Ignition", dynamics.IgnitionStatus},
+                {"Ignition", dynamics.CurrentIgnitionStatus},
                 {"Reverse", dynamics.Reverse},
                 {"Gear", dynamics.CurrentGear},
                 {"RPM", dynamics.CurrentRPM},

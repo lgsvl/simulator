@@ -54,7 +54,7 @@ namespace Simulator.Sensors
         [SensorParameter]
         public List<CriteriaState> states;
         private SimulatorControls controls;
-        private VehicleDynamics dynamics;
+        private IVehicleDynamics dynamics;
         private VehicleController controller;
         private VehicleActions actions;
 
@@ -83,13 +83,12 @@ namespace Simulator.Sensors
         private void Start()
         {
             AgentController = GetComponentInParent<AgentController>();
-
-            dynamics = GetComponentInParent<VehicleDynamics>();
+            dynamics = GetComponentInParent<IVehicleDynamics>();
         }
 
         private void Update()
         {
-            var currentSpeed = mphToMps(dynamics.CurrentSpeed);
+            var currentSpeed = dynamics.RB.velocity.magnitude;
 
             if (seq == null)
             {
@@ -316,10 +315,10 @@ namespace Simulator.Sensors
             // TODO new base class?
         }
 
-        private float mphToMps(float mph)
-        {
-            return (float)(mph * 0.44704);
-        }
+        //private float mphToMps(float mph)
+        //{
+        //    return (float)(mph * 0.44704);
+        //}
 
         public override void OnVisualize(Visualizer visualizer)
         {
@@ -337,7 +336,7 @@ namespace Simulator.Sensors
                 {"Stage", stage.ToString()},
                 {"Elapsed Time", ElapsedTime},
                 {"Duration", duration},
-                {"Current Velocity", mphToMps(dynamics.CurrentSpeed)},
+                {"Current Velocity", dynamics.RB.velocity.magnitude},
                 {"Max Velocity", state.max_velocity},
                 {"Min Velocity", state.min_velocity},
                 {"Upper Velocity", upperBound},

@@ -36,7 +36,10 @@ using MasterManager = Simulator.Network.Master.MasterManager;
 
 namespace Simulator
 {
+    using ICSharpCode.SharpZipLib.Core;
     using Network;
+    using Simulator.FMU;
+    using System.Reflection;
 
     public class AgentConfig
     {
@@ -746,6 +749,52 @@ namespace Simulator
                                     throw new Exception($"Unsupported '{agentConfig.Name}' vehicle asset bundle, only 1 asset expected");
                                 }
 
+                                if (manifest.fmuName != "")
+                                {
+                                    var fmuDirectory = Path.Combine(Application.persistentDataPath, manifest.assetName);
+                                    if (platform == "windows")
+                                    {
+                                        var dll = zip.GetEntry($"{manifest.fmuName}_windows.dll");
+                                        if (dll == null)
+                                        {
+                                            throw new ArgumentException($"{manifest.fmuName}.dll not found in Zip");
+                                        }
+
+                                        using (Stream s = zip.GetInputStream(dll))
+                                        {
+                                            byte[] buffer = new byte[4096];
+                                            Directory.CreateDirectory(fmuDirectory);
+                                            var path = Path.Combine(Application.persistentDataPath, manifest.assetName, $"{manifest.fmuName}.dll");
+                                            using (FileStream streamWriter = File.Create(path))
+                                            {
+                                                StreamUtils.Copy(s, streamWriter, buffer);
+                                            }
+                                            vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]).GetComponent<VehicleFMU>().FMUData.Path = path;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        var dll = zip.GetEntry($"{manifest.fmuName}_linux.so");
+                                        if (dll == null)
+                                        {
+                                            throw new ArgumentException($"{manifest.fmuName}.so not found in Zip");
+                                        }
+
+                                        using (Stream s = zip.GetInputStream(dll))
+                                        {
+                                            byte[] buffer = new byte[4096];
+                                            Directory.CreateDirectory(fmuDirectory);
+                                            var path = Path.Combine(Application.persistentDataPath, manifest.assetName, $"{manifest.fmuName}.so");
+                                            using (FileStream streamWriter = File.Create(path))
+                                            {
+                                                StreamUtils.Copy(s, streamWriter, buffer);
+                                            }
+                                            vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]).GetComponent<VehicleFMU>().FMUData.Path = path;
+                                        }
+                                    }
+
+                                }
+
                                 // TODO: make this async
                                 if (!AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
                                 {
@@ -854,6 +903,15 @@ namespace Simulator
                 Instance.Network.Master.ConnectToClients();
             
             return sim;
+        }
+
+        static byte[] GetFile(ZipFile zip, string entryName)
+        {
+            var entry = zip.GetEntry(entryName);
+            int streamSize = (int)entry.Size;
+            byte[] buffer = new byte[streamSize];
+            zip.GetInputStream(entry).Read(buffer, 0, streamSize);
+            return buffer;
         }
     }
 }

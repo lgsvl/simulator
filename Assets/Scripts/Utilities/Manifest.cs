@@ -16,5 +16,6 @@ namespace Simulator
         public string licenseName;
         public string authorName;
         public string authorUrl;
+        public string fmuName;
     }
 }

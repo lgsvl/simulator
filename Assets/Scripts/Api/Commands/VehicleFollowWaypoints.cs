@@ -41,6 +41,7 @@ namespace Simulator.Api.Commands
                 for (int i=0; i< waypoints.Count; i++)
                 {
                     var deactivate = waypoints[i]["deactivate"];
+                    var ts = waypoints[i]["timestamp"];
 
                     wp.Add(new DriveWaypoint()
                     {
@@ -49,7 +50,8 @@ namespace Simulator.Api.Commands
                         Angle = waypoints[i]["angle"].ReadVector3(),
                         Idle = waypoints[i]["idle"].AsFloat,
                         Deactivate = deactivate.IsBoolean ? deactivate.AsBool : false,
-                        TriggerDistance = waypoints[i]["trigger_distance"].AsFloat
+                        TriggerDistance = waypoints[i]["trigger_distance"].AsFloat,
+                        TimeStamp = (ts == null) ? -1 : waypoints[i]["timestamp"].AsFloat
                     }); ;
                 }
 

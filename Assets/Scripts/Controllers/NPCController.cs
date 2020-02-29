@@ -2228,6 +2228,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
         laneIdle = waypoints.Select(wp => wp.Idle).ToList();
         laneDeactivate = waypoints.Select(wp => wp.Deactivate).ToList();
         laneTriggerDistance = waypoints.Select(wp => wp.TriggerDistance).ToList();
+        laneTime = waypoints.Select(wp => wp.TimeStamp).ToList();
 
         ResetData();
 
@@ -2244,7 +2245,10 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
 
         Control = ControlType.Waypoints;
 
-        // Set waypoint time.
+        if (laneTime[0] < 0)
+        {
+        // Set waypoint time base on speed.
+        Debug.LogWarning("Waypoint timestamps absent or invalid, caluclating timestamps based on speed.");
         laneTime = new List<float>();
         laneTime.Add(0);
         for (int i=0; i < laneData.Count-1; i++)
@@ -2253,6 +2257,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
             var dt = dp.magnitude/laneSpeed[i];
 
             laneTime.Add(laneTime.Last()+dt);
+        }
         }
         updatedWaypoints = true;
         isFirstRun = true;

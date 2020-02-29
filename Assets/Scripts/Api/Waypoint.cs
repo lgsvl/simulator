@@ -17,6 +17,7 @@ namespace Simulator.Api
         public float Idle;
         public bool Deactivate;
         public float TriggerDistance;
+        public float TimeStamp;
     }
 
     public struct WalkWaypoint

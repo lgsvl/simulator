@@ -155,9 +155,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
 
     private double wakeUpTime;
     [System.NonSerialized]
-    public int numNPC;
-    [System.NonSerialized]
-    static public Dictionary<int, List<string>> logWaypoint = new Dictionary<int, List<string>>();
+    static public Dictionary<uint, List<string>> logWaypoint = new Dictionary<uint, List<string>>();
     private bool activateNPC = false;
 
     // State kept for showing first running over Simulator
@@ -399,13 +397,13 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
         var t = SimulatorManager.Instance.CurrentTime;
         string logMsg = "";
         if (laneTime.Count > 0)
-            logMsg = $"NPC{numNPC}, Idx: {currentIndex}, pose: {laneData[currentIndex]}, angle: {laneAngle[currentIndex]}, " +
+            logMsg = $"NPC{GTID}, Idx: {currentIndex}, pose: {laneData[currentIndex]}, angle: {laneAngle[currentIndex]}, " +
             $"laneTime: {laneTime[currentIndex]}, time: {t}, rel_t: {t - wakeUpTime}";
 
-        if (!logWaypoint.ContainsKey(numNPC))
-            logWaypoint.Add(numNPC, new List<string>());
+        if (!logWaypoint.ContainsKey(GTID))
+            logWaypoint.Add(GTID, new List<string>());
         else
-            logWaypoint[numNPC].Add(logMsg);
+            logWaypoint[GTID].Add(logMsg);
     }
 
     private void WriteMsg()
@@ -478,8 +476,6 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
         turnAdjustRate = 50 * aggression;
         SetNeededComponents();
         ResetData();
-
-        numNPC = SimulatorManager.Instance.NPCManager.numNPCs++;
     }
 
     public void InitLaneData(MapLane lane)
@@ -2299,8 +2295,8 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
         activateNPC = true;
         waypointDriveState = WaypointDriveState.Drive;
 
-        if (!logWaypoint.ContainsKey(numNPC))
-            logWaypoint.Add(numNPC, new List<string>());
+        if (!logWaypoint.ContainsKey(GTID))
+            logWaypoint.Add(GTID, new List<string>());
     }
 
     private IEnumerator WaitForTriggerNPC(float dist)

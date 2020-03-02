@@ -47,9 +47,6 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     // Used for deciding when to record log file.
     [System.NonSerialized]
     public double startTime = 0f;
-    [System.NonSerialized]
-    public int numNPCs = 0;
-
     private MapOrigin MapOrigin;
     private bool InitSpawn = true;
 

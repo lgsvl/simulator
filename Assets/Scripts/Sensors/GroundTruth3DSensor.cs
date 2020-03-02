@@ -58,7 +58,8 @@ namespace Simulator.Sensors
         private IBridge Bridge;
         private IWriter<Detected3DObjectData> Writer;
 
-        private Dictionary<Collider, Detected3DObject> Detected = new Dictionary<Collider, Detected3DObject>();
+        private Dictionary<uint, Detected3DObject> Detected = new Dictionary<uint, Detected3DObject>();
+        private Dictionary<uint, Collider> GTID2Collider = new Dictionary<uint, Collider>();
         private Collider[] Visualized = Array.Empty<Collider>();
         
         public override SensorDistributionType DistributionType => SensorDistributionType.HighLoad;
@@ -104,8 +105,9 @@ namespace Simulator.Sensors
                 });
             }
 
-            Visualized = Detected.Keys.ToArray();
+            Visualized = GTID2Collider.Values.ToArray();
             Detected.Clear();
+            GTID2Collider.Clear();
         }
 
         public override void OnBridgeSetup(IBridge bridge)
@@ -173,7 +175,7 @@ namespace Simulator.Sensors
             // Convert from (Right/Up/Forward) to (Forward/Left/Up)
             relRot.Set(-relRot.z, relRot.x, -relRot.y, relRot.w);
 
-            if (!Detected.ContainsKey(other))
+            if (!Detected.ContainsKey(id))
             {
                 Vector3 size = ((BoxCollider)other).size;
                 // Convert from (Right/Up/Forward) to (Forward/Left/Up)
@@ -184,7 +186,7 @@ namespace Simulator.Sensors
                     return;
                 }
 
-                Detected.Add(other, new Detected3DObject()
+                Detected.Add(id, new Detected3DObject()
                 {
                     Id = id,
                     Label = label,
@@ -198,16 +200,21 @@ namespace Simulator.Sensors
             }
             else
             {
-                Detected[other].Position = (float3)relPos;
-                Detected[other].Rotation = relRot;
-                Detected[other].LinearVelocity = new Vector3(linear_vel, 0, 0);
-                Detected[other].AngularVelocity = new Vector3(0, 0, angular_vel);
+                Detected[id].Position = (float3)relPos;
+                Detected[id].Rotation = relRot;
+                Detected[id].LinearVelocity = new Vector3(linear_vel, 0, 0);
+                Detected[id].AngularVelocity = new Vector3(0, 0, angular_vel);
+            }
+
+            if (!GTID2Collider.ContainsKey(id))
+            {
+                GTID2Collider.Add(id, other);
             }
 
             if (isToRecord)
             {
                 var labelId = label + Convert.ToString(id);
-                RecordJSONLog(Detected[other], labelId, parent, 0.1f);
+                RecordJSONLog(Detected[id], labelId, parent, 0.1f);
                 ExportJSON(40.0f);
 
             }

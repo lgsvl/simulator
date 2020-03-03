@@ -37,7 +37,7 @@ namespace Simulator.Bridge.Ros
                 },
             };
         }
-        
+
         public static LGSVL.Detection2DArray ConvertFrom(Detected2DObjectData data)
         {
             return new LGSVL.Detection2DArray()
@@ -370,6 +370,36 @@ namespace Simulator.Bridge.Ros
                 extended_solution_status = 33,  // extended solution status - OEMV and greater only
                 galileo_beidou_used_mask = 0,
                 gps_glonass_used_mask = 51
+            };
+        }
+
+        public static NavSatFix ROS2ConvertFrom(GpsData data)
+        {
+            return new NavSatFix()
+            {
+                header = new Header()
+                {
+                    stamp = ConvertTime(data.Time),
+                    seq = data.Sequence,
+                    frame_id = data.Frame,
+                },
+                status = new NavSatStatus()
+                {
+                    status = NavFixStatus.STATUS_FIX,
+                    service = GpsServisType.SERVICE_GPS,
+                },
+                latitude = data.Latitude,
+                longitude = data.Longitude,
+                altitude = data.Altitude,
+
+                position_covariance = new double[]
+                {
+                    0.0001, 0, 0,
+                    0, 0.0001, 0,
+                    0, 0, 0.0001
+                },
+
+                position_covariance_type = CovarianceType.COVARIANCE_TYPE_DIAGONAL_KNOWN
             };
         }
 

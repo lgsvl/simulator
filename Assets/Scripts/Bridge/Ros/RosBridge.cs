@@ -265,6 +265,11 @@ namespace Simulator.Bridge.Ros
                     type = typeof(Apollo.GnssBestPose);
                     writer = new Writer<GpsData, Apollo.GnssBestPose>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
                 }
+                else if (Version == 2)
+                {
+                    type = typeof(NavSatFix);
+                    writer = new Writer<GpsData, NavSatFix>(this, topic, Conversions.ROS2ConvertFrom) as IWriter<T>;
+                }
                 else
                 {
                     type = typeof(Sentence);

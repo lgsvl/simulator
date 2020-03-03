@@ -23,7 +23,7 @@ namespace Simulator.Bridge.Data
 
         public double Northing;
         public double Easting;
-
+        public double[] PositionCovariance; // 9x9 matrix
         public Quaternion Orientation;
     }
 

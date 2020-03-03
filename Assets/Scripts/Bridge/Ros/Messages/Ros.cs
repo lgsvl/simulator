@@ -101,6 +101,49 @@ namespace Simulator.Bridge.Ros
         public float[] intensities;
     }
 
+    public enum NavFixStatus
+    {
+        STATUS_NO_FIX = -1, // unable to fix position
+        STATUS_FIX = 0, // unaugmented fix
+        STATUS_SBAS_FIX = 1, // with satellite-based augmentation
+        STATUS_GBAS_FIX = 2 // with ground-based augmentation
+    }
+
+    public enum GpsServisType
+    {
+        SERVICE_GPS = 1,
+        SERVICE_GLONASS = 2,
+        SERVICE_COMPASS = 4, // includes BeiDou.
+        SERVICE_GALILEO = 8
+    }
+
+    [MessageType("sensor_msgs/NavSatStatus")]
+    public class NavSatStatus
+    {
+        public NavFixStatus status;
+        public GpsServisType service;
+    }
+
+    public enum CovarianceType
+    {
+        COVARIANCE_TYPE_UNKNOWN = 0,
+        COVARIANCE_TYPE_APPROXIMATED = 1,
+        COVARIANCE_TYPE_DIAGONAL_KNOWN = 2,
+        COVARIANCE_TYPE_KNOWN = 3
+    }
+
+    [MessageType("sensor_msgs/NavSatFix")]
+    public class NavSatFix
+    {
+        public Header header;
+        public NavSatStatus status;
+        public double latitude;
+        public double longitude;
+        public double altitude;
+        public double[] position_covariance;
+        public CovarianceType position_covariance_type;
+    }
+
     [MessageType("nav_msgs/Odometry")]
     public class Odometry
     {

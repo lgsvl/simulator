@@ -144,8 +144,13 @@ public class SimulatorManager : MonoBehaviour
         System.Random rand = new System.Random(masterSeed);
         
         //Calculate map bounds and limit position compression
-        if (Loader.Instance!=null && Loader.Instance.Network.IsClusterSimulation)
-            ByteCompression.SetPositionBounds(CalculateMapBounds());
+        if (Loader.Instance != null && Loader.Instance.Network.IsClusterSimulation)
+        {
+            var mapBounds = CalculateMapBounds();
+            //Add margin to the bounds
+            mapBounds.size += Vector3.one * 10;
+            ByteCompression.SetPositionBounds(mapBounds);
+        }
 
         ManagerHolder = new GameObject("ManagerHolder");
         ManagerHolder.transform.SetParent(transform);

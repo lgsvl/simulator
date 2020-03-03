@@ -418,9 +418,14 @@ namespace Simulator.Network.Core.Messaging.Data
         /// <exception cref="ArgumentException">Position.x value exceeds preset min and max bounds</exception>
         private static int CompressPositionX(float x)
         {
-            if (x < PositionBounds.min.x || x > PositionBounds.max.x)
+            if (x < PositionBounds.min.x-PositionPrecision || x > PositionBounds.max.x+PositionPrecision)
                 throw new ArgumentException(
                     $"Position X value {x} to be compressed exceeds preset min and max bounds <{PositionBounds.min.x},{PositionBounds.max.x}>.");
+            //Snap to position bounds, if the difference is smaller than precision
+            if (x < PositionBounds.min.x)
+                x = PositionBounds.min.x;
+            if (x > PositionBounds.max.x)
+                x = PositionBounds.max.x;
             return CompressFloatToInt(x, PositionBounds.min.x, PositionBounds.max.x, PositionXRequiredBytes);
         }
 
@@ -450,6 +455,11 @@ namespace Simulator.Network.Core.Messaging.Data
             if (y < PositionBounds.min.y || y > PositionBounds.max.y)
                 throw new ArgumentException(
                     $"Position Y value {y} to be compressed exceeds preset min and max bounds <{PositionBounds.min.y},{PositionBounds.max.y}>.");
+            //Snap to position bounds, if the difference is smaller than precision
+            if (y < PositionBounds.min.y)
+                y = PositionBounds.min.y;
+            if (y > PositionBounds.max.y)
+                y = PositionBounds.max.y;
             return CompressFloatToInt(y, PositionBounds.min.y, PositionBounds.max.y, PositionYRequiredBytes);
         }
 
@@ -479,6 +489,11 @@ namespace Simulator.Network.Core.Messaging.Data
             if (z < PositionBounds.min.z || z > PositionBounds.max.z)
                 throw new ArgumentException(
                     $"Position Z value {z} to be compressed exceeds preset min and max bounds <{PositionBounds.min.z},{PositionBounds.max.z}>.");
+            //Snap to position bounds, if the difference is smaller than precision
+            if (z < PositionBounds.min.z)
+                z = PositionBounds.min.z;
+            if (z > PositionBounds.max.z)
+                z = PositionBounds.max.z;
             return CompressFloatToInt(z, PositionBounds.min.z, PositionBounds.max.z, PositionZRequiredBytes);
         }
 

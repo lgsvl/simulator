@@ -13,7 +13,7 @@ using Simulator.Network.Core.Identification;
 
 namespace Simulator.Api.Commands
 {
-    class ControllableControlPolicySet : ICommand, IDistributedObject
+    class ControllableControlPolicySet : IDistributedCommand
     {
         public string Name => "controllable/control_policy/set";
 

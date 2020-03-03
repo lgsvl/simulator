@@ -5,9 +5,12 @@
  *
  */
 
-namespace Simulator.Network.Core.Identification
+using Simulator.Api;
+
+namespace Simulator.Api
 {
-    public interface IDistributedObject
-    {
-    }
+  interface IDistributedCommand : ICommand
+  {
+
+  }
 }

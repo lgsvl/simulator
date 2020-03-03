@@ -13,7 +13,7 @@ using Simulator.Network.Core.Identification;
 namespace Simulator.Api.Commands
 {
 
-    class RemoveAgent : ICommand, IDistributedObject
+    class RemoveAgent : IDistributedCommand
     {
         public string Name => "simulator/agent/remove";
 

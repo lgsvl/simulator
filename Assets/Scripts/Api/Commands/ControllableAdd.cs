@@ -12,7 +12,7 @@ using Simulator.Network.Core.Identification;
 
 namespace Simulator.Api.Commands
 {
-    class ControllableAdd : ICommand, IDistributedObject
+    class ControllableAdd : IDistributedCommand
     {
         public string Name => "simulator/controllable_add";
 

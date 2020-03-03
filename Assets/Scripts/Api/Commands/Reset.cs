@@ -11,7 +11,7 @@ using Simulator.Network.Core.Identification;
 
 namespace Simulator.Api.Commands
 {
-    class Reset : ICommand, IDistributedObject
+    class Reset : IDistributedCommand
     {
         public string Name => "simulator/reset";
 

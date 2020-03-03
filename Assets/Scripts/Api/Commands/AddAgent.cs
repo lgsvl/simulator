@@ -28,7 +28,7 @@ namespace Simulator.Api.Commands
         Pedestrian = 3,
     };
 
-    class AddAgent : ICommand, IDistributedObject
+    class AddAgent : IDistributedCommand
     {
         public string Name => "simulator/add_agent";
 

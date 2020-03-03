@@ -11,7 +11,7 @@ using Simulator.Network.Core.Identification;
 
 namespace Simulator.Api.Commands
 {
-    class ControllableRemove : ICommand, IDistributedObject
+    class ControllableRemove : IDistributedCommand
     {
         public string Name => "simulator/controllable_remove";
 

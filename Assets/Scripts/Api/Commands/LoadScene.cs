@@ -22,7 +22,7 @@ namespace Simulator.Api.Commands
     using Database;
     using Web;
 
-    class LoadScene : ICommand, IDistributedObject
+    class LoadScene : IDistributedCommand
     {
         public string Name => "simulator/load_scene";
 

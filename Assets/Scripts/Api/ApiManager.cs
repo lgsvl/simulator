@@ -391,7 +391,7 @@ namespace Simulator.Api
                     action.Command.Execute(action.Arguments);
                     
                     //Send distributed commands to all connected simulation clients
-                    if (action.Command is IDistributedObject && Loader.Instance.Network.IsMaster)
+                    if (action.Command is IDistributedCommand && Loader.Instance.Network.IsMaster)
                     {
                         var content = new BytesStack();
                         content.PushString(action.Arguments.ToString());

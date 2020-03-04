@@ -472,17 +472,14 @@ namespace Simulator.Bridge.Ros
             };
         }
 
-        public static VehicleOdometry ROS2ConvertFrom(GpsOdometryData data)
+        public static Autoware.VehicleOdometry ROS2ConvertFrom(VehicleOdometryData data)
         {
-            var angles = data.Orientation.eulerAngles;
-            float yaw = -angles.y;
-
-            return new VehicleOdometry()
+            return new Autoware.VehicleOdometry()
             {
                 stamp = ConvertTime(data.Time),
-                velocity_mps = data.ForwardSpeed,
-                front_wheel_angle_rad = data.WheelAngle,
-                rear_wheel_angle_rad = .0f,
+                velocity_mps = data.Speed,
+                front_wheel_angle_rad = UnityEngine.Mathf.Deg2Rad * data.SteeringAngleFront,
+                rear_wheel_angle_rad = UnityEngine.Mathf.Deg2Rad * data.SteeringAngleBack,
             };
         }
 

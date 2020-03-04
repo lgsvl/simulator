@@ -302,6 +302,11 @@ namespace Simulator.Bridge.Ros
                     writer = new Writer<GpsOdometryData, Odometry>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
                 }
             }
+            else if (type == typeof(VehicleOdometryData))
+            {
+                type = typeof(VehicleOdometry);
+                writer =  new Writer<VehicleOdometryData, VehicleOdometry>(this, topic, Conversions.ROS2ConvertFrom) as IWriter<T>;
+            }
             else if (type == typeof(ClockData))
             {
                 type = typeof(Ros.Clock);

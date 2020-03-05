@@ -35,6 +35,8 @@ fi
 
 export HOME=/tmp
 
+cd /mnt
+
 PREFIX=lgsvlsimulator
 SUFFIX=
 

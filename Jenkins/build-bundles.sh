@@ -42,6 +42,8 @@ function getAssets()
 
 export HOME=/tmp
 
+cd /mnt
+
 ###
 
 if [ ! -z ${SIM_ENVIRONMENTS+x} ]; then

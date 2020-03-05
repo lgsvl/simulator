@@ -25,6 +25,8 @@ fi
 
 export HOME=/tmp
 
+cd /mnt
+
 function finish
 {
   /opt/Unity/Editor/Unity \

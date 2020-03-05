@@ -15,7 +15,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using Simulator.Bridge;
 using Simulator.Bridge.Data;
 using Simulator.Utilities;
@@ -201,7 +201,7 @@ namespace Simulator.Sensors
                 context.SetupCameraProperties(camera);
 
                 var cmd = CommandBufferPool.Get();
-                hd.SetupGlobalParams(cmd, 0, 0, 0);
+                hd.SetupGlobalParams(cmd, 0);
                 cmd.ClearRenderTarget(true, true, Color.black);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
@@ -216,7 +216,9 @@ namespace Simulator.Sensors
 
         public void Init()
         {
-            SensorCamera.GetComponent<HDAdditionalCameraData>().customRender += CustomRender;
+            var hd = SensorCamera.GetComponent<HDAdditionalCameraData>();
+            hd.hasPersistentHistory = true;
+            hd.customRender += CustomRender;
             PointCloudMaterial = new Material(RuntimeSettings.Instance.PointCloudShader);
             PointCloudLayer = LayerMask.NameToLayer("Sensor Effects");
 

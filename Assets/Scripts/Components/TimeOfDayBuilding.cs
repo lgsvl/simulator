@@ -12,7 +12,8 @@ using System;
 
 public class TimeOfDayBuilding : MonoBehaviour
 {
-    List<Material> allBuildingMaterials = new List<Material>();
+    private List<Material> allBuildingMaterials = new List<Material>();
+    private Color emitColor = new Color(0.1f, 0.1f, 0.1f);
 
     public void Init(TimeOfDayStateTypes state)
     {
@@ -76,19 +77,19 @@ public class TimeOfDayBuilding : MonoBehaviour
                 UpdateBuildingMats(Color.black);
                 break;
             case TimeOfDayStateTypes.Night:
-                UpdateBuildingMats(Color.white, 2f);
+                UpdateBuildingMats(emitColor);
                 break;
             case TimeOfDayStateTypes.Sunrise:
-                UpdateBuildingMats(Color.white * 2f);
+                UpdateBuildingMats(emitColor);
                 break;
             case TimeOfDayStateTypes.Sunset:
-                UpdateBuildingMats(Color.white * 2f);
+                UpdateBuildingMats(emitColor);
                 break;
         }
     }
 
-    private void UpdateBuildingMats(Color color, float hd = 1f)
+    private void UpdateBuildingMats(Color color)
     {
-        allBuildingMaterials.ForEach(material => material?.SetVector("_EmissiveColor", color * hd));
+        allBuildingMaterials.ForEach(material => material?.SetVector("_EmissiveColor", color));
     }
 }

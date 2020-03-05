@@ -42,7 +42,10 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
     private List<Light> indicatorReverseLights = new List<Light>();
     private List<Light> fogLights = new List<Light>();
     private List<Light> interiorLights = new List<Light>();
-    
+
+    private Color emitColorLow = new Color(0.1f, 0.1f, 0.1f);
+    private Color emitColorHigh = new Color(0.1f, 0.1f, 0.1f);
+
     //Network
     private MessagesManager messagesManager;
     private string key;
@@ -67,21 +70,21 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
                     break;
                 case HeadLightState.LOW:
                     headLights.ForEach(x => x.enabled = true);
-                    headLights.ForEach(x => x.intensity = 25f);
+                    //headLights.ForEach(x => x.intensity = 5f);
                     if (lowCookie != null)
                     {
                         headLights.ForEach(x => x.cookie = lowCookie);
                     }
-                    headLightRenderer?.material.SetVector("_EmissiveColor", Color.white * 200);
+                    headLightRenderer?.material.SetVector("_EmissiveColor", emitColorLow);
                     break;
                 case HeadLightState.HIGH:
                     headLights.ForEach(x => x.enabled = true);
-                    headLights.ForEach(x => x.intensity = 50f);
+                    headLights.ForEach(x => x.intensity = 1f);
                     if (highCookie != null)
                     {
                         headLights.ForEach(x => x.cookie = highCookie);
                     }
-                    headLightRenderer?.material.SetVector("_EmissiveColor", Color.white * 300);
+                    headLightRenderer?.material.SetVector("_EmissiveColor", emitColorHigh);
                     break;
             }
 
@@ -203,11 +206,11 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
             switch (_currentHeadLightState)
             {
                 case HeadLightState.OFF:
-                    brakeLightRenderer?.material.SetVector("_EmissiveColor", _brakeLights ? Color.red * 50 : Color.black);
+                    brakeLightRenderer?.material.SetVector("_EmissiveColor", _brakeLights ? new Color(0.5f, 0f, 0f) : Color.black);
                     break;
                 case HeadLightState.LOW:
                 case HeadLightState.HIGH:
-                    brakeLightRenderer?.material.SetVector("_EmissiveColor", _brakeLights ? Color.red * 50 : new Color(0.5f, 0f, 0f) * 10);
+                    brakeLightRenderer?.material.SetVector("_EmissiveColor", _brakeLights ? new Color(0.5f, 0f, 0f) : new Color(0.25f, 0f, 0f));
                     break;
             }
             brakeLights.ForEach(x => x.enabled = _brakeLights);
@@ -233,7 +236,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
                 return;
 
             _fogLights = value;
-            fogLightRenderer?.material.SetVector("_EmissiveColor", _fogLights ? Color.white * 200 : Color.black);
+            fogLightRenderer?.material.SetVector("_EmissiveColor", _fogLights ? emitColorLow : Color.black);
             fogLights.ForEach(x => x.enabled = _fogLights);
             
             if (Loader.Instance.Network.IsMaster)
@@ -254,7 +257,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         set
         {
             _reverseLights = value;
-            indicatorReverseLightRenderer?.material.SetVector("_EmissiveColor", _reverseLights ? Color.white * 10 : Color.black);
+            indicatorReverseLightRenderer?.material.SetVector("_EmissiveColor", _reverseLights ? emitColorLow : Color.black);
             indicatorReverseLights.ForEach(x => x.enabled = _reverseLights);
             
             if (Loader.Instance.Network.IsMaster)
@@ -442,7 +445,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
 
     private void SetIndicatorLeftLights(bool state)
     {
-        indicatorLeftLightRenderer.material.SetVector("_EmissiveColor", state ? new Color(1f, 0.5f, 0f) * 10 : Color.black);
+        indicatorLeftLightRenderer.material.SetVector("_EmissiveColor", state ? new Color(0.5f, 0.25f, 0f) : Color.black);
         indicatorLeftLights.ForEach(x => x.enabled = state);
     }
     
@@ -468,7 +471,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
 
     private void SetIndicatorRightLights(bool state)
     {
-        indicatorRightLightRenderer.material.SetVector("_EmissiveColor", state ? new Color(1f, 0.5f, 0f) * 10 : Color.black);
+        indicatorRightLightRenderer.material.SetVector("_EmissiveColor", state ? new Color(0.5f, 0.25f, 0f) : Color.black);
         indicatorRightLights.ForEach(x => x.enabled = state);
     }
 
@@ -494,9 +497,9 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
 
     private void SetIndicatorHazardLights(bool state)
     {
-        indicatorLeftLightRenderer.material.SetVector("_EmissiveColor", state ? new Color(1f, 0.5f, 0f) * 10 : Color.black);
+        indicatorLeftLightRenderer.material.SetVector("_EmissiveColor", state ? new Color(0.5f, 0.25f, 0f) : Color.black);
         indicatorLeftLights.ForEach(x => x.enabled = state);
-        indicatorRightLightRenderer.material.SetVector("_EmissiveColor", state ? new Color(1f, 0.5f, 0f) * 10 : Color.black);
+        indicatorRightLightRenderer.material.SetVector("_EmissiveColor", state ? new Color(0.5f, 0.25f, 0f) : Color.black);
         indicatorRightLights.ForEach(x => x.enabled = state);
     }
 

@@ -17,9 +17,12 @@ using Simulator.Bridge.Data;
 using Simulator.Plugins;
 using Simulator.Utilities;
 using Simulator.Sensors.UI;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace Simulator.Sensors
 {
+    using LensDistortion = Simulator.Utilities.LensDistortion;
+
     [RequireComponent(typeof(Camera))]
     public abstract class CameraSensorBase: SensorBase
     {
@@ -122,6 +125,9 @@ namespace Simulator.Sensors
             CurrentDistortionParameters = new List<float>(DistortionParameters);
             CurrentXi = Xi;
             CurrentCubemapSize = CubemapSize;
+
+            var hd = SensorCamera.GetComponent<HDAdditionalCameraData>();
+            hd.hasPersistentHistory = true;
         }
 
         public void OnDestroy()
@@ -344,24 +350,25 @@ namespace Simulator.Sensors
                 else if (capture.Request.done)
                 {
                     CaptureQueue.Dequeue();
-                    var data = capture.Request.GetData<byte>();
-
-                    var imageData = new ImageData()
-                    {
-                        Name = Name,
-                        Frame = Frame,
-                        Width = Width,
-                        Height = Height,
-                        Sequence = Sequence,
-                    };
-
-                    if (!JpegOutput.TryTake(out imageData.Bytes))
-                    {
-                        imageData.Bytes = new byte[MaxJpegSize];
-                    }
 
                     if (Bridge != null && Bridge.Status == Status.Connected)
                     {
+                        var data = capture.Request.GetData<byte>();
+
+                        var imageData = new ImageData()
+                        {
+                            Name = Name,
+                            Frame = Frame,
+                            Width = Width,
+                            Height = Height,
+                            Sequence = Sequence,
+                        };
+
+                        if (!JpegOutput.TryTake(out imageData.Bytes))
+                        {
+                            imageData.Bytes = new byte[MaxJpegSize];
+                        }
+
                         Task.Run(() =>
                         {
                             imageData.Length = JpegEncoder.Encode(data, Width, Height, 4, JpegQuality, imageData.Bytes);
@@ -376,9 +383,9 @@ namespace Simulator.Sensors
                                 Debug.Log("Compressed image is empty, length = 0");
                             }
                         });
-                    }
 
-                    Sequence++;
+                        Sequence++;
+                    }
                 }
                 else
                 {

@@ -11,7 +11,8 @@ public class TimeOfDayLight : MonoBehaviour
 {
     private Light[] streetLights;
     private Renderer lightMesh; // TODO multiple meshes
-    
+    private Color emitColor = new Color(0.1f, 0.1f, 0.1f);
+
     public void Init(TimeOfDayStateTypes state)
     {
         streetLights = GetComponentsInChildren<Light>();
@@ -30,15 +31,15 @@ public class TimeOfDayLight : MonoBehaviour
                 break;
             case TimeOfDayStateTypes.Night:
                 ToggleLight(true);
-                SetMeshEmissiveColor(Color.white * 2f);
+                SetMeshEmissiveColor(emitColor);
                 break;
             case TimeOfDayStateTypes.Sunrise:
                 ToggleLight(true);
-                SetMeshEmissiveColor(Color.white * 2f);
+                SetMeshEmissiveColor(emitColor);
                 break;
             case TimeOfDayStateTypes.Sunset:
                 ToggleLight(true);
-                SetMeshEmissiveColor(Color.white * 2f);
+                SetMeshEmissiveColor(emitColor);
                 break;
         }
     }
@@ -51,9 +52,9 @@ public class TimeOfDayLight : MonoBehaviour
         }
     }
 
-    private void SetMeshEmissiveColor(Color color, float hd = 1f)
+    private void SetMeshEmissiveColor(Color color)
     {
         if (lightMesh != null)
-            lightMesh.material.SetVector("_EmissiveColor", color * hd);
+            lightMesh.material.SetVector("_EmissiveColor", color);
     }
 }

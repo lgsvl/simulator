@@ -43,7 +43,7 @@ void Frag(PackedVaryingsToPS packedInput,
     float depth = length(GetPrimaryCameraPosition() - posInput.positionWS);
 
     float d = Linear01Depth(depth);
-    d = pow(d, 0.1);
+    d = pow(abs(d), 0.1);
 
     outColor = float4(d, d, d, 1);
 

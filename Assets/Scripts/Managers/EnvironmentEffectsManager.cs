@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using Simulator;
 using Simulator.Map;
 using Simulator.Network.Core.Messaging;
@@ -30,12 +30,12 @@ public class EnvironmentEffectsManager : MonoBehaviour
     public struct TimeOfDayProfileOverrides
     {
         public Color SunColor;
-        public ProceduralSky proceduralSky;
-        public Tonemapping tonemapping;
-        public Exposure exposure;
-        public WhiteBalance whiteBalance;
-        public ColorAdjustments colorAdjustments;
-        public IndirectLightingController IndirectLightingController;
+        //public ProceduralSky proceduralSky;
+        //public Tonemapping tonemapping;
+        //public Exposure exposure;
+        //public WhiteBalance whiteBalance;
+        //public ColorAdjustments colorAdjustments;
+        //public IndirectLightingController IndirectLightingController;
     }
 
     public enum TimeOfDayCycleTypes
@@ -51,9 +51,9 @@ public class EnvironmentEffectsManager : MonoBehaviour
     public Volume PostProcessingVolumePrefab;
     public Volume PostPrecessingVolume { get; private set; }
     public VolumeProfile ActiveProfile { get; private set; }
-    public VolumeProfile DayProfile;
-    public VolumeProfile SetRiseProfile;
-    public VolumeProfile NightProfile;
+    //public VolumeProfile DayProfile;
+    //public VolumeProfile SetRiseProfile;
+    //public VolumeProfile NightProfile;
     private TimeOfDayProfileOverrides activeOverrides;
     public TimeOfDayProfileOverrides dayOverrides;
     public TimeOfDayProfileOverrides nightOverrides;
@@ -97,7 +97,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
     [Range(0f, 1f)]
     public float fog = 0f;
     private float prevFog = 0f;
-    private VolumetricFog volumetricFog;
+    private Fog volumetricFog;
 
     [Space(5, order = 0)]
     [Header("Cloud", order = 1)]
@@ -143,8 +143,8 @@ public class EnvironmentEffectsManager : MonoBehaviour
         UpdateRain();
         UpdateWet();
         UpdateFog();
-        UpdateClouds();
         UpdateSunPosition();
+        //UpdateClouds();
         //UpdateMoonPosition();
 
         if (Loader.Instance.Network.IsMaster)
@@ -175,38 +175,39 @@ public class EnvironmentEffectsManager : MonoBehaviour
         PostPrecessingVolume = Instantiate(PostProcessingVolumePrefab);
         ActiveProfile = PostPrecessingVolume.profile;
 
-        ActiveProfile.TryGet(out activeOverrides.proceduralSky);
-        ActiveProfile.TryGet(out activeOverrides.tonemapping);
-        ActiveProfile.TryGet(out activeOverrides.exposure);
-        ActiveProfile.TryGet(out activeOverrides.whiteBalance);
-        ActiveProfile.TryGet(out activeOverrides.colorAdjustments);
-        ActiveProfile.TryGet(out activeOverrides.IndirectLightingController);
-
-        DayProfile.TryGet(out dayOverrides.proceduralSky);
-        DayProfile.TryGet(out dayOverrides.tonemapping);
-        DayProfile.TryGet(out dayOverrides.exposure);
-        DayProfile.TryGet(out dayOverrides.whiteBalance);
-        DayProfile.TryGet(out dayOverrides.colorAdjustments);
-        DayProfile.TryGet(out dayOverrides.IndirectLightingController);
-
-        NightProfile.TryGet(out nightOverrides.proceduralSky);
-        NightProfile.TryGet(out nightOverrides.tonemapping);
-        NightProfile.TryGet(out nightOverrides.exposure);
-        NightProfile.TryGet(out nightOverrides.whiteBalance);
-        NightProfile.TryGet(out nightOverrides.colorAdjustments);
-        NightProfile.TryGet(out nightOverrides.IndirectLightingController);
-
-        SetRiseProfile.TryGet(out setRiseOverrides.proceduralSky);
-        SetRiseProfile.TryGet(out setRiseOverrides.tonemapping);
-        SetRiseProfile.TryGet(out setRiseOverrides.exposure);
-        SetRiseProfile.TryGet(out setRiseOverrides.whiteBalance);
-        SetRiseProfile.TryGet(out setRiseOverrides.colorAdjustments);
-        SetRiseProfile.TryGet(out setRiseOverrides.IndirectLightingController);
-
         ActiveProfile.TryGet(out volumetricFog);
 
-        clouds = Instantiate(CloudPrefab, new Vector3(0f, 100f, 0f), Quaternion.identity);
-        cloudRenderer = clouds.GetComponentInChildren<Renderer>();
+        // 2019.3 broke this TODO fix
+        //clouds = Instantiate(CloudPrefab, new Vector3(0f, 100f, 0f), Quaternion.identity);
+        //cloudRenderer = clouds.GetComponentInChildren<Renderer>();
+
+        //ActiveProfile.TryGet(out activeOverrides.proceduralSky);
+        //ActiveProfile.TryGet(out activeOverrides.tonemapping);
+        //ActiveProfile.TryGet(out activeOverrides.exposure);
+        //ActiveProfile.TryGet(out activeOverrides.whiteBalance);
+        //ActiveProfile.TryGet(out activeOverrides.colorAdjustments);
+        //ActiveProfile.TryGet(out activeOverrides.IndirectLightingController);
+
+        //DayProfile.TryGet(out dayOverrides.proceduralSky);
+        //DayProfile.TryGet(out dayOverrides.tonemapping);
+        //DayProfile.TryGet(out dayOverrides.exposure);
+        //DayProfile.TryGet(out dayOverrides.whiteBalance);
+        //DayProfile.TryGet(out dayOverrides.colorAdjustments);
+        //DayProfile.TryGet(out dayOverrides.IndirectLightingController);
+
+        //NightProfile.TryGet(out nightOverrides.proceduralSky);
+        //NightProfile.TryGet(out nightOverrides.tonemapping);
+        //NightProfile.TryGet(out nightOverrides.exposure);
+        //NightProfile.TryGet(out nightOverrides.whiteBalance);
+        //NightProfile.TryGet(out nightOverrides.colorAdjustments);
+        //NightProfile.TryGet(out nightOverrides.IndirectLightingController);
+
+        //SetRiseProfile.TryGet(out setRiseOverrides.proceduralSky);
+        //SetRiseProfile.TryGet(out setRiseOverrides.tonemapping);
+        //SetRiseProfile.TryGet(out setRiseOverrides.exposure);
+        //SetRiseProfile.TryGet(out setRiseOverrides.whiteBalance);
+        //SetRiseProfile.TryGet(out setRiseOverrides.colorAdjustments);
+        //SetRiseProfile.TryGet(out setRiseOverrides.IndirectLightingController);
 
         rainVolumes.AddRange(FindObjectsOfType<RainVolume>());
         foreach (var volume in rainVolumes)
@@ -378,18 +379,18 @@ public class EnvironmentEffectsManager : MonoBehaviour
     private void TimeOfDayColorChange()
     {
         float f = Mathf.InverseLerp(fromTimeOfDay, toTimeOfDay, currentTimeOfDay);
-        activeOverrides.proceduralSky.atmosphereThickness.value = Mathf.Lerp(fromOverrides.proceduralSky.atmosphereThickness.value, toOverrides.proceduralSky.atmosphereThickness.value, f);
-        activeOverrides.tonemapping.mode.value = toOverrides.tonemapping.mode.value;
-        activeOverrides.exposure.compensation.value = Mathf.Lerp(fromOverrides.exposure.compensation.value, toOverrides.exposure.compensation.value, f);
-        activeOverrides.whiteBalance.temperature.value = Mathf.Lerp(fromOverrides.whiteBalance.temperature.value, toOverrides.whiteBalance.temperature.value, f);
-        activeOverrides.colorAdjustments.contrast.value = Mathf.Lerp(fromOverrides.colorAdjustments.contrast.value, toOverrides.colorAdjustments.contrast.value, f);
-        activeOverrides.colorAdjustments.colorFilter.value = Color.Lerp(fromOverrides.colorAdjustments.colorFilter.value, toOverrides.colorAdjustments.colorFilter.value, f);
-        activeOverrides.colorAdjustments.saturation.value = Mathf.Lerp(fromOverrides.colorAdjustments.saturation.value, toOverrides.colorAdjustments.saturation.value, f);
-        activeOverrides.IndirectLightingController.indirectDiffuseIntensity.value = Mathf.Lerp(fromOverrides.IndirectLightingController.indirectDiffuseIntensity.value, toOverrides.IndirectLightingController.indirectDiffuseIntensity.value, f);
-        activeOverrides.proceduralSky.enableSunDisk.value = rain == 0f ? true : false;
-
-        sun.color = Color.Lerp(fromOverrides.SunColor, toOverrides.SunColor, f);
+        //activeOverrides.proceduralSky.atmosphereThickness.value = Mathf.Lerp(fromOverrides.proceduralSky.atmosphereThickness.value, toOverrides.proceduralSky.atmosphereThickness.value, f);
+        //activeOverrides.tonemapping.mode.value = toOverrides.tonemapping.mode.value;
+        //activeOverrides.exposure.compensation.value = Mathf.Lerp(fromOverrides.exposure.compensation.value, toOverrides.exposure.compensation.value, f);
+        //activeOverrides.whiteBalance.temperature.value = Mathf.Lerp(fromOverrides.whiteBalance.temperature.value, toOverrides.whiteBalance.temperature.value, f);
+        //activeOverrides.colorAdjustments.contrast.value = Mathf.Lerp(fromOverrides.colorAdjustments.contrast.value, toOverrides.colorAdjustments.contrast.value, f);
+        //activeOverrides.colorAdjustments.colorFilter.value = Color.Lerp(fromOverrides.colorAdjustments.colorFilter.value, toOverrides.colorAdjustments.colorFilter.value, f);
+        //activeOverrides.colorAdjustments.saturation.value = Mathf.Lerp(fromOverrides.colorAdjustments.saturation.value, toOverrides.colorAdjustments.saturation.value, f);
+        //activeOverrides.IndirectLightingController.indirectDiffuseIntensity.value = Mathf.Lerp(fromOverrides.IndirectLightingController.indirectDiffuseIntensity.value, toOverrides.IndirectLightingController.indirectDiffuseIntensity.value, f);
+        //activeOverrides.proceduralSky.enableSunDisk.value = rain == 0f ? true : false;
         //activeOverrides.proceduralSky.skyTint.value = Color.Lerp(fromOverrides.proceduralSky.skyTint.value, RainSkyColor, rain);
+
+        //sun.color = Color.Lerp(fromOverrides.SunColor, toOverrides.SunColor, f);
     }
 
     private void SetTimeOfDayState(TimeOfDayStateTypes state)
@@ -423,7 +424,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
     private void UpdateFog()
     {
         if (fog != prevFog)
-            volumetricFog.meanFreePath.value = Mathf.Lerp(200f, 10f, fog);
+            volumetricFog.meanFreePath.value = Mathf.Lerp(5000f, 10f, fog);
         prevFog = fog;
     }
 

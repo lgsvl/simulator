@@ -5,7 +5,7 @@ pipeline {
   agent {
     node {
       label "unity3d"
-      customWorkspace "/home/jenkins/workspace/simulator"
+      customWorkspace "/home/jenkins/workspace/simulator-2019.3"
     }
   }
 

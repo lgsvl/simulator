@@ -477,7 +477,7 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
 
         int count = 0;
         bool isInNavMesh = false;
-        while (!isInNavMesh || count > 10000)
+        while (!isInNavMesh && count < 10000)
         {
             Vector3 randomPoint = tempV + RandomGenerator.InsideUnitSphere() * targetRange;
             NavMeshHit hit;

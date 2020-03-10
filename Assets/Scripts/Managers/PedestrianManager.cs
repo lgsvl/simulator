@@ -67,11 +67,13 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         {
             pt = spawnInfos[0].transform.position;
         }
-        if (Loader.Instance.Network.IsClient)
-            return;
 
-        NavMeshHit hit;
-        if (NavMesh.SamplePosition(pt, out hit, 1f, NavMesh.AllAreas))
+        if (Loader.Instance.Network.IsClient)
+        {
+            return;
+        }
+
+        if (NavMesh.SamplePosition(pt, out NavMeshHit hit, 1f, NavMesh.AllAreas))
         {
             InitPedestrians();
             if (PedestriansActive)
@@ -93,7 +95,10 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
     public void PhysicsUpdate()
     {
         if (Loader.Instance.Network.IsClient)
+        {
             return;
+        }
+
         foreach (var ped in currentPedPool)
         {
             if (ped.gameObject.activeInHierarchy)
@@ -107,7 +112,9 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
             if (PedestriansActive)
             {
                 if (ActivePedCount < PedMaxCount)
+                {
                     SetPedOnMap();
+                }
             }
             else
             {
@@ -308,7 +315,11 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
     private void OnDrawGizmosSelected()
     {
-        if (!DebugSpawnArea) return;
+        if (!DebugSpawnArea)
+        {
+            return;
+        }
+
         DrawSpawnArea();
     }
     #endregion

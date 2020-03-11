@@ -152,7 +152,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         Destroy(obj.gameObject);
     }
 
-    public GameObject SpawnVehicle(string name, string genId, Vector3 position, Quaternion rotation)
+    public GameObject SpawnVehicle(string name, string genId, Vector3 position, Quaternion rotation, Color color)
     {
         var template = NPCVehicles.Find(obj => obj.Prefab.name == name);
         if (template.Prefab == null)
@@ -176,6 +176,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         APINPCs.Add(NPCController);
         NPCController.id = genId;
         NPCController.GTID = ++SimulatorManager.Instance.GTIDs;
+        NPCController.NPCColor = color == Color.clear ? GetWeightedRandomColor(template.NPCType) : color;
         var s = NPCSeedGenerator.Next();
         NPCController.Init(s);
         SimulatorManager.Instance.UpdateSemanticTags(go);

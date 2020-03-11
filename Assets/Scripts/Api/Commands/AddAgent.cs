@@ -145,7 +145,13 @@ namespace Simulator.Api.Commands
             }
             else if (type == (int)AgentType.Npc)
             {
-                var go = SimulatorManager.Instance.NPCManager.SpawnVehicle(name, uid, position, Quaternion.Euler(rotation));
+                var colorData = args["color"].ReadVector3();
+                var color = new Color();
+                if (colorData != new Vector3(-1, -1, -1))
+                {
+                    color = new Color(colorData.x, colorData.y, colorData.z);
+                }
+                var go = SimulatorManager.Instance.NPCManager.SpawnVehicle(name, uid, position, Quaternion.Euler(rotation), color);
 
                 var npc = go.GetComponent<NPCController>();
                 npc.Control = NPCController.ControlType.Manual;

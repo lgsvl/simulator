@@ -116,7 +116,7 @@ namespace Simulator.Api.Commands
 
                 var sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
 
-                var clusters = Loader.Instance.SimConfig.Clusters;
+                var clusters = Loader.Instance.SimConfig?.Clusters;
                 var isMasterSimulation = clusters != null && clusters.Length != 0;
                 var loadAdditive = isMasterSimulation &&
                                    SceneManager.GetSceneByName(Loader.Instance.LoaderScene).isLoaded;
@@ -127,9 +127,13 @@ namespace Simulator.Api.Commands
                     SceneManager.SetActiveScene(SceneManager.GetSceneByName(sceneName));
                 SIM.LogAPI(SIM.API.SimulationLoad, sceneName);
 
-                Loader.Instance.SimConfig.Seed = seed;
-                Loader.Instance.SimConfig.MapName = name;
-                Loader.Instance.SimConfig.MapUrl = map.Url;
+                if (Loader.Instance.SimConfig != null)
+                {
+                    Loader.Instance.SimConfig.Seed = seed;
+                    Loader.Instance.SimConfig.MapName = name;
+                    Loader.Instance.SimConfig.MapUrl = map.Url;
+                }
+
                 var sim = Loader.CreateSimulatorManager();
                 sim.Init(seed);
                 if (isMasterSimulation)

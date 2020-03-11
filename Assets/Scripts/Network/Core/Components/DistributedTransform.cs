@@ -57,11 +57,11 @@ namespace Simulator.Network.Core.Components
         /// </summary>
         protected void LateUpdate()
         {
-            if (ParentObject.IsAuthoritative && Time.time >= lastSentSnapshotTime + 1.0f / SnapshotsPerSecondLimit &&
+            if (ParentObject.IsAuthoritative && Time.unscaledTime >= lastSentSnapshotTime + 1.0f / SnapshotsPerSecondLimit &&
                 AnySnapshotElementChanged(ByteCompression.PositionPrecision))
             {
                 BroadcastSnapshot();
-                lastSentSnapshotTime = Time.time;
+                lastSentSnapshotTime = Time.unscaledTime;
             }
         }
 

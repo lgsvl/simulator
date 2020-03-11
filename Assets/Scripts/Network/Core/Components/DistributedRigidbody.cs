@@ -190,7 +190,7 @@ namespace Simulator.Network.Core.Components
         {
             while (IsInitialized)
             {
-                if (!(Time.time >= lastSnapshotTime + 1.0f / SnapshotsPerSecondLimit))
+                if (!(Time.unscaledTime >= lastSnapshotTime + 1.0f / SnapshotsPerSecondLimit))
                 {
                     yield return new WaitForEndOfFrame();
                     continue;
@@ -213,7 +213,7 @@ namespace Simulator.Network.Core.Components
                     BroadcastSnapshot();
                 }
 
-                lastSnapshotTime = Time.time;
+                lastSnapshotTime = Time.unscaledTime;
                 yield return new WaitForEndOfFrame();
             }
 

@@ -32,7 +32,7 @@ namespace Simulator.Bridge.Ros
             lat = Math.Floor(lat) * 100 + (lat % 1) * 60.0f;
             lon = Math.Floor(lon) * 100 + (lon % 1) * 60.0f;
 
-            var dt = DateTimeOffset.FromUnixTimeMilliseconds((long)(message.Time * 1000.0)).LocalDateTime;
+            var dt = DateTimeOffset.FromUnixTimeMilliseconds((long)(message.Time * 1000.0)).UtcDateTime;
             var utc = dt.ToString("HHmmss.fff");
 
             var gga = string.Format("GPGGA,{0},{1:0.000000},{2},{3:0.000000},{4},{5},{6},{7},{8:0.000000},M,{9:0.000000},M,,",

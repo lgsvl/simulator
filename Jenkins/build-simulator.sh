@@ -65,7 +65,7 @@ function finish
 {
   /opt/Unity/Editor/Unity \
     -batchmode \
-    -force-glcore \
+    -force-vulkan \
     -silent-crashes \
     -quit \
     -returnlicense
@@ -79,7 +79,7 @@ if [ "$1" == "check" ]; then
     -username ${UNITY_USERNAME} \
     -password ${UNITY_PASSWORD} \
     -batchmode \
-    -force-glcore \
+    -force-vulkan \
     -silent-crashes \
     -quit \
     -projectPath /mnt \
@@ -97,7 +97,7 @@ elif [ "$1" == "test" ]; then
     -username ${UNITY_USERNAME} \
     -password ${UNITY_PASSWORD} \
     -batchmode \
-    -force-glcore \
+    -force-vulkan \
     -silent-crashes \
     -quit \
     -projectPath /mnt \
@@ -106,7 +106,7 @@ elif [ "$1" == "test" ]; then
   # now run unit tests without username/password/serial
   /opt/Unity/Editor/Unity \
     -batchmode \
-    -force-glcore \
+    -force-vulkan \
     -silent-crashes \
     -projectPath /mnt \
     -runEditorTests \
@@ -151,7 +151,7 @@ mkdir -p /mnt/AssetBundles/Controllables || true
   -username ${UNITY_USERNAME} \
   -password ${UNITY_PASSWORD} \
   -batchmode \
-  -force-glcore \
+  -force-vulkan \
   -silent-crashes \
   -quit \
   -projectPath /mnt \

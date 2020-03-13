@@ -31,7 +31,7 @@ function finish
 {
   /opt/Unity/Editor/Unity \
     -batchmode \
-    -force-glcore \
+    -force-vulkan \
     -silent-crashes \
     -quit \
     -returnlicense
@@ -53,7 +53,7 @@ fi
   -username ${UNITY_USERNAME} \
   -password ${UNITY_PASSWORD} \
   -batchmode \
-  -force-glcore \
+  -force-vulkan \
   -silent-crashes \
   -quit \
   -projectPath /mnt \

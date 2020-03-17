@@ -28,6 +28,10 @@ pipeline {
     FORCE_REBUILD = "${FORCE_REBUILD}"
   }
 
+  parameters {
+    string(name: "SIMULATOR_SENSORS", defaultValue: "CheckControlSensor", description: "List of sensors to build from https://auto-gitlab.lgsvl.net/HDRP/Sensors")
+  }
+
   stages {
 
     stage("Git") {
@@ -118,6 +122,26 @@ pipeline {
               ]]
             ])
           }
+
+          def sensors = env.SIMULATOR_SENSORS.split(',')
+          for (int i=0; i<sensors.size(); i++) {
+            def sensor = sensors[i]
+            checkout([
+              $class: "GitSCM",
+              branches: [[name: "refs/heads/master"]],
+              browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Sensors/${sensor}", version: env.GITLAB_VERSION],
+              extensions: [
+                [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Sensors/${sensor}"],
+                [$class: "LocalBranch"],
+                [$class: "GitLFSPull"]
+              ],
+              userRemoteConfigs: [[
+                credentialsId: "auto-gitlab",
+                url: "git@${GITLAB_HOST}:HDRP/Sensors/${sensor}.git"
+              ]]
+            ])
+          }
+
 
           env.FORCE_REBUILD = "0"
           env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 1").trim()

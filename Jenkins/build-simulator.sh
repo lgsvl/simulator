@@ -61,6 +61,12 @@ else
   CONTROLLABLES=
 fi
 
+if [ ! -z ${SIMULATOR_SENSORS+x} ]; then
+  SENSORS="-buildBundles -buildSensors ${SIMULATOR_SENSORS}"
+else
+  SENSORS=
+fi
+
 function finish
 {
   /opt/Unity/Editor/Unity \
@@ -159,6 +165,7 @@ mkdir -p /mnt/AssetBundles/Controllables || true
   -buildTarget ${BUILD_TARGET} \
   -buildPlayer /tmp/${BUILD_OUTPUT} \
   ${CONTROLLABLES} \
+  ${SENSORS} \
   -logFile /dev/stdout
 
 if [ ! -f /tmp/${BUILD_OUTPUT}/${BUILD_CHECK} ]; then
@@ -196,6 +203,9 @@ cp /mnt/README.md /tmp/${BUILD_OUTPUT}/README.txt
 
 mkdir -p /tmp/${BUILD_OUTPUT}/AssetBundles/Controllables
 cp /mnt/AssetBundles/Controllables/controllable_* /tmp/${BUILD_OUTPUT}/AssetBundles/Controllables
+
+mkdir -p /tmp/${BUILD_OUTPUT}/AssetBundles/Sensors
+cp /mnt/AssetBundles/Sensors/sensor_* /tmp/${BUILD_OUTPUT}/AssetBundles/Sensors
 
 cd /tmp
 zip -r /mnt/${BUILD_OUTPUT}.zip ${BUILD_OUTPUT}

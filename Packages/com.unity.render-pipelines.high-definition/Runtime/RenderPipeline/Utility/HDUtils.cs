@@ -527,7 +527,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal static int DivRoundUp(int x, int y) => (x + y - 1) / y;
+        public static int DivRoundUp(int x, int y) => (x + y - 1) / y;
 
         internal static bool IsQuaternionValid(Quaternion q)
             => (q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]) > float.Epsilon;

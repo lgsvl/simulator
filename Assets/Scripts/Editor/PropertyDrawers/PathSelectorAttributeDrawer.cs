@@ -8,6 +8,9 @@
 namespace Simulator.Editor.PropertyDrawers
 {
     using System.IO;
+    
+    using Simulator.Utilities;
+
     using UnityEditor;
     using UnityEngine;
     using Utilities.Attributes;
@@ -32,7 +35,7 @@ namespace Simulator.Editor.PropertyDrawers
             var fieldPos = position;
             fieldPos.width -= 27;
 
-            var currentPath = property.stringValue;
+            var currentPath = Utility.GetFullPath(property.stringValue);
 
             var pathValid = !string.IsNullOrEmpty(currentPath)
                             && (attr.SelectDirectory ? Directory.Exists(currentPath) : File.Exists(currentPath));
@@ -41,7 +44,7 @@ namespace Simulator.Editor.PropertyDrawers
             if (!pathValid)
                 GUI.color = Color.red;
 
-            EditorGUI.PropertyField(fieldPos, property);
+            EditorGUI.PropertyField(fieldPos, property, label);
 
             GUI.color = color;
 
@@ -54,7 +57,11 @@ namespace Simulator.Editor.PropertyDrawers
                     : EditorUtility.OpenFilePanel("Select file", startingPath, attr.AllowedExtensions);
 
                 if (!string.IsNullOrEmpty(newPath))
-                    property.stringValue = newPath;
+                {
+                    property.stringValue = attr.TruncateToRelative
+                        ? Utility.GetRelativePathIfApplies(newPath)
+                        : Utility.GetForwardSlashPath(newPath);
+                }
             }
         }
     }

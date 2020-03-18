@@ -38,6 +38,12 @@ namespace Simulator.PointCloud.Trees
         
         private bool busy;
 
+        public bool Valid => !nodeLoader.Disposed && bufferA != null;
+
+        public int MaxBufferElements => maxBufferElements;
+
+        public int RebuildSteps => rebuildSteps;
+
         private ComputeBuffer ReadyBuffer => bufferSwapFlag ? bufferB : bufferA;
         
         private ComputeBuffer ConstructedBuffer => bufferSwapFlag ? bufferA : bufferB;
@@ -139,8 +145,8 @@ namespace Simulator.PointCloud.Trees
         /// <inheritdoc/>
         public void Dispose()
         {
-            bufferA.Release();
-            bufferB.Release();
+            bufferA?.Release();
+            bufferB?.Release();
 
             bufferA = null;
             bufferB = null;

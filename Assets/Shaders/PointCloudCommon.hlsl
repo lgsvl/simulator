@@ -5,6 +5,12 @@
  *
  */
 
+#ifndef POINT_CLOUD_COMMON_INCLUDED
+#define POINT_CLOUD_COMMON_INCLUDED
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
 struct PointCloudPoint
 {
     float3 Position;
@@ -22,6 +28,12 @@ float _MaxHeight;
 float4 PointCloudWorldPosition(float3 position)
 {
     return mul(_Transform, float4(position, 1));
+}
+
+float3 PointCloudWorldPositionHDRP(float3 position)
+{
+    float3 positionWS = PointCloudWorldPosition(position).xyz;
+    return GetCameraRelativePositionWS(positionWS);
 }
 
 float4 PointCloudUnpack(uint color)
@@ -57,3 +69,5 @@ float4 PointCloudColor(float4 color, float height)
     float h = (height - _MinHeight) / (_MaxHeight - _MinHeight);
     return float4(PointCloudRainbow(h), 1);
 }
+
+#endif

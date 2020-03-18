@@ -16,18 +16,47 @@ namespace Simulator.Editor.PointCloud
     [CustomEditor(typeof(NodeTreeRenderer))]
     public class NodeTreeRendererEditor : PointCloudRendererEditor
     {
-        private SerializedProperty RenderCamera;
-
+        private SerializedProperty nodeTreeLoader;
+        private SerializedProperty cullCamera;
+        private SerializedProperty cullMode;
+        private SerializedProperty pointLimit;
+        private SerializedProperty minProjection;
+        private SerializedProperty rebuildSteps;
+        private SerializedProperty previewDepth;
+        
+        private void FindPrivateProperties()
+        {
+            nodeTreeLoader = serializedObject.FindProperty(nameof(NodeTreeRenderer.nodeTreeLoader));
+            cullCamera = serializedObject.FindProperty(nameof(NodeTreeRenderer.cullCamera));
+            cullMode = serializedObject.FindProperty(nameof(NodeTreeRenderer.cullMode));
+            pointLimit = serializedObject.FindProperty(nameof(NodeTreeRenderer.pointLimit));
+            minProjection = serializedObject.FindProperty(nameof(NodeTreeRenderer.minProjection));
+            rebuildSteps = serializedObject.FindProperty(nameof(NodeTreeRenderer.rebuildSteps));
+            previewDepth = serializedObject.FindProperty(nameof(NodeTreeRenderer.previewDepth));
+        }
+        
         protected override void OnEnable()
         {
             FindSharedProperties();
-            RenderCamera = serializedObject.FindProperty(nameof(NodeTreeRenderer.RenderCamera));
+            FindPrivateProperties();
         }
 
         protected override void DrawInspector(PointCloudRenderer obj)
         {
-            EditorGUILayout.PropertyField(RenderCamera);
             DrawProtectedProperties(obj);
+            
+            // Use existing SerializedProperty property to remember foldout state
+            nodeTreeLoader.isExpanded = EditorGUILayout.Foldout(nodeTreeLoader.isExpanded, "Culling Settings");
+            if (nodeTreeLoader.isExpanded)
+            {
+                EditorGUILayout.PropertyField(nodeTreeLoader);
+                EditorGUILayout.PropertyField(cullCamera);
+                EditorGUILayout.PropertyField(cullMode);
+                EditorGUILayout.PropertyField(pointLimit);
+                EditorGUILayout.PropertyField(minProjection);
+                EditorGUILayout.PropertyField(rebuildSteps);
+                EditorGUILayout.PropertyField(previewDepth);
+            }
         }
     }
 }

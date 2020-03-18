@@ -23,5 +23,10 @@ namespace Simulator.Utilities.Attributes
         /// Comma-separated extensions that should be allowed for selection. 
         /// </summary>
         public string AllowedExtensions;
+
+        /// <summary>
+        /// If true, only path relative to Assets folder will be stored if file or directory is in there.
+        /// </summary>
+        public bool TruncateToRelative;
     }
 }

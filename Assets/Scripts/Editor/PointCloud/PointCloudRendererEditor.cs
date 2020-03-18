@@ -10,13 +10,15 @@ namespace Simulator.Editor.PointCloud
     using UnityEditor;
     using UnityEngine;
     using Simulator.PointCloud;
-
-    [CanEditMultipleObjects]
+    
     [CustomEditor(typeof(PointCloudRenderer))]
     public class PointCloudRendererEditor : Editor
     {
         private static class Styles
         {
+            // public static readonly GUIContent PartialPointLightingContent = new GUIContent("Partial Point Lighting",
+            //     "When enabled, point rendering will use deferred lighting. Result is not entirely correct, due to lack of normals data.");
+            
             public static readonly GUIContent CascadeShowPreviewContent =
                 new GUIContent("Show Preview", "Visible only in play mode.");
 
@@ -26,11 +28,26 @@ namespace Simulator.Editor.PointCloud
             public static readonly GUIContent FovReprojectionContent =
                 new GUIContent("FOV Reprojection", "Render broader FOV to hide artifacts near screen edges.\nVisible only in play mode.");
 
+            // public static readonly GUIContent TemporalSmoothingContent = new GUIContent("Temporal Smoothing",
+            //     "Use data from previous frames to reduce flickering.");
+            
             public static readonly GUIContent TemporalSmoothingContent = new GUIContent("Temporal Smoothing",
-                "Use data from previous frames to reduce flickering.");
+                "Temporarily disabled (not compatible with HDRP).");
             
             public static readonly GUIContent InterpolatedFramesContent = new GUIContent("Interpolated Frames",
                 "Describes how long data from frame will be used for temporal smoothing.");
+
+            public static readonly GUIContent DebugUseLinearDepthContent = new GUIContent(
+                "Linear depth", "If true, solid rendering will internally use linear depth for better interpolation.");
+
+            public static readonly GUIContent DebugBlendSkyContent = new GUIContent(
+                "Blend sky", "If true, sky will be sampled for background color.");
+            
+            public static readonly GUIContent DebugForceFillContent = new GUIContent("Force fill",
+                "Always fill holes below the horizon line.");
+
+            public static readonly GUIContent DebugFillThresholdContent = new GUIContent(
+                "Fill threshold", "Describes how high the horizon for auto-fill is.");
             
             public static readonly GUIContent DebugSolidBlitLevelContent = new GUIContent("Blit Level",
                 "Final blit will display downsampled image on specified mip level.");
@@ -46,16 +63,32 @@ namespace Simulator.Editor.PointCloud
             
             public static readonly GUIContent DebugSolidPullParamContent = new GUIContent("Pull Exponent",
                 "Filter exponent used in pull kernel.");
+
+            public static readonly GUIContent CalculateNormalsContent = new GUIContent("Calculate Normals",
+                "When enabled, normal vectors will be calculated. Required for lighting.");
+            
+            public static readonly GUIContent SmoothNormalsContent = new GUIContent("Smooth Normals",
+                "When enabled, normal vectors for point cloud will be smoothed out.");
+            
+            public static readonly GUIContent ShadowSizeContent = new GUIContent("Shadow Point Size",
+                "Multiplier of point size during shadow caster pass.");
+            
+            public static readonly GUIContent ShadowBiasContent = new GUIContent("Shadow Bias",
+                "Scaled depth offset of each point during shadow caster pass.");
         }
         
-        private SerializedProperty PointCloudData;
         private SerializedProperty Colorize;
         private SerializedProperty Render;
-        private SerializedProperty SolidRender;
+        private SerializedProperty Mask;
         private SerializedProperty ConstantSize;
         private SerializedProperty PixelSize;
         private SerializedProperty AbsoluteSize;
         private SerializedProperty MinPixelSize;
+        // private SerializedProperty PartialPointLighting;
+        private SerializedProperty DebugUseLinearDepth;
+        private SerializedProperty DebugForceFill;
+        private SerializedProperty DebugBlendSky;
+        private SerializedProperty DebugFillThreshold;
         private SerializedProperty DebugSolidBlitLevel;
         private SerializedProperty SolidRemoveHidden;
         private SerializedProperty DebugSolidPullPush;
@@ -68,27 +101,36 @@ namespace Simulator.Editor.PointCloud
         private SerializedProperty ReprojectionRatio;
         private SerializedProperty PreserveTexelSize;
         private SerializedProperty DebugShowSmoothNormalsCascades;
+        private SerializedProperty CalculateNormals;
+        private SerializedProperty SmoothNormals;
         private SerializedProperty SmoothNormalsCascadeOffset;
         private SerializedProperty SmoothNormalsCascadeSize;
         private SerializedProperty TemporalSmoothing;
         private SerializedProperty InterpolatedFrames;
+        private SerializedProperty CastShadows;
+        private SerializedProperty ShadowPointSize;
+        private SerializedProperty ShadowBias;
 
         protected virtual void OnEnable()
         {
             FindSharedProperties();
-            PointCloudData = serializedObject.FindProperty(nameof(PointCloudRenderer.Data));
         }
 
         protected void FindSharedProperties()
         {
             Colorize = serializedObject.FindProperty(nameof(PointCloudRenderer.Colorize));
-            Render = serializedObject.FindProperty(nameof(PointCloudRenderer.Render));
-            SolidRender = serializedObject.FindProperty(nameof(PointCloudRenderer.SolidRender));
+            Render = serializedObject.FindProperty(nameof(PointCloudRenderer.RenderMode));
+            Mask = serializedObject.FindProperty(nameof(PointCloudRenderer.Mask));
             ConstantSize = serializedObject.FindProperty(nameof(PointCloudRenderer.ConstantSize));
             PixelSize = serializedObject.FindProperty(nameof(PointCloudRenderer.PixelSize));
             AbsoluteSize = serializedObject.FindProperty(nameof(PointCloudRenderer.AbsoluteSize));
             MinPixelSize = serializedObject.FindProperty(nameof(PointCloudRenderer.MinPixelSize));
+            // PartialPointLighting = serializedObject.FindProperty(nameof(PointCloudRenderer.PartialPointLighting));
             DebugSolidBlitLevel = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidBlitLevel));
+            DebugFillThreshold = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugFillThreshold));
+            DebugUseLinearDepth = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugUseLinearDepth));
+            DebugForceFill = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugForceFill));
+            DebugBlendSky = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugBlendSky));
             SolidRemoveHidden = serializedObject.FindProperty(nameof(PointCloudRenderer.SolidRemoveHidden));
             DebugSolidPullPush = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidPullPush));
             DebugSolidFixedLevel = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidFixedLevel));
@@ -99,11 +141,15 @@ namespace Simulator.Editor.PointCloud
             SolidFovReprojection = serializedObject.FindProperty(nameof(PointCloudRenderer.SolidFovReprojection));
             ReprojectionRatio = serializedObject.FindProperty(nameof(PointCloudRenderer.ReprojectionRatio));
             PreserveTexelSize = serializedObject.FindProperty(nameof(PointCloudRenderer.PreserveTexelSize));
+            CalculateNormals = serializedObject.FindProperty(nameof(PointCloudRenderer.CalculateNormals));
+            SmoothNormals = serializedObject.FindProperty(nameof(PointCloudRenderer.SmoothNormals));
             DebugShowSmoothNormalsCascades = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugShowSmoothNormalsCascades));
             SmoothNormalsCascadeOffset = serializedObject.FindProperty(nameof(PointCloudRenderer.SmoothNormalsCascadeOffset));
             SmoothNormalsCascadeSize = serializedObject.FindProperty(nameof(PointCloudRenderer.SmoothNormalsCascadeSize));
             TemporalSmoothing = serializedObject.FindProperty(nameof(PointCloudRenderer.TemporalSmoothing));
             InterpolatedFrames = serializedObject.FindProperty(nameof(PointCloudRenderer.InterpolatedFrames));
+            ShadowPointSize = serializedObject.FindProperty(nameof(PointCloudRenderer.ShadowPointSize));
+            ShadowBias = serializedObject.FindProperty(nameof(PointCloudRenderer.ShadowBias));
         }
 
         public sealed override void OnInspectorGUI()
@@ -119,52 +165,71 @@ namespace Simulator.Editor.PointCloud
 
         protected virtual void DrawInspector(PointCloudRenderer obj)
         {
-            EditorGUILayout.PropertyField(PointCloudData);
             DrawProtectedProperties(obj);
         }
 
         protected void DrawProtectedProperties(PointCloudRenderer obj)
         {
+            if (!Application.isPlaying)
+            {
+                EditorGUILayout.HelpBox("Only preview is currently displayed. Enter play mode to see actual output.",
+                    MessageType.Info);
+            }
+
             EditorGUILayout.PropertyField(Colorize);
             EditorGUILayout.PropertyField(Render);
+            EditorGUILayout.PropertyField(Mask);
 
             // Use existing SerializedProperty property to remember foldout state
-            Render.isExpanded = EditorGUILayout.Foldout(Render.isExpanded, "Settings");
+            Render.isExpanded = EditorGUILayout.Foldout(Render.isExpanded, "Rendering Settings");
             if (Render.isExpanded)
             {
                 EditorGUI.indentLevel++;
-                if (obj.Render == PointCloudRenderer.RenderType.Points)
+                DrawShadowsContent((obj.Mask & PointCloudRenderer.RenderMask.Shadows) != 0);
+                
+                switch (obj.RenderMode)
                 {
-                    EditorGUILayout.PropertyField(ConstantSize);
-                    if (obj.ConstantSize)
+                    case PointCloudRenderer.RenderType.Points:
+                    case PointCloudRenderer.RenderType.Cones:
                     {
-                        EditorGUILayout.PropertyField(PixelSize);
+                        EditorGUILayout.PropertyField(ConstantSize);
+                        if (obj.ConstantSize)
+                        {
+                            EditorGUILayout.PropertyField(PixelSize);
+                        }
+                        else
+                        {
+                            EditorGUILayout.PropertyField(AbsoluteSize);
+                            EditorGUILayout.PropertyField(MinPixelSize);
+                        }
+                        // EditorGUILayout.PropertyField(PartialPointLighting, Styles.PartialPointLightingContent);
+                        break;
                     }
-                    else
+                    case PointCloudRenderer.RenderType.Solid:
                     {
-                        EditorGUILayout.PropertyField(AbsoluteSize);
-                        EditorGUILayout.PropertyField(MinPixelSize);
-                    }
-                }
-                else if (obj.Render == PointCloudRenderer.RenderType.Solid)
-                {
-                    EditorGUILayout.PropertyField(SolidRender);
-                    DrawRemoveHiddenCascadesContent();
-                    DrawSmoothNormalsCascadesContent();
-                    DrawFovReprojectionContent(obj.SolidFovReprojection);
-                    DrawTemporalSmoothingContent(obj.TemporalSmoothing);
+                        DrawRemoveHiddenCascadesContent();
+                        DrawNormalsContent(obj);
+                        DrawFovReprojectionContent(obj.SolidFovReprojection);
+                        DrawTemporalSmoothingContent(obj.TemporalSmoothing);
 
-                    // Use existing SerializedProperty property to remember foldout state
-                    SolidRender.isExpanded = EditorGUILayout.Foldout(SolidRender.isExpanded, "Debug");
-                    if (SolidRender.isExpanded)
-                    {
-                        EditorGUI.indentLevel++;
-                        EditorGUILayout.PropertyField(DebugSolidBlitLevel, Styles.DebugSolidBlitLevelContent);
-                        EditorGUILayout.PropertyField(SolidRemoveHidden, Styles.DebugSolidRemoveHiddenContent);
-                        EditorGUILayout.PropertyField(DebugSolidPullPush, Styles.DebugSolidPullPushContent);
-                        EditorGUILayout.PropertyField(DebugSolidFixedLevel, Styles.DebugSolidFixedLevelContent);
-                        EditorGUILayout.PropertyField(DebugSolidPullParam, Styles.DebugSolidPullParamContent);
-                        EditorGUI.indentLevel--;
+                        // Use existing SerializedProperty property to remember foldout state
+                        DebugSolidBlitLevel.isExpanded = EditorGUILayout.Foldout(DebugSolidBlitLevel.isExpanded, "Debug");
+                        if (DebugSolidBlitLevel.isExpanded)
+                        {
+                            EditorGUI.indentLevel++;
+                            EditorGUILayout.PropertyField(DebugUseLinearDepth, Styles.DebugUseLinearDepthContent);
+                            EditorGUILayout.PropertyField(DebugForceFill, Styles.DebugForceFillContent);
+                            EditorGUILayout.PropertyField(DebugFillThreshold, Styles.DebugFillThresholdContent);
+                            EditorGUILayout.PropertyField(DebugBlendSky, Styles.DebugBlendSkyContent);
+                            EditorGUILayout.PropertyField(DebugSolidBlitLevel, Styles.DebugSolidBlitLevelContent);
+                            EditorGUILayout.PropertyField(SolidRemoveHidden, Styles.DebugSolidRemoveHiddenContent);
+                            EditorGUILayout.PropertyField(DebugSolidPullPush, Styles.DebugSolidPullPushContent);
+                            EditorGUILayout.PropertyField(DebugSolidFixedLevel, Styles.DebugSolidFixedLevelContent);
+                            EditorGUILayout.PropertyField(DebugSolidPullParam, Styles.DebugSolidPullParamContent);
+                            EditorGUI.indentLevel--;
+                        }
+
+                        break;
                     }
                 }
                 EditorGUI.indentLevel--;
@@ -192,23 +257,44 @@ namespace Simulator.Editor.PointCloud
             EditorGUI.indentLevel = indentLevel;
         }
         
-        private void DrawSmoothNormalsCascadesContent()
+        private void DrawNormalsContent(PointCloudRenderer editedObject)
         {
-            var rect = CreateBox(4);
+            var lineCount = 2;
+            if (editedObject.CalculateNormals && editedObject.SmoothNormals)
+                lineCount += 4;
+
+            var rect = CreateBox(lineCount);
             var indentLevel = EditorGUI.indentLevel;
             EditorGUI.indentLevel = 0;
 
-            EditorGUI.LabelField(rect, "Cascades (Smooth Normals)", EditorStyles.boldLabel);
+            EditorGUI.PropertyField(rect, CalculateNormals, Styles.CalculateNormalsContent);
+
+            if (editedObject.CalculateNormals)
+            {
+                rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                EditorGUI.PropertyField(rect, SmoothNormals, Styles.SmoothNormalsContent);
+
+                if (editedObject.SmoothNormals)
+                {
+                    rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                    EditorGUI.LabelField(rect, "Cascades (Smooth Normals)", EditorStyles.boldLabel);
+                    
+                    rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                    EditorGUI.PropertyField(rect, DebugShowSmoothNormalsCascades, Styles.CascadeShowPreviewContent);
             
-            rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-            EditorGUI.PropertyField(rect, DebugShowSmoothNormalsCascades, Styles.CascadeShowPreviewContent);
+                    rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                    EditorGUI.PropertyField(rect, SmoothNormalsCascadeOffset, Styles.CascadeOffsetContent);
             
-            rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-            EditorGUI.PropertyField(rect, SmoothNormalsCascadeOffset, Styles.CascadeOffsetContent);
-            
-            rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-            EditorGUI.PropertyField(rect, SmoothNormalsCascadeSize, Styles.CascadeSizeContent);
-            
+                    rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                    EditorGUI.PropertyField(rect, SmoothNormalsCascadeSize, Styles.CascadeSizeContent);
+                }
+            }
+            else
+            {
+                rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                EditorGUI.LabelField(rect, "(required for lighting)");
+            }
+
             EditorGUI.indentLevel = indentLevel;
         }
 
@@ -236,18 +322,53 @@ namespace Simulator.Editor.PointCloud
         
         private void DrawTemporalSmoothingContent(bool unfold)
         {
-            var lineCount = unfold ? 2 : 1;
+            // Temporarily disabled due to incompatibility with HDRP (camera relative rendering)
+            EditorGUI.BeginDisabledGroup(true);
+            {
+                var lineCount = unfold ? 2 : 1;
+                var rect = CreateBox(lineCount);
+
+                var indentLevel = EditorGUI.indentLevel;
+                EditorGUI.indentLevel = 0;
+
+                EditorGUI.PropertyField(rect, TemporalSmoothing, Styles.TemporalSmoothingContent);
+
+                if (unfold)
+                {
+                    rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                    EditorGUI.PropertyField(rect, InterpolatedFrames, Styles.InterpolatedFramesContent);
+                }
+
+                EditorGUI.indentLevel = indentLevel;
+            }
+            EditorGUI.EndDisabledGroup();
+        }
+        
+        private void DrawShadowsContent(bool unfold)
+        {
+            var lineCount = unfold ? 3 : 1;
             var rect = CreateBox(lineCount);
             
             var indentLevel = EditorGUI.indentLevel;
             EditorGUI.indentLevel = 0;
-
-            EditorGUI.PropertyField(rect, TemporalSmoothing, Styles.TemporalSmoothingContent);
             
             if (unfold)
             {
+                EditorGUI.LabelField(rect, "Shadow Settings", EditorStyles.boldLabel);
+                
                 rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-                EditorGUI.PropertyField(rect, InterpolatedFrames, Styles.InterpolatedFramesContent);
+                EditorGUI.PropertyField(rect, ShadowPointSize, Styles.ShadowSizeContent);
+                
+                rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                EditorGUI.PropertyField(rect, ShadowBias, Styles.ShadowBiasContent);
+            }
+            else
+            {
+                EditorGUI.BeginDisabledGroup(true);
+                {
+                    EditorGUI.LabelField(rect, "Shadows disabled by mask", EditorStyles.boldLabel);
+                }
+                EditorGUI.EndDisabledGroup();
             }
 
             EditorGUI.indentLevel = indentLevel;

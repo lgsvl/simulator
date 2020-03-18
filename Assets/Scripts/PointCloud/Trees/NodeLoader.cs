@@ -43,6 +43,8 @@ namespace Simulator.PointCloud.Trees
         private long totalLoadedPoints;
         
         private bool cancelFlag;
+        
+        public bool Disposed { get; private set; }
 
         /// <summary>
         /// Creates new instance of node loader under specified node tree.
@@ -53,6 +55,7 @@ namespace Simulator.PointCloud.Trees
         {
             this.owner = owner;
             pointLimit = loadedPointsLimit;
+            Disposed = false;
 
             StartLoaderThread();
         }
@@ -267,6 +270,9 @@ namespace Simulator.PointCloud.Trees
                 foreach (var loadedNode in loadedNodes)
                     loadedNode.Value.Dispose();
             }
+            
+            loadedNodes.Clear();
+            Disposed = true;
         }
     }
 }

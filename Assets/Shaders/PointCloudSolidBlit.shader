@@ -79,7 +79,9 @@ Shader "Simulator/PointCloud/SolidBlit"
                 float2 uv = int2(Input.TexCoord * _ColorTex_TexelSize.zw);
                 float4 col = _ColorTex.Load(float3(uv, _DebugLevel));
                 float4 dnSample = _NormalDepthTex.Load(float3(uv, _DebugLevel));
-                float depth = dnSample.w / _FarPlane;
+                float depth = dnSample.w;
+                // float originalDepth = _OriginalDepthTex.Load(float3(uv, 0));
+                // float4 originalColor = tex2D(_OriginalColorTex, Input.TexCoord);
                 float3 normalPacked = dnSample.rgb;
                 float3 normal = normalPacked * 2 - 1;
 

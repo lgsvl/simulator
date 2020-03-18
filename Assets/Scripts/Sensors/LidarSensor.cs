@@ -14,12 +14,14 @@ using Unity.Profiling;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using Simulator.Bridge;
-using Simulator.Bridge.Data;
 using Simulator.Utilities;
 using Simulator.Sensors.UI;
+using Simulator.PointCloud;
+using PointCloudData = Simulator.Bridge.Data.PointCloudData;
 
 namespace Simulator.Sensors
 {
@@ -129,7 +131,7 @@ namespace Simulator.Sensors
 
         struct ReadRequest
         {
-            public RenderTexture RenderTexture;
+            public TextureSet TextureSet;
             public AsyncGPUReadbackRequest Readback;
             public int Index;
             public int Count;
@@ -139,10 +141,65 @@ namespace Simulator.Sensors
             public Matrix4x4 CameraToWorldMatrix;
         }
 
+        private class TextureSet
+        {
+            public RTHandle colorTexture;
+            public RTHandle depthTexture;
+
+            public void Alloc(int width, int height)
+            {
+                colorTexture = RTHandles.Alloc(
+                    width,
+                    height,
+                    TextureXR.slices,
+                    DepthBits.None,
+                    GraphicsFormat.R8G8B8A8_UNorm,
+                    dimension: TextureXR.dimension,
+                    useDynamicScale: true,
+                    name: "Lidar Texture",
+                    wrapMode: TextureWrapMode.Clamp);
+                
+                // TODO: Depth texture can be shared since its not processed, extract it at some point
+                depthTexture = RTHandles.Alloc(
+                    width,
+                    height,
+                    TextureXR.slices,
+                    DepthBits.Depth32,
+                    GraphicsFormat.R32_UInt,
+                    dimension: TextureXR.dimension,
+                    useDynamicScale: true,
+                    name: "Lidar Depth Texture",
+                    wrapMode: TextureWrapMode.Clamp);
+            }
+
+            public bool IsValid()
+            {
+                return colorTexture != null &&
+                       colorTexture.rt.IsCreated() &&
+                       depthTexture != null &&
+                       depthTexture.rt.IsCreated();
+            }
+
+            public void Release()
+            {
+                if (colorTexture != null)
+                {
+                    RTHandles.Release(colorTexture);
+                    colorTexture = null;
+                }
+
+                if (depthTexture != null)
+                {
+                    RTHandles.Release(depthTexture);
+                    depthTexture = null;
+                }
+            }
+        }
+
         List<ReadRequest> Active = new List<ReadRequest>();
         List<JobHandle> Jobs = new List<JobHandle>();
 
-        Stack<RenderTexture> AvailableRenderTextures = new Stack<RenderTexture>();
+        Stack<TextureSet> AvailableRenderTextures = new Stack<TextureSet>();
         Stack<Texture2D> AvailableTextures = new Stack<Texture2D>();
 
         int CurrentIndex;
@@ -167,7 +224,9 @@ namespace Simulator.Sensors
         ProfilerMarker VisualizeMarker = new ProfilerMarker("Lidar.Visualzie");
         ProfilerMarker BeginReadMarker = new ProfilerMarker("Lidar.BeginRead");
         ProfilerMarker EndReadMarker = new ProfilerMarker("Lidar.EndRead");
-        
+
+        private TextureSet activeTarget;
+
         public override SensorDistributionType DistributionType => SensorDistributionType.HighLoad;
 
         public void ApplyTemplate()
@@ -193,18 +252,21 @@ namespace Simulator.Sensors
         {
             var camera = hd.camera;
 
+            var cmd = CommandBufferPool.Get();
+            // NOTE: Target setting is done in BeginReadRequest through Camera.SetTargetBuffers. Doing it through
+            //       the command queue changes output slightly, probably should be debugged eventually (low priority).
+            // CoreUtils.SetRenderTarget(cmd, activeTarget.colorTexture, activeTarget.depthTexture);
+            hd.SetupGlobalParams(cmd, 0);
+            
             ScriptableCullingParameters culling;
             if (camera.TryGetCullingParameters(out culling))
             {
                 var cull = context.Cull(ref culling);
 
                 context.SetupCameraProperties(camera);
-
-                var cmd = CommandBufferPool.Get();
-                hd.SetupGlobalParams(cmd, 0);
-                cmd.ClearRenderTarget(true, true, Color.black);
+                CoreUtils.ClearRenderTarget(cmd, ClearFlag.All, Color.clear);
                 context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
+                cmd.Clear();
 
                 var sorting = new SortingSettings(camera);
                 var drawing = new DrawingSettings(new ShaderTagId("SimulatorLidarPass"), sorting);
@@ -212,6 +274,9 @@ namespace Simulator.Sensors
 
                 context.DrawRenderers(cull, ref drawing, ref filter);
             }
+
+            PointCloudManager.RenderLidar(context, cmd, hd, activeTarget.colorTexture, activeTarget.depthTexture);
+            CommandBufferPool.Release(cmd);
         }
 
         public void Init()
@@ -251,7 +316,7 @@ namespace Simulator.Sensors
             Active.ForEach(req =>
             {
                 req.Readback.WaitForCompletion();
-                req.RenderTexture.Release();
+                req.TextureSet.Release();
             });
             Active.Clear();
 
@@ -406,7 +471,7 @@ namespace Simulator.Sensors
             Active.ForEach(req =>
             {
                 req.Readback.WaitForCompletion();
-                req.RenderTexture.Release();
+                req.TextureSet.Release();
             });
             Active.Clear();
 
@@ -443,18 +508,18 @@ namespace Simulator.Sensors
             while (Active.Count > 0)
             {
                 var req = Active[0];
-                if (!req.RenderTexture.IsCreated())
+                if (!req.TextureSet.IsValid())
                 {
                     // lost render texture, probably due to Unity window resize or smth
                     req.Readback.WaitForCompletion();
-                    req.RenderTexture.Release();
+                    req.TextureSet.Release();
                 }
                 else if (req.Readback.done)
                 {
                     if (req.Readback.hasError)
                     {
                         Debug.Log("Failed to read GPU texture");
-                        req.RenderTexture.Release();
+                        req.TextureSet.Release();
                         IgnoreNewRquests = 1.0f;
                     }
                     else
@@ -462,7 +527,7 @@ namespace Simulator.Sensors
                         jobsIssued = true;
                         var job = EndReadRequest(req, req.Readback.GetData<byte>());
                         Jobs.Add(job);
-                        AvailableRenderTextures.Push(req.RenderTexture);
+                        AvailableRenderTextures.Push(req.TextureSet);
 
                         if (req.Index + req.Count >= CurrentMeasurementsPerRotation)
                         {
@@ -507,7 +572,7 @@ namespace Simulator.Sensors
                     var req = new ReadRequest();
                     if (BeginReadRequest(count, ref req))
                     {
-                        req.Readback = AsyncGPUReadback.Request(req.RenderTexture, 0);
+                        req.Readback = AsyncGPUReadback.Request((RenderTexture) req.TextureSet.colorTexture, 0);
                         Active.Add(req);
                     }
 
@@ -529,7 +594,7 @@ namespace Simulator.Sensors
             Active.ForEach(req =>
             {
                 req.Readback.WaitForCompletion();
-                req.RenderTexture.Release();
+                req.TextureSet.Release();
             });
 
             Jobs.ForEach(job => job.Complete());
@@ -574,29 +639,30 @@ namespace Simulator.Sensors
 
             BeginReadMarker.Begin();
 
-            RenderTexture texture = null;
+            TextureSet TextureSet = null;
             if (AvailableRenderTextures.Count != 0)
+                TextureSet = AvailableRenderTextures.Pop();
+
+            if (TextureSet == null)
             {
-                texture = AvailableRenderTextures.Pop();
-                if (!texture.IsCreated())
-                {
-                    texture.Release();
-                    texture = null;
-                }
+                TextureSet = new TextureSet();
+                TextureSet.Alloc(RenderTextureWidth, RenderTextureHeight);
+            }
+            else if (!TextureSet.IsValid())
+            {
+                TextureSet.Release();
+                TextureSet.Alloc(RenderTextureWidth, RenderTextureHeight);
             }
 
-            if (texture == null)
-            {
-                texture = new RenderTexture(RenderTextureWidth, RenderTextureHeight, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
-            }
-            texture.Create();
-
-            SensorCamera.targetTexture = texture;
+            activeTarget = TextureSet;
+            SensorCamera.SetTargetBuffers(
+                activeTarget.colorTexture.rt.colorBuffer,
+                activeTarget.depthTexture.rt.depthBuffer);
             SensorCamera.Render();
 
             req = new ReadRequest()
             {
-                RenderTexture = texture,
+                TextureSet = TextureSet,
                 Index = CurrentIndex,
                 Count = count,
                 Origin = SensorCamera.transform.position,
@@ -891,7 +957,7 @@ namespace Simulator.Sensors
                     var req = new ReadRequest();
                     if (BeginReadRequest(count, ref req))
                     {
-                        RenderTexture.active = req.RenderTexture;
+                        RenderTexture.active = req.TextureSet.colorTexture.rt;
                         Texture2D texture;
                         if (AvailableTextures.Count > 0)
                         {
@@ -905,7 +971,7 @@ namespace Simulator.Sensors
                         textures[i] = texture;
                         jobs[i] = EndReadRequest(req, texture.GetRawTextureData<byte>());
 
-                        AvailableRenderTextures.Push(req.RenderTexture);
+                        AvailableRenderTextures.Push(req.TextureSet);
                     }
 
                     angle += HorizontalAngleLimit;
@@ -950,7 +1016,7 @@ namespace Simulator.Sensors
 
                     if (BeginReadRequest(count, ref active[i]))
                     {
-                        active[i].Readback = AsyncGPUReadback.Request(active[i].RenderTexture, 0);
+                        active[i].Readback = AsyncGPUReadback.Request(active[i].TextureSet.colorTexture, 0);
                     }
 
                     angle += HorizontalAngleLimit;
@@ -970,7 +1036,7 @@ namespace Simulator.Sensors
             }
             finally
             {
-                Array.ForEach(active, req => AvailableRenderTextures.Push(req.RenderTexture));
+                Array.ForEach(active, req => AvailableRenderTextures.Push(req.TextureSet));
                 jobs.Dispose();
             }
 

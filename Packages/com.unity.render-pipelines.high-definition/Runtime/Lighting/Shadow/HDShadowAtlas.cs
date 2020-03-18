@@ -512,6 +512,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (parameters.debugClearAtlas)
                 CoreUtils.DrawFullScreen(cmd, parameters.clearMaterial, null, 0);
 
+            var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+
             foreach (var shadowRequest in parameters.shadowRequests)
             {
                 if (shadowRequest.shouldUseCachedShadow)
@@ -541,6 +543,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.Clear();
 
                 renderContext.DrawShadows(ref shadowDrawSettings);
+                
+                hdrp?.InvokeShadowMapRender(cmd, shadowRequest.worldTexelSize);
             }
             cmd.SetGlobalFloat(HDShaderIDs._ZClip, 1.0f);   // Re-enable zclip globally
             cmd.SetGlobalDepthBias(0.0f, 0.0f);             // Reset depth bias.

@@ -74,12 +74,13 @@ namespace Simulator.Editor.PointCloud.Trees
         protected int[] ChildFileCounts;
 
         private int inputCount;
+        private bool nodeDiscarded;
         private bool cancelFlag;
 
         /// <summary>
         /// Record with metadata of the node.
         /// </summary>
-        protected NodeRecord NodeRecord;
+        public NodeRecord NodeRecord;
 
         private WorkStatus workStatus = WorkStatus.Idle;
 
@@ -101,6 +102,11 @@ namespace Simulator.Editor.PointCloud.Trees
         /// Amount of points fully processed by this instance across all tasks up to this point.
         /// </summary>
         public int FinishedPoints { get; private set; }
+        
+        /// <summary>
+        /// Amount of points discarded by this instance (because of density) across all tasks up to this point.
+        /// </summary>
+        public int DiscardedPoints { get; private set; }
 
         protected TreeNodeProcessor(string dataPath, TreeImportSettings settings)
         {
@@ -166,11 +172,14 @@ namespace Simulator.Editor.PointCloud.Trees
         /// Pulls children created during last processing into passed list.
         /// </summary>
         /// <param name="resultsTarget">List that should be populated with created children records.</param>
-        public void PullResults(List<NodeRecord> resultsTarget)
+        /// <param name="nodeCreated">True if node was actually created during last processing, false otherwise.</param>
+        public void PullResults(List<NodeRecord> resultsTarget, out bool nodeCreated)
         {
             foreach (var childNodeRecord in ChildNodeRecords)
                 resultsTarget.Add(childNodeRecord);
 
+            nodeCreated = !nodeDiscarded;
+            
             ClearState();
         }
 
@@ -183,48 +192,73 @@ namespace Simulator.Editor.PointCloud.Trees
             ClearState();
             
             PointCollection.UpdateForNode(record);
+            if (record.Identifier.Length > Settings.maxTreeDepth)
+                nodeDiscarded = true;
 
-            var inputIndex = 0;
-            while (true)
+            if (nodeDiscarded)
             {
-                // Load previously saved temporary files. If there is no next file, processing is done.
-                var inputFilePath = Path.Combine(tmpFolderPath, $"{record.Identifier}_tmp{inputIndex.ToString()}");
-                if (!File.Exists(inputFilePath))
-                    break;
-
-                LoadInputFile(inputFilePath);
-                File.Delete(inputFilePath);
-
-                inputIndex++;
-
-                for (var i = 0; i < inputCount; ++i)
+                var inputIndex = 0;
+                while (true)
                 {
-                    if (cancelFlag)
-                        return;
+                    // Load previously saved temporary files. If there is no next file, processing is done.
+                    var inputFilePath = Path.Combine(tmpFolderPath, $"{record.Identifier}_tmp{inputIndex.ToString()}");
+                    if (!File.Exists(inputFilePath))
+                        break;
 
-                    var point = inputBuffer[i];
+                    var size = new FileInfo(inputFilePath).Length;
+                    var pointCount = (int)(size / stride);
 
-                    if (PointCollection.TryAddPoint(point, out var replacedPoint))
-                    {
-                        if (replacedPoint != null)
-                            PassPointToChild(replacedPoint.Value);
-                        else
-                            FinishedPoints++;
-                    }
-                    else
-                        PassPointToChild(point);
+                    FinishedPoints += pointCount;
+                    DiscardedPoints += pointCount;
+
+                    File.Delete(inputFilePath);
+                    inputIndex++;
                 }
             }
-
-            // Work is finished, make sure to flush all children data...
-            for (var i = 0; i < ChildCounts.Length; ++i)
+            else
             {
-                if (ChildCounts[i] > 0)
-                    FlushChildFile((byte) i);
-            }
+                var inputIndex = 0;
+                while (true)
+                {
+                    // Load previously saved temporary files. If there is no next file, processing is done.
+                    var inputFilePath = Path.Combine(tmpFolderPath, $"{record.Identifier}_tmp{inputIndex.ToString()}");
+                    if (!File.Exists(inputFilePath))
+                        break;
 
-            // ...and data of this node
-            SaveNodeToDisk();
+                    LoadInputFile(inputFilePath);
+                    File.Delete(inputFilePath);
+
+                    inputIndex++;
+
+                    for (var i = 0; i < inputCount; ++i)
+                    {
+                        if (cancelFlag)
+                            return;
+
+                        var point = inputBuffer[i];
+
+                        if (PointCollection.TryAddPoint(point, out var replacedPoint))
+                        {
+                            if (replacedPoint != null)
+                                PassPointToChild(replacedPoint.Value);
+                            else
+                                FinishedPoints++;
+                        }
+                        else
+                            PassPointToChild(point);
+                    }
+                }
+
+                // Work is finished, make sure to flush all children data...
+                for (var i = 0; i < ChildCounts.Length; ++i)
+                {
+                    if (ChildCounts[i] > 0)
+                        FlushChildFile((byte)i);
+                }
+
+                // ...and data of this node
+                SaveNodeToDisk();
+            }
         }
 
         /// <summary>
@@ -232,6 +266,7 @@ namespace Simulator.Editor.PointCloud.Trees
         /// </summary>
         private void ClearState()
         {
+            nodeDiscarded = false;
             PointCollection.ClearState();
             ChildNodeRecords.Clear();
 

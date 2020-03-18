@@ -278,11 +278,12 @@ namespace Simulator.Editor.PointCloud.Trees
         public static PointCloudBounds CalculateBounds(MemoryMappedViewAccessor accessor, long count, int stride,
             List<PointElement> elements, string progressBarTitle = null)
         {
-            if (count > TreeUtility.MaxPointCountPerArray)
+            var maxArraySize = TreeUtility.CalculateMaxArraySize(stride);
+            if (count > maxArraySize)
             {
                 Debug.LogWarning(
-                    $"Too many points ({count:n0}), truncating to {TreeUtility.MaxPointCountPerArray:n0}");
-                count = TreeUtility.MaxPointCountPerArray;
+                    $"Too many points ({count:n0}), truncating to {maxArraySize:n0}");
+                count = maxArraySize;
             }
 
             unsafe
@@ -357,11 +358,12 @@ namespace Simulator.Editor.PointCloud.Trees
             List<PointElement> elements, TransformationData transformationData, int stride, long count,
             string progressBarTitle = null)
         {
-            if (count > TreeUtility.MaxPointCountPerArray)
+            var maxArraySize = TreeUtility.CalculateMaxArraySize(stride);
+            if (count > maxArraySize)
             {
                 Debug.LogWarning(
-                    $"Too many points ({count:n0}), truncating to {TreeUtility.MaxPointCountPerArray:n0}");
-                count = TreeUtility.MaxPointCountPerArray;
+                    $"Too many points ({count:n0}), truncating to {maxArraySize:n0}");
+                count = maxArraySize;
             }
 
             if (target.Length < count)

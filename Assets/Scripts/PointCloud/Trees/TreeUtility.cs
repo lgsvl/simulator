@@ -8,11 +8,8 @@
 namespace Simulator.PointCloud.Trees
 {
     using System;
-    using System.Runtime.Serialization;
-    using System.Runtime.Serialization.Formatters.Binary;
     using Unity.Collections.LowLevel.Unsafe;
     using UnityEngine;
-    using Utilities;
 
     /// <summary>
     /// Utility class used to manage node trees.
@@ -33,11 +30,6 @@ namespace Simulator.PointCloud.Trees
         /// Extension used for index file.
         /// </summary>
         public const string IndexFileExtension = ".pcindex";
-        
-        /// <summary>
-        /// Maximum amount of points that can be put in a single array.
-        /// </summary>
-        public static long MaxPointCountPerArray = 2000 * 1024 * 1024 / UnsafeUtility.SizeOf<PointCloudPoint>();
 
         /// <summary>
         /// Returns index of an octree child whose bounds contain given point.
@@ -81,6 +73,14 @@ namespace Simulator.PointCloud.Trees
         }
 
         /// <summary>
+        /// Returns maximum size of an array of type with given stride.
+        /// </summary>
+        public static int CalculateMaxArraySize(int dataStride)
+        {
+            return 2000 * 1024 * 1024 / dataStride;
+        }
+
+        /// <summary>
         /// <para>For octree, returns an unscaled direction vector pointing from parent's center to child's center.</para>
         /// <para>This has to be multiplied by a quarter of parent's bounds to represent actual offset.</para> 
         /// </summary>
@@ -94,7 +94,6 @@ namespace Simulator.PointCloud.Trees
                 (childIndex & 1) != 0 ? 1 : -1,
                 (childIndex & (1 << 1)) != 0 ? 1 : -1,
                 (childIndex & (1 << 2)) != 0 ? 1 : -1);
-            ;
         }
         
         /// <summary>
@@ -111,7 +110,6 @@ namespace Simulator.PointCloud.Trees
                 (childIndex & 1) != 0 ? 1 : -1,
                 0f,
                 (childIndex & (1 << 1)) != 0 ? 1 : -1);
-            ;
         }
     }
 }

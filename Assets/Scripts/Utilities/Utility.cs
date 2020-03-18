@@ -14,6 +14,8 @@ using System.Linq;
 
 namespace Simulator.Utilities
 {
+    using System.IO;
+
     public static class Utility 
     {
         public static Transform FindDeepChild(this Transform parent, string name)
@@ -441,6 +443,40 @@ namespace Simulator.Utilities
                 material.EnableKeyword(keyword);
             else
                 material.DisableKeyword(keyword);
+        }
+        
+        /// <summary>
+        /// Returns a full path on drive based on either full path or one relative to Assets folder.
+        /// </summary>
+        public static string GetFullPath(string path)
+        {
+            var fullPath = path.StartsWith(".../") ? Path.Combine(Application.dataPath, path.Substring(4)) : path;
+
+            // Always forward slash, it should work both on Windows and Linux
+            return fullPath.Replace('\\', '/');
+        }
+
+        /// <summary>
+        /// Returns path relative to Assets folder if possible, full path otherwise.
+        /// </summary>
+        public static string GetRelativePathIfApplies(string fullPath)
+        {
+            var relativePath = fullPath.Replace('\\', '/');
+            var dataPath = Application.dataPath;
+            if (relativePath.StartsWith(dataPath))
+                relativePath = "..." + relativePath.Remove(0, dataPath.Length);
+
+            return relativePath;
+        }
+
+        /// <summary>
+        /// Returns path where all directory separators are forward slashes.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static string GetForwardSlashPath(string path)
+        {
+            return path.Replace('\\', '/');
         }
     }
 }

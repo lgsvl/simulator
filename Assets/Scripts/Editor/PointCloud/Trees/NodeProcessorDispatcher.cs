@@ -41,6 +41,7 @@ namespace Simulator.Editor.PointCloud.Trees
 
         private int rootTmpFilesCount;
         private int totalPointsCount;
+        private int discardedPointsCount;
         private int pointCount;
 
         /// <summary>
@@ -53,8 +54,19 @@ namespace Simulator.Editor.PointCloud.Trees
             this.outputPath = outputPath;
             Settings = settings;
 
+            var pcExtensions = new List<string> {TreeUtility.NodeFileExtension, TreeUtility.IndexFileExtension};
+            
             if (Directory.Exists(outputPath))
-                Directory.Delete(outputPath, true);
+            {
+                var matchingFiles = Directory
+                    .EnumerateFiles(outputPath, "*.*", SearchOption.TopDirectoryOnly)
+                    .Where(x => Path.GetExtension(x) != null &&
+                                pcExtensions.Contains(Path.GetExtension(x).ToLowerInvariant()))
+                    .ToList();
+
+                foreach (var file in matchingFiles)
+                    File.Delete(file);
+            }
 
             Directory.CreateDirectory(outputPath);
 
@@ -63,7 +75,8 @@ namespace Simulator.Editor.PointCloud.Trees
 
             points = new PointCloudPoint[settings.chunkSize];
 
-            PublicMaxSizeBuffer = new PointCloudPoint[TreeUtility.MaxPointCountPerArray];
+            var maxArraySize = TreeUtility.CalculateMaxArraySize(UnsafeUtility.SizeOf<PointCloudPoint>());
+            PublicMaxSizeBuffer = new PointCloudPoint[maxArraySize];
         }
 
         /// <summary>
@@ -196,7 +209,7 @@ namespace Simulator.Editor.PointCloud.Trees
                 // Start one processor on each of the requested threads
                 for (var i = 0; i < Settings.threadCount; ++i)
                 {
-                    if (Settings.TreeType == TreeType.Octree)
+                    if (Settings.treeType == TreeType.Octree)
                         processors[i] = new OctreeNodeProcessor(outputPath, Settings);
                     else
                         processors[i] = new QuadtreeNodeProcessor(outputPath, Settings);
@@ -238,6 +251,9 @@ namespace Simulator.Editor.PointCloud.Trees
                 
                 foreach (var processor in processors)
                     processor.StopWork();
+
+                processors = null;
+                threads = null;
                 
                 GC.Collect();
             }
@@ -268,13 +284,20 @@ namespace Simulator.Editor.PointCloud.Trees
                 if (processors[i].Status == TreeNodeProcessor.WorkStatus.Idle)
                 {
                     // Fetch children created by node processed on this thread and add them to the queue
-                    processors[i].PullResults(resultsList);
+                    processors[i].PullResults(resultsList, out var nodeCreated);
 
-                    foreach (var record in resultsList)
+                    if (nodeCreated)
                     {
-                        nodeRecords.Add(record.Identifier, record);
-                        if (record.PointCount == 0)
-                            queue.Enqueue(record);
+                        foreach (var record in resultsList)
+                        {
+                            nodeRecords.Add(record.Identifier, record);
+                            if (record.PointCount == 0)
+                                queue.Enqueue(record);
+                        }
+                    }
+                    else
+                    {
+                        nodeRecords.Remove(processors[i].NodeRecord.Identifier);
                     }
 
                     resultsList.Clear();
@@ -303,8 +326,11 @@ namespace Simulator.Editor.PointCloud.Trees
         /// </summary>
         private void FinalizeBuild()
         {
+            foreach (var processor in processors)
+                discardedPointsCount += processor.DiscardedPoints;
+            
             SaveIndexToDisk();
-            Directory.Delete(outputTmpPath);
+            Directory.Delete(outputTmpPath, true);
         }
 
         /// <summary>
@@ -374,13 +400,20 @@ namespace Simulator.Editor.PointCloud.Trees
             }
 
             // Create index file
-            var indexData = new IndexData(Settings.TreeType, nodeRecords.Values.ToList());
+            var indexData = new IndexData(Settings.treeType, nodeRecords.Values.ToList());
             var indexPath = Path.Combine(outputPath, "index" + TreeUtility.IndexFileExtension);
 
             if (File.Exists(indexPath))
                 File.Delete(indexPath);
 
             indexData.SaveToFile(indexPath);
+        }
+
+        public void GetPointCountResults(out int total, out int used, out int discarded)
+        {
+            total = totalPointsCount;
+            discarded = discardedPointsCount;
+            used = total - discarded;
         }
     }
 }

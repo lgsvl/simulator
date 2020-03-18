@@ -30,34 +30,33 @@ namespace Simulator.Editor.PointCloud.Trees
             /// Picks points with Poisson-disc sampling method.
             PoissonDisc
         }
-        
-        /// <summary>
-        /// Path under which tree files will be stored.
-        /// </summary>
-        [Header("Files")]
-        [Tooltip("Path under which tree files will be stored.")]
-        [PathSelector(SelectDirectory = true)]
-        public string outputPath = string.Empty;
 
         /// <summary>
         /// List of files that should be used to build tree.
         /// </summary>
         [Tooltip("List of files that should be used to build tree.")]
-        [PathSelector(AllowedExtensions = "laz,las,pcd,ply")]
         public List<string> inputFiles = new List<string>();
+        
+        /// <summary>
+        /// Path under which tree files will be stored.
+        /// </summary>
+        [Tooltip("Path under which tree files will be stored.")]
+        [PathSelector(SelectDirectory = true, TruncateToRelative = true)]
+        public string outputPath = string.Empty;
 
         /// <summary>
         /// Internal data structure that should be used by the tree.
         /// </summary>
-        [Header("Tree Settings")]
+        [FormerlySerializedAs("TreeType")]
         [Tooltip("Internal data structure that should be used by the tree.")]
-        public TreeType TreeType = TreeType.Octree;
+        public TreeType treeType = TreeType.Octree;
 
         /// <summary>
         /// Sampling method that should be used by the tree.
         /// </summary>
+        [FormerlySerializedAs("Sampling")]
         [Tooltip("Sampling method that should be used by the tree.")]
-        public SamplingMethod Sampling = SamplingMethod.CellCenter;
+        public SamplingMethod sampling = SamplingMethod.CellCenter;
         
         /// <summary>
         /// Defines distance between points in root node, relative to bounds. 64 means size/64 distance.
@@ -74,14 +73,17 @@ namespace Simulator.Editor.PointCloud.Trees
         [Range(16 * 16 * 2, 128 * 128 * 16)]
         public int nodeBranchThreshold = 64 * 64 * 8;
 
+        [Range(1, 16)]
+        [Tooltip("Defines maximum depth of the tree. Points on lower levels will be discarded.")]
+        public int maxTreeDepth = 12;
+
         /// <summary>
         /// <para>Amount of worker threads used for building the tree.</para>
         /// <para>Note: each thread allocates additional memory.</para>
         /// </summary>
-        [Header("Build Settings")]
         [Tooltip("Amount of worker threads used for building the tree.\nNote: each thread allocates additional memory.")]
-        [Range(1, 32)]
-        public int threadCount = 16;
+        [Range(1, 64)]
+        public int threadCount = 8;
 
         /// <summary>
         /// Amount of points that will be stored in a single chunk.

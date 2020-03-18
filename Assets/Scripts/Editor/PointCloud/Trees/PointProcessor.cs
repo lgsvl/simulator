@@ -53,12 +53,12 @@ namespace Simulator.Editor.PointCloud.Trees
             {
                 var batchIndex = 0;
 
-                var totalBatchCount =
-                    Mathf.CeilToInt((float) headerData.DataCount / TreeUtility.MaxPointCountPerArray);
+                var maxArraySize = TreeUtility.CalculateMaxArraySize(headerData.DataStride);
+                var totalBatchCount = Mathf.CeilToInt((float) headerData.DataCount / maxArraySize);
 
                 while (processed < headerData.DataCount)
                 {
-                    var batchCount = Math.Min(TreeUtility.MaxPointCountPerArray, headerData.DataCount - processed);
+                    var batchCount = Math.Min(maxArraySize, headerData.DataCount - processed);
                     var batchSize = batchCount * headerData.DataStride;
 
                     using (var view = file.CreateViewAccessor(currentOffset, batchSize, MemoryMappedFileAccess.Read))
@@ -100,12 +100,13 @@ namespace Simulator.Editor.PointCloud.Trees
             {
                 var batchIndex = 0;
 
+                var maxArraySize = TreeUtility.CalculateMaxArraySize(headerData.DataStride);
                 var totalBatchCount =
-                    Mathf.CeilToInt((float) headerData.DataCount / TreeUtility.MaxPointCountPerArray);
+                    Mathf.CeilToInt((float) headerData.DataCount / maxArraySize);
 
                 while (processed < headerData.DataCount)
                 {
-                    var batchCount = Math.Min(TreeUtility.MaxPointCountPerArray, headerData.DataCount - processed);
+                    var batchCount = Math.Min(maxArraySize, headerData.DataCount - processed);
                     var batchSize = batchCount * headerData.DataStride;
 
                     using (var view = file.CreateViewAccessor(currentOffset, batchSize, MemoryMappedFileAccess.Read))

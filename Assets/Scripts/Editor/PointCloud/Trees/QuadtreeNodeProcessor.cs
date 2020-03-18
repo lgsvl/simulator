@@ -29,7 +29,7 @@ namespace Simulator.Editor.PointCloud.Trees
             ChildCounts = new int[ChildCount];
             ChildFileCounts = new int[ChildCount];
             
-            if (settings.Sampling == TreeImportSettings.SamplingMethod.CellCenter)
+            if (settings.sampling == TreeImportSettings.SamplingMethod.CellCenter)
                 PointCollection = new CellCenterPointCollection();
             else
                 PointCollection = new PoissonDiskPointCollection();

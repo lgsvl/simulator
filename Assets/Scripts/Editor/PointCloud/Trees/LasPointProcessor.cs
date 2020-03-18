@@ -132,12 +132,12 @@ namespace Simulator.Editor.PointCloud.Trees
             {
                 var batchIndex = 0;
 
-                var totalBatchCount =
-                    Mathf.CeilToInt((float) count / TreeUtility.MaxPointCountPerArray);
+                var maxArraySize = TreeUtility.CalculateMaxArraySize(header.PointDataSize);
+                var totalBatchCount = Mathf.CeilToInt((float) count / maxArraySize);
 
                 while (processed < count)
                 {
-                    var batchCount = Math.Min(TreeUtility.MaxPointCountPerArray, count - processed);
+                    var batchCount = Math.Min(maxArraySize, count - processed);
                     var batchSize = batchCount * header.PointDataSize;
 
                     using (var view = file.CreateViewAccessor(currentOffset, batchSize, MemoryMappedFileAccess.Read))

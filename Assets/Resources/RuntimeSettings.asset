@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c90ec0c81414104489fe4f2aea826d56, type: 3}
   m_Name: RuntimeSettings
   m_EditorClassIdentifier: 
-  PointCloudPoints: {fileID: 4800000, guid: 22e02fd2d08fadf41baf761c4fbb5873, type: 3}
-  PointCloudCircles: {fileID: 4800000, guid: 393a3728bec59f44cb88ac0271436837, type: 3}
+  PointCloudPoints: {fileID: 4800000, guid: 9c9aefccc82f4594a9ddf3d61776c78c, type: 3}
+  PointCloudCircles: {fileID: 4800000, guid: 3985d47690c683b4bb36fa4959d61096, type: 3}
   PointCloudSolidRender: {fileID: 4800000, guid: 4339ed7b3ac08314d919cfa070444620,
     type: 3}
-  PointCloudSolidBlit: {fileID: 4800000, guid: 3d9d22d1d0f9c484cad3edc30a9285a7, type: 3}
+  PointCloudSolidBlit: {fileID: 4800000, guid: 21951601a50051449ba4e49ccb675dae, type: 3}
   PointCloudSolid: {fileID: 7200000, guid: 48893a9a88818a64697d25090e65c9a4, type: 3}
   AAWireBoxShader: {fileID: 4800000, guid: b1e5437621738c44ca30e61cf15ebdb9, type: 3}
   WireframeBoxShader: {fileID: 4800000, guid: baede0d38d433654eb6da9f35febf7dd, type: 3}

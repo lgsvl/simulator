@@ -1,0 +1,172 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3096891551423145499
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3096891551423145495}
+  - component: {fileID: 992688250100635784}
+  - component: {fileID: 3096891551423145492}
+  - component: {fileID: 3096891551423145493}
+  - component: {fileID: 1646781675611559997}
+  - component: {fileID: 860051652420521232}
+  m_Layer: 0
+  m_Name: PointCloudRenderer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3096891551423145495
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3096891551423145499}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &992688250100635784
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3096891551423145499}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b69e667ee3e14d28b61c8dfc4f73c929, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &3096891551423145492
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3096891551423145499}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d21f04fd5b054a089adcd00471f93407, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dataPath: 
+  pointLimit: 10000000
+--- !u!114 &3096891551423145493
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3096891551423145499}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36cf5466b3ad457791d26b277579699c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Colorize: 0
+  RenderMode: 0
+  Mask: 5
+  ConstantSize: 0
+  PixelSize: 6
+  AbsoluteSize: 0.05
+  MinPixelSize: 3
+  PartialPointLighting: 0
+  ShadowPointSize: 1
+  ShadowBias: -0.7
+  RemoveHiddenCascadeOffset: 1
+  RemoveHiddenCascadeSize: 1
+  DebugSolidPullParam: 4
+  CalculateNormals: 1
+  SmoothNormals: 1
+  SmoothNormalsCascadeOffset: 1.3
+  SmoothNormalsCascadeSize: 4
+  SolidFovReprojection: 1
+  TemporalSmoothing: 0
+  InterpolatedFrames: 60
+  PreserveTexelSize: 0
+  ReprojectionRatio: 1.1
+  DebugSolidBlitLevel: 0
+  DebugForceFill: 1
+  DebugFillThreshold: -0.04
+  SolidRemoveHidden: 1
+  DebugSolidPullPush: 1
+  DebugSolidFixedLevel: 0
+  DebugShowRemoveHiddenCascades: 0
+  DebugShowSmoothNormalsCascades: 0
+  DebugUseLinearDepth: 0
+  DebugBlendSky: 1
+  nodeTreeLoader: {fileID: 3096891551423145492}
+  cullCamera: {fileID: 0}
+  cullMode: 0
+  pointLimit: 2000000
+  minProjection: 50
+  rebuildSteps: 10
+  previewDepth: 3
+--- !u!114 &1646781675611559997
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3096891551423145499}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26d6499a6bd256e47b859377446493a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isGlobal: 1
+  fadeRadius: 0
+  customPasses:
+  - id: 0
+  injectionPoint: 3
+  references:
+    version: 1
+    00000000:
+      type: {class: PointCloudRenderPass, ns: Simulator.PointCloud, asm: Simulator}
+      data:
+        m_Name: Custom Pass
+        enabled: 1
+        targetColorBuffer: 0
+        targetDepthBuffer: 0
+        clearFlags: 0
+        passFoldout: 0
+        m_Version: 0
+--- !u!114 &860051652420521232
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3096891551423145499}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26d6499a6bd256e47b859377446493a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isGlobal: 1
+  fadeRadius: 0
+  customPasses:
+  - id: 0
+  injectionPoint: 5
+  references:
+    version: 1
+    00000000:
+      type: {class: PointCloudRenderPass, ns: Simulator.PointCloud, asm: Simulator}
+      data:
+        m_Name: Custom Pass
+        enabled: 1
+        targetColorBuffer: 2
+        targetDepthBuffer: 0
+        clearFlags: 0
+        passFoldout: 0
+        m_Version: 0

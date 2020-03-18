@@ -10,6 +10,9 @@ namespace Simulator.PointCloud.Trees
     using System;
     using System.Collections.Generic;
     using System.IO;
+
+    using Simulator.Utilities;
+
     using UnityEngine;
 
     /// <summary>
@@ -78,7 +81,8 @@ namespace Simulator.PointCloud.Trees
         /// <returns>True if load was successful, false otherwise.</returns>
         public static bool TryLoadFromDisk(string path, int pointLimit, out NodeTree instance)
         {
-            var indexPath = Path.Combine(path, "index" + TreeUtility.IndexFileExtension);
+            var fullPath = Utility.GetFullPath(path);
+            var indexPath = Path.Combine(fullPath, "index" + TreeUtility.IndexFileExtension);
 
             if (!File.Exists(indexPath))
             {
@@ -94,9 +98,9 @@ namespace Simulator.PointCloud.Trees
                 var indexData = IndexData.ReadFromFile(indexPath);
 
                 if (indexData.TreeType == TreeType.Octree)
-                    result = new Octree(path, pointLimit);
+                    result = new Octree(fullPath, pointLimit);
                 else
-                    result = new Quadtree(path, pointLimit);
+                    result = new Quadtree(fullPath, pointLimit);
                 
                 foreach (var nodeMetaData in indexData.Data)
                 {

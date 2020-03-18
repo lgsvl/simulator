@@ -7,18 +7,21 @@
 
 namespace Simulator.PointCloud.Trees
 {
+    using Simulator.Utilities;
+
     using UnityEngine;
     using Utilities.Attributes;
 
     /// <summary>
     /// Class used to manage instance of a single node tree in runtime.
     /// </summary>
+    [ExecuteInEditMode]
     public class NodeTreeLoader : MonoBehaviour
     {
 #pragma warning disable 0649
 
         [SerializeField]
-        [PathSelector(SelectDirectory = true)]
+        [PathSelector(SelectDirectory = true, TruncateToRelative = true)]
         [Tooltip("Path under which data for this tree is stored. Must exist.")]
         private string dataPath = "";
 
@@ -29,6 +32,8 @@ namespace Simulator.PointCloud.Trees
 #pragma warning restore 0649
 
         private bool corrupted;
+
+        private string lastUsedDataPath;
         
         private NodeTree tree;
 
@@ -36,7 +41,13 @@ namespace Simulator.PointCloud.Trees
         {
             get
             {
-                if (tree == null && !corrupted)
+                if (!enabled)
+                    return null;
+                
+                if (!string.Equals(dataPath, lastUsedDataPath))
+                    Cleanup();
+                
+                if (tree == null && !corrupted && !string.IsNullOrEmpty(dataPath))
                 {
                     if (!NodeTree.TryLoadFromDisk(dataPath, pointLimit, out tree))
                     {
@@ -46,12 +57,31 @@ namespace Simulator.PointCloud.Trees
                     }
                 }
 
+                lastUsedDataPath = dataPath;
+
                 return tree;
             }
         }
-        
-        private void OnDestroy()
+
+        public string GetFullDataPath()
         {
+            return Utility.GetFullPath(dataPath);
+        }
+
+        public void UpdateData(string newDataPath)
+        {
+            Cleanup();
+            dataPath = newDataPath;
+        }
+
+        private void OnDisable()
+        {
+            Cleanup();
+        }
+
+        private void Cleanup()
+        {
+            corrupted = false;
             tree?.Dispose();
             tree = null;
         }

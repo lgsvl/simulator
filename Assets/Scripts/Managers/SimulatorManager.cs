@@ -42,6 +42,16 @@ public class SimulatorManager : MonoBehaviour
             return _instance != null; 
         }
     }
+    
+    public static SimulatorManager InstanceSilent
+    {
+        get
+        {
+            if (_instance == null)
+                _instance = FindObjectOfType<SimulatorManager>();
+            return _instance;
+        }
+    }
     #endregion
 
     public AgentManager agentManagerPrefab;

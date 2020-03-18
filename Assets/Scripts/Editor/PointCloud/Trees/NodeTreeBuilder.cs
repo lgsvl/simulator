@@ -9,6 +9,9 @@ namespace Simulator.Editor.PointCloud.Trees
 {
     using System.Collections.Generic;
     using System.IO;
+
+    using Simulator.Utilities;
+
     using UnityEditor;
     using UnityEngine;
 
@@ -20,13 +23,13 @@ namespace Simulator.Editor.PointCloud.Trees
         /// <summary>
         /// Starts tree building process with given settings.
         /// </summary>
-        public static void BuildNodeTree(TreeImportSettings settings)
+        public static bool BuildNodeTree(TreeImportSettings settings)
         {
             var processors = new List<PointProcessor>();
 
             foreach (var inputFile in settings.inputFiles)
             {
-                var processor = CreateProcessor(inputFile);
+                var processor = CreateProcessor(Utility.GetFullPath(inputFile));
                 if (processor != null)
                     processors.Add(processor);
             }
@@ -34,7 +37,7 @@ namespace Simulator.Editor.PointCloud.Trees
             if (processors.Count == 0)
             {
                 Debug.LogError("All of given point cloud files are invalid or unsupported.");
-                return;
+                return false;
             }
 
             var bounds = CalculateBounds(processors);
@@ -47,11 +50,12 @@ namespace Simulator.Editor.PointCloud.Trees
             unityBounds.extents = transform.MultiplyVector(unityBounds.extents);
 
             NodeProcessorDispatcher dispatcher;
+            var fullOutputPath = Utility.GetFullPath(settings.outputPath);
 
             try
             {
                 EditorUtility.DisplayProgressBar("Creating dispatcher", "Preparing target directory...", 0f);
-                dispatcher = new NodeProcessorDispatcher(settings.outputPath, settings);
+                dispatcher = new NodeProcessorDispatcher(fullOutputPath, settings);
             }
             finally
             {
@@ -63,14 +67,22 @@ namespace Simulator.Editor.PointCloud.Trees
                 if (!processor.ConvertPoints(dispatcher, transformationData))
                 {
                     Debug.Log("Import cancelled.");
-                    return;
+                    return false;
                 }
             }
 
             if (dispatcher.ProcessPoints(unityBounds))
-                Debug.Log("Octree build finished successfully.");
+            {
+                dispatcher.GetPointCountResults(out var total, out var used, out var discarded);
+                Debug.Log($"Octree build finished successfully.\n" +
+                          $"Used points: {used}/{total} ({discarded} discarded on low tree levels)");
+                return true;
+            }
             else
+            {
                 Debug.Log("Octree build failed.");
+                return false;
+            }
         }
 
         /// <summary>

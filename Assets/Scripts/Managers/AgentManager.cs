@@ -26,6 +26,7 @@ using Simulator.Network.Core.Components;
 using Simulator.Network.Core.Messaging;
 using Simulator.FMU;
 using Simulator.Network.Shared;
+using UnityEngine.Rendering.HighDefinition;
 
 public class AgentManager : MonoBehaviour
 {
@@ -109,6 +110,22 @@ public class AgentManager : MonoBehaviour
         go.transform.position = config.Position;
         go.transform.rotation = config.Rotation;
         agentController.Init();
+
+#if UNITY_EDITOR
+        // TODO remove hack for editor opaque with alpha clipping 2019.3.3
+        Array.ForEach(go.GetComponentsInChildren<Renderer>(), renderer =>
+        {
+            foreach (var m in renderer.materials)
+            {
+                m.shader = Shader.Find(m.shader.name);
+            }
+        });
+
+        Array.ForEach(go.GetComponentsInChildren<DecalProjector>(), decal =>
+        {
+            decal.material.shader = Shader.Find(decal.material.shader.name);
+        });
+#endif
 
         return go;
     }

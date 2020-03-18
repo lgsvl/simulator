@@ -579,6 +579,7 @@ namespace Simulator
                                         mapBundle.Unload(false);
                                         zip.Close();
                                         SetupScene(simulation);
+                                        ResetMaterials(); // TODO remove Editor hack for 2019.3.3 bug once fixed
                                     }
                                 };
                             }
@@ -632,6 +633,21 @@ namespace Simulator
                     }
                 }
             });
+        }
+
+        private static void ResetMaterials()
+        {
+            // TODO remove hack for editor opaque with alpha clipping 2019.3.3
+#if UNITY_EDITOR
+            var go = FindObjectsOfType<Renderer>();
+            foreach (var renderer in go)
+            {
+                foreach (var m in renderer.materials)
+                {
+                    m.shader = Shader.Find(m.shader.name);
+                }
+            }
+#endif
         }
 
         public static void StopAsync()

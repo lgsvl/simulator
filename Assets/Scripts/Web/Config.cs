@@ -156,7 +156,7 @@ namespace Simulator.Web
                             }
 
                             string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
-                            var pluginStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_sensor_main_{platform}"));
+                            var pluginStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_sensor_main_{platform}"));
                             AssetBundle pluginBundle = AssetBundle.LoadFromStream(pluginStream);
                             var pluginAssets = pluginBundle.GetAllAssetNames();
                             prefabs.Add(pluginBundle.LoadAsset<GameObject>(pluginAssets[0]).GetComponent<SensorBase>());
@@ -196,12 +196,12 @@ namespace Simulator.Web
                                 throw new Exception("BundleFormat version mismatch");
                             }
 
-                            var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_controllable_textures"));
+                            var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_controllable_textures"));
                             var textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
 
                             Assembly.Load(GetFile(zip, $"{manifest.assetName}.dll"));
                             string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
-                            var pluginStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_controllable_main_{platform}"));
+                            var pluginStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_controllable_main_{platform}"));
                             AssetBundle pluginBundle = AssetBundle.LoadFromStream(pluginStream);
                             var pluginAssets = pluginBundle.GetAllAssetNames();
                             if (!AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))

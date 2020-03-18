@@ -84,9 +84,9 @@ namespace Simulator.Api.Commands
                     yield break;
                 }
 
-                if (zip.FindEntry($"{manifest.bundleGuid}_environment_textures", true) != -1)
+                if (zip.FindEntry($"{manifest.assetGuid}_environment_textures", true) != -1)
                 {
-                    var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_textures"));
+                    var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_environment_textures"));
                     textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
                 }
 
@@ -94,7 +94,7 @@ namespace Simulator.Api.Commands
                     ? "windows"
                     : "linux";
                 var mapStream =
-                    zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_main_{platform}"));
+                    zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_environment_main_{platform}"));
                 mapBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
 
                 if (mapBundle == null)

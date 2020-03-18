@@ -1,21 +1,24 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
- *
- * This software contains code licensed as described in LICENSE.
- *
- */
+* Copyright (c) 2019 LG Electronics, Inc.
+*
+* This software contains code licensed as described in LICENSE.
+*
+*/
+
+using System.Collections.Generic;
 
 namespace Simulator
 {
     public struct Manifest
     {
         public string assetName;
-        public string bundleGuid;
+        public string assetGuid;
         public int bundleFormat;
         public string description;
         public string licenseName;
         public string authorName;
         public string authorUrl;
         public string fmuName;
+        public Dictionary<string, string> additionalFiles;
     }
 }

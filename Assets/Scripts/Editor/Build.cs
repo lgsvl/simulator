@@ -23,6 +23,7 @@ using Simulator.Controllable;
 using System.Reflection;
 using System.Text;
 using Simulator.FMU;
+using Simulator.PointCloud.Trees;
 
 namespace Simulator.Editor
 {
@@ -383,6 +384,8 @@ namespace Simulator.Editor
                 var scene = Path.Combine("Assets", "External", "Environments", name, $"{name}.{SceneExtension}");
 
                 Scene s = EditorSceneManager.OpenScene(scene, OpenSceneMode.Additive);
+                string dataPath = GameObject.FindObjectOfType<NodeTreeLoader>()?.GetFullDataPath();
+
                 try
                 {
                     Manifest? manifest = null;
@@ -395,15 +398,23 @@ namespace Simulator.Editor
                             manifest = new Manifest
                             {
                                 assetName = name,
-                                bundleGuid = Guid.NewGuid().ToString(),
+                                assetGuid = Guid.NewGuid().ToString(),
                                 bundleFormat = BundleConfig.MapBundleFormatVersion,
                                 description = origin.Description,
                                 licenseName = origin.LicenseName,
                                 authorName = "",
                                 authorUrl = "",
                             };
+
                             break;
                         }
+                    }
+
+                    if (!string.IsNullOrEmpty(dataPath))
+                    {
+                        Manifest m = manifest.Value;
+                        m.additionalFiles = new Dictionary<string, string>() { { "pointCloud", dataPath } };
+                        manifest = m;
                     }
 
                     if (manifest.HasValue)
@@ -438,7 +449,7 @@ namespace Simulator.Editor
                 var manifest = new Manifest
                 {
                     assetName = name,
-                    bundleGuid = Guid.NewGuid().ToString(),
+                    assetGuid = Guid.NewGuid().ToString(),
                     bundleFormat = BundleConfig.VehicleBundleFormatVersion,
                     description = info.Description,
                     licenseName = info.LicenseName,
@@ -458,13 +469,13 @@ namespace Simulator.Editor
 
                     var textureBuild = new AssetBundleBuild()
                     {
-                        assetBundleName = $"{manifest.bundleGuid}_environment_textures",
+                        assetBundleName = $"{manifest.assetGuid}_environment_textures",
                         assetNames = AssetDatabase.GetDependencies(sceneAsset).Where(a => a.EndsWith(".png") || a.EndsWith(".jpg")).ToArray(),
                     };
 
                     var windowsBuild = new AssetBundleBuild()
                     {
-                        assetBundleName = $"{manifest.bundleGuid}_environment_main_windows",
+                        assetBundleName = $"{manifest.assetGuid}_environment_main_windows",
                         assetNames = new[] { sceneAsset },
                     };
 
@@ -476,7 +487,7 @@ namespace Simulator.Editor
 
                     var linuxBuild = new AssetBundleBuild()
                     {
-                        assetBundleName = $"{manifest.bundleGuid}_environment_main_linux",
+                        assetBundleName = $"{manifest.assetGuid}_environment_main_linux",
                         assetNames = new[] { sceneAsset },
                     };
 
@@ -504,6 +515,17 @@ namespace Simulator.Editor
                                 }
                             }
 
+                            if (manifest.additionalFiles != null && manifest.additionalFiles.ContainsKey("pointCloud"))
+                            {
+                                foreach (FileInfo fi in new DirectoryInfo(manifest.additionalFiles["pointCloud"]).GetFiles())
+                                {
+                                    if (fi.Extension == ".pcnode" || fi.Extension == ".pcindex")
+                                    {
+                                        archive.Add(new StaticDiskDataSource(fi.FullName), Path.Combine("PointCloud", fi.Name), CompressionMethod.Stored, true);
+                                    }
+                                }
+                            }
+
                             archive.Add(new StaticDiskDataSource(Path.Combine(folder, linuxBuild.assetBundleName)), linuxBuild.assetBundleName, CompressionMethod.Stored, true);
                             archive.Add(new StaticDiskDataSource(Path.Combine(folder, windowsBuild.assetBundleName)), windowsBuild.assetBundleName, CompressionMethod.Stored, true);
                             archive.Add(new StaticDiskDataSource(Path.Combine(folder, "manifest")), "manifest", CompressionMethod.Stored, true);
@@ -520,7 +542,7 @@ namespace Simulator.Editor
                 {
                     var di = new DirectoryInfo(folder);
 
-                    var files = di.GetFiles($"{manifest.bundleGuid}*");
+                    var files = di.GetFiles($"{manifest.assetGuid}*");
                     Array.ForEach(files, f => f.Delete());
 
                     files = di.GetFiles($"AssetBundles*");
@@ -536,13 +558,13 @@ namespace Simulator.Editor
 
                     var textureBuild = new AssetBundleBuild()
                     {
-                        assetBundleName = $"{manifest.bundleGuid}_vehicle_textures",
+                        assetBundleName = $"{manifest.assetGuid}_vehicle_textures",
                         assetNames = AssetDatabase.GetDependencies(prefabAsset).Where(a => a.EndsWith(".png") || a.EndsWith(".jpg")).ToArray()
                     };
 
                     var windowsBuild = new AssetBundleBuild()
                     {
-                        assetBundleName = $"{manifest.bundleGuid}_vehicle_main_windows",
+                        assetBundleName = $"{manifest.assetGuid}_vehicle_main_windows",
                         assetNames = new[] { prefabAsset },
                     };
 
@@ -554,7 +576,7 @@ namespace Simulator.Editor
 
                     var linuxBuild = new AssetBundleBuild()
                     {
-                        assetBundleName = $"{manifest.bundleGuid}_vehicle_main_linux",
+                        assetBundleName = $"{manifest.assetGuid}_vehicle_main_linux",
                         assetNames = new[] { prefabAsset },
                     };
 
@@ -611,7 +633,7 @@ namespace Simulator.Editor
                 {
                     var di = new DirectoryInfo(folder);
 
-                    var files = di.GetFiles($"{manifest.bundleGuid}*");
+                    var files = di.GetFiles($"{manifest.assetGuid}*");
                     Array.ForEach(files, f => f.Delete());
 
                     files = di.GetFiles($"AssetBundles*");
@@ -1075,7 +1097,7 @@ namespace Simulator.Editor
 
             foreach (var directoryInfo in directories)
             {
-                string bundleGuid = Guid.NewGuid().ToString();
+                string assetGuid = Guid.NewGuid().ToString();
                 string filename = directoryInfo.Name;
 
                 try
@@ -1097,7 +1119,7 @@ namespace Simulator.Editor
                     Manifest manifest = new Manifest
                     {
                         assetName = filename,
-                        bundleGuid = bundleGuid,
+                        assetGuid = assetGuid,
                         bundleFormat = BundleConfig.SensorBundleFormatVersion,
                         description = "",
                         licenseName = "",
@@ -1107,7 +1129,7 @@ namespace Simulator.Editor
 
                     var windowsBuild = new AssetBundleBuild()
                     {
-                        assetBundleName = $"{bundleGuid}_sensor_main_windows",
+                        assetBundleName = $"{assetGuid}_sensor_main_windows",
                         assetNames = new[] { prefab },
                     };
 
@@ -1125,7 +1147,7 @@ namespace Simulator.Editor
 
                     var linuxBuild = new AssetBundleBuild()
                     {
-                        assetBundleName = $"{bundleGuid}_sensor_main_linux",
+                        assetBundleName = $"{assetGuid}_sensor_main_linux",
                         assetNames = new[] { prefab },
                     };
 
@@ -1217,7 +1239,7 @@ namespace Simulator.Editor
                 {
                     var di = new DirectoryInfo(outputFolder);
 
-                    var files = di.GetFiles($"{bundleGuid}*");
+                    var files = di.GetFiles($"{assetGuid}*");
                     Array.ForEach(files, f => SilentDelete(f.FullName));
 
                     SilentDelete(Path.Combine(outputFolder, "Sensors"));
@@ -1246,7 +1268,7 @@ namespace Simulator.Editor
 
             foreach (var directoryInfo in directories)
             {
-                string bundleGuid = Guid.NewGuid().ToString();
+                string assetGuid = Guid.NewGuid().ToString();
                 string filename = directoryInfo.Name;
 
                 try
@@ -1268,7 +1290,7 @@ namespace Simulator.Editor
                     Manifest manifest = new Manifest
                     {
                         assetName = filename,
-                        bundleGuid = bundleGuid,
+                        assetGuid = assetGuid,
                         bundleFormat = BundleConfig.ControllableBundleFormatVersion,
                         description = "",
                         licenseName = "",
@@ -1278,13 +1300,13 @@ namespace Simulator.Editor
 
                     var textureBuild = new AssetBundleBuild()
                     {
-                        assetBundleName = $"{manifest.bundleGuid}_controllable_textures",
+                        assetBundleName = $"{manifest.assetGuid}_controllable_textures",
                         assetNames = AssetDatabase.GetDependencies(prefab).Where(a => a.EndsWith(".png") || a.EndsWith(".jpg")).ToArray()
                     };
 
                     var windowsBuild = new AssetBundleBuild()
                     {
-                        assetBundleName = $"{bundleGuid}_controllable_main_windows",
+                        assetBundleName = $"{assetGuid}_controllable_main_windows",
                         assetNames = new[] { prefab },
                     };
 
@@ -1302,7 +1324,7 @@ namespace Simulator.Editor
 
                     var linuxBuild = new AssetBundleBuild()
                     {
-                        assetBundleName = $"{bundleGuid}_controllable_main_linux",
+                        assetBundleName = $"{assetGuid}_controllable_main_linux",
                         assetNames = new[] { prefab },
                     };
 
@@ -1395,7 +1417,7 @@ namespace Simulator.Editor
                 {
                     var di = new DirectoryInfo(outputFolder);
 
-                    var files = di.GetFiles($"{bundleGuid}*");
+                    var files = di.GetFiles($"{assetGuid}*");
                     Array.ForEach(files, f => SilentDelete(f.FullName));
 
                     SilentDelete(Path.Combine(outputFolder, "Controllables"));

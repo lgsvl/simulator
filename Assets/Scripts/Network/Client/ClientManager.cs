@@ -530,16 +530,16 @@ namespace Simulator.Network.Client
 
                     AssetBundle textureBundle = null;
 
-                    if (zip.FindEntry($"{manifest.bundleGuid}_vehicle_textures", true) != -1)
+                    if (zip.FindEntry($"{manifest.assetGuid}_vehicle_textures", true) != -1)
                     {
-                        var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_textures"));
+                        var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_vehicle_textures"));
                         textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
                     }
 
                     string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows
                         ? "windows"
                         : "linux";
-                    var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_main_{platform}"));
+                    var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_vehicle_main_{platform}"));
                     var vehicleBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
 
                     if (vehicleBundle == null)
@@ -632,9 +632,9 @@ namespace Simulator.Network.Client
 
                     AssetBundle textureBundle = null;
 
-                    if (zip.FindEntry(($"{manifest.bundleGuid}_environment_textures"), false) != -1)
+                    if (zip.FindEntry(($"{manifest.assetGuid}_environment_textures"), false) != -1)
                     {
-                        var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_textures"));
+                        var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_environment_textures"));
                         textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
                     }
 
@@ -642,7 +642,7 @@ namespace Simulator.Network.Client
                         ? "windows"
                         : "linux";
                     var mapStream =
-                        zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_main_{platform}"));
+                        zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_environment_main_{platform}"));
                     var mapBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
 
                     if (mapBundle == null)

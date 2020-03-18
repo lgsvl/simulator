@@ -35,7 +35,7 @@ using Simulator.Network.Core.Threading;
 using MasterManager = Simulator.Network.Master.MasterManager;
 using ICSharpCode.SharpZipLib.Core;
 using Simulator.FMU;
-
+using Simulator.PointCloud.Trees;
 
 namespace Simulator
 {
@@ -482,7 +482,7 @@ namespace Simulator
 
                             }).ToArray();
                         }
-                        
+
                         //Initialize network for the master, client has initialized network since startup
                         if (Instance.SimConfig.Clusters == null || Instance.SimConfig.Clusters.Length == 0)
                         {
@@ -498,11 +498,8 @@ namespace Simulator
                         // load environment
                         if (Instance.SimConfig.ApiOnly)
                         {
-                            if (ApiManager.Instance == null)
-                            {
-                                var api = Instantiate(Instance.ApiManagerPrefab);
-                                api.name = "ApiManager";
-                            }
+                            var api = Instantiate(Instance.ApiManagerPrefab);
+                            api.name = "ApiManager";
 
                             Instance.CurrentSimulation = simulation;
 
@@ -533,6 +530,16 @@ namespace Simulator
 
                                 Manifest manifest = new Deserializer().Deserialize<Manifest>(manfile);
 
+                                if (manifest.additionalFiles != null && manifest.additionalFiles.ContainsKey("pointCloud"))
+                                {
+                                    if (!Directory.Exists(Path.Combine(Application.persistentDataPath, manifest.assetGuid)))
+                                    {
+                                        Directory.CreateDirectory(Path.Combine(Application.persistentDataPath, manifest.assetGuid));
+                                        FastZip fastZip = new FastZip();
+                                        fastZip.ExtractZip(mapBundlePath, Path.Combine(Application.persistentDataPath, manifest.assetGuid), ".*\\.(pcnode|pcindex)$");
+                                    }
+                                }
+
                                 if (manifest.bundleFormat != BundleConfig.MapBundleFormatVersion)
                                 {
                                     zip.Close();
@@ -541,14 +548,14 @@ namespace Simulator
                                     throw new ZipException("BundleFormat version mismatch");
                                 }
 
-                                if (zip.FindEntry($"{manifest.bundleGuid}_environment_textures", false) != -1)
+                                if (zip.FindEntry($"{manifest.assetGuid}_environment_textures", false) != -1)
                                 {
-                                    var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_textures"));
+                                    var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_environment_textures"));
                                     textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
                                 }
 
                                 string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
-                                var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_main_{platform}"));
+                                var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_environment_main_{platform}"));
                                 mapBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
 
                                 if (mapBundle == null)
@@ -569,9 +576,9 @@ namespace Simulator
                                 Instance.SimConfig.MapUrl = mapModel.Url;
 
                                 var isMasterSimulation = Instance.SimConfig.Clusters.Length > 0;
-                                var loader = 
-                                    SceneManager.LoadSceneAsync(sceneName, 
-                                        isMasterSimulation? LoadSceneMode.Additive : LoadSceneMode.Single);
+                                var loader =
+                                    SceneManager.LoadSceneAsync(sceneName,
+                                        isMasterSimulation ? LoadSceneMode.Additive : LoadSceneMode.Single);
                                 loader.completed += op =>
                                 {
                                     if (op.isDone)
@@ -581,6 +588,7 @@ namespace Simulator
                                         textureBundle?.Unload(false);
                                         mapBundle.Unload(false);
                                         zip.Close();
+                                        FindObjectOfType<NodeTreeLoader>().UpdateData(Path.Combine(Application.persistentDataPath, manifest.assetGuid, "PointCloud"));
                                         SetupScene(simulation);
                                         ResetMaterials(); // TODO remove Editor hack for 2019.3.3 bug once fixed
                                     }
@@ -745,11 +753,11 @@ namespace Simulator
                                 throw new ZipException("BundleFormat version mismatch");
                             }
 
-                            var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_textures"));
+                            var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_vehicle_textures"));
                             textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
 
                             string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
-                            var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_main_{platform}"));
+                            var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_vehicle_main_{platform}"));
 
                             vehicleBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
 
@@ -841,7 +849,7 @@ namespace Simulator
                     NotificationManager.SendNotification("simulation",
                         SimulationResponse.Create(Loader.Instance.CurrentSimulation),
                         Loader.Instance.CurrentSimulation.Owner);
-                    
+
                     if (Instance.SimConfig.Clusters.Length == 0)
                     {
                         // Flash main window to let user know simulation is ready
@@ -916,7 +924,7 @@ namespace Simulator
         {
             var sim = Instantiate(Instance.SimulatorManagerPrefab);
             sim.name = "SimulatorManager";
-            
+
             return sim;
         }
 

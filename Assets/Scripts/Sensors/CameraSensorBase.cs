@@ -18,6 +18,7 @@ using Simulator.Plugins;
 using Simulator.Utilities;
 using Simulator.Sensors.UI;
 using UnityEngine.Rendering.HighDefinition;
+using Unity.Collections;
 
 namespace Simulator.Sensors
 {
@@ -105,8 +106,12 @@ namespace Simulator.Sensors
         private RenderTexture CubemapTexture;
         private int faceMask;
 
+        bool SizeChanged;
+        ConcurrentBag<NativeArray<byte>> AvailableGpuDataArrays = new ConcurrentBag<NativeArray<byte>>();
+
         private struct CameraCapture
         {
+            public NativeArray<byte> GpuData;
             public AsyncGPUReadbackRequest Request;
             public double CaptureTime;
         }
@@ -125,6 +130,7 @@ namespace Simulator.Sensors
             CurrentDistortionParameters = new List<float>(DistortionParameters);
             CurrentXi = Xi;
             CurrentCubemapSize = CubemapSize;
+            SizeChanged = false;
 
             var hd = SensorCamera.GetComponent<HDAdditionalCameraData>();
             hd.hasPersistentHistory = true;
@@ -137,6 +143,17 @@ namespace Simulator.Sensors
                 SensorCamera.targetTexture.Release();
             }
             DistortedTexture?.Release();
+
+            while (AvailableGpuDataArrays.Count > 0)
+            {
+                NativeArray<byte> gpuData;
+                bool tryTakeSuccess = AvailableGpuDataArrays.TryTake(out gpuData);
+                while (!tryTakeSuccess)
+                {
+                    tryTakeSuccess = AvailableGpuDataArrays.TryTake(out gpuData);
+                }
+                gpuData.Dispose();
+            }
         }
 
         public override void OnBridgeSetup(IBridge bridge)
@@ -151,6 +168,13 @@ namespace Simulator.Sensors
             SensorCamera.nearClipPlane = MinDistance;
             SensorCamera.farClipPlane = MaxDistance;
 
+            if (CurrentWidth != Width || CurrentHeight != Height)
+            {
+                SizeChanged = true;
+                CurrentWidth = Width;
+                CurrentHeight = Height;
+            }
+
             if (Distorted)
             {
                 CheckDistortion();
@@ -162,6 +186,8 @@ namespace Simulator.Sensors
             CheckTexture();
             CheckCapture();
             ProcessReadbackRequests();
+
+            SizeChanged = false;
         }
 
         void CheckDistortion()
@@ -180,7 +206,7 @@ namespace Simulator.Sensors
                 throw new Exception("Distorted must be true for fisheye lens.");
             }
 
-            if (LensDistortion == null || CurrentWidth != Width || CurrentHeight != Height || 
+            if (LensDistortion == null || SizeChanged || 
                 CurrentFieldOfView != FieldOfView || CurrentDistorted != Distorted || 
                 !Enumerable.SequenceEqual(DistortionParameters, CurrentDistortionParameters) ||
                 (Fisheye && CurrentXi != Xi))
@@ -206,8 +232,6 @@ namespace Simulator.Sensors
                 faceMask |= 1 << (int)(CubemapFace.NegativeY); // bottom face
                 faceMask |= 1 << (int)(CubemapFace.PositiveZ); // front face
 
-                CurrentWidth = Width;
-                CurrentHeight = Height;
                 CurrentFieldOfView = FieldOfView;
                 CurrentDistorted = Distorted;
                 CurrentDistortionParameters = new List<float>(DistortionParameters);
@@ -283,19 +307,38 @@ namespace Simulator.Sensors
                 }
             }
 
-            if (Distorted && DistortedTexture == null)
+            if (Distorted)
             {
-                DistortedTexture = new RenderTexture(Width, Height, 24, RenderTextureFormat.ARGB32, CameraTargetTextureReadWriteType)
+                // if this is not first time
+                if (DistortedTexture != null)
                 {
-                    dimension = TextureDimension.Tex2D,
-                    antiAliasing = 1,
-                    useMipMap = false,
-                    useDynamicScale = false,
-                    wrapMode = TextureWrapMode.Clamp,
-                    filterMode = FilterMode.Bilinear,
-                    enableRandomWrite = true,
-                };
-                DistortedTexture.Create();
+                    if (SizeChanged)
+                    {
+                        // if camera capture size has changed
+                        DistortedTexture.Release();
+                        DistortedTexture = null;
+                    }
+                    else if (!DistortedTexture.IsCreated())
+                    {
+                        // if we have lost DistortedTexture due to Unity window resizing or otherwise
+                        DistortedTexture.Release();
+                        DistortedTexture = null;
+                    }
+                }
+                if (DistortedTexture == null)
+                {
+                    DistortedTexture = new RenderTexture(Width, Height, 24, RenderTextureFormat.ARGB32, CameraTargetTextureReadWriteType)
+                    {
+                        dimension = TextureDimension.Tex2D,
+                        antiAliasing = 1,
+                        useMipMap = false,
+                        useDynamicScale = false,
+                        wrapMode = TextureWrapMode.Clamp,
+                        filterMode = FilterMode.Bilinear,
+                        enableRandomWrite = true,
+                    };
+                    DistortedTexture.Create();
+                }
             }
         }
 
@@ -326,11 +369,28 @@ namespace Simulator.Sensors
             if (Time.time >= NextCaptureTime)
             {
                 RenderCamera();
+
+                NativeArray<byte> GpuData;
+                if (!AvailableGpuDataArrays.TryTake(out GpuData))
+                {
+                    GpuData = new NativeArray<byte>(Width * Height * 4, Allocator.Persistent);
+                }
+                else if (GpuData.Length != Width * Height * 4)
+                {
+                    GpuData.Dispose();
+                    GpuData = new NativeArray<byte>(Width * Height * 4, Allocator.Persistent);
+                }
+
                 var capture = new CameraCapture()
                 {
+                    GpuData = GpuData,
                     CaptureTime = SimulatorManager.Instance.CurrentTime,
-                    Request = AsyncGPUReadback.Request(Distorted ? DistortedTexture : SensorCamera.targetTexture, 0, TextureFormat.RGBA32),
                 };
+                capture.Request = AsyncGPUReadback.Request(Distorted ? DistortedTexture : SensorCamera.targetTexture, 0, TextureFormat.RGBA32);
+                // TODO: Replace above AsyncGPUReadback.Request with following AsyncGPUReadback.RequestIntoNativeArray when we upgrade to Unity 2020.1
+                // See https://issuetracker.unity3d.com/issues/asyncgpureadback-dot-requestintonativearray-crashes-unity-when-trying-to-request-a-copy-to-the-same-nativearray-multiple-times
+                // for the detaisl of the bug in Unity.
+                //capture.Request = AsyncGPUReadback.RequestIntoNativeArray(ref capture.GpuData, Distorted ? DistortedTexture : SensorCamera.targetTexture, 0, TextureFormat.RGBA32);
                 CaptureQueue.Enqueue(capture);
 
                 NextCaptureTime = Time.time + (1.0f / Frequency);
@@ -353,7 +413,10 @@ namespace Simulator.Sensors
 
                     if (Bridge != null && Bridge.Status == Status.Connected)
                     {
+                        // TODO: Remove the following two lines of extra memory copy, when we can use 
+                        // AsyncGPUReadback.RequestIntoNativeArray.
                         var data = capture.Request.GetData<byte>();
+                        NativeArray<byte>.Copy(data, capture.GpuData, data.Length);
 
                         var imageData = new ImageData()
                         {
@@ -371,17 +434,18 @@ namespace Simulator.Sensors
 
                         Task.Run(() =>
                         {
-                            imageData.Length = JpegEncoder.Encode(data, Width, Height, 4, JpegQuality, imageData.Bytes);
+                            imageData.Length = JpegEncoder.Encode(capture.GpuData, Width, Height, 4, JpegQuality, imageData.Bytes);
                             if (imageData.Length > 0)
                             {
                                 imageData.Time = capture.CaptureTime;
                                 ImageWriter.Write(imageData);
-                                JpegOutput.Add(imageData.Bytes);
                             }
                             else
                             {
                                 Debug.Log("Compressed image is empty, length = 0");
                             }
+                            JpegOutput.Add(imageData.Bytes);
+                            AvailableGpuDataArrays.Add(capture.GpuData);
                         });
 
                         Sequence++;

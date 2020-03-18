@@ -588,7 +588,7 @@ namespace Simulator
                                         textureBundle?.Unload(false);
                                         mapBundle.Unload(false);
                                         zip.Close();
-                                        FindObjectOfType<NodeTreeLoader>().UpdateData(Path.Combine(Application.persistentDataPath, manifest.assetGuid, "PointCloud"));
+                                        FindObjectOfType<NodeTreeLoader>()?.UpdateData(Path.Combine(Application.persistentDataPath, manifest.assetGuid, "PointCloud"));
                                         SetupScene(simulation);
                                         ResetMaterials(); // TODO remove Editor hack for 2019.3.3 bug once fixed
                                     }

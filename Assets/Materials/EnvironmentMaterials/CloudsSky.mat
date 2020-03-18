@@ -21,15 +21,16 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: CloudsSky
-  m_Shader: {fileID: -6465566751694194690, guid: a9d55eb56373d3644a11d0f6d015c46f,
+  m_Shader: {fileID: -6465566751694194690, guid: 655939cc90796194d8525c6a09412f79,
     type: 3}
-  m_ShaderKeywords: _DISABLE_SSR
+  m_ShaderKeywords: _BLENDMODE_ALPHA _DISABLE_SSR _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
+  m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 3000
   stringTagMap:
     MotionVector: User
+    RenderType: Transparent
   disabledShaderPasses:
   - MOTIONVECTORS
   - TransparentBackface
@@ -150,7 +151,9 @@ Material:
     - Vector1_2E95E97B: 0
     - Vector1_3D7248E4: 0.149
     - Vector1_52601727: 4.76
+    - Vector1_659DEF05: 0.5
     - Vector1_6D795EAF: 1
+    - Vector1_6F516598: 0
     - Vector1_89C55934: 0
     - Vector1_8AC903C0: 1.043
     - Vector1_8CC906AA: 0
@@ -163,10 +166,12 @@ Material:
     - Vector1_C7AC26E2: 0.915
     - Vector1_D34FB3B3: 0.01
     - Vector1_D4213E19: 0.5
+    - Vector1_D535826B: 0
     - Vector1_D76EFEE7: 0
     - Vector1_DAC41AB4: -0.46
     - Vector1_DC38A9F8: 4.85
     - Vector1_E5F2B3E9: 0
+    - Vector1_F2054142: 0.59
     - _AORemapMax: 1
     - _AORemapMin: 0
     - _ATDistance: 1
@@ -176,7 +181,7 @@ Material:
     - _AlphaCutoffPostpass: 0.5
     - _AlphaCutoffPrepass: 0.5
     - _AlphaCutoffShadow: 0.5
-    - _AlphaDstBlend: 0
+    - _AlphaDstBlend: 10
     - _AlphaSrcBlend: 1
     - _Anisotropy: 0
     - _BlendMode: 0
@@ -191,7 +196,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
-    - _DiffusionProfileHash: 3.6211355
+    - _DiffusionProfileHash: 3.9969604
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -212,7 +217,7 @@ Material:
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
     - _Drag: 1
-    - _DstBlend: 0
+    - _DstBlend: 10
     - _EmissiveColorMode: 1
     - _EmissiveExposureWeight: 1
     - _EmissiveIntensity: 1
@@ -257,7 +262,7 @@ Material:
     - _ScaledTime: 0
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
-    - _Size: 0.01
+    - _Size: 0
     - _Smoothness: 0.5
     - _SmoothnessRemapMax: 1
     - _SmoothnessRemapMin: 0
@@ -278,7 +283,7 @@ Material:
     - _Stiffness: 1
     - _SubsurfaceMask: 1
     - _SupportDecals: 1
-    - _SurfaceType: 0
+    - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
@@ -296,19 +301,19 @@ Material:
     - _UVEmissive: 0
     - _UseEmissiveIntensity: 0
     - _UseShadowThreshold: 0
-    - _ZTestDepthEqualForOpaque: 3
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestGBuffer: 4
     - _ZTestModeDistortion: 8
     - _ZTestTransparent: 4
-    - _ZWrite: 1
+    - _ZWrite: 0
     m_Colors:
     - Color_B81CAC22: {r: 1, g: 1, b: 1, a: 1}
     - Vector2_2660891C: {r: 0, g: 0.04, b: 0, a: 0}
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _DiffusionProfileAsset: {r: 1.5596035e+36, g: 6.9904114e-17, b: -1.27913946e+33,
-        a: -1.0134947e-37}
+    - _DiffusionProfileAsset: {r: -4.7290974e-14, g: -1751.5431, b: -1.0842537e+27,
+        a: 1.7599353e+15}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}

@@ -98,6 +98,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
     public float fog = 0f;
     private float prevFog = 0f;
     private Fog volumetricFog;
+    private float MaxFog = 5000f;
 
     [Space(5, order = 0)]
     [Header("Cloud", order = 1)]
@@ -144,7 +145,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
         UpdateWet();
         UpdateFog();
         UpdateSunPosition();
-        //UpdateClouds();
+        UpdateClouds();
         //UpdateMoonPosition();
 
         if (Loader.Instance.Network.IsMaster)
@@ -177,9 +178,8 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
         ActiveProfile.TryGet(out volumetricFog);
 
-        // 2019.3 broke this TODO fix
-        //clouds = Instantiate(CloudPrefab, new Vector3(0f, 100f, 0f), Quaternion.identity);
-        //cloudRenderer = clouds.GetComponentInChildren<Renderer>();
+        clouds = Instantiate(CloudPrefab, new Vector3(0f, 100f, 0f), Quaternion.identity);
+        cloudRenderer = clouds.GetComponentInChildren<Renderer>();
 
         //ActiveProfile.TryGet(out activeOverrides.proceduralSky);
         //ActiveProfile.TryGet(out activeOverrides.tonemapping);
@@ -222,17 +222,18 @@ public class EnvironmentEffectsManager : MonoBehaviour
             obj.GetComponentsInChildren(renderers);
             renderers.ForEach(r =>
             {
-                if (r.GetComponent<ParticleSystem>() != null || r.GetComponent<ReflectionProbe>() != null)
-                {
-                    return;
-                }
-
                 r.GetSharedMaterials(materials);
                 materials.ForEach(m =>
                 {
+                    if (r.GetComponent<ParticleSystem>() != null || r.GetComponent<ReflectionProbe>() != null)
+                    {
+                        return;
+                    }
+
                     if (m == null)
                     {
-                        Debug.LogError($"Object {r.gameObject.name} has null material", r.gameObject);
+                        Debug.Log($"Object {r.gameObject.name} has null material", r.gameObject);
+                        return;
                     }
                     else
                     {
@@ -378,7 +379,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     private void TimeOfDayColorChange()
     {
-        float f = Mathf.InverseLerp(fromTimeOfDay, toTimeOfDay, currentTimeOfDay);
+        //float f = Mathf.InverseLerp(fromTimeOfDay, toTimeOfDay, currentTimeOfDay);
         //activeOverrides.proceduralSky.atmosphereThickness.value = Mathf.Lerp(fromOverrides.proceduralSky.atmosphereThickness.value, toOverrides.proceduralSky.atmosphereThickness.value, f);
         //activeOverrides.tonemapping.mode.value = toOverrides.tonemapping.mode.value;
         //activeOverrides.exposure.compensation.value = Mathf.Lerp(fromOverrides.exposure.compensation.value, toOverrides.exposure.compensation.value, f);
@@ -424,7 +425,10 @@ public class EnvironmentEffectsManager : MonoBehaviour
     private void UpdateFog()
     {
         if (fog != prevFog)
-            volumetricFog.meanFreePath.value = Mathf.Lerp(5000f, 10f, fog);
+        {
+            MaxFog = fog == 0 ? 5000f : 1000f;
+            volumetricFog.meanFreePath.value = Mathf.Lerp(MaxFog, 25f, fog);
+        }
         prevFog = fog;
     }
 
@@ -459,13 +463,12 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     private void UpdateClouds()
     {
-        cloudRenderer.material.SetColor("_SunCloudsColor", sun.color);
-
+        //cloudRenderer.material.SetColor("_SunCloudsColor", sun.color);
         if (cloud != prevCloud)
         {
-            cloudRenderer.material.SetFloat("_Density", Mathf.Lerp(0f, 2f, cloud));
-            cloudRenderer.material.SetFloat("_Size", Mathf.Lerp(2f, 0.25f, cloud));
-            cloudRenderer.material.SetFloat("_Cover", Mathf.Lerp(0f, 0.9f, cloud));
+            cloudRenderer.material.SetFloat("_Density", Mathf.Lerp(0f, 1f, cloud));
+            cloudRenderer.material.SetFloat("_Size", Mathf.Lerp(0f, 1f, cloud));
+            cloudRenderer.material.SetFloat("_Cover", Mathf.Lerp(0f, 1f, cloud));
         }
         prevCloud = cloud;
     }

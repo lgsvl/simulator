@@ -90,10 +90,11 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
 
             if (Loader.Instance.Network.IsMaster)
             {
-                var content = new BytesStack();
-                content.PushEnum<HeadLightState>((int)value);
-                content.PushEnum<VehicleActionsPropertyName>((int)VehicleActionsPropertyName.CurrentHeadLightState);
-                var message = new DistributedMessage(key, content, DistributedMessageType.ReliableOrdered);
+                var message = MessagesPool.Instance.GetMessage(8);
+                message.AddressKey = Key;
+                message.Content.PushEnum<HeadLightState>((int)value);
+                message.Content.PushEnum<VehicleActionsPropertyName>((int)VehicleActionsPropertyName.CurrentHeadLightState);
+                message.Type = DistributedMessageType.ReliableOrdered;
                 BroadcastMessage(message);
             }
         }
@@ -115,10 +116,11 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
 
             if (Loader.Instance.Network.IsMaster)
             {
-                var content = new BytesStack();
-                content.PushEnum<WiperState>((int)value);
-                content.PushEnum<VehicleActionsPropertyName>((int)VehicleActionsPropertyName.CurrentWiperState);
-                var message = new DistributedMessage(key, content, DistributedMessageType.ReliableOrdered);
+                var message = MessagesPool.Instance.GetMessage(8);
+                message.AddressKey = Key;
+                message.Content.PushEnum<WiperState>((int)value);
+                message.Content.PushEnum<VehicleActionsPropertyName>((int)VehicleActionsPropertyName.CurrentWiperState);
+                message.Type = DistributedMessageType.ReliableOrdered;
                 BroadcastMessage(message);
             }
         }
@@ -138,13 +140,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
             StartIndicatorLeftStatus();
             
             if (Loader.Instance.Network.IsMaster)
-            {
-                var content = new BytesStack();
-                content.PushBool(value);
-                content.PushEnum<VehicleActionsPropertyName>((int)VehicleActionsPropertyName.LeftTurnSignal);
-                var message = new DistributedMessage(key, content, DistributedMessageType.ReliableOrdered);
-                BroadcastMessage(message);
-            }
+                BroadcastProperty(VehicleActionsPropertyName.LeftTurnSignal, value);
         }
     }
 
@@ -162,13 +158,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
             StartIndicatorRightStatus();
             
             if (Loader.Instance.Network.IsMaster)
-            {
-                var content = new BytesStack();
-                content.PushBool(value);
-                content.PushEnum<VehicleActionsPropertyName>((int)VehicleActionsPropertyName.RightTurnSignal);
-                var message = new DistributedMessage(key, content, DistributedMessageType.ReliableOrdered);
-                BroadcastMessage(message);
-            }
+                BroadcastProperty(VehicleActionsPropertyName.RightTurnSignal, value);
         }
     }
 
@@ -186,13 +176,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
             StartIndicatorHazardStatus();
             
             if (Loader.Instance.Network.IsMaster)
-            {
-                var content = new BytesStack();
-                content.PushBool(value);
-                content.PushEnum<VehicleActionsPropertyName>((int)VehicleActionsPropertyName.HazardLights);
-                var message = new DistributedMessage(key, content, DistributedMessageType.ReliableOrdered);
-                BroadcastMessage(message);
-            }
+                BroadcastProperty(VehicleActionsPropertyName.HazardLights, value);
         }
     }
 
@@ -216,13 +200,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
             brakeLights.ForEach(x => x.enabled = _brakeLights);
             
             if (Loader.Instance.Network.IsMaster)
-            {
-                var content = new BytesStack();
-                content.PushBool(value);
-                content.PushEnum<VehicleActionsPropertyName>((int)VehicleActionsPropertyName.BrakeLights);
-                var message = new DistributedMessage(key, content, DistributedMessageType.ReliableOrdered);
-                BroadcastMessage(message);
-            }
+                BroadcastProperty(VehicleActionsPropertyName.BrakeLights, value);
         }
     }
 
@@ -240,13 +218,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
             fogLights.ForEach(x => x.enabled = _fogLights);
             
             if (Loader.Instance.Network.IsMaster)
-            {
-                var content = new BytesStack();
-                content.PushBool(value);
-                content.PushEnum<VehicleActionsPropertyName>((int)VehicleActionsPropertyName.FogLights);
-                var message = new DistributedMessage(key, content, DistributedMessageType.ReliableOrdered);
-                BroadcastMessage(message);
-            }
+                BroadcastProperty(VehicleActionsPropertyName.FogLights, value);
         }
     }
 
@@ -261,13 +233,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
             indicatorReverseLights.ForEach(x => x.enabled = _reverseLights);
             
             if (Loader.Instance.Network.IsMaster)
-            {
-                var content = new BytesStack();
-                content.PushBool(value);
-                content.PushEnum<VehicleActionsPropertyName>((int)VehicleActionsPropertyName.ReverseLights);
-                var message = new DistributedMessage(key, content, DistributedMessageType.ReliableOrdered);
-                BroadcastMessage(message);
-            }
+                BroadcastProperty(VehicleActionsPropertyName.ReverseLights, value);
         }
     }
 
@@ -284,13 +250,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
             interiorLights.ForEach(x => x.enabled = _interiorLights);
             
             if (Loader.Instance.Network.IsMaster)
-            {
-                var content = new BytesStack();
-                content.PushBool(value);
-                content.PushEnum<VehicleActionsPropertyName>((int)VehicleActionsPropertyName.InteriorLight);
-                var message = new DistributedMessage(key, content, DistributedMessageType.ReliableOrdered);
-                BroadcastMessage(message);
-            }
+                BroadcastProperty(VehicleActionsPropertyName.InteriorLight, value);
         }
     }
 
@@ -568,6 +528,16 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
     void IMessageSender.UnicastInitialMessages(IPEndPoint endPoint)
     {
         //TODO support reconnection - send instantiation messages to the peer
+    }
+
+    private void BroadcastProperty(VehicleActionsPropertyName propertyName, bool value)
+    {
+        var message = MessagesPool.Instance.GetMessage(5);
+        message.AddressKey = Key;
+        message.Content.PushBool(value);
+        message.Content.PushEnum<VehicleActionsPropertyName>((int)propertyName);
+        message.Type = DistributedMessageType.ReliableOrdered;
+        BroadcastMessage(message);
     }
 
     private enum VehicleActionsPropertyName

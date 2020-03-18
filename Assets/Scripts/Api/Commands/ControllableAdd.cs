@@ -30,14 +30,14 @@ namespace Simulator.Api.Commands
             Web.Config.Controllables.TryGetValue(name, out IControllable prefab);
             if (prefab == null)
             {
-                api.SendError($"Unknown '{name}' controllable prefab");
+                api.SendError(this, $"Unknown '{name}' controllable prefab");
                 return;
             }
 
             var controllable = controlManager.SpawnControllable(prefab.gameObject, position, Quaternion.Euler(rotation), velocity, angular_velocity);
             if (controllable == null)
             {
-                api.SendError($"Failed to spawn '{name}' controllable");
+                api.SendError(this, $"Failed to spawn '{name}' controllable");
                 return;
             }
 
@@ -66,7 +66,7 @@ namespace Simulator.Api.Commands
             j.Add("valid_actions", validActions);
             j.Add("default_control_policy", new JSONString(controllable.DefaultControlPolicy));
 
-            api.SendResult(j);
+            api.SendResult(this, j);
         }
     }
 }

@@ -26,17 +26,17 @@ namespace Simulator.Api.Commands
                 var ccs = obj.GetComponentInChildren<CruiseControlSensor>();
                 if (ccs == null)
                 {
-                    api.SendError($"Agent '{uid}' does not have CruiseControlSensor");
+                    api.SendError(this, $"Agent '{uid}' does not have CruiseControlSensor");
                     return;
                 }
 
                 ccs.CruiseSpeed = isCruise ? args["speed"].AsFloat : 0.0f;
 
-                api.SendResult();
+                api.SendResult(this);
             }
             else
             {
-                api.SendError($"Agent '{uid}' not found");
+                api.SendError(this, $"Agent '{uid}' not found");
             }
         }
     }

@@ -25,13 +25,21 @@ public class SimulatorManager : MonoBehaviour
     {
         get
         {
+            if (!InstanceAvailable)
+                Debug.LogError("<color=red>SimulatorManager Not Found!</color>");
+            return _instance;
+        }
+    }
+
+    public static bool InstanceAvailable
+    {
+        get
+        {
             if (_instance == null)
             {
                 _instance = GameObject.FindObjectOfType<SimulatorManager>();
-                if (_instance == null)
-                    Debug.LogError("<color=red>SimulatorManager Not Found!</color>");
             }
-            return _instance;
+            return _instance != null; 
         }
     }
     #endregion
@@ -55,6 +63,7 @@ public class SimulatorManager : MonoBehaviour
     public EnvironmentEffectsManager EnvironmentEffectsManager { get; private set; }
     public UIManager UIManager { get; private set; }
     public SimulatorTimeManager TimeManager { get;  } = new SimulatorTimeManager();
+    public SensorsManager Sensors { get; } = new SensorsManager();
 
     private GameObject ManagerHolder;
 
@@ -230,6 +239,7 @@ public class SimulatorManager : MonoBehaviour
         InitSemanticTags();
         WireframeBoxes = gameObject.AddComponent<WireframeBoxes>();
         if (Loader.Instance != null) TimeManager.Initialize(Loader.Instance.Network.MessagesManager);
+        Sensors.Initialize();
         IsInitialized = true;
     }
 
@@ -297,6 +307,7 @@ public class SimulatorManager : MonoBehaviour
         }
 
         TimeManager.Deinitialize();
+        Sensors.Deinitialize();
 
         DestroyImmediate(ManagerHolder);
     }

@@ -19,11 +19,11 @@ namespace Simulator.Api.Commands
             var scene = api.CurrentScene;
             if (string.IsNullOrEmpty(scene))
             {
-                api.SendResult();
+                api.SendResult(this);
             }
             else
             {
-                api.SendResult(new JSONString(scene));
+                api.SendResult(this, new JSONString(scene));
             }
         }
     }

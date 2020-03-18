@@ -28,18 +28,18 @@ namespace Simulator.Api.Commands
                 var bridge = obj.GetComponentInChildren<BridgeClient>();
                 if (bridge == null)
                 {
-                    api.SendError($"Agent '{uid}' is missing bridge client");
+                    api.SendError(this, $"Agent '{uid}' is missing bridge client");
                 }
                 else
                 {
                     bridge.Connect(address, port);
-                    api.SendResult();
+                    api.SendResult(this);
                     SIM.LogAPI(SIM.API.BridgeConnect);
                 }
             }
             else
             {
-                api.SendError($"Agent '{uid}' not found");
+                api.SendError(this, $"Agent '{uid}' not found");
             }
         }
     }

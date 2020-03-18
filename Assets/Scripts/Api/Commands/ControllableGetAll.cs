@@ -62,7 +62,7 @@ namespace Simulator.Api.Commands
                 }
             }
 
-            api.SendResult(result);
+            api.SendResult(this, result);
         }
     }
 }

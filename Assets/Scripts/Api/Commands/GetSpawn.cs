@@ -31,7 +31,7 @@ namespace Simulator.Api.Commands
                 s.Add("rotation", rotation);
                 spawns.Add(s);
             }
-            api.SendResult(spawns);
+            api.SendResult(this, spawns);
         }
     }
 }

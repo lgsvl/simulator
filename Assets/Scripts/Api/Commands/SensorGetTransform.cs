@@ -6,20 +6,24 @@
  */
 
 using SimpleJSON;
-using UnityEngine;
+using Simulator.Sensors;
 
 namespace Simulator.Api.Commands
 {
-    class SensorGetTransform : ICommand
-    {
-        public string Name => "sensor/transform/get";
 
-        public void Execute(JSONNode args)
+    class SensorGetTransform : SensorCommand
+    {
+        public override string Name => "sensor/transform/get";
+
+        public override void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
             var api = ApiManager.Instance;
 
-            if (api.Sensors.TryGetValue(uid, out Component sensor))
+            SensorBase sensor = null;
+            if (SimulatorManager.InstanceAvailable)
+                sensor = SimulatorManager.Instance.Sensors.GetSensor(uid);
+            if (sensor!=null)
             {
                 var tr = sensor.transform;
                 var pos = tr.localPosition;
@@ -29,11 +33,11 @@ namespace Simulator.Api.Commands
                 result.Add("position", pos);
                 result.Add("rotation", rot);
 
-                api.SendResult(result);
+                api.SendResult(this, result);
             }
             else
             {
-                api.SendError($"Sensor '{uid}' not found");
+                api.SendError(this, $"Sensor '{uid}' not found");
             }
         }
     }

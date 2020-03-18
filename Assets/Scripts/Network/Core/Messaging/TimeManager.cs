@@ -44,6 +44,7 @@ namespace Simulator.Network.Core.Messaging
         {
             var timeDifference = distributedMessage.Content.PopLong();
             distributedMessage.TimeTicksDifference = timeDifference;
+            distributedMessage.ServerTimestamp = GetTimestamp(timeDifference);
             distributedMessage.Timestamp = GetTimestamp(timeDifference-remoteTimeTicksDifference);
         }
 

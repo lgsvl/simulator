@@ -28,18 +28,18 @@ namespace Simulator.Api.Commands
                 List<ControlAction> controlActions = controllable.ParseControlPolicy(controlPolicy, out string errorMsg);
                 if (controlActions == null)
                 {
-                    api.SendError(errorMsg);
+                    api.SendError(this, errorMsg);
                     return;
                 }
 
                 controllable.CurrentControlPolicy = controlPolicy;
                 controllable.Control(controlActions);
 
-                api.SendResult();
+                api.SendResult(this);
             }
             else
             {
-                api.SendError($"Controllable '{uid}' not found");
+                api.SendError(this, $"Controllable '{uid}' not found");
             }
         }
     }

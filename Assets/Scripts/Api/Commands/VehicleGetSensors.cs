@@ -24,7 +24,7 @@ namespace Simulator.Api.Commands
 
             if (api.Agents.TryGetValue(uid, out GameObject obj))
             {
-                List<SensorBase> sensors = obj.GetComponentsInChildren<SensorBase>().ToList();
+                List<SensorBase> sensors = obj.GetComponentsInChildren<SensorBase>(true).ToList();
 
                 JSONArray result = new JSONArray();
                 for (int i = 0; i < sensors.Count; i++)
@@ -33,57 +33,49 @@ namespace Simulator.Api.Commands
 
                     JSONObject j = null;
 
-                    if (sensor is ColorCameraSensor)
+                    if (sensor is ColorCameraSensor colorCameraSensor)
                     {
-                        var camera = sensor as ColorCameraSensor;
-                        var unityCamera = camera.GetComponent<Camera>();
-
                         j = new JSONObject();
                         j.Add("type", "camera");
-                        j.Add("name", camera.Name);
-                        j.Add("frequency", camera.Frequency);
-                        j.Add("width", camera.Width);
-                        j.Add("height", camera.Height);
-                        j.Add("fov", camera.FieldOfView);
-                        j.Add("near_plane", camera.MinDistance);
-                        j.Add("far_plane", camera.MaxDistance);
+                        j.Add("name", colorCameraSensor.Name);
+                        j.Add("frequency", colorCameraSensor.Frequency);
+                        j.Add("width", colorCameraSensor.Width);
+                        j.Add("height", colorCameraSensor.Height);
+                        j.Add("fov", colorCameraSensor.FieldOfView);
+                        j.Add("near_plane", colorCameraSensor.MinDistance);
+                        j.Add("far_plane", colorCameraSensor.MaxDistance);
                         j.Add("format", "RGB");
                     }
-                    else if (sensor is DepthCameraSensor)
+                    else if (sensor is DepthCameraSensor depthCameraSensor)
                     {
-                        var camera = sensor as DepthCameraSensor;
-
                         j = new JSONObject();
                         j.Add("type", "camera");
-                        j.Add("name", camera.Name);
-                        j.Add("frequency", camera.Frequency);
-                        j.Add("width", camera.Width);
-                        j.Add("height", camera.Height);
-                        j.Add("fov", camera.FieldOfView);
-                        j.Add("near_plane", camera.MinDistance);
-                        j.Add("far_plane", camera.MaxDistance);
+                        j.Add("name", depthCameraSensor.Name);
+                        j.Add("frequency", depthCameraSensor.Frequency);
+                        j.Add("width", depthCameraSensor.Width);
+                        j.Add("height", depthCameraSensor.Height);
+                        j.Add("fov", depthCameraSensor.FieldOfView);
+                        j.Add("near_plane", depthCameraSensor.MinDistance);
+                        j.Add("far_plane", depthCameraSensor.MaxDistance);
                         j.Add("format", "DEPTH");
                     }
-                    else if (sensor is SemanticCameraSensor)
+                    else if (sensor is SemanticCameraSensor semanticCameraSensor)
                     {
-                        var camera = sensor as SemanticCameraSensor;
-                        var unityCamera = camera.GetComponent<Camera>();
+                        var unityCamera = semanticCameraSensor.GetComponent<Camera>();
 
                         j = new JSONObject();
                         j.Add("type", "camera");
-                        j.Add("name", camera.Name);
-                        j.Add("frequency", camera.Frequency);
-                        j.Add("width", camera.Width);
-                        j.Add("height", camera.Height);
-                        j.Add("fov", camera.FieldOfView);
-                        j.Add("near_plane", camera.MinDistance);
-                        j.Add("far_plane", camera.MaxDistance);
+                        j.Add("name", semanticCameraSensor.Name);
+                        j.Add("frequency", semanticCameraSensor.Frequency);
+                        j.Add("width", semanticCameraSensor.Width);
+                        j.Add("height", semanticCameraSensor.Height);
+                        j.Add("fov", semanticCameraSensor.FieldOfView);
+                        j.Add("near_plane", semanticCameraSensor.MinDistance);
+                        j.Add("far_plane", semanticCameraSensor.MaxDistance);
                         j.Add("format", "SEMANTIC");
                     }
-                    else if (sensor is LidarSensor)
+                    else if (sensor is LidarSensor lidar)
                     {
-                        var lidar = sensor as LidarSensor;
-
                         j = new JSONObject();
                         j.Add("type", "lidar");
                         j.Add("name", lidar.Name);
@@ -96,35 +88,27 @@ namespace Simulator.Api.Commands
                         j.Add("angle", lidar.CenterAngle);
                         j.Add("compensated", lidar.Compensated);
                     }
-                    else if (sensor is ImuSensor)
+                    else if (sensor is ImuSensor imu)
                     {
-                        var imu = sensor as ImuSensor;
-
                         j = new JSONObject();
                         j.Add("type", "imu");
                         j.Add("name", imu.Name);
                     }
-                    else if (sensor is GpsSensor)
+                    else if (sensor is GpsSensor gps)
                     {
-                        var gps = sensor as GpsSensor;
-
                         j = new JSONObject();
                         j.Add("type", "gps");
                         j.Add("name", gps.Name);
                         j.Add("frequency", new JSONNumber(gps.Frequency));
                     }
-                    else if (sensor is RadarSensor)
+                    else if (sensor is RadarSensor radar)
                     {
-                       var radar = sensor as RadarSensor;
-
-                       j = new JSONObject();
-                       j.Add("type", "radar");
-                       j.Add("name", radar.Name);
+                        j = new JSONObject();
+                        j.Add("type", "radar");
+                        j.Add("name", radar.Name);
                     }
-                    else if (sensor is CanBusSensor)
+                    else if (sensor is CanBusSensor canbus)
                     {
-                        var canbus = sensor as CanBusSensor;
-
                         j = new JSONObject();
                         j.Add("type", "canbus");
                         j.Add("name", canbus.Name);
@@ -133,16 +117,17 @@ namespace Simulator.Api.Commands
 
                     if (j != null)
                     {
-                        j.Add("uid", api.SensorUID[sensor]);
-                        result[result.Count] = j;
+                        if (SimulatorManager.InstanceAvailable)
+                            j.Add("uid", SimulatorManager.Instance.Sensors.GetSensorUid(sensor));
+                        result.Add(j);
                     }
                 }
 
-                api.SendResult(result);
+                api.SendResult(this, result);
             }
             else
             {
-                api.SendError($"Agent '{uid}' not found");
+                api.SendError(this, $"Agent '{uid}' not found");
             }
         }
     }

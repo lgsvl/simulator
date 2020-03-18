@@ -13,6 +13,8 @@ namespace Simulator.Network.Core.Connection
     using LiteNetLib;
     using Messaging.Data;
 
+    using Simulator.Network.Core.Messaging;
+
     /// <summary>
     /// The client's connection manager using LiteNetLib
     /// </summary>
@@ -73,7 +75,8 @@ namespace Simulator.Network.Core.Connection
         public bool Start(int port)
         {
             Port = port;
-            netClient = new NetManager(this) {UnconnectedMessagesEnabled = false, UpdateTime = 5, DisconnectTimeout = Timeout};
+            netClient = new NetManager(this) {UnconnectedMessagesEnabled = false, UpdateTime = 5, DisconnectTimeout = Timeout,
+                AutoRecycle = true};
             return NetClient.Start(port);
         }
 
@@ -103,12 +106,14 @@ namespace Simulator.Network.Core.Connection
         {
             if (Equals(masterPeer.PeerEndPoint, endPoint))
                 masterPeer.Send(distributedMessage);
+            distributedMessage.Release();
         }
 
         /// <inheritdoc/>
         public void Broadcast(DistributedMessage distributedMessage)
         {
             masterPeer?.Send(distributedMessage);
+            distributedMessage.Release();
         }
 
         /// <inheritdoc/>
@@ -147,8 +152,9 @@ namespace Simulator.Network.Core.Connection
         {
             if (MessageReceived == null)
                 return;
-            var message = new DistributedMessage(new BytesStack(reader.GetRemainingBytes(), false));
-            message.Type = LiteNetLibPeerManager.GetDeliveryMethod(deliveryMethod);
+            var data = reader.GetRemainingBytes();
+            var message = MessagesPool.Instance.GetMessage(data.Length);
+            message.Content.PushBytes(data);
             MessageReceived?.Invoke(masterPeer, message);
         }
 

@@ -15,7 +15,6 @@ using YamlDotNet.Serialization;
 using ICSharpCode.SharpZipLib.Zip;
 using Simulator.Database;
 using UnityEngine.SceneManagement;
-using Simulator.Network.Core.Identification;
 using Simulator.Web;
 
 namespace Simulator.Api.Commands
@@ -39,7 +38,7 @@ namespace Simulator.Api.Commands
 
             if (sim == null)
             {
-                api.SendError("SimulatorManager not found! Is scene loaded?");
+                api.SendError(this, "SimulatorManager not found! Is scene loaded?");
                 return;
             }
 
@@ -77,7 +76,7 @@ namespace Simulator.Api.Commands
                         //Disable using url on master simulation
                         if (Loader.Instance.Network.IsMaster || string.IsNullOrEmpty(url))
                         {
-                            api.SendError($"Vehicle '{name}' is not available");
+                            api.SendError(this, $"Vehicle '{name}' is not available");
                             return;
                         }
                         
@@ -104,7 +103,7 @@ namespace Simulator.Api.Commands
                             config.Bridge = Web.Config.Bridges.Find(bridge => bridge.Name == vehicle.BridgeType);
                             if (config.Bridge == null)
                             {
-                                api.SendError($"Bridge '{vehicle.BridgeType}' not available");
+                                api.SendError(this, $"Bridge '{vehicle.BridgeType}' not available");
                                 return;
                             }
                         }
@@ -131,16 +130,16 @@ namespace Simulator.Api.Commands
                 api.Agents.Add(uid, agentGO);
                 api.AgentUID.Add(agentGO, uid);
 
-                var sensors = agentGO.GetComponentsInChildren<SensorBase>();
+                var sensors = agentGO.GetComponentsInChildren<SensorBase>(true);
 
                 foreach (var sensor in sensors)
                 {
-                    var sensor_uid = System.Guid.NewGuid().ToString();
-                    api.SensorUID.Add(sensor, sensor_uid);
-                    api.Sensors.Add(sensor_uid, sensor);
+                    var sensorUid = System.Guid.NewGuid().ToString();
+                    if (SimulatorManager.InstanceAvailable)
+                        SimulatorManager.Instance.Sensors.AppendUid(sensor, sensorUid);
                 }
 
-                api.SendResult(new JSONString(uid));
+                api.SendResult(this, new JSONString(uid));
                 SIM.LogAPI(SIM.API.AddAgentEgo, name);
             }
             else if (type == (int)AgentType.Npc)
@@ -163,7 +162,7 @@ namespace Simulator.Api.Commands
                 uid = go.name;
                 api.Agents.Add(uid, go);
                 api.AgentUID.Add(go, uid);
-                api.SendResult(new JSONString(go.name));
+                api.SendResult(this, new JSONString(go.name));
                 SIM.LogAPI(SIM.API.AddAgentNPC, name);
             }
             else if (type == (int)AgentType.Pedestrian)
@@ -172,25 +171,25 @@ namespace Simulator.Api.Commands
                 if (!pedManager.gameObject.activeSelf)
                 {
                     var sceneName = SceneManager.GetActiveScene().name;
-                    api.SendError($"{sceneName} is missing Pedestrian NavMesh");
+                    api.SendError(this, $"{sceneName} is missing Pedestrian NavMesh");
                     return;
                 }
                 var ped = pedManager.SpawnPedestrianApi(name, uid, position, Quaternion.Euler(rotation));
                 if (ped == null)
                 {
-                    api.SendError($"Unknown '{name}' pedestrian name");
+                    api.SendError(this, $"Unknown '{name}' pedestrian name");
                     return;
                 }
 
                 api.Agents.Add(uid, ped);
                 api.AgentUID.Add(ped, uid);
 
-                api.SendResult(new JSONString(uid));
+                api.SendResult(this, new JSONString(uid));
                 SIM.LogAPI(SIM.API.AddAgentPedestrian, name);
             }
             else
             {
-                api.SendError($"Unsupported '{args["type"]}' type");
+                api.SendError(this, $"Unsupported '{args["type"]}' type");
             }
         }
 
@@ -221,7 +220,7 @@ namespace Simulator.Api.Commands
                     else
                     {
                         Debug.LogError($"Vehicle '{name}' is not available. Error occured while downloading from url: {ex}.");
-                        ApiManager.Instance.SendError($"Vehicle '{name}' is not available");
+                        ApiManager.Instance.SendError(this, $"Vehicle '{name}' is not available");
                     }
                 });
         }
@@ -249,7 +248,7 @@ namespace Simulator.Api.Commands
 
                     if (manifest.bundleFormat != BundleConfig.VehicleBundleFormatVersion)
                     {
-                        ApiManager.Instance.SendError("Out of date Vehicle AssetBundle. Please check content website for updated bundle or rebuild the bundle.");
+                        ApiManager.Instance.SendError(this, "Out of date Vehicle AssetBundle. Please check content website for updated bundle or rebuild the bundle.");
                         return null;
                     }
 
@@ -267,7 +266,7 @@ namespace Simulator.Api.Commands
 
                     if (vehicleBundle == null)
                     {
-                        ApiManager.Instance.SendError($"Failed to load vehicle from '{bundlePath}' asset bundle");
+                        ApiManager.Instance.SendError(this, $"Failed to load vehicle from '{bundlePath}' asset bundle");
                         return null;
                     }
 
@@ -276,7 +275,7 @@ namespace Simulator.Api.Commands
                         var vehicleAssets = vehicleBundle.GetAllAssetNames();
                         if (vehicleAssets.Length != 1)
                         {
-                            ApiManager.Instance.SendError($"Unsupported '{bundlePath}' vehicle asset bundle, only 1 asset expected");
+                            ApiManager.Instance.SendError(this, $"Unsupported '{bundlePath}' vehicle asset bundle, only 1 asset expected");
                             return null;
                         }
 

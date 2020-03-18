@@ -36,11 +36,11 @@ namespace Simulator.Api.Commands
                     rb.angularVelocity = angular_velocity;
                 }
 
-                api.SendResult();
+                api.SendResult(this);
             }
             else
             {
-                api.SendError($"Controllable '{uid}' not found");
+                api.SendError(this, $"Controllable '{uid}' not found");
             }
         }
     }

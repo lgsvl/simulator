@@ -10,17 +10,20 @@ using UnityEngine;
 using Simulator.Sensors;
 
 namespace Simulator.Api.Commands
-{
-    class SensorCameraSave : ICommand
+{ 
+    class SensorCameraSave : SensorCommand
     {
-        public string Name => "sensor/camera/save";
+        public override string Name => "sensor/camera/save";
 
-        public void Execute(JSONNode args)
+        public override void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
             var api = ApiManager.Instance;
 
-            if (api.Sensors.TryGetValue(uid, out Component sensor))
+            SensorBase sensor = null;
+            if (SimulatorManager.InstanceAvailable)
+                sensor = SimulatorManager.Instance.Sensors.GetSensor(uid);
+            if (sensor!=null)
             {
                 var path = args["path"].Value;
                 var quality = args["quality"].AsInt;
@@ -30,22 +33,22 @@ namespace Simulator.Api.Commands
                 {
                     var camera = sensor as ColorCameraSensor;
                     bool result = camera.Save(path, quality, compression);
-                    api.SendResult(result);
+                    api.SendResult(this, result);
                 }
                 else if (sensor is SemanticCameraSensor)
                 {
                     var camera = sensor as SemanticCameraSensor;
                     bool result = camera.Save(path, quality, compression);
-                    api.SendResult(result);
+                    api.SendResult(this, result);
                 }
                 else
                 {
-                    api.SendError($"Sensor '{uid}' is not a camera sensor");
+                    api.SendError(this, $"Sensor '{uid}' is not a camera sensor");
                 }
             }
             else
             {
-                api.SendError($"Sensor '{uid}' not found");
+                api.SendError(this, $"Sensor '{uid}' not found");
             }
         }
     }

@@ -144,9 +144,11 @@ namespace Simulator.Network.Core.Components
             if (!IsInitialized)
                 return;
 
-            var enableCommand = new BytesStack();
-            enableCommand.PushEnum<DistributedObjectCommandType>((int) DistributedObjectCommandType.Enable);
-            BroadcastMessage(new DistributedMessage(Key, enableCommand, DistributedMessageType.ReliableUnordered));
+            var message = MessagesPool.Instance.GetMessage(4);
+            message.Content.PushEnum<DistributedObjectCommandType>((int) DistributedObjectCommandType.Enable);
+            message.AddressKey = Key;
+            message.Type = DistributedMessageType.ReliableOrdered;
+            BroadcastMessage(message);
         }
 
         /// <summary>
@@ -157,9 +159,11 @@ namespace Simulator.Network.Core.Components
             if (!IsInitialized)
                 return;
 
-            var enableCommand = new BytesStack();
-            enableCommand.PushEnum<DistributedObjectCommandType>((int) DistributedObjectCommandType.Disable);
-            BroadcastMessage(new DistributedMessage(Key, enableCommand, DistributedMessageType.ReliableUnordered));
+            var message = MessagesPool.Instance.GetMessage(4);
+            message.Content.PushEnum<DistributedObjectCommandType>((int) DistributedObjectCommandType.Disable);
+            message.AddressKey = Key;
+            message.Type = DistributedMessageType.ReliableOrdered;
+            BroadcastMessage(message);
         }
 
         /// <summary>
@@ -210,17 +214,23 @@ namespace Simulator.Network.Core.Components
             Root.RegisterObject(this);
             IsInitialized = true;
             Initialized?.Invoke();
-            BroadcastMessage(new DistributedMessage(Key, GetCurrentStateMessage(), DistributedMessageType.ReliableUnordered));
+            BroadcastMessage(GetCurrentStateMessage());
         }
 
-        protected virtual BytesStack GetCurrentStateMessage()
+        /// <summary>
+        /// Construct message with current state
+        /// </summary>
+        /// <returns>Message with current state</returns>
+        protected virtual DistributedMessage GetCurrentStateMessage()
         {
-            var command = new BytesStack();
+            var message = MessagesPool.Instance.GetMessage(4);
             if (gameObject.activeInHierarchy)
-                command.PushEnum<DistributedObjectCommandType>((int) DistributedObjectCommandType.Enable);
+                message.Content.PushEnum<DistributedObjectCommandType>((int) DistributedObjectCommandType.Enable);
             else
-                command.PushEnum<DistributedObjectCommandType>((int) DistributedObjectCommandType.Disable);
-            return command;
+                message.Content.PushEnum<DistributedObjectCommandType>((int) DistributedObjectCommandType.Disable);
+            message.AddressKey = Key;
+            message.Type = DistributedMessageType.ReliableOrdered;
+            return message;
         }
 
         /// <summary>
@@ -327,9 +337,9 @@ namespace Simulator.Network.Core.Components
         /// <inheritdoc/>
         public void UnicastInitialMessages(IPEndPoint endPoint)
         {
-            UnicastMessage(endPoint, new DistributedMessage(Key, GetCurrentStateMessage(), DistributedMessageType.ReliableUnordered));
-            foreach (var registeredComponent in registeredComponents)
-                registeredComponent.UnicastInitialMessages(endPoint);
+            if (!IsAuthoritative)
+                return;
+            UnicastMessage(endPoint, GetCurrentStateMessage());
         }
 
         /// <inheritdoc/>

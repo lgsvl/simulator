@@ -78,11 +78,11 @@ namespace Simulator.Api.Commands
                 var result = new JSONObject();
                 result.Add("min", bounds.min);
                 result.Add("max", bounds.max);
-                api.SendResult(result);
+                api.SendResult(this, result);
            }
             else
             {
-                api.SendError($"Agent '{uid}' not found");
+                api.SendError(this, $"Agent '{uid}' not found");
             }
         }
     }

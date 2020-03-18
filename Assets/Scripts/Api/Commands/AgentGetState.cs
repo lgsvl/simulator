@@ -61,11 +61,11 @@ namespace Simulator.Api.Commands
                     result.Add("angular_velocity", Vector3.zero);
                 }
 
-                api.SendResult(result);
+                api.SendResult(this, result);
             }
             else
             {
-                api.SendError($"Agent '{uid}' not found");
+                api.SendError(this, $"Agent '{uid}' not found");
             }
         }
     }

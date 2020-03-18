@@ -283,6 +283,16 @@ namespace Simulator.Network.Master
             State = SimulationState.Initial;
         }
 
+        /// <summary>
+        /// Checks if the master is connected to the client
+        /// </summary>
+        /// <param name="endPoint">Endpoint of the checked client</param>
+        /// <returns>True if the master is connected to the client, false otherwise</returns>
+        public bool IsConnectedToClient(IPEndPoint endPoint)
+        {
+            return endPoint != null && ConnectionManager.GetConnectedPeerManager(endPoint) != null;
+        }
+
         /// <inheritdoc/>
         public void UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage)
         {
@@ -361,9 +371,12 @@ namespace Simulator.Network.Master
 
                 foreach (var c in Clients)
                 {
-                    UnicastMessage(c.Peer.PeerEndPoint, new DistributedMessage(Key,
-                        new BytesStack(PacketsProcessor.Write(load), false),
-                        DistributedMessageType.ReliableOrdered));
+                    var loadData = PacketsProcessor.Write(load);
+                    var message = MessagesPool.Instance.GetMessage(loadData.Length);
+                    message.AddressKey = Key;
+                    message.Content.PushBytes(loadData);
+                    message.Type = DistributedMessageType.ReliableOrdered;
+                    UnicastMessage(c.Peer.PeerEndPoint, message);
                     c.State = SimulationState.Loading;
                 }
 
@@ -404,6 +417,7 @@ namespace Simulator.Network.Master
 
                 Loader.ResetLoaderScene();
 
+                DisconnectFromClients();
                 Clients.Clear();
                 return;
             }
@@ -417,9 +431,12 @@ namespace Simulator.Network.Master
                 var run = new Commands.Run();
                 foreach (var c in Clients)
                 {
-                    UnicastMessage(c.Peer.PeerEndPoint, new DistributedMessage(Key,
-                        new BytesStack(PacketsProcessor.Write(run), false),
-                        DistributedMessageType.ReliableOrdered));
+                    var runData = PacketsProcessor.Write(run);
+                    var message = MessagesPool.Instance.GetMessage(runData.Length);
+                    message.AddressKey = Key;
+                    message.Content.PushBytes(runData);
+                    message.Type = DistributedMessageType.ReliableOrdered;
+                    UnicastMessage(c.Peer.PeerEndPoint, message);
                     c.State = SimulationState.Running;
                 }
 
@@ -451,8 +468,12 @@ namespace Simulator.Network.Master
         /// </summary>
         public void BroadcastSimulationStop()
         {
-            BroadcastMessage(new DistributedMessage(Key, new BytesStack(PacketsProcessor.Write(new Commands.Stop()), false),
-                DistributedMessageType.ReliableOrdered));
+            var stopData = PacketsProcessor.Write(new Commands.Stop());
+            var message = MessagesPool.Instance.GetMessage(stopData.Length);
+            message.AddressKey = Key;
+            message.Content.PushBytes(stopData);
+            message.Type = DistributedMessageType.ReliableOrdered;
+            BroadcastMessage(message);
             ThreadingUtilities.DispatchToMainThread(RevertChangesInSimulator);
         }
 

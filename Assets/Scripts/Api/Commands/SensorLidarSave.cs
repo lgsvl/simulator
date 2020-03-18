@@ -11,33 +11,35 @@ using Simulator.Sensors;
 
 namespace Simulator.Api.Commands
 {
-    class SensorLidarSave : ICommand
+    class SensorLidarSave : SensorCommand
     {
-        public string Name => "sensor/lidar/save";
+        public override string Name => "sensor/lidar/save";
 
-        public void Execute(JSONNode args)
+        public override void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
             var api = ApiManager.Instance;
 
-            if (api.Sensors.TryGetValue(uid, out Component sensor))
+            SensorBase sensor = null;
+            if (SimulatorManager.InstanceAvailable)
+                sensor = SimulatorManager.Instance.Sensors.GetSensor(uid);
+            if (sensor!=null)
             {
-                if (sensor is LidarSensor)
+                if (sensor is LidarSensor lidar)
                 {
-                    var lidar = sensor as LidarSensor;
                     var path = args["path"].Value;
 
                     var result = lidar.Save(path);
-                    api.SendResult(result);
+                    api.SendResult(this, result);
                 }
                 else
                 {
-                    api.SendError($"Sensor '{uid}' is not a lidar sensor");
+                    api.SendError(this, $"Sensor '{uid}' is not a lidar sensor");
                 }
             }
             else
             {
-                api.SendError($"Sensor '{uid}' not found");
+                api.SendError(this, $"Sensor '{uid}' not found");
             }
         }
     }

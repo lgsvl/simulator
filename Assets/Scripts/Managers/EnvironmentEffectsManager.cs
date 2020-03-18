@@ -159,8 +159,12 @@ public class EnvironmentEffectsManager : MonoBehaviour
                 state.Cloud = cloud;
                 state.TimeOfDay = currentTimeOfDay;
 
-                var message = new BytesStack(masterManager.PacketsProcessor.Write(state), false);
-                masterManager.BroadcastMessage(new DistributedMessage(masterManager.Key, message, DistributedMessageType.ReliableUnordered));
+                var stateData = masterManager.PacketsProcessor.Write(state);
+                var message = MessagesPool.Instance.GetMessage(stateData.Length);
+                message.AddressKey = masterManager.Key;
+                message.Content.PushBytes(stateData);
+                message.Type = DistributedMessageType.ReliableOrdered;
+                masterManager.BroadcastMessage(message);
             }
         }
     }

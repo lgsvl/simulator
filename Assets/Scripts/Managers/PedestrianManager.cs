@@ -194,9 +194,7 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
             //Add required components for cluster simulation
             ClusterSimulationUtilities.AddDistributedComponents(ped);
             if (Loader.Instance.Network.IsMaster)
-                BroadcastMessage(new DistributedMessage(Key,
-                    GetSpawnMessage(pedController.GUID, modelIndex, ped.transform.position, ped.transform.rotation),
-                    DistributedMessageType.ReliableUnordered));
+                BroadcastMessage(GetSpawnMessage(pedController.GUID, modelIndex, ped.transform.position, ped.transform.rotation));
         }
 
         return ped;
@@ -326,15 +324,22 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
     #region network
 
-    private BytesStack GetSpawnMessage(string GUID, int modelIndex, Vector3 position, Quaternion rotation)
+    private DistributedMessage GetSpawnMessage(string GUID, int modelIndex, Vector3 position, Quaternion rotation)
     {
-        var bytesStack = new BytesStack();
-        bytesStack.PushCompressedRotation(rotation);
-        bytesStack.PushCompressedPosition(position);
-        bytesStack.PushInt(modelIndex, 2);
-        bytesStack.PushString(GUID);
-        bytesStack.PushEnum<PedestrianManagerCommandType>((int) PedestrianManagerCommandType.SpawnPedestrian);
-        return bytesStack;
+        var message = MessagesPool.Instance.GetMessage(
+            ByteCompression.RotationMaxRequiredBytes +
+            ByteCompression.PositionRequiredBytes +
+            2 +
+            BytesStack.GetMaxByteCount(GUID) +
+            4);
+        message.AddressKey = Key;
+        message.Content.PushCompressedRotation(rotation);
+        message.Content.PushCompressedPosition(position);
+        message.Content.PushInt(modelIndex, 2);
+        message.Content.PushString(GUID);
+        message.Content.PushEnum<PedestrianManagerCommandType>((int) PedestrianManagerCommandType.SpawnPedestrian);
+        message.Type = DistributedMessageType.ReliableOrdered;
+        return message;
     }
 
     private void SpawnPedestrianMock(string GUID, int modelIndex, Vector3 position, Quaternion rotation)

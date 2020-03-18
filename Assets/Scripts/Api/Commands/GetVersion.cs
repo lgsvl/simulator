@@ -19,7 +19,7 @@ namespace Simulator.Api.Commands
         {
             var info = Resources.Load<BuildInfo>("BuildInfo");
             var result = new JSONString(info == null ? "unknown" : info.Version);
-            ApiManager.Instance.SendResult(result);
+            ApiManager.Instance.SendResult(this, result);
         }
     }
 }

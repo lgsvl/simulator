@@ -534,11 +534,9 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
     #region network
     protected override string ComponentKey { get; } = "PedestrianController";
 
-    protected override BytesStack GetSnapshot()
+    protected override void PushSnapshot(BytesStack messageContent)
     {
-        var messageContent = new BytesStack();
         messageContent.PushEnum<PedestrianState>((int)ThisPedState);
-        return messageContent;
     }
 
     protected override void ApplySnapshot(DistributedMessage distributedMessage)

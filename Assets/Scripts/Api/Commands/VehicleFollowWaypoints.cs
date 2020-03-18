@@ -24,7 +24,7 @@ namespace Simulator.Api.Commands
 
             if (waypoints.Count == 0)
             {
-                api.SendError($"Waypoint list is empty");
+                api.SendError(this, $"Waypoint list is empty");
                 return;
             }
             
@@ -33,7 +33,7 @@ namespace Simulator.Api.Commands
                 var npc = obj.GetComponent<NPCController>();
                 if (npc == null)
                 {
-                    api.SendError( $"Agent '{uid}' is not a NPC agent");
+                    api.SendError(this, $"Agent '{uid}' is not a NPC agent");
                     return;
                 }
 
@@ -57,12 +57,12 @@ namespace Simulator.Api.Commands
 
                 var loopValue = loop.IsBoolean ? loop.AsBool : false;
                 npc.SetFollowWaypoints(wp, loopValue);
-                api.SendResult();
+                api.SendResult(this);
                 SIM.LogAPI(SIM.API.FollowWaypoints, "NPC");
             }
             else
             {
-                api.SendError($"Agent '{uid}' not found");
+                api.SendError(this, $"Agent '{uid}' not found");
             }
         }
     }

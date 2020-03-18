@@ -20,11 +20,11 @@ namespace Simulator.Api.Commands
 
             if (env == null)
             {
-                api.SendError("Environment Effects Manager not found. Is the scene loaded?");
+                api.SendError(this, "Environment Effects Manager not found. Is the scene loaded?");
                 return;
             }
 
-            api.SendResult(new JSONNumber(env.currentTimeOfDay));
+            api.SendResult(this, new JSONNumber(env.currentTimeOfDay));
         }
     }
 }

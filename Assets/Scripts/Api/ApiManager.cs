@@ -29,6 +29,13 @@ namespace Simulator.Api
 
     public class ApiManager : MonoBehaviour, IMessageSender, IMessageReceiver
     {
+        private enum MessageType
+        {
+            Command = 0,
+            Result = 1,
+            Error = 2
+        }
+    
         [NonSerialized]
         public string CurrentScene;
 
@@ -51,9 +58,6 @@ namespace Simulator.Api
 
         public Dictionary<string, GameObject> Agents = new Dictionary<string, GameObject>();
         public Dictionary<GameObject, string> AgentUID = new Dictionary<GameObject, string>();
-
-        public Dictionary<string, Component> Sensors = new Dictionary<string, Component>();
-        public Dictionary<Component, string> SensorUID = new Dictionary<Component, string>();
 
         public Dictionary<string, IControllable> Controllables = new Dictionary<string, IControllable>();
         public Dictionary<IControllable, string> ControllablesUID = new Dictionary<IControllable, string>();
@@ -156,10 +160,28 @@ namespace Simulator.Api
             }
         }
 
-        public void SendResult(JSONNode data = null)
+        public void SendResult(ICommand source, JSONNode data = null)
         {
             if (Loader.Instance.Network.IsClient)
+            {
+                if (!(source is IDelegatedCommand)) return;
+
+                var dataString = data?.ToString();
+                var message = MessagesPool.Instance.GetMessage(4 + BytesStack.GetMaxByteCount(dataString));
+                message.AddressKey = Key;
+                message.Content.PushString(dataString);
+                message.Content.PushEnum<MessageType>((int)MessageType.Result);
+                message.Type = DistributedMessageType.ReliableOrdered;
+                BroadcastMessage(message);
                 return;
+            }
+
+            SendResult(data);
+        }
+
+
+        private void SendResult(JSONNode data = null)
+        {
             if (data == null)
             {
                 data = JSONNull.CreateOrGet();
@@ -174,7 +196,23 @@ namespace Simulator.Api
             }
         }
 
-        public void SendError(string message)
+        public void SendError(ICommand source, string message)
+        {
+            if (Loader.Instance.Network.IsClient)
+            {
+                var distributedMessage = MessagesPool.Instance.GetMessage(4 + BytesStack.GetMaxByteCount(message));
+                distributedMessage.AddressKey = Key;
+                distributedMessage.Content.PushString(message);
+                distributedMessage.Content.PushEnum<MessageType>((int)MessageType.Error);
+                distributedMessage.Type = DistributedMessageType.ReliableOrdered;
+                BroadcastMessage(distributedMessage);
+                return;
+            }
+
+            SendError(message);
+        }
+        
+        private void SendError(string message)
         {
             if (Loader.Instance.Network.IsClient)
                 return;
@@ -241,8 +279,8 @@ namespace Simulator.Api
 
             Agents.Clear();
             AgentUID.Clear();
-            Sensors.Clear();
-            SensorUID.Clear();
+            if (SimulatorManager.InstanceAvailable)
+                SimulatorManager.Instance.Sensors.ClearSensorsRegistry();
             Controllables.Clear();
             ControllablesUID.Clear();
 
@@ -388,15 +426,40 @@ namespace Simulator.Api
             {
                 try
                 {
-                    action.Command.Execute(action.Arguments);
-                    
-                    //Send distributed commands to all connected simulation clients
-                    if (action.Command is IDistributedCommand && Loader.Instance.Network.IsMaster)
+                    var isMasterSimulation = Loader.Instance.Network.IsMaster;
+                    if (action.Command is IDelegatedCommand delegatedCommand && isMasterSimulation)
                     {
-                        var content = new BytesStack();
-                        content.PushString(action.Arguments.ToString());
-                        content.PushString(action.Command.Name);
-                        BroadcastMessage(new DistributedMessage(Key, content, DistributedMessageType.ReliableOrdered));
+                        var endpoint = delegatedCommand.TargetNodeEndPoint(action.Arguments);
+                        //If there is a connection to this endpoint forward the command, otherwise execute it locally
+                        if (Loader.Instance.Network.Master.IsConnectedToClient(endpoint))
+                        {
+                            var message = MessagesPool.Instance.GetMessage(
+                                4 + 4 *
+                                (2 + action.Arguments.Count + action.Command.Name.Length));
+                            message.AddressKey = Key;
+                            message.Content.PushString(action.Arguments.ToString());
+                            message.Content.PushString(action.Command.Name);
+                            message.Content.PushEnum<MessageType>((int) MessageType.Command);
+                            UnicastMessage(endpoint, message);
+                        }
+                        else 
+                            action.Command.Execute(action.Arguments);
+                    }
+                    else
+                    {
+                        action.Command.Execute(action.Arguments);
+                        if (action.Command is IDistributedCommand && isMasterSimulation)
+                        {
+                            var message = MessagesPool.Instance.GetMessage(
+                                4 + 4 *
+                                (2 + action.Arguments.Count + action.Command.Name.Length));
+                            message.AddressKey = Key;
+                            message.Content.PushString(action.Arguments.ToString());
+                            message.Content.PushString(action.Command.Name);
+                            message.Content.PushEnum<MessageType>((int) MessageType.Command);
+                            message.Type = DistributedMessageType.ReliableOrdered;
+                            BroadcastMessage(message);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -472,13 +535,34 @@ namespace Simulator.Api
             
         public void ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
         {
-            var command = distributedMessage.Content.PopString();
-            var arguments = JSONNode.Parse(distributedMessage.Content.PopString());
-            Actions.Enqueue(new ClientAction
+            var messageType = distributedMessage.Content.PopEnum<MessageType>();
+            switch (messageType)
             {
-                Command = Commands[command],
-                Arguments = arguments,
-            });
+                case MessageType.Command:
+                    var command = distributedMessage.Content.PopString();
+                    var arguments = JSONNode.Parse(distributedMessage.Content.PopString());
+                    Actions.Enqueue(new ClientAction
+                    {
+                        Command = Commands[command],
+                        Arguments = arguments,
+                    });
+                    break;
+                case MessageType.Result:
+                    var resultValue = distributedMessage.Content.PopString();
+                    if (resultValue==null)
+                        SendResult();
+                    else
+                    {
+                        var result = JSONNode.Parse(resultValue);
+                        SendResult(result);
+                    }
+                    break;
+                case MessageType.Error:
+                    SendError(distributedMessage.Content.PopString());
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         public void UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage)

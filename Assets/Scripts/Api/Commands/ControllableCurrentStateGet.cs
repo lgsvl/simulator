@@ -24,11 +24,11 @@ namespace Simulator.Api.Commands
             {
                 JSONObject result = new JSONObject();
                 result.Add("state", controllable.CurrentState);
-                api.SendResult(result);
+                api.SendResult(this, result);
             }
             else
             {
-                api.SendError($"Controllable '{uid}' not found");
+                api.SendError(this, $"Controllable '{uid}' not found");
             }
         }
     }

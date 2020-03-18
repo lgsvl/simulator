@@ -397,6 +397,7 @@ namespace Simulator.Sensors
             }
         }
 
+        private string previousLoggedData;
         void ProcessReadbackRequests()
         {
             while (CaptureQueue.Count > 0)

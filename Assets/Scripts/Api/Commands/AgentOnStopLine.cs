@@ -22,12 +22,12 @@ namespace Simulator.Api.Commands
             if (api.Agents.TryGetValue(uid, out GameObject obj))
             {
                 api.StopLine.Add(obj);
-                api.SendResult();
+                api.SendResult(this);
                 SIM.LogAPI(SIM.API.OnStopLineSet);
             }
             else
             {
-                api.SendError($"Agent '{uid}' not found");
+                api.SendError(this, $"Agent '{uid}' not found");
             }
         }
     }

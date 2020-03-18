@@ -142,12 +142,11 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         if (Loader.Instance.Network.IsMaster)
         {
             var index = CurrentPooledNPCs.IndexOf(obj);
-            BroadcastMessage(new DistributedMessage(Key, GetDespawnMessage(index),
-                DistributedMessageType.ReliableUnordered));
+            BroadcastMessage(GetDespawnMessage(index));
         }
 
         obj.StopNPCCoroutines();
-        obj.currentIntersection?.npcsInIntersection.Remove(obj.transform);
+        if (obj.currentIntersection != null) obj.currentIntersection.npcsInIntersection.Remove(obj.transform);
         APINPCs.Remove(obj);
         Destroy(obj.gameObject);
     }
@@ -253,10 +252,8 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             //Add required components for cluster simulation
             ClusterSimulationUtilities.AddDistributedComponents(go);
             if (Loader.Instance.Network.IsMaster)
-                BroadcastMessage(new DistributedMessage(Key,
-                    GetSpawnMessage(genId, npcData, npcControllerSeed, color, go.transform.position,
-                        go.transform.rotation),
-                    DistributedMessageType.ReliableUnordered));
+                BroadcastMessage(GetSpawnMessage(genId, npcData, npcControllerSeed, color, go.transform.position,
+                                                 go.transform.rotation));
         }
     }
 
@@ -267,8 +264,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             if (Loader.Instance.Network.IsMaster)
             {
                 var index = CurrentPooledNPCs.IndexOf(CurrentPooledNPCs[i]);
-                BroadcastMessage(new DistributedMessage(Key, GetDespawnMessage(index),
-                    DistributedMessageType.ReliableUnordered));
+                BroadcastMessage(GetDespawnMessage(index));
             }
 
             Destroy(CurrentPooledNPCs[i]);
@@ -493,19 +489,25 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
     #region network
 
-    private BytesStack GetSpawnMessage(string vehicleId, NPCS npcData, 
+    private DistributedMessage GetSpawnMessage(string vehicleId, NPCS npcData, 
         int npcControllerSeed, Color color, Vector3 position, Quaternion rotation)
     {
-        var bytesStack = new BytesStack();
+        var message = MessagesPool.Instance.GetMessage(
+            ByteCompression.RotationMaxRequiredBytes +
+            ByteCompression.PositionRequiredBytes +
+            12 +
+            BytesStack.GetMaxByteCount(vehicleId));
         var indexOfPrefab = NPCVehicles.FindIndex(npc => npc.Equals(npcData));
-        bytesStack.PushCompressedRotation(rotation);
-        bytesStack.PushCompressedPosition(position);
-        bytesStack.PushCompressedColor(color, 1);
-        bytesStack.PushInt(npcControllerSeed);
-        bytesStack.PushInt(indexOfPrefab, 2);
-        bytesStack.PushString(vehicleId);
-        bytesStack.PushEnum<NPCManagerCommandType>((int) NPCManagerCommandType.SpawnNPC);
-        return bytesStack;
+        message.AddressKey = Key;
+        message.Content.PushCompressedRotation(rotation);
+        message.Content.PushCompressedPosition(position);
+        message.Content.PushCompressedColor(color, 1);
+        message.Content.PushInt(npcControllerSeed);
+        message.Content.PushInt(indexOfPrefab, 2);
+        message.Content.PushString(vehicleId);
+        message.Content.PushEnum<NPCManagerCommandType>((int) NPCManagerCommandType.SpawnNPC);
+        message.Type = DistributedMessageType.ReliableOrdered;
+        return message;
     }
 
     private void SpawnNPCMock(string vehicleId, NPCS npcData, int npcControllerSeed, Color color,
@@ -540,12 +542,14 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         ClusterSimulationUtilities.AddDistributedComponents(go);
     }
 
-    private BytesStack GetDespawnMessage(int orderNumber)
+    private DistributedMessage GetDespawnMessage(int orderNumber)
     {
-        var bytesStack = new BytesStack();
-        bytesStack.PushInt(orderNumber, 2);
-        bytesStack.PushEnum<NPCManagerCommandType>((int) NPCManagerCommandType.DespawnNPC);
-        return bytesStack;
+        var message = MessagesPool.Instance.GetMessage(6);
+        message.AddressKey = Key;
+        message.Content.PushInt(orderNumber, 2);
+        message.Content.PushEnum<NPCManagerCommandType>((int) NPCManagerCommandType.DespawnNPC);
+        message.Type = DistributedMessageType.ReliableOrdered;
+        return message;
     }
 
     public void ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)

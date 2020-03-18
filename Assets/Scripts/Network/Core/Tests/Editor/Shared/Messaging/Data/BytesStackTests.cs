@@ -32,23 +32,23 @@ namespace Simulator.Network.Core.Tests.Editor.Shared.Messaging.Data
             var bytesStack = new BytesStack(testCase.Length);
             
             //Test bytes array at once
-            bytesStack.Push(testCase);
-            var result = bytesStack.Peek(testCase.Length);
+            bytesStack.PushBytes(testCase);
+            var result = bytesStack.PeekBytes(testCase.Length);
             Assert.True(result.SequenceEqual(testCase),
                 "Peek of the bytes array at once returns different data than was pushed.");
-            result = bytesStack.Pop(testCase.Length);
+            result = bytesStack.PopBytes(testCase.Length);
             Assert.True(result.SequenceEqual(testCase),
                 "Pop of the bytes array at once returns different data than was pushed.");
             
             //Test bytes array one by one
             for (var i = 0; i < testCase.Length; i++)
-                bytesStack.Push(testCase[i]);
+                bytesStack.PushBytes(testCase[i]);
             for (var i = testCase.Length - 1; i >= 0; i--)
-                result[i] = bytesStack.PeekOne(testCase.Length-1-i);
+                result[i] = bytesStack.PeekOneByte(testCase.Length-1-i);
             Assert.True(result.SequenceEqual(testCase),
                 "Pop of the bytes array one by one returns different data than was pushed.");
             for (var i = testCase.Length - 1; i >= 0; i--)
-                result[i] = bytesStack.Pop();
+                result[i] = bytesStack.PopBytes();
             Assert.True(result.SequenceEqual(testCase),
                 "Pop of the bytes array one by one returns different data than was pushed.");
         }

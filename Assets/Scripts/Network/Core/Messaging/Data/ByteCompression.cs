@@ -22,7 +22,10 @@ namespace Simulator.Network.Core.Messaging.Data
         /// </summary>
         private const int DefaultBytesForCompressedFloat = 2;
 
-        public static Bounds DefaultPositionBounds { get; } = new Bounds(new Vector3(0, 0, 0), new Vector3(4096.0f, 4096.0f, 4096.0f));
+        /// <summary>
+        /// Default position bounds limiting the compression
+        /// </summary>
+        private static Bounds DefaultPositionBounds { get; } = new Bounds(new Vector3(0, 0, 0), new Vector3(4096.0f, 4096.0f, 4096.0f));
 
         /// <summary>
         /// Bounds for calculating position, compressing position out of bounds will cause an error
@@ -633,7 +636,7 @@ namespace Simulator.Network.Core.Messaging.Data
         public static Quaternion PopDecompressedRotation(this BytesStack bytesStack)
         {
             // Read the index of the maximum element
-            var maxIndex = bytesStack.Pop();
+            var maxIndex = bytesStack.PopBytes();
 
             // Indexed 4-7 determine that maximum element is approximately equal to 1.0f and other elements are not encoded
             // Other elements are approximately equal to 0.0f;

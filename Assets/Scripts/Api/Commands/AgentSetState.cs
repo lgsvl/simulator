@@ -45,11 +45,11 @@ namespace Simulator.Api.Commands
                     agent.velocity = velocity;
                 }
 
-                api.SendResult();
+                api.SendResult(this);
             }
             else
             {
-                api.SendError($"Agent '{uid}' not found");
+                api.SendError(this, $"Agent '{uid}' not found");
             }
         }
     }

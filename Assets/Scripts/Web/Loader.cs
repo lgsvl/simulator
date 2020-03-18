@@ -498,8 +498,11 @@ namespace Simulator
                         // load environment
                         if (Instance.SimConfig.ApiOnly)
                         {
-                            var api = Instantiate(Instance.ApiManagerPrefab);
-                            api.name = "ApiManager";
+                            if (ApiManager.Instance == null)
+                            {
+                                var api = Instantiate(Instance.ApiManagerPrefab);
+                                api.name = "ApiManager";
+                            }
 
                             Instance.CurrentSimulation = simulation;
 

@@ -23,11 +23,11 @@ namespace Simulator.Api.Commands
             if (api.Controllables.TryGetValue(uid, out IControllable obj))
             {
                 SimulatorManager.Instance.ControllableManager.RemoveControllable(uid, obj);
-                api.SendResult();
+                api.SendResult(this);
             }
             else
             {
-                api.SendError($"Agent '{uid}' not found");
+                api.SendError(this, $"Agent '{uid}' not found");
             }
         }
     }

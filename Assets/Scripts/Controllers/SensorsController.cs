@@ -104,6 +104,9 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
 
     public void OnDestroy()
     {
+        var sensorsManager = SimulatorManager.Instance.Sensors;
+        foreach (var sensorInstanceController in sensorsInstances)
+            sensorsManager.UnregisterSensor(sensorInstanceController.Value.Instance);
         MessagesManager?.UnregisterObject(this);
     }
 
@@ -177,6 +180,8 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                         requested.RemoveAt(i);
                         i--;
                         var sensorInstanceController = new SensorInstanceController(item, sensorBase);
+                        if (SimulatorManager.InstanceAvailable)
+                            SimulatorManager.Instance.Sensors.RegisterSensor(sensorBase);
                         sensorInstanceController.Enable();
                         agentController.AgentSensors.Add(sensorBase);
                         sensorsInstances.Add(name, sensorInstanceController);
@@ -331,10 +336,12 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
     private void DistributeSensors()
     {
         var network = Loader.Instance.Network;
-        if (!network.IsMaster || network.Master.Clients.Count <= 0)
+        var master = network.Master;
+        var clients = master.Clients;
+        if (!network.IsMaster || clients.Count <= 0)
             return;
 
-        var clientsCount = network.Master.Clients.Count;
+        var clientsCount = clients.Count;
         var clientsSensors = new JSONArray[clientsCount];
         for (var i=0; i<clientsSensors.Length; i++)
             clientsSensors[i] = new JSONArray();
@@ -365,6 +372,8 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                         clientsLoad[lowestLoadIndex] += lowLoadValue;
                         clientsSensors[lowestLoadIndex].Add(sensorData.Configuration);
                         sensorData.Disable();
+                        
+                        SimulatorManager.Instance.Sensors.AppendEndPoint(sensorData.Instance, clients[lowestLoadIndex].Peer.PeerEndPoint);
                     }
                     else 
                         //Sensor won't be distributed, instance on master is not disabled
@@ -381,6 +390,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                         clientsLoad[lowestLoadIndex] += highLoadValue;
                         clientsSensors[lowestLoadIndex].Add(sensorData.Configuration);
                         sensorData.Disable();
+                        SimulatorManager.Instance.Sensors.AppendEndPoint(sensorData.Instance, clients[lowestLoadIndex].Peer.PeerEndPoint);
                     }
                     else 
                         //Sensor won't be distributed, instance on master is not disabled
@@ -394,6 +404,8 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                     //Sensor will be distributed to lowest load client
                     clientsLoad[lowestLoadIndex] += ultraHighLoadValue;
                     clientsSensors[lowestLoadIndex].Add(sensorData.Configuration);
+                    
+                    SimulatorManager.Instance.Sensors.AppendEndPoint(sensorData.Instance, clients[lowestLoadIndex].Peer.PeerEndPoint);
                     sensorData.Disable();
                     break;
                 default:
@@ -416,9 +428,11 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         for (var i = 0; i < clientsCount; i++)
         {
             var client = network.Master.Clients[i];
-            var content = new BytesStack();
-            content.PushString(clientsSensors[i].ToString());
-            var message = new DistributedMessage(Key, content, DistributedMessageType.ReliableUnordered);
+            var sensorString = clientsSensors[i].ToString();
+            var message = MessagesPool.Instance.GetMessage(BytesStack.GetMaxByteCount(sensorString));
+            message.AddressKey = Key;
+            message.Content.PushString(sensorString);
+            message.Type = DistributedMessageType.ReliableOrdered;
             UnicastMessage(client.Peer.PeerEndPoint, message);
         }
 
@@ -443,14 +457,14 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
     /// <inheritdoc/>
     public void UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage)
     {
-        if (Key != null)
+        if (!string.IsNullOrEmpty(Key))
             MessagesManager?.UnicastMessage(endPoint, distributedMessage);
     }
 
     /// <inheritdoc/>
     public void BroadcastMessage(DistributedMessage distributedMessage)
     {
-        if (Key != null)
+        if (!string.IsNullOrEmpty(Key))
             MessagesManager?.BroadcastMessage(distributedMessage);
     }
 

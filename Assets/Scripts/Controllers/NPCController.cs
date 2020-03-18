@@ -1710,10 +1710,11 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         
         if (Loader.Instance.Network.IsMaster)
         {
-            var content = new BytesStack();
-            content.PushInt(state);
-            content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.SetLights);
-            var message = new DistributedMessage(key, content, DistributedMessageType.ReliableOrdered);
+            var message = MessagesPool.Instance.GetMessage(8);
+            message.AddressKey = Key;
+            message.Content.PushInt(state);
+            message.Content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.SetLights);
+            message.Type = DistributedMessageType.ReliableOrdered;
             BroadcastMessage(message);
         }
     }
@@ -1865,10 +1866,11 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         
         if (Loader.Instance.Network.IsMaster)
         {
-            var content = new BytesStack();
-            content.PushBool(state);
-            content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.SetBrakeLights);
-            var message = new DistributedMessage(key, content, DistributedMessageType.ReliableOrdered);
+            var message = MessagesPool.Instance.GetMessage(5);
+            message.AddressKey = Key;
+            message.Content.PushBool(state);
+            message.Content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.SetBrakeLights);
+            message.Type = DistributedMessageType.ReliableOrdered;
             BroadcastMessage(message);
         }
     }
@@ -1897,12 +1899,13 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         if (Loader.Instance.Network.IsMaster)
         {
             //Force setting turn signals on clients
-            var content = new BytesStack();
-            content.PushBool(isRightTurn);
-            content.PushBool(isLeftTurn);
-            content.PushBool(true);
-            content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.SetNPCTurnSignal);
-            var message = new DistributedMessage(key, content, DistributedMessageType.ReliableOrdered);
+            var message = MessagesPool.Instance.GetMessage(7);
+            message.AddressKey = Key;
+            message.Content.PushBool(isRightTurn);
+            message.Content.PushBool(isLeftTurn);
+            message.Content.PushBool(true);
+            message.Content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.SetNPCTurnSignal);
+            message.Type = DistributedMessageType.ReliableOrdered;
             BroadcastMessage(message);
         }
     }
@@ -1923,10 +1926,11 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         
         if (Loader.Instance.Network.IsMaster)
         {
-            var content = new BytesStack();
-            content.PushBool(state);
-            content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.SetNPCHazards);
-            var message = new DistributedMessage(key, content, DistributedMessageType.ReliableOrdered);
+            var message = MessagesPool.Instance.GetMessage(5);
+            message.AddressKey = Key;
+            message.Content.PushBool(state);
+            message.Content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.SetNPCHazards);
+            message.Type = DistributedMessageType.ReliableOrdered;
             BroadcastMessage(message);
         }
     }
@@ -2005,10 +2009,11 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         
         if (Loader.Instance.Network.IsMaster)
         {
-            var content = new BytesStack();
-            content.PushBool(state);
-            content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.SetIndicatorReverse);
-            var message = new DistributedMessage(key, content, DistributedMessageType.ReliableOrdered);
+            var message = MessagesPool.Instance.GetMessage(5);
+            message.AddressKey = Key;
+            message.Content.PushBool(state);
+            message.Content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.SetIndicatorReverse);
+            message.Type = DistributedMessageType.ReliableOrdered;
             BroadcastMessage(message);
         }
     }
@@ -2028,9 +2033,10 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         
         if (Loader.Instance.Network.IsMaster)
         {
-            var content = new BytesStack();
-            content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.ResetLights);
-            var message = new DistributedMessage(key, content, DistributedMessageType.ReliableOrdered);
+            var message = MessagesPool.Instance.GetMessage(4);
+            message.AddressKey = Key;
+            message.Content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.ResetLights);
+            message.Type = DistributedMessageType.ReliableOrdered;
             BroadcastMessage(message);
         }
     }

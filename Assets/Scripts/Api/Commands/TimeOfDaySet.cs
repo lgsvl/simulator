@@ -20,14 +20,14 @@ namespace Simulator.Api.Commands
 
             if (env == null)
             {
-                api.SendError("Environment Effetcts Manager not found. Is the scene loaded?");
+                api.SendError(this, "Environment Effects Manager not found. Is the scene loaded?");
                 return;
             }
 
             env.currentTimeOfDay = args["time"].AsFloat;
             env.currentTimeOfDayCycle = args["fixed"].AsBool ? EnvironmentEffectsManager.TimeOfDayCycleTypes.Freeze : EnvironmentEffectsManager.TimeOfDayCycleTypes.Normal;
 
-            api.SendResult();
+            api.SendResult(this);
         }
     }
 }

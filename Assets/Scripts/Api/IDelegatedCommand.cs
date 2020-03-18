@@ -5,13 +5,13 @@
  *
  */
 
+using System.Net;
 using SimpleJSON;
 
 namespace Simulator.Api
 {
-    public interface ICommand
+    public interface IDelegatedCommand : ICommand
     {
-        string Name { get; }
-        void Execute(JSONNode args);
+        IPEndPoint TargetNodeEndPoint(JSONNode args);
     }
 }

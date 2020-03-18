@@ -139,11 +139,12 @@ namespace Simulator.Network.Core.Messaging
                                 Log.Error($"Registration event called without the timestamp set for the object with id {id}.");
                                 break;
                             }
-                            if (awaitingMessage.DistributedMessage.Timestamp < registrationTimestamp)
+                            if (awaitingMessage.DistributedMessage.ServerTimestamp < registrationTimestamp)
                                 continue;
                             awaitingMessage.DistributedMessage.AddressKey = identifiedObject.Key;
                             receiver.ReceiveMessage(connectionManager.GetConnectedPeerManager(awaitingMessage.EndPoint),
                                 awaitingMessage.DistributedMessage);
+                            //awaitingMessage.DistributedMessage.Release();
                         }
                     }
                     finally
@@ -208,12 +209,16 @@ namespace Simulator.Network.Core.Messaging
                 //Forward message to proper receiver
                 distributedMessage.AddressKey = identifiedObject.Key;
                 receiver.ReceiveMessage(sender, distributedMessage);
+                distributedMessage.Release();
             }
             else
             {
                 //Check if it is initialization message for IdsRegister - first sent message
                 if (idsRegister.IsInitializationMessage(sender, distributedMessage))
+                {
+                    // distributedMessage.Release();
                     return;
+                }
 
                 //Ignore messages with outdated assigned identifiers
                 if (distributedMessage.Timestamp < idsRegister.InternalIdBindUtcTime)

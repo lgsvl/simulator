@@ -41,22 +41,22 @@ namespace Simulator.Api.Commands
                     //Disable using url on master simulation
                     if (Loader.Instance.Network.IsMaster || string.IsNullOrEmpty(url))
                     {
-                        api.SendError($"Environment '{name}' is not available");
+                        api.SendError(this, $"Environment '{name}' is not available");
                         return;
                     }
 
-                    DownloadMapFromUrl(args, name, seed, url);
+                    DownloadMapFromUrl(this, args, name, seed, url);
                     return;
                 }
                 // Add uid key to arguments, as it will be distributed to the clients' simulations
                 if (Loader.Instance.Network.IsMaster)
                     args.Add("url", map.Url);
 
-                api.StartCoroutine(LoadMapAssets(map, name, seed));
+                api.StartCoroutine(LoadMapAssets(this, map, name, seed));
             }
         }
 
-        static IEnumerator LoadMapAssets(MapModel map, string name, int? seed = null)
+        static IEnumerator LoadMapAssets(LoadScene sourceCommand, MapModel map, string name, int? seed = null)
         {
             var api = ApiManager.Instance;
 
@@ -78,7 +78,7 @@ namespace Simulator.Api.Commands
 
                 if (manifest.bundleFormat != BundleConfig.MapBundleFormatVersion)
                 {
-                    api.SendError(
+                    api.SendError(sourceCommand, 
                         "Out of date Map AssetBundle. Please check content website for updated bundle or rebuild the bundle.");
                     api.ActionsSemaphore.Unlock();
                     yield break;
@@ -99,7 +99,7 @@ namespace Simulator.Api.Commands
 
                 if (mapBundle == null)
                 {
-                    api.SendError($"Failed to load environment from '{map.Name}' asset bundle");
+                    api.SendError(sourceCommand, $"Failed to load environment from '{map.Name}' asset bundle");
                     api.ActionsSemaphore.Unlock();
                     yield break;
                 }
@@ -109,7 +109,7 @@ namespace Simulator.Api.Commands
                 var scenes = mapBundle.GetAllScenePaths();
                 if (scenes.Length != 1)
                 {
-                    api.SendError($"Unsupported environment in '{map.Name}' asset bundle, only 1 scene expected");
+                    api.SendError(sourceCommand, $"Unsupported environment in '{map.Name}' asset bundle, only 1 scene expected");
                     api.ActionsSemaphore.Unlock();
                     yield break;
                 }
@@ -151,10 +151,10 @@ namespace Simulator.Api.Commands
             api.Reset();
             api.CurrentScene = name;
             api.ActionsSemaphore.Unlock();
-            api.SendResult();
+            api.SendResult(sourceCommand);
         }
 
-        private static void DownloadMapFromUrl(JSONNode args, string name, int? seed, string url)
+        private static void DownloadMapFromUrl(LoadScene sourceCommand, JSONNode args, string name, int? seed, string url)
         {
             //Remove url from args, so download won't be retried
             args.Remove("url");
@@ -175,13 +175,13 @@ namespace Simulator.Api.Commands
                         db.Insert(map);
                     }
 
-                    ApiManager.Instance.StartCoroutine(LoadMapAssets(map, name, seed));
+                    ApiManager.Instance.StartCoroutine(LoadMapAssets(sourceCommand, map, name, seed));
                 }
                 else
                 {
                     Debug.LogError(
                         $"Vehicle '{name}' is not available. Error occured while downloading from url: {ex}.");
-                    ApiManager.Instance.SendError($"Vehicle '{name}' is not available");
+                    ApiManager.Instance.SendError(sourceCommand, $"Vehicle '{name}' is not available");
                     ApiManager.Instance.ActionsSemaphore.Unlock();
                 }
             });

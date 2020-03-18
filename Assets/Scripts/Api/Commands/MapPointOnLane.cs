@@ -28,7 +28,7 @@ namespace Simulator.Api.Commands
             j.Add("position", position);
             j.Add("rotation", rotation.eulerAngles);
 
-            api.SendResult(j);
+            api.SendResult(this, j);
         }
     }
 }

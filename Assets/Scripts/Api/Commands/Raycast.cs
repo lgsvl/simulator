@@ -42,7 +42,7 @@ namespace Simulator.Api.Commands
                     results.Add(JSONNull.CreateOrGet());
                 }
             }
-            api.SendResult(results);
+            api.SendResult(this, results);
         }
     }
 }

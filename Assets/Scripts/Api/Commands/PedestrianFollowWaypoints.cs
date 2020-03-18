@@ -24,7 +24,7 @@ namespace Simulator.Api.Commands
 
             if (waypoints.Count == 0)
             {
-                api.SendError($"Waypoint list is empty");
+                api.SendError(this, $"Waypoint list is empty");
                 return;
             }
             
@@ -33,7 +33,7 @@ namespace Simulator.Api.Commands
                 var ped = obj.GetComponent<PedestrianController>();
                 if (ped == null)
                 {
-                    api.SendError($"Agent '{uid}' is not a pedestrian agent");
+                    api.SendError(this, $"Agent '{uid}' is not a pedestrian agent");
                     return;
                 }
 
@@ -49,12 +49,12 @@ namespace Simulator.Api.Commands
                 }
 
                 ped.FollowWaypoints(wp, loop);
-                api.SendResult();
+                api.SendResult(this);
                 SIM.LogAPI(SIM.API.FollowWaypoints, "Pedestrian");
             }
             else
             {
-                api.SendError($"Agent '{uid}' not found");
+                api.SendError(this, $"Agent '{uid}' not found");
             }
         }
     }

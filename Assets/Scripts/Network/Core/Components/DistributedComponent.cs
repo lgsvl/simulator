@@ -43,6 +43,11 @@ namespace Simulator.Network.Core.Components
         /// </summary>
         protected virtual bool DestroyWithoutParent { get; } = false;
 
+        /// <summary>
+        /// Expected maximum size of the snapshots
+        /// </summary>
+        protected virtual int SnapshotMaxSize { get; } = 0;
+
         /// <inheritdoc/>
         public string Key => key ?? (key =
                                  $"{ParentObject.Key}/{HierarchyUtilities.GetRelativePath(ParentObject.transform, transform)}{ComponentKey}"
@@ -148,6 +153,8 @@ namespace Simulator.Network.Core.Components
         /// <inheritdoc/>
         public void UnicastInitialMessages(IPEndPoint endPoint)
         {
+            if (!ParentObject.IsAuthoritative)
+                return;
             if (IsInitialized)
                 UnicastSnapshot(endPoint);
         }
@@ -156,7 +163,22 @@ namespace Simulator.Network.Core.Components
         /// Get current component snapshot
         /// </summary>
         /// <returns>Current component snapshot</returns>
-        protected abstract BytesStack GetSnapshot();
+        protected abstract void PushSnapshot(BytesStack messageContent);
+
+        /// <summary>
+        /// Gets snapshot message to be send
+        /// </summary>
+        /// <param name="reliableSnapshot">Should the snapshot be reliable</param>
+        protected DistributedMessage GetSnapshotMessage(bool reliableSnapshot = false)
+        {
+            var message = MessagesPool.Instance.GetMessage(SnapshotMaxSize);
+            PushSnapshot(message.Content);
+            message.AddressKey = Key;
+            message.Type = reliableSnapshot
+                ? DistributedMessageType.ReliableUnordered
+                : DistributedMessageType.Unreliable;
+            return message;
+        }
 
         /// <summary>
         /// Method broadcasting recently current snapshot
@@ -164,8 +186,7 @@ namespace Simulator.Network.Core.Components
         /// <param name="reliableSnapshot">Should the snapshot be reliable</param>
         public virtual void BroadcastSnapshot(bool reliableSnapshot = false)
         {
-            BroadcastMessage(new DistributedMessage(Key, GetSnapshot(),
-                reliableSnapshot ? DistributedMessageType.ReliableUnordered : DistributedMessageType.Unreliable));
+            BroadcastMessage(GetSnapshotMessage(reliableSnapshot));
         }
 
         /// <summary>
@@ -175,8 +196,7 @@ namespace Simulator.Network.Core.Components
         /// <param name="reliableSnapshot">Should the snapshot be reliable</param>
         protected virtual void UnicastSnapshot(IPEndPoint endPoint, bool reliableSnapshot = false)
         {
-            UnicastMessage(endPoint, new DistributedMessage(Key, GetSnapshot(),
-                reliableSnapshot ? DistributedMessageType.ReliableUnordered : DistributedMessageType.Unreliable));
+            UnicastMessage(endPoint, GetSnapshotMessage(reliableSnapshot));
         }
 
         /// <inheritdoc/>

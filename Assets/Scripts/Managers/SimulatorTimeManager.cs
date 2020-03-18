@@ -118,9 +118,11 @@ public class SimulatorTimeManager : IMessageReceiver, IMessageSender
         //Try to distribute this time scale if there is time manager instance set in the simulator manager
         var network = Loader.Instance.Network;
         if (instance == null || !network.IsMaster) return;
-        var content = new BytesStack();
-        content.PushFloat(Time.timeScale);
-        instance.BroadcastMessage(new DistributedMessage(instance.Key, content, DistributedMessageType.ReliableOrdered));
+        var message = MessagesPool.Instance.GetMessage(4);
+        message.Content.PushFloat(Time.timeScale);
+        message.AddressKey = instance.Key;
+        message.Type = DistributedMessageType.ReliableOrdered;
+        instance.BroadcastMessage(message);
     }
     
     /// <inheritdoc/>
@@ -144,8 +146,10 @@ public class SimulatorTimeManager : IMessageReceiver, IMessageSender
     /// <inheritdoc/>
     void IMessageSender.UnicastInitialMessages(IPEndPoint endPoint)
     {
-        var content = new BytesStack();
-        content.PushFloat(Time.timeScale);
-        UnicastMessage(endPoint, new DistributedMessage(Key, content, DistributedMessageType.ReliableOrdered));
+        var message = MessagesPool.Instance.GetMessage(4);
+        message.Content.PushFloat(Time.timeScale);
+        message.AddressKey = instance.Key;
+        message.Type = DistributedMessageType.ReliableOrdered;
+        UnicastMessage(endPoint, message);
     }
 }

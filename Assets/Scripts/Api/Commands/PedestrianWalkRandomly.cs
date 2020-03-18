@@ -25,17 +25,17 @@ namespace Simulator.Api.Commands
                 var ped = obj.GetComponent<PedestrianController>();
                 if (ped == null)
                 {
-                    api.SendError($"Agent '{uid}' is not a pedestrian");
+                    api.SendError(this, $"Agent '{uid}' is not a pedestrian");
                     return;
                 }
 
                 ped.WalkRandomly(enable);
 
-                api.SendResult();
+                api.SendResult(this);
             }
             else
             {
-                api.SendError($"Agent '{uid}' not found");
+                api.SendError(this, $"Agent '{uid}' not found");
             }
         }
     }

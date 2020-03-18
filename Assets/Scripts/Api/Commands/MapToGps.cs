@@ -23,7 +23,7 @@ namespace Simulator.Api.Commands
             var map = MapOrigin.Find();
             if (map == null)
             {
-                api.SendError("MapOrigin not found. Is the scene loaded?");
+                api.SendError(this, "MapOrigin not found. Is the scene loaded?");
                 return;
             }
 
@@ -44,7 +44,7 @@ namespace Simulator.Api.Commands
             result.Add("altitude", new JSONNumber(position.y + map.AltitudeOffset));
             result.Add("orientation", new JSONNumber(-rotation.y));
 
-            api.SendResult(result);
+            api.SendResult(this, result);
         }
     }
 

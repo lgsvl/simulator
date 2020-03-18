@@ -17,7 +17,7 @@ namespace Simulator.Api.Commands
         {
             var api = ApiManager.Instance;
             var result = new JSONNumber(api.CurrentTime);
-            api.SendResult(result);
+            api.SendResult(this, result);
         }
     }
 }

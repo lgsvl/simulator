@@ -26,7 +26,7 @@ namespace Simulator.Api.Commands
                 var npc = obj.GetComponent<NPCController>();
                 if (npc == null)
                 {
-                    api.SendError($"Agent '{uid}' is not a NPC agent");
+                    api.SendError(this, $"Agent '{uid}' is not a NPC agent");
                     return;
                 }
 
@@ -54,11 +54,11 @@ namespace Simulator.Api.Commands
                     bool isRightTurnSignal = control["isRightturnSignal"].AsBool;
                     npc.SetNPCTurnSignal(true, isLeftTurnSignal, isRightTurnSignal);
                 }
-                api.SendResult();
+                api.SendResult(this);
             }
             else
             {
-                api.SendError($"Agent '{uid}' not found");
+                api.SendError(this, $"Agent '{uid}' not found");
             }
         }
     }

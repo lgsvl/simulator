@@ -6,29 +6,31 @@
  */
 
 using SimpleJSON;
-using UnityEngine;
+using Simulator.Sensors;
 
 namespace Simulator.Api.Commands
 {
-    class SensorEnabledSet : ICommand
+    class SensorEnabledSet : SensorCommand
     {
-        public string Name => "sensor/enabled/set";
+        public override string Name => "sensor/enabled/set";
 
-        public void Execute(JSONNode args)
+        public override void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
 
-            Component sensor;
-            if (ApiManager.Instance.Sensors.TryGetValue(uid, out sensor))
+            SensorBase sensor = null;
+            if (SimulatorManager.InstanceAvailable)
+                sensor = SimulatorManager.Instance.Sensors.GetSensor(uid);
+            if (sensor!=null)
             {
                 bool enabled = args["enabled"].AsBool;
                 sensor.gameObject.SetActive(enabled);
 
-                ApiManager.Instance.SendResult();
+                ApiManager.Instance.SendResult(this);
             }
             else
             {
-                ApiManager.Instance.SendError($"Sensor '{uid}' not found");
+                ApiManager.Instance.SendError(this, $"Sensor '{uid}' not found");
             }
         }
     }

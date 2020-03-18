@@ -18,19 +18,6 @@ namespace Simulator.Api.Commands
         public static void Run()
         {
             var api = ApiManager.Instance;
-            foreach (var kv in api.Agents)
-            {
-                var obj = kv.Value;
-                var sensors = obj.GetComponentsInChildren<SensorBase>();
-
-                foreach (var sensor in sensors)
-                {
-                    if (!api.SensorUID.TryGetValue(sensor, out var suid)) continue;
-                    api.Sensors.Remove(suid);
-                    api.SensorUID.Remove(sensor);
-                }
-            }
-
             api.Reset();
             SIM.LogAPI(SIM.API.SimulationReset);
         }
@@ -38,7 +25,7 @@ namespace Simulator.Api.Commands
         public void Execute(JSONNode args)
         {
             Run();
-            ApiManager.Instance.SendResult();
+            ApiManager.Instance.SendResult(this);
         }
     }
 }

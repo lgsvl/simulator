@@ -21,16 +21,19 @@ namespace Simulator.Api.Commands
         public double Orientation;
     }
 
-    class SensorGpsData : ICommand
+    class SensorGpsData : SensorCommand
     {
-        public string Name => "sensor/gps/data";
+        public override string Name => "sensor/gps/data";
 
-        public void Execute(JSONNode args)
+        public override void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
             var api = ApiManager.Instance;
 
-            if (api.Sensors.TryGetValue(uid, out Component sensor))
+            SensorBase sensor = null;
+            if (SimulatorManager.InstanceAvailable)
+                sensor = SimulatorManager.Instance.Sensors.GetSensor(uid);
+            if (sensor!=null)
             {
                 if (sensor is GpsSensor)
                 {
@@ -46,16 +49,16 @@ namespace Simulator.Api.Commands
                     result.Add("altitude", data.Altitude);
                     result.Add("orientation", data.Orientation);
 
-                    api.SendResult(result);
+                    api.SendResult(this, result);
                 }
                 else
                 {
-                    api.SendError($"Sensor '{uid}' is not a GPS sensor");
+                    api.SendError(this, $"Sensor '{uid}' is not a GPS sensor");
                 }
             }
             else
             {
-                api.SendError($"Sensor '{uid}' not found");
+                api.SendError(this, $"Sensor '{uid}' not found");
             }
         }
     }

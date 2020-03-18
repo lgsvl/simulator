@@ -14,6 +14,8 @@ namespace Simulator.Network.Core.Connection
     using LiteNetLib;
     using Messaging.Data;
 
+    using Simulator.Network.Core.Messaging;
+
     /// <summary>
     /// The server's connection manager using LiteNetLib
     /// </summary>
@@ -103,7 +105,7 @@ namespace Simulator.Network.Core.Connection
         /// <inheritdoc/>
         public IPeerManager GetConnectedPeerManager(IPEndPoint endPoint)
         {
-            return peers[endPoint];
+            return peers.TryGetValue(endPoint, out var manager) ? manager : null;
         }
 
         /// <inheritdoc/>
@@ -133,7 +135,10 @@ namespace Simulator.Network.Core.Connection
         {
             if (MessageReceived == null)
                 return;
-            var message = new DistributedMessage(new BytesStack(reader.GetRemainingBytes(), false));
+
+            var data = reader.GetRemainingBytes();
+            var message = MessagesPool.Instance.GetMessage(data.Length);
+            message.Content.PushBytes(data);
             MessageReceived?.Invoke(peers[peer.EndPoint], message);
         }
 

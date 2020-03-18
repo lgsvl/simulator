@@ -22,7 +22,7 @@ namespace Simulator.Api.Commands
             var map = MapOrigin.Find();
             if (map == null)
             {
-                api.SendError("MapOrigin not found. Is the scene loaded?");
+                api.SendError(this, "MapOrigin not found. Is the scene loaded?");
                 return;
             }
 
@@ -69,7 +69,7 @@ namespace Simulator.Api.Commands
 
                 results.Add(result);
             }
-            api.SendResult(results);
+            api.SendResult(this, results);
         }
     }
 }

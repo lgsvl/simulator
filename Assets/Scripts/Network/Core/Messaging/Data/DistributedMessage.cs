@@ -15,6 +15,11 @@ namespace Simulator.Network.Core.Messaging.Data
     public class DistributedMessage
     {
         /// <summary>
+        /// Pool which released this message
+        /// </summary>
+        public MessagesPool OriginPool { get; internal set; }
+        
+        /// <summary>
         /// Address key defining where message should be passed. 
         /// May be not set for received messages until <see cref="MessagesManager"/> identifies address
         /// </summary>
@@ -32,6 +37,12 @@ namespace Simulator.Network.Core.Messaging.Data
         
         /// <summary>
         /// Utc time stamp of the message, may be become invalid when new authoritative correction arrives. 
+        /// For messages being sent, value is not being set
+        /// </summary>
+        public DateTime ServerTimestamp { get; set; } = DateTime.MinValue;
+        
+        /// <summary>
+        /// Utc time stamp of the message, may be become invalid as the authoritative correction varies. 
         /// For messages being sent, value is set just before sending by <see cref="MessagesManager"/>
         /// </summary>
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
@@ -62,6 +73,14 @@ namespace Simulator.Network.Core.Messaging.Data
             AddressKey = addressKey;
             Content = content;
             Type = distributedMessageType;
+        }
+
+        /// <summary>
+        /// Releases this message to the pool
+        /// </summary>
+        public void Release()
+        {
+            OriginPool?.ReleaseMessage(this);
         }
     }
 }

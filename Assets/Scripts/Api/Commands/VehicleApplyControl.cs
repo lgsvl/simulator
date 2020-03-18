@@ -68,11 +68,11 @@ namespace Simulator.Api.Commands
                     va.RightTurnSignal = on;
                 }
 
-                api.SendResult();
+                api.SendResult(this);
             }
             else
             {
-                api.SendError($"Agent '{uid}' not found");
+                api.SendError(this, $"Agent '{uid}' not found");
             }
         }
     }

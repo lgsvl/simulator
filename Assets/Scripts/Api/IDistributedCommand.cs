@@ -5,12 +5,9 @@
  *
  */
 
-using Simulator.Api;
-
 namespace Simulator.Api
 {
-  interface IDistributedCommand : ICommand
-  {
-
-  }
+    public interface IDistributedCommand : ICommand
+    {
+    }
 }

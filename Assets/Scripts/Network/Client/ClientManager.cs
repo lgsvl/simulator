@@ -200,8 +200,12 @@ namespace Simulator.Network.Client
             };
             State = SimulationState.Connected;
             Loader.Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.PROGRESS);
-            UnicastMessage(peer.PeerEndPoint, new DistributedMessage(Key, new BytesStack(PacketsProcessor.Write(info), false),
-                DistributedMessageType.ReliableOrdered));
+            var infoData = PacketsProcessor.Write(info);
+            var message = MessagesPool.Instance.GetMessage(infoData.Length);
+            message.AddressKey = Key;
+            message.Content.PushBytes(infoData);
+            message.Type = DistributedMessageType.ReliableOrdered;
+            UnicastMessage(peer.PeerEndPoint, message);
         }
 
         /// <summary>
@@ -309,10 +313,12 @@ namespace Simulator.Network.Client
                                 Success = false,
                                 ErrorMessage = ex.ToString(),
                             };
-                            UnicastMessage(MasterPeer.PeerEndPoint, new DistributedMessage(Key,
-                                new BytesStack(PacketsProcessor.Write(err), false),
-                                DistributedMessageType.ReliableOrdered));
-                            return;
+                            var errData = PacketsProcessor.Write(err);
+                            var message = MessagesPool.Instance.GetMessage(errData.Length);
+                            message.AddressKey = Key;
+                            message.Content.PushBytes(errData);
+                            message.Type = DistributedMessageType.ReliableOrdered;
+                            UnicastMessage(MasterPeer.PeerEndPoint, message);
                         }
                     });
                 }
@@ -331,9 +337,12 @@ namespace Simulator.Network.Client
                     Success = false,
                     ErrorMessage = ex.ToString(),
                 };
-                UnicastMessage(MasterPeer.PeerEndPoint, new DistributedMessage(Key,
-                    new BytesStack(PacketsProcessor.Write(err), false),
-                    DistributedMessageType.ReliableOrdered));
+                var errData = PacketsProcessor.Write(err);
+                var message = MessagesPool.Instance.GetMessage(errData.Length);
+                message.AddressKey = Key;
+                message.Content.PushBytes(errData);
+                message.Type = DistributedMessageType.ReliableOrdered;
+                UnicastMessage(MasterPeer.PeerEndPoint, message);
 
                 Loader.ResetLoaderScene();
             }
@@ -443,9 +452,12 @@ namespace Simulator.Network.Client
                                         Success = false,
                                         ErrorMessage = ex.ToString(),
                                     };
-                                    UnicastMessage(MasterPeer.PeerEndPoint, new DistributedMessage(Key,
-                                        new BytesStack(PacketsProcessor.Write(err), false),
-                                        DistributedMessageType.ReliableOrdered));
+                                    var errData = PacketsProcessor.Write(err);
+                                    var message = MessagesPool.Instance.GetMessage(errData.Length);
+                                    message.AddressKey = Key;
+                                    message.Content.PushBytes(errData);
+                                    message.Type = DistributedMessageType.ReliableOrdered;
+                                    UnicastMessage(MasterPeer.PeerEndPoint, message);
                                     return;
                                 }
 
@@ -482,9 +494,12 @@ namespace Simulator.Network.Client
                     Success = false,
                     ErrorMessage = ex.ToString(),
                 };
-                UnicastMessage(MasterPeer.PeerEndPoint, new DistributedMessage(Key,
-                    new BytesStack(PacketsProcessor.Write(err), false),
-                    DistributedMessageType.ReliableOrdered));
+                var errData = PacketsProcessor.Write(err);
+                var message = MessagesPool.Instance.GetMessage(errData.Length);
+                message.AddressKey = Key;
+                message.Content.PushBytes(errData);
+                message.Type = DistributedMessageType.ReliableOrdered;
+                UnicastMessage(MasterPeer.PeerEndPoint, message);
 
                 Loader.ResetLoaderScene();
             }
@@ -731,9 +746,12 @@ namespace Simulator.Network.Client
                                     Loader.ResetLoaderScene();
                                     return;
                                 }
-                                UnicastMessage(MasterPeer.PeerEndPoint, new DistributedMessage(Key,
-                                    new BytesStack(PacketsProcessor.Write(result), false),
-                                    DistributedMessageType.ReliableOrdered));
+                                var resultData = PacketsProcessor.Write(result);
+                                var message = MessagesPool.Instance.GetMessage(resultData.Length);
+                                message.AddressKey = Key;
+                                message.Content.PushBytes(resultData);
+                                message.Type = DistributedMessageType.ReliableOrdered;
+                                UnicastMessage(MasterPeer.PeerEndPoint, message);
 
                                 State = SimulationState.Ready;
                             }
@@ -746,9 +764,12 @@ namespace Simulator.Network.Client
                                     Success = false,
                                     ErrorMessage = ex.ToString(),
                                 };
-                                UnicastMessage(MasterPeer.PeerEndPoint, new DistributedMessage(Key,
-                                    new BytesStack(PacketsProcessor.Write(err), false),
-                                    DistributedMessageType.ReliableOrdered));
+                                var errData = PacketsProcessor.Write(err);
+                                var message = MessagesPool.Instance.GetMessage(errData.Length);
+                                message.AddressKey = Key;
+                                message.Content.PushBytes(errData);
+                                message.Type = DistributedMessageType.ReliableOrdered;
+                                UnicastMessage(MasterPeer.PeerEndPoint, message);
 
                                 Loader.ResetLoaderScene();
                             }

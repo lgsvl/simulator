@@ -33,11 +33,11 @@ namespace Simulator.Api.Commands
                 result.Add("velocity", rb != null ? rb.velocity : Vector3.zero);
                 result.Add("angular_velocity", rb != null ? rb.angularVelocity : Vector3.zero);
 
-                api.SendResult(result);
+                api.SendResult(this, result);
             }
             else
             {
-                api.SendError($"Controllable '{uid}' not found");
+                api.SendError(this, $"Controllable '{uid}' not found");
             }
         }
     }

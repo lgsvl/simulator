@@ -32,7 +32,7 @@ namespace Simulator.Api.Commands
             IControllable controllable = GetClosestControllable(position, controllables);
             if (controllable == null)
             {
-                api.SendError($"Controllable object not found with '{position}'");
+                api.SendError(this, $"Controllable object not found with '{position}'");
             }
 
             api.ControllablesUID.TryGetValue(controllable, out string uid);
@@ -62,7 +62,7 @@ namespace Simulator.Api.Commands
             j.Add("valid_actions", validActions);
             j.Add("default_control_policy", controllable.DefaultControlPolicy);
 
-            api.SendResult(j);
+            api.SendResult(this, j);
         }
 
         private IControllable GetClosestControllable(Vector3 targetPos, List<IControllable> controllables)

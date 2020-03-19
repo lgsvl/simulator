@@ -406,6 +406,7 @@ namespace Simulator.Sensors
                 if (capture.Request.hasError)
                 {
                     CaptureQueue.Dequeue();
+                    AvailableGpuDataArrays.Add(capture.GpuData);
                     Debug.Log("Failed to read GPU texture");
                 }
                 else if (capture.Request.done)
@@ -450,6 +451,9 @@ namespace Simulator.Sensors
                         });
 
                         Sequence++;
+                    } else
+                    {
+                        AvailableGpuDataArrays.Add(capture.GpuData);
                     }
                 }
                 else

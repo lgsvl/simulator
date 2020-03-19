@@ -59,20 +59,18 @@ namespace Simulator.Api.Commands
                         j.Add("far_plane", depthCameraSensor.MaxDistance);
                         j.Add("format", "DEPTH");
                     }
-                    else if (sensor is SemanticCameraSensor semanticCameraSensor)
+                    else if (sensor is SegmentationCameraSensor segmentationCameraSensor)
                     {
-                        var unityCamera = semanticCameraSensor.GetComponent<Camera>();
-
                         j = new JSONObject();
                         j.Add("type", "camera");
-                        j.Add("name", semanticCameraSensor.Name);
-                        j.Add("frequency", semanticCameraSensor.Frequency);
-                        j.Add("width", semanticCameraSensor.Width);
-                        j.Add("height", semanticCameraSensor.Height);
-                        j.Add("fov", semanticCameraSensor.FieldOfView);
-                        j.Add("near_plane", semanticCameraSensor.MinDistance);
-                        j.Add("far_plane", semanticCameraSensor.MaxDistance);
-                        j.Add("format", "SEMANTIC");
+                        j.Add("name", segmentationCameraSensor.Name);
+                        j.Add("frequency", segmentationCameraSensor.Frequency);
+                        j.Add("width", segmentationCameraSensor.Width);
+                        j.Add("height", segmentationCameraSensor.Height);
+                        j.Add("fov", segmentationCameraSensor.FieldOfView);
+                        j.Add("near_plane", segmentationCameraSensor.MinDistance);
+                        j.Add("far_plane", segmentationCameraSensor.MaxDistance);
+                        j.Add("format", "SEGMENTATION");
                     }
                     else if (sensor is LidarSensor lidar)
                     {

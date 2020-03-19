@@ -178,7 +178,7 @@ This sensor returns an image where the shades on the grey-scale correspond to th
 }
 ```
 
-### Semantic Camera [[top]] {: #semantic-camera data-toc-label='Semantic Camera'}
+### Segmentation Camera [[top]] {: #segmentation-camera data-toc-label='Segmentation Camera'}
 This sensor returns an image where objects are colored corresponding to their tag:
 
 |Tag|Color|Hex Value|
@@ -195,6 +195,9 @@ This sensor returns an image where objects are colored corresponding to their ta
 |Pedestrian|Red|#FF0000|
 |Curb|Dark Purple|#4A254F|
 
+If a tag is included in "InstanceSegmentationTags", each instance of objects with that tag
+is colored differently, but all will have same hue (e.g. all cars will be bluish and all pedestrians will be reddish).
+
 |Parameter|Description|Unit|Type|Default Value|Minimum|Maximum|
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 |`Width`|defines the width of the image output|pixels|Int|1920|1|1920|
@@ -208,6 +211,7 @@ This sensor returns an image where objects are colored corresponding to their ta
 |`Fisheye`|defines if the camera has fisheye lens||Bool|`false`|||
 |`Xi`|parameter used by fisheye distortion **||Float|0.0|||
 |`Cubemap Size`|size of the cubemap used by fisheye distortion ***|pixels|Int|1024|512|2048|
+|`InstanceSegmentationTags`|define tags with instance segmentation||List of String|empty list|||
 
 \* See notes on `DistortionParameters` for Color Camera.
 
@@ -217,8 +221,8 @@ This sensor returns an image where objects are colored corresponding to their ta
 
 ```JSON
 {
-    "type": "Semantic Camera",
-    "name": "Semantic Camera",
+    "type": "Segmentation Camera",
+    "name": "Segmentation Camera",
     "params": {
       "Width": 1920,
       "Height": 1080,
@@ -226,7 +230,11 @@ This sensor returns an image where objects are colored corresponding to their ta
       "FieldOfView": 50,
       "MinDistance": 0.1,
       "MaxDistance": 1000,
-      "Topic": "/simulator/semantic_camera"
+ 	  "InstanceSegmentationTags": [
+		"Car",
+		"Pedestrian"
+	  ]
+      "Topic": "/simulator/segmentation_camera"
     },
     "transform": {
       "x": 0,

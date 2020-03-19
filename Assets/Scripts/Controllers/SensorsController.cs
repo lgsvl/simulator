@@ -281,7 +281,25 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                 Type listType = typeof(List<>).MakeGenericType(new[] {type});
                 System.Collections.IList list = (System.Collections.IList) Activator.CreateInstance(listType);
 
-                if (type == typeof(float))
+                if (type.IsEnum)
+                {
+                    foreach (var elemValue in value)
+                    {
+                        var elem = Activator.CreateInstance(type);
+                        try
+                        {
+                            elem = Enum.Parse(type, elemValue.Value);
+                        }
+                        catch (ArgumentException ex)
+                        {
+                            throw new Exception(
+                                $"Failed to set {key} field to {value.Value} enum value for {gameObject.name} vehicle, {sb.Name} sensor",
+                                ex);
+                        }
+                        list.Add(elem);
+                    }
+                }
+                else if (type == typeof(float))
                 {
                     foreach (var elemValue in value)
                     {

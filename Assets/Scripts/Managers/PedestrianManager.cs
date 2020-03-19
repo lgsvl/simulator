@@ -26,8 +26,8 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
     public GameObject pedPrefab;
     public List<GameObject> pedModels = new List<GameObject>();
     public bool PedestriansActive { get; set; } = false;
-
-    private List<PedestrianController> currentPedPool = new List<PedestrianController>();
+    [HideInInspector]
+    public List<PedestrianController> CurrentPedPool = new List<PedestrianController>();
     private Vector3 SpawnBoundsSize;
     private bool DebugSpawnArea = false;
     private LayerMask PedSpawnCheckBitmask;
@@ -99,7 +99,7 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
             return;
         }
 
-        foreach (var ped in currentPedPool)
+        foreach (var ped in CurrentPedPool)
         {
             if (ped.gameObject.activeInHierarchy)
             {
@@ -127,7 +127,7 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
     {
         Debug.Assert(pedPrefab != null && pedModels != null && pedModels.Count != 0);
 
-        currentPedPool.Clear();
+        CurrentPedPool.Clear();
         int poolCount = Mathf.FloorToInt(PedMaxCount + (PedMaxCount * 0.1f));
         for (int i = 0; i < poolCount; i++)
         {
@@ -138,9 +138,9 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
     private void SetPedOnMap()
     {
         var mapManager = SimulatorManager.Instance.MapManager;
-        for (int i = 0; i < currentPedPool.Count; i++)
+        for (int i = 0; i < CurrentPedPool.Count; i++)
         {
-            if (currentPedPool[i].gameObject.activeInHierarchy)
+            if (CurrentPedPool[i].gameObject.activeInHierarchy)
                 continue;
 
             var path = mapManager.GetPedPath(RandomIndex(mapManager.pedestrianLanes.Count));
@@ -153,22 +153,22 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
                 continue;
 
             var spawnPos = path.mapWorldPositions[RandomIndex(path.mapWorldPositions.Count)];
-            currentPedPool[i].transform.position = spawnPos;
+            CurrentPedPool[i].transform.position = spawnPos;
 
             if (!WithinSpawnArea(spawnPos))
                 continue;
 
             if (!InitSpawn)
             {
-                if (IsVisible(currentPedPool[i].gameObject))
+                if (IsVisible(CurrentPedPool[i].gameObject))
                     continue;
             }
 
             if (Physics.CheckSphere(spawnPos, 3f, PedSpawnCheckBitmask))
                 continue;
 
-            currentPedPool[i].InitPed(spawnPos, path.mapWorldPositions, PEDSeedGenerator.Next());
-            currentPedPool[i].gameObject.SetActive(true);
+            CurrentPedPool[i].InitPed(spawnPos, path.mapWorldPositions, PEDSeedGenerator.Next());
+            CurrentPedPool[i].gameObject.SetActive(true);
             ActivePedCount++;
         }
         InitSpawn = false;
@@ -183,10 +183,10 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         var model = pedModels[modelIndex];
         Instantiate(model, ped.transform);
         ped.SetActive(false);
-        SimulatorManager.Instance.UpdateSemanticTags(ped);
+        SimulatorManager.Instance.UpdateSegmentationColors(ped);
         pedController.GTID = ++SimulatorManager.Instance.GTIDs;
         pedController.GUID = $"Pedestrian{pedController.GTID}";
-        currentPedPool.Add(pedController);
+        CurrentPedPool.Add(pedController);
 
         //Add required components for distributing rigidbody from master to clients
         if (Loader.Instance.Network.IsClusterSimulation)
@@ -212,9 +212,9 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
     {
         if (ActivePedCount == 0) return;
 
-        for (int i = 0; i < currentPedPool.Count; i++)
+        for (int i = 0; i < CurrentPedPool.Count; i++)
         {
-            DespawnPed(currentPedPool[i]);
+            DespawnPed(CurrentPedPool[i]);
         }
         ActivePedCount = 0;
     }
@@ -232,8 +232,8 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         var pedC = ped.GetComponent<PedestrianController>();
         var rb = ped.GetComponent<Rigidbody>();
         Instantiate(prefab, ped.transform);
-        SimulatorManager.Instance.UpdateSemanticTags(ped);
-        currentPedPool.Add(pedC);
+        SimulatorManager.Instance.UpdateSegmentationColors(ped);
+        CurrentPedPool.Add(pedC);
 
         pedC.InitManual(position, rotation, PEDSeedGenerator.Next());
         pedC.GUID = uid;
@@ -252,7 +252,7 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
     public void DespawnPedestrianApi(PedestrianController ped)
     {
         ped.StopPEDCoroutines();
-        currentPedPool.Remove(ped);
+        CurrentPedPool.Remove(ped);
         Destroy(ped.gameObject);
     }
 
@@ -261,9 +261,9 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         RandomGenerator = new System.Random(Seed);
         PEDSeedGenerator = new System.Random(Seed);
 
-        List<PedestrianController> peds = new List<PedestrianController>(currentPedPool);
+        List<PedestrianController> peds = new List<PedestrianController>(CurrentPedPool);
         peds.ForEach(x => DespawnPedestrianApi(x));
-        currentPedPool.Clear();
+        CurrentPedPool.Clear();
     }
     #endregion
 
@@ -358,7 +358,7 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         //Force distributed component initialization, as gameobject will stay disabled
         pedController.InitPed(position, new List<Vector3>(), 0);
         pedController.Initialize();
-        currentPedPool.Add(pedController);
+        CurrentPedPool.Add(pedController);
     }
 
     private BytesStack GetDespawnMessage(int orderNumber)
@@ -384,8 +384,8 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
             case PedestrianManagerCommandType.DespawnPedestrian:
                 var pedestrianId = distributedMessage.Content.PopInt(2);
                 //TODO Preserve despawn command if it arrives before spawn command
-                if (pedestrianId >= 0 && pedestrianId < currentPedPool.Count)
-                    Destroy(currentPedPool[pedestrianId].gameObject);
+                if (pedestrianId >= 0 && pedestrianId < CurrentPedPool.Count)
+                    Destroy(CurrentPedPool[pedestrianId].gameObject);
                 break;
         }
     }

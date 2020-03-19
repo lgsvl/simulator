@@ -109,8 +109,8 @@ namespace Simulator.Sensors
             ""params"": { ""Width"": 1920, ""Height"": 1080, ""Frequency"": 15, ""JpegQuality"": 75, ""FieldOfView"": 50, ""MinDistance"": 0.1, ""MaxDistance"": 1000, ""Topic"": ""/simulator/depth_camera/compressed""},
             ""transform"": { ""x"": 0, ""y"": 1.7, ""z"": -0.2, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}",
 
-            @"{""type"": ""Semantic Camera"", ""name"": ""Semantic Camera"",
-            ""params"": { ""Width"": 1920, ""Height"": 1080, ""Frequency"": 15, ""FieldOfView"": 50, ""MinDistance"": 0.1, ""MaxDistance"": 1000, ""Topic"": ""/simulator/semantic_camera/compressed"" },
+            @"{""type"": ""Segmentation Camera"", ""name"": ""Segmentation Camera"",
+            ""params"": { ""Width"": 1920, ""Height"": 1080, ""Frequency"": 15, ""FieldOfView"": 50, ""MinDistance"": 0.1, ""MaxDistance"": 1000, ""Topic"": ""/simulator/segmentation_camera/compressed"" },
             ""transform"": { ""x"": 0, ""y"": 1.7, ""z"": -0.2, ""pitch"": 0, ""yaw"": 0, ""roll"": 0 }}",
 
             @"{""type"": ""3D Ground Truth"", ""name"": ""3D Ground Truth"",

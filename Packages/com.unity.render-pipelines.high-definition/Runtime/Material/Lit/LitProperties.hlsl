@@ -286,6 +286,6 @@ float _TessellationTilingScale;
 int _ObjectId;
 int _PassValue;
 
-float4 _SemanticColor;
+float4 _SegmentationColor;
 
 CBUFFER_END

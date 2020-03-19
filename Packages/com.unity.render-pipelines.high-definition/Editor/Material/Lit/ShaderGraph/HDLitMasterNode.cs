@@ -1098,7 +1098,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // lgsvl
             collector.AddShaderProperty(new ColorShaderProperty()
             {
-                overrideReferenceName = "_SemanticColor",
+                overrideReferenceName = "_SegmentationColor",
                 hidden = true,
                 value = new Color(0.0f, 0.0f, 0.0f, 1.0f)
             });

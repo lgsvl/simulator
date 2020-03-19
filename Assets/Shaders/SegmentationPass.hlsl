@@ -36,7 +36,7 @@ void Frag(PackedVaryingsToPS packedInput,
     clip(builtinData.opacity - 0.5);
 #endif
 
-    outColor = _SemanticColor;
+    outColor = _SegmentationColor;
 
 #ifdef _DEPTHOFFSET_ON
     outputDepth = posInput.deviceDepth;

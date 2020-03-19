@@ -11,10 +11,11 @@ using UnityEngine;
 namespace Simulator.Utilities
 {
     [Serializable]
-    public class SemanticColor
+    public class SegmentationColor
     {
         [TagSelector]
         public string Tag;
         public Color Color;
+        public bool IsInstanceSegmenation { get; set; } = false;
     }
 }

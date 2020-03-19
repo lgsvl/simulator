@@ -662,17 +662,17 @@ namespace UnityEditor.Rendering.HighDefinition
         };
 
         // lgsvl
-        Pass m_PassSimulatorSemantic = new Pass()
+        Pass m_PassSimulatorSegmentation = new Pass()
         {
-            Name = "SimulatorSemanticPass",
-            LightMode = "SimulatorSemanticPass",
+            Name = "SimulatorSegmentationPass",
+            LightMode = "SimulatorSegmentationPass",
             TemplateName = "HDLitPass.template",
             MaterialName = "Lit",
-            ShaderPassName = "SHADERPASS_SIMULATOR_SEMANTIC",
+            ShaderPassName = "SHADERPASS_SIMULATOR_SEGMENTATION",
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             Includes = new List<string>()
             {
-                "#include \"Assets/Shaders/SemanticPass.hlsl\"",
+                "#include \"Assets/Shaders/SegmentationPass.hlsl\"",
             },
             PixelShaderSlots = new List<int>()
             {
@@ -1429,7 +1429,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 
                 GenerateShaderPassLit(masterNode, m_PassSimulatorLidar, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, m_PassSimulatorSemantic, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, m_PassSimulatorSegmentation, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPassLit(masterNode, m_PassSimulatorDepth, mode, subShader, sourceAssetDependencyPaths);
             }
             subShader.Deindent();

@@ -178,7 +178,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         NPCController.NPCColor = color == Color.clear ? GetWeightedRandomColor(template.NPCType) : color;
         var s = NPCSeedGenerator.Next();
         NPCController.Init(s);
-        SimulatorManager.Instance.UpdateSemanticTags(go);
+        SimulatorManager.Instance.UpdateSegmentationColors(go);
         go.transform.SetPositionAndRotation(position, rotation); // TODO check for incorrect calc speed
         npcC.SetLastPosRot(position, rotation);
 
@@ -244,7 +244,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         NPCController.Init(NPCSeedGenerator.Next());
         CurrentPooledNPCs.Add(NPCController);
 
-        SimulatorManager.Instance.UpdateSemanticTags(go);
+        SimulatorManager.Instance.UpdateSegmentationColors(go);
         
         //Add required components for distributing rigidbody from master to clients
         if (Loader.Instance.Network.IsClusterSimulation)
@@ -536,7 +536,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         NPCController.Init(NPCSeedGenerator.Next());
         CurrentPooledNPCs.Add(NPCController);
 
-        SimulatorManager.Instance.UpdateSemanticTags(go);
+        SimulatorManager.Instance.UpdateSegmentationColors(go);
 
         //Add required components for cluster simulation
         ClusterSimulationUtilities.AddDistributedComponents(go);

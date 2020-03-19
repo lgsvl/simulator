@@ -10,10 +10,10 @@ GameObject:
   m_Component:
   - component: {fileID: 6574896113943451348}
   - component: {fileID: 6574896113943451339}
-  - component: {fileID: 6574896113943451338}
   - component: {fileID: 6574896113943451337}
+  - component: {fileID: 3894724149368254619}
   m_Layer: 0
-  m_Name: SemanticCameraSensor
+  m_Name: SegmentationCameraSensor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -76,37 +76,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!114 &6574896113943451338
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6574896113943451336}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6ad5530094db2454e88252eeda0990ba, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Name: 
-  Topic: 
-  Frame: 
-  Width: 1920
-  Height: 1080
-  Frequency: 5
-  JpegQuality: 75
-  FieldOfView: 60
-  MinDistance: 0.1
-  MaxDistance: 1000
-  Distorted: 0
-  DistortionParameters:
-  - 0
-  - 0
-  - 0
-  - 0
-  Fisheye: 0
-  Xi: 0
-  CubemapSize: 1024
 --- !u!114 &6574896113943451337
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -201,3 +170,31 @@ MonoBehaviour:
       enableFptlForForwardOpaque: 0
       enableBigTilePrepass: 0
       isFptlEnabled: 0
+--- !u!114 &3894724149368254619
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6574896113943451336}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26fe550fc22750a498f5151eb75fb283, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Name: 
+  Topic: 
+  Frame: 
+  Width: 1920
+  Height: 1080
+  Frequency: 15
+  JpegQuality: 75
+  FieldOfView: 60
+  MinDistance: 0.1
+  MaxDistance: 1000
+  Distorted: 0
+  DistortionParameters: []
+  Fisheye: 0
+  Xi: 0
+  CubemapSize: 1024
+  InstanceSegmentationTags: 

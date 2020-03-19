@@ -224,7 +224,7 @@ Shader "HDRP/Lit"
         [HideInInspector] _DiffusionProfileHash("Diffusion Profile Hash", Float) = 0
 
         // lgsvl
-        [HideInInspector] _SemanticColor("Semantic Color", Color) = (0, 0, 0, 1)
+        [HideInInspector] _SegmentationColor("Segmentation Color", Color) = (0, 0, 0, 1)
     }
 
     HLSLINCLUDE
@@ -806,8 +806,8 @@ Shader "HDRP/Lit"
         // lgsvl
         Pass
         {
-            Name "SimulatorSemanticPass"
-            Tags { "LightMode" = "SimulatorSemanticPass" }
+            Name "SimulatorSegmentationPass"
+            Tags { "LightMode" = "SimulatorSegmentationPass" }
 
             HLSLPROGRAM
 
@@ -822,7 +822,7 @@ Shader "HDRP/Lit"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #include "Assets/Shaders/SemanticPass.hlsl"
+            #include "Assets/Shaders/SegmentationPass.hlsl"
 
             ENDHLSL
         }

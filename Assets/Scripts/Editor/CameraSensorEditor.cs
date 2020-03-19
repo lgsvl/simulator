@@ -32,6 +32,7 @@ namespace Simulator.Editor
         SerializedProperty Fisheye;
         SerializedProperty Xi;
         SerializedProperty CubemapSize;
+        SerializedProperty InstanceSegmentationTags;
         string[] CubemapSizeOptions = new string[] { "512", "1024", "2048" };
         int CubemapSizeIndex = 1;
 
@@ -53,6 +54,7 @@ namespace Simulator.Editor
             Fisheye = serializedObject.FindProperty(nameof(CameraSensorBase.Fisheye));
             Xi = serializedObject.FindProperty(nameof(CameraSensorBase.Xi));
             CubemapSize = serializedObject.FindProperty(nameof(CameraSensorBase.CubemapSize));
+            InstanceSegmentationTags = serializedObject.FindProperty(nameof(SegmentationCameraSensor.InstanceSegmentationTags));
         }
 
         public override void OnInspectorGUI()
@@ -105,6 +107,11 @@ namespace Simulator.Editor
                 {
                     EditorGUILayout.PropertyField(Xi);
                 }
+            }
+
+            if (InstanceSegmentationTags != null)
+            {
+                EditorGUILayout.PropertyField(InstanceSegmentationTags, true);
             }
 
             serializedObject.ApplyModifiedProperties();

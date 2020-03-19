@@ -79,8 +79,8 @@ public class SimulatorManager : MonoBehaviour
 
     public WireframeBoxes WireframeBoxes { get; private set; }
 
-    public Color SemanticSkyColor;
-    public List<SemanticColor> SemanticColors;
+    public Color SkySegmentationColor;
+    public List<SegmentationColor> SegmentationColors;
 
     // time in seconds since Unix Epoch (January 1st, 1970, UTC)
     public double CurrentTime { get; private set; }
@@ -111,6 +111,8 @@ public class SimulatorManager : MonoBehaviour
     private bool IsInitialized { get; set; }
     public uint GTIDs { get; set; }
     public uint SignalIDs { get; set; }
+    private System.Random RandomGenerator;
+    private HashSet<Color> InstanceColorSet = new HashSet<Color>();
 
     private void Awake()
     {
@@ -160,8 +162,8 @@ public class SimulatorManager : MonoBehaviour
         var config = Loader.Instance?.SimConfig;
 
         var masterSeed = seed ?? config?.Seed ?? new System.Random().Next();
-        System.Random rand = new System.Random(masterSeed);
-        
+        RandomGenerator = new System.Random(masterSeed);
+
         //Calculate map bounds and limit position compression
         if (Loader.Instance != null && Loader.Instance.Network.IsClusterSimulation)
         {
@@ -178,11 +180,11 @@ public class SimulatorManager : MonoBehaviour
         ControllableManager = Instantiate(controllableManagerPrefab, ManagerHolder.transform);
         MapManager = Instantiate(mapManagerPrefab, ManagerHolder.transform);
         NPCManager = Instantiate(npcManagerPrefab, ManagerHolder.transform);
-        NPCManager.InitRandomGenerator(rand.Next());
+        NPCManager.InitRandomGenerator(RandomGenerator.Next());
         PedestrianManager = Instantiate(pedestrianManagerPrefab, ManagerHolder.transform);
-        PedestrianManager.InitRandomGenerator(rand.Next());
+        PedestrianManager.InitRandomGenerator(RandomGenerator.Next());
         EnvironmentEffectsManager = Instantiate(environmentEffectsManagerPrefab, ManagerHolder.transform);
-        EnvironmentEffectsManager.InitRandomGenerator(rand.Next());
+        EnvironmentEffectsManager.InitRandomGenerator(RandomGenerator.Next());
         UIManager = Instantiate(uiManagerPrefab, ManagerHolder.transform);
 
         if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux && Application.isEditor)
@@ -246,7 +248,7 @@ public class SimulatorManager : MonoBehaviour
         SIM.LogSimulation(SIM.Simulation.WetnessStart, wet == 0f ? EnvironmentEffectsManager.wet.ToString() : wet.ToString());
         SIM.LogSimulation(SIM.Simulation.FogStart, fog == 0f ? EnvironmentEffectsManager.fog.ToString() : fog.ToString());
         SIM.LogSimulation(SIM.Simulation.CloudinessStart, cloud == 0f ? EnvironmentEffectsManager.cloud.ToString() : cloud.ToString());
-        InitSemanticTags();
+        InitSegmenationColors();
         WireframeBoxes = gameObject.AddComponent<WireframeBoxes>();
         if (Loader.Instance != null) TimeManager.Initialize(Loader.Instance.Network.MessagesManager);
         Sensors.Initialize();
@@ -322,7 +324,40 @@ public class SimulatorManager : MonoBehaviour
         DestroyImmediate(ManagerHolder);
     }
 
-    void InitSemanticTags()
+    private Color GenerateSimilarColor(Color color)
+    {
+        Color newColor;
+        float h, s, v;
+        Color.RGBToHSV(color, out h, out s, out v);
+        do
+        {
+            // vary s and v a little bit but keep h.
+            float new_s = Mathf.Clamp01(s + RandomGenerator.NextFloat(-0.25f, 0.25f));
+            float new_v = Mathf.Clamp01(v + RandomGenerator.NextFloat(-0.25f, 0.25f));
+            newColor = Color.HSVToRGB(h, new_s, new_v);
+        } while (!InstanceColorSet.Add(newColor));
+        // TODO: There is a possibility that all possible colors have been generated,
+        // which will cause infinite loop here. But since we have at least 128 * 128 = 16384 
+        // possible differen colors for each hue, it is very unlikely that we generate 
+        // all possible colors.
+        // We may improve the logic later to fully avoid infinite loop.
+
+        return newColor;
+    }
+
+    public void SetInstanceColor(string tag)
+    {
+        foreach (var item in SegmentationColors)
+        {
+            if (item.Tag == tag)
+            {
+                item.IsInstanceSegmenation = true;
+                break;
+            }
+        }
+    }
+
+    void InitSegmenationColors()
     {
         var renderers = new List<Renderer>(1024);
         var sharedMaterials = new List<Material>(8);
@@ -330,65 +365,171 @@ public class SimulatorManager : MonoBehaviour
 
         var mapping = new Dictionary<Material, Material>();
 
-        foreach (var item in SemanticColors)
+        foreach (var item in SegmentationColors)
         {
             foreach (var obj in GameObject.FindGameObjectsWithTag(item.Tag))
             {
+                Color segmentationColor;
+                if (item.IsInstanceSegmenation)
+                {
+                    segmentationColor = GenerateSimilarColor(item.Color);
+                }
+                else
+                {
+                    segmentationColor = item.Color;
+                }
+
                 obj.GetComponentsInChildren(true, renderers);
                 renderers.ForEach(renderer =>
                 {
-                    if (Application.isEditor)
+                    if (item.IsInstanceSegmenation)
                     {
-                        renderer.GetSharedMaterials(sharedMaterials);
                         renderer.GetMaterials(materials);
-
-                        Debug.Assert(sharedMaterials.Count == materials.Count);
-
-                        for (int i = 0; i < materials.Count; i++)
-                        {
-                            if (sharedMaterials[i] == null)
-                            {
-                                Debug.LogError($"{renderer.gameObject.name} has null material", renderer.gameObject);
-                            }
-                            else
-                            {
-                                if (mapping.TryGetValue(sharedMaterials[i], out var mat))
-                                {
-                                    DestroyImmediate(materials[i]);
-                                    materials[i] = mat;
-                                }
-                                else
-                                {
-                                    mapping.Add(sharedMaterials[i], materials[i]);
-                                }
-                            }
-                        }
-
-                        renderer.materials = materials.ToArray();
                     }
                     else
                     {
-                        renderer.GetSharedMaterials(materials);
+                        if (Application.isEditor)
+                        {
+                            renderer.GetSharedMaterials(sharedMaterials);
+                            renderer.GetMaterials(materials);
+
+                            Debug.Assert(sharedMaterials.Count == materials.Count);
+
+                            for (int i = 0; i < materials.Count; i++)
+                            {
+                                if (sharedMaterials[i] == null)
+                                {
+                                    Debug.LogError($"{renderer.gameObject.name} has null material", renderer.gameObject);
+                                }
+                                else
+                                {
+                                    if (mapping.TryGetValue(sharedMaterials[i], out var mat))
+                                    {
+                                        DestroyImmediate(materials[i]);
+                                        materials[i] = mat;
+                                    }
+                                    else
+                                    {
+                                        mapping.Add(sharedMaterials[i], materials[i]);
+                                    }
+                                }
+                            }
+
+                            renderer.materials = materials.ToArray();
+                        }
+                        else
+                        {
+                            renderer.GetSharedMaterials(materials);
+                        }
                     }
-                    materials.ForEach(material => material?.SetColor("_SemanticColor", item.Color));
+                    materials.ForEach(material =>
+                    {
+                        material?.SetColor("_SegmentationColor", segmentationColor);
+                    });
                 });
             }
         }
     }
 
-    public void UpdateSemanticTags(GameObject obj)
+    // TODO: Remove this function after we are able to set SegmentationColors via WebUI.
+    // Return true if "IsInstanceSegmentation" is set for any tag, false otherwise.
+    public bool CheckInstanceSegmentationSetting()
+    {
+        foreach (var item in SegmentationColors)
+        {
+            if (item.IsInstanceSegmenation)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // TODO: Remove this function after we are able to set SegmentationColors via WebUI.
+    public void ResetSegmentationColors()
     {
         var renderers = new List<Renderer>(1024);
         var materials = new List<Material>(8);
 
-        foreach (var item in SemanticColors)
+        var mapping = new Dictionary<Material, Material>();
+
+        foreach (var item in SegmentationColors)
+        {
+            // "Car" and "Pedestrian" may be inactive, and thus cannot be found by tag.
+            // So we deal with these two tags separately by loop over the corresponding pools.
+            if (item.Tag == "Car")
+            {
+                foreach (NPCController npcController in NPCManager.CurrentPooledNPCs)
+                {
+                    UpdateSegmentationColors(npcController.gameObject);
+                }
+            }
+            else if (item.Tag == "Pedestrian")
+            {
+                foreach (PedestrianController pedestrianController in PedestrianManager.CurrentPedPool)
+                {
+                    UpdateSegmentationColors(pedestrianController.gameObject);
+                }
+            }
+            else
+            {
+                foreach (var obj in GameObject.FindGameObjectsWithTag(item.Tag))
+                {
+                    Color segmentationColor;
+                    if (item.IsInstanceSegmenation)
+                    {
+                        segmentationColor = GenerateSimilarColor(item.Color);
+                    }
+                    else
+                    {
+                        segmentationColor = item.Color;
+                    }
+
+                    obj.GetComponentsInChildren(true, renderers);
+                    renderers.ForEach(renderer =>
+                    {
+                        if (item.IsInstanceSegmenation)
+                        {
+                            renderer.GetMaterials(materials);
+                        }
+                        else
+                        {
+                            renderer.GetSharedMaterials(materials);
+                        }
+                        materials.ForEach(material =>
+                        {
+                            material?.SetColor("_SegmentationColor", segmentationColor);
+                        });
+                    });
+                }
+            }
+        }
+    }
+
+    public void UpdateSegmentationColors(GameObject obj)
+    {
+        var renderers = new List<Renderer>(1024);
+        var materials = new List<Material>(8);
+
+        foreach (var item in SegmentationColors)
         {
             if (item.Tag == obj.tag)
             {
+                Color segmentationColor;
+                if (item.IsInstanceSegmenation)
+                {
+                    segmentationColor = GenerateSimilarColor(item.Color);
+                }
+                else
+                {
+                    segmentationColor = item.Color;
+                }
+
                 obj.GetComponentsInChildren(true, renderers);
                 renderers.ForEach(renderer =>
                 {
-                    if (Application.isEditor)
+                    if (Application.isEditor || item.IsInstanceSegmenation)
                     {
                         renderer.GetMaterials(materials);
                     }
@@ -396,7 +537,10 @@ public class SimulatorManager : MonoBehaviour
                     {
                         renderer.GetSharedMaterials(materials);
                     }
-                    materials.ForEach(material => material?.SetColor("_SemanticColor", item.Color));
+                    materials.ForEach(material =>
+                    {
+                        material?.SetColor("_SegmentationColor", segmentationColor);
+                    });
                 });
             }
         }
@@ -422,6 +566,7 @@ public class SimulatorManager : MonoBehaviour
             SimulatorTimeManager.SetUnityTimeScale(scale);
     }
 
+    float oldTimeScale = 0f;
     void Update()
     {
         if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux && Application.isEditor)
@@ -443,6 +588,13 @@ public class SimulatorManager : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Alpha8)) AgentManager.SetCurrentActiveAgent(7);
             if (Input.GetKeyDown(KeyCode.Alpha9)) AgentManager.SetCurrentActiveAgent(8);
             if (Input.GetKeyDown(KeyCode.Alpha0)) AgentManager.SetCurrentActiveAgent(9);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            float temp = Time.timeScale;
+            Time.timeScale = oldTimeScale;
+            oldTimeScale = temp;
         }
     }
 

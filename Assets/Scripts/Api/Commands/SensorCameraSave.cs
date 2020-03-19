@@ -35,9 +35,9 @@ namespace Simulator.Api.Commands
                     bool result = camera.Save(path, quality, compression);
                     api.SendResult(this, result);
                 }
-                else if (sensor is SemanticCameraSensor)
+                else if (sensor is SegmentationCameraSensor)
                 {
-                    var camera = sensor as SemanticCameraSensor;
+                    var camera = sensor as SegmentationCameraSensor;
                     bool result = camera.Save(path, quality, compression);
                     api.SendResult(this, result);
                 }

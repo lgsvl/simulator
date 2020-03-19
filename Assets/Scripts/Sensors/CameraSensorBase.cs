@@ -144,6 +144,12 @@ namespace Simulator.Sensors
             }
             DistortedTexture?.Release();
 
+            while (CaptureQueue.Count > 0)
+            {
+                var capture = CaptureQueue.Dequeue();
+                capture.GpuData.Dispose();
+            }
+
             while (AvailableGpuDataArrays.Count > 0)
             {
                 NativeArray<byte> gpuData;
@@ -451,7 +457,8 @@ namespace Simulator.Sensors
                         });
 
                         Sequence++;
-                    } else
+                    }
+                    else
                     {
                         AvailableGpuDataArrays.Add(capture.GpuData);
                     }

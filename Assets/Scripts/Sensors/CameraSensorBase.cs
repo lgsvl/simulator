@@ -118,6 +118,7 @@ namespace Simulator.Sensors
 
         private Queue<CameraCapture> CaptureQueue = new Queue<CameraCapture>();
         private ConcurrentBag<byte[]> JpegOutput = new ConcurrentBag<byte[]>();
+        private List<Task> Tasks = new List<Task>();
 
         public void Start()
         {
@@ -146,18 +147,13 @@ namespace Simulator.Sensors
 
             while (CaptureQueue.Count > 0)
             {
-                var capture = CaptureQueue.Dequeue();
-                capture.GpuData.Dispose();
+                ProcessReadbackRequests(true);
             }
 
-            while (AvailableGpuDataArrays.Count > 0)
+            // Wait all tasks finished to gurantee all native arrays are in AvailableGpuDataArrays.
+            Task.WaitAll(Tasks.ToArray());
+            while (AvailableGpuDataArrays.TryTake(out var gpuData))
             {
-                NativeArray<byte> gpuData;
-                bool tryTakeSuccess = AvailableGpuDataArrays.TryTake(out gpuData);
-                while (!tryTakeSuccess)
-                {
-                    tryTakeSuccess = AvailableGpuDataArrays.TryTake(out gpuData);
-                }
                 gpuData.Dispose();
             }
         }
@@ -189,6 +185,12 @@ namespace Simulator.Sensors
             {
                 ResetDistortion();
             }
+
+            while (Tasks.Count > 0 && Tasks[0].IsCompleted)
+            {
+                Tasks.RemoveAt(0);
+            }
+
             CheckTexture();
             CheckCapture();
             ProcessReadbackRequests();
@@ -376,20 +378,19 @@ namespace Simulator.Sensors
             {
                 RenderCamera();
 
-                NativeArray<byte> GpuData;
-                if (!AvailableGpuDataArrays.TryTake(out GpuData))
+                NativeArray<byte> gpuData;
+                while (AvailableGpuDataArrays.TryTake(out gpuData) && gpuData.Length != Width * Height * 4)
                 {
-                    GpuData = new NativeArray<byte>(Width * Height * 4, Allocator.Persistent);
+                    gpuData.Dispose();
                 }
-                else if (GpuData.Length != Width * Height * 4)
+                if (!gpuData.IsCreated)
                 {
-                    GpuData.Dispose();
-                    GpuData = new NativeArray<byte>(Width * Height * 4, Allocator.Persistent);
+                    gpuData = new NativeArray<byte>(Width * Height * 4, Allocator.Persistent);
                 }
 
                 var capture = new CameraCapture()
                 {
-                    GpuData = GpuData,
+                    GpuData = gpuData,
                     CaptureTime = SimulatorManager.Instance.CurrentTime,
                 };
                 capture.Request = AsyncGPUReadback.Request(Distorted ? DistortedTexture : SensorCamera.targetTexture, 0, TextureFormat.RGBA32);
@@ -403,8 +404,7 @@ namespace Simulator.Sensors
             }
         }
 
-        private string previousLoggedData;
-        void ProcessReadbackRequests()
+        void ProcessReadbackRequests(bool finalProcess = false)
         {
             while (CaptureQueue.Count > 0)
             {
@@ -440,7 +440,7 @@ namespace Simulator.Sensors
                             imageData.Bytes = new byte[MaxJpegSize];
                         }
 
-                        Task.Run(() =>
+                        Tasks.Add(Task.Run(() =>
                         {
                             imageData.Length = JpegEncoder.Encode(capture.GpuData, Width, Height, 4, JpegQuality, imageData.Bytes);
                             if (imageData.Length > 0)
@@ -454,7 +454,7 @@ namespace Simulator.Sensors
                             }
                             JpegOutput.Add(imageData.Bytes);
                             AvailableGpuDataArrays.Add(capture.GpuData);
-                        });
+                        }));
 
                         Sequence++;
                     }
@@ -462,6 +462,12 @@ namespace Simulator.Sensors
                     {
                         AvailableGpuDataArrays.Add(capture.GpuData);
                     }
+                }
+                else if (finalProcess)
+                {
+                    // Discard unfinished capture request for final process.
+                    CaptureQueue.Dequeue();
+                    AvailableGpuDataArrays.Add(capture.GpuData);
                 }
                 else
                 {

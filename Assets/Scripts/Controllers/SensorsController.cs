@@ -285,7 +285,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                 {
                     foreach (var elemValue in value)
                     {
-                        var elem = Activator.CreateInstance(type);
+                        object elem;
                         try
                         {
                             elem = Enum.Parse(type, elemValue.Value);

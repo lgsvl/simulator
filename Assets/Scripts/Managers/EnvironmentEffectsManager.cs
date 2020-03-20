@@ -468,6 +468,10 @@ public class EnvironmentEffectsManager : MonoBehaviour
     private void UpdateClouds()
     {
         //cloudRenderer.material.SetColor("_SunCloudsColor", sun.color);
+        cloudRenderer.material.SetFloat("_TODEmissive", currentTimeOfDayState == TimeOfDayStateTypes.Night ||
+                                                        currentTimeOfDayState == TimeOfDayStateTypes.Sunrise ||
+                                                        currentTimeOfDayState == TimeOfDayStateTypes.Sunset ? 0f : 0.1f); // TODO lerp for better effect
+
         if (cloud != prevCloud)
         {
             cloudRenderer.material.SetFloat("_Density", Mathf.Lerp(0f, 1f, cloud));

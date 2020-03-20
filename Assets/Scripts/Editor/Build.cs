@@ -384,8 +384,13 @@ namespace Simulator.Editor
                 var scene = Path.Combine("Assets", "External", "Environments", name, $"{name}.{SceneExtension}");
 
                 Scene s = EditorSceneManager.OpenScene(scene, OpenSceneMode.Additive);
+                NodeTreeLoader[] loaders = GameObject.FindObjectsOfType<NodeTreeLoader>();
                 string dataPath = GameObject.FindObjectOfType<NodeTreeLoader>()?.GetFullDataPath();
-
+                List<Tuple<string, string>> loaderPaths = new List<Tuple<string, string>>();
+                foreach(NodeTreeLoader loader in loaders)
+                {
+                    loaderPaths.Add(new Tuple<string, string>(Utilities.Utility.StringToGUID(loader.GetFullDataPath()).ToString(), loader.GetFullDataPath()));
+                }
                 try
                 {
                     Manifest? manifest = null;
@@ -410,12 +415,12 @@ namespace Simulator.Editor
                         }
                     }
 
-                    if (!string.IsNullOrEmpty(dataPath))
-                    {
-                        Manifest m = manifest.Value;
-                        m.additionalFiles = new Dictionary<string, string>() { { "pointCloud", dataPath } };
-                        manifest = m;
+                    Manifest m = manifest.Value;
+                    m.additionalFiles = new Dictionary<string, string>();
+                    foreach (Tuple<string, string> t in loaderPaths) {
+                        m.additionalFiles.Add("PointCloud" + t.Item1, t.Item2);
                     }
+                    manifest = m;
 
                     if (manifest.HasValue)
                     {
@@ -515,13 +520,19 @@ namespace Simulator.Editor
                                 }
                             }
 
-                            if (manifest.additionalFiles != null && manifest.additionalFiles.ContainsKey("pointCloud"))
+                            if (manifest.additionalFiles != null)
                             {
-                                foreach (FileInfo fi in new DirectoryInfo(manifest.additionalFiles["pointCloud"]).GetFiles())
+                                foreach (string key in manifest.additionalFiles.Keys)
                                 {
-                                    if (fi.Extension == ".pcnode" || fi.Extension == ".pcindex")
+                                    if (key.Contains("PointCloud"))
                                     {
-                                        archive.Add(new StaticDiskDataSource(fi.FullName), Path.Combine("PointCloud", fi.Name), CompressionMethod.Stored, true);
+                                        foreach (FileInfo fi in new DirectoryInfo(manifest.additionalFiles[key]).GetFiles())
+                                        {
+                                            if (fi.Extension == ".pcnode" || fi.Extension == ".pcindex")
+                                            {
+                                                archive.Add(new StaticDiskDataSource(fi.FullName), Path.Combine(key, fi.Name), CompressionMethod.Stored, true);
+                                            }
+                                        }
                                     }
                                 }
                             }

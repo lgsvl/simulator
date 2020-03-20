@@ -530,13 +530,19 @@ namespace Simulator
 
                                 Manifest manifest = new Deserializer().Deserialize<Manifest>(manfile);
 
-                                if (manifest.additionalFiles != null && manifest.additionalFiles.ContainsKey("pointCloud"))
+                                if (manifest.additionalFiles != null)
                                 {
-                                    if (!Directory.Exists(Path.Combine(Application.persistentDataPath, manifest.assetGuid)))
+                                    foreach (string key in manifest.additionalFiles.Keys)
                                     {
-                                        Directory.CreateDirectory(Path.Combine(Application.persistentDataPath, manifest.assetGuid));
-                                        FastZip fastZip = new FastZip();
-                                        fastZip.ExtractZip(mapBundlePath, Path.Combine(Application.persistentDataPath, manifest.assetGuid), ".*\\.(pcnode|pcindex)$");
+                                        if (key.Contains("PointCloud"))
+                                        {
+                                            if (!Directory.Exists(Path.Combine(Application.persistentDataPath, manifest.assetGuid)))
+                                            {
+                                                Directory.CreateDirectory(Path.Combine(Application.persistentDataPath, manifest.assetGuid));
+                                                FastZip fastZip = new FastZip();
+                                                fastZip.ExtractZip(mapBundlePath, Path.Combine(Application.persistentDataPath, manifest.assetGuid), ".*\\.(pcnode|pcindex)$");
+                                            }
+                                        }
                                     }
                                 }
 
@@ -588,7 +594,12 @@ namespace Simulator
                                         textureBundle?.Unload(false);
                                         mapBundle.Unload(false);
                                         zip.Close();
-                                        FindObjectOfType<NodeTreeLoader>()?.UpdateData(Path.Combine(Application.persistentDataPath, manifest.assetGuid, "PointCloud"));
+                                        NodeTreeLoader[] loaders = FindObjectsOfType<NodeTreeLoader>();
+                                        foreach(NodeTreeLoader l in loaders)
+                                        {
+                                            l.UpdateData(Path.Combine(Application.persistentDataPath, manifest.assetGuid, $"PointCloud{Utilities.Utility.StringToGUID(l.GetFullDataPath()).ToString()}"));
+                                        }
+
                                         SetupScene(simulation);
                                         ResetMaterials(); // TODO remove Editor hack for 2019.3.3 bug once fixed
                                     }

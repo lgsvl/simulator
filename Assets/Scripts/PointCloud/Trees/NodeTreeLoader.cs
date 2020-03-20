@@ -63,6 +63,11 @@ namespace Simulator.PointCloud.Trees
             }
         }
 
+        public string GetDataPath()
+        {
+            return dataPath;
+        }
+
         public string GetFullDataPath()
         {
             return Utility.GetFullPath(dataPath);

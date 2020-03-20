@@ -595,9 +595,9 @@ namespace Simulator
                                         mapBundle.Unload(false);
                                         zip.Close();
                                         NodeTreeLoader[] loaders = FindObjectsOfType<NodeTreeLoader>();
-                                        foreach(NodeTreeLoader l in loaders)
+                                        foreach (NodeTreeLoader l in loaders)
                                         {
-                                            l.UpdateData(Path.Combine(Application.persistentDataPath, manifest.assetGuid, $"PointCloud{Utilities.Utility.StringToGUID(l.GetFullDataPath()).ToString()}"));
+                                            l.UpdateData(Path.Combine(Application.persistentDataPath, manifest.assetGuid, $"PointCloud_{Utilities.Utility.StringToGUID(l.GetDataPath())}".ToString()));
                                         }
 
                                         SetupScene(simulation);

@@ -389,7 +389,7 @@ namespace Simulator.Editor
                 List<Tuple<string, string>> loaderPaths = new List<Tuple<string, string>>();
                 foreach(NodeTreeLoader loader in loaders)
                 {
-                    loaderPaths.Add(new Tuple<string, string>(Utilities.Utility.StringToGUID(loader.GetFullDataPath()).ToString(), loader.GetFullDataPath()));
+                    loaderPaths.Add(new Tuple<string, string>(Utilities.Utility.StringToGUID(loader.GetDataPath()).ToString(), loader.GetFullDataPath()));
                 }
                 try
                 {
@@ -418,9 +418,9 @@ namespace Simulator.Editor
                     Manifest m = manifest.Value;
                     m.additionalFiles = new Dictionary<string, string>();
                     foreach (Tuple<string, string> t in loaderPaths) {
-                        if (!m.additionalFiles.ContainsKey($"PointCloud{t.Item1}"))
+                        if (!m.additionalFiles.ContainsKey($"PointCloud_{t.Item1}"))
                         {
-                            m.additionalFiles.Add($"PointCloud{t.Item1}", t.Item2);
+                            m.additionalFiles.Add($"PointCloud_{t.Item1}", t.Item2);
                         }
                     }
                     manifest = m;

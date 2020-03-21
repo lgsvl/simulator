@@ -418,9 +418,9 @@ namespace Simulator.Editor
                     Manifest m = manifest.Value;
                     m.additionalFiles = new Dictionary<string, string>();
                     foreach (Tuple<string, string> t in loaderPaths) {
-                        if (!m.additionalFiles.ContainsKey($"PointCloud_{t.Item1}"))
+                        if (!m.additionalFiles.ContainsKey($"pointcloud_{t.Item1}"))
                         {
-                            m.additionalFiles.Add($"PointCloud_{t.Item1}", t.Item2);
+                            m.additionalFiles.Add($"pointcloud_{t.Item1}", t.Item2);
                         }
                     }
                     manifest = m;
@@ -527,7 +527,7 @@ namespace Simulator.Editor
                             {
                                 foreach (string key in manifest.additionalFiles.Keys)
                                 {
-                                    if (key.Contains("PointCloud"))
+                                    if (key.Contains("pointcloud"))
                                     {
                                         foreach (FileInfo fi in new DirectoryInfo(manifest.additionalFiles[key]).GetFiles())
                                         {

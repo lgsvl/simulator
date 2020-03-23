@@ -8,8 +8,8 @@ if [[ `id -u` -eq 0 ]]; then
   exit 1
 fi
 
-if [ $# -ne 4 ]; then
-  echo "ERROR: use $0 <folder> <url> <prefix> <all>"
+if [ $# -lt 4 ]; then
+  echo "ERROR: use $0 <folder> <url> <prefix> <all> [subfolder1 [subfolder2]]" 
   exit 1
 fi
 
@@ -18,12 +18,35 @@ URL=$2
 PREFIX=$3
 ALL=$4
 
+shift 4
+SUBFOLDERS=${@:-all}
+
+# split by comma
+SUBFOLDERS=$(echo ${SUBFOLDERS} | tr ',' ' ')
+
 if [ "${FORCE_REBUILD}" == "true" ]; then
   ALL=1
 fi
 
-for f in "${FOLDER}"/*/; do
+function list_folders {
+    echo SUBFOLDERS=${SUBFOLDERS} > /dev/stderr
+    
+    if [ "${SUBFOLDERS}" == "all" ]; then
+        find ${FOLDER} -mindepth 1 -maxdepth 1 -type d
+    else
+        for subfolder in ${SUBFOLDERS}; do
+            path=${FOLDER}/$subfolder
+            
+            if [ -d "$path" ]; then
+                echo $path
+            else
+                echo "Can't asset find folder ${path}" > /dev/stderr
+            fi
+        done
+    fi
+}
 
+for f in $(list_folders); do
   NAME=`basename "${f}"`
   if [[ ! "${NAME}" =~ "@tmp" ]]; then
 

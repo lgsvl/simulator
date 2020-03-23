@@ -4,7 +4,7 @@ pipeline {
 
   agent {
     node {
-      label "unity3d"
+      label "unity3d-2019.3-vulkan"
       customWorkspace "/home/jenkins/workspace/simulator-2019.3"
     }
   }
@@ -23,6 +23,9 @@ pipeline {
   parameters {
     string(name: "CLOUD_URL", defaultValue: "${SIMULATOR_STAGING_CLOUD_URL}", description: "")
     booleanParam(name: "FORCE_REBUILD", defaultValue: false, description: "")
+    booleanParam(name: "UPLOAD", defaultValue: true, description: "Upload bundles to S3")
+    string(name: "BUILD_SIMULATOR_ENVIRONMENTS", defaultValue: "${SIMULATOR_ENVIRONMENTS}", description: "Environments to build")
+    string(name: "BUILD_SIMULATOR_VEHICLES", defaultValue: "${SIMULATOR_VEHICLES}", description: "Vehicles to build")
   }
 
   environment {
@@ -31,31 +34,32 @@ pipeline {
     UNITY_SERIAL = credentials("UNITY_SERIAL")
     PYTHONUNBUFFERED = "1"
     DISPLAY = ":0"
-    GIT_BRANCH = "${BRANCH_NAME}"
+    JENKINS_BUILD_ID = "${BUILD_ID}"
+    GIT_COMMIT = sh(returnStdout: true, script: "git rev-parse HEAD").trim()
   }
 
   stages {
+    stage("Checkout Simulator") {
+        steps {
+            checkout scm
+            sh """
+                git lfs install
+                git lfs pull origin
+            """
+            sh "rm -rf *.zip *.html *.xml *.log.gz *.log *.txt"
+        }
+    }
 
-    stage("Git") {
+    stage("Checkout Environments") {
+      when {
+        not {
+            environment name: "BUILD_SIMULATOR_ENVIRONMENTS", value: ""
+        }
+      }
       steps {
-
-        checkout([
-          $class: "GitSCM",
-          branches: [[name: "refs/heads/master"]],
-          browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Simulator", version: env.GITLAB_VERSION],
-          extensions: [
-            [$class: "LocalBranch"],
-            [$class: "GitLFSPull"]
-          ],
-          userRemoteConfigs: [[
-            credentialsId: "auto-gitlab",
-            url: "git@${GITLAB_HOST}:HDRP/Simulator.git"
-          ]]
-        ])
-
         script {
 
-          def environments = env.SIMULATOR_ENVIRONMENTS.split(',')
+          def environments = env.BUILD_SIMULATOR_ENVIRONMENTS.split(',')
           for (int i=0; i<environments.size(); i++) {
             def environment = environments[i]
             checkout([
@@ -74,7 +78,27 @@ pipeline {
             ])
           }
 
-          def vehicles = env.SIMULATOR_VEHICLES.split(',')
+          env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 0 ${BUILD_SIMULATOR_ENVIRONMENTS}").trim()
+        } // script
+        sh "printenv SIM_ENVIRONMENTS | tee environments.txt"
+      }
+
+      post {
+        success {
+            archiveArtifacts "environments.txt"
+        }
+      }
+    }
+
+    stage("Checkout Vehicles") {
+      when {
+        not {
+            environment name: "BUILD_SIMULATOR_VEHICLES", value: ""
+        }
+      }
+      steps {
+        script {
+          def vehicles = env.BUILD_SIMULATOR_VEHICLES.split(',')
           for (int i=0; i<vehicles.size(); i++) {
             def vehicle = vehicles[i]
             checkout([
@@ -93,12 +117,15 @@ pipeline {
             ])
           }
 
-          env.GIT_COMMIT = sh(returnStdout: true, script: "git rev-parse HEAD").trim()
-          env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 0").trim()
-          env.SIM_VEHICLES = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 0").trim()
+          env.SIM_VEHICLES = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 0 ${BUILD_SIMULATOR_VEHICLES}").trim()
         } // script
 
-        sh "rm -rf *.zip *.html *.xml"
+        sh "printenv SIM_VEHICLES | tee vehicles.txt"
+      }
+      post {
+        success {
+            archiveArtifacts "vehicles.txt"
+        }
       }
     }
 
@@ -130,13 +157,21 @@ pipeline {
       }
       steps {
         dir("Jenkins") {
-          sh "UID=`id -u` docker-compose run --rm build-bundles"
+          sh "UID=`id -u` docker-compose run --rm build-bundles | tee ../build-bundles-${JENKINS_BUILD_ID}.log"
+          sh "./check-unity-log.sh ../build-bundles-${JENKINS_BUILD_ID}.log"
+        }
+      }
+      post {
+        always {
+            sh "gzip *.log"
+            archiveArtifacts "*.log.gz"
         }
       }
     } // Build
 
     stage("Upload") {
       when {
+        environment name: "UPLOAD", value: "true"
         anyOf {
           not {
             environment name: "SIM_ENVIRONMENTS", value: ""
@@ -148,7 +183,13 @@ pipeline {
       }
       steps {
         dir("Jenkins") {
-          sh "UID=`id -u` docker-compose run --rm upload-bundles"
+          sh "UID=`id -u` docker-compose run --rm upload-bundles  | tee ../upload-bundles-${JENKINS_BUILD_ID}.log"
+        }
+      }
+      post {
+        always {
+            sh "gzip *.log"
+            archiveArtifacts "*.log.gz"
         }
       }
     } // Upload
@@ -162,6 +203,7 @@ pipeline {
     success {
       updateGitlabCommitStatus state: "success"
     }
+
   }
 
 }

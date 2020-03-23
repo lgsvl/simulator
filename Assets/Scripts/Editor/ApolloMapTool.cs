@@ -446,10 +446,6 @@ namespace Simulator.Editor
         const float StoplineIntersectThreshold = 1.5f;
         private double OriginNorthing;
         private double OriginEasting;
-        Vector3 Left = Vector3.zero;
-        Vector3 Right = Vector3.zero;
-        Vector3 Top = Vector3.zero;
-        Vector3 Bottom = Vector3.zero;
         int OriginZone;
         private float AltitudeOffset;
         MapOrigin mapOrigin;
@@ -1448,37 +1444,12 @@ namespace Simulator.Editor
                 MakeCrossWalkAnnotation();
             }
 
-            foreach (var lineSegment in lineSegmentsSet)
-            {
-                // Calculate bounds of map
-                foreach (var position in lineSegment.mapWorldPositions)
-                {
-                    if (position.x > Right.x)
-                    {
-                        Right = position;
-                    }
-
-                    if (position.x < Left.x)
-                    {
-                        Left = position;
-                    }
-
-                    if (position.z > Top.z)
-                    {
-                        Top = position;
-                    }
-
-                    if (position.z < Bottom.z)
-                    {
-                        Bottom = position;
-                    }
-                }
-            }
-
-            var LeftLongitude = mapOrigin.GetGpsLocation(Left).Longitude;
-            var RightLongitude = mapOrigin.GetGpsLocation(Right).Longitude;
-            var TopLatitude = mapOrigin.GetGpsLocation(Top).Latitude;
-            var BottomLatitude = mapOrigin.GetGpsLocation(Bottom).Latitude;
+            double originLatitude, originLongitude;
+            mapOrigin.GetLatitudeLongitude(mapOrigin.OriginNorthing, mapOrigin.OriginEasting, out originLatitude, out originLongitude);
+            var LeftLongitude = originLongitude;
+            var RightLongitude = originLongitude;
+            var TopLatitude = originLatitude;
+            var BottomLatitude = originLatitude;
 
             Hdmap.header = new HD.Header()
             {

@@ -25,7 +25,7 @@ pipeline {
     booleanParam(name: "BUILD_LINUX", defaultValue: true, description: "")
     booleanParam(name: "BUILD_MACOS", defaultValue: false, description: "")
     string(name: "CLOUD_URL", defaultValue: "${SIMULATOR_STAGING_CLOUD_URL}", description: "")
-    string(name: "SIMULATOR_SENSORS", defaultValue: "CheckControlSensor", description: "List of sensors to build from https://auto-gitlab.lgsvl.net/HDRP/Sensors")
+    string(name: "BUILD_SIMULATOR_SENSORS", defaultValue: "${SIMULATOR_SENSORS}", description: "List of sensors to build from https://auto-gitlab.lgsvl.net/HDRP/Sensors")
   }
 
   environment {
@@ -118,7 +118,7 @@ pipeline {
             ])
           }
 
-          def sensors = env.SIMULATOR_SENSORS.split(',')
+          def sensors = env.BUILD_SIMULATOR_SENSORS.split(',')
           for (int i=0; i<sensors.size(); i++) {
             def sensor = sensors[i]
             checkout([

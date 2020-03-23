@@ -147,7 +147,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
     private List<Light> indicatorLeftLights = new List<Light>();
     private List<Light> indicatorRightLights = new List<Light>();
     private Light indicatorReverseLight;
-    
+
     //Network
     private MessagesManager messagesManager;
     private string key;
@@ -230,7 +230,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
     private System.Random RandomGenerator;
     private MonoBehaviour FixedUpdateManager;
     private NPCManager NPCManager;
-    
+
     private Coroutine[] Coroutines = new Coroutine[System.Enum.GetNames(typeof(CoroutineID)).Length];
     private int agentLayer;
     public uint GTID { get; set; }
@@ -257,7 +257,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         messagesManager = Loader.Instance.Network.MessagesManager;
         StartCoroutine(WaitForId(() => messagesManager?.RegisterObject(this)));
     }
-    
+
     private void OnEnable()
     {
         SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged += OnTimeOfDayChange;
@@ -269,8 +269,8 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
     {
         if (Control != ControlType.Waypoints)
         {
-            ResetData();    
-        } 
+            ResetData();
+        }
         SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged -= OnTimeOfDayChange;
     }
 
@@ -448,14 +448,14 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
             print(frame + ": " + gameObject.name.Substring(0, gameObject.name.IndexOf("(")) + " " + transform.position.ToString("F7") + " " + currentSpeed + " " + currentTurn.ToString("F7"));
         }
     }
-    
+
     void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.layer == agentLayer)
         {
             ApiManager.Instance?.AddCollision(rb.gameObject, other.attachedRigidbody.gameObject);
             SIM.LogSimulation(SIM.Simulation.NPCCollision);
-        } 
+        }
     }
 
     private void OnDestroy()
@@ -521,19 +521,19 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
                 wheelFL = child.transform;
                 DistributeTransform(wheelFL);
             }
-            
+
             if (child.name.Contains("LeftRear"))
             {
                 wheelRL = child.transform;
                 DistributeTransform(wheelRL);
             }
-            
+
             if (child.name.Contains("RightRear"))
             {
                 wheelRR = child.transform;
                 DistributeTransform(wheelRR);
             }
-            
+
             if (child.name.Contains("Body"))
             {
                 bodyRenderer = child;
@@ -733,7 +733,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         {
             intersection.ExitStopSignQueue(this);
             intersection.ExitIntersectionList(this);
-        }   
+        }
         prevMapLane = null;
         ResetLights();
         currentSpeed = 0f;
@@ -1258,7 +1258,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         if (prevMapLane != null && prevMapLane.stopLine != null) // light is yellow/red so oncoming traffic should be stopped already if past stopline
             if (prevMapLane.stopLine.currentState == MapData.SignalLightStateType.Yellow || prevMapLane.stopLine.currentState == MapData.SignalLightStateType.Red)
                 state = false;
-        
+
         return state;
     }
     #endregion
@@ -1707,7 +1707,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         currentNPCLightState = (NPCLightStateTypes)state;
         SetHeadLights();
         SetRunningLights();
-        
+
         if (Loader.Instance.Network.IsMaster)
         {
             var message = MessagesPool.Instance.GetMessage(8);
@@ -1863,7 +1863,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
                 }
                 break;
         }
-        
+
         if (Loader.Instance.Network.IsMaster)
         {
             var message = MessagesPool.Instance.GetMessage(5);
@@ -1895,7 +1895,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
             FixedUpdateManager.StopCoroutine(turnSignalIE);
         turnSignalIE = StartTurnSignal();
         Coroutines[(int)CoroutineID.StartTurnSignal] = FixedUpdateManager.StartCoroutine(turnSignalIE);
-        
+
         if (Loader.Instance.Network.IsMaster)
         {
             //Force setting turn signals on clients
@@ -1923,7 +1923,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
             hazardSignalIE = StartHazardSignal();
             Coroutines[(int)CoroutineID.StartHazardSignal] = FixedUpdateManager.StartCoroutine(hazardSignalIE);
         }
-        
+
         if (Loader.Instance.Network.IsMaster)
         {
             var message = MessagesPool.Instance.GetMessage(5);
@@ -2006,7 +2006,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         mats[indicatorReverseMatIndex].SetVector("_EmissiveColor", state ? new Color(0.25f, 0.25f, 0.25f) : Color.black);
         bodyRenderer.materials = mats;
         indicatorReverseLight.enabled = state;
-        
+
         if (Loader.Instance.Network.IsMaster)
         {
             var message = MessagesPool.Instance.GetMessage(5);
@@ -2030,7 +2030,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
             FixedUpdateManager.StopCoroutine(hazardSignalIE);
         SetTurnIndicator(isReset: true);
         SetIndicatorReverse(false);
-        
+
         if (Loader.Instance.Network.IsMaster)
         {
             var message = MessagesPool.Instance.GetMessage(4);
@@ -2251,17 +2251,17 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
 
         if (laneTime[0] < 0)
         {
-        // Set waypoint time base on speed.
-        Debug.LogWarning("Waypoint timestamps absent or invalid, caluclating timestamps based on speed.");
-        laneTime = new List<float>();
-        laneTime.Add(0);
-        for (int i=0; i < laneData.Count-1; i++)
-        {
-            var dp = laneData[i+1] - laneData[i];
-            var dt = dp.magnitude/laneSpeed[i];
+            // Set waypoint time base on speed.
+            Debug.LogWarning("Waypoint timestamps absent or invalid, caluclating timestamps based on speed.");
+            laneTime = new List<float>();
+            laneTime.Add(0);
+            for (int i=0; i < laneData.Count-1; i++)
+            {
+                var dp = laneData[i+1] - laneData[i];
+                var dt = dp.magnitude/laneSpeed[i];
 
-            laneTime.Add(laneTime.Last()+dt);
-        }
+                laneTime.Add(laneTime.Last()+dt);
+            }
         }
         updatedWaypoints = true;
         isFirstRun = true;
@@ -2350,7 +2350,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
             yield return null;
         callback();
     }
-    
+
     /// <summary>
     /// Adds required components to make transform distributed from master to clients
     /// </summary>
@@ -2365,7 +2365,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         else if (network.IsClient)
             transformToDistribute.gameObject.AddComponent<DistributedTransform>();
     }
-    
+
     /// <inheritdoc/>
     public void ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
     {

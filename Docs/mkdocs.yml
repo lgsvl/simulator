@@ -33,6 +33,7 @@ nav:
     - 'Maps': 'maps-tab.md'
     - 'Vehicles': 'vehicles-tab.md'
     - 'Sensor Parameters': 'sensor-json-options.md'
+    - 'Sensor Plug-in Parameters': 'sensor-plugin-json-options.md'
     - 'Clusters': 'clusters-tab.md'
     - 'Simulations': 'simulations-tab.md'
   - 'Simulation User Interface':

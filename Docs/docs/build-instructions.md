@@ -1,14 +1,18 @@
 # Instructions to build standalone executable
 
-1. Download and Install Unity Hub:
-    - Ubuntu: <https://forum.unity.com/threads/unity-hub-v2-0-0-release.677485/>
-    - Windows: <https://unity3d.com/get-unity/download>
+1. Download and Install [Unity Hub](https://unity3d.com/get-unity/download)
+    - Ubuntu: You may need to allow the downloaded AppImage to be run as an executable
+        - Right-click the AppImage
+        - Select `Properties`
+        - Go to the `Permissions` tab
+        - Check `Allow executing file as program`
+        - Alternatively, in the terminal run `sudo chmod +x UnityHub.AppImage`
 
 2. Download and Install Unity 2019.1.10f1:
     - **IMPORTANT** include support for both Windows and Linux when installing Unity
     - (Optional) include support for Visual Studio for easier debugging
-    - Ubuntu: <https://beta.unity3d.com/download/f007ed779b7a/UnitySetup-2019.1.10f1>
-    - Windows: <https://unity3d.com/get-unity/download/archive>
+    - [Unity Download Archive](https://unity3d.com/get-unity/download/archive)
+    - Click the `Unity Hub` button to have Unity Hub handle the installation process
 
 3. Download and Install [Node.js](https://nodejs.org/en/)
     - Version 12.13.0 LTS is fine

@@ -48,6 +48,19 @@ If running Apollo or Autoware on a different system as the Simulator, a gigabit 
 ### Downloading and starting simulator [[top]] {: #downloading-and-starting-simulator data-toc-label='Downloading and starting simulator'}
 
 1. Download the latest release of the LGSVL Simulator for your supported operating system (Windows or Linux) here: [https://github.com/lgsvl/simulator/releases/latest][latest release]
+2. Verify that the latest NVIDIA driver is installed
+    - On Windows
+        1. Open `NVIDIA GeForce Experience`
+        2. Go the `Drivers` tab
+        3. `Check for Updates`
+        4. Download and install update if available
+        5. Alternatively download driver manually from [NVIDIA's website](https://www.nvidia.com/Download/index.aspx)
+    - On Ubuntu
+        1. Add the Graphics Drivers PPA from [here](https://launchpad.net/~graphics-drivers/+archive/ubuntu/ppa) under `Adding this PPA to your system`
+        2. Open `Software & Updates`
+        3. Go to the `Additional Drivers` tab
+        4. Select the latest NVIDIA driver
+        5. In a terminal also install libvulkan with `sudo apt install libvulkan1`
 2. Unzip the downloaded folder and run the executable.
 
 ### Building and running from source

@@ -16,7 +16,7 @@ This guide describes setting up and using Autoware.Auto with the LGSVL simulator
 
 #### Installing Docker CE [[top]] {: #installing-docker-ce data-toc-label='Installing Docker CE'}
 
-To install Docker CE please refer to the [official documentation](https://docs.docker.com/install/linux/docker-ce/ubuntu/). We also suggest following through with the [post installation steps](https://docs.docker.com/install/linux/linux-postinstall/).
+To install Docker CE please refer to the [official documentation](https://docs.docker.com/install/linux/docker-ce/ubuntu/). We also suggest following through with the [post installation steps](https://docs.docker.com/install/linux/linux-postinstall/#manage-docker-as-a-non-root-user) to run docker as a non-root user.
 
 #### Installing Nvidia Docker [[top]] {: #installing-nvidia-docker data-toc-label='Installing Nvidia Docker'}
 

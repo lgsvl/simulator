@@ -33,7 +33,7 @@ To install Docker CE please refer to the [official documentation](https://docs.d
 
 **NOTE** 
 Apollo does not work if the docker is started with `sudo`.
-We suggest following through with the [post installation steps](https://docs.docker.com/install/linux/linux-postinstall/).
+We suggest following through with the [post installation steps](https://docs.docker.com/install/linux/linux-postinstall/#manage-docker-as-a-non-root-user).
 
 #### Installing Nvidia Docker [[top]] {: #installing-nvidia-docker data-toc-label='Installing Nvidia Docker'}
 Before installing nvidia-docker make sure that you have an appropriate Nvidia driver installed.

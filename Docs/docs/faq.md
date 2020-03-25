@@ -45,7 +45,8 @@ We are constantly working to ensure that LGSVL Simulator runs on the latest vers
 which supports all of our required functionality.
 
 
-
+#### Why does my Simulator say "Invalid: Out of date Assetbundle"? [[top]] {: #why-does-my-simulator-say-invalid-out-of-date-assetbundle data-toc-label='Why does my Simulator say "Invalid: Out of date Assetbundle"?'}
+Assetbundle versions change as we add new features. To get the latest assetbundles, update the URL of the Map/Vehicle to the one on the [content website](https://content.lgsvlsimulator.com/).
 
 
 #### How do I setup development environment for Unity on Ubuntu? [[top]] {: #how-do-i-setup-development-environment-for-unity-on-ubuntu data-toc-label='How do I setup development environment for Unity on Ubuntu?'}

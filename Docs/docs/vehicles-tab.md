@@ -31,7 +31,7 @@ Example JSON configurations can be found on these pages:
 
 ### How to add a Vehicle [[top]] {: #how-to-add-a-vehicle data-toc-label='How to add a Vehicle'}
 1. Click the `Add new` button
-2. In the dialogue that opens, enter the name of the vehicle and the URL to the assetbundle. This can be a URL to a location in the cloud or to a location on a local drive.
+2. In the dialogue that opens, enter the name of the vehicle and the URL to the assetbundle. This can be a URL to a location in the cloud (e.g. the link to the assetbundle on the [content website](https://content.lgsvlsimulator.com/maps/)) or to a location on a local drive (the absolute path to the `vehicle_XXX` file).
 3. If the URL is not local, the assetbundle will be downloaded to the local database.
 
 [![](images/web-add-vehicle.png)](images/full_size_images/web-add-vehicle.png)

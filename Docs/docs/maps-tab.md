@@ -25,7 +25,7 @@ The HD maps for maps are available in the same page. Please see the relevant doc
 ### How to Add a Map [[top]] {: #how-to-add-a-map data-toc-label='How to Add a Map'}
 
 1. Click the `Add new` button.
-2. In the dialogue that opens, enter the name of the map and the URL to the AssetBundle. This can be a URL to a location in the cloud or to a location on a local drive.
+2. In the dialogue that opens, enter the name of the map and the URL to the AssetBundle. This can be a URL to a location in the cloud (e.g. the link to the assetbundle on the [content website](https://content.lgsvlsimulator.com/maps/)) or to a location on a local drive (the absolute path to the `environment_XXX` file).
 3. If the URL is not local, the AssetBundle will be downloaded to the local database.
 
 [![](images/web-add-map.png)](images/full_size_images/web-add-map.png)

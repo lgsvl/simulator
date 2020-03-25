@@ -24,7 +24,7 @@ Autoware communicates with the LGSVL simulator using the rosbridge_suite, which 
 
 ### Install Docker CE [[top]] {: #install-docker-ce data-toc-label='Install Docker CE'}
 
-To install Docker CE please refer to the [official documentation](https://docs.docker.com/install/linux/docker-ce/ubuntu/). We also suggest following through with the [post installation steps](https://docs.docker.com/install/linux/linux-postinstall/).
+To install Docker CE please refer to the [official documentation](https://docs.docker.com/install/linux/docker-ce/ubuntu/). We also suggest following through with the [post installation steps](https://docs.docker.com/install/linux/linux-postinstall/#manage-docker-as-a-non-root-user) to run docker as a non-root user.
 
 ### Install NVIDIA Container Toolkit [[top]] {: #install-nvidia-container-toolkit data-toc-label='Install NVIDIA Container Toolkit'}
 
@@ -82,7 +82,7 @@ If there wasn't a line beginning with `Filtering content:` output, then Git LFS 
 Clone the `docker` repository from `autoware.ai` into a working directory:
 
 ```bash
-cd WORKING-DIRECTORY
+cd $WORKING_DIRECTORY
 git clone https://gitlab.com/autowarefoundation/autoware.ai/docker.git
 ```
 
@@ -116,7 +116,7 @@ fi
 Run the Autoware 1.12.0 container and enter into it:
 
 ```bash
-cd WORKING-DIRECTORY/docker/generic
+cd $WORKING_DIRECTORY/docker/generic
 ./run.sh -t 1.12.0
 ```
 
@@ -124,6 +124,11 @@ Once inside the container, install a missing ROS package:
 
 ```bash
 sudo apt update && sudo apt install ros-$ROS_DISTRO-image-transport-plugins -y
+```
+If you need to check which $ROS_DISTRO you have installed run the following:
+
+```bash
+ls /opt/ros/
 ```
 
 Launch the runtime manager:

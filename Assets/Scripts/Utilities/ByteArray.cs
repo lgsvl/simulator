@@ -19,8 +19,12 @@ namespace Simulator.Utilities
             data[byteIndex] = (byte)(value & 0xFF);
             value >>= 8;
             data[byteIndex + 1] = (byte)(value & 0xFF);
+            value >>= 8;
+            data[byteIndex + 2] = (byte)(value & 0xFF);
+            value >>= 8;
+            data[byteIndex + 3] = (byte)(value & 0xFF);
         }
-        
+
         // Helper function to fill in an unsigned 16-bit integer at specific position in a native byte array.
         public static void FillInTowBytes(ushort value, NativeArray<byte> data, int byteIndex)
         {

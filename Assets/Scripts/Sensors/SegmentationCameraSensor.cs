@@ -52,10 +52,10 @@ namespace Simulator.Sensors
 
             if (InstanceSegmentationTags.Count > 0)
             {
-                // Check if instance segmentation has been set (either by Editor or by anotehr SegmentationCamera).
+                // Check if instance segmentation has been set (either by Editor or by another SegmentationCamera).
                 if (SimulatorManager.Instance.CheckInstanceSegmentationSetting())
                 {
-                    throw new Exception("Instacne segmentation has been set for some tags. Reset is not allowed!");
+                    throw new Exception("Instance segmentation has been set for some tags. Reset is not allowed!");
                 }
 
                 foreach (InstanceCandidateTags tag in InstanceSegmentationTags)

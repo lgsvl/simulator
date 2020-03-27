@@ -159,7 +159,11 @@ public class SimulatorManager : MonoBehaviour
         controls = new SimulatorControls();
         controls.Enable();
 
-        var config = Loader.Instance?.SimConfig;
+        SimulationConfig config = null;
+        if (Loader.Instance != null)
+        {
+            config = Loader.Instance.SimConfig;
+        }
 
         var masterSeed = seed ?? config?.Seed ?? new System.Random().Next();
         RandomGenerator = new System.Random(masterSeed);
@@ -369,15 +373,7 @@ public class SimulatorManager : MonoBehaviour
         {
             foreach (var obj in GameObject.FindGameObjectsWithTag(item.Tag))
             {
-                Color segmentationColor;
-                if (item.IsInstanceSegmenation)
-                {
-                    segmentationColor = GenerateSimilarColor(item.Color);
-                }
-                else
-                {
-                    segmentationColor = item.Color;
-                }
+                Color segmentationColor = item.IsInstanceSegmenation ? GenerateSimilarColor(item.Color) : item.Color;
 
                 obj.GetComponentsInChildren(true, renderers);
                 renderers.ForEach(renderer =>
@@ -422,9 +418,13 @@ public class SimulatorManager : MonoBehaviour
                             renderer.GetSharedMaterials(materials);
                         }
                     }
+
                     materials.ForEach(material =>
                     {
-                        material?.SetColor("_SegmentationColor", segmentationColor);
+                        if (material != null)
+                        {
+                            material.SetColor("_SegmentationColor", segmentationColor);
+                        }
                     });
                 });
             }
@@ -476,15 +476,7 @@ public class SimulatorManager : MonoBehaviour
             {
                 foreach (var obj in GameObject.FindGameObjectsWithTag(item.Tag))
                 {
-                    Color segmentationColor;
-                    if (item.IsInstanceSegmenation)
-                    {
-                        segmentationColor = GenerateSimilarColor(item.Color);
-                    }
-                    else
-                    {
-                        segmentationColor = item.Color;
-                    }
+                    Color segmentationColor = item.IsInstanceSegmenation ? GenerateSimilarColor(item.Color) : item.Color;
 
                     obj.GetComponentsInChildren(true, renderers);
                     renderers.ForEach(renderer =>
@@ -497,9 +489,13 @@ public class SimulatorManager : MonoBehaviour
                         {
                             renderer.GetSharedMaterials(materials);
                         }
+
                         materials.ForEach(material =>
                         {
-                            material?.SetColor("_SegmentationColor", segmentationColor);
+                            if (material != null)
+                            {
+                                material.SetColor("_SegmentationColor", segmentationColor);
+                            }
                         });
                     });
                 }
@@ -516,15 +512,7 @@ public class SimulatorManager : MonoBehaviour
         {
             if (item.Tag == obj.tag)
             {
-                Color segmentationColor;
-                if (item.IsInstanceSegmenation)
-                {
-                    segmentationColor = GenerateSimilarColor(item.Color);
-                }
-                else
-                {
-                    segmentationColor = item.Color;
-                }
+                Color segmentationColor = item.IsInstanceSegmenation ? GenerateSimilarColor(item.Color) : item.Color;
 
                 obj.GetComponentsInChildren(true, renderers);
                 renderers.ForEach(renderer =>
@@ -537,9 +525,13 @@ public class SimulatorManager : MonoBehaviour
                     {
                         renderer.GetSharedMaterials(materials);
                     }
+
                     materials.ForEach(material =>
                     {
-                        material?.SetColor("_SegmentationColor", segmentationColor);
+                        if (material != null)
+                        {
+                            material.SetColor("_SegmentationColor", segmentationColor);
+                        }
                     });
                 });
             }

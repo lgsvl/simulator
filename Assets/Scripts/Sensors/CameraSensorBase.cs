@@ -143,7 +143,10 @@ namespace Simulator.Sensors
             {
                 SensorCamera.targetTexture.Release();
             }
-            DistortedTexture?.Release();
+            if (DistortedTexture != null)
+            {
+                DistortedTexture.Release();
+            }
 
             while (CaptureQueue.Count > 0)
             {

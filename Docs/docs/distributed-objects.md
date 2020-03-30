@@ -1,0 +1,18 @@
+# Distributed Objects [](#top)
+`DistributedObject` component synchronizes the GameObject state on the cluster simulation clients. `DistributedObject` can limit broadcasts sent by the `DistributedComponents` added to the children GameObjects and by default changes the part of components' keys.
+
+### Custom Key [[top]] {: #custom-key data-toc-label='Custom Key'}
+Every object synchronized in the cluster simulation required a unique key that is the same on every machine and cannot change after initialization. `DistributedObject` uses own path in the hierarchy as the unique key as a default implementation, but the synchronization will fail if there are two GameObjects with the same name in the same hierarchy path. The key of a `DistributedObject` can be changed by any component attached to the same GameObject which implements the `IGloballyUniquelyIdentified` interface. When registering a `DistributedObject` search if there is an `IGloballyUniquelyIdentified` implementation attached to the GameObject if an implementation is available GUID is used as the key prefix. If the GUID is null or empty registration waits until GUID changes to a not empty value.
+
+## Advanced [[top]] {: #advanced data-toc-label='Advanced'}
+`DistributedObject` implementation provides features that require additional scripting. This section describe advanced use cases that can be achieved with the `DistributedObject`.
+
+### Selective Distribution [[top]] {: #selective-distribution data-toc-label='Selective Distribution'}
+Some objects should not be distributed to all the connected clients. It is possible to limit the distribution by setting the `Selective Distribution` to *True* and adding endpoints to the list (using `AddEndPointToSelectiveDistribution` method). With `Selective Distribution` enabled only endpoints on the list will receive updates from the `DistributedObject` and all the `DistributedComponents` in children.
+
+Selective distribution is prepared for the use-case when more logic has to be handled by the client. For example, if a client should count the waypoints of selected NPC those waypoints have to be synchronized between that client and master. In this case, pathfinding will be calculated on the client, the master will perform the simulation updates and other clients will not be informed about those changes.
+
+### Authoritative Object [[top]] {: #authoritative-object data-toc-label='Authoritative Object'}
+Available distributed components in the Simulator got different logic for the master and client. All the objects on the master are authoritative and send their state to the clients, where nonauthoritative objects apply the changes. This behavior can be changed by setting the custom value to the protected property `IsAuthoritative`, but it has to be done in the overridden `Initialize` method before calling the base method. 
+
+In the case from the previous paragraph [Selective Distribution](distributed-objects.md#selective-distribution) client would perform the pathfinding and set the waypoints positions. In this case, the client sets the position of those GameObjects and has to send them to the master. To reverse the behavior where a master is sending the position of a `DistributedRigidbody` to the client, `IsAuthoritative` property has to be reversed (*false* value on the master and *true* on the client). This way client will update the master with the Rigidbody changes.

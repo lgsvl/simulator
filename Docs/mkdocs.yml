@@ -62,6 +62,15 @@ nav:
   - 'Python API Quickstart Examples': 'api-quickstart-descriptions.md'
   - 'Python API Use Case Examples': 'api-example-descriptions.md'
   - 'How to Run a Scenario' : 'api-how-to-run-scenario.md'
+- 'Cluster Simulation':
+  - 'Cluster Simulation Introduction': 'cluster-simulation-introduction.md'
+  - 'Cluster Simulation QuickStart': 'cluster-simulation-quickstart.md'
+  - 'Distributed Objects': 'distributed-objects.md'
+  - 'Distributed Components': 'distributed-components.md'
+  - 'Sensors Distribution': 'sensors-distribution.md'
+  - 'Distributed Python API': 'distributed-python-api.md'
+  - 'Distributed Messages': 'distributed-messages.md'
+  - 'Custom Distributed Class': 'custom-distributed-class.md'
 - 'Tutorials':
   - 'Reinforcement Learning with OpenAI Gym': 'openai-gym.md'
   - 'Deep Learning Lane Following Model': 'lane-following.md'

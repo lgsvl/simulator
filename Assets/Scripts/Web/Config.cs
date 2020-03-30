@@ -149,7 +149,7 @@ namespace Simulator.Web
                                     Type converterType = interfaceType.GetGenericArguments()[0];
                                     if (!BridgeConfig.bridgeConverters.ContainsKey(converterType))
                                     {
-                                        object instance = Activator.CreateInstance(ty);
+                                        var instance = Activator.CreateInstance(ty);
                                         BridgeConfig.bridgeConverters.Add(converterType, instance as IDataConverter);
                                     }
                                 }

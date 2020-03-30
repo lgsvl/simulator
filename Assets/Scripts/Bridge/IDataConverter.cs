@@ -12,10 +12,10 @@ namespace Simulator.Bridge
     public interface IDataConverter<T> : IDataConverter where T : class
     {
         Func<T, object> GetConverter(IBridge bridge);
-        Type GetOutputType(IBridge bridge);
     }
 
     public interface IDataConverter
     {
+        Type GetOutputType(IBridge bridge);
     }
 }

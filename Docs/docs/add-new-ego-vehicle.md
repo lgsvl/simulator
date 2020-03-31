@@ -154,7 +154,7 @@ Next, update the SensorArray public references:
 ### Adaptation to Cluster Simulation
 Cluster Simulation provides synchronization of every `Rigidbody` component in the vehicle, no changes are required in the prefab.
 
-For advanced solutions in the cluster simulations, like synchronization of other components, refer to the [Cluster Simulation Guide](cluster-simulation.md)
+For advanced solutions in the cluster simulations, like synchronization of other components, refer to the [Cluster Simulation Introduction](cluster-simulation-introduction.md)
 
 ## Final Steps
 

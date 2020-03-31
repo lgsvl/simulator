@@ -8,7 +8,8 @@ Sensors distributed to the clients will not be simulated on the master, those se
 The current load balancing algorithm divides sensors into groups by their type. Master distributes sensors by counting overhead sum and assigning each next sensor to the least overloaded machine.
 
 * *UltraHighLoad* sensors are assigned first and adds 1.0 overhead to a machine. Sensors like `LIDAR`, which parses the camera images and performs complex maths operations, should be classified under this type.
-* *HighLoad* sensors are assigned next and each sensor adds 0.1 overhead to a machine. Sensors like `ColorCameraSensor`, which parses the camera images, should be classified under this type.
+* *HighLoad* sensors are assigned next and each sensor adds 0.1 overhead to a machine. Sensors like `RadarSensor`, which performs complex maths operations, should be classified under this type.
 * *LowLoad* sensors are assigned last and each sensor adds 0.05 overhead to a machine. Sensors like `GpsSensor`, which performs simple maths operations, should be classified under this type.
+* *DoNotDistribute* sensors are assigned only to the master machine. Sensors like `VehicleControlSensor`, which controls objects in a simulation, have to be classified under this type.
 
 As the master machine requires more resources *UltraHighLoad* sensors that can be distributed will never be assigned to the master, additionally master starts the algorithm with 0.15 overhead.

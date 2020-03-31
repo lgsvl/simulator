@@ -3,7 +3,7 @@
 ### What a Cluster is [[top]] {: #what-a-cluster-is data-toc-label='What a Cluster is'}
 A Cluster allows connecting multiple machines rendering the same simulation, but different sensors on each machine, this allows to run multiple sensors with better performance. Master establishes a connection with each defined client, divides required sensors between every machine and sends the state of every Simulation element to connected clients synchronizing the environment.
 
-For more details about the cluster, simulations refer to the [Cluster Simulation Guide](cluster-simulation.md).
+For more details about the cluster, simulations refer to the [Cluster Simulation Introduction](cluster-simulation-introduction.md).
 
 
 ### How to Add a Cluster [[top]] {: #how-to-add-a-cluster data-toc-label='How to Add a Cluster'}

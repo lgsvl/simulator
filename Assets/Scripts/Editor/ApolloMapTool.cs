@@ -1292,10 +1292,10 @@ namespace Simulator.Editor
                     if (!MakeStoplineLaneOverlaps(stopline, lanesToInspec, stoplineWidth, signal_Id, OverlapType.Signal_Stopline_Lane, stoplinePts, laneIds2OverlapIdsMapping, overlap_ids, signalLight.id))
                     {
                         return false;
-                    }                  
+                    }
                 }
 
-                if (stoplinePts != null && stoplinePts.Count > 2)
+                if (stoplinePts != null && stoplinePts.Count >= 2)
                 {
                     var boundary = new HD.Polygon();
                     boundary.point.AddRange(signalBoundPts);
@@ -1370,7 +1370,7 @@ namespace Simulator.Editor
                     } 
                 }
 
-                if (stoplinePts != null && stoplinePts.Count > 2)
+                if (stoplinePts != null && stoplinePts.Count >= 2)
                 {
                     stopSign.id = $"stopsign_{stopsign_Id}";
                     var stopId = HdId(stopSign.id);
@@ -1688,8 +1688,8 @@ namespace Simulator.Editor
                     foreach (var stopSign in stopSignList)
                     {
                         var overlapId = HdId($"overlap_junction_I{intersections.IndexOf(intersection)}_J{junctionList.IndexOf(junction)}_stopsign{stopSignList.IndexOf(stopSign)}");
-                        junctionOverlapsInfo.GetOrCreate(junction.id).stopSignOverlapIds.Add(stopSign.id, overlapId);
-                        stopSignOverlapsInfo.GetOrCreate(stopSign.id).junctionOverlapIds.Add(junction.id, overlapId);
+                        junctionOverlapsInfo.GetOrCreate(junctionId).stopSignOverlapIds.Add(stopSign.id, overlapId);
+                        stopSignOverlapsInfo.GetOrCreate(stopSign.id).junctionOverlapIds.Add(junctionId, overlapId);
                     }
 
                     // Signal
@@ -1697,8 +1697,8 @@ namespace Simulator.Editor
                     foreach (var signal in signalList)
                     {
                         var overlapId = HdId($"overlap_junction_I{intersections.IndexOf(intersection)}_J{junctionList.IndexOf(junction)}_signal_{intersections.IndexOf(intersection)}_{signalList.IndexOf(signal)}");
-                        junctionOverlapsInfo.GetOrCreate(junction.id).signalOverlapIds.Add(signal.id, overlapId);
-                        signalOverlapsInfo.GetOrCreate(signal.id).junctionOverlapIds.Add(junction.id, overlapId);
+                        junctionOverlapsInfo.GetOrCreate(junctionId).signalOverlapIds.Add(signal.id, overlapId);
+                        signalOverlapsInfo.GetOrCreate(signal.id).junctionOverlapIds.Add(junctionId, overlapId);
                     }
                 }
             }
@@ -1745,7 +1745,7 @@ namespace Simulator.Editor
                             laneId = l.Id;
                         }
 
-                        var overlapId = junctionOverlapsInfo[junction.id].laneOverlapIds[lane.id];
+                        var overlapId = junctionOverlapsInfo[junctionId].laneOverlapIds[lane.id];
                         junctionOverlapIds_string.Add(overlapId);
 
                         // Overlap Annotation
@@ -1762,7 +1762,7 @@ namespace Simulator.Editor
 
                         var objectJunction = new HD.ObjectOverlapInfo()
                         {
-                            id = junctionOverlapsInfo[junction.id].id,
+                            id = junctionOverlapsInfo[junctionId].id,
                             junction_overlap_info = new HD.JunctionOverlapInfo(),
                         };
 
@@ -1779,7 +1779,7 @@ namespace Simulator.Editor
                     var stopSignList = intersection.transform.GetComponentsInChildren<MapSign>().ToList();
                     foreach (var stopSign in stopSignList)
                     {
-                        var overlapId = junctionOverlapsInfo[junction.id].stopSignOverlapIds[stopSign.id];
+                        var overlapId = junctionOverlapsInfo[junctionId].stopSignOverlapIds[stopSign.id];
 
                         junctionOverlapIds_string.Add(overlapId);
 
@@ -1791,7 +1791,7 @@ namespace Simulator.Editor
 
                         var objectJunction = new HD.ObjectOverlapInfo()
                         {
-                            id = junctionOverlapsInfo[junction.id].id,
+                            id = junctionOverlapsInfo[junctionId].id,
                             junction_overlap_info = new HD.JunctionOverlapInfo(),
                         };
 
@@ -1808,7 +1808,7 @@ namespace Simulator.Editor
                     var signalList = intersection.transform.GetComponentsInChildren<MapSignal>().ToList();
                     foreach (var signal in signalList)
                     {
-                        var overlapId = junctionOverlapsInfo[junction.id].signalOverlapIds[signal.id];
+                        var overlapId = junctionOverlapsInfo[junctionId].signalOverlapIds[signal.id];
                         junctionOverlapIds_string.Add(overlapId);
 
                         var objectSignalLight = new HD.ObjectOverlapInfo()
@@ -1819,7 +1819,7 @@ namespace Simulator.Editor
 
                         var objectJunction = new HD.ObjectOverlapInfo()
                         {
-                            id = junctionOverlapsInfo[junction.id].id,
+                            id = junctionOverlapsInfo[junctionId].id,
                             junction_overlap_info = new HD.JunctionOverlapInfo(),
                         };
 

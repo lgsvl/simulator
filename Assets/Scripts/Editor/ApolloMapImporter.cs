@@ -955,9 +955,8 @@ using apollo.hdmap;
             // use the middle signal light location as the position of the signal.
             var centerLightPosition = signal.subsignal[1].location;
             var position = MapOrigin.FromNorthingEasting(centerLightPosition.y, centerLightPosition.x, false);
-            position.y = SignalHeight;
             // Uncomment following line to use the actual height
-            // position.y = (float)centerLightPosition.z; 
+            position.y = (float)centerLightPosition.z - MapOrigin.AltitudeOffset;
             return position;
         }
 

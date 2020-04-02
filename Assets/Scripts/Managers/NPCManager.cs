@@ -170,6 +170,11 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         var npcC = go.AddComponent<NPCController>();
         var npc_name = Instantiate(template.Prefab, go.transform).name;
         go.name = npc_name + genId;
+
+        //Add required components for cluster simulation
+        if (Loader.Instance.Network.IsClusterSimulation)
+            ClusterSimulationUtilities.AddDistributedComponents(go);
+        
         var NPCController = go.GetComponent<NPCController>();
         NPCController.NPCLabel = GetNPCLabel(npc_name);
         APINPCs.Add(NPCController);
@@ -181,12 +186,6 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         SimulatorManager.Instance.UpdateSegmentationColors(go);
         go.transform.SetPositionAndRotation(position, rotation); // TODO check for incorrect calc speed
         npcC.SetLastPosRot(position, rotation);
-
-        if (Loader.Instance.Network.IsClusterSimulation)
-        {
-            //Add required components for cluster simulation
-            ClusterSimulationUtilities.AddDistributedComponents(go);
-        }
 
         return go;
     }

@@ -230,7 +230,7 @@ namespace Simulator.Sensors
 
         private TextureSet activeTarget;
 
-        public override SensorDistributionType DistributionType => SensorDistributionType.HighLoad;
+        public override SensorDistributionType DistributionType => SensorDistributionType.UltraHighLoad;
 
         public override void OnBridgeSetup(IBridge bridge)
         {

@@ -30,7 +30,7 @@ namespace Simulator.Network.Shared
                 if (target.GetComponent<DistributedObject>() == null)
                 {
                     var distributedObject = target.AddComponent<DistributedObject>();
-                    distributedObject.Initialize();
+                    distributedObject.CallInitialize();
                 }
 
                 distributedObjectAdded = true;

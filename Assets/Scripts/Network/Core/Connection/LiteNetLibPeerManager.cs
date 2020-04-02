@@ -51,15 +51,15 @@ namespace Simulator.Network.Core.Connection
 		/// <inheritdoc/>
 		public void Send(DistributedMessage distributedMessage)
 		{
-			var dataToSent = distributedMessage.Content.GetDataCopy();
+			var bytesStack = distributedMessage.Content;
 			try
 			{
-				NetworkStatistics.ReportSentPackage(dataToSent);
-				Peer.Send(dataToSent, GetDeliveryMethod(distributedMessage.Type));
+				NetworkStatistics.ReportSentPackage(bytesStack.Count);
+				Peer.Send(bytesStack.RawData, 0, bytesStack.Count, GetDeliveryMethod(distributedMessage.Type));
 			}
 			catch (TooBigPacketException)
 			{
-				Log.Error($"Too large message to be sent: {dataToSent.Length}.");
+				Log.Error($"Too large message to be sent: {bytesStack.Count}.");
 			}
 		}
 
@@ -71,16 +71,6 @@ namespace Simulator.Network.Core.Connection
 		public static DeliveryMethod GetDeliveryMethod(DistributedMessageType distributedMessageType)
 		{
 			return (DeliveryMethod)distributedMessageType;
-		}
-
-		/// <summary>
-		/// Gets MessageType corresponding to the given LiteNetLib DeliveryMethod
-		/// </summary>
-		/// <param name="deliveryMethod">Delivery method</param>
-		/// <returns>Corresponding MessageType to the given LiteNetLib DeliveryMethod</returns>
-		public static DistributedMessageType GetDeliveryMethod(DeliveryMethod deliveryMethod)
-		{
-			return (DistributedMessageType)deliveryMethod;
 		}
 	}
 }

@@ -33,6 +33,8 @@ namespace Simulator.Sensors
         VehicleActions Actions;
 
         VehicleOdometryData msg;
+        
+        public override SensorDistributionType DistributionType => SensorDistributionType.LowLoad;
 
         private void Awake()
         {

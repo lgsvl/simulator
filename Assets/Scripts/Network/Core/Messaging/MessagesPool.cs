@@ -45,7 +45,7 @@ namespace Simulator.Network.Core.Messaging
 		/// <summary>
 		/// Messages pools
 		/// </summary>
-		private LinkedList<DistributedMessage>[] pools;
+		private List<DistributedMessage>[] pools;
 
 		/// <summary>
 		/// Constructor
@@ -60,8 +60,8 @@ namespace Simulator.Network.Core.Messaging
 		/// </summary>
 		private void InitPools()
 		{
-			pools = new LinkedList<DistributedMessage>[PoolsScopes.Length];
-			for (var i = 0; i < PoolsScopes.Length; i++) pools[i] = new LinkedList<DistributedMessage>();
+			pools = new List<DistributedMessage>[PoolsScopes.Length];
+			for (var i = 0; i < PoolsScopes.Length; i++) pools[i] = new List<DistributedMessage>();
 		}
 
 		/// <summary>
@@ -75,7 +75,7 @@ namespace Simulator.Network.Core.Messaging
 			for (var i = 0; i < PoolsScopes.Length; i++)
 				if (bytes < PoolsScopes[i]) return i;
 
-			return PoolsScopes[PoolsScopes.Length - 1];
+			return PoolsScopes.Length - 1;
 		}
 
 		/// <summary>
@@ -97,11 +97,12 @@ namespace Simulator.Network.Core.Messaging
 			{
 				for (var i = 0; i < pools.Length; i++)
 				{
-					var message = pools[i].First;
-					if (message == null) continue;
-
-					pools[i].RemoveFirst();
-					return message.Value;
+					var poolSize = pools[i].Count;
+					if (poolSize == 0) continue;
+					
+					var message = pools[i][poolSize-1];
+					pools[i].RemoveAt(poolSize-1);
+					return message;
 				}
 			}
 
@@ -117,11 +118,12 @@ namespace Simulator.Network.Core.Messaging
 		{
 			lock (pools)
 			{
-				var message = pools[poolIndex].First;
-				if (message == null) return CreateNewMessage();
-
-				pools[poolIndex].RemoveFirst();
-				return message.Value;
+				var poolSize = pools[poolIndex].Count;
+				if (poolSize == 0) return CreateNewMessage();
+				
+				var message = pools[poolIndex][poolSize-1];
+				pools[poolIndex].RemoveAt(poolSize-1);
+				return message;
 			}
 		}
 
@@ -153,7 +155,7 @@ namespace Simulator.Network.Core.Messaging
 
 			lock (pools)
 			{
-				pools[poolIndex].AddLast(message);
+				pools[poolIndex].Add(message);
 			}
 		}
 

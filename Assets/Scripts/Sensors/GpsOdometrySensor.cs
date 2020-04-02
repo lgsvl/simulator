@@ -48,6 +48,8 @@ namespace Simulator.Sensors
         Rigidbody RigidBody;
         IVehicleDynamics Dynamics;
         MapOrigin MapOrigin;
+        
+        public override SensorDistributionType DistributionType => SensorDistributionType.LowLoad;
 
         private void Awake()
         {

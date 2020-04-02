@@ -136,15 +136,17 @@ namespace Simulator.Network.Core.Messaging
                             var registrationTimestamp = idsRegister.GetRegistrationTimestamp(id);
                             if (registrationTimestamp == null)
                             {
-                                Log.Error($"Registration event called without the timestamp set for the object with id {id}.");
+                                Log.Error(
+                                    $"Registration event called without the timestamp set for the object with id {id}.");
                                 break;
                             }
+
                             if (awaitingMessage.DistributedMessage.ServerTimestamp < registrationTimestamp)
                                 continue;
                             awaitingMessage.DistributedMessage.AddressKey = identifiedObject.Key;
                             receiver.ReceiveMessage(connectionManager.GetConnectedPeerManager(awaitingMessage.EndPoint),
                                 awaitingMessage.DistributedMessage);
-                            //awaitingMessage.DistributedMessage.Release();
+                            awaitingMessage.DistributedMessage.Release();
                         }
                     }
                     finally
@@ -184,20 +186,19 @@ namespace Simulator.Network.Core.Messaging
         /// <summary>
         /// Method handling received message from the connection manager
         /// </summary>
-        /// <param name="sender">The peer from which message has been received</param>
         /// <param name="distributedMessage">Received message</param>
-        private void ConnectionManagerOnMessageReceived(IPeerManager sender, DistributedMessage distributedMessage)
+        private void ConnectionManagerOnMessageReceived(DistributedMessage distributedMessage)
         {
-            MessageReceived(sender, distributedMessage);
+            MessageReceived(distributedMessage);
         }
 
         /// <summary>
         /// Method handling incoming message to this receiver
         /// </summary>
-        /// <param name="sender">The peer from which message has been received</param>
         /// <param name="distributedMessage">Received message</param>
-        private void MessageReceived(IPeerManager sender, DistributedMessage distributedMessage)
+        private void MessageReceived(DistributedMessage distributedMessage)
         {
+            var sender = distributedMessage.Sender;
             //Check if peer is still connected
             if (sender == null)
                 return;

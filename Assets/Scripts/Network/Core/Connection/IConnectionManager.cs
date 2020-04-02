@@ -49,7 +49,7 @@ namespace Simulator.Network.Core.Connection
         /// <summary>
         /// Event invoked when any peer had received message
         /// </summary>
-        event Action<IPeerManager, DistributedMessage> MessageReceived;
+        event Action<DistributedMessage> MessageReceived;
 
         /// <summary>
         /// Starts the manager, begins listening for events on given port

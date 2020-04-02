@@ -43,6 +43,8 @@ namespace Simulator.Sensors
         IWriter<GpsData> Writer;
 
         MapOrigin MapOrigin;
+        
+        public override SensorDistributionType DistributionType => SensorDistributionType.LowLoad;
 
         private void Awake()
         {

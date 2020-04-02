@@ -79,6 +79,8 @@ namespace Simulator.Sensors
         private Vector2 keyboardInput = Vector2.zero;
 
         AgentController AgentController;
+        
+        public override SensorDistributionType DistributionType => SensorDistributionType.LowLoad;
 
         private void Start()
         {

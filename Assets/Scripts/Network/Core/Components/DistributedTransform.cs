@@ -8,6 +8,7 @@
 namespace Simulator.Network.Core.Components
 {
 	using System;
+	using System.Collections;
 
 	using Messaging.Data;
 
@@ -61,17 +62,61 @@ namespace Simulator.Network.Core.Components
 		private SnapshotData lastSentSnapshot;
 
 		/// <summary>
-		/// Unity LateUpdate method
+		/// Coroutine of the UpdateSnapshots method
 		/// </summary>
-		protected void LateUpdate()
+		private IEnumerator updateSnapshotsCoroutine;
+
+		/// <inheritdoc/>
+		public override void Initialize()
 		{
-			if (ParentObject.IsAuthoritative &&
-			    Time.unscaledTime >= lastSentSnapshotTime + 1.0f / SnapshotsPerSecondLimit &&
-			    AnySnapshotElementChanged(ByteCompression.PositionPrecision))
+			base.Initialize();
+
+			if (!ParentObject.IsAuthoritative) return;
+			if (updateSnapshotsCoroutine != null) return;
+
+			updateSnapshotsCoroutine = UpdateSnapshots();
+			StartCoroutine(updateSnapshotsCoroutine);
+		}
+
+		/// <summary>
+		/// Unity OnEnable method
+		/// </summary>
+		protected void OnEnable()
+		{
+			if (ParentObject!=null && ParentObject.IsAuthoritative)
 			{
-				BroadcastSnapshot();
-				lastSentSnapshotTime = Time.unscaledTime;
+				if (updateSnapshotsCoroutine != null) return;
+
+				updateSnapshotsCoroutine = UpdateSnapshots();
+				StartCoroutine(updateSnapshotsCoroutine);
 			}
+		}
+
+		/// <summary>
+		/// Unity OnDisable method
+		/// </summary>
+		protected void OnDisable()
+		{
+			updateSnapshotsCoroutine = null;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected IEnumerator UpdateSnapshots()
+		{
+			var waitForEndOffFrame = new WaitForEndOfFrame();
+			while (IsInitialized)
+			{
+				if (Time.unscaledTime >= lastSentSnapshotTime + 1.0f / SnapshotsPerSecondLimit &&
+				    AnySnapshotElementChanged(ByteCompression.PositionPrecision))
+				{
+					BroadcastSnapshot();
+					lastSentSnapshotTime = Time.unscaledTime;
+				}
+				yield return waitForEndOffFrame;
+			}
+			updateSnapshotsCoroutine = null;
 		}
 
 		/// <summary>

@@ -26,6 +26,8 @@ namespace Simulator.Sensors
 
         VehicleActions Actions;
         IVehicleDynamics Dynamics;
+        
+        public override SensorDistributionType DistributionType => SensorDistributionType.LowLoad;
 
         void Start()
         {

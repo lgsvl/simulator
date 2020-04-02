@@ -42,10 +42,10 @@ namespace Simulator.Network.Core.Messaging
         /// <param name="remoteTimeTicksDifference">Difference between local time and remote time in ticks count</param>
         public void PopTimeDifference(DistributedMessage distributedMessage, long remoteTimeTicksDifference)
         {
-            var timeDifference = distributedMessage.Content.PopLong();
-            distributedMessage.TimeTicksDifference = timeDifference;
-            distributedMessage.ServerTimestamp = GetTimestamp(timeDifference);
-            distributedMessage.Timestamp = GetTimestamp(timeDifference-remoteTimeTicksDifference);
+            var epochTimeDifference = distributedMessage.Content.PopLong();
+            distributedMessage.TimeTicksDifference = epochTimeDifference;
+            distributedMessage.ServerTimestamp = GetTimestamp(epochTimeDifference);
+            distributedMessage.Timestamp = GetTimestamp(epochTimeDifference-remoteTimeTicksDifference);
         }
 
         /// <summary>

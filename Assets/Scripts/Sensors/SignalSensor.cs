@@ -38,6 +38,8 @@ namespace Simulator.Sensors
         private MapSignal[] Visualized = Array.Empty<MapSignal>();
         private MapManager MapManager;
         private WireframeBoxes WireframeBoxes;
+        
+        public override SensorDistributionType DistributionType => SensorDistributionType.LowLoad;
 
         void Start()
         {

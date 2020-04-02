@@ -46,6 +46,15 @@ namespace Simulator.Network.Core.Messaging.Data
 		public int StackSize => data.Length;
 
 		/// <summary>
+		/// The data buffer
+		/// </summary>
+		public byte[] RawData
+		{
+			get => data;
+			private set => data = value;
+		}
+
+		/// <summary>
 		/// Default constructor
 		/// </summary>
 		public BytesStack() : this(InitialSize) { }
@@ -90,7 +99,7 @@ namespace Simulator.Network.Core.Messaging.Data
 		/// <param name="requiredSize">Required size of the buffer</param>
 		public void ResizeIfRequired(int requiredSize)
 		{
-			var len = StackSize;
+			var len = data.Length;
 			if (len >= requiredSize) return;
 
 			while (len < requiredSize) len *= 2;
@@ -128,10 +137,23 @@ namespace Simulator.Network.Core.Messaging.Data
 		}
 
 		/// <summary>
+		/// Push bytes array data on top of the stack
+		/// </summary>
+		/// <param name="addedData">Data that will be added on top of the stack</param>
+		/// <param name="dataPosition">Data position in the array</param>
+		/// <param name="count">Bytes count in the array</param>
+		public void PushBytes(byte[] addedData, int dataPosition, int count)
+		{
+			ResizeIfRequired(position + count);
+			Buffer.BlockCopy(addedData, dataPosition, data, position, count);
+			position += count;
+		}
+
+		/// <summary>
 		/// Push single byte on top of the stack
 		/// </summary>
 		/// <param name="addedData">Data that will be added on top of the stack</param>
-		public void PushBytes(byte addedData)
+		public void PushByte(byte addedData)
 		{
 			ResizeIfRequired(position + 1);
 			data[position++] = addedData;
@@ -169,7 +191,7 @@ namespace Simulator.Network.Core.Messaging.Data
 		/// Returns a single byte from top of the stack while moving the stack pointer
 		/// </summary>
 		/// <returns>Single byte from top of the stack</returns>
-		public byte PopBytes()
+		public byte PopByte()
 		{
 			if (position <= 0) throw new IndexOutOfRangeException("Stack is empty.");
 
@@ -181,7 +203,7 @@ namespace Simulator.Network.Core.Messaging.Data
 		/// </summary>
 		/// <param name="offset">Offset from the stack top </param>
 		/// <returns>Single byte from top of the stack</returns>
-		public byte PeekOneByte(int offset)
+		public byte PeekByte(int offset)
 		{
 			if (position <= 0) throw new IndexOutOfRangeException("Stack is empty.");
 
@@ -195,15 +217,15 @@ namespace Simulator.Network.Core.Messaging.Data
 		/// <param name="bytesCount">Bytes count used to push this data</param>
 		public void PushInt(int value, int bytesCount = 4)
 		{
-			PushBytes((byte)(value));
+			PushByte((byte)(value));
 			if (bytesCount <= 1) return;
 
-			PushBytes((byte)(value >> 8));
+			PushByte((byte)(value >> 8));
 			if (bytesCount <= 2) return;
 
-			PushBytes((byte)(value >> 16));
+			PushByte((byte)(value >> 16));
 
-			if (bytesCount > 3) PushBytes((byte)(value >> 24));
+			if (bytesCount > 3) PushByte((byte)(value >> 24));
 		}
 
 		/// <summary>
@@ -217,7 +239,7 @@ namespace Simulator.Network.Core.Messaging.Data
 			for (var i = 0; i < bytesCount; i++)
 			{
 				result <<= 8;
-				result |= PopBytes();
+				result |= PopByte();
 			}
 
 			return result;
@@ -248,14 +270,14 @@ namespace Simulator.Network.Core.Messaging.Data
 		/// <param name="bytesCount">Bytes count used to push this data</param>
 		public void PushUint(uint value, int bytesCount = 4)
 		{
-			PushBytes((byte)(value));
+			PushByte((byte)(value));
 			if (bytesCount <= 1) return;
 
-			PushBytes((byte)(value >> 8));
+			PushByte((byte)(value >> 8));
 			if (bytesCount <= 2) return;
 
-			PushBytes((byte)(value >> 16));
-			if (bytesCount > 3) PushBytes((byte)(value >> 24));
+			PushByte((byte)(value >> 16));
+			if (bytesCount > 3) PushByte((byte)(value >> 24));
 		}
 
 		/// <summary>
@@ -269,7 +291,7 @@ namespace Simulator.Network.Core.Messaging.Data
 			for (var i = 0; i < bytesCount; i++)
 			{
 				result <<= 8;
-				result |= PopBytes();
+				result |= PopByte();
 			}
 
 			return result;
@@ -300,8 +322,10 @@ namespace Simulator.Network.Core.Messaging.Data
 		/// <param name="bytesCount">Bytes count used to push this data</param>
 		public void PushLong(long value, int bytesCount = 8)
 		{
-			PushBytes((byte)(value));
-			while (--bytesCount > 0) PushBytes((byte)(value >>= 8));
+			ResizeIfRequired(position + bytesCount);
+			PushByte((byte)(value));
+			while (--bytesCount > 0)
+				data[position++] = (byte)(value >>= 8);
 		}
 
 		/// <summary>
@@ -315,7 +339,7 @@ namespace Simulator.Network.Core.Messaging.Data
 			for (var i = 0; i < bytesCount; i++)
 			{
 				result <<= 8;
-				result |= PopBytes();
+				result |= PopByte();
 			}
 
 			return result;
@@ -345,7 +369,10 @@ namespace Simulator.Network.Core.Messaging.Data
 		/// <param name="value">Value to be pushed</param>
 		public void PushFloat(float value)
 		{
-			PushBytes(BitConverter.GetBytes(value));
+			unsafe
+			{
+				PushInt(*(int*) &value, 8);
+			}
 		}
 
 		/// <summary>
@@ -374,7 +401,10 @@ namespace Simulator.Network.Core.Messaging.Data
 		/// <param name="value">Value to be pushed</param>
 		public void PushDouble(double value)
 		{
-			PushBytes(BitConverter.GetBytes(value));
+			unsafe
+			{
+				PushLong(*(long*) &value, 8);
+			}
 		}
 
 		/// <summary>

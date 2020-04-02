@@ -169,7 +169,7 @@ namespace Simulator.Network.Core.Components
         /// <summary>
         /// Calls initialize method, may be delayed if the GUID in the guidSource is not set yet
         /// </summary>
-        private void CallInitialize()
+        public void CallInitialize()
         {
             if (Root == null)
             {
@@ -206,7 +206,7 @@ namespace Simulator.Network.Core.Components
         /// <summary>
         /// Initialization method
         /// </summary>
-        public virtual void Initialize()
+        protected virtual void Initialize()
         {
             if (IsInitialized)
                 return;

@@ -108,6 +108,7 @@ namespace Simulator.Network.Client
             PacketsProcessor.SubscribeReusable<Commands.Run>(OnRunCommand);
             PacketsProcessor.SubscribeReusable<Commands.Stop>(OnStopCommand);
             PacketsProcessor.SubscribeReusable<Commands.EnvironmentState>(OnEnvironmentStateCommand);
+            PacketsProcessor.SubscribeReusable<Commands.Ping>(OnPingCommand);
         }
 
         /// <summary>
@@ -386,6 +387,20 @@ namespace Simulator.Network.Client
             ui.WetSlider.value = state.Wet;
             ui.CloudSlider.value = state.Cloud;
             ui.TimeOfDaySlider.value = state.TimeOfDay;
+        }
+
+        /// <summary>
+        /// Method invoked when manager receives ping command
+        /// </summary>
+        /// <param name="ping">Ping command</param>
+        private void OnPingCommand(Commands.Ping ping)
+        {
+            var stopData = PacketsProcessor.Write(new Commands.Pong() { Id = ping.Id});
+            var message = MessagesPool.Instance.GetMessage(stopData.Length);
+            message.AddressKey = Key;
+            message.Content.PushBytes(stopData);
+            message.Type = DistributedMessageType.Unreliable;
+            BroadcastMessage(message);
         }
 
         /// <summary>

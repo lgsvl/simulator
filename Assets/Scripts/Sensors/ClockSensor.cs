@@ -32,6 +32,8 @@ namespace Simulator.Sensors
         double LastTimestamp;
 
         ClockData data;
+        
+        public override SensorDistributionType DistributionType => SensorDistributionType.LowLoad;
 
         public override void OnBridgeSetup(IBridge bridge)
         {

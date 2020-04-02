@@ -164,6 +164,12 @@ namespace Simulator.Api.Commands
                 api.AgentUID.Add(go, uid);
                 api.SendResult(this, new JSONString(go.name));
                 SIM.LogAPI(SIM.API.AddAgentNPC, name);
+                // Override the color argument as NPCController may change the NPC color
+                if (Loader.Instance.Network.IsMaster)
+                {
+                    var colorVector = new Vector3(npc.NPCColor.r, npc.NPCColor.g, npc.NPCColor.b);
+                    args["color"].WriteVector3(colorVector);
+                }
             }
             else if (type == (int)AgentType.Pedestrian)
             {

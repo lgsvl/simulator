@@ -26,6 +26,8 @@ namespace Simulator.Sensors
 
         IBridge Bridge;
         IWriter<GpsInsData> Writer;
+        
+        public override SensorDistributionType DistributionType => SensorDistributionType.LowLoad;
 
         public override void OnBridgeSetup(IBridge bridge)
         {

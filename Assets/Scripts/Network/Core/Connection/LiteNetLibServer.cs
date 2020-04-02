@@ -56,7 +56,7 @@ namespace Simulator.Network.Core.Connection
         public event Action<IPeerManager> PeerDisconnected;
 
         /// <inheritdoc/>
-        public event Action<IPeerManager, DistributedMessage> MessageReceived;
+        public event Action<DistributedMessage> MessageReceived;
 
         /// <inheritdoc/>
         public bool Start(int port)
@@ -93,6 +93,7 @@ namespace Simulator.Network.Core.Connection
         public void Unicast(IPEndPoint endPoint, DistributedMessage distributedMessage)
         {
             peers[endPoint].Send(distributedMessage);
+            distributedMessage.Release();
         }
 
         /// <inheritdoc/>
@@ -100,6 +101,7 @@ namespace Simulator.Network.Core.Connection
         {
             foreach (var peer in peers)
                 peer.Value.Send(distributedMessage);
+            distributedMessage.Release();
         }
 
         /// <inheritdoc/>
@@ -139,7 +141,9 @@ namespace Simulator.Network.Core.Connection
             var data = reader.GetRemainingBytes();
             var message = MessagesPool.Instance.GetMessage(data.Length);
             message.Content.PushBytes(data);
-            MessageReceived?.Invoke(peers[peer.EndPoint], message);
+            message.Sender = peers[peer.EndPoint];
+            message.Type = GetDeliveryMethod(deliveryMethod);
+            MessageReceived?.Invoke(message);
         }
 
         /// <inheritdoc/>
@@ -164,6 +168,16 @@ namespace Simulator.Network.Core.Connection
         public void WriteNet(NetLogLevel level, string str, params object[] args)
         {
             Log.Info(string.Format(str, args));
+        }
+
+        /// <summary>
+        /// Gets MessageType corresponding to the given LiteNetLib DeliveryMethod
+        /// </summary>
+        /// <param name="deliveryMethod">Delivery method</param>
+        /// <returns>Corresponding MessageType to the given LiteNetLib DeliveryMethod</returns>
+        public static DistributedMessageType GetDeliveryMethod(DeliveryMethod deliveryMethod)
+        {
+            return (DistributedMessageType)deliveryMethod;
         }
     }
 }

@@ -33,6 +33,16 @@ namespace Simulator.Network.Core.Messaging.Data
         public static Bounds PositionBounds { get; private set; } = DefaultPositionBounds;
 
         /// <summary>
+        /// Minimum values of position (cached from bounds)
+        /// </summary>
+        private static Vector3 PositionMin { get; set; } = PositionBounds.min;
+
+        /// <summary>
+        /// Max values of position (cached from bounds)
+        /// </summary>
+        private static Vector3 PositionMax { get; set; } = PositionBounds.max;
+
+        /// <summary>
         /// Required position precision
         /// </summary>
         public const float PositionPrecision = 0.001f;
@@ -56,7 +66,7 @@ namespace Simulator.Network.Core.Messaging.Data
             {
                 if (positionXRequiredBytes == 0)
                     positionXRequiredBytes =
-                        RequiredBytes(Mathf.CeilToInt((PositionBounds.max.x - PositionBounds.min.x) / PositionPrecision));
+                        RequiredBytes(Mathf.CeilToInt((PositionMax.x - PositionMin.x) / PositionPrecision));
                 return positionXRequiredBytes;
             }
         }
@@ -75,7 +85,7 @@ namespace Simulator.Network.Core.Messaging.Data
             {
                 if (positionYRequiredBytes == 0)
                     positionYRequiredBytes =
-                        RequiredBytes(Mathf.CeilToInt((PositionBounds.max.y - PositionBounds.min.y) / PositionPrecision));
+                        RequiredBytes(Mathf.CeilToInt((PositionMax.y - PositionMin.y) / PositionPrecision));
                 return positionYRequiredBytes;
             }
         }
@@ -94,7 +104,7 @@ namespace Simulator.Network.Core.Messaging.Data
             {
                 if (positionZRequiredBytes == 0)
                     positionZRequiredBytes =
-                        RequiredBytes(Mathf.CeilToInt((PositionBounds.max.z - PositionBounds.min.z) / PositionPrecision));
+                        RequiredBytes(Mathf.CeilToInt((PositionMax.z - PositionMin.z) / PositionPrecision));
                 return positionZRequiredBytes;
             }
         }
@@ -122,6 +132,8 @@ namespace Simulator.Network.Core.Messaging.Data
             positionXRequiredBytes = 0;
             positionYRequiredBytes = 0;
             positionZRequiredBytes = 0;
+            PositionMin = bounds.min;
+            PositionMax = bounds.max;
             Log.Info($"Position bounds changed to {bounds}.");
         }
 
@@ -421,15 +433,15 @@ namespace Simulator.Network.Core.Messaging.Data
         /// <exception cref="ArgumentException">Position.x value exceeds preset min and max bounds</exception>
         private static int CompressPositionX(float x)
         {
-            if (x < PositionBounds.min.x-PositionPrecision || x > PositionBounds.max.x+PositionPrecision)
+            if (x < PositionMin.x-PositionPrecision || x > PositionMax.x+PositionPrecision)
                 throw new ArgumentException(
-                    $"Position X value {x} to be compressed exceeds preset min and max bounds <{PositionBounds.min.x},{PositionBounds.max.x}>.");
+                    $"Position X value {x} to be compressed exceeds preset min and max bounds <{PositionMin.x},{PositionMax.x}>.");
             //Snap to position bounds, if the difference is smaller than precision
-            if (x < PositionBounds.min.x)
-                x = PositionBounds.min.x;
-            if (x > PositionBounds.max.x)
-                x = PositionBounds.max.x;
-            return CompressFloatToInt(x, PositionBounds.min.x, PositionBounds.max.x, PositionXRequiredBytes);
+            if (x < PositionMin.x)
+                x = PositionMin.x;
+            if (x > PositionMax.x)
+                x = PositionMax.x;
+            return CompressFloatToInt(x, PositionMin.x, PositionMax.x, PositionXRequiredBytes);
         }
 
         /// <summary>
@@ -444,7 +456,7 @@ namespace Simulator.Network.Core.Messaging.Data
             if (x < 0 || x > maxIntValue)
                 throw new ArgumentException(
                     $"Position X value {x} to be decompressed exceeds preset min and max bounds for integer <0,{maxIntValue}>.");
-            return DecompressFloatFromInt(x, PositionBounds.min.x, PositionBounds.max.x, PositionXRequiredBytes);
+            return DecompressFloatFromInt(x, PositionMin.x, PositionMax.x, PositionXRequiredBytes);
         }
 
         /// <summary>
@@ -455,15 +467,15 @@ namespace Simulator.Network.Core.Messaging.Data
         /// <exception cref="ArgumentException">Position.y value exceeds preset min and max bounds</exception>
         private static int CompressPositionY(float y)
         {
-            if (y < PositionBounds.min.y || y > PositionBounds.max.y)
+            if (y < PositionMin.y || y > PositionMax.y)
                 throw new ArgumentException(
-                    $"Position Y value {y} to be compressed exceeds preset min and max bounds <{PositionBounds.min.y},{PositionBounds.max.y}>.");
+                    $"Position Y value {y} to be compressed exceeds preset min and max bounds <{PositionMin.y},{PositionMax.y}>.");
             //Snap to position bounds, if the difference is smaller than precision
-            if (y < PositionBounds.min.y)
-                y = PositionBounds.min.y;
-            if (y > PositionBounds.max.y)
-                y = PositionBounds.max.y;
-            return CompressFloatToInt(y, PositionBounds.min.y, PositionBounds.max.y, PositionYRequiredBytes);
+            if (y < PositionMin.y)
+                y = PositionMin.y;
+            if (y > PositionMax.y)
+                y = PositionMax.y;
+            return CompressFloatToInt(y, PositionMin.y, PositionMax.y, PositionYRequiredBytes);
         }
 
         /// <summary>
@@ -478,7 +490,7 @@ namespace Simulator.Network.Core.Messaging.Data
             if (y < 0 || y > maxIntValue)
                 throw new ArgumentException(
                     $"Position Y value {y} to be decompressed exceeds preset min and max bounds for integer <0,{maxIntValue}>.");
-            return DecompressFloatFromInt(y, PositionBounds.min.y, PositionBounds.max.y, PositionYRequiredBytes);
+            return DecompressFloatFromInt(y, PositionMin.y, PositionMax.y, PositionYRequiredBytes);
         }
 
         /// <summary>
@@ -489,15 +501,15 @@ namespace Simulator.Network.Core.Messaging.Data
         /// <exception cref="ArgumentException">Position.z value exceeds preset min and max bounds</exception>
         private static int CompressPositionZ(float z)
         {
-            if (z < PositionBounds.min.z || z > PositionBounds.max.z)
+            if (z < PositionMin.z || z > PositionMax.z)
                 throw new ArgumentException(
-                    $"Position Z value {z} to be compressed exceeds preset min and max bounds <{PositionBounds.min.z},{PositionBounds.max.z}>.");
+                    $"Position Z value {z} to be compressed exceeds preset min and max bounds <{PositionMin.z},{PositionMax.z}>.");
             //Snap to position bounds, if the difference is smaller than precision
-            if (z < PositionBounds.min.z)
-                z = PositionBounds.min.z;
-            if (z > PositionBounds.max.z)
-                z = PositionBounds.max.z;
-            return CompressFloatToInt(z, PositionBounds.min.z, PositionBounds.max.z, PositionZRequiredBytes);
+            if (z < PositionMin.z)
+                z = PositionMin.z;
+            if (z > PositionMax.z)
+                z = PositionMax.z;
+            return CompressFloatToInt(z, PositionMin.z, PositionMax.z, PositionZRequiredBytes);
         }
 
         /// <summary>
@@ -512,7 +524,7 @@ namespace Simulator.Network.Core.Messaging.Data
             if (z < 0 || z > maxIntValue)
                 throw new ArgumentException(
                     $"Position Z value {z} to be decompressed exceeds preset min and max bounds for integer <0,{maxIntValue}>.");
-            return DecompressFloatFromInt(z, PositionBounds.min.z, PositionBounds.max.z, PositionZRequiredBytes);
+            return DecompressFloatFromInt(z, PositionMin.z, PositionMax.z, PositionZRequiredBytes);
         }
 
         /// <summary>
@@ -636,7 +648,7 @@ namespace Simulator.Network.Core.Messaging.Data
         public static Quaternion PopDecompressedRotation(this BytesStack bytesStack)
         {
             // Read the index of the maximum element
-            var maxIndex = bytesStack.PopBytes();
+            var maxIndex = bytesStack.PopByte();
 
             // Indexed 4-7 determine that maximum element is approximately equal to 1.0f and other elements are not encoded
             // Other elements are approximately equal to 0.0f;

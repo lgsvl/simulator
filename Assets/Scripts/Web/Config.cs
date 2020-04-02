@@ -80,7 +80,7 @@ namespace Simulator.Web
             public string hostname { get; set; } = Config.WebHost;
             public int port { get; set; } = Config.WebPort;
             public bool headless { get; set; } = Config.Headless;
-            public bool slave { get; set; } = !Config.RunAsMaster;
+            public bool client { get; set; } = !Config.RunAsMaster;
             public bool read_only { get; set; } = false;
             public string api_hostname { get; set; } = Config.ApiHost;
             public int api_port { get; set; } = Config.ApiPort;
@@ -260,7 +260,7 @@ namespace Simulator.Web
                 CloudUrl = cloudUrl;
             }
 
-            RunAsMaster = !config.slave;
+            RunAsMaster = !config.client;
             Headless = config.headless;
         }
 
@@ -294,8 +294,8 @@ namespace Simulator.Web
                         }
 
                         break;
-                    case "--slave":
-                    case "-s":
+                    case "--client":
+                    case "-c":
                         RunAsMaster = false;
                         break;
                     case "--master":

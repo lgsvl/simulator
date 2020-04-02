@@ -80,5 +80,15 @@ namespace Simulator.Network.Shared
             public float Cloud { get; set; }
             public float TimeOfDay { get; set; }
         }
+
+        public class Ping
+        {
+            public int Id { get; set; }
+        }
+
+        public class Pong
+        {
+            public int Id { get; set; }
+        }
     }
 }

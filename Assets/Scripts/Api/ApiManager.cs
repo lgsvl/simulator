@@ -451,8 +451,8 @@ namespace Simulator.Api
                         if (action.Command is IDistributedCommand && isMasterSimulation)
                         {
                             var message = MessagesPool.Instance.GetMessage(
-                                4 + 4 *
-                                (2 + action.Arguments.Count + action.Command.Name.Length));
+                                BytesStack.GetMaxByteCount(action.Arguments) +
+                                BytesStack.GetMaxByteCount(action.Command.Name));
                             message.AddressKey = Key;
                             message.Content.PushString(action.Arguments.ToString());
                             message.Content.PushString(action.Command.Name);

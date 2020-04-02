@@ -68,11 +68,10 @@ namespace Simulator.Network.Core.Connection
         /// <summary>
         /// Report sent package in order to update statistics (if enabled)
         /// </summary>
-        public static void ReportSentPackage(byte[] bytes)
+        public static void ReportSentPackage(int packageSize)
         {
             if (SendingStatisticUpdated == null)
                 return;
-            var packageSize = bytes.Length;
             sentPackagesSize += packageSize;
             var currentTime = DateTime.Now;
             if (firstSentPackageTime == DateTime.MinValue)

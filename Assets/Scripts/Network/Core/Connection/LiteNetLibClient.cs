@@ -64,7 +64,7 @@ namespace Simulator.Network.Core.Connection
         public event Action<IPeerManager> PeerDisconnected;
         
         /// <inheritdoc/>
-        public event Action<IPeerManager, DistributedMessage> MessageReceived;
+        public event Action<DistributedMessage> MessageReceived;
         
         /// <summary>
         /// Event invoked when the latency changes
@@ -152,10 +152,13 @@ namespace Simulator.Network.Core.Connection
         {
             if (MessageReceived == null)
                 return;
-            var data = reader.GetRemainingBytes();
-            var message = MessagesPool.Instance.GetMessage(data.Length);
-            message.Content.PushBytes(data);
-            MessageReceived?.Invoke(masterPeer, message);
+
+            var availableBytes = reader.AvailableBytes;
+            var message = MessagesPool.Instance.GetMessage(availableBytes);
+            message.Content.PushBytes(reader.RawData, reader.Position, availableBytes);
+            message.Sender = masterPeer;
+            message.Type = GetDeliveryMethod(deliveryMethod);
+            MessageReceived?.Invoke(message);
         }
 
         /// <inheritdoc/>
@@ -175,6 +178,16 @@ namespace Simulator.Network.Core.Connection
         public void OnConnectionRequest(ConnectionRequest request)
         {
             request.AcceptIfKey(LiteNetLibServer.ApplicationKey);
+        }
+
+        /// <summary>
+        /// Gets MessageType corresponding to the given LiteNetLib DeliveryMethod
+        /// </summary>
+        /// <param name="deliveryMethod">Delivery method</param>
+        /// <returns>Corresponding MessageType to the given LiteNetLib DeliveryMethod</returns>
+        public static DistributedMessageType GetDeliveryMethod(DeliveryMethod deliveryMethod)
+        {
+            return (DistributedMessageType)deliveryMethod;
         }
     }
 }

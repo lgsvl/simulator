@@ -42,13 +42,13 @@ namespace Simulator.Network.Core.Tests.Editor.Shared.Messaging.Data
             
             //Test bytes array one by one
             for (var i = 0; i < testCase.Length; i++)
-                bytesStack.PushBytes(testCase[i]);
+                bytesStack.PushByte(testCase[i]);
             for (var i = testCase.Length - 1; i >= 0; i--)
-                result[i] = bytesStack.PeekOneByte(testCase.Length-1-i);
+                result[i] = bytesStack.PeekByte(testCase.Length-1-i);
             Assert.True(result.SequenceEqual(testCase),
                 "Pop of the bytes array one by one returns different data than was pushed.");
             for (var i = testCase.Length - 1; i >= 0; i--)
-                result[i] = bytesStack.PopBytes();
+                result[i] = bytesStack.PopByte();
             Assert.True(result.SequenceEqual(testCase),
                 "Pop of the bytes array one by one returns different data than was pushed.");
         }

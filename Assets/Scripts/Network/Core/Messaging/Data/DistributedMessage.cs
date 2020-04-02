@@ -5,6 +5,8 @@
  *
  */
 
+using Simulator.Network.Core.Connection;
+
 namespace Simulator.Network.Core.Messaging.Data
 {
     using System;
@@ -18,6 +20,11 @@ namespace Simulator.Network.Core.Messaging.Data
         /// Pool which released this message
         /// </summary>
         public MessagesPool OriginPool { get; internal set; }
+        
+        /// <summary>
+        /// Peer which sent this message, filled only in incoming messages
+        /// </summary>
+        public IPeerManager Sender { get; internal set; }
         
         /// <summary>
         /// Address key defining where message should be passed. 

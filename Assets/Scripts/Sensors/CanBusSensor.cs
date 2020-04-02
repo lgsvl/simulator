@@ -34,6 +34,8 @@ namespace Simulator.Sensors
         MapOrigin MapOrigin;
 
         CanBusData msg;
+        
+        public override SensorDistributionType DistributionType => SensorDistributionType.LowLoad;
 
         private void Awake()
         {

@@ -440,7 +440,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
             Debug.LogWarning($"Running cluster simulation with {overloadedClients} overloaded instances. Decrease sensors count or extend the cluster for best performance.");
         }
         else if (masterLoad > 1.0f)
-            Debug.LogWarning($"Running cluster simulation with overloaded master simulation. Used sensors cannot be distributed to the slaves.");
+            Debug.LogWarning($"Running cluster simulation with overloaded master simulation. Used sensors cannot be distributed to the clients.");
 
         //Send sensors data to clients
         for (var i = 0; i < clientsCount; i++)
@@ -468,6 +468,8 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
 
     public void ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
     {
+        if (sensorsInstances.Any() || Loader.Instance.Network.IsMaster)
+            return;
         var sensors = distributedMessage.Content.PopString();
         InstantiateSensors(sensors);
     }

@@ -57,6 +57,16 @@ namespace Simulator.Network.Master
         /// Determines if time scale was locked from this script
         /// </summary>
         private bool timescaleLockCalled = false;
+        
+        /// <summary>
+        /// Identifier of the last sent ping
+        /// </summary>
+        private int pingId = 0;
+
+        /// <summary>
+        /// Count of the received pongs for the last ping
+        /// </summary>
+        private int receivedPongs = 0;
 
         /// <summary>
         /// All current clients connected or trying to connect to the master
@@ -136,6 +146,7 @@ namespace Simulator.Network.Master
                 SerializationHelpers.DeserializeLoadAgent);
             PacketsProcessor.SubscribeReusable<Commands.Info, IPeerManager>(OnInfoCommand);
             PacketsProcessor.SubscribeReusable<Commands.LoadResult, IPeerManager>(OnLoadResultCommand);
+            PacketsProcessor.SubscribeReusable<Commands.Pong, IPeerManager>(OnPongCommand);
         }
 
         /// <summary>
@@ -278,7 +289,10 @@ namespace Simulator.Network.Master
             Clients.Remove(client);
 
             if (Loader.Instance.CurrentSimulation != null && State != SimulationState.Initial)
+            {
+                Log.Warning("Stopping current cluster simulation as one connection with client has been lost.");
                 Loader.StopAsync();
+            }
 
             State = SimulationState.Initial;
         }
@@ -464,6 +478,16 @@ namespace Simulator.Network.Master
         }
 
         /// <summary>
+        /// Method invoked when manager receives pong result command
+        /// </summary>
+        /// <param name="res">Received pong result command</param>
+        /// <param name="peer">Peer which has sent the command</param>
+        public void OnPongCommand(Commands.Pong res, IPeerManager peer)
+        {
+            if (res.Id == pingId) receivedPongs++;
+        }
+
+        /// <summary>
         /// Broadcast the stop command to all clients' simulations
         /// </summary>
         public void BroadcastSimulationStop()
@@ -477,6 +501,9 @@ namespace Simulator.Network.Master
             ThreadingUtilities.DispatchToMainThread(RevertChangesInSimulator);
         }
 
+        /// <summary>
+        /// Revers changes made in the Simulator manager after the distribution simulation is over
+        /// </summary>
         private void RevertChangesInSimulator()
         {
             DisconnectFromClients();
@@ -485,6 +512,29 @@ namespace Simulator.Network.Master
                 SimulatorManager.Instance.TimeManager.TimeScaleSemaphore.Unlock();
                 timescaleLockCalled = false;
             }
+        }
+
+        /// <summary>
+        /// Sends a ping command to all the connected clients
+        /// </summary>
+        public void SendPing()
+        {
+            receivedPongs = 0;
+            var stopData = PacketsProcessor.Write(new Commands.Ping() { Id = ++pingId});
+            var message = MessagesPool.Instance.GetMessage(stopData.Length);
+            message.AddressKey = Key;
+            message.Content.PushBytes(stopData);
+            message.Type = DistributedMessageType.Unreliable;
+            BroadcastMessage(message);
+        }
+
+        /// <summary>
+        /// Checks if manager received all pongs for the last ping command
+        /// </summary>
+        /// <returns>True if master received all pongs for the last ping command</returns>
+        public bool ReceivedAllPongs()
+        {
+            return receivedPongs == clients.Count;
         }
     }
 }

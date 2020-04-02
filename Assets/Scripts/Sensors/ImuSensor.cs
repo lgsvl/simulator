@@ -45,6 +45,8 @@ namespace Simulator.Sensors
         Vector3 LastVelocity;
 
         ImuData data;
+        
+        public override SensorDistributionType DistributionType => SensorDistributionType.HighLoad;
 
         public override void OnBridgeSetup(IBridge bridge)
         {

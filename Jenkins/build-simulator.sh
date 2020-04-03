@@ -67,6 +67,19 @@ else
   SENSORS=
 fi
 
+function get_unity_license {
+    echo "Fetching unity license"
+
+    /opt/Unity/Editor/Unity \
+        -logFile /dev/stdout \
+        -batchmode \
+        -serial ${UNITY_SERIAL} \
+        -username ${UNITY_USERNAME} \
+        -password ${UNITY_PASSWORD} \
+        -projectPath /mnt \
+        -quit
+}
+
 function finish
 {
   /opt/Unity/Editor/Unity \
@@ -78,12 +91,11 @@ function finish
 }
 trap finish EXIT
 
+get_unity_license
+
 if [ "$1" == "check" ]; then
 
   /opt/Unity/Editor/Unity \
-    -serial ${UNITY_SERIAL} \
-    -username ${UNITY_USERNAME} \
-    -password ${UNITY_PASSWORD} \
     -batchmode \
     -force-vulkan \
     -silent-crashes \
@@ -97,19 +109,6 @@ if [ "$1" == "check" ]; then
 
 elif [ "$1" == "test" ]; then
 
-  # first run Unity to activate license, because -runEditorTests does not do it
-  /opt/Unity/Editor/Unity \
-    -serial ${UNITY_SERIAL} \
-    -username ${UNITY_USERNAME} \
-    -password ${UNITY_PASSWORD} \
-    -batchmode \
-    -force-vulkan \
-    -silent-crashes \
-    -quit \
-    -projectPath /mnt \
-    -logFile /dev/stdout
-
-  # now run unit tests without username/password/serial
   /opt/Unity/Editor/Unity \
     -batchmode \
     -force-vulkan \
@@ -153,9 +152,6 @@ rm -Rf /mnt/AssetBundles/Controllables || true
 mkdir -p /mnt/AssetBundles/Controllables || true
 
 /opt/Unity/Editor/Unity ${DEVELOPMENT_BUILD} \
-  -serial ${UNITY_SERIAL} \
-  -username ${UNITY_USERNAME} \
-  -password ${UNITY_PASSWORD} \
   -batchmode \
   -force-vulkan \
   -silent-crashes \

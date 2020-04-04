@@ -35,7 +35,6 @@ pipeline {
     PYTHONUNBUFFERED = "1"
     DISPLAY = ":0"
     JENKINS_BUILD_ID = "${BUILD_ID}"
-    GIT_COMMIT = sh(returnStdout: true, script: "git rev-parse HEAD").trim()
   }
 
   stages {
@@ -47,6 +46,10 @@ pipeline {
                 git lfs pull origin
             """
             sh "rm -rf *.zip *.html *.xml *.log.gz *.log *.txt"
+
+            script {
+                env.GIT_COMMIT = sh(returnStdout: true, script: "git rev-parse HEAD").trim()
+            }
         }
     }
 

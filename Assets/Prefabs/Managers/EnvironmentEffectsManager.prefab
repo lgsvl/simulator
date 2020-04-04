@@ -45,39 +45,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   PostProcessingVolumePrefab: {fileID: 2394428975082883579, guid: 411d60fab451be34d83fa8d9f355bf27,
     type: 3}
-  DayProfile: {fileID: 11400000, guid: 0db560d78106ab949a472b155e6286a3, type: 2}
-  SetRiseProfile: {fileID: 11400000, guid: 54bc9e5a11eb0d04c9b423204fb571cb, type: 2}
-  NightProfile: {fileID: 11400000, guid: d0e2f38168c542447b770a9e82dbe145, type: 2}
   dayOverrides:
     SunColor: {r: 1, g: 1, b: 1, a: 1}
-    proceduralSky: {fileID: 0}
-    tonemapping: {fileID: 0}
-    exposure: {fileID: 0}
-    whiteBalance: {fileID: 0}
-    colorAdjustments: {fileID: 0}
-    IndirectLightingController: {fileID: 0}
   nightOverrides:
     SunColor: {r: 0, g: 0, b: 0, a: 1}
-    proceduralSky: {fileID: 0}
-    tonemapping: {fileID: 0}
-    exposure: {fileID: 0}
-    whiteBalance: {fileID: 0}
-    colorAdjustments: {fileID: 0}
-    IndirectLightingController: {fileID: 0}
   setRiseOverrides:
     SunColor: {r: 1, g: 1, b: 1, a: 1}
-    proceduralSky: {fileID: 0}
-    tonemapping: {fileID: 0}
-    exposure: {fileID: 0}
-    whiteBalance: {fileID: 0}
-    colorAdjustments: {fileID: 0}
-    IndirectLightingController: {fileID: 0}
   RainSkyColor: {r: 0.24528301, g: 0.18396226, b: 0, a: 1}
   currentTimeOfDay: 12
   jday: 0
   currentTimeOfDayCycle: 0
   sunGO: {fileID: 5489468262300979065, guid: b06b1e4ae1fc6af418eb69d11ed9c664, type: 3}
-  rainPfx: {fileID: 8043753324636774091, guid: a83827b2838f9b8439f8cc0622795953, type: 3}
+  RainEffectPrefab: {fileID: 1518272601133226984, guid: cd7c81e4fb2fac149bb8ca41fefb9cbc,
+    type: 3}
   rain: 0
   fog: 0
   cloud: 0

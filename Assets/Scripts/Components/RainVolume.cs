@@ -8,6 +8,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 
 public class RainVolume : MonoBehaviour
 {
@@ -21,5 +22,11 @@ public class RainVolume : MonoBehaviour
         var emission = particleSystem.emission;
         emission.rateOverTime = 0f;
         return particleSystem;
+    }
+
+    public VisualEffect Init(VisualEffect vfx, int seed)
+    {
+        var effect = Instantiate(vfx, transform);
+        return effect;
     }
 }

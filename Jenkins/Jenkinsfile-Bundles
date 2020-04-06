@@ -45,7 +45,7 @@ pipeline {
                 git lfs install
                 git lfs pull origin
             """
-            sh "rm -rf *.zip *.html *.xml *.log.gz *.log *.txt"
+            sh "rm -rf *.zip *.html *.xml *.log *.txt"
 
             script {
                 env.GIT_COMMIT = sh(returnStdout: true, script: "git rev-parse HEAD").trim()
@@ -160,14 +160,7 @@ pipeline {
       }
       steps {
         dir("Jenkins") {
-          sh "UID=`id -u` docker-compose run --rm build-bundles | tee ../build-bundles-${JENKINS_BUILD_ID}.log"
-          sh "./check-unity-log.sh ../build-bundles-${JENKINS_BUILD_ID}.log"
-        }
-      }
-      post {
-        always {
-            sh "gzip *.log"
-            archiveArtifacts "*.log.gz"
+          sh "UID=`id -u` docker-compose run --rm build-bundles"
         }
       }
     } // Build
@@ -186,13 +179,7 @@ pipeline {
       }
       steps {
         dir("Jenkins") {
-          sh "UID=`id -u` docker-compose run --rm upload-bundles  | tee ../upload-bundles-${JENKINS_BUILD_ID}.log"
-        }
-      }
-      post {
-        always {
-            sh "gzip *.log"
-            archiveArtifacts "*.log.gz"
+          sh "UID=`id -u` docker-compose run --rm upload-bundles | tee ../upload-bundles.log"
         }
       }
     } // Upload
@@ -205,6 +192,10 @@ pipeline {
     }
     success {
       updateGitlabCommitStatus state: "success"
+    }
+    always {
+        sh "zip logs-bundles-${BUILD_ID}.zip *.log"
+        archiveArtifacts "logs*.zip"
     }
 
   }

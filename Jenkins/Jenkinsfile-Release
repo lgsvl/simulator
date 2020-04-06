@@ -148,7 +148,7 @@ pipeline {
           env.SIM_VEHICLES = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 1").trim()
         } // script
 
-        sh "rm -rf *.zip *.html *.xml"
+        sh "rm -rf *.zip *.html *.xml *.log"
       }
     }
 
@@ -210,7 +210,7 @@ pipeline {
             env.SIM_VEHICLES = sh(returnStdout: true, script: "./get-assets.sh ../Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 0").trim()
           }
           sh "UID=`id -u` docker-compose run --rm build-bundles"
-          sh "UID=`id -u` docker-compose run --rm upload-bundles"
+          sh "UID=`id -u` docker-compose run --rm upload-bundles | tee ../upload-bundles.log"
           script {
             env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./get-assets.sh ../Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 1").trim()
             env.SIM_VEHICLES = sh(returnStdout: true, script: "./get-assets.sh ../Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 1").trim()
@@ -268,6 +268,10 @@ pipeline {
     }
     success {
       mail to: "${SIMULATOR_RELEASE_EMAILS}", subject: "Finished ${GIT_TAG} release build", body: "Finished ${GIT_TAG} release build: ${BUILD_URL}"
+    }
+    always {
+        sh "zip logs-${GIT_TAG}-${BUILD_ID}.zip *.log"
+        archiveArtifacts "logs*.zip"
     }
   }
 

@@ -143,7 +143,7 @@ pipeline {
           env.SIM_VEHICLES = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 1").trim()
         } // script
 
-        sh "rm -rf *.zip *.html *.xml"
+        sh "rm -rf *.zip *.html *.xml *.log"
       }
     }
 
@@ -278,6 +278,10 @@ pipeline {
     }
     success {
       updateGitlabCommitStatus state: "success"
+    }
+    always {
+        sh "zip logs-${GIT_BRANCH}-${BUILD_ID}.zip *.log"
+        archiveArtifacts "logs*.zip"
     }
   }
 

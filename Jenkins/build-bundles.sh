@@ -40,6 +40,12 @@ function getAssets()
   done <<< "$1"
 }
 
+CHECK_UNITY_LOG=$(readlink -f "$(dirname $0)/check-unity-log.sh")
+
+function check_unity_log {
+    ${CHECK_UNITY_LOG} $@
+}
+
 export HOME=/tmp
 
 cd /mnt
@@ -106,4 +112,6 @@ fi
   -buildBundles \
   ${ENVIRONMENTS} \
   ${VEHICLES} \
-  -logFile /dev/stdout
+  -logFile /dev/stdout | tee unity-build-bundles.log
+
+check_unity_log unity-build-bundles.log

@@ -35,6 +35,8 @@ fi
 
 export HOME=/tmp
 
+CHECK_UNITY_LOG=$(readlink -f "$(dirname $0)/check-unity-log.sh")
+
 cd /mnt
 
 PREFIX=lgsvlsimulator
@@ -66,6 +68,10 @@ if [ ! -z ${SIMULATOR_SENSORS+x} ]; then
 else
   SENSORS=
 fi
+
+function check_unity_log {
+    ${CHECK_UNITY_LOG} $@
+}
 
 function get_unity_license {
     echo "Fetching unity license"
@@ -103,7 +109,9 @@ if [ "$1" == "check" ]; then
     -projectPath /mnt \
     -executeMethod Simulator.Editor.Check.Run \
     -saveCheck /mnt/${PREFIX}-check${SUFFIX}.html \
-    -logFile /dev/stdout
+    -logFile /dev/stdout | tee unity-check.log
+
+  check_unity_log unity-check.log
 
   exit 0
 
@@ -116,8 +124,10 @@ elif [ "$1" == "test" ]; then
     -projectPath /mnt \
     -runEditorTests \
     -editorTestsResultFile /mnt/${PREFIX}-test${SUFFIX}.xml \
-    -logFile /dev/stdout \
+    -logFile /dev/stdout | tee unity-test.log \
   || true
+
+  check_unity_log unity-test.log
 
   exit 0
 
@@ -162,7 +172,9 @@ mkdir -p /mnt/AssetBundles/Controllables || true
   -buildPlayer /tmp/${BUILD_OUTPUT} \
   ${CONTROLLABLES} \
   ${SENSORS} \
-  -logFile /dev/stdout
+  -logFile /dev/stdout | tee unity-build-player-${BUILD_TARGET}.log
+
+check_unity_log unity-build-player-${BUILD_TARGET}.log
 
 if [ ! -f /tmp/${BUILD_OUTPUT}/${BUILD_CHECK} ]; then
   echo "ERROR: *****************************************************************"

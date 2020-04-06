@@ -67,9 +67,17 @@ Currently, running the simulator in Windows yields better performance than runni
 
 ### Building and running from source
 
-**NOTE**: to clone repository faster, clone only single branch:
+**NOTE**: to clone repository faster, clone only single branch.
+
+To get latest code from master branch:
 
     git clone --single-branch https://github.com/lgsvl/simulator.git
+
+Alternatively, you can get source code of specific release. Here is an example how to checkout by release tag `2020.03`
+
+    git clone https://github.com/lgsvl/simulator.git
+    cd simulator
+    git checkout 2020.03
 
 Check out our instructions for getting started with building from source [here](Docs/docs/build-instructions.md).
 

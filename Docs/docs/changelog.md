@@ -10,7 +10,9 @@ All notable changes and release notes for LGSVL Simulator will be documented in 
 - Extensible vehicle dynamics
 - Functional Mockup Interface 2.0 (FMI 2.0) interface for vehicle dynamics
 - Support for fisheye camera lens distortion
- 
+- Support for sensor_msgs/NavSatFix message type for GPS messages in ROS2
+- Vehicle Odometry sensor for reporting steering angles and velocity in ROS2
+
 ### Changed
 - Upgraded to Unity 2019.3.3f1
 - Fixed black artifacts in Linux bug

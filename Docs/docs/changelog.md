@@ -1,6 +1,25 @@
 # Changelog
 All notable changes and release notes for LGSVL Simulator will be documented in this file.
 
+## [2020.03] - 2020-04-03
+
+### Added
+- Velodyne VLP-16 and VLP-32C support through custom LiDAR sensor plugin
+- Support for LiDAR sensor plugin with direct UDP socket interface
+- Support for point cloud environment rendering
+- Extensible vehicle dynamics
+- Functional Mockup Interface 2.0 (FMI 2.0) interface for vehicle dynamics
+- Support for fisheye camera lens distortion
+- Support for sensor_msgs/NavSatFix message type for GPS messages in ROS2
+- Vehicle Odometry sensor for reporting steering angles and velocity in ROS2
+
+### Changed
+- Upgraded to Unity 2019.3.3f1
+- Fixed black artifacts in Linux bug
+- Fixed display issues in Unity Editor bug
+- Fixed camera sensor invalid data bug
+- 3D Ground Truth sensor now generates different ID for vehicle after each respawn
+
 ## [2020.01] - 2020-01-31
 
 ### Added

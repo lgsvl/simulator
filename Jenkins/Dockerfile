@@ -11,7 +11,7 @@ RUN set -ex \
         libgl1 libglib2.0-0 libglu1 libgtk2.0-0 libgtk-3-0 libnspr4 libnss3 libpango1.0-0 libstdc++6 \
         libx11-6 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 \
         libxrender1 libxtst6 zlib1g debconf npm libsoup2.4-1 libarchive13 libpng16-16 \
-        libvulkan1 libxau6 libxcb1 libxdmcp6 \
+        libvulkan1 libxau6 libxcb1 libxdmcp6 systemd lsb-release \
   && apt-get clean
 
 # NB. This is overwritten when launched by docker with --gpus=N option

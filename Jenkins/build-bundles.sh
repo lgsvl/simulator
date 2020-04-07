@@ -60,6 +60,19 @@ else
   VEHICLES=
 fi
 
+function get_unity_license {
+    echo "Fetching unity license"
+
+    /opt/Unity/Editor/Unity \
+        -logFile /dev/stdout \
+        -batchmode \
+        -serial ${UNITY_SERIAL} \
+        -username ${UNITY_USERNAME} \
+        -password ${UNITY_PASSWORD} \
+        -projectPath /mnt \
+        -quit
+}
+
 function finish
 {
   /opt/Unity/Editor/Unity \
@@ -70,6 +83,8 @@ function finish
     -returnlicense
 }
 trap finish EXIT
+
+get_unity_license
 
 PREFIX=lgsvlsimulator
 
@@ -82,9 +97,6 @@ else
 fi
 
 /opt/Unity/Editor/Unity \
-  -serial ${UNITY_SERIAL} \
-  -username ${UNITY_USERNAME} \
-  -password ${UNITY_PASSWORD} \
   -batchmode \
   -force-vulkan \
   -silent-crashes \

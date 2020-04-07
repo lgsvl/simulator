@@ -1,30 +1,9 @@
 # Web UI Clusters Tab Explanation [](#top)
 
-Clusters have not been implemented yet.
-
 ### What a Cluster is [[top]] {: #what-a-cluster-is data-toc-label='What a Cluster is'}
-A `Cluster` is a single unit of simulation. By default there is always local machine available as a cluster.
+A Cluster allows connecting multiple machines rendering the same simulation, but different sensors on each machine, this allows to run multiple sensors with better performance. Master establishes a connection with each defined client, divides required sensors between every machine and sends the state of every Simulation element to connected clients synchronizing the environment.
 
-When a user launches  the simulator, there is a command line option available to select between simulation master and slave. 
-When Simulator is started as master (default mode) user can access Web UI and perform simulation tasks. 
-When Simulator is started as a slave (using command line argument) simulator is not rendering anything, but expects connection from master.
-
-For a simulation to start, Master and Slave should share the same maps, vehicles and simulation configuration.
-
-Simulation master is responsible to provide all required configuration and slave is responsible to download all asset bundles required to start simulation. 
-Simulation master and other slaves are waiting for all nodes to download and cache required asset bundles.
-
-Master is responsible for assigning sensors to each Slave for simulation (including itself). 
-After sensors are assigned each slave starts the simulation while synchronizing position of vehicles.
-
-See [Configuration File and Command Line Parameters](config-and-cmd-line-params.md) for details on how to setup the Simulator on each machine in a cluster.
-
-### Why use a Cluster [[top]] {: #why-use-a-cluster data-toc-label='Why use a Cluster'}
-Clusters allow for better performance when generating data from multiple sensors. 
-Unity does not have multiple-gpu support so multiple instances of the simulator are required.
-
-This also allows for large-scale simulations with multiple vehicles in the same map.
-
+For more details about the cluster, simulations refer to the [Cluster Simulation Introduction](cluster-simulation-introduction.md).
 
 
 ### How to Add a Cluster [[top]] {: #how-to-add-a-cluster data-toc-label='How to Add a Cluster'}

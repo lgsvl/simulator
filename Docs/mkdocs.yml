@@ -33,7 +33,6 @@ nav:
     - 'Maps': 'maps-tab.md'
     - 'Vehicles': 'vehicles-tab.md'
     - 'Sensor Parameters': 'sensor-json-options.md'
-    - 'Sensor Plug-in Parameters': 'sensor-plugin-json-options.md'
     - 'Clusters': 'clusters-tab.md'
     - 'Simulations': 'simulations-tab.md'
   - 'Simulation User Interface':
@@ -62,6 +61,15 @@ nav:
   - 'Python API Quickstart Examples': 'api-quickstart-descriptions.md'
   - 'Python API Use Case Examples': 'api-example-descriptions.md'
   - 'How to Run a Scenario' : 'api-how-to-run-scenario.md'
+- 'Cluster Simulation':
+  - 'Cluster Simulation Introduction': 'cluster-simulation-introduction.md'
+  - 'Cluster Simulation QuickStart': 'cluster-simulation-quickstart.md'
+  - 'Distributed Objects': 'distributed-objects.md'
+  - 'Distributed Components': 'distributed-components.md'
+  - 'Sensors Distribution': 'sensors-distribution.md'
+  - 'Distributed Python API': 'distributed-python-api.md'
+  - 'Distributed Messages': 'distributed-messages.md'
+  - 'Custom Distributed Class': 'custom-distributed-class.md'
 - 'Tutorials':
   - 'Reinforcement Learning with OpenAI Gym': 'openai-gym.md'
   - 'Deep Learning Lane Following Model': 'lane-following.md'
@@ -73,7 +81,9 @@ nav:
   - 'Adding Assets': 'assets.md'
   - 'How to add a new ego vehicle': 'add-new-ego-vehicle.md'
   - 'NPC Map Navigation': 'npc-map-navigation.md'
-  - 'Sensor Plugins': 'sensor-plugins.md'
+  - 'Sensor Plugins': 
+    - 'Introduction': 'sensor-plugins.md'
+    - 'Velodyne Lidar Sensor': 'velodyne-lidar-plugin.md'
   - 'Controllable Plugins': 'controllable-plugins.md'
   - 'Dynamics': 'ego-vehicle-dynamics.md'
 - 'Support':

@@ -10,7 +10,7 @@ Simulator configuration file includes parameters shared between different users 
 |hostname|string|localhost|Name of the HTTP server host. Simulator should respond to queries only related to the hostname provided. Star (*) can be used as a wildcard to match any domain.|
 |port|integer|8080|Port number used by HTTP server to host WebUI.|
 |headless|bool|false|Whether or not simulator should work in headless mode only. If parameter is set to true - non headless simulation should fail to start, WebUI should not allow to create non-headless simulations.|
-|slave|bool|false|Whether or not simulator should work in slave mode only. If parameter is set to true - HTTP server does not start and user only can run this instance as a part of cluster.|
+|client|bool|false|Whether or not simulator should work in client mode only. If parameter is set to true - HTTP server does not start and user only can run this instance as a part of cluster.|
 |read_only|bool|false|Whether or not the user is allowed to change anything in the database. This mode is used to run Simulator in public demo mode.|
 |api_hostname|string|localhost|Name of the Python API host. By default it equal to hostname. Python API should respond to queries only related to the api_hostname provided. Star (*) can be used as a wildcard to match any domain.|
 |api_port|integer|8181|Port number used by Python API to connect.|
@@ -23,7 +23,7 @@ Simulator accepts provided command line parameters during start. Command line pa
 |:-:|:-:|:-:|:-:|
 |--hostname or -h|string|localhost|Name of the HTTP server host. Simulator should respond to queries only related to the hostname provided. Star (*) can be used as a wildcard to match any domain.|
 |--port or -p|integer|8080|Port number used by HTTP server to host WebUI.|
-|--slave or -s|none||Whether or not simulator should work in slave mode only. If parameter is present - HTTP server does not start and user only can run this instance as a part of cluster.|
+|--client or -c|none||Whether or not simulator should work in client mode only. If parameter is present - HTTP server does not start and user only can run this instance as a part of cluster.|
 |--master or -m|none||Whether or not simulator should work in master mode. If parameter is present - HTTP server starts and user can use WebUI regardless of what was specified in Simulator Configuration File.|
 |--username or -u|string||Provides username for authentication with the cloud.|
 |--password or -w|string||Provides password for authentication with the cloud.|

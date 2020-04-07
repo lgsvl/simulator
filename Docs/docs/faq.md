@@ -116,7 +116,7 @@ Assetbundle versions change as we add new features. To get the latest assetbundl
 |:-:|:-:|
 |Windows Binary|`%APPDATA%\..\LocalLow\LG Silicon Valley Lab\LGSVL Simulator\Player.log`|
 |Windows Editor|`%APPDATA%\..\Local\Unity\Editor\Editor.log`|
-|Linux Binary|`~/.config/unity3d/Unity/Editor/Player.log`|
+|Linux Binary|`~/.config/unity3d/LG Silicon Valley Lab/LGSVL Simulator/Player.log`|
 |Linux Editor|`~/.config/unity3d/Editor.log`|
 
 

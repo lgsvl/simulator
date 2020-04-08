@@ -110,6 +110,58 @@ namespace Simulator.Editor.PointCloud.Trees
             return bounds;
         }
 
+        public override PointCloudVerticalHistogram GenerateHistogram(PointCloudBounds bounds)
+        {
+            var fileName = Path.GetFileName(FilePath);
+
+            long currentOffset = header.PointDataOffset;
+            long processed = 0;
+            
+            long count = header.PointDataCount;
+
+            if (header.VersionMajor > 1 || header.VersionMajor == 1 && header.VersionMinor >= 4)
+            {
+                if (count == 0)
+                {
+                    count = (long)header.PointDataCountLong;
+                }
+            }
+
+            var result = new PointCloudVerticalHistogram(bounds);
+            
+            using (var file = MemoryMappedFile.CreateFromFile(FilePath ?? throw new Exception("Input file not found."), FileMode.Open))
+            {
+                var batchIndex = 0;
+
+                var maxArraySize = TreeUtility.CalculateMaxArraySize(header.PointDataSize);
+                var totalBatchCount = Mathf.CeilToInt((float) count / maxArraySize);
+
+                while (processed < count)
+                {
+                    var batchCount = Math.Min(maxArraySize, count - processed);
+                    var batchSize = batchCount * header.PointDataSize;
+
+                    using (var view = file.CreateViewAccessor(currentOffset, batchSize, MemoryMappedFileAccess.Read))
+                    {
+                        unsafe
+                        {
+                            batchIndex++;
+                            var progressBarTitle =
+                                $"Generating histogram ({fileName}, batch {batchIndex.ToString()}/{totalBatchCount.ToString()})";
+
+                            var hst = PointImportJobs.GenerateHistogramLas(view, batchCount, header, bounds, progressBarTitle);
+                            result.AddData(hst.regions);
+                        }
+                    }
+
+                    processed += batchCount;
+                    currentOffset += batchSize;
+                }
+            }
+
+            return result;
+        }
+
         ///<inheritdoc/>
         public override bool ConvertPoints(NodeProcessorDispatcher target, TransformationData transformationData)
         {
@@ -128,7 +180,7 @@ namespace Simulator.Editor.PointCloud.Trees
                 }
             }
 
-            using (var file = MemoryMappedFile.CreateFromFile(FilePath, FileMode.Open))
+            using (var file = MemoryMappedFile.CreateFromFile(FilePath ?? throw new Exception("Input file not found."), FileMode.Open))
             {
                 var batchIndex = 0;
 
@@ -147,8 +199,7 @@ namespace Simulator.Editor.PointCloud.Trees
                             $"Converting ({fileName}, batch {batchIndex.ToString()}/{totalBatchCount.ToString()})";
                         var targetBuffer = target.PublicMaxSizeBuffer;
 
-                        PointImportJobs.ConvertLasData(view, targetBuffer, header.PointDataSize, (int) batchCount,
-                            ref header, transformationData, progressBarTitle);
+                        PointImportJobs.ConvertLasData(view, targetBuffer, (int) batchCount, ref header, transformationData, progressBarTitle);
                         
                         target.AddChunk(targetBuffer, (int) batchCount);
                     }

@@ -9,6 +9,7 @@ namespace Simulator.Editor.PointCloud.Trees
 {
     using Simulator.PointCloud;
     using Simulator.PointCloud.Trees;
+    using UnityEngine;
 
     /// <summary>
     /// Interface for storing node points in organized manner.
@@ -16,15 +17,31 @@ namespace Simulator.Editor.PointCloud.Trees
     public interface IOrganizedPointCollection
     {
         /// <summary>
+        /// Minimum distance between points in this collection.
+        /// </summary>
+        float MinDistance { get; }
+
+        /// <summary>
         /// Initializes this instance. Must be called before any other methods.
         /// </summary>
         /// <param name="settings">Settings used for building node tree.</param>
-        void Initialize(TreeImportSettings settings);
+        /// <param name="rootBounds">Bounds of tree's root node.</param>
+        void Initialize(TreeImportSettings settings, TreeImportData importData);
 
         /// <summary>
         /// Updates cached values and internal state of this collection to match given node record.
         /// </summary>
         void UpdateForNode(NodeRecord nodeRecord);
+
+        /// <summary>
+        /// Updates cached values and internal state of this collection to match given node record.
+        /// </summary>
+        /// <param name="nodeRecord">Record to match</param>
+        /// <param name="minimumDistance">Minimum distance between points. Overrides auto-calculated value.</param>
+        /// <param
+        ///     name="alignDistance">
+        /// </param>
+        void UpdateForNode(NodeRecord nodeRecord, float minimumDistance, bool alignDistance = false);
 
         /// <summary>
         /// Clears internal state of this collection.

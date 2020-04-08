@@ -36,7 +36,8 @@ namespace Simulator.Editor.PointCloud.Trees
 
         public PointCloudPoint[] PublicMaxSizeBuffer;
 
-        private TreeNodeProcessor[] processors;
+        private ParallelProcessor[] processors;
+
         private Thread[] threads;
 
         private int rootTmpFilesCount;
@@ -54,8 +55,8 @@ namespace Simulator.Editor.PointCloud.Trees
             this.outputPath = outputPath;
             Settings = settings;
 
-            var pcExtensions = new List<string> {TreeUtility.NodeFileExtension, TreeUtility.IndexFileExtension};
-            
+            var pcExtensions = new List<string> {TreeUtility.NodeFileExtension, TreeUtility.IndexFileExtension, TreeUtility.MeshFileExtension};
+
             if (Directory.Exists(outputPath))
             {
                 var matchingFiles = Directory
@@ -71,6 +72,9 @@ namespace Simulator.Editor.PointCloud.Trees
             Directory.CreateDirectory(outputPath);
 
             outputTmpPath = Path.Combine(outputPath, "tmp");
+            if (Directory.Exists(outputTmpPath))
+                Directory.Delete(outputTmpPath, true);
+
             Directory.CreateDirectory(outputTmpPath);
 
             points = new PointCloudPoint[settings.chunkSize];
@@ -98,7 +102,7 @@ namespace Simulator.Editor.PointCloud.Trees
             var totalChunkCount = itemCount / Settings.chunkSize;
             if (totalChunkCount * Settings.chunkSize < itemCount)
                 totalChunkCount++;
-            
+
             var currentChunkIndex = 0;
             var processed = 0;
             const string title = "Flushing data to disk";
@@ -180,9 +184,9 @@ namespace Simulator.Editor.PointCloud.Trees
         /// <summary>
         /// Builds tree of all points previously registered through <see cref="AddChunk"/> and <see cref="AddPoint"/> methods. Stores results on disk.
         /// </summary>
-        /// <param name="bounds">World-space bounds of all points.</param>
+        /// <param name="importData">Import data generated during preprocessing.</param>
         /// <returns>True if tree build succeeded, false otherwise.</returns>
-        public bool ProcessPoints(Bounds bounds)
+        public bool ProcessPoints(TreeImportData importData)
         {
             // Make sure all points are flushed to disk - buffers are ignored during build
             if (pointCount > 0)
@@ -191,12 +195,25 @@ namespace Simulator.Editor.PointCloud.Trees
                 pointCount = 0;
             }
 
-            processors = new TreeNodeProcessor[Settings.threadCount];
+            processors = new ParallelProcessor[Settings.threadCount];
             threads = new Thread[Settings.threadCount];
 
-            var rootNode = new OctreeNodeRecord(TreeUtility.RootNodeIdentifier, bounds, 0);
+            var rootNode = Settings.treeType == TreeType.Octree ? new OctreeNodeRecord(TreeUtility.RootNodeIdentifier, importData.Bounds, 0) : new QuadtreeNodeRecord(TreeUtility.RootNodeIdentifier, importData.Bounds, 0) as NodeRecord;
+
             nodeRecords.Add(rootNode.Identifier, rootNode);
             var cancelled = false;
+
+            void StopProcessorsIfRunning()
+            {
+                if (processors != null)
+                {
+                    foreach (var processor in processors)
+                        processor.StopWork();
+
+                    foreach (var thread in threads)
+                        thread.Join();
+                }
+            }
 
             try
             {
@@ -210,10 +227,10 @@ namespace Simulator.Editor.PointCloud.Trees
                 for (var i = 0; i < Settings.threadCount; ++i)
                 {
                     if (Settings.treeType == TreeType.Octree)
-                        processors[i] = new OctreeNodeProcessor(outputPath, Settings);
+                        processors[i] = new OctreeNodeProcessor(outputPath, Settings, importData);
                     else
-                        processors[i] = new QuadtreeNodeProcessor(outputPath, Settings);
-                    
+                        processors[i] = new QuadtreeNodeProcessor(outputPath, Settings, importData);
+
                     threads[i] = new Thread(processors[i].StartWork);
                     threads[i].Start();
                 }
@@ -238,6 +255,20 @@ namespace Simulator.Editor.PointCloud.Trees
                     Thread.Sleep(20);
                 }
 
+                if (!cancelled)
+                {
+                    foreach (var processor in processors)
+                        discardedPointsCount += ((TreeNodeProcessor) processor).DiscardedPoints;
+
+                    // Generate meshes - stop current work on threads, then restart with mesh builders
+                    if (Settings.generateMesh)
+                    {
+                        StopProcessorsIfRunning();
+                        if (!GenerateMeshes(importData))
+                            cancelled = true;
+                    }
+                }
+
                 // Tree build succeeded - finalize
                 if (!cancelled)
                 {
@@ -248,13 +279,13 @@ namespace Simulator.Editor.PointCloud.Trees
             {
                 // Whether process finishes, crashes, or is cancelled, stop worker threads and clear progress bar
                 EditorUtility.ClearProgressBar();
-                
-                foreach (var processor in processors)
-                    processor.StopWork();
 
+                StopProcessorsIfRunning();
                 processors = null;
                 threads = null;
-                
+
+                Directory.Delete(outputTmpPath, true);
+
                 GC.Collect();
             }
 
@@ -262,7 +293,55 @@ namespace Simulator.Editor.PointCloud.Trees
         }
 
         /// <summary>
-        /// Checks tree build progress on all worker threads. 
+        /// Dispatches mesh generation process on all available worker threads.
+        /// </summary>
+        /// <param name="importData">Import data generated during preprocessing.</param>
+        /// <returns>True if mesh build succeeded, false otherwise.</returns>
+        private bool GenerateMeshes(TreeImportData importData)
+        {
+            var cancelled = false;
+
+            EditorUtility.DisplayProgressBar("Mesh generation", "Preparing for mesh generation...", 0f);
+            // meshBuilders = new MeshBuilder[Settings.threadCount];
+
+            for (var i = 0; i < Settings.threadCount; ++i)
+            {
+                processors[i] = new MeshBuilder(outputPath, Settings, importData);
+                threads[i] = new Thread(processors[i].StartWork);
+                threads[i].Start();
+            }
+
+            var meshesToDo = Directory.GetFiles(outputTmpPath, "*.meshdata");
+            var meshesCount = meshesToDo.Length;
+
+            foreach (var fileName in meshesToDo)
+            {
+                var id = Path.GetFileNameWithoutExtension(fileName);
+                queue.Enqueue(nodeRecords[id]);
+            }
+
+            while (GenerateMeshLoop(out var busyThreadCount, out var voxelsDone))
+            {
+                var title =
+                    $"Generating meshes ({busyThreadCount.ToString()}/{Settings.threadCount.ToString()} threads in use)";
+                // var message = $"{doneCount.ToString()}/{meshesCount.ToString()} meshes";
+                var message = $"{voxelsDone.ToString()} voxels processed";
+                // var progress = (float) doneCount / meshesCount;
+
+                if (EditorUtility.DisplayCancelableProgressBar(title, message, 0f))
+                {
+                    cancelled = true;
+                    break;
+                }
+
+                Thread.Sleep(20);
+            }
+
+            return !cancelled;
+        }
+
+        /// <summary>
+        /// Checks tree build progress on all worker threads.
         /// </summary>
         /// <param name="busyThreadCount">Amount of threads that are currently busy.</param>
         /// <param name="finishedPointCount">Amount of points that finished processing.</param>
@@ -278,13 +357,16 @@ namespace Simulator.Editor.PointCloud.Trees
                 if (!threads[i].IsAlive)
                     throw new Exception($"Thread {i} died unexpectedly.");
 
-                finishedCount += processors[i].FinishedPoints;
+                if (!(processors[i] is TreeNodeProcessor processor))
+                    throw new Exception("Processor type is invalid for this operation.");
+
+                finishedCount += processor.FinishedPoints;
 
                 // Processor is idle - it might have results, and is ready to accept work
-                if (processors[i].Status == TreeNodeProcessor.WorkStatus.Idle)
+                if (processor.Status == ParallelProcessor.WorkStatus.Idle)
                 {
                     // Fetch children created by node processed on this thread and add them to the queue
-                    processors[i].PullResults(resultsList, out var nodeCreated);
+                    processor.PullResults(resultsList, out var nodeCreated);
 
                     if (nodeCreated)
                     {
@@ -297,7 +379,7 @@ namespace Simulator.Editor.PointCloud.Trees
                     }
                     else
                     {
-                        nodeRecords.Remove(processors[i].NodeRecord.Identifier);
+                        nodeRecords.Remove(processor.NodeRecord.Identifier);
                     }
 
                     resultsList.Clear();
@@ -306,7 +388,7 @@ namespace Simulator.Editor.PointCloud.Trees
                     if (queue.Count > 0)
                     {
                         var record = queue.Dequeue();
-                        processors[i].AssignWork(record);
+                        processor.AssignWork(record);
                         busyCount++;
                     }
                 }
@@ -322,15 +404,54 @@ namespace Simulator.Editor.PointCloud.Trees
         }
 
         /// <summary>
+        /// Checks mesh generation progress on all worker threads.
+        /// </summary>
+        /// <param name="busyThreadCount">Amount of threads that are currently busy.</param>
+        /// <param name="voxelsDone">Amount of voxels that finished processing.</param>
+        /// <returns>True if build is in progress, false otherwise.</returns>
+        /// <exception cref="Exception">one of the threads died unexpectedly.</exception>
+        private bool GenerateMeshLoop(out int busyThreadCount, out int voxelsDone)
+        {
+            var busyCount = 0;
+            voxelsDone = 0;
+
+            for (var i = 0; i < processors.Length; ++i)
+            {
+                if (!threads[i].IsAlive)
+                    throw new Exception($"Thread {i} died unexpectedly.");
+
+                if (!(processors[i] is MeshBuilder builder))
+                    throw new Exception("Processor type is invalid for this operation.");
+
+                voxelsDone += builder.VoxelsDone;
+
+                // Processor is idle - it might have results, and is ready to accept work
+                if (builder.Status == ParallelProcessor.WorkStatus.Idle)
+                {
+                    // Get first node in queue and assign it to this processor
+                    if (queue.Count > 0)
+                    {
+                        var record = queue.Dequeue();
+                        builder.AssignWork(record);
+                        busyCount++;
+                    }
+                }
+                else
+                    busyCount++;
+            }
+
+            busyThreadCount = busyCount;
+
+            // At least one processor is still working - tree build still in progress
+            return busyCount > 0;
+        }
+
+        /// <summary>
         /// Saves tree metadata to disk and clears temporary files.
         /// </summary>
         private void FinalizeBuild()
         {
-            foreach (var processor in processors)
-                discardedPointsCount += processor.DiscardedPoints;
-            
             SaveIndexToDisk();
-            Directory.Delete(outputTmpPath, true);
         }
 
         /// <summary>

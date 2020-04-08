@@ -49,7 +49,7 @@ namespace Simulator.Editor.PointCloud.Trees
 
             var result = PointCloudBounds.Empty;
 
-            using (var file = MemoryMappedFile.CreateFromFile(FilePath, FileMode.Open))
+            using (var file = MemoryMappedFile.CreateFromFile(FilePath ?? throw new Exception("Input file not found."), FileMode.Open))
             {
                 var batchIndex = 0;
 
@@ -71,6 +71,50 @@ namespace Simulator.Editor.PointCloud.Trees
                             headerData.DataStride, headerData.Elements, progressBarTitle);
 
                         result.Encapsulate(batchBounds);
+                    }
+
+                    processed += batchCount;
+                    currentOffset += batchSize;
+                }
+            }
+
+            return result;
+        }
+        
+        protected PointCloudVerticalHistogram GenerateHistogramDefault(DefaultHeaderData headerData, PointCloudBounds bounds)
+        {
+            var fileName = Path.GetFileName(FilePath);
+
+            long currentOffset = headerData.DataOffset;
+            long processed = 0;
+
+            var result = new PointCloudVerticalHistogram(bounds);
+
+            using (var file = MemoryMappedFile.CreateFromFile(FilePath ?? throw new Exception("Input file not found."), FileMode.Open))
+            {
+                var batchIndex = 0;
+
+                var maxArraySize = TreeUtility.CalculateMaxArraySize(headerData.DataStride);
+                var totalBatchCount = Mathf.CeilToInt((float) headerData.DataCount / maxArraySize);
+
+                while (processed < headerData.DataCount)
+                {
+                    var batchCount = Math.Min(maxArraySize, headerData.DataCount - processed);
+                    var batchSize = batchCount * headerData.DataStride;
+
+                    using (var view = file.CreateViewAccessor(currentOffset, batchSize, MemoryMappedFileAccess.Read))
+                    {
+                        unsafe
+                        {
+                            batchIndex++;
+                            var progressBarTitle =
+                                $"Calculating bounds ({fileName}, batch {batchIndex.ToString()}/{totalBatchCount.ToString()})";
+
+                            var batchHistogram = PointImportJobs.GenerateHistogram(view, batchCount,
+                                headerData.DataStride, headerData.Elements, bounds, progressBarTitle);
+
+                            result.AddData(batchHistogram.regions);
+                        }
                     }
 
                     processed += batchCount;
@@ -134,6 +178,8 @@ namespace Simulator.Editor.PointCloud.Trees
         /// Calculates and returns <see cref="PointCloudBounds"/> of points in file assigned to this processor.
         /// </summary>
         public abstract PointCloudBounds CalculateBounds();
+
+        public abstract PointCloudVerticalHistogram GenerateHistogram(PointCloudBounds bounds);
 
         /// <summary>
         /// Converts points in file assigned to this processor using given transformation data and feeds them to target dispatcher.

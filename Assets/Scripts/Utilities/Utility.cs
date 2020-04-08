@@ -495,5 +495,14 @@ namespace Simulator.Utilities
             return new Guid(data);
         }
 
+        /// <summary>
+        /// Resets local position, scale and rotation on this Transform.
+        /// </summary>
+        public static void Reset(this Transform transform)
+        {
+            transform.localScale = Vector3.one;
+            transform.localRotation = Quaternion.identity;
+            transform.localPosition = Vector3.zero;
+        }
     }
 }

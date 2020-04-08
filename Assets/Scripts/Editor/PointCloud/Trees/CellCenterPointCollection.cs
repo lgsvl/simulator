@@ -8,6 +8,7 @@
 namespace Simulator.Editor.PointCloud.Trees
 {
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using Simulator.PointCloud;
     using Simulator.PointCloud.Trees;
@@ -18,16 +19,21 @@ namespace Simulator.Editor.PointCloud.Trees
     /// </summary>
     public class CellCenterPointCollection : IOrganizedPointCollection
     {
+        private Bounds rootBounds;
+        private Bounds alignedBounds;
         private int[] cellsPerAxis;
         private TreeImportSettings settings;
         private NodeRecord nodeRecord;
-        private Vector3 cellStep;
+        private float cellStep;
 
         private readonly Dictionary<int, PointCloudPoint> outputPoints = new Dictionary<int, PointCloudPoint>();
 
+        public float MinDistance => cellStep;
+
         ///<inheritdoc/>
-        public void Initialize(TreeImportSettings treeSettings)
+        public void Initialize(TreeImportSettings treeSettings, TreeImportData importData)
         {
+            rootBounds = importData.Bounds;
             settings = treeSettings;
             cellsPerAxis = new int[3];
         }
@@ -35,17 +41,29 @@ namespace Simulator.Editor.PointCloud.Trees
         ///<inheritdoc/>
         public void UpdateForNode(NodeRecord record)
         {
-            nodeRecord = record;
-            
-            var minDistance = Mathf.Min(nodeRecord.Bounds.size.x, nodeRecord.Bounds.size.z) /
+            var minDistance = Mathf.Min(record.Bounds.size.x, record.Bounds.size.z) /
                               settings.rootNodeSubdivision;
 
-            cellsPerAxis[0] = Mathf.Max(1, Mathf.CeilToInt(nodeRecord.Bounds.size.x / minDistance));
-            cellsPerAxis[1] = Mathf.Max(1, Mathf.CeilToInt(nodeRecord.Bounds.size.y / minDistance));
-            cellsPerAxis[2] = Mathf.Max(1, Mathf.CeilToInt(nodeRecord.Bounds.size.z / minDistance));
-            cellStep.x = nodeRecord.Bounds.size.x / cellsPerAxis[0];
-            cellStep.y = nodeRecord.Bounds.size.y / cellsPerAxis[1];
-            cellStep.z = nodeRecord.Bounds.size.z / cellsPerAxis[2];
+            UpdateForNode(record, minDistance);
+        }
+
+        public void UpdateForNode(NodeRecord record, float minimumDistance, bool alignDistance = false)
+        {
+            nodeRecord = record;
+
+            if (alignDistance)
+            {
+                var newDist = Mathf.Min(rootBounds.size.x, rootBounds.size.z) / settings.rootNodeSubdivision;
+                while (0.5f * newDist > settings.minPointDistance)
+                    newDist *= 0.5f;
+
+                minimumDistance = newDist;
+            }
+
+            cellStep = minimumDistance;
+            alignedBounds = TreeUtility.GetRoundedAlignedBounds(nodeRecord.Bounds, rootBounds.min, minimumDistance);
+
+            EditorTreeUtility.CalculateGridSize(alignedBounds, minimumDistance, cellsPerAxis);
         }
 
         ///<inheritdoc/>
@@ -53,12 +71,12 @@ namespace Simulator.Editor.PointCloud.Trees
         {
             outputPoints.Clear();
         }
-        
+
         ///<inheritdoc/>
         public bool TryAddPoint(PointCloudPoint point, out PointCloudPoint? replacedPoint)
         {
             var cellIndex = GetCellIndex(point);
-            
+
             // Cell is already occupied, check distance to center
             if (outputPoints.TryGetValue(cellIndex, out var current))
             {
@@ -69,6 +87,7 @@ namespace Simulator.Editor.PointCloud.Trees
                     replacedPoint = current;
                     return true;
                 }
+
                 // Old point is closer - pass new point to child
                 else
                 {
@@ -76,6 +95,7 @@ namespace Simulator.Editor.PointCloud.Trees
                     return false;
                 }
             }
+
             // Cell is empty - place new point there
             else
             {
@@ -90,17 +110,17 @@ namespace Simulator.Editor.PointCloud.Trees
         {
             return outputPoints.Values.ToArray();
         }
-        
+
         /// <summary>
         /// Returns index of a sub-cell covering a fragment of space that given point occupies.
         /// </summary>
         private int GetCellIndex(PointCloudPoint point)
         {
-            var relativePosition = point.Position - nodeRecord.Bounds.min;
+            var relativePosition = point.Position - alignedBounds.min;
 
-            var x = (int) (relativePosition.x / cellStep.x);
-            var y = (int) (relativePosition.y / cellStep.y);
-            var z = (int) (relativePosition.z / cellStep.z);
+            var x = (int) (relativePosition.x / cellStep);
+            var y = (int) (relativePosition.y / cellStep);
+            var z = (int) (relativePosition.z / cellStep);
 
             // Upper bounds are inclusive, so last set of cells in each axis must also accept points from there 
             if (x >= cellsPerAxis[0])
@@ -112,11 +132,11 @@ namespace Simulator.Editor.PointCloud.Trees
             if (z >= cellsPerAxis[2])
                 z = cellsPerAxis[2] - 1;
 
-            var flat = x * cellsPerAxis[1] * cellsPerAxis[2] + y * cellsPerAxis[2] + z;
+            var flat = x + y * cellsPerAxis[0] + z * cellsPerAxis[0] * cellsPerAxis[1];
 
             return flat;
         }
-        
+
         /// <summary>
         /// Checks if new point is better suited to occupy cell with given index than the old one.
         /// </summary>
@@ -130,7 +150,7 @@ namespace Simulator.Editor.PointCloud.Trees
 
             return (newPosition - cellCenter).sqrMagnitude < (oldPosition - cellCenter).sqrMagnitude;
         }
-        
+
         /// <summary>
         /// Returns center position of a cell with given index.
         /// </summary>
@@ -138,16 +158,47 @@ namespace Simulator.Editor.PointCloud.Trees
         /// <returns></returns>
         private Vector3 GetCellCenter(int cellIndex)
         {
-            var squared = cellsPerAxis[1] * cellsPerAxis[2];
-            var x = cellIndex / squared;
-            var remaining = cellIndex - x * squared;
-            var y = remaining / cellsPerAxis[2];
-            var z = remaining % cellsPerAxis[2];
+            var squared = cellsPerAxis[0] * cellsPerAxis[1];
+            var z = cellIndex / squared;
+            var remaining = cellIndex - z * squared;
+            var y = remaining / cellsPerAxis[0];
+            var x = remaining % cellsPerAxis[0];
 
-            var center = nodeRecord.Bounds.min +
-                         new Vector3(cellStep.x * (x + 0.5f), cellStep.y * (y + 0.5f), cellStep.z * (z + 0.5f));
+            var center = alignedBounds.min +
+                         new Vector3(cellStep * (x + 0.5f), cellStep * (y + 0.5f), cellStep * (z + 0.5f));
 
             return center;
+        }
+
+        public void FlushMeshGenerationData(string outputDirectory)
+        {
+            if (outputPoints.Count == 0)
+                return;
+
+            var data = outputPoints.ToDictionary(x => x.Key, x => x.Value.Position);
+
+            EditorTreeUtility.SaveMeshGenerationData(
+                Path.Combine(outputDirectory, $"{nodeRecord.Identifier}.meshdata"),
+                cellsPerAxis,
+                data);
+
+            bool IsEdgeCell(int id)
+            {
+                var xyz = TreeUtility.Unflatten(id, cellsPerAxis);
+                return (xyz.x == 0) || (xyz.y == 0) || (xyz.z == 0);
+            }
+
+            var edgeData = data
+                .Where(x => IsEdgeCell(x.Key))
+                .ToDictionary(x => x.Key, x => x.Value);
+
+            if (edgeData.Count == 0)
+                return;
+
+            EditorTreeUtility.SaveMeshGenerationData(
+                Path.Combine(outputDirectory, $"{nodeRecord.Identifier}.meshedge"),
+                cellsPerAxis,
+                edgeData);
         }
     }
 }

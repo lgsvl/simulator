@@ -7,9 +7,11 @@
 
 namespace Simulator.PointCloud.Trees
 {
+    using System.IO;
     using Simulator.Utilities;
 
     using UnityEngine;
+    using UnityEngine.Rendering;
     using Utilities.Attributes;
 
     /// <summary>
@@ -18,6 +20,8 @@ namespace Simulator.PointCloud.Trees
     [ExecuteInEditMode]
     public class NodeTreeLoader : MonoBehaviour
     {
+        private const string MeshRootName = "CollidersRoot";
+        
 #pragma warning disable 0649
 
         [SerializeField]
@@ -28,6 +32,14 @@ namespace Simulator.PointCloud.Trees
         [SerializeField]
         [Tooltip("Maximum amount of points that can be loaded into memory at once.")]
         private int pointLimit = 10000000;
+        
+        [SerializeField]
+        [Tooltip("If true, meshes generated during import process will be loaded on tree initialization.")]
+        private bool loadMeshes = true;
+        
+        [SerializeField]
+        [HideInInspector]
+        private Transform meshesRoot;
 
 #pragma warning restore 0649
 
@@ -54,6 +66,10 @@ namespace Simulator.PointCloud.Trees
                         Debug.LogError($"Unable to load octree under path {dataPath}. Check files.");
                         corrupted = true;
                         tree = null;
+                    }
+                    else if (loadMeshes) 
+                    {
+                        LoadMeshes();
                     }
                 }
 
@@ -86,9 +102,48 @@ namespace Simulator.PointCloud.Trees
 
         private void Cleanup()
         {
+            ClearMeshes();
             corrupted = false;
             tree?.Dispose();
             tree = null;
+        }
+
+        private void ClearMeshes()
+        {
+            for (var i = transform.childCount - 1; i >= 0; --i)
+            {
+                var child = transform.GetChild(i).gameObject;
+                if (child.name == MeshRootName)
+                    CoreUtils.Destroy(child);
+            }
+        }
+
+        private void LoadMeshes()
+        {
+            ClearMeshes();
+            
+            var files = Directory.GetFiles(GetFullDataPath(), $"*{TreeUtility.MeshFileExtension}");
+            if (files.Length == 0)
+                return;
+
+            meshesRoot = new GameObject(MeshRootName).transform;
+            meshesRoot.SetParent(transform);
+            meshesRoot.Reset();
+
+            foreach (var file in files)
+            {
+                var data = MeshData.LoadFromFile(file);
+                var meshes = data.GenerateMeshes();
+                foreach (var mesh in meshes)
+                {
+                    var fName = Path.GetFileNameWithoutExtension(file);
+                    var go = new GameObject($"MeshCollider ({fName})");
+                    go.transform.SetParent(meshesRoot);
+                    go.transform.Reset();
+                    var col = go.AddComponent<MeshCollider>();
+                    col.sharedMesh = mesh;
+                }
+            }
         }
     }
 }

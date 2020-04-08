@@ -27,7 +27,14 @@ namespace Simulator.PointCloud
         private PointCloudRenderPass litPass;
         private PointCloudRenderPass unlitPass;
 
+        private PointCloudResources resources;
+
         private static PointCloudManager activeInstance;
+
+        public static PointCloudResources Resources
+        {
+            get { return activeInstance.resources ?? (activeInstance.resources = new PointCloudResources()); }
+        }
 
         private static bool TryGetUnlitPass(CustomPassVolume volume, ref PointCloudRenderPass pass)
         {
@@ -103,14 +110,6 @@ namespace Simulator.PointCloud
 
         private void OnDisable()
         {
-            activeInstance = null;
-            
-            if (renderers != null && renderers.Length > 0)
-            {
-                foreach (var pcr in renderers) 
-                    pcr.Cleanup();
-            }
-
             renderers = null;
             
             var customPassVolume = gameObject.GetComponent<CustomPassVolume>();
@@ -119,6 +118,11 @@ namespace Simulator.PointCloud
             {
                 pass.UpdateRenderers(null);
             }
+            
+            activeInstance.resources?.ReleaseAll();
+            activeInstance.resources = null;
+            
+            activeInstance = null;
         }
 
         private void InitializeCustomPassVolumes()

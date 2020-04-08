@@ -9,9 +9,7 @@ namespace Simulator.Editor.PointCloud.Trees
 {
     using System.Collections.Generic;
     using System.IO;
-
     using Simulator.Utilities;
-
     using UnityEditor;
     using UnityEngine;
 
@@ -49,6 +47,18 @@ namespace Simulator.Editor.PointCloud.Trees
             unityBounds.center = transform.MultiplyPoint3x4(unityBounds.center);
             unityBounds.extents = transform.MultiplyVector(unityBounds.extents);
 
+            TreeImportData importData = null;
+
+            if (settings.generateMesh && settings.roadOnlyMesh)
+            {
+                var histogram = GenerateHistogram(processors, bounds);
+                importData = new TreeImportData(unityBounds, histogram);
+            }
+            else
+            {
+                importData = new TreeImportData(unityBounds);
+            }
+
             NodeProcessorDispatcher dispatcher;
             var fullOutputPath = Utility.GetFullPath(settings.outputPath);
 
@@ -71,7 +81,7 @@ namespace Simulator.Editor.PointCloud.Trees
                 }
             }
 
-            if (dispatcher.ProcessPoints(unityBounds))
+            if (dispatcher.ProcessPoints(importData))
             {
                 dispatcher.GetPointCountResults(out var total, out var used, out var discarded);
                 Debug.Log($"Octree build finished successfully.\n" +
@@ -131,6 +141,26 @@ namespace Simulator.Editor.PointCloud.Trees
             bounds.MaxZ += 0.1;
 
             return bounds;
+        }
+
+        /// <summary>
+        /// Calculates and returns merged bounds of points from all given processors.
+        /// </summary>
+        /// <param name="processors">Enumerable collection of point processors.</param>
+        private static PointCloudVerticalHistogram GenerateHistogram(IEnumerable<PointProcessor> processors, PointCloudBounds bounds)
+        {
+            var result = new PointCloudVerticalHistogram(bounds);
+
+            foreach (var processor in processors)
+            {
+                unsafe
+                {
+                    var processorHistogram = processor.GenerateHistogram(bounds);
+                    result.AddData(processorHistogram.regions);
+                }
+            }
+
+            return result;
         }
     }
 }

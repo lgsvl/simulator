@@ -24,7 +24,7 @@ namespace Simulator.Editor.PointCloud.Trees
         private DefaultHeaderData ReadHeader()
         {
             var result = new DefaultHeaderData();
-            
+
             using (var file = MemoryMappedFile.CreateFromFile(FilePath, FileMode.Open))
             {
                 int elementOffset = 0;
@@ -50,10 +50,12 @@ namespace Simulator.Editor.PointCloud.Trees
                                     break;
                                 }
                             }
+
                             if (index == -1)
                             {
                                 throw new Exception("Bad PLY file");
                             }
+
                             var line = Encoding.ASCII.GetString(byteLine, 0, index);
                             byte next = byteLine[index + 1];
                             stream.Position -= byteLine.Length - (index + (next == '\r' || next == '\n' ? 2 : 1));
@@ -62,11 +64,12 @@ namespace Simulator.Editor.PointCloud.Trees
                             {
                                 throw new Exception("Bad PLY file format");
                             }
+
                             first = false;
 
                             if (line.StartsWith("format"))
                             {
-                                var format = line.Split(new[] { ' ' });
+                                var format = line.Split(new[] {' '});
                                 if (format[1] != "binary_little_endian" || format[2] != "1.0")
                                 {
                                     throw new Exception($"Unsupported PLY format: {line}");
@@ -74,7 +77,7 @@ namespace Simulator.Editor.PointCloud.Trees
                             }
                             else if (line.StartsWith("property"))
                             {
-                                var props = line.Split(new[] { ' ' }, 3);
+                                var props = line.Split(new[] {' '}, 3);
                                 if (props[1] != "list")
                                 {
                                     PointElementType? type = null;
@@ -104,7 +107,7 @@ namespace Simulator.Editor.PointCloud.Trees
 
                                     if (name.HasValue)
                                     {
-                                        result.Elements.Add(new PointElement() { Type = type.Value, Name = name.Value, Offset = elementOffset });
+                                        result.Elements.Add(new PointElement() {Type = type.Value, Name = name.Value, Offset = elementOffset});
                                     }
 
                                     elementOffset += PointElement.GetSize(type.Value);
@@ -112,7 +115,7 @@ namespace Simulator.Editor.PointCloud.Trees
                             }
                             else if (line.StartsWith("element vertex"))
                             {
-                                var vertex = line.Split(new[] { ' ' }, 3);
+                                var vertex = line.Split(new[] {' '}, 3);
                                 result.DataCount = long.Parse(vertex[2]);
                             }
                             else if (line.StartsWith("end_header"))
@@ -120,6 +123,7 @@ namespace Simulator.Editor.PointCloud.Trees
                                 break;
                             }
                         }
+
                         result.DataOffset = stream.Position;
                     }
                 }
@@ -129,11 +133,17 @@ namespace Simulator.Editor.PointCloud.Trees
 
             return result;
         }
-        
+
         ///<inheritdoc/>
         public override PointCloudBounds CalculateBounds()
         {
             return CalculateBoundsDefault(header);
+        }
+
+        ///<inheritdoc/>
+        public override PointCloudVerticalHistogram GenerateHistogram(PointCloudBounds bounds)
+        {
+            return GenerateHistogramDefault(header, bounds);
         }
 
         ///<inheritdoc/>

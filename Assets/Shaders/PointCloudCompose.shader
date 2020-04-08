@@ -17,14 +17,29 @@ Shader "Simulator/PointCloud/HDRP/Compose"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassCommon.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 
-    #pragma multi_compile_local _ _PC_LINEAR_DEPTH
-    #pragma multi_compile _ _PC_TARGET_GBUFFER
+    #pragma multi_compile _ _PC_LINEAR_DEPTH
+    #pragma multi_compile _ _PC_TARGET_GBUFFER _PC_UNLIT_SHADOWS
+
+    #ifdef _PC_UNLIT_SHADOWS
+        #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+        #define HAS_LIGHTLOOP 
+        #define SHADOW_OPTIMIZE_REGISTER_USAGE 1
+
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDShadowContext.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/HDShadow.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/PunctualLightCommon.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/HDShadowLoop.hlsl"
+    #endif
 
     Texture2D _ColorTex;
     SamplerState sampler_ColorTex;
     
     Texture2D _NormalDepthTex;
     SamplerState sampler_NormalDepthTex;
+
+    float _ShadowsFilter;
 
     TEXTURE2D_X(_OriginalDepth);
 
@@ -60,7 +75,7 @@ Shader "Simulator/PointCloud/HDRP/Compose"
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(varyings);
         float camDepth = LOAD_TEXTURE2D_X_LOD(_OriginalDepth, varyings.positionCS.xy, 0).r;
-        PositionInputs posInput = GetPositionInput(varyings.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+        PositionInputs posInput = GetPositionInput(varyings.positionCS.xy, _ScreenSize.zw, camDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
         float2 insetSS = posInput.positionSS;
         insetSS.x = insetSS.x * _SRMulVec.x + _SRMulVec.y;
@@ -80,9 +95,25 @@ Shader "Simulator/PointCloud/HDRP/Compose"
             discard;
         
         depth = eyeDepth;
+        float3 color = UnpackRGB(pcPacked.rg);
 
         #ifndef _PC_TARGET_GBUFFER
-            outColor = float4(UnpackRGB(pcPacked.rg), 1);
+            #ifdef _PC_UNLIT_SHADOWS
+                HDShadowContext shadowContext = InitShadowContext();
+                float shadow;
+                float3 shadow3;
+                PositionInputs shadowPosInput = GetPositionInput(varyings.positionCS.xy, _ScreenSize.zw, eyeDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+                float3 normalWS = pcNormalDepth.rgb;
+                uint renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
+                ShadowLoopMin(shadowContext, shadowPosInput, normalWS, asuint(_ShadowsFilter), renderingLayers, shadow3);
+                shadow = dot(shadow3, float3(1.0/3.0, 1.0/3.0, 1.0/3.0));
+
+                float4 shadowTint = float4(0,0,0,0.9);
+                float4 shadowColor = (1 - shadow) * shadowTint.rgba;
+                color = lerp(lerp(shadowColor.rgb, color, 1 - shadowTint.a), color, shadow);
+            #endif
+
+            outColor = float4(color, 1);
         #else
             NormalData nData;
             nData.normalWS = pcNormalDepth.rgb;
@@ -90,8 +121,6 @@ Shader "Simulator/PointCloud/HDRP/Compose"
 
             float4 normalGBuffer;
             EncodeIntoNormalBuffer(nData, insetSS, /* out */ normalGBuffer);
-
-            float3 color = UnpackRGB(pcPacked.rg);
 
             outGBuffer0 = float4(color, 1);
             outGBuffer1 = normalGBuffer;

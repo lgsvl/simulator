@@ -37,7 +37,7 @@ namespace Simulator.Editor.PointCloud.Trees
                 string[] fields = null;
                 string[] sizes = null;
                 string[] types = null;
-                
+
                 using (var view = file.CreateViewStream(0, 4096, MemoryMappedFileAccess.Read))
                 {
                     var buffer = new byte[4096];
@@ -178,6 +178,12 @@ namespace Simulator.Editor.PointCloud.Trees
         public override PointCloudBounds CalculateBounds()
         {
             return CalculateBoundsDefault(header);
+        }
+
+        /// <inheritdoc/>
+        public override PointCloudVerticalHistogram GenerateHistogram(PointCloudBounds bounds)
+        {
+            return GenerateHistogramDefault(header, bounds);
         }
 
         /// <inheritdoc/>

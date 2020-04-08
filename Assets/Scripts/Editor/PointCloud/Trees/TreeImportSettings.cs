@@ -27,6 +27,7 @@ namespace Simulator.Editor.PointCloud.Trees
         {
             /// Subdivides space into smaller cells and picks points nearest to their centers.
             CellCenter,
+
             /// Picks points with Poisson-disc sampling method.
             PoissonDisc
         }
@@ -36,7 +37,7 @@ namespace Simulator.Editor.PointCloud.Trees
         /// </summary>
         [Tooltip("List of files that should be used to build tree.")]
         public List<string> inputFiles = new List<string>();
-        
+
         /// <summary>
         /// Path under which tree files will be stored.
         /// </summary>
@@ -57,7 +58,7 @@ namespace Simulator.Editor.PointCloud.Trees
         [FormerlySerializedAs("Sampling")]
         [Tooltip("Sampling method that should be used by the tree.")]
         public SamplingMethod sampling = SamplingMethod.CellCenter;
-        
+
         /// <summary>
         /// Defines distance between points in root node, relative to bounds. 64 means size/64 distance.
         /// </summary>
@@ -65,7 +66,7 @@ namespace Simulator.Editor.PointCloud.Trees
         [Tooltip("Defines distance between points in root node, relative to bounds. 64 means size/64 distance.")]
         [Range(16, 128)]
         public int rootNodeSubdivision = 64;
-        
+
         /// <summary>
         /// Defines the minimum amount of points needed to branch a node further.
         /// </summary>
@@ -73,9 +74,37 @@ namespace Simulator.Editor.PointCloud.Trees
         [Range(16 * 16 * 2, 128 * 128 * 16)]
         public int nodeBranchThreshold = 64 * 64 * 8;
 
+        /// <summary>
+        /// Defines maximum depth of the tree. Points on lower levels will be discarded.
+        /// </summary>
         [Range(1, 16)]
         [Tooltip("Defines maximum depth of the tree. Points on lower levels will be discarded.")]
         public int maxTreeDepth = 12;
+
+        /// <summary>
+        /// Defines minimum distance between points. Points below this threshold will be discarded.
+        /// </summary>
+        [Tooltip("Defines minimum distance between points. Points below this threshold will be discarded.")]
+        public float minPointDistance = 0.01f;
+
+        /// <summary>
+        /// If true, mesh collider will be generated from point cloud data.
+        /// </summary>
+        [Tooltip("If true, mesh collider will be generated from point cloud data.")]
+        public bool generateMesh = false;
+
+        /// <summary>
+        /// If true, only road level will be meshed. This is not viable for all data sets.
+        /// </summary>
+        [Tooltip("If true, only road level will be meshed. This is not viable for all data sets.")]
+        public bool roadOnlyMesh = false;
+
+        /// <summary>
+        /// Level of detail that should be used to generate collider mesh. 
+        /// </summary>
+        [Tooltip("Level of detail that should be used to generate collider mesh. Larger maps should use higher level.")]
+        [Range(1, 6)]
+        public int meshDetailLevel = 3;
 
         /// <summary>
         /// <para>Amount of worker threads used for building the tree.</para>
@@ -96,7 +125,7 @@ namespace Simulator.Editor.PointCloud.Trees
         public bool center = true;
 
         public bool normalize;
-        
+
         public bool lasRGB8BitWorkaround = true;
 
         public PointCloudImportAxes axes = PointCloudImportAxes.X_Right_Z_Up_Y_Forward;

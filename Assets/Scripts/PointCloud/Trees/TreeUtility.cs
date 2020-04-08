@@ -8,7 +8,7 @@
 namespace Simulator.PointCloud.Trees
 {
     using System;
-    using Unity.Collections.LowLevel.Unsafe;
+    using System.IO.MemoryMappedFiles;
     using UnityEngine;
 
     /// <summary>
@@ -30,6 +30,11 @@ namespace Simulator.PointCloud.Trees
         /// Extension used for index file.
         /// </summary>
         public const string IndexFileExtension = ".pcindex";
+        
+        /// <summary>
+        /// Extension used for mesh file.
+        /// </summary>
+        public const string MeshFileExtension = ".pcmesh";
 
         /// <summary>
         /// Returns index of an octree child whose bounds contain given point.
@@ -110,6 +115,103 @@ namespace Simulator.PointCloud.Trees
                 (childIndex & 1) != 0 ? 1 : -1,
                 0f,
                 (childIndex & (1 << 1)) != 0 ? 1 : -1);
+        }
+
+        /// <summary>
+        /// Rounds given Vector3 so that each of its components is a multiply of given step value.
+        /// </summary>
+        public static Vector3 RoundToStep(Vector3 vec, float step)
+        {
+            return new Vector3(Mathf.RoundToInt(vec.x / step) * step,
+                Mathf.RoundToInt(vec.y / step) * step,
+                Mathf.RoundToInt(vec.z / step) * step);
+        }
+        
+        /// <summary>
+        /// Floors given Vector3 so that each of its components is a multiply of given step value.
+        /// </summary>
+        public static Vector3 FloorToStep(Vector3 vec, float step)
+        {
+            return new Vector3(Mathf.FloorToInt(vec.x / step) * step,
+                Mathf.FloorToInt(vec.y / step) * step,
+                Mathf.FloorToInt(vec.z / step) * step);
+        }
+        
+        /// <summary>
+        /// Ceils given Vector3 so that each of its components is a multiply of given step value.
+        /// </summary>
+        public static Vector3 CeilToStep(Vector3 vec, float step)
+        {
+            return new Vector3(Mathf.CeilToInt(vec.x / step) * step,
+                Mathf.CeilToInt(vec.y / step) * step,
+                Mathf.CeilToInt(vec.z / step) * step);
+        }
+
+        /// <summary>
+        /// Aligns given bounds to always tightly encompass its voxelized space.
+        /// </summary>
+        /// <param name="bounds">Original bounds.</param>
+        /// <param name="origin">Origin of the space in which voxelization is performed.</param>
+        /// <param name="voxelSize">Edge length of a voxel.</param>
+        /// <returns>Aligned bounds.</returns>
+        public static Bounds GetRoundedAlignedBounds(Bounds bounds, Vector3 origin, float voxelSize)
+        {
+            var min = RoundToStep(bounds.min - origin, voxelSize) + origin;
+            var max = RoundToStep(bounds.max - origin, voxelSize) + origin;
+            
+            return new Bounds(min + 0.5f * (max - min), max - min);
+        }
+
+        public static int Flatten(Vector3Int vector, int[] gridSize)
+        {
+            return Flatten(vector.x, vector.y, vector.z, gridSize);
+        }
+
+        public static int Flatten(int x, int y, int z, int[] gridSize)
+        {
+            return x + y * gridSize[0] + z * gridSize[0] * gridSize[1];
+        }
+
+        public static Vector3Int Unflatten(int value, int[] gridSize)
+        {
+            var squared = gridSize[0] * gridSize[1];
+            var z = value / squared;
+            var remaining = value - z * squared;
+            var y = remaining / gridSize[0];
+            var x = remaining % gridSize[0];
+            
+            return new Vector3Int(x, y, z);
+        }
+
+        /// <summary>
+        /// <para>Writes Vector3 struct through MemoryMappedViewAccessor at given position.</para>
+        /// <para>Position is updated to accomodate size of Vector3.</para>
+        /// </summary>
+        public static void MmvaWriteVector3(Vector3 vector, MemoryMappedViewAccessor accessor, ref long position)
+        {
+            for (var i = 0; i < 3; ++i)
+            {
+                accessor.Write(position, vector[i]);
+                position += sizeof(float);
+            }
+        }
+
+        /// <summary>
+        /// <para>Reads Vector3 struct through MemoryMappedViewAccessor at given position.</para>
+        /// <para>Position is updated to accomodate size of Vector3.</para>
+        /// </summary>
+        public static Vector3 MmvaReadVector3(MemoryMappedViewAccessor accessor, ref long position)
+        {
+            var result = new Vector3();
+
+            for (var i = 0; i < 3; ++i)
+            {
+                accessor.Read(position, out float tmp);
+                result[i] = tmp;
+                position += sizeof(float);
+            }
+
+            return result;
         }
     }
 }

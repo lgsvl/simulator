@@ -17,6 +17,16 @@ namespace UnityEngine.Rendering.HighDefinition
             (int) StencilUsage.RequiresDeferredLighting | (int) StencilUsage.SubsurfaceScattering |
             (int) StencilUsage.TraceReflectionRay;
 
+        public static float UnlitShadowsFilter
+        {
+            get
+            {
+                const uint mantissa = ((uint)LightFeatureFlags.Punctual | (uint)LightFeatureFlags.Directional | (uint)LightFeatureFlags.Area) & 0x007FFFFFu;
+                const uint exponent = 0b10000000u;
+                return HDShadowUtils.Asfloat((exponent << 23) | mantissa);
+            }
+        }
+
         /// <summary>
         /// Marks current copy of depth buffer as invalid. Should be called after original depth buffer is modified.
         /// </summary>

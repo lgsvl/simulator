@@ -18,7 +18,7 @@ namespace Simulator.Editor.PointCloud.Trees
     {
         private const int ChildCount = 8;
 
-        public OctreeNodeProcessor(string dataPath, TreeImportSettings settings) : base(dataPath, settings)
+        public OctreeNodeProcessor(string dataPath, TreeImportSettings settings, TreeImportData importData) : base(dataPath, settings, importData)
         {
             ChildBuffers = new PointCloudPoint[ChildCount][];
             for (var i = 0; i < ChildCount; ++i)
@@ -28,13 +28,6 @@ namespace Simulator.Editor.PointCloud.Trees
 
             ChildCounts = new int[ChildCount];
             ChildFileCounts = new int[ChildCount];
-            
-            if (settings.sampling == TreeImportSettings.SamplingMethod.CellCenter)
-                PointCollection = new CellCenterPointCollection();
-            else
-                PointCollection = new PoissonDiskPointCollection();
-            
-            PointCollection.Initialize(settings);
         }
 
         /// <inheritdoc/>
@@ -65,7 +58,7 @@ namespace Simulator.Editor.PointCloud.Trees
 
             var centerOffset = Vector3.Scale(quarterSize, TreeUtility.GetOctreeOffsetVector(index));
             var bounds = new Bounds(parentCenter + centerOffset, childSize);
-            
+
             return new OctreeNodeRecord(childId, bounds, 0);
         }
     }

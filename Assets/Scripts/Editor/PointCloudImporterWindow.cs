@@ -33,17 +33,17 @@ namespace Simulator.Editor
                 colA.a = colB.a = 1.0f;
 
                 var textColor = EditorGUIUtility.isProSkin ? Color.white : Color.black;
-                
+
                 var bgTexA = new Texture2D(1, 1);
                 bgTexA.SetPixel(0, 0, colA);
                 bgTexA.Apply();
-                
+
                 var bgTexB = new Texture2D(1, 1);
                 bgTexB.SetPixel(0, 0, colB);
                 bgTexB.Apply();
-                
+
                 var padding = new RectOffset(4, 4, 0, 0);
-                
+
                 ListStyleA = new GUIStyle
                 {
                     normal = {background = bgTexA, textColor = textColor},
@@ -57,7 +57,7 @@ namespace Simulator.Editor
                     clipping = TextClipping.Clip
                 };
             }
-            
+
             public static readonly GUIStyle TitleLabelStyle = new GUIStyle(GUI.skin.label)
                 {alignment = TextAnchor.MiddleCenter, fontSize = 14};
 
@@ -72,7 +72,7 @@ namespace Simulator.Editor
         {
             ".laz", ".las", ".pcd", ".ply"
         };
-        
+
         private readonly List<string> tmpList = new List<string>();
 
         private TreeImportSettings settings;
@@ -88,6 +88,10 @@ namespace Simulator.Editor
         private SerializedProperty rootNodeSubdivision;
         private SerializedProperty nodeBranchThreshold;
         private SerializedProperty maxTreeDepth;
+        private SerializedProperty minPointDistance;
+        private SerializedProperty generateMesh;
+        private SerializedProperty roadOnlyMesh;
+        private SerializedProperty meshDetailLevel;
         private SerializedProperty threadCount;
         private SerializedProperty chunkSize;
         private SerializedProperty center;
@@ -104,7 +108,7 @@ namespace Simulator.Editor
                 return serializedSettings;
             }
         }
-        
+
         [MenuItem("Simulator/Import Point Cloud", false, 140)]
         public static void Open()
         {
@@ -119,9 +123,11 @@ namespace Simulator.Editor
             Undo.undoRedoPerformed += UndoRedoPerformed;
         }
 
-        void OnDisable()
+        private void OnDisable()
         {
             SaveSettings();
+
+            // ReSharper disable once DelegateSubtraction
             Undo.undoRedoPerformed -= UndoRedoPerformed;
         }
 
@@ -129,7 +135,7 @@ namespace Simulator.Editor
         {
             if (serializedSettings == null)
                 return;
-            
+
             SerializedSettings.Update();
             Repaint();
         }
@@ -139,7 +145,7 @@ namespace Simulator.Editor
             var data = EditorPrefs.GetString(SettingsKey, null);
             settings = CreateInstance<TreeImportSettings>();
             settings.threadCount = SystemInfo.processorCount;
-            
+
             try
             {
                 JsonUtility.FromJsonOverwrite(data, settings);
@@ -171,6 +177,10 @@ namespace Simulator.Editor
             rootNodeSubdivision = serializedSettings.FindProperty(nameof(TreeImportSettings.rootNodeSubdivision));
             nodeBranchThreshold = serializedSettings.FindProperty(nameof(TreeImportSettings.nodeBranchThreshold));
             maxTreeDepth = serializedSettings.FindProperty(nameof(TreeImportSettings.maxTreeDepth));
+            minPointDistance = serializedSettings.FindProperty(nameof(TreeImportSettings.minPointDistance));
+            generateMesh = serializedSettings.FindProperty(nameof(TreeImportSettings.generateMesh));
+            roadOnlyMesh = serializedSettings.FindProperty(nameof(TreeImportSettings.roadOnlyMesh));
+            meshDetailLevel = serializedSettings.FindProperty(nameof(TreeImportSettings.meshDetailLevel));
             threadCount = serializedSettings.FindProperty(nameof(TreeImportSettings.threadCount));
             chunkSize = serializedSettings.FindProperty(nameof(TreeImportSettings.chunkSize));
             center = serializedSettings.FindProperty(nameof(TreeImportSettings.center));
@@ -183,7 +193,7 @@ namespace Simulator.Editor
         {
             if (serializedSettings == null)
                 return;
-            
+
             SerializedSettings.ApplyModifiedProperties();
             var data = JsonUtility.ToJson(settings);
             EditorPrefs.SetString(SettingsKey, data);
@@ -215,7 +225,7 @@ namespace Simulator.Editor
         private void DrawSettingsSection()
         {
             DrawInputFilesInspector();
-            
+
             EditorGUILayout.Space();
             DrawOutputFilesInspector();
 
@@ -228,8 +238,25 @@ namespace Simulator.Editor
                 EditorGUILayout.PropertyField(rootNodeSubdivision);
                 EditorGUILayout.PropertyField(nodeBranchThreshold);
                 EditorGUILayout.PropertyField(maxTreeDepth);
+                EditorGUILayout.PropertyField(minPointDistance);
             }
             
+            EditorGUILayout.Space();
+            generateMesh.isExpanded = EditorGUILayout.Foldout(generateMesh.isExpanded, "Mesh Settings", EditorStyles.foldoutHeader);
+            if (generateMesh.isExpanded)
+            {
+                EditorGUILayout.PropertyField(generateMesh);
+                EditorGUI.BeginDisabledGroup(!generateMesh.boolValue);
+                {
+                    EditorGUILayout.PropertyField(roadOnlyMesh);
+                    if (roadOnlyMesh.boolValue)
+                        EditorGUILayout.HelpBox("Road detection is not suitable for all data sets. If you experience problems, try again with this option off.", MessageType.Info);
+                    
+                    EditorGUILayout.PropertyField(meshDetailLevel);
+                }
+                EditorGUI.EndDisabledGroup();
+            }
+
             EditorGUILayout.Space();
             threadCount.isExpanded = EditorGUILayout.Foldout(threadCount.isExpanded, "Build Settings", EditorStyles.foldoutHeader);
             if (threadCount.isExpanded)
@@ -303,7 +330,7 @@ namespace Simulator.Editor
                     }
                 }
             }
-            
+
             //
             // Header - add directory button
             //
@@ -316,14 +343,15 @@ namespace Simulator.Editor
                 {
                     var matchingFiles = Directory
                                         .EnumerateFiles(newFolder, "*.*", SearchOption.TopDirectoryOnly)
-                                        .Where(x => Path.GetExtension(x) != null &&
-                                                    allowedExtensionsList.Contains(Path.GetExtension(x).ToLowerInvariant()))
+                                        .Where(
+                                            x => Path.GetExtension(x) != null &&
+                                                 allowedExtensionsList.Contains(Path.GetExtension(x).ToLowerInvariant()))
                                         .ToList();
 
                     if (matchingFiles.Count > 0)
                     {
                         CacheArrayProperty(inputFiles, tmpList);
-                        
+
                         var index = inputFiles.arraySize;
                         foreach (var file in matchingFiles.Where(file => !tmpList.Contains(file)))
                         {
@@ -335,7 +363,7 @@ namespace Simulator.Editor
                     }
                 }
             }
-            
+
             //
             // Header - clear files button
             //
@@ -350,6 +378,7 @@ namespace Simulator.Editor
             // View for currently selected files
             //
             var rect = CreateBox(4);
+
             // Refresh element count, to include additions/removals
             elementCount = inputFiles.arraySize;
             if (elementCount == 0)
@@ -363,10 +392,15 @@ namespace Simulator.Editor
                 var elementsHeight = elementCount * lineJump + EditorGUIUtility.standardVerticalSpacing;
                 var scrollVisible = elementsHeight > rect.height;
                 var interiorWidth = scrollVisible ? rect.width - scrollWidth : rect.width;
-                inputFilesScrollPos = GUI.BeginScrollView(rect, inputFilesScrollPos,
+                inputFilesScrollPos = GUI.BeginScrollView(
+                    rect,
+                    inputFilesScrollPos,
                     new Rect(0, 0, interiorWidth, elementsHeight));
                 {
-                    var elementRect = new Rect(0, 0, interiorWidth - removeButtonWidth - 5,
+                    var elementRect = new Rect(
+                        0,
+                        0,
+                        interiorWidth - removeButtonWidth - 5,
                         EditorGUIUtility.singleLineHeight);
                     var removeRect = elementRect;
                     removeRect.x = interiorWidth - removeButtonWidth;
@@ -380,7 +414,9 @@ namespace Simulator.Editor
                         if (!pathValid)
                             GUI.color = Color.red;
 
-                        EditorGUI.LabelField(elementRect, currentPath,
+                        EditorGUI.LabelField(
+                            elementRect,
+                            currentPath,
                             i % 2 == 0 ? Styles.ListStyleA : Styles.ListStyleB);
 
                         GUI.color = Color.red;
@@ -408,7 +444,17 @@ namespace Simulator.Editor
             EditorGUILayout.PropertyField(outputPath);
             if (WillOverwrite())
             {
-                EditorGUILayout.HelpBox("Tree data is present in selected directory. It will be overwritten.",
+                EditorGUILayout.HelpBox(
+                    "Tree data is present in selected directory. It will be overwritten.",
+                    MessageType.Warning);
+            }
+
+            var path = settings.outputPath;
+            if (path.StartsWith(".../") && !path.Contains('~'))
+            {
+                EditorGUILayout.HelpBox(
+                    "Unity will generate .meta files in this directory, which may take a long time. " +
+                    "Consider using folder name ending with `~` to avoid this.",
                     MessageType.Warning);
             }
         }
@@ -416,7 +462,7 @@ namespace Simulator.Editor
         private bool WillOverwrite()
         {
             var fullPath = Utility.GetFullPath(settings.outputPath);
-            
+
             return !string.IsNullOrEmpty(fullPath) &&
                    File.Exists(Path.Combine(fullPath, "index" + TreeUtility.IndexFileExtension));
         }
@@ -434,13 +480,13 @@ namespace Simulator.Editor
             if (GUILayout.Button("Reset Settings"))
                 LoadDefaultSettings();
         }
-        
+
         private void DrawImportButton()
         {
             SerializedSettings.ApplyModifiedProperties();
 
             var valid = VerifySettings(out var message);
-            
+
             EditorGUI.BeginDisabledGroup(!valid);
             {
                 if (GUILayout.Button("Import"))
@@ -449,7 +495,7 @@ namespace Simulator.Editor
                     {
                         if (EditorUtility.DisplayDialog(
                             "Overwrite files?",
-                            "This operation will overwrite all tree files in selected output folder. Continue?", 
+                            "This operation will overwrite all tree files in selected output folder. Continue?",
                             "Yes",
                             "No"))
                         {
@@ -465,7 +511,7 @@ namespace Simulator.Editor
                 }
             }
             EditorGUI.EndDisabledGroup();
-            
+
             if (!string.IsNullOrEmpty(message))
                 EditorGUILayout.HelpBox(message, MessageType.Warning);
         }
@@ -473,17 +519,21 @@ namespace Simulator.Editor
         private void ShowAutoAddPopup()
         {
             var scene = SceneManager.GetActiveScene();
-            
+
             // Never add renderer to loader scene
-            if (scene.name == "LoaderScene") return;
+            if (scene.name == "LoaderScene")
+                return;
 
             var activeLoader = FindObjectOfType<NodeTreeLoader>();
             if (activeLoader == null)
             {
-                var agreed = EditorUtility.DisplayDialog("Success",
+                var agreed = EditorUtility.DisplayDialog(
+                    "Success",
                     "Import succeeded.\n" +
-                    "Do you want to add renderer to currently open scene?", "Yes", "No");
-                
+                    "Do you want to add renderer to currently open scene?",
+                    "Yes",
+                    "No");
+
                 if (agreed)
                 {
                     var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/PointCloudRenderer.prefab");
@@ -497,11 +547,14 @@ namespace Simulator.Editor
             }
             else
             {
-                var agreed = EditorUtility.DisplayDialog("Success",
+                var agreed = EditorUtility.DisplayDialog(
+                    "Success",
                     "Import succeeded.\n" +
                     "Point cloud renderer is already present on the scene." +
-                    "Do you want to replace its data with newly imported point cloud?", "Yes", "No");
-                    
+                    "Do you want to replace its data with newly imported point cloud?",
+                    "Yes",
+                    "No");
+
                 if (agreed)
                 {
                     Undo.RecordObject(activeLoader, "Update point cloud renderer data");
@@ -509,7 +562,7 @@ namespace Simulator.Editor
                 }
             }
         }
-        
+
         private bool VerifySettings(out string message)
         {
             if (string.IsNullOrEmpty(settings.outputPath) || !Directory.Exists(Utility.GetFullPath(settings.outputPath)))
@@ -534,10 +587,10 @@ namespace Simulator.Editor
             }
 
             var systemMemoryMb = SystemInfo.systemMemorySize;
-            var nodeCount = treeType.enumValueIndex == (int) TreeType.Octree ? 8 : 4;
+            var nodeCount = treeType.enumValueIndex == (int)TreeType.Octree ? 8 : 4;
             var itemSize = UnsafeUtility.SizeOf<PointCloudPoint>();
             var estimatedMemoryUsageMb =
-                (nodeCount + 1) * settings.threadCount * (long) settings.chunkSize * itemSize / 1000000 + 2000;
+                (nodeCount + 1) * settings.threadCount * (long)settings.chunkSize * itemSize / 1000000 + 2000;
             const int reserveMb = 6000; /* Assume 6GB is needed for system and other processes */
 
             if (estimatedMemoryUsageMb > systemMemoryMb)
@@ -545,24 +598,31 @@ namespace Simulator.Editor
                 message = $"Insufficient system memory for current settings.\n({estimatedMemoryUsageMb.ToString()}/{systemMemoryMb.ToString()} MB)";
                 return false;
             }
-            
+
             if (estimatedMemoryUsageMb + reserveMb > systemMemoryMb)
             {
                 message = $"High estimated memory usage with current settings.\n({estimatedMemoryUsageMb.ToString()}/{systemMemoryMb.ToString()} MB)";
                 return true;
             }
 
+            if (settings.chunkSize < settings.nodeBranchThreshold)
+            {
+                message = "Chunk size cannot be smaller than node branch threshold.";
+                return true;
+            }
+
             message = string.Empty;
             return true;
         }
-        
+
         private Rect CreateBox(int lineCount)
         {
-            var rect = EditorGUILayout.GetControlRect(false,
+            var rect = EditorGUILayout.GetControlRect(
+                false,
                 lineCount * EditorGUIUtility.singleLineHeight +
                 (lineCount + 3) * EditorGUIUtility.standardVerticalSpacing);
             rect = EditorGUI.IndentedRect(rect);
-            
+
             rect.height -= 2 * EditorGUIUtility.standardVerticalSpacing;
             rect.y += EditorGUIUtility.standardVerticalSpacing;
             GUI.Box(rect, GUIContent.none);

@@ -18,7 +18,8 @@ namespace Simulator.Editor.PointCloud.Trees
     public class PoissonDiskPointCollection : IOrganizedPointCollection
     {
         private const int CellMultiplier = 8;
-        
+
+        private Bounds rootBounds;
         private TreeImportSettings settings;
         private int[] cellsPerAxis;
         private Vector3 cellStep;
@@ -26,24 +27,43 @@ namespace Simulator.Editor.PointCloud.Trees
         private NodeRecord nodeRecord;
 
         private readonly Dictionary<int, List<PointCloudPoint>> outputPoints = new Dictionary<int, List<PointCloudPoint>>();
-        
-        public void Initialize(TreeImportSettings treeSettings)
+
+        public float MinDistance { get; private set; }
+
+        public void Initialize(TreeImportSettings treeSettings, TreeImportData importData)
         {
+            rootBounds = importData.Bounds;
             settings = treeSettings;
             cellsPerAxis = new int[3];
         }
 
         public void UpdateForNode(NodeRecord record)
         {
+            var minDistance = Mathf.Min(record.Bounds.size.x, record.Bounds.size.z) /
+                              settings.rootNodeSubdivision;
+
+            UpdateForNode(record, minDistance);
+        }
+
+        public void UpdateForNode(NodeRecord record, float minimumDistance, bool alignDistance = false)
+        {
             nodeRecord = record;
 
-            var minDistance = Mathf.Min(nodeRecord.Bounds.size.x, nodeRecord.Bounds.size.z) /
-                              settings.rootNodeSubdivision;
-            minDistanceSquared = minDistance * minDistance;
+            if (alignDistance)
+            {
+                var newDist = Mathf.Min(rootBounds.size.x, rootBounds.size.z) / settings.rootNodeSubdivision;
+                while (0.5f * newDist > minimumDistance)
+                    newDist *= 0.5f;
 
-            cellsPerAxis[0] = Mathf.Max(1, Mathf.CeilToInt(nodeRecord.Bounds.size.x / (minDistance * CellMultiplier)));
-            cellsPerAxis[1] = Mathf.Max(1, Mathf.CeilToInt(nodeRecord.Bounds.size.y / (minDistance * CellMultiplier)));
-            cellsPerAxis[2] = Mathf.Max(1, Mathf.CeilToInt(nodeRecord.Bounds.size.z / (minDistance * CellMultiplier)));
+                minimumDistance = newDist;
+            }
+
+            minDistanceSquared = minimumDistance * minimumDistance;
+            MinDistance = minimumDistance;
+
+            cellsPerAxis[0] = Mathf.Max(1, Mathf.CeilToInt(nodeRecord.Bounds.size.x / (minimumDistance * CellMultiplier)));
+            cellsPerAxis[1] = Mathf.Max(1, Mathf.CeilToInt(nodeRecord.Bounds.size.y / (minimumDistance * CellMultiplier)));
+            cellsPerAxis[2] = Mathf.Max(1, Mathf.CeilToInt(nodeRecord.Bounds.size.z / (minimumDistance * CellMultiplier)));
             cellStep.x = nodeRecord.Bounds.size.x / cellsPerAxis[0];
             cellStep.y = nodeRecord.Bounds.size.y / cellsPerAxis[1];
             cellStep.z = nodeRecord.Bounds.size.z / cellsPerAxis[2];
@@ -63,17 +83,17 @@ namespace Simulator.Editor.PointCloud.Trees
             {
                 if (i < 0 || i >= cellsPerAxis[0])
                     continue;
-                
+
                 for (var j = y - 1; j <= y + 1; ++j)
                 {
                     if (j < 0 || j >= cellsPerAxis[1])
                         continue;
-                    
+
                     for (var k = z - 1; k <= z + 1; ++k)
                     {
                         if (k < 0 || k >= cellsPerAxis[2])
                             continue;
-                        
+
                         if (PositionConflicts(point, i, j, k))
                             return false;
                     }
@@ -83,7 +103,7 @@ namespace Simulator.Editor.PointCloud.Trees
             var index = GetFlatIndex(x, y, z);
             if (!outputPoints.ContainsKey(index))
                 outputPoints.Add(index, new List<PointCloudPoint>());
-            
+
             outputPoints[index].Add(point);
             return true;
         }
@@ -96,7 +116,7 @@ namespace Simulator.Editor.PointCloud.Trees
 
             var result = new PointCloudPoint[count];
             var offset = 0;
-            
+
             foreach (var outputPointGroup in outputPoints)
             {
                 foreach (var point in outputPointGroup.Value)

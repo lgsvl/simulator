@@ -70,7 +70,7 @@ namespace Simulator.PointCloud.Trees
         public int rebuildSteps = 10;
         
         [Tooltip("Amount of tree levels to load as preview in editor.")]
-        public float previewDepth = 2;
+        public int previewDepth = 2;
 
 #pragma warning restore 0649
         
@@ -145,11 +145,11 @@ namespace Simulator.PointCloud.Trees
             if (CullCamera == null && Application.isPlaying)
             {
                 // Don't use '.?' operator here - it ignores Unity's lifetime check for UnityEngine.Object
-                if (SimulatorManager.InstanceSilent != null &&
-                    SimulatorManager.InstanceSilent.CameraManager != null &&
-                    SimulatorManager.InstanceSilent.CameraManager.SimulatorCamera != null)
+                if (SimulatorManager.InstanceAvailable &&
+                    SimulatorManager.Instance.CameraManager != null &&
+                    SimulatorManager.Instance.CameraManager.SimulatorCamera != null)
                 {
-                    cullCamera = SimulatorManager.InstanceSilent.CameraManager.SimulatorCamera;
+                    cullCamera = SimulatorManager.Instance.CameraManager.SimulatorCamera;
                 }
                 else
                 {

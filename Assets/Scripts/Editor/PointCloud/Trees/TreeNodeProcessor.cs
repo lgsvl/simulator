@@ -11,7 +11,6 @@ namespace Simulator.Editor.PointCloud.Trees
     using System.Collections.Generic;
     using System.IO;
     using System.IO.MemoryMappedFiles;
-    using System.Threading;
     using Simulator.PointCloud;
     using Simulator.PointCloud.Trees;
     using Unity.Collections.LowLevel.Unsafe;
@@ -19,23 +18,8 @@ namespace Simulator.Editor.PointCloud.Trees
     /// <summary>
     /// Base class for processors used to build specific node trees.
     /// </summary>
-    public abstract class TreeNodeProcessor
+    public abstract class TreeNodeProcessor : ParallelProcessor
     {
-        /// <summary>
-        /// Describes work status on a processor.
-        /// </summary>
-        public enum WorkStatus
-        {
-            /// No data is currently being processed.
-            Idle,
-
-            /// Work has been queued and processing will start soon.
-            Queued,
-
-            /// Data is currently being processed.
-            Busy
-        }
-
         /// <summary>
         /// List of new child nodes created during last task.
         /// </summary>
@@ -45,15 +29,15 @@ namespace Simulator.Editor.PointCloud.Trees
         /// Settings used during the tree building process.
         /// </summary>
         protected readonly TreeImportSettings Settings;
-        
+
         private readonly PointCloudPoint[] inputBuffer;
-        private readonly object scheduleLock = new object();
 
         private readonly string dataPath;
         private readonly string tmpFolderPath;
         private readonly int stride;
-        
+
         protected IOrganizedPointCollection PointCollection;
+        protected IOrganizedPointCollection VolatilePointCollection;
 
         /// <summary>
         /// Buffers for storing points that should be passed to children.
@@ -75,40 +59,18 @@ namespace Simulator.Editor.PointCloud.Trees
 
         private int inputCount;
         private bool nodeDiscarded;
-        private bool cancelFlag;
-
-        /// <summary>
-        /// Record with metadata of the node.
-        /// </summary>
-        public NodeRecord NodeRecord;
-
-        private WorkStatus workStatus = WorkStatus.Idle;
-
-        /// <summary>
-        /// Describes current work status of this processor.
-        /// </summary>
-        public WorkStatus Status
-        {
-            get
-            {
-                lock (scheduleLock)
-                {
-                    return workStatus;
-                }
-            }
-        }
 
         /// <summary>
         /// Amount of points fully processed by this instance across all tasks up to this point.
         /// </summary>
         public int FinishedPoints { get; private set; }
-        
+
         /// <summary>
         /// Amount of points discarded by this instance (because of density) across all tasks up to this point.
         /// </summary>
         public int DiscardedPoints { get; private set; }
 
-        protected TreeNodeProcessor(string dataPath, TreeImportSettings settings)
+        protected TreeNodeProcessor(string dataPath, TreeImportSettings settings, TreeImportData importData)
         {
             Settings = settings;
             this.dataPath = dataPath;
@@ -118,54 +80,20 @@ namespace Simulator.Editor.PointCloud.Trees
             stride = UnsafeUtility.SizeOf<PointCloudPoint>();
             ChildNodeRecords = new List<NodeRecord>();
             inputBuffer = new PointCloudPoint[settings.chunkSize];
-            
-        }
 
-        /// <summary>
-        /// Starts work loop. It will be running until <see cref="StopWork"/> is called.
-        /// </summary>
-        public void StartWork()
-        {
-            while (!cancelFlag)
+            if (settings.sampling == TreeImportSettings.SamplingMethod.CellCenter)
             {
-                if (workStatus == WorkStatus.Queued)
-                {
-                    lock (scheduleLock)
-                        workStatus = WorkStatus.Busy;
-
-                    ProcessNodeInternal(NodeRecord);
-
-                    lock (scheduleLock)
-                        workStatus = WorkStatus.Idle;
-                }
-                else
-                    Thread.Sleep(20);
+                PointCollection = new CellCenterPointCollection();
+                VolatilePointCollection = new CellCenterPointCollection();
             }
-        }
-
-        /// <summary>
-        /// Stops work loop.
-        /// </summary>
-        public void StopWork()
-        {
-            cancelFlag = true;
-        }
-
-        /// <summary>
-        /// Assigns node record for processing to this instance. Only valid if <see cref="Status"/> is <see cref="WorkStatus.Idle"/>.
-        /// </summary>
-        /// <param name="record">Node record to be processed.</param>
-        /// <exception cref="Exception">processor is currently busy with other work.</exception>
-        public void AssignWork(NodeRecord record)
-        {
-            lock (scheduleLock)
+            else
             {
-                if (workStatus != WorkStatus.Idle)
-                    throw new Exception("Processor cannot accept new work when it's busy!");
-
-                workStatus = WorkStatus.Queued;
-                NodeRecord = record;
+                PointCollection = new PoissonDiskPointCollection();
+                VolatilePointCollection = new CellCenterPointCollection();
             }
+
+            PointCollection.Initialize(settings, importData);
+            VolatilePointCollection.Initialize(settings, importData);
         }
 
         /// <summary>
@@ -179,7 +107,7 @@ namespace Simulator.Editor.PointCloud.Trees
                 resultsTarget.Add(childNodeRecord);
 
             nodeCreated = !nodeDiscarded;
-            
+
             ClearState();
         }
 
@@ -187,26 +115,26 @@ namespace Simulator.Editor.PointCloud.Trees
         /// Loops over all points that should be processed and assigns them either to given node or one of the children.
         /// </summary>
         /// <param name="record">Record of the node that should be processed.</param>
-        private void ProcessNodeInternal(NodeRecord record)
+        protected override void DoWorkInternal(NodeRecord record)
         {
             ClearState();
-            
+
             PointCollection.UpdateForNode(record);
-            if (record.Identifier.Length > Settings.maxTreeDepth)
+            if ((record.Identifier.Length > Settings.maxTreeDepth) || (PointCollection.MinDistance < Settings.minPointDistance))
                 nodeDiscarded = true;
 
             if (nodeDiscarded)
             {
+                // Node is discarded - remove all temporary files for it and update progress values
                 var inputIndex = 0;
                 while (true)
                 {
-                    // Load previously saved temporary files. If there is no next file, processing is done.
                     var inputFilePath = Path.Combine(tmpFolderPath, $"{record.Identifier}_tmp{inputIndex.ToString()}");
                     if (!File.Exists(inputFilePath))
                         break;
 
                     var size = new FileInfo(inputFilePath).Length;
-                    var pointCount = (int)(size / stride);
+                    var pointCount = (int) (size / stride);
 
                     FinishedPoints += pointCount;
                     DiscardedPoints += pointCount;
@@ -249,11 +177,19 @@ namespace Simulator.Editor.PointCloud.Trees
                     }
                 }
 
+                if (Settings.generateMesh &&
+                    Settings.meshDetailLevel == NodeRecord.Identifier.Length &&
+                    PointCollection is CellCenterPointCollection collection)
+                {
+                    // var path = Path.Combine(dataPath, NodeRecord.Identifier + ".pcMesh");
+                    collection.FlushMeshGenerationData(tmpFolderPath);
+                }
+
                 // Work is finished, make sure to flush all children data...
                 for (var i = 0; i < ChildCounts.Length; ++i)
                 {
                     if (ChildCounts[i] > 0)
-                        FlushChildFile((byte)i);
+                        FlushChildFile((byte) i);
                 }
 
                 // ...and data of this node
@@ -268,6 +204,7 @@ namespace Simulator.Editor.PointCloud.Trees
         {
             nodeDiscarded = false;
             PointCollection.ClearState();
+            VolatilePointCollection.ClearState();
             ChildNodeRecords.Clear();
 
             for (var i = 0; i < ChildCounts.Length; ++i)
@@ -317,60 +254,72 @@ namespace Simulator.Editor.PointCloud.Trees
         /// </summary>
         protected void FlushChildFile(byte childIndex)
         {
-            string fileName;
-            string path;
-            var final = ChildFileCounts[childIndex] == 0 && ChildCounts[childIndex] < Settings.nodeBranchThreshold;
+            var nextLevelRequired =
+                Settings.generateMesh &&
+                (NodeRecord.Identifier.Length < Settings.meshDetailLevel);
+
+            var final =
+                (ChildFileCounts[childIndex] == 0) &&
+                (ChildCounts[childIndex] < Settings.nodeBranchThreshold) &&
+                !nextLevelRequired;
 
             if (final)
             {
-                FinishedPoints += ChildCounts[childIndex];
-                fileName = $"{NodeRecord.Identifier}{childIndex.ToString()}";
-
-                foreach (var record in ChildNodeRecords)
-                {
-                    if (record.Identifier == fileName)
-                    {
-                        record.PointCount = ChildCounts[childIndex];
-                        break;
-                    }
-                }
-
-                path = Path.Combine(dataPath, fileName + TreeUtility.NodeFileExtension);
+                FilterAndFlushLeafNode(childIndex);
             }
             else
             {
-                fileName =
-                    $"{NodeRecord.Identifier}{childIndex.ToString()}_tmp{(ChildFileCounts[childIndex]++).ToString()}";
-                path = Path.Combine(tmpFolderPath, fileName);
+                var fileName = $"{NodeRecord.Identifier}{childIndex.ToString()}_tmp{(ChildFileCounts[childIndex]++).ToString()}";
+                var path = Path.Combine(tmpFolderPath, fileName);
+                var size = (long) ChildCounts[childIndex] * stride;
+
+                ChildCounts[childIndex] = 0;
+
+                SaveToFile(path, fileName, size, ChildBuffers[childIndex]);
             }
+        }
 
-            var size = (long) ChildCounts[childIndex] * stride;
+        private void FilterAndFlushLeafNode(byte childIndex)
+        {
+            var fileName = $"{NodeRecord.Identifier}{childIndex.ToString()}";
+            NodeRecord childRecord = null;
 
-            ChildCounts[childIndex] = 0;
-
-            using (var mmf = MemoryMappedFile.CreateFromFile(path, FileMode.Create, fileName, size))
+            foreach (var record in ChildNodeRecords)
             {
-                using (var accessor = mmf.CreateViewAccessor(0, size))
+                if (record.Identifier == fileName)
                 {
-                    unsafe
-                    {
-                        try
-                        {
-                            byte* targetPtr = null;
-                            accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref targetPtr);
-
-                            fixed (PointCloudPoint* sourcePtr = ChildBuffers[childIndex])
-                            {
-                                UnsafeUtility.MemCpy(targetPtr, sourcePtr, size);
-                            }
-                        }
-                        finally
-                        {
-                            accessor.SafeMemoryMappedViewHandle.ReleasePointer();
-                        }
-                    }
+                    childRecord = record;
+                    break;
                 }
             }
+
+            if (childRecord == null)
+                throw new Exception($"Unable to find record for node with ID {fileName}.");
+
+            VolatilePointCollection.ClearState();
+            VolatilePointCollection.UpdateForNode(childRecord, Settings.minPointDistance, true);
+
+            for (var i = 0; i < ChildCounts[childIndex]; ++i)
+            {
+                // This can take a while, make sure to respond to cancel request
+                if (cancelFlag)
+                    return;
+
+                var point = ChildBuffers[childIndex][i];
+                VolatilePointCollection.TryAddPoint(point, out _);
+            }
+
+            var data = VolatilePointCollection.ToArray();
+            childRecord.PointCount = data.Length;
+
+            FinishedPoints += ChildCounts[childIndex];
+            DiscardedPoints += ChildCounts[childIndex] - data.Length;
+            ChildCounts[childIndex] = 0;
+
+            var path = Path.Combine(dataPath, fileName + TreeUtility.NodeFileExtension);
+            var size = (long) data.Length * stride;
+
+            SaveToFile(path, fileName, size, data);
         }
 
         /// <summary>
@@ -387,7 +336,12 @@ namespace Simulator.Editor.PointCloud.Trees
             if (File.Exists(nodePath))
                 File.Delete(nodePath);
 
-            using (var mmf = MemoryMappedFile.CreateFromFile(nodePath, FileMode.Create, NodeRecord.Identifier, size))
+            SaveToFile(nodePath, NodeRecord.Identifier, size, nodeData);
+        }
+
+        private void SaveToFile(string path, string mapName, long size, PointCloudPoint[] data)
+        {
+            using (var mmf = MemoryMappedFile.CreateFromFile(path, FileMode.Create, mapName, size))
             {
                 using (var accessor = mmf.CreateViewAccessor(0, size))
                 {
@@ -398,7 +352,7 @@ namespace Simulator.Editor.PointCloud.Trees
 
                         try
                         {
-                            fixed (void* sourcePtr = nodeData)
+                            fixed (void* sourcePtr = data)
                                 UnsafeUtility.MemCpy(targetPtr, sourcePtr, size);
                         }
                         finally

@@ -19,6 +19,9 @@ namespace Simulator.Editor.PointCloud
             // public static readonly GUIContent PartialPointLightingContent = new GUIContent("Partial Point Lighting",
             //     "When enabled, point rendering will use deferred lighting. Result is not entirely correct, due to lack of normals data.");
             
+            public static readonly GUIContent LightingContent = 
+                new GUIContent("Lighting Mode", "Defines lighting mode used by this renderer.");
+            
             public static readonly GUIContent CascadeShowPreviewContent =
                 new GUIContent("Show Preview", "Visible only in play mode.");
 
@@ -79,12 +82,12 @@ namespace Simulator.Editor.PointCloud
         
         private SerializedProperty Colorize;
         private SerializedProperty Render;
+        private SerializedProperty Lighting;
         private SerializedProperty Mask;
         private SerializedProperty ConstantSize;
         private SerializedProperty PixelSize;
         private SerializedProperty AbsoluteSize;
         private SerializedProperty MinPixelSize;
-        // private SerializedProperty PartialPointLighting;
         private SerializedProperty DebugUseLinearDepth;
         private SerializedProperty DebugForceFill;
         private SerializedProperty DebugBlendSky;
@@ -99,7 +102,6 @@ namespace Simulator.Editor.PointCloud
         private SerializedProperty DebugSolidPullParam;
         private SerializedProperty SolidFovReprojection;
         private SerializedProperty ReprojectionRatio;
-        private SerializedProperty PreserveTexelSize;
         private SerializedProperty DebugShowSmoothNormalsCascades;
         private SerializedProperty CalculateNormals;
         private SerializedProperty SmoothNormals;
@@ -120,12 +122,12 @@ namespace Simulator.Editor.PointCloud
         {
             Colorize = serializedObject.FindProperty(nameof(PointCloudRenderer.Colorize));
             Render = serializedObject.FindProperty(nameof(PointCloudRenderer.RenderMode));
+            Lighting = serializedObject.FindProperty(nameof(PointCloudRenderer.Lighting));
             Mask = serializedObject.FindProperty(nameof(PointCloudRenderer.Mask));
             ConstantSize = serializedObject.FindProperty(nameof(PointCloudRenderer.ConstantSize));
             PixelSize = serializedObject.FindProperty(nameof(PointCloudRenderer.PixelSize));
             AbsoluteSize = serializedObject.FindProperty(nameof(PointCloudRenderer.AbsoluteSize));
             MinPixelSize = serializedObject.FindProperty(nameof(PointCloudRenderer.MinPixelSize));
-            // PartialPointLighting = serializedObject.FindProperty(nameof(PointCloudRenderer.PartialPointLighting));
             DebugSolidBlitLevel = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidBlitLevel));
             DebugFillThreshold = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugFillThreshold));
             DebugUseLinearDepth = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugUseLinearDepth));
@@ -140,7 +142,6 @@ namespace Simulator.Editor.PointCloud
             DebugSolidPullParam = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidPullParam));
             SolidFovReprojection = serializedObject.FindProperty(nameof(PointCloudRenderer.SolidFovReprojection));
             ReprojectionRatio = serializedObject.FindProperty(nameof(PointCloudRenderer.ReprojectionRatio));
-            PreserveTexelSize = serializedObject.FindProperty(nameof(PointCloudRenderer.PreserveTexelSize));
             CalculateNormals = serializedObject.FindProperty(nameof(PointCloudRenderer.CalculateNormals));
             SmoothNormals = serializedObject.FindProperty(nameof(PointCloudRenderer.SmoothNormals));
             DebugShowSmoothNormalsCascades = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugShowSmoothNormalsCascades));
@@ -185,13 +186,13 @@ namespace Simulator.Editor.PointCloud
             if (Render.isExpanded)
             {
                 EditorGUI.indentLevel++;
-                DrawShadowsContent((obj.Mask & PointCloudRenderer.RenderMask.Shadows) != 0);
-                
+
                 switch (obj.RenderMode)
                 {
                     case PointCloudRenderer.RenderType.Points:
                     case PointCloudRenderer.RenderType.Cones:
                     {
+                        DrawShadowsContent((obj.Mask & PointCloudRenderer.RenderMask.Shadowcaster) != 0);
                         EditorGUILayout.PropertyField(ConstantSize);
                         if (obj.ConstantSize)
                         {
@@ -202,11 +203,12 @@ namespace Simulator.Editor.PointCloud
                             EditorGUILayout.PropertyField(AbsoluteSize);
                             EditorGUILayout.PropertyField(MinPixelSize);
                         }
-                        // EditorGUILayout.PropertyField(PartialPointLighting, Styles.PartialPointLightingContent);
                         break;
                     }
                     case PointCloudRenderer.RenderType.Solid:
                     {
+                        DrawLightingContent();
+                        DrawShadowsContent((obj.Mask & PointCloudRenderer.RenderMask.Shadowcaster) != 0);
                         DrawRemoveHiddenCascadesContent();
                         DrawNormalsContent(obj);
                         DrawFovReprojectionContent(obj.SolidFovReprojection);
@@ -235,6 +237,20 @@ namespace Simulator.Editor.PointCloud
                 EditorGUI.indentLevel--;
             }
         }
+        
+        private void DrawLightingContent()
+        {
+            var normals = CalculateNormals.boolValue;
+            var lightingMode = (PointCloudRenderer.LightingMode) Lighting.enumValueIndex;
+
+            EditorGUILayout.PropertyField(Lighting, Styles.LightingContent);
+            
+            if (!normals && lightingMode != PointCloudRenderer.LightingMode.Unlit)
+                EditorGUILayout.HelpBox("Normals are required for this lighting mode. Falling back to unlit.", MessageType.Warning);
+            
+            if (normals && lightingMode == PointCloudRenderer.LightingMode.Unlit)
+                EditorGUILayout.HelpBox("Normals are calculated, but unnecessary for unlit rendering.", MessageType.Warning);
+        }
 
         private void DrawRemoveHiddenCascadesContent()
         {
@@ -256,7 +272,7 @@ namespace Simulator.Editor.PointCloud
 
             EditorGUI.indentLevel = indentLevel;
         }
-        
+
         private void DrawNormalsContent(PointCloudRenderer editedObject)
         {
             var lineCount = 2;
@@ -300,7 +316,7 @@ namespace Simulator.Editor.PointCloud
 
         private void DrawFovReprojectionContent(bool unfold)
         {
-            var lineCount = unfold ? 3 : 1;
+            var lineCount = unfold ? 2 : 1;
             var rect = CreateBox(lineCount);
             
             var indentLevel = EditorGUI.indentLevel;
@@ -312,9 +328,6 @@ namespace Simulator.Editor.PointCloud
             {
                 rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
                 EditorGUI.PropertyField(rect, ReprojectionRatio);
-                
-                rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-                EditorGUI.PropertyField(rect, PreserveTexelSize);
             }
 
             EditorGUI.indentLevel = indentLevel;

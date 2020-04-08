@@ -38,6 +38,41 @@ namespace Simulator.Editor.PointCloud.Trees
             }
         }
 
+        public override PointCloudVerticalHistogram GenerateHistogram(PointCloudBounds bounds)
+        {
+            var fileName = Path.GetFileName(FilePath);
+            var result = new PointCloudVerticalHistogram(bounds);
+
+            using (var laz = new Laszip(FilePath))
+            {
+                long count = laz.Count;
+
+                try
+                {
+                    for (long i = 0; i < count; i++)
+                    {
+                        if (i % (1024 * 8) == 0)
+                        {
+                            var progress = (double) i / count;
+                            EditorUtility.DisplayProgressBar(
+                                $"Generating histogram ({fileName})",
+                                $"{i:N0} points",
+                                (float) progress);
+                        }
+
+                        var p = laz.GetNextPoint();
+                        result.Add(p.Z);
+                    }
+                }
+                finally
+                {
+                    EditorUtility.ClearProgressBar();
+                }
+            }
+
+            return result;
+        }
+
         ///<inheritdoc/>
         public override bool ConvertPoints(NodeProcessorDispatcher target, TransformationData transformationData)
         {

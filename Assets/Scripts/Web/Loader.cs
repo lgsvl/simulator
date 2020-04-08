@@ -150,7 +150,6 @@ namespace Simulator
             }
             else
             {
-                // TODO: change UI and do not run rest of code
                 var clientGameObject = new GameObject("ClientManager");
                 Network.Client = clientGameObject.AddComponent<ClientManager>();
                 clientGameObject.AddComponent<MainThreadDispatcher>();
@@ -165,34 +164,35 @@ namespace Simulator
             DownloadManager.Init();
             RestartPendingDownloads();
 
-            try
-            {
-                var host = Config.WebHost == "*" ? "localhost" : Config.WebHost;
-                Address = $"http://{host}:{Config.WebPort}";
-
-                var config = new HostConfiguration { RewriteLocalhost = Config.WebHost == "*" };
-
-                Server = new NancyHost(new UnityBootstrapper(), config, new Uri(Address));
-                if (!string.IsNullOrEmpty(Config.Username))
+            if (Config.RunAsMaster)
+                try
                 {
-                    LoginAsync();
+                    var host = Config.WebHost == "*" ? "localhost" : Config.WebHost;
+                    Address = $"http://{host}:{Config.WebPort}";
+
+                    var config = new HostConfiguration { RewriteLocalhost = Config.WebHost == "*" };
+
+                    Server = new NancyHost(new UnityBootstrapper(), config, new Uri(Address));
+                    if (!string.IsNullOrEmpty(Config.Username))
+                    {
+                        LoginAsync();
+                    }
+                    else
+                    {
+                        Server.Start();
+                    }
                 }
-                else
+                catch (SocketException ex)
                 {
-                    Server.Start();
-                }
-            }
-            catch (SocketException ex)
-            {
-                Debug.LogException(ex);
+                    Debug.LogException(ex);
 #if UNITY_EDITOR
-                UnityEditor.EditorApplication.isPlaying = false;
+                    UnityEditor.EditorApplication.isPlaying = false;
 #else
-                // return non-zero exit code
-                Application.Quit(1);
+                    // return non-zero exit code
+                    Application.Quit(1);
 #endif
-                return;
-            }
+                    return;
+                }
 
             LoaderScene = SceneManager.GetActiveScene().name;
             SIM.LogSimulation(SIM.Simulation.ApplicationStart);

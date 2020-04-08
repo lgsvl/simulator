@@ -149,12 +149,6 @@ namespace Simulator.Network.Core.Components
             CachedRigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
             CachedRigidbody.isKinematic = true;
             CachedRigidbody.interpolation = RigidbodyInterpolation.None;
-            var colliders = CachedRigidbody.GetComponentsInChildren<Collider>();
-            for (var i = 0; i < colliders.Length; i++)
-            {
-                var childCollider = colliders[i];
-                childCollider.isTrigger = true;
-            }
 
             if (SimulationType != MockingSimulationType.ApplySnapshotsOnly &&
                 extrapolateCoroutine == null)

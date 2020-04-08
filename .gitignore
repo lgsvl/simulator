@@ -34,6 +34,8 @@
 /Assets/External/NPC/
 /Assets/External/Restricted/
 /Assets/External/Restricted.meta
+/Assets/External/Tests/
+/Assets/External/Tests.meta
 /Assets/Resources/BuildInfo.asset*
 /Assets/Resources/Database/default*
 /WebUI/node_modules/

@@ -10,6 +10,7 @@ using System.Collections;
 using UnityEngine.UI;
 using UnityEngine;
 using Simulator;
+using Simulator.Web;
 
 public class LoaderUI : MonoBehaviour
 {
@@ -98,7 +99,13 @@ public class LoaderUI : MonoBehaviour
         switch (LoaderUIState)
         {
             case LoaderUIStateType.START:
-                StartButton.interactable = true;
+                if (Config.RunAsMaster)
+                    StartButton.interactable = true;
+                else
+                {
+                    StartButton.interactable = false;
+                    StartButtonText.text = "Client ready";
+                }
                 break;
             case LoaderUIStateType.PROGRESS:
                 StartButton.interactable = false;

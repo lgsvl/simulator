@@ -25,6 +25,9 @@ namespace Simulator.Network.Client
     using LiteNetLib.Utils;
     using PetaPoco;
     using Shared;
+
+    using Simulator.Network.Core;
+
     using UnityEngine;
     using UnityEngine.SceneManagement;
     using Web;
@@ -109,6 +112,8 @@ namespace Simulator.Network.Client
             PacketsProcessor.SubscribeReusable<Commands.Stop>(OnStopCommand);
             PacketsProcessor.SubscribeReusable<Commands.EnvironmentState>(OnEnvironmentStateCommand);
             PacketsProcessor.SubscribeReusable<Commands.Ping>(OnPingCommand);
+
+            SetCollisionBetweenSimulationObjects(false);
         }
 
         /// <summary>
@@ -124,6 +129,7 @@ namespace Simulator.Network.Client
         /// </summary>
         private void OnApplicationQuit()
         {
+            SetCollisionBetweenSimulationObjects(true);
             StopConnection();
         }
 
@@ -132,7 +138,21 @@ namespace Simulator.Network.Client
         /// </summary>
         private void OnDestroy()
         {
+            SetCollisionBetweenSimulationObjects(true);
             StopConnection();
+        }
+
+        private void SetCollisionBetweenSimulationObjects(bool collision)
+        {
+            var agentLayer = LayerMask.NameToLayer("Agent");
+            var npcLayer = LayerMask.NameToLayer("NPC");
+            var pedestrianLayer = LayerMask.NameToLayer("Pedestrian");
+            Physics.IgnoreLayerCollision(agentLayer, agentLayer, !collision);
+            Physics.IgnoreLayerCollision(agentLayer, npcLayer, !collision);
+            Physics.IgnoreLayerCollision(agentLayer, pedestrianLayer, !collision);
+            Physics.IgnoreLayerCollision(npcLayer, npcLayer, !collision);
+            Physics.IgnoreLayerCollision(npcLayer, pedestrianLayer, !collision);
+            Physics.IgnoreLayerCollision(pedestrianLayer, pedestrianLayer, !collision);
         }
 
         /// <summary>
@@ -191,7 +211,7 @@ namespace Simulator.Network.Client
             Debug.Assert(State == SimulationState.Initial);
             MasterPeer = peer;
 
-            Debug.Log($"Master {peer.PeerEndPoint} connected.");
+            Log.Info($"Master {peer.PeerEndPoint} connected.");
 
             var info = new Commands.Info()
             {
@@ -200,7 +220,8 @@ namespace Simulator.Network.Client
                 OperatingSystem = SystemInfo.operatingSystemFamily.ToString(),
             };
             State = SimulationState.Connected;
-            Loader.Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.PROGRESS);
+            if (Loader.Instance.LoaderUI!=null)
+                Loader.Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.PROGRESS);
             var infoData = PacketsProcessor.Write(info);
             var message = MessagesPool.Instance.GetMessage(infoData.Length);
             message.AddressKey = Key;
@@ -218,7 +239,7 @@ namespace Simulator.Network.Client
             MasterPeer = null;
             OnStopCommand(new Commands.Stop());
             MessagesManager.RevokeIdentifiers();
-            Debug.Log($"Peer {peer.PeerEndPoint} disconnected.");
+            Log.Info($"Peer {peer.PeerEndPoint} disconnected.");
         }
 
         /// <inheritdoc />
@@ -255,7 +276,7 @@ namespace Simulator.Network.Client
             CurrentLoadCommand = load;
             State = SimulationState.Loading;
 
-            Debug.Log("Preparing simulation");
+            Log.Info("Preparing simulation");
 
             try
             {
@@ -271,7 +292,7 @@ namespace Simulator.Network.Client
 
                 if (map == null)
                 {
-                    Debug.Log($"Downloading {load.MapName} from {load.MapUrl}");
+                    Log.Info($"Downloading {load.MapName} from {load.MapUrl}");
 
                     map = new MapModel()
                     {
@@ -325,7 +346,7 @@ namespace Simulator.Network.Client
                 }
                 else
                 {
-                    Debug.Log($"Map {load.MapName} exists");
+                    Log.Info($"Map {load.MapName} exists");
                     LoadMapBundle(load, map.LocalPath);
                 }
             }
@@ -440,7 +461,7 @@ namespace Simulator.Network.Client
 
                     if (vehicleModel == null)
                     {
-                        Debug.Log($"Downloading {agents[i].Name} from {agents[i].Url}");
+                        Log.Info($"Downloading {agents[i].Name} from {agents[i].Url}");
 
                         vehicleModel = new VehicleModel()
                         {
@@ -490,7 +511,7 @@ namespace Simulator.Network.Client
                     }
                     else
                     {
-                        Debug.Log($"Vehicle {agents[i].Name} exists");
+                        Log.Info($"Vehicle {agents[i].Name} exists");
 
                         bundles.Add(vehicleModel.LocalPath);
                         if (Interlocked.Increment(ref count) == agentsToDownload)
@@ -627,7 +648,7 @@ namespace Simulator.Network.Client
             {
                 if (MasterPeer == null)
                 {
-                    Debug.LogWarning("Master peer has disconnected while loading the simulation scene.");
+                    Log.Warning("Master peer has disconnected while loading the simulation scene.");
                     Loader.ResetLoaderScene();
                     return;
                 }
@@ -747,7 +768,7 @@ namespace Simulator.Network.Client
                                     SimulationResponse.Create(Loader.Instance.CurrentSimulation),
                                     Loader.Instance.CurrentSimulation.Owner);
 
-                                Debug.Log($"Client ready to start");
+                                Log.Info($"Client ready to start");
 
                                 var result = new Commands.LoadResult()
                                 {
@@ -757,7 +778,7 @@ namespace Simulator.Network.Client
                                 Loader.Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.READY);
                                 if (MasterPeer == null)
                                 {
-                                    Debug.LogWarning("Master peer has disconnected while loading the simulation scene.");
+                                    Log.Warning("Master peer has disconnected while loading the simulation scene.");
                                     Loader.ResetLoaderScene();
                                     return;
                                 }

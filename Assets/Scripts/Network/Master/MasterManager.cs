@@ -342,11 +342,11 @@ namespace Simulator.Network.Master
             Debug.Assert(client != null);
             Debug.Assert(client.State == SimulationState.Connecting);
 
-            Debug.Log($"NET: Client connected from {peer.PeerEndPoint}");
+            Log.Info($"NET: Client connected from {peer.PeerEndPoint}");
 
-            Debug.Log($"NET: Client version = {info.Version}");
-            Debug.Log($"NET: Client Unity version = {info.UnityVersion}");
-            Debug.Log($"NET: Client OS = {info.OperatingSystem}");
+            Log.Info($"NET: Client version = {info.Version}");
+            Log.Info($"NET: Client Unity version = {info.UnityVersion}");
+            Log.Info($"NET: Client OS = {info.OperatingSystem}");
 
             client.State = SimulationState.Connected;
 
@@ -412,16 +412,14 @@ namespace Simulator.Network.Master
 
             if (res.Success)
             {
-                Debug.Log("Client loaded");
+                Log.Info("Client loaded");
             }
             else
             {
                 // TODO: stop simulation / cancel loading for other clients
-                Debug.LogError($"Client failed to load: {res.ErrorMessage}");
+                Log.Error($"Failed to start '{Simulation.Name}' simulation. Client failed to load: {res.ErrorMessage}");
 
                 // TODO: reset all other clients
-
-                Debug.Log($"Failed to start '{Simulation.Name}' simulation");
 
                 // TODO: update simulation status in DB
                 // simulation.Status = "Invalid";
@@ -440,7 +438,7 @@ namespace Simulator.Network.Master
 
             if (Clients.All(c => c.State == SimulationState.Ready))
             {
-                Debug.Log("All clients are ready. Resuming time.");
+                Log.Info("All clients are ready. Resuming time.");
 
                 var run = new Commands.Run();
                 foreach (var c in Clients)

@@ -714,6 +714,8 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
 
     public void StopNPCCoroutines()
     {
+        //Check if update manager is not destroyed
+        if (FixedUpdateManager == null) return;
         foreach (Coroutine coroutine in Coroutines)
         {
             if (coroutine != null)
@@ -2024,10 +2026,12 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         SetHeadLights();
         SetRunningLights();
         SetBrakeLights(false);
-        if (turnSignalIE != null)
-            FixedUpdateManager.StopCoroutine(turnSignalIE);
-        if (hazardSignalIE != null)
-            FixedUpdateManager.StopCoroutine(hazardSignalIE);
+        if (FixedUpdateManager != null)
+        {
+            if (turnSignalIE != null) FixedUpdateManager.StopCoroutine(turnSignalIE);
+            if (hazardSignalIE != null) FixedUpdateManager.StopCoroutine(hazardSignalIE);
+        }
+
         SetTurnIndicator(isReset: true);
         SetIndicatorReverse(false);
 

@@ -153,7 +153,7 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
         waypointLoop = loop;
     }
 
-    public void InitManual(Vector3 position, Quaternion rotation, int seed)
+    public void InitManual(int seed)
     {
         FixedUpdateManager = SimulatorManager.Instance.FixedUpdateManager;
         RandomGenerator = new System.Random(seed);
@@ -168,8 +168,6 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
 
         agent.updatePosition = false;
         agent.updateRotation = false;
-        agent.Warp(position);
-        agent.transform.rotation = rotation;
 
         ThisPedState = PedestrianState.None;
         Control = ControlType.Manual;

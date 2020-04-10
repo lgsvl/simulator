@@ -44,6 +44,17 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     // loosely based on ppg 2017 trends https://news.ppg.com/automotive-color-trends/
     public List<NPCColors> NPCColorData = new List<NPCColors>();
 
+    public struct NPCSpawnData
+    {
+        public bool Active;
+        public string GenId;
+        public NPCS Template;
+        public Vector3 Position;
+        public Quaternion Rotation;
+        public Color Color;
+        public int Seed;
+    };
+
     // startTime kept for recording when Simulator starts.
     // Used for deciding when to record log file.
     [System.NonSerialized]
@@ -60,12 +71,13 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     private int NPCMaxCount = 0;
     private int ActiveNPCCount = 0;
     private System.Random RandomGenerator;
-    private System.Random NPCSeedGenerator; // Only use this for initializing a new NPC
+    public System.Random NPCSeedGenerator { get; private set; } // Only use this for initializing a new NPC
     private int Seed = new System.Random().Next();
     private List<NPCController> APINPCs = new List<NPCController>();
     public string Key => "NPCManager"; //Network IMessageSender key
 
     private Camera SimulatorCamera;
+    private MapManager MapManager;
 
     public void InitRandomGenerator(int seed)
     {
@@ -81,6 +93,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         SpawnBoundsSize = new Vector3(MapOrigin.NPCSpawnBoundSize, 50f, MapOrigin.NPCSpawnBoundSize);
         NPCMaxCount = MapOrigin.NPCMaxCount;
         SimulatorCamera = SimulatorManager.Instance.CameraManager.SimulatorCamera;
+        MapManager = SimulatorManager.Instance.MapManager;
 
         var network = Loader.Instance.Network;
         network.MessagesManager?.RegisterObject(this);
@@ -99,111 +112,24 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
     public void PhysicsUpdate()
     {
-        if (SimulatorManager.Instance.IsAPI)
+        if (NPCActive)
         {
-            foreach (var npc in APINPCs)
-            {
-                if (npc.gameObject.activeInHierarchy)
-                {
-                    npc.PhysicsUpdate();
-                }
-            }
+            if (ActiveNPCCount < NPCMaxCount)
+                SetNPCOnMap();
         }
         else
         {
-            if (NPCActive)
-            {
-                if (ActiveNPCCount < NPCMaxCount)
-                    SetNPCOnMap();
-            }
-            else
-            {
-                DespawnAllNPC();
-            }
+            DespawnAllNPC();
+        }
 
-            foreach (var npc in CurrentPooledNPCs)
+        foreach (var npc in CurrentPooledNPCs)
+        {
+            if (npc.gameObject.activeInHierarchy)
             {
-                if (npc.gameObject.activeInHierarchy)
-                {
-                    npc.PhysicsUpdate();
-                }
+                npc.PhysicsUpdate();
             }
         }
     }
-
-    #region api
-    public void DespawnVehicle(NPCController obj)
-    {
-        if (obj == null)
-        {
-            return;
-        }
-
-        if (Loader.Instance.Network.IsMaster)
-        {
-            var index = CurrentPooledNPCs.IndexOf(obj);
-            BroadcastMessage(GetDespawnMessage(index));
-        }
-
-        obj.StopNPCCoroutines();
-        if (obj.currentIntersection != null) obj.currentIntersection.npcsInIntersection.Remove(obj.transform);
-        APINPCs.Remove(obj);
-        Destroy(obj.gameObject);
-    }
-
-    public GameObject SpawnVehicle(string name, string genId, Vector3 position, Quaternion rotation, Color color)
-    {
-        var template = NPCVehicles.Find(obj => obj.Prefab.name == name);
-        if (template.Prefab == null)
-        {
-            return null;
-        }
-
-        var go = new GameObject("NPC " + genId);
-        go.transform.SetParent(transform);
-        go.layer = LayerMask.NameToLayer("NPC");
-        go.tag = "Car";
-        var rb = go.AddComponent<Rigidbody>();
-        rb.mass = 2000;
-        rb.interpolation = RigidbodyInterpolation.Interpolate;
-        rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
-        var npcC = go.AddComponent<NPCController>();
-        var npc_name = Instantiate(template.Prefab, go.transform).name;
-        go.name = npc_name + genId;
-
-        //Add required components for cluster simulation
-        if (Loader.Instance.Network.IsClusterSimulation)
-            ClusterSimulationUtilities.AddDistributedComponents(go);
-        
-        var NPCController = go.GetComponent<NPCController>();
-        NPCController.NPCLabel = GetNPCLabel(npc_name);
-        APINPCs.Add(NPCController);
-        NPCController.id = genId;
-        NPCController.GTID = ++SimulatorManager.Instance.GTIDs;
-        NPCController.NPCColor = color == Color.clear ? GetWeightedRandomColor(template.NPCType) : color;
-        var s = NPCSeedGenerator.Next();
-        NPCController.Init(s);
-        SimulatorManager.Instance.UpdateSegmentationColors(go);
-        go.transform.SetPositionAndRotation(position, rotation); // TODO check for incorrect calc speed
-        npcC.SetLastPosRot(position, rotation);
-
-        return go;
-    }
-
-    public void Reset()
-    {
-        RandomGenerator = new System.Random(Seed);
-        NPCSeedGenerator = new System.Random(Seed);
-
-        List<NPCController> npcs = new List<NPCController>(APINPCs);
-        foreach (var npc in npcs)
-        {
-            DespawnVehicle(npc);
-        }
-
-        APINPCs.Clear();
-    }
-    #endregion
 
     #region npc
     public void ToggleNPC()
@@ -211,36 +137,28 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         NPCActive = !NPCActive;
     }
 
-    private void SpawnNPC()
+    public NPCController SpawnNPC(NPCSpawnData spawnData)
     {
-        var genId = System.Guid.NewGuid().ToString();
-        var npcData = GetWeightedRandomNPC();
-        var color = GetWeightedRandomColor(npcData.NPCType);
-        var npcControllerSeed = NPCSeedGenerator.Next();
-        SpawnNPC(genId, npcData, color, npcControllerSeed);
-    }
-
-    private void SpawnNPC(string vehicleId, NPCS npcData, Color color, int npcControllerSeed)
-    {
-        var genId = vehicleId;
-        var go = new GameObject("NPC " + genId);
-        go.SetActive(false);
+        var go = new GameObject();
+        go.SetActive(spawnData.Active);
         go.transform.SetParent(transform);
+        go.transform.SetPositionAndRotation(spawnData.Position, spawnData.Rotation);
         go.layer = LayerMask.NameToLayer("NPC");
         go.tag = "Car";
         var rb = go.AddComponent<Rigidbody>();
         rb.mass = 2000;
         rb.interpolation = RigidbodyInterpolation.Interpolate;
         rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
-        go.AddComponent<NPCController>();
-        var npc_name = Instantiate(npcData.Prefab, go.transform).name;
-        go.name = npc_name + genId;
-        var NPCController = go.GetComponent<NPCController>();
-        NPCController.Size = npcData.NPCType;
-        NPCController.NPCColor = color;
+        var NPCController = go.AddComponent<NPCController>();
+        var npc_name = Instantiate(spawnData.Template.Prefab, go.transform).name;
+        go.name = npc_name + spawnData.GenId;
+        NPCController.Size = spawnData.Template.NPCType;
+        NPCController.NPCColor = spawnData.Color;
         NPCController.NPCLabel = GetNPCLabel(npc_name);
-        NPCController.id = genId;
-        NPCController.Init(NPCSeedGenerator.Next());
+        NPCController.id = spawnData.GenId;
+        NPCController.GTID = ++SimulatorManager.Instance.GTIDs;
+        NPCController.SetLastPosRot(spawnData.Position, spawnData.Rotation);
+        NPCController.Init(spawnData.Seed);
         CurrentPooledNPCs.Add(NPCController);
 
         SimulatorManager.Instance.UpdateSegmentationColors(go);
@@ -251,13 +169,15 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             //Add required components for cluster simulation
             ClusterSimulationUtilities.AddDistributedComponents(go);
             if (Loader.Instance.Network.IsMaster)
-                BroadcastMessage(GetSpawnMessage(genId, npcData, npcControllerSeed, color, go.transform.position,
-                                                 go.transform.rotation));
+                BroadcastMessage(GetSpawnMessage(spawnData));
         }
+
+        return NPCController;
     }
 
-    private void SpawnNPCPool()
+    public List<NPCController> SpawnNPCPool()
     {
+        var pooledNPCs = new List<NPCController>();
         for (int i = 0; i < CurrentPooledNPCs.Count; i++)
         {
             if (Loader.Instance.Network.IsMaster)
@@ -273,10 +193,24 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
         int poolCount = Mathf.FloorToInt(NPCMaxCount + (NPCMaxCount * 0.1f));
         for (int i = 0; i < poolCount; i++)
-            SpawnNPC();
+        {
+            var template = GetWeightedRandomNPC();
+            var spawnData = new NPCSpawnData
+            {
+                Active = false,
+                GenId = System.Guid.NewGuid().ToString(),
+                Template = template,
+                Position = Vector3.zero,
+                Rotation = Quaternion.identity,
+                Color = GetWeightedRandomColor(template.NPCType),
+                Seed = NPCSeedGenerator.Next(),
+            };
+            pooledNPCs.Add(SpawnNPC(spawnData));
+        }
+        return pooledNPCs;
     }
 
-    private void SetNPCOnMap()
+    public void SetNPCOnMap()
     {
         for (int i = 0; i < CurrentPooledNPCs.Count; i++)
         {
@@ -284,8 +218,8 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             {
                 continue;
             }
-            var mapManager = SimulatorManager.Instance.MapManager;
-            var lane = mapManager.GetLane(RandomGenerator.Next(mapManager.trafficLanes.Count));
+
+            var lane = MapManager.GetLane(RandomGenerator.Next(MapManager.trafficLanes.Count));
             if (lane == null) return;
 
             if (lane.mapWorldPositions == null || lane.mapWorldPositions.Count == 0)
@@ -329,7 +263,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             if (Loader.Instance.Network.IsMaster)
             {
                 var rb = CurrentPooledNPCs[i].GetComponent<DistributedRigidbody>();
-                if (rb!=null)
+                if (rb != null)
                     rb.BroadcastSnapshot(true);
             }
         }
@@ -362,6 +296,25 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         }
     }
 
+    public void DestroyNPC(NPCController obj)
+    {
+        if (obj == null)
+        {
+            return;
+        }
+
+        if (Loader.Instance.Network.IsMaster)
+        {
+            var index = CurrentPooledNPCs.IndexOf(obj);
+            BroadcastMessage(GetDespawnMessage(index));
+        }
+
+        obj.StopNPCCoroutines();
+        if (obj.currentIntersection != null) obj.currentIntersection.npcsInIntersection.Remove(obj.transform);
+        CurrentPooledNPCs.Remove(obj);
+        Destroy(obj.gameObject);
+    }
+
     public void DespawnAllNPC()
     {
         if (ActiveNPCCount == 0) return;
@@ -376,6 +329,20 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         }
 
         ActiveNPCCount = 0;
+    }
+
+    public void Reset()
+    {
+        RandomGenerator = new System.Random(Seed);
+        NPCSeedGenerator = new System.Random(Seed);
+
+        List<NPCController> npcs = new List<NPCController>(CurrentPooledNPCs);
+        foreach (var npc in npcs)
+        {
+            DestroyNPC(npc);
+        }
+
+        CurrentPooledNPCs.Clear();
     }
 
     private string GetNPCLabel(string npc_name)
@@ -417,7 +384,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         throw new System.Exception("NPC size weights are incorrectly set!");
     }
 
-    private Color GetWeightedRandomColor(NPCSizeType type)
+    public Color GetWeightedRandomColor(NPCSizeType type)
     {
         var colors = NPCColorData.Find(colorData => colorData.Type == type).TypeColors;
         int totalWeight = colors.Sum(c => c.Weight);
@@ -488,29 +455,27 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
     #region network
 
-    private DistributedMessage GetSpawnMessage(string vehicleId, NPCS npcData, 
-        int npcControllerSeed, Color color, Vector3 position, Quaternion rotation)
+    private DistributedMessage GetSpawnMessage(NPCSpawnData data)
     {
         var message = MessagesPool.Instance.GetMessage(
             ByteCompression.RotationMaxRequiredBytes +
             ByteCompression.PositionRequiredBytes +
             12 +
-            BytesStack.GetMaxByteCount(vehicleId));
-        var indexOfPrefab = NPCVehicles.FindIndex(npc => npc.Equals(npcData));
+            BytesStack.GetMaxByteCount(data.GenId));
+        var indexOfPrefab = NPCVehicles.FindIndex(npc => npc.Equals(data.Template));
         message.AddressKey = Key;
-        message.Content.PushCompressedRotation(rotation);
-        message.Content.PushCompressedPosition(position);
-        message.Content.PushCompressedColor(color, 1);
-        message.Content.PushInt(npcControllerSeed);
+        message.Content.PushCompressedRotation(data.Rotation);
+        message.Content.PushCompressedPosition(data.Position);
+        message.Content.PushCompressedColor(data.Color, 1);
+        message.Content.PushInt(data.Seed);
         message.Content.PushInt(indexOfPrefab, 2);
-        message.Content.PushString(vehicleId);
+        message.Content.PushString(data.GenId);
         message.Content.PushEnum<NPCManagerCommandType>((int) NPCManagerCommandType.SpawnNPC);
         message.Type = DistributedMessageType.ReliableOrdered;
         return message;
     }
 
-    private void SpawnNPCMock(string vehicleId, NPCS npcData, int npcControllerSeed, Color color,
-        Vector3 position, Quaternion rotation)
+    private void SpawnNPCMock(string vehicleId, NPCS npcData, int npcControllerSeed, Color color, Vector3 position, Quaternion rotation)  // TODO can this use SpawnNPC method?
     {
         var go = new GameObject("NPC " + vehicleId);
         go.SetActive(false);

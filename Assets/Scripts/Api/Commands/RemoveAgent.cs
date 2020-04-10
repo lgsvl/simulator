@@ -35,7 +35,7 @@ namespace Simulator.Api.Commands
                 var npc = obj.GetComponent<NPCController>();
                 if (npc != null)
                 {
-                    SimulatorManager.Instance.NPCManager.DespawnVehicle(npc);
+                    SimulatorManager.Instance.NPCManager.DestroyNPC(npc);
                 }
 
                 var ped = obj.GetComponent<PedestrianController>();

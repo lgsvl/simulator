@@ -601,7 +601,6 @@ namespace Simulator
                                         }
 
                                         SetupScene(simulation);
-                                        ResetMaterials(); // TODO remove Editor hack for 2019.3.3 bug once fixed
                                     }
                                 };
                             }
@@ -657,7 +656,7 @@ namespace Simulator
             });
         }
 
-        private static void ResetMaterials()
+        public static void ResetMaterials()
         {
             // TODO remove hack for editor opaque with alpha clipping 2019.3.3
 #if UNITY_EDITOR

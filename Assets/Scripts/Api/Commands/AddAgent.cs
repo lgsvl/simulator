@@ -145,29 +145,35 @@ namespace Simulator.Api.Commands
             else if (type == (int)AgentType.Npc)
             {
                 var colorData = args["color"].ReadVector3();
-                var color = new Color();
-                if (colorData != new Vector3(-1, -1, -1))
+                var template = sim.NPCManager.NPCVehicles.Find(obj => obj.Prefab.name == name); // TODO need to search all available npcs including npc bundles
+                var spawnData = new NPCManager.NPCSpawnData
                 {
-                    color = new Color(colorData.x, colorData.y, colorData.z);
-                }
-                var go = SimulatorManager.Instance.NPCManager.SpawnVehicle(name, uid, position, Quaternion.Euler(rotation), color);
+                    Active = true,
+                    GenId = uid,
+                    Template = template,
+                    Position = position,
+                    Rotation = Quaternion.Euler(rotation),
+                    Color = colorData == new Vector3(-1, -1, -1) ? sim.NPCManager.GetWeightedRandomColor(template.NPCType) : new Color(colorData.x, colorData.y, colorData.z),
+                    Seed = sim.NPCManager.NPCSeedGenerator.Next(),
+                };
 
-                var npc = go.GetComponent<NPCController>();
-                npc.Control = NPCController.ControlType.Manual;
+                var npcController = SimulatorManager.Instance.NPCManager.SpawnNPC(spawnData);
 
-                var body = go.GetComponent<Rigidbody>();
+                npcController.Control = NPCController.ControlType.Manual;
+
+                var body = npcController.GetComponent<Rigidbody>();
                 body.velocity = velocity;
                 body.angularVelocity = angular_velocity;
 
-                uid = go.name;
-                api.Agents.Add(uid, go);
-                api.AgentUID.Add(go, uid);
-                api.SendResult(this, new JSONString(go.name));
+                uid = npcController.name;
+                api.Agents.Add(uid, npcController.gameObject);
+                api.AgentUID.Add(npcController.gameObject, uid);
+                api.SendResult(this, new JSONString(uid));
                 SIM.LogAPI(SIM.API.AddAgentNPC, name);
                 // Override the color argument as NPCController may change the NPC color
                 if (Loader.Instance.Network.IsMaster)
                 {
-                    var colorVector = new Vector3(npc.NPCColor.r, npc.NPCColor.g, npc.NPCColor.b);
+                    var colorVector = new Vector3(npcController.NPCColor.r, npcController.NPCColor.g, npcController.NPCColor.b);
                     args["color"].WriteVector3(colorVector);
                 }
             }
@@ -180,16 +186,28 @@ namespace Simulator.Api.Commands
                     api.SendError(this, $"{sceneName} is missing Pedestrian NavMesh");
                     return;
                 }
-                var ped = pedManager.SpawnPedestrianApi(name, uid, position, Quaternion.Euler(rotation));
-                if (ped == null)
+
+                var model = sim.PedestrianManager.pedModels.Find(obj => obj.name == name);
+                var spawnData = new PedestrianManager.PedSpawnData
+                {
+                    Active = true,
+                    API = true,
+                    GenId = uid,
+                    Model = model,
+                    Position = position,
+                    Rotation = Quaternion.Euler(rotation),
+                    Seed = sim.PedestrianManager.PEDSeedGenerator.Next(),
+                };
+
+                var pedController = pedManager.SpawnPedestrian(spawnData);
+                if (pedController == null)
                 {
                     api.SendError(this, $"Unknown '{name}' pedestrian name");
                     return;
                 }
 
-                api.Agents.Add(uid, ped);
-                api.AgentUID.Add(ped, uid);
-
+                api.Agents.Add(uid, pedController.gameObject);
+                api.AgentUID.Add(pedController.gameObject, uid);
                 api.SendResult(this, new JSONString(uid));
                 SIM.LogAPI(SIM.API.AddAgentPedestrian, name);
             }

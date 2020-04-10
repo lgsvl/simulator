@@ -23,11 +23,23 @@ using UnityEngine.SceneManagement;
 
 public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
 {
+    public struct PedSpawnData
+    {
+        public bool Active;
+        public bool API;
+        public string GenId;
+        public int ModelIndex;
+        public GameObject Model;
+        public Vector3 Position;
+        public Quaternion Rotation;
+        public int Seed;
+    };
+
     public GameObject pedPrefab;
     public List<GameObject> pedModels = new List<GameObject>();
     public bool PedestriansActive { get; set; } = false;
     [HideInInspector]
-    public List<PedestrianController> CurrentPedPool = new List<PedestrianController>();
+    public List<PedestrianController> CurrentPooledPeds = new List<PedestrianController>();
     private Vector3 SpawnBoundsSize;
     private bool DebugSpawnArea = false;
     private LayerMask PedSpawnCheckBitmask;
@@ -37,13 +49,14 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
     private int ActivePedCount = 0;
 
     private System.Random RandomGenerator;
-    private System.Random PEDSeedGenerator; // Only use this for initializing a new pedestrian
+    public System.Random PEDSeedGenerator { get; private set; } // Only use this for initializing a new pedestrian
     private int Seed = new System.Random().Next();
 
     private MapOrigin MapOrigin;
     private bool InitSpawn = true;
 
     private Camera SimulatorCamera;
+    private MapManager MapManager;
 
     public void InitRandomGenerator(int seed)
     {
@@ -59,6 +72,7 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         SpawnBoundsSize = new Vector3(MapOrigin.PedSpawnBoundSize, 50f, MapOrigin.PedSpawnBoundSize);
         PedMaxCount = MapOrigin.PedMaxCount;
         SimulatorCamera = SimulatorManager.Instance.CameraManager.SimulatorCamera;
+        MapManager = SimulatorManager.Instance.MapManager;
 
         SpawnInfo[] spawnInfos = FindObjectsOfType<SpawnInfo>();
         Loader.Instance.Network.MessagesManager?.RegisterObject(this);
@@ -75,9 +89,12 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
         if (NavMesh.SamplePosition(pt, out NavMeshHit hit, 1f, NavMesh.AllAreas))
         {
-            InitPedestrians();
-            if (PedestriansActive)
-                SetPedOnMap();
+            if (!SimulatorManager.Instance.IsAPI && !Loader.Instance.Network.IsClient)
+            {
+                SpawnPedPool();
+                if (PedestriansActive)
+                    SetPedOnMap();
+            }
         }
         else
         {
@@ -99,51 +116,99 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
             return;
         }
 
-        foreach (var ped in CurrentPedPool)
+        if (PedestriansActive)
+        {
+            if (ActivePedCount < PedMaxCount)
+            {
+                SetPedOnMap();
+            }
+        }
+        else
+        {
+            DespawnAllPeds();
+        }
+
+        foreach (var ped in CurrentPooledPeds)
         {
             if (ped.gameObject.activeInHierarchy)
             {
                 ped.PhysicsUpdate();
             }
         }
-
-        if (!SimulatorManager.Instance.IsAPI)
-        {
-            if (PedestriansActive)
-            {
-                if (ActivePedCount < PedMaxCount)
-                {
-                    SetPedOnMap();
-                }
-            }
-            else
-            {
-                DespawnAllPeds();
-            }
-        }
     }
 
-    private void InitPedestrians()
+    public List<PedestrianController> SpawnPedPool()
     {
         Debug.Assert(pedPrefab != null && pedModels != null && pedModels.Count != 0);
 
-        CurrentPedPool.Clear();
+        for (int i = 0; i < CurrentPooledPeds.Count; i++)
+        {
+            Destroy(CurrentPooledPeds[i]);
+        }
+        CurrentPooledPeds.Clear();
+        ActivePedCount = 0;
+
+        var pooledPeds = new List<PedestrianController>();
+        
         int poolCount = Mathf.FloorToInt(PedMaxCount + (PedMaxCount * 0.1f));
         for (int i = 0; i < poolCount; i++)
         {
-            SpawnPedestrian();
+            var modelIndex = RandomGenerator.Next(pedModels.Count);
+            var model = pedModels[modelIndex];
+            var spawnData = new PedSpawnData
+            {
+                Active = false,
+                API = false,
+                GenId = System.Guid.NewGuid().ToString(),
+                Model = model,
+                Position = Vector3.zero,
+                Rotation = Quaternion.identity,
+                Seed = PEDSeedGenerator.Next(),
+            };
+            pooledPeds.Add(SpawnPedestrian(spawnData));
         }
+        return pooledPeds;
     }
 
-    private void SetPedOnMap()
+    public PedestrianController SpawnPedestrian(PedSpawnData spawnData)
     {
-        var mapManager = SimulatorManager.Instance.MapManager;
-        for (int i = 0; i < CurrentPedPool.Count; i++)
+        GameObject ped = Instantiate(pedPrefab, spawnData.Position, spawnData.Rotation, transform);
+        var pedController = ped.GetComponent<PedestrianController>();
+        pedController.SetGroundTruthBox();
+        Instantiate(spawnData.Model, ped.transform);
+        ped.SetActive(spawnData.Active);
+
+        pedController.GUID = spawnData.GenId;
+        pedController.GTID = ++SimulatorManager.Instance.GTIDs;
+        CurrentPooledPeds.Add(pedController);
+
+        SimulatorManager.Instance.UpdateSegmentationColors(ped);
+
+        if (spawnData.API)
         {
-            if (CurrentPedPool[i].gameObject.activeInHierarchy)
+            pedController.InitManual(spawnData.Seed);
+        }
+
+        //Add required components for distributing rigidbody from master to clients
+        if (Loader.Instance.Network.IsClusterSimulation)
+        {
+            //Add required components for cluster simulation
+            ClusterSimulationUtilities.AddDistributedComponents(ped);
+            if (Loader.Instance.Network.IsMaster)
+                BroadcastMessage(GetSpawnMessage(spawnData));
+        }
+
+        return pedController;
+    }
+
+    public void SetPedOnMap()
+    {
+        for (int i = 0; i < CurrentPooledPeds.Count; i++)
+        {
+            if (CurrentPooledPeds[i].gameObject.activeInHierarchy)
                 continue;
 
-            var path = mapManager.GetPedPath(RandomIndex(mapManager.pedestrianLanes.Count));
+            var path = MapManager.GetPedPath(RandomIndex(MapManager.pedestrianLanes.Count));
             if (path == null) continue;
 
             if (path.mapWorldPositions == null || path.mapWorldPositions.Count == 0)
@@ -153,51 +218,25 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
                 continue;
 
             var spawnPos = path.mapWorldPositions[RandomIndex(path.mapWorldPositions.Count)];
-            CurrentPedPool[i].transform.position = spawnPos;
+            CurrentPooledPeds[i].transform.position = spawnPos;
 
             if (!WithinSpawnArea(spawnPos))
                 continue;
 
             if (!InitSpawn)
             {
-                if (IsVisible(CurrentPedPool[i].gameObject))
+                if (IsVisible(CurrentPooledPeds[i].gameObject))
                     continue;
             }
 
             if (Physics.CheckSphere(spawnPos, 3f, PedSpawnCheckBitmask))
                 continue;
 
-            CurrentPedPool[i].InitPed(spawnPos, path.mapWorldPositions, PEDSeedGenerator.Next());
-            CurrentPedPool[i].gameObject.SetActive(true);
+            CurrentPooledPeds[i].InitPed(spawnPos, path.mapWorldPositions, PEDSeedGenerator.Next());
+            CurrentPooledPeds[i].gameObject.SetActive(true);
             ActivePedCount++;
         }
         InitSpawn = false;
-    }
-
-    private GameObject SpawnPedestrian()
-    {
-        GameObject ped = Instantiate(pedPrefab, Vector3.zero, Quaternion.identity, transform);
-        var pedController = ped.GetComponent<PedestrianController>();
-        pedController.SetGroundTruthBox();
-        var modelIndex = RandomGenerator.Next(pedModels.Count);
-        var model = pedModels[modelIndex];
-        Instantiate(model, ped.transform);
-        ped.SetActive(false);
-        SimulatorManager.Instance.UpdateSegmentationColors(ped);
-        pedController.GTID = ++SimulatorManager.Instance.GTIDs;
-        pedController.GUID = $"Pedestrian{pedController.GTID}";
-        CurrentPedPool.Add(pedController);
-
-        //Add required components for distributing rigidbody from master to clients
-        if (Loader.Instance.Network.IsClusterSimulation)
-        {
-            //Add required components for cluster simulation
-            ClusterSimulationUtilities.AddDistributedComponents(ped);
-            if (Loader.Instance.Network.IsMaster)
-                BroadcastMessage(GetSpawnMessage(pedController.GUID, modelIndex, ped.transform.position, ped.transform.rotation));
-        }
-
-        return ped;
     }
 
     public void DespawnPed(PedestrianController ped)
@@ -212,47 +251,18 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
     {
         if (ActivePedCount == 0) return;
 
-        for (int i = 0; i < CurrentPedPool.Count; i++)
+        for (int i = 0; i < CurrentPooledPeds.Count; i++)
         {
-            DespawnPed(CurrentPedPool[i]);
+            DespawnPed(CurrentPooledPeds[i]);
         }
         ActivePedCount = 0;
     }
 
     #region api
-    public GameObject SpawnPedestrianApi(string name, string uid, Vector3 position, Quaternion rotation)
-    {
-        var prefab = pedModels.Find(obj => obj.name == name);
-        if (prefab == null)
-        {
-            return null;
-        }
-
-        GameObject ped = Instantiate(pedPrefab, Vector3.zero, Quaternion.identity, transform);
-        var pedC = ped.GetComponent<PedestrianController>();
-        var rb = ped.GetComponent<Rigidbody>();
-        Instantiate(prefab, ped.transform);
-        SimulatorManager.Instance.UpdateSegmentationColors(ped);
-        CurrentPedPool.Add(pedC);
-
-        pedC.InitManual(position, rotation, PEDSeedGenerator.Next());
-        pedC.GUID = uid;
-        pedC.GTID = ++SimulatorManager.Instance.GTIDs;
-        pedC.SetGroundTruthBox();
-
-        if (Loader.Instance.Network.IsClusterSimulation)
-        {
-            //Add required components for cluster simulation
-            ClusterSimulationUtilities.AddDistributedComponents(ped);
-        }
-
-        return ped;
-    }
-
     public void DespawnPedestrianApi(PedestrianController ped)
     {
         ped.StopPEDCoroutines();
-        CurrentPedPool.Remove(ped);
+        CurrentPooledPeds.Remove(ped);
         Destroy(ped.gameObject);
     }
 
@@ -261,9 +271,9 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         RandomGenerator = new System.Random(Seed);
         PEDSeedGenerator = new System.Random(Seed);
 
-        List<PedestrianController> peds = new List<PedestrianController>(CurrentPedPool);
+        List<PedestrianController> peds = new List<PedestrianController>(CurrentPooledPeds);
         peds.ForEach(x => DespawnPedestrianApi(x));
-        CurrentPedPool.Clear();
+        CurrentPooledPeds.Clear();
     }
     #endregion
 
@@ -324,25 +334,25 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
     #region network
 
-    private DistributedMessage GetSpawnMessage(string GUID, int modelIndex, Vector3 position, Quaternion rotation)
+    private DistributedMessage GetSpawnMessage(PedSpawnData data)
     {
         var message = MessagesPool.Instance.GetMessage(
             ByteCompression.RotationMaxRequiredBytes +
             ByteCompression.PositionRequiredBytes +
             2 +
-            BytesStack.GetMaxByteCount(GUID) +
+            BytesStack.GetMaxByteCount(data.GenId) +
             4);
         message.AddressKey = Key;
-        message.Content.PushCompressedRotation(rotation);
-        message.Content.PushCompressedPosition(position);
-        message.Content.PushInt(modelIndex, 2);
-        message.Content.PushString(GUID);
+        message.Content.PushCompressedRotation(data.Rotation);
+        message.Content.PushCompressedPosition(data.Position);
+        message.Content.PushInt(data.ModelIndex, 2);
+        message.Content.PushString(data.GenId);
         message.Content.PushEnum<PedestrianManagerCommandType>((int) PedestrianManagerCommandType.SpawnPedestrian);
         message.Type = DistributedMessageType.ReliableOrdered;
         return message;
     }
 
-    private void SpawnPedestrianMock(string GUID, int modelIndex, Vector3 position, Quaternion rotation)
+    private void SpawnPedestrianMock(string GUID, int modelIndex, Vector3 position, Quaternion rotation) // TODO mock might be random control now, use spawnData
     {
         GameObject ped = Instantiate(pedPrefab, position, rotation, transform);
         ped.SetActive(false);
@@ -358,7 +368,7 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         //Force distributed component initialization, as gameobject will stay disabled
         pedController.InitPed(position, new List<Vector3>(), 0);
         pedController.Initialize();
-        CurrentPedPool.Add(pedController);
+        CurrentPooledPeds.Add(pedController);
     }
 
     private BytesStack GetDespawnMessage(int orderNumber)
@@ -384,8 +394,8 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
             case PedestrianManagerCommandType.DespawnPedestrian:
                 var pedestrianId = distributedMessage.Content.PopInt(2);
                 //TODO Preserve despawn command if it arrives before spawn command
-                if (pedestrianId >= 0 && pedestrianId < CurrentPedPool.Count)
-                    Destroy(CurrentPedPool[pedestrianId].gameObject);
+                if (pedestrianId >= 0 && pedestrianId < CurrentPooledPeds.Count)
+                    Destroy(CurrentPooledPeds[pedestrianId].gameObject);
                 break;
         }
     }

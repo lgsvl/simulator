@@ -246,6 +246,7 @@ public class SimulatorManager : MonoBehaviour
         WireframeBoxes = gameObject.AddComponent<WireframeBoxes>();
         if (Loader.Instance != null) TimeManager.Initialize(Loader.Instance.Network.MessagesManager);
         Sensors.Initialize();
+        Loader.ResetMaterials(); // TODO remove Editor hack for 2019.3.3 bug once fixed
         IsInitialized = true;
     }
 
@@ -457,7 +458,7 @@ public class SimulatorManager : MonoBehaviour
             }
             else if (item.Tag == "Pedestrian")
             {
-                foreach (PedestrianController pedestrianController in PedestrianManager.CurrentPedPool)
+                foreach (PedestrianController pedestrianController in PedestrianManager.CurrentPooledPeds)
                 {
                     UpdateSegmentationColors(pedestrianController.gameObject);
                 }

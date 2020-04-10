@@ -733,6 +733,10 @@ This sensor outputs the objects detected by the radar. Detected objects are visu
 This sensor outputs simulated time to ROS as [rosgraph_msgs/Clock](http://docs.ros.org/api/rosgraph_msgs/html/msg/Clock.html) message.
 Only parameter to use is topic name.
 
+Users can add `<param name="/use_sim_time" value="true">` to their ROS launch file, or use `rosparam set /use_sim_time true`
+in command line, to have a ROS node use simulation time according to the `/clock` topic. 
+For more details please refer to [this page](http://wiki.ros.org/Clock#Using_Simulation_Time_from_the_.2BAC8-clock_Topic).
+
 ```JSON
 {
     "type": "Clock",

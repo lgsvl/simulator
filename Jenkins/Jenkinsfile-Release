@@ -28,10 +28,6 @@ pipeline {
     FORCE_REBUILD = "${FORCE_REBUILD}"
   }
 
-  parameters {
-    string(name: "SIMULATOR_SENSORS", defaultValue: "CheckControlSensor", description: "List of sensors to build from https://auto-gitlab.lgsvl.net/HDRP/Sensors")
-  }
-
   stages {
 
     stage("Git") {

@@ -233,7 +233,7 @@ is colored differently, but all will have same hue (e.g. all cars will be bluish
  	  "InstanceSegmentationTags": [
 		"Car",
 		"Pedestrian"
-	  ]
+	  ],
       "Topic": "/simulator/segmentation_camera"
     },
     "transform": {

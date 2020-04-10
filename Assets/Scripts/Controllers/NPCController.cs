@@ -1173,7 +1173,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
             yield break; // light is green so just go
         isStopLight = true;
         yield return FixedUpdateManager.WaitUntilFixed(() => atStopTarget); // wait if until reaching stop line
-        if ((isRightTurn && prevMapLane.rightLaneReverse == null) || (isLeftTurn && prevMapLane.leftLaneReverse == null)) // Right on red or left on red
+        if ((isRightTurn && prevMapLane.rightLaneReverse == null))// || (isLeftTurn && prevMapLane.leftLaneReverse == null)) // Right on red or left on red TODO Fix after Florian refactor
         {
             var waitTime = RandomGenerator.NextFloat(0f, 3f);
             var startTime = currentStopTime;

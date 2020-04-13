@@ -11,6 +11,7 @@ using UnityEngine.UI;
 using UnityEngine;
 using Simulator;
 using Simulator.Web;
+using System.Linq;
 
 public class LoaderUI : MonoBehaviour
 {
@@ -20,6 +21,12 @@ public class LoaderUI : MonoBehaviour
     public List<Sprite> BGSprites { get; set; } = new List<Sprite>();
     public Button StartButton;
     public Text StartButtonText;
+
+    public GameObject SettingsPanel;
+    public Dropdown FullscreenDropdown;
+    public Dropdown ResolutionDropdown;
+    public Dropdown QualityDropdown;
+    private Resolution[] Resolutions;
 
     private string origStartButtonText;
     private float fadeTime = 3f;
@@ -33,6 +40,8 @@ public class LoaderUI : MonoBehaviour
 
     private void Start()
     {
+        SetDropdowns();
+
         origStartButtonText = StartButtonText.text;
         bgCanvasRT = BGCanvasScaler.GetComponent<RectTransform>();
         fading = true;
@@ -132,5 +141,52 @@ public class LoaderUI : MonoBehaviour
     public void DisableUI()
     {
         gameObject.SetActive(false);
+    }
+
+    public void SetResolution(int index)
+    {
+        Resolution resolution = Resolutions[index];
+        Screen.SetResolution(resolution.width, resolution.height, Screen.fullScreen);
+    }
+
+    public void SetGraphics(int index)
+    {
+        QualitySettings.SetQualityLevel(index, true);
+    }
+
+    public void SetFullscreen(int index)
+    {
+        if (index == 0)
+        {
+            Screen.SetResolution(Screen.currentResolution.width, Screen.currentResolution.height, FullScreenMode.FullScreenWindow);
+        }
+        else
+        {
+            Screen.SetResolution(Screen.currentResolution.width / 2, Screen.currentResolution.height / 2, FullScreenMode.Windowed);
+        }
+    }
+
+    private void SetDropdowns()
+    {
+        SettingsPanel.SetActive(false);
+
+        FullscreenDropdown.value = Screen.fullScreen ? 0 : 1;
+        FullscreenDropdown.RefreshShownValue();
+
+        Resolutions = Screen.resolutions.Select(resolution => new Resolution { width = resolution.width, height = resolution.height }).Distinct().ToArray();
+        Resolutions = Screen.resolutions;
+        ResolutionDropdown.ClearOptions();
+        var options = new List<string>();
+        for (int i = 0; i < Resolutions.Length; i++)
+        {
+            var option = $"{Resolutions[i].width} x {Resolutions[i].height} {Resolutions[i].refreshRate}Hz";
+            options.Add(option);
+        }
+        ResolutionDropdown.AddOptions(options);
+
+        QualityDropdown.ClearOptions();
+        QualityDropdown.AddOptions(QualitySettings.names.ToList());
+        QualityDropdown.value = QualitySettings.GetQualityLevel();
+        QualityDropdown.RefreshShownValue();
     }
 }

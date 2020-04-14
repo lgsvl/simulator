@@ -172,7 +172,7 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
     public PedestrianController SpawnPedestrian(PedSpawnData spawnData)
     {
-        GameObject ped = Instantiate(pedPrefab, spawnData.Position, spawnData.Rotation, transform);
+        GameObject ped = Instantiate(pedPrefab, Vector3.zero, Quaternion.identity, transform);
         var pedController = ped.GetComponent<PedestrianController>();
         pedController.SetGroundTruthBox();
         Instantiate(spawnData.Model, ped.transform);
@@ -186,7 +186,7 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
         if (spawnData.API)
         {
-            pedController.InitManual(spawnData.Seed);
+            pedController.InitManual(spawnData);
         }
 
         //Add required components for distributing rigidbody from master to clients

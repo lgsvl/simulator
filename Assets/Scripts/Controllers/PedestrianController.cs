@@ -153,10 +153,10 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
         waypointLoop = loop;
     }
 
-    public void InitManual(int seed)
+    public void InitManual(PedestrianManager.PedSpawnData data)
     {
         FixedUpdateManager = SimulatorManager.Instance.FixedUpdateManager;
-        RandomGenerator = new System.Random(seed);
+        RandomGenerator = new System.Random(data.Seed);
         Path = new NavMeshPath();
 
         agent = GetComponent<NavMeshAgent>();
@@ -168,6 +168,8 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
 
         agent.updatePosition = false;
         agent.updateRotation = false;
+        agent.Warp(data.Position);
+        agent.transform.rotation = data.Rotation;
 
         ThisPedState = PedestrianState.None;
         Control = ControlType.Manual;

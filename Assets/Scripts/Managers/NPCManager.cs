@@ -142,7 +142,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         var go = new GameObject();
         go.SetActive(spawnData.Active);
         go.transform.SetParent(transform);
-        go.transform.SetPositionAndRotation(spawnData.Position, spawnData.Rotation);
+        go.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
         go.layer = LayerMask.NameToLayer("NPC");
         go.tag = "Car";
         var rb = go.AddComponent<Rigidbody>();
@@ -157,8 +157,9 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         NPCController.NPCLabel = GetNPCLabel(npc_name);
         NPCController.id = spawnData.GenId;
         NPCController.GTID = ++SimulatorManager.Instance.GTIDs;
-        NPCController.SetLastPosRot(spawnData.Position, spawnData.Rotation);
         NPCController.Init(spawnData.Seed);
+        go.transform.SetPositionAndRotation(spawnData.Position, spawnData.Rotation);
+        NPCController.SetLastPosRot(spawnData.Position, spawnData.Rotation);
         CurrentPooledNPCs.Add(NPCController);
 
         SimulatorManager.Instance.UpdateSegmentationColors(go);

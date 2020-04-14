@@ -112,8 +112,8 @@ namespace Simulator.PointCloud
         public int DebugSolidBlitLevel;
         public bool DebugForceFill = true;
 
-        [Range(-0.2f, 0.2f)]
-        public float DebugFillThreshold = -0.04f;
+        [Range(-0.4f, 0.2f)]
+        public float DebugFillThreshold = -0.2f;
 
         public bool SolidRemoveHidden = true;
         public bool DebugSolidPullPush = true;
@@ -127,8 +127,6 @@ namespace Simulator.PointCloud
         private bool previousFrameDataAvailable;
 
         protected ComputeBuffer Buffer;
-
-        private bool corrupted;
 
         public abstract Bounds Bounds { get; }
 
@@ -309,13 +307,10 @@ namespace Simulator.PointCloud
 
         private void RenderSolidCore(CommandBuffer cmd, HDCamera targetCamera, RTHandle cameraColorBuffer, bool calculateNormals, bool smoothNormals)
         {
-            if (!Application.isPlaying || corrupted)
+            if (!Application.isPlaying)
                 return;
 
             CoreUtils.SetKeyword(cmd, PointCloudShaderIDs.SolidCompose.LinearDepthKeyword, DebugUseLinearDepth);
-
-            if (corrupted)
-                return;
 
             var rt = Resources.GetRTHandle(RTUsage.PointRender);
             var rt1 = Resources.GetRTHandle(RTUsage.Generic0);
@@ -364,7 +359,7 @@ namespace Simulator.PointCloud
             cmd.SetComputeVectorParam(cs, PointCloudShaderIDs.SolidCompute.InverseReprojectionVector, GetInverseUvFovReprojectionVector(targetCamera.camera));
 
             var blendSky = DebugBlendSky && cameraColorBuffer != null;
-            var setupCopy = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SetupCopy.GetKernelName(DebugUseLinearDepth, DebugForceFill, blendSky));
+            var setupCopy = Resources.Kernels.GetSetupKernel(DebugUseLinearDepth, DebugForceFill, blendSky);
             cmd.SetComputeTextureParam(cs, setupCopy, PointCloudShaderIDs.SolidCompute.SetupCopy.InputColor, rt, 0);
             cmd.SetComputeTextureParam(cs, setupCopy, PointCloudShaderIDs.SolidCompute.SetupCopy.InputPosition, rtDepth, 0);
             cmd.SetComputeTextureParam(cs, setupCopy, PointCloudShaderIDs.SolidCompute.SetupCopy.OutputPosition, rt1, 0);
@@ -376,7 +371,7 @@ namespace Simulator.PointCloud
 
             if (SolidRemoveHidden)
             {
-                var downsample = cs.FindKernel(PointCloudShaderIDs.SolidCompute.Downsample.KernelName);
+                var downsample = Resources.Kernels.Downsample;
                 for (var i = 1; i <= maxLevel + 3; i++)
                 {
                     GetMipData(resolution, i - 1, out var mipRes, out var mipVec);
@@ -388,9 +383,7 @@ namespace Simulator.PointCloud
 
                 DebugSolidFixedLevel = Math.Min(Math.Max(DebugSolidFixedLevel, 0), maxLevel);
 
-                var removeHidden = DebugShowRemoveHiddenCascades
-                    ? cs.FindKernel(PointCloudShaderIDs.SolidCompute.RemoveHidden.DebugKernelName)
-                    : cs.FindKernel(PointCloudShaderIDs.SolidCompute.RemoveHidden.KernelName);
+                var removeHidden = Resources.Kernels.GetRemoveHiddenKernel(DebugShowRemoveHiddenCascades);
                 var removeHiddenMagic = RemoveHiddenCascadeOffset * height * 0.5f / Mathf.Tan(0.5f * fov * Mathf.Deg2Rad);
 
                 cmd.SetComputeIntParam(cs, PointCloudShaderIDs.SolidCompute.RemoveHidden.LevelCount, maxLevel);
@@ -404,7 +397,7 @@ namespace Simulator.PointCloud
 
             if (DebugSolidPullPush)
             {
-                var pullKernel = cs.FindKernel(PointCloudShaderIDs.SolidCompute.PullKernel.KernelName);
+                var pullKernel = Resources.Kernels.Pull;
                 cmd.SetComputeFloatParam(cs, PointCloudShaderIDs.SolidCompute.PullKernel.FilterExponent, DebugSolidPullParam);
 
                 for (var i = 1; i <= maxLevel; i++)
@@ -420,7 +413,7 @@ namespace Simulator.PointCloud
                     cmd.DispatchCompute(cs, pullKernel, GetGroupSize(mipRes.x, 8), GetGroupSize(mipRes.y, 8), 1);
                 }
 
-                var pushKernel = cs.FindKernel(PointCloudShaderIDs.SolidCompute.PushKernel.KernelName);
+                var pushKernel = Resources.Kernels.Push;
 
                 for (var i = maxLevel; i > 0; i--)
                 {
@@ -436,7 +429,7 @@ namespace Simulator.PointCloud
 
                 if (calculateNormals)
                 {
-                    var calculateNormalsKernel = cs.FindKernel(PointCloudShaderIDs.SolidCompute.CalculateNormals.GetKernelName(DebugUseLinearDepth));
+                    var calculateNormalsKernel = Resources.Kernels.GetCalculateNormalsKernel(DebugUseLinearDepth);
                     var normalsTarget = smoothNormals ? rt2 : rt1;
 
                     for (var i = 0; i < maxLevel; ++i)
@@ -451,7 +444,7 @@ namespace Simulator.PointCloud
 
                     if (smoothNormals)
                     {
-                        var smoothNormalsKernel = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SmoothNormals.GetKernelName(DebugUseLinearDepth, DebugShowSmoothNormalsCascades));
+                        var smoothNormalsKernel = Resources.Kernels.GetSmoothNormalsKernel(DebugUseLinearDepth, DebugShowSmoothNormalsCascades);
                         var smoothNormalsMagic = SmoothNormalsCascadeOffset * height * 0.5f / Mathf.Tan(0.5f * fov * Mathf.Deg2Rad);
 
                         cmd.SetComputeTextureParam(cs, smoothNormalsKernel, PointCloudShaderIDs.SolidCompute.SmoothNormals.Input, rt2);

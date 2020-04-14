@@ -79,24 +79,6 @@ namespace Simulator.PointCloud
                 public static readonly int OutputPosition = Shader.PropertyToID("_SetupCopyPosition");
                 public static readonly int PostSkyPreRenderTexture = Shader.PropertyToID("_PostSkyPreRenderColorTexture");
                 public static readonly int HorizonThreshold = Shader.PropertyToID("_HorizonThreshold");
-
-                public static string GetKernelName(bool linearDepth, bool forceFill, bool blendSky)
-                {
-                    if (linearDepth)
-                    {
-                        if (blendSky)
-                            return forceFill ? KernelNameLinearDepthFFSky : KernelNameLinearDepthSky;
-                        else
-                            return forceFill ? KernelNameLinearDepthFF : KernelNameLinearDepth;
-                    }
-                    else
-                    {
-                        if (blendSky)
-                            return forceFill ? KernelNameFFSky : KernelNameSky;
-                        else
-                            return forceFill ? KernelNameFF : KernelName;
-                    }
-                }
             }
 
             public static class Downsample
@@ -144,11 +126,6 @@ namespace Simulator.PointCloud
                 public static readonly int InputLevel = Shader.PropertyToID("_CalcNormalsInputLevel");
                 public static readonly int Input = Shader.PropertyToID("_NormalsIn");
                 public static readonly int Output = Shader.PropertyToID("_NormalsOut");
-
-                public static string GetKernelName(bool linearDepth)
-                {
-                    return linearDepth ? KernelNameLinearDepth : KernelName;
-                }
             }
 
             public static class SmoothNormals
@@ -162,15 +139,21 @@ namespace Simulator.PointCloud
                 public static readonly int CascadesOffset = Shader.PropertyToID("_SmoothNormalsCascadesOffset");
                 public static readonly int CascadesSize = Shader.PropertyToID("_SmoothNormalsCascadesSize");
                 public static readonly int ColorDebug = Shader.PropertyToID("_SmoothNormalsColorDebug");
-
-                public static string GetKernelName(bool linearDepth, bool debug)
-                {
-                    if (linearDepth)
-                        return debug ? DebugKernelNameLinearDepth : KernelNameLinearDepth;
-                    else
-                        return debug ? DebugKernelName : KernelName;
-                }
             }
+        }
+
+        public static class SHCoefficients
+        {
+            public static readonly int SHAr = Shader.PropertyToID("PC_SHAr");
+            public static readonly int SHAg = Shader.PropertyToID("PC_SHAg");
+            public static readonly int SHAb = Shader.PropertyToID("PC_SHAb");
+            public static readonly int SHBr = Shader.PropertyToID("PC_SHBr");
+            public static readonly int SHBg = Shader.PropertyToID("PC_SHBg");
+            public static readonly int SHBb = Shader.PropertyToID("PC_SHBb");
+            public static readonly int SHC = Shader.PropertyToID("PC_SHC");
+
+            public static readonly int[] SHA = {SHAr, SHAg, SHAb};
+            public static readonly int[] SHB = {SHBr, SHBg, SHBb};
         }
     }
 }

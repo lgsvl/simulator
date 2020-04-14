@@ -71,7 +71,15 @@ namespace Simulator.PointCloud
             foreach (var pcr in pointCloudRenderers)
             {
                 if (!(pcr.SupportsLighting ^ isLit) || forceRender)
+                {
+                    if (isLit)
+                    {
+                        // Update SH coefficients on compose material - Unity will not push this data for custom pass
+                        PointCloudManager.Resources.UpdateSHCoefficients(cmd, pcr.transform.position);
+                    }
+                    
                     pcr.Render(cmd, hdCamera, rtIds, depthBuffer, colorBuffer);
+                }
             }
 
             // Decals rendering triggers early depth buffer copy and marks it as valid for later usage.

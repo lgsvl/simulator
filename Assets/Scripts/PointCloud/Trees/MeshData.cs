@@ -81,7 +81,7 @@ namespace Simulator.PointCloud.Trees
             }
             catch (Exception e)
             {
-                Debug.LogError($"Exception was thrown when saving file {filePath}");
+                Debug.LogError($"Exception was thrown when saving file {filePath}\n{e.Message}");
                 throw;
             }
         }

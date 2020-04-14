@@ -14,8 +14,10 @@ Shader "Simulator/PointCloud/HDRP/Compose"
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassCommon.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
 
     #pragma multi_compile _ _PC_LINEAR_DEPTH
     #pragma multi_compile _ _PC_TARGET_GBUFFER _PC_UNLIT_SHADOWS
@@ -41,6 +43,14 @@ Shader "Simulator/PointCloud/HDRP/Compose"
 
     float _ShadowsFilter;
 
+    float4 PC_SHAr;
+    float4 PC_SHAg;
+    float4 PC_SHAb;
+    float4 PC_SHBr;
+    float4 PC_SHBg;
+    float4 PC_SHBb;
+    float4 PC_SHC;
+
     TEXTURE2D_X(_OriginalDepth);
 
     float4 _SRMulVec;
@@ -59,7 +69,20 @@ Shader "Simulator/PointCloud/HDRP/Compose"
     {
         uint r = asuint(packed.r);
         return float3(f16tof32(r), packed.g, f16tof32(r >> 16));
-        // return float3(packed, 0);
+    }
+
+    float3 SampleSH9(float3 normal)
+    {
+        real4 SHCoefficients[7];
+        SHCoefficients[0] = PC_SHAr;
+        SHCoefficients[1] = PC_SHAg;
+        SHCoefficients[2] = PC_SHAb;
+        SHCoefficients[3] = PC_SHBr;
+        SHCoefficients[4] = PC_SHBg;
+        SHCoefficients[5] = PC_SHBb;
+        SHCoefficients[6] = PC_SHC;
+
+        return SampleSH9(SHCoefficients, normal);
     }
 
     void DefaultComposePass(Varyings varyings,
@@ -122,10 +145,13 @@ Shader "Simulator/PointCloud/HDRP/Compose"
             float4 normalGBuffer;
             EncodeIntoNormalBuffer(nData, insetSS, /* out */ normalGBuffer);
 
+            float3 ambient = SampleSH9(pcNormalDepth.rgb) * color * _IndirectLightingMultiplier.x * GetCurrentExposureMultiplier();
+
             outGBuffer0 = float4(color, 1);
             outGBuffer1 = normalGBuffer;
+            // outGBuffer2 = float4(0, 0, 0, PackFloatInt8bit(/* coat mask */ 0.0, /* GBUFFER_LIT_STANDARD */ 0, 8));
             outGBuffer2 = float4(0, 0, 0, 0);
-            outGBuffer3 = float4(color * 0.1, 0);
+            outGBuffer3 = float4(ambient, 0);
         #endif
     }
 

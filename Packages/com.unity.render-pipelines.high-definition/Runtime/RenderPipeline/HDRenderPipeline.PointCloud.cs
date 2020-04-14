@@ -21,7 +21,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                const uint mantissa = ((uint)LightFeatureFlags.Punctual | (uint)LightFeatureFlags.Directional | (uint)LightFeatureFlags.Area) & 0x007FFFFFu;
+                // Temporarily disable punctual and area light shadows due to artifacts (probably shadow bias)
+                // const uint mantissa = ((uint)LightFeatureFlags.Punctual | (uint)LightFeatureFlags.Directional | (uint)LightFeatureFlags.Area) & 0x007FFFFFu;
+                const uint mantissa = (uint)LightFeatureFlags.Directional & 0x007FFFFFu;
                 const uint exponent = 0b10000000u;
                 return HDShadowUtils.Asfloat((exponent << 23) | mantissa);
             }

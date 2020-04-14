@@ -52,7 +52,7 @@ CBUFFER_START(cb0)
     float4x4 _InverseVP;            // Inevrse VP matrix (note: ignores camera-relative rendering)
 
     // Copy/setup params
-    float _HorizonThreshold = -0.04;
+    float _HorizonThreshold = -0.2;
     float4 _InverseSRMulVec;
 
     // Temporal smoothing parameters
@@ -88,7 +88,7 @@ float2 PackRGB(float3 rgb)
 {
     // TODO: Either pack or unpack loses R channel data when B is exactly zero - fix
     rgb.r = max(rgb.r, 0.0001);
-
+    rgb = saturate(rgb);
     // NOTE: green channel is left as is because there is enough space and it can be used to
     //       debug throughout the pipeline
     return float2(asfloat(f32tof16(rgb.r) | f32tof16(rgb.b) << 16), rgb.g);
@@ -97,7 +97,8 @@ float2 PackRGB(float3 rgb)
 float3 UnpackRGB(float2 packed)
 {
     uint r = asuint(packed.r);
-    return float3(f16tof32(r), packed.g, f16tof32(r >> 16));
+    float3 rgb = float3(f16tof32(r), packed.g, f16tof32(r >> 16));
+    return rgb;
 }
 
 // ============================================================================================
@@ -518,7 +519,7 @@ void PullKernel(uint3 id : SV_DispatchThreadID, uint2 groupId : SV_GroupID, uint
     float4 col = float4(0, 0, 0, 0);
     float depth = 0;
 
-    if (wn != 0)
+    if (wn > 0)
     {
         float w = (_PullSkipWeightMul == 1 ? 1 : wwn) / wn;
         col = float4(w * sum, wwn);
@@ -608,6 +609,8 @@ void PushKernel(uint3 id : SV_DispatchThreadID)
     float4 ni = a + b + c + d;
     if (weightSum > 0)
         ni /= weightSum;
+    else
+        ni = float4(0,0,0,0);
 
     // float4 nn = ni * (1 - baseWeight) + xUnpacked;
     float4 xUnpacked = float4(UnpackRGB(x.rg), x.w);

@@ -18,6 +18,8 @@ namespace Simulator.PointCloud
     {
         private const float AutoReleaseTime = 10f;
 
+        #region member_types
+
         public class PointCloudPasses
         {
             public readonly int circlesGBuffer;
@@ -33,6 +35,98 @@ namespace Simulator.PointCloud
                 solidCompose = solidComposeMat.FindPass("Point Cloud Default Compose");
                 circlesShadowcaster = circlesMat.FindPass("Point Cloud Circles ShadowCaster");
                 lidarCircles = circlesMat.FindPass("Point Cloud Circles Lidar");
+            }
+        }
+
+        public class PointCloudKernels
+        {
+            public readonly int Setup;
+            public readonly int SetupFF;
+            public readonly int SetupLinearDepth;
+            public readonly int SetupLinearDepthFF;
+            public readonly int SetupSky;
+            public readonly int SetupFFSky;
+            public readonly int SetupLinearDepthSky;
+            public readonly int SetupLinearDepthFFSky;
+
+            public readonly int Downsample;
+
+            public readonly int RemoveHidden;
+            public readonly int RemoveHiddenDebug;
+
+            public readonly int Pull;
+            public readonly int Push;
+
+            public readonly int CalculateNormals;
+            public readonly int CalculateNormalsLinearDepth;
+
+            public readonly int SmoothNormals;
+            public readonly int SmoothNormalsLinearDepth;
+            public readonly int SmoothNormalsDebug;
+            public readonly int SmoothNormalsLinearDepthDebug;
+
+            public PointCloudKernels(ComputeShader cs)
+            {
+                Setup = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SetupCopy.KernelName);
+                SetupFF = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SetupCopy.KernelNameFF);
+                SetupLinearDepth = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SetupCopy.KernelNameLinearDepth);
+                SetupLinearDepthFF = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SetupCopy.KernelNameLinearDepthFF);
+                SetupSky = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SetupCopy.KernelNameSky);
+                SetupFFSky = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SetupCopy.KernelNameFFSky);
+                SetupLinearDepthSky = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SetupCopy.KernelNameLinearDepthSky);
+                SetupLinearDepthFFSky = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SetupCopy.KernelNameLinearDepthFFSky);
+
+                Downsample = cs.FindKernel(PointCloudShaderIDs.SolidCompute.Downsample.KernelName);
+
+                RemoveHidden = cs.FindKernel(PointCloudShaderIDs.SolidCompute.RemoveHidden.KernelName);
+                RemoveHiddenDebug = cs.FindKernel(PointCloudShaderIDs.SolidCompute.RemoveHidden.DebugKernelName);
+
+                Pull = cs.FindKernel(PointCloudShaderIDs.SolidCompute.PullKernel.KernelName);
+                Push = cs.FindKernel(PointCloudShaderIDs.SolidCompute.PushKernel.KernelName);
+
+                CalculateNormals = cs.FindKernel(PointCloudShaderIDs.SolidCompute.CalculateNormals.KernelName);
+                CalculateNormalsLinearDepth = cs.FindKernel(PointCloudShaderIDs.SolidCompute.CalculateNormals.KernelNameLinearDepth);
+
+                SmoothNormals = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SmoothNormals.KernelName);
+                SmoothNormalsDebug = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SmoothNormals.DebugKernelName);
+                SmoothNormalsLinearDepth = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SmoothNormals.KernelNameLinearDepth);
+                SmoothNormalsLinearDepthDebug = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SmoothNormals.DebugKernelNameLinearDepth);
+            }
+
+            public int GetSetupKernel(bool linearDepth, bool forceFill, bool blendSky)
+            {
+                if (linearDepth)
+                {
+                    if (blendSky)
+                        return forceFill ? SetupLinearDepthFFSky : SetupLinearDepthSky;
+                    else
+                        return forceFill ? SetupLinearDepthFF : SetupLinearDepth;
+                }
+                else
+                {
+                    if (blendSky)
+                        return forceFill ? SetupFFSky : SetupSky;
+                    else
+                        return forceFill ? SetupFF : Setup;
+                }
+            }
+
+            public int GetRemoveHiddenKernel(bool debug)
+            {
+                return debug ? RemoveHiddenDebug : RemoveHidden;
+            }
+
+            public int GetCalculateNormalsKernel(bool linearDepth)
+            {
+                return linearDepth ? CalculateNormalsLinearDepth : CalculateNormals;
+            }
+
+            public int GetSmoothNormalsKernel(bool linearDepth, bool debug)
+            {
+                if (linearDepth)
+                    return debug ? SmoothNormalsLinearDepthDebug : SmoothNormalsLinearDepth;
+                else
+                    return debug ? SmoothNormalsDebug : SmoothNormals;
             }
         }
 
@@ -76,6 +170,8 @@ namespace Simulator.PointCloud
             }
         }
 
+        #endregion
+
         private RTHandle[] handles;
 
         private List<CustomSizeDepthRT> customSizeDepthRTs;
@@ -83,6 +179,8 @@ namespace Simulator.PointCloud
         private float lastValidationTime;
 
         public PointCloudPasses Passes { get; private set; }
+
+        public PointCloudKernels Kernels { get; private set; }
 
         public Material PointsMaterial { get; private set; }
 
@@ -166,6 +264,23 @@ namespace Simulator.PointCloud
                 wrapMode: TextureWrapMode.Clamp);
         }
 
+        public void UpdateSHCoefficients(CommandBuffer cmd, Vector3 position)
+        {
+            LightProbes.GetInterpolatedProbe(position, null, out var shl2);
+
+            for (var i = 0; i < 3; ++i)
+            {
+                cmd.SetGlobalVector(PointCloudShaderIDs.SHCoefficients.SHA[i],
+                    new Vector4(shl2[i, 3], shl2[i, 1], shl2[i, 2], shl2[i, 0] - shl2[i, 6]));
+
+                cmd.SetGlobalVector(PointCloudShaderIDs.SHCoefficients.SHB[i],
+                    new Vector4(shl2[i, 4], shl2[i, 6], shl2[i, 5] * 3, shl2[i, 7]));
+            }
+
+            cmd.SetGlobalVector(PointCloudShaderIDs.SHCoefficients.SHC,
+                new Vector4(shl2[0, 8], shl2[2, 8], shl2[1, 8], 1));
+        }
+
         private void ReleaseRTHandles()
         {
             foreach (var handle in handles)
@@ -207,6 +322,7 @@ namespace Simulator.PointCloud
             SolidComposeMaterial.SetFloat(PointCloudShaderIDs.SolidCompose.UnlitShadowsFilter, HDRenderPipeline.UnlitShadowsFilter);
 
             Passes = new PointCloudPasses(PointsMaterial, CirclesMaterial, SolidComposeMaterial);
+            Kernels = new PointCloudKernels(SolidComputeShader);
         }
 
         private void DestroyMaterials()
@@ -216,6 +332,9 @@ namespace Simulator.PointCloud
             CoreUtils.Destroy(SolidComputeShader);
             CoreUtils.Destroy(SolidRenderMaterial);
             CoreUtils.Destroy(SolidComposeMaterial);
+
+            Passes = null;
+            Kernels = null;
         }
 
         public RTHandle GetRTHandle(RTUsage usage)

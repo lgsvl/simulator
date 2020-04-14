@@ -615,11 +615,11 @@ namespace Simulator.Bridge.Ros
                 },
 
                 orientation = Convert(data.Orientation),
-                orientation_covariance = new double[9],
-                angular_velocity = new Vector3() { x = data.AngularVelocity.z, y = -data.AngularVelocity.x, z = data.AngularVelocity.y },
-                angular_velocity_covariance = new double[9],
-                linear_acceleration = new Vector3() { x = data.Acceleration.z, y = -data.Acceleration.x, z = data.Acceleration.y },
-                linear_acceleration_covariance = new double[9],
+                orientation_covariance = new double[9]{0.0001, 0, 0, 0, 0.0001, 0, 0, 0, 0.0001},
+                angular_velocity = ConvertToVector(data.AngularVelocity),
+                angular_velocity_covariance = new double[9]{0.0001, 0, 0, 0, 0.0001, 0, 0, 0, 0.0001},
+                linear_acceleration = ConvertToVector(data.Acceleration),
+                linear_acceleration_covariance = new double[9]{0.0001, 0, 0, 0, 0.0001, 0, 0, 0, 0.0001},
             };
         }
 
@@ -637,8 +637,8 @@ namespace Simulator.Bridge.Ros
 
                 measurement_time = data.Time,
                 measurement_span = (float)data.MeasurementSpan,
-                linear_acceleration = new Apollo.Point3D() { x = data.Acceleration.x, y = data.Acceleration.z, z = -data.Acceleration.y },
-                angular_velocity = new Apollo.Point3D() { x = -data.AngularVelocity.z, y = data.AngularVelocity.x, z = -data.AngularVelocity.y },
+                linear_acceleration = new Apollo.Point3D() { x = data.Acceleration.x, y = data.Acceleration.y, z = data.Acceleration.z },
+                angular_velocity = new Apollo.Point3D() { x = data.AngularVelocity.x, y = data.AngularVelocity.y, z = data.AngularVelocity.z },
             };
         }
 
@@ -658,8 +658,8 @@ namespace Simulator.Bridge.Ros
 
                 imu = new Apollo.Pose()
                 {
-                    linear_acceleration = new Apollo.Point3D() { x = data.Acceleration.x, y = data.Acceleration.z, z = -data.Acceleration.y },
-                    angular_velocity = new Apollo.Point3D() { x = -data.AngularVelocity.z, y = data.AngularVelocity.x, z = -data.AngularVelocity.y },
+                    linear_acceleration = new Apollo.Point3D() { x = data.Acceleration.x, y = data.Acceleration.y, z = -data.Acceleration.z },
+                    angular_velocity = new Apollo.Point3D() { x = data.AngularVelocity.x, y = data.AngularVelocity.y, z = data.AngularVelocity.z },
                     heading = yaw,
                     euler_angles = new Apollo.Point3D()
                     {

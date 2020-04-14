@@ -123,19 +123,21 @@ namespace Simulator.Sensors
                 return;
             }
 
+            var position = transform.position;
+            position.Set(position.z, -position.x, position.y);
             var velocity = transform.InverseTransformDirection(RigidBody.velocity);
+            velocity.Set(velocity.z, -velocity.x, velocity.y);
             var acceleration = (velocity - LastVelocity) / Time.fixedDeltaTime;
             LastVelocity = velocity;
 
             acceleration -= transform.InverseTransformDirection(Physics.gravity);
+            acceleration.Set(acceleration.z, -acceleration.x, acceleration.y);
 
             var angularVelocity = RigidBody.angularVelocity;
+            angularVelocity.Set(-angularVelocity.z, angularVelocity.x, -angularVelocity.y); // converting to right handed xyz
 
-            var angles = transform.eulerAngles;
-            float roll = -angles.z;
-            float pitch = -angles.x;
-            float yaw = -angles.y;
-            var orientation = Quaternion.Euler(roll, pitch, yaw);
+            var orientation = transform.rotation;
+            orientation.Set(-orientation.z, orientation.x, -orientation.y, orientation.w); // converting to right handed xyz
 
             data = new ImuData()
             {
@@ -146,7 +148,7 @@ namespace Simulator.Sensors
 
                 MeasurementSpan = Time.fixedDeltaTime,
 
-                Position = transform.position,
+                Position = position,
                 Orientation = orientation,
 
                 Acceleration = acceleration,
@@ -163,7 +165,7 @@ namespace Simulator.Sensors
 
                 MeasurementSpan = Time.fixedDeltaTime,
 
-                Position = transform.position,
+                Position = position,
                 Orientation = orientation,
 
                 Acceleration = acceleration,

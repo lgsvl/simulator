@@ -461,8 +461,8 @@ namespace Simulator.Bridge.Cyber
 
                 measurement_time = data.Time,
                 measurement_span = (float)data.MeasurementSpan,
-                linear_acceleration = ConvertToPoint(new Vector3(data.Acceleration.x, data.Acceleration.z, -data.Acceleration.y)),
-                angular_velocity = ConvertToPoint(new Vector3(-data.AngularVelocity.z, data.AngularVelocity.x, -data.AngularVelocity.y)),
+                linear_acceleration = ConvertToPoint(new Vector3(data.Acceleration.x, data.Acceleration.y, data.Acceleration.z)),
+                angular_velocity = ConvertToPoint(new Vector3(data.AngularVelocity.x, data.AngularVelocity.y, data.AngularVelocity.z)),
             };
         }
 
@@ -482,8 +482,8 @@ namespace Simulator.Bridge.Cyber
 
                 imu = new apollo.localization.Pose()
                 {
-                    linear_acceleration = ConvertToPoint(new Vector3(data.Acceleration.x, data.Acceleration.z, -data.Acceleration.y)),
-                    angular_velocity = ConvertToPoint(new Vector3(-data.AngularVelocity.z, data.AngularVelocity.x, -data.AngularVelocity.y)),
+                    linear_acceleration = ConvertToPoint(new Vector3(data.Acceleration.x, data.Acceleration.y, data.Acceleration.z)),
+                    angular_velocity = ConvertToPoint(new Vector3(data.AngularVelocity.x, data.AngularVelocity.y, data.AngularVelocity.z)),
                     heading = yaw,
                     euler_angles = new apollo.common.Point3D()
                     {
@@ -495,7 +495,7 @@ namespace Simulator.Bridge.Cyber
             };
         }
 
-        
+
         public static Detected2DObjectArray ConvertTo(apollo.common.Detection2DArray data)
         {
             return new Detected2DObjectArray()

@@ -266,8 +266,8 @@ pipeline {
       mail to: "${SIMULATOR_RELEASE_EMAILS}", subject: "Finished ${GIT_TAG} release build", body: "Finished ${GIT_TAG} release build: ${BUILD_URL}"
     }
     always {
-        sh "zip logs-${GIT_TAG}-${BUILD_ID}.zip *.log"
-        archiveArtifacts "logs*.zip"
+        sh script:"zip logs-${GIT_TAG}-${BUILD_ID}.zip *.log || true", label:"Archive log files"
+        archiveArtifacts artifacts:"logs*.zip", allowEmptyArchive:true
     }
   }
 

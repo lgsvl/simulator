@@ -194,10 +194,9 @@ pipeline {
       updateGitlabCommitStatus state: "success"
     }
     always {
-        sh "zip logs-bundles-${BUILD_ID}.zip *.log"
-        archiveArtifacts "logs*.zip"
+        sh script:"zip logs-bundles-${BUILD_ID}.zip *.log || true", label:"Archive log files"
+        archiveArtifacts artifacts:"logs*.zip", allowEmptyArchive:true
     }
-
   }
 
 }

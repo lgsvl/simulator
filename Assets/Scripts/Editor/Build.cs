@@ -42,6 +42,9 @@ namespace Simulator.Editor
         {
             public string name;
             public string[] references;
+            // TODO: This will enable 'unsafe' code for all.
+            // We may find a better way to unable it only when necessary.
+            public bool allowUnsafeCode = true;
         }
 
         public const string SceneExtension = "unity";
@@ -1182,6 +1185,7 @@ namespace Simulator.Editor
 
                     var outputAssembly = Path.Combine(outputFolder, $"{filename}.dll");
                     var assemblyBuilder = new AssemblyBuilder(outputAssembly, scripts);
+                    assemblyBuilder.compilerOptions.AllowUnsafeCode = true;
 
                     var assemblies = AppDomain.CurrentDomain.GetAssemblies();
                     var modules = assemblies.Where(asm =>

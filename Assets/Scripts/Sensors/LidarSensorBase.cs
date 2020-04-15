@@ -35,11 +35,11 @@ namespace Simulator.Sensors
 
         protected int CurrentLaserCount;
         protected int CurrentMeasurementsPerRotation;
-        float CurrentFieldOfView;
-        List<float> CurrentVerticalRayAngles;
-        float CurrentCenterAngle;
-        float CurrentMinDistance;
-        float CurrentMaxDistance;
+        protected float CurrentFieldOfView;
+        protected List<float> CurrentVerticalRayAngles;
+        protected float CurrentCenterAngle;
+        protected float CurrentMinDistance;
+        protected float CurrentMaxDistance;
 
         // Horizontal FOV of the camera
         protected const float HorizontalAngleLimit = 15.0f;
@@ -107,10 +107,10 @@ namespace Simulator.Sensors
         [NativeDisableContainerSafetyRestriction]
         protected NativeArray<Vector4> Points;
 
-        ComputeBuffer PointCloudBuffer;
+        protected ComputeBuffer PointCloudBuffer;
         int PointCloudLayer;
 
-        Material PointCloudMaterial;
+        protected Material PointCloudMaterial;
 
         private bool updated;
         protected NativeArray<float> SinLatitudeAngles;
@@ -197,14 +197,14 @@ namespace Simulator.Sensors
             }
         }
 
-        List<ReadRequest> Active = new List<ReadRequest>();
-        List<JobHandle> Jobs = new List<JobHandle>();
+        protected List<ReadRequest> Active = new List<ReadRequest>();
+        protected List<JobHandle> Jobs = new List<JobHandle>();
 
-        Stack<TextureSet> AvailableRenderTextures = new Stack<TextureSet>();
-        Stack<Texture2D> AvailableTextures = new Stack<Texture2D>();
+        protected Stack<TextureSet> AvailableRenderTextures = new Stack<TextureSet>();
+        protected Stack<Texture2D> AvailableTextures = new Stack<Texture2D>();
 
         int CurrentIndex;
-        float AngleStart;
+        protected float AngleStart;
         float AngleDelta;
 
         protected float MaxAngle;
@@ -220,8 +220,8 @@ namespace Simulator.Sensors
         // Scales between world coordinates and texture coordinates
         protected float XScale;
         protected float YScale;
-        
-        float IgnoreNewRquests;
+
+        protected float IgnoreNewRquests;
 
         ProfilerMarker UpdateMarker = new ProfilerMarker("Lidar.Update");
         ProfilerMarker VisualizeMarker = new ProfilerMarker("Lidar.Visualzie");
@@ -285,7 +285,7 @@ namespace Simulator.Sensors
             Init();
         }
 
-        private float CalculateFovAngle(float latitudeAngle, float logitudeAngle)
+        protected float CalculateFovAngle(float latitudeAngle, float logitudeAngle)
         {
             // Calculate a direction (dx, dy, dz) using lat/log angles
             float dy = Mathf.Cos(latitudeAngle * Mathf.Deg2Rad);
@@ -301,105 +301,7 @@ namespace Simulator.Sensors
             return Mathf.Abs(Mathf.Atan2(yy, MinDistance) * Mathf.Rad2Deg);
         }
 
-        public virtual void Reset()
-        {
-            Active.ForEach(req =>
-            {
-                req.Readback.WaitForCompletion();
-                req.TextureSet.Release();
-            });
-            Active.Clear();
-
-            Jobs.ForEach(job => job.Complete());
-            Jobs.Clear();
-
-            foreach (var tex in AvailableRenderTextures)
-            {
-                tex.Release();
-            };
-            AvailableRenderTextures.Clear();
-
-            foreach (var tex in AvailableTextures)
-            {
-                Destroy(tex);
-            };
-            AvailableTextures.Clear();
-
-            if (PointCloudBuffer != null)
-            {
-                PointCloudBuffer.Release();
-                PointCloudBuffer = null;
-            }
-
-            if (Points.IsCreated)
-            {
-                Points.Dispose();
-            }
-
-            AngleStart = 0.0f;
-            // Assuming center of view frustum is horizontal, find the vertical FOV (of view frustum) that can encompass the tilted Lidar FOV.
-            // "MaxAngle" is half of the vertical FOV of view frustum.
-            if (VerticalRayAngles.Count == 0)
-            {
-                MaxAngle = Mathf.Abs(CenterAngle) + FieldOfView / 2.0f;
-
-                StartLatitudeAngle = 90.0f + MaxAngle;
-                //If the Lidar is tilted up, ignore lower part of the vertical FOV.
-                if (CenterAngle < 0.0f)
-                {
-                    StartLatitudeAngle -= MaxAngle * 2.0f - FieldOfView;
-                }
-                EndLatitudeAngle = StartLatitudeAngle - FieldOfView;
-            }
-            else
-            {
-                LaserCount = VerticalRayAngles.Count;
-                StartLatitudeAngle = 90.0f - VerticalRayAngles.Min();
-                EndLatitudeAngle = 90.0f - VerticalRayAngles.Max();
-                FieldOfView = StartLatitudeAngle - EndLatitudeAngle;
-                MaxAngle = Mathf.Max(StartLatitudeAngle - 90.0f, 90.0f - EndLatitudeAngle);
-            }
-
-            float startLongitudeAngle = 90.0f + HorizontalAngleLimit / 2.0f;
-            SinStartLongitudeAngle = Mathf.Sin(startLongitudeAngle * Mathf.Deg2Rad);
-            CosStartLongitudeAngle = Mathf.Cos(startLongitudeAngle * Mathf.Deg2Rad);
-
-            // The MaxAngle above is the calculated at the center of the view frustum.
-            // Because the scan curve for a particular laser ray is a hyperbola (intersection of a conic surface and a vertical plane),
-            // the vertical FOV should be enlarged toward left and right ends.
-            float startFovAngle = CalculateFovAngle(StartLatitudeAngle, startLongitudeAngle);
-            float endFovAngle = CalculateFovAngle(EndLatitudeAngle, startLongitudeAngle);
-            MaxAngle = Mathf.Max(MaxAngle, Mathf.Max(startFovAngle, endFovAngle));
-
-            // Calculate sin/cos of latitude angle of each ray.
-            if (SinLatitudeAngles.IsCreated)
-            {
-                SinLatitudeAngles.Dispose();
-            }
-            if (CosLatitudeAngles.IsCreated)
-            {
-                CosLatitudeAngles.Dispose();
-            }
-            SinLatitudeAngles = new NativeArray<float>(LaserCount, Allocator.Persistent);
-            CosLatitudeAngles = new NativeArray<float>(LaserCount, Allocator.Persistent);
-
-
-            int totalCount = LaserCount * MeasurementsPerRotation;
-            PointCloudBuffer = new ComputeBuffer(totalCount, UnsafeUtility.SizeOf<Vector4>());
-            PointCloudMaterial?.SetBuffer("_PointCloud", PointCloudBuffer);
-
-            Points = new NativeArray<Vector4>(totalCount, Allocator.Persistent);
-
-            CurrentLaserCount = LaserCount;
-            CurrentMeasurementsPerRotation = MeasurementsPerRotation;
-            CurrentFieldOfView = FieldOfView;
-            CurrentVerticalRayAngles = new List<float>(VerticalRayAngles);
-            CurrentCenterAngle = CenterAngle;
-            CurrentMinDistance = MinDistance;
-            CurrentMaxDistance = MaxDistance;
-
-            IgnoreNewRquests = 0;
-        }
+        public abstract void Reset();
 
         void OnDisable()
         {
@@ -440,9 +342,8 @@ namespace Simulator.Sensors
             }
 
             bool jobsIssued = false;
-            while (Active.Count > 0)
+            foreach (var req in Active)
             {
-                var req = Active[0];
                 if (!req.TextureSet.IsValid())
                 {
                     // lost render texture, probably due to Unity window resize or smth
@@ -470,13 +371,8 @@ namespace Simulator.Sensors
                         }
                     }
                 }
-                else
-                {
-                    break;
-                }
-
-                Active.RemoveAt(0);
             }
+            Active.RemoveAll(req => req.Readback.done == true);
 
             if (jobsIssued)
             {
@@ -492,7 +388,7 @@ namespace Simulator.Sensors
                 float minAngle = 360.0f / CurrentMeasurementsPerRotation;
 
                 AngleDelta += Time.deltaTime * 360.0f * RotationFrequency;
-                int count = (int)(HorizontalAngleLimit / minAngle);
+                int count = Mathf.CeilToInt(HorizontalAngleLimit / minAngle);
 
                 while (AngleDelta >= HorizontalAngleLimit)
                 {

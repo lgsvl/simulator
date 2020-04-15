@@ -116,7 +116,7 @@ namespace Simulator.Sensors
             public double CaptureTime;
         }
 
-        private Queue<CameraCapture> CaptureQueue = new Queue<CameraCapture>();
+        private List<CameraCapture> CaptureList = new List<CameraCapture>();
         private ConcurrentBag<byte[]> JpegOutput = new ConcurrentBag<byte[]>();
         private Queue<Task> Tasks = new Queue<Task>();
 
@@ -148,11 +148,11 @@ namespace Simulator.Sensors
                 DistortedTexture.Release();
             }
 
-            while (CaptureQueue.Count > 0)
+            foreach (var capture in CaptureList)
             {
-                var capture = CaptureQueue.Dequeue();
                 capture.GpuData.Dispose();
             }
+            CaptureList.Clear();
 
             // Wait all tasks finished to gurantee all native arrays are in AvailableGpuDataArrays.
             Task.WaitAll(Tasks.ToArray());
@@ -402,7 +402,7 @@ namespace Simulator.Sensors
                 // See https://issuetracker.unity3d.com/issues/asyncgpureadback-dot-requestintonativearray-crashes-unity-when-trying-to-request-a-copy-to-the-same-nativearray-multiple-times
                 // for the detaisl of the bug in Unity.
                 //capture.Request = AsyncGPUReadback.RequestIntoNativeArray(ref capture.GpuData, Distorted ? DistortedTexture : SensorCamera.targetTexture, 0, TextureFormat.RGBA32);
-                CaptureQueue.Enqueue(capture);
+                CaptureList.Add(capture);
 
                 NextCaptureTime = Time.time + (1.0f / Frequency);
             }
@@ -410,19 +410,15 @@ namespace Simulator.Sensors
 
         void ProcessReadbackRequests()
         {
-            while (CaptureQueue.Count > 0)
+            foreach (var capture in CaptureList)
             {
-                var capture = CaptureQueue.Peek();
                 if (capture.Request.hasError)
                 {
-                    CaptureQueue.Dequeue();
                     AvailableGpuDataArrays.Add(capture.GpuData);
                     Debug.Log("Failed to read GPU texture");
                 }
                 else if (capture.Request.done)
                 {
-                    CaptureQueue.Dequeue();
-
                     if (Bridge != null && Bridge.Status == Status.Connected)
                     {
                         // TODO: Remove the following two lines of extra memory copy, when we can use 
@@ -467,11 +463,8 @@ namespace Simulator.Sensors
                         AvailableGpuDataArrays.Add(capture.GpuData);
                     }
                 }
-                else
-                {
-                    break;
-                }
             }
+            CaptureList.RemoveAll(capture => capture.Request.done == true);
         }
 
         public bool Save(string path, int quality, int compression)

@@ -304,6 +304,14 @@ sim.run()
 `follow_closest_lane` will make the NPC vehicle follow whatever lane is the closest.
 Upon reaching intersections it will randomly decide to either drive straight or turn.
 
+You can also spawn a pool of NPC vehicles with the same behavior as NPCs added to a non-API simulation. They will follow the map annotations, obey speed limits, obey traffic signals, and attempt to avoid accidents. These NPCs cannot be directly controlled.
+
+```python
+sim.add_random_agents(lgsvl.AgentType.NPC)
+```
+
+
+
 ### Pedestrians [[top]] {: #pedestrians data-toc-label='Pedestrians'}
 
 You can create `Pedestrian` agents that will allow you to create pedestrians on sidewalks
@@ -335,6 +343,14 @@ npc.follow(waypoints, loop=True)
 Each waypoint has a position in world coordinates, an optional idle time that the pedestrian will
 spend standing in-place when it reaches the waypoint, and an optional trigger distance. You can receive information on progress by
 setting the `on_waypoint_reached` callback.
+
+You can also spawn a pool of pedestrians with the same behavior as pedestrians added to a non-API simulation. They will follow the map annotations and path find. These pedestrians cannot be directly controlled.
+
+```python
+sim.add_random_agents(lgsvl.AgentType.PEDESTRIAN)
+```
+
+
 
 ## Callbacks [[top]] {: #callbacks data-toc-label='Callbacks'}
 

@@ -32,4 +32,5 @@ This document describes the example Python scripts that use the LGSVL Simulator 
 * [26-npc-trigger-waypoints.py](https://github.com/lgsvl/PythonAPI/blob/master/quickstart/26-npc-trigger-waypoints.py): How to use trigger waypoints that pause npc motion until an ego vehicle approaches.
 * [27-control-traffic-lights.py](https://github.com/lgsvl/PythonAPI/blob/master/quickstart/27-control-traffic-lights.py): How to get and set the control policy of a controllable object (e.g., changing a traffic light signal)
 * [28-control-traffic-cone.py](https://github.com/lgsvl/PythonAPI/blob/master/quickstart/28-control-traffic-cone.py): How to add and move a controllable object (e.g. a traffic cone)
+* [29-add-random-agents.py](https://github.com/lgsvl/PythonAPI/blob/master/quickstart/29-add-random-agents.py): How to use random npcs and pedestrians in a simulation
 * [99-utils-examples.py](https://github.com/lgsvl/PythonAPI/blob/master/quickstart/99-utils-examples.py): How to use several of the utility scripts to transform an arbitrary point to the coordinate system of a local transform (relative to sensor)

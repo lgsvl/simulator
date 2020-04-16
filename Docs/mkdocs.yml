@@ -83,7 +83,7 @@ nav:
   - 'NPC Map Navigation': 'npc-map-navigation.md'
   - 'Sensor Plugins': 
     - 'Introduction': 'sensor-plugins.md'
-    - 'Velodyne Lidar Sensor': 'velodyne-lidar-plugin.md'
+    - 'Lidar Sensor Plugin': 'lidar-plugin.md'
   - 'Controllable Plugins': 'controllable-plugins.md'
   - 'Dynamics': 'ego-vehicle-dynamics.md'
 - 'Support':

@@ -128,9 +128,17 @@ namespace Simulator.PointCloud
 
         protected ComputeBuffer Buffer;
 
+#if UNITY_EDITOR
+        protected ComputeBuffer sceneViewBuffer;
+#endif
+        
         public abstract Bounds Bounds { get; }
 
         public virtual int PointCount => Buffer?.count ?? 0;
+        
+#if UNITY_EDITOR
+        public virtual int SceneViewPointCount => sceneViewBuffer?.count ?? 0;
+#endif
 
         private PointCloudResources Resources => PointCloudManager.Resources;
 
@@ -200,6 +208,11 @@ namespace Simulator.PointCloud
         {
             Buffer?.Dispose();
             Buffer = null;
+            
+#if UNITY_EDITOR
+            sceneViewBuffer?.Dispose();
+            sceneViewBuffer = null;
+#endif
         }
 
         private void OnDestroy()
@@ -207,9 +220,30 @@ namespace Simulator.PointCloud
             PointCloudManager.HandleRendererRemoved(this);
         }
 
+        private ComputeBuffer GetBufferForCamera(HDCamera hdCamera)
+        {
+#if UNITY_EDITOR
+            return hdCamera.camera.cameraType == CameraType.SceneView ? sceneViewBuffer : Buffer;
+#else
+            return Buffer;
+#endif
+        }
+
+        private int GetPointCountForCamera(HDCamera hdCamera)
+        {
+#if UNITY_EDITOR
+            return hdCamera.camera.cameraType == CameraType.SceneView ? SceneViewPointCount : PointCount;
+#else
+            return PointCount;
+#endif
+        }
+
         public void Render(CommandBuffer cmd, HDCamera targetCamera, RenderTargetIdentifier[] rtIds, RTHandle depthBuffer, RTHandle cameraColorBuffer)
         {
-            if ((Mask & RenderMask.Camera) == 0 || Buffer == null || PointCount == 0 || !isActiveAndEnabled)
+            var pointCount = GetPointCountForCamera(targetCamera);
+            var buffer = GetBufferForCamera(targetCamera);
+            
+            if ((Mask & RenderMask.Camera) == 0 || buffer == null || pointCount == 0 || !isActiveAndEnabled)
                 return;
 
             // Temporarily disabled due to incompatibility with HDRP (camera relative rendering)
@@ -218,12 +252,11 @@ namespace Simulator.PointCloud
 
             switch (RenderMode)
             {
-                case RenderType.Solid when Application.isPlaying && targetCamera.camera.cameraType != CameraType.SceneView:
+                case RenderType.Solid:
                     RenderAsSolid(cmd, targetCamera, rtIds, depthBuffer, cameraColorBuffer);
                     break;
                 case RenderType.Points:
                 case RenderType.Cones:
-                case RenderType.Solid:
                     RenderAsPoints(cmd, targetCamera, rtIds, depthBuffer);
                     break;
                 default:
@@ -239,6 +272,11 @@ namespace Simulator.PointCloud
 
         public void RenderLidar(CommandBuffer cmd, HDCamera targetCamera, RTHandle colorBuffer, RTHandle depthBuffer, bool solid)
         {
+#if UNITY_EDITOR
+            if (targetCamera.camera.cameraType == CameraType.SceneView)
+                return;
+#endif
+            
             if ((Mask & RenderMask.Lidar) == 0 || Buffer == null || PointCount == 0 || !isActiveAndEnabled)
                 return;
 
@@ -307,9 +345,6 @@ namespace Simulator.PointCloud
 
         private void RenderSolidCore(CommandBuffer cmd, HDCamera targetCamera, RTHandle cameraColorBuffer, bool calculateNormals, bool smoothNormals)
         {
-            if (!Application.isPlaying)
-                return;
-
             CoreUtils.SetKeyword(cmd, PointCloudShaderIDs.SolidCompose.LinearDepthKeyword, DebugUseLinearDepth);
 
             var rt = Resources.GetRTHandle(RTUsage.PointRender);
@@ -341,12 +376,12 @@ namespace Simulator.PointCloud
 
             CalculateMatrices(targetCamera, out var projMatrix, out var invProjMatrix, out var invViewProjMatrix, out var solidRenderMvp);
 
-            cmd.SetGlobalBuffer(PointCloudShaderIDs.Shared.Buffer, Buffer);
+            cmd.SetGlobalBuffer(PointCloudShaderIDs.Shared.Buffer, GetBufferForCamera(targetCamera));
             cmd.SetGlobalInt(PointCloudShaderIDs.Shared.Colorize, (int)Colorize);
             cmd.SetGlobalFloat(PointCloudShaderIDs.Shared.MinHeight, Bounds.min.y);
             cmd.SetGlobalFloat(PointCloudShaderIDs.Shared.MaxHeight, Bounds.max.y);
             cmd.SetGlobalMatrix(PointCloudShaderIDs.SolidRender.MVPMatrix, solidRenderMvp);
-            cmd.DrawProcedural(Matrix4x4.identity, Resources.SolidRenderMaterial, 0, MeshTopology.Points, PointCount);
+            cmd.DrawProcedural(Matrix4x4.identity, Resources.SolidRenderMaterial, 0, MeshTopology.Points, GetPointCountForCamera(targetCamera));
 
             var cs = Resources.SolidComputeShader;
 
@@ -466,7 +501,7 @@ namespace Simulator.PointCloud
 
             if (ConstantSize && Mathf.Approximately(PixelSize, 1f))
             {
-                cmd.SetGlobalBuffer(PointCloudShaderIDs.Shared.Buffer, Buffer);
+                cmd.SetGlobalBuffer(PointCloudShaderIDs.Shared.Buffer, GetBufferForCamera(targetCamera));
                 cmd.SetGlobalMatrix(PointCloudShaderIDs.PointsRender.ModelMatrix, transform.localToWorldMatrix);
                 cmd.SetGlobalMatrix(PointCloudShaderIDs.PointsRender.VPMatrix, targetCamera.mainViewConstants.viewProjMatrix);
                 cmd.SetGlobalInt(PointCloudShaderIDs.Shared.Colorize, (int)Colorize);
@@ -477,7 +512,7 @@ namespace Simulator.PointCloud
                 CoreUtils.SetKeyword(cmd, PointCloudShaderIDs.SolidCompose.TargetGBufferKeyword, targetGBuffer);
                 CoreUtils.SetRenderTarget(cmd, rtIds, depthBuffer);
 
-                cmd.DrawProcedural(Matrix4x4.identity, Resources.PointsMaterial, 0, MeshTopology.Points, PointCount);
+                cmd.DrawProcedural(Matrix4x4.identity, Resources.PointsMaterial, 0, MeshTopology.Points, GetPointCountForCamera(targetCamera));
             }
             else
             {
@@ -488,7 +523,7 @@ namespace Simulator.PointCloud
                 CoreUtils.SetRenderTarget(cmd, rtIds, depthBuffer);
 
                 var pass = Resources.Passes.circlesGBuffer;
-                cmd.DrawProcedural(Matrix4x4.identity, Resources.CirclesMaterial, pass, MeshTopology.Points, PointCount);
+                cmd.DrawProcedural(Matrix4x4.identity, Resources.CirclesMaterial, pass, MeshTopology.Points, GetPointCountForCamera(targetCamera));
             }
         }
 
@@ -504,7 +539,7 @@ namespace Simulator.PointCloud
         private void SetCirclesMaterialProperties(CommandBuffer cmd, HDCamera targetCamera)
         {
             CoreUtils.SetKeyword(cmd, PointCloudShaderIDs.PointsRender.ConesKeyword, RenderMode == RenderType.Cones);
-            cmd.SetGlobalBuffer(PointCloudShaderIDs.Shared.Buffer, Buffer);
+            cmd.SetGlobalBuffer(PointCloudShaderIDs.Shared.Buffer, GetBufferForCamera(targetCamera));
             cmd.SetGlobalMatrix(PointCloudShaderIDs.PointsRender.ModelMatrix, transform.localToWorldMatrix);
             cmd.SetGlobalMatrix(PointCloudShaderIDs.PointsRender.VPMatrix, targetCamera.mainViewConstants.viewProjMatrix);
             cmd.SetGlobalInt(PointCloudShaderIDs.Shared.Colorize, (int)Colorize);
@@ -533,6 +568,7 @@ namespace Simulator.PointCloud
             var biasPush = ShadowBias * scale;
             var shadowVector = new Vector4(scale, biasPush, 0, 0);
 
+            // Only use the game view buffer, skip shadows for scene view culled points to save performance
             cmd.SetGlobalBuffer(PointCloudShaderIDs.Shared.Buffer, Buffer);
             cmd.SetGlobalMatrix(PointCloudShaderIDs.PointsRender.ModelMatrix, transform.localToWorldMatrix);
             cmd.SetGlobalVector(PointCloudShaderIDs.PointsRender.ShadowVector, shadowVector);

@@ -22,8 +22,7 @@ namespace Simulator.Editor.PointCloud
         private SerializedProperty pointLimit;
         private SerializedProperty minProjection;
         private SerializedProperty rebuildSteps;
-        private SerializedProperty previewDepth;
-        
+
         private void FindPrivateProperties()
         {
             nodeTreeLoader = serializedObject.FindProperty(nameof(NodeTreeRenderer.nodeTreeLoader));
@@ -32,7 +31,6 @@ namespace Simulator.Editor.PointCloud
             pointLimit = serializedObject.FindProperty(nameof(NodeTreeRenderer.pointLimit));
             minProjection = serializedObject.FindProperty(nameof(NodeTreeRenderer.minProjection));
             rebuildSteps = serializedObject.FindProperty(nameof(NodeTreeRenderer.rebuildSteps));
-            previewDepth = serializedObject.FindProperty(nameof(NodeTreeRenderer.previewDepth));
         }
         
         protected override void OnEnable()
@@ -55,7 +53,6 @@ namespace Simulator.Editor.PointCloud
                 EditorGUILayout.PropertyField(pointLimit);
                 EditorGUILayout.PropertyField(minProjection);
                 EditorGUILayout.PropertyField(rebuildSteps);
-                EditorGUILayout.PropertyField(previewDepth);
             }
         }
     }

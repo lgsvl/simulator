@@ -23,10 +23,11 @@ namespace Simulator.PointCloud.Trees
         {
             /// Nodes will be culled using camera frustum.
             CameraFrustum,
+
             /// Nodes will be culled using only distance from camera.
             Distance
         }
-        
+
         private struct VisibleNode
         {
             public readonly string Identifier;
@@ -48,32 +49,31 @@ namespace Simulator.PointCloud.Trees
                 return y.Weight.CompareTo(x.Weight);
             }
         }
-        
+
 #pragma warning disable 0649
-        
+
         [Tooltip("Loader responsible for loading octree that should be rendered.")]
         public NodeTreeLoader nodeTreeLoader;
-        
+
         [Tooltip("Camera that will be used for determining visibility of octree nodes.")]
         public Camera cullCamera;
-        
+
         [Tooltip("Defines node culling mode used by this controller.")]
         public CullMode cullMode;
-        
+
         [Tooltip("Maximum amount of points that can be rendered at once.")]
         public int pointLimit = 2000000;
-        
+
         [Tooltip("Minimum screen projection size (in pixels) of the node.")]
         public float minProjection = 100;
-        
+
         [Tooltip("Delay in frames between rebuilding visible nodes list.")]
         public int rebuildSteps = 10;
-        
-        [Tooltip("Amount of tree levels to load as preview in editor.")]
-        public int previewDepth = 2;
 
 #pragma warning restore 0649
-        
+
+        private int usedNodesPointCount;
+
         private int pointCount;
 
         private readonly Plane[] planes = new Plane[6];
@@ -81,18 +81,22 @@ namespace Simulator.PointCloud.Trees
         private readonly List<VisibleNode> visibleNodes = new List<VisibleNode>();
 
         private readonly List<string> usedNodes = new List<string>();
-        
+
         private readonly VisibleNodeComparer comparer = new VisibleNodeComparer();
-        
+
         private BufferBuilder bufferBuilder;
 
         private float viewMultiplier;
-        
-        private Vector3 rendererSpaceCameraPosition;
-        
+
         private int nodeCount;
 
         private int framesSinceLastRebuild;
+
+#if UNITY_EDITOR
+        private SceneViewBufferBuilder sceneViewBufferBuilder;
+
+        private int sceneViewPointCount;
+#endif
 
         public override Bounds Bounds
         {
@@ -100,46 +104,32 @@ namespace Simulator.PointCloud.Trees
             {
                 if (nodeTreeLoader != null)
                     return nodeTreeLoader.Tree?.Bounds ?? default;
-                
+
                 return default;
             }
         }
 
-        private Camera CullCamera
-        {
-            get
-            {
-#if UNITY_EDITOR
-                if (Application.isPlaying)
-                    return cullCamera;
-
-                if (EditorWindow.focusedWindow != SceneView.lastActiveSceneView)
-                    return cullCamera;
-                
-                var cam = SceneView.lastActiveSceneView.camera;
-                return cam != null ? cam : cullCamera;
-#else
-                return cullCamera;
-#endif
-            }
-        }
+        private Camera CullCamera => cullCamera;
 
         public override int PointCount => pointCount;
+
+#if UNITY_EDITOR
+        public override int SceneViewPointCount => sceneViewPointCount;
+#endif
 
         protected void OnEnable()
         {
             if (nodeTreeLoader == null || nodeTreeLoader.Tree == null)
                 return;
-            
+
             RecreateBuilder();
         }
 
         protected override void OnDisable()
         {
-            bufferBuilder?.Dispose();
-            bufferBuilder = null;
+            DisposeBuilder();
         }
-        
+
         private void Update()
         {
             if (CullCamera == null && Application.isPlaying)
@@ -159,8 +149,7 @@ namespace Simulator.PointCloud.Trees
 
             if (nodeTreeLoader == null || nodeTreeLoader.Tree == null)
             {
-                bufferBuilder?.Dispose();
-                bufferBuilder = null;
+                DisposeBuilder();
                 ClearBuffer();
                 return;
             }
@@ -168,16 +157,62 @@ namespace Simulator.PointCloud.Trees
             if (bufferBuilder == null || !bufferBuilder.Valid)
                 RecreateBuilder();
 
+            var tree = nodeTreeLoader.Tree;
+
             visibleNodes.Clear();
             usedNodes.Clear();
-            pointCount = 0;
-            
+            usedNodesPointCount = 0;
+
             if (CullCamera != null)
-                CullAndRefresh();
-            else
-                RefreshPreview();
+            {
+                Cull(tree, CullCamera);
+
+                if (usedNodesPointCount == 0)
+                {
+                    pointCount = 0;
+                    Buffer = null;
+                }
+                else
+                {
+                    tree.NodeLoader.RequestLoad(usedNodes);
+                    var buffer = bufferBuilder.GetPopulatedBuffer(usedNodes, out var validPointCount);
+                    if (buffer != null)
+                    {
+                        Buffer = buffer;
+                        pointCount = validPointCount;
+                    }
+                }
+            }
+
+#if UNITY_EDITOR
+            visibleNodes.Clear();
+            usedNodes.Clear();
+            usedNodesPointCount = 0;
+            var sceneCamera = SceneView.lastActiveSceneView.camera;
+
+            if (sceneCamera != null)
+            {
+                Cull(nodeTreeLoader.Tree, sceneCamera);
+
+                if (usedNodesPointCount == 0)
+                {
+                    sceneViewPointCount = 0;
+                    sceneViewBuffer = null;
+                }
+                else
+                {
+                    tree.NodeLoader.RequestLoad(usedNodes);
+                    var buffer = sceneViewBufferBuilder.GetPopulatedBuffer(usedNodes, out var validPointCount);
+                    if (buffer != null)
+                    {
+                        sceneViewBuffer = buffer;
+                        sceneViewPointCount = validPointCount;
+                    }
+                }
+            }
+#endif
         }
-        
+
         private void OnValidate()
         {
             if (bufferBuilder != null && (bufferBuilder.MaxBufferElements != pointLimit ||
@@ -187,45 +222,61 @@ namespace Simulator.PointCloud.Trees
             }
         }
 
-        public void Refresh(NodeTree tree, ComputeBuffer buffer, int validPointCount)
-        {
-            Buffer = buffer;
-        }
-
         public void ClearBuffer()
         {
             pointCount = 0;
             Buffer = null;
+
+#if UNITY_EDITOR
+            sceneViewPointCount = 0;
+            sceneViewBuffer = null;
+#endif
         }
-        
+
         private void RecreateBuilder()
         {
-            bufferBuilder?.Dispose();
+            DisposeBuilder();
+
             bufferBuilder = new BufferBuilder(nodeTreeLoader.Tree.NodeLoader, pointLimit, rebuildSteps);
+
+#if UNITY_EDITOR
+            sceneViewBufferBuilder = new SceneViewBufferBuilder(nodeTreeLoader.Tree.NodeLoader, pointLimit, rebuildSteps);
+#endif
         }
-        
+
+        private void DisposeBuilder()
+        {
+            bufferBuilder?.Dispose();
+            bufferBuilder = null;
+
+#if UNITY_EDITOR
+            sceneViewBufferBuilder?.Dispose();
+            sceneViewBufferBuilder = null;
+#endif
+        }
+
         /// <summary>
         /// Calculates node visibility, requests memory and buffer updates and triggers render for associated camera.
         /// </summary>
-        private void CullAndRefresh()
+        private void Cull(NodeTree tree, Camera usedCamera)
         {
-            var tree = nodeTreeLoader.Tree;
+            visibleNodes.Clear();
             var root = tree.NodeRecords[TreeUtility.RootNodeIdentifier];
 
-            viewMultiplier = CullCamera.orthographic
-                ? 0.5f * Screen.height / CullCamera.orthographicSize
-                : 0.5f * Screen.height / Mathf.Tan(0.5f * CullCamera.fieldOfView * Mathf.Deg2Rad);
+            viewMultiplier = usedCamera.orthographic
+                ? 0.5f * Screen.height / usedCamera.orthographicSize
+                : 0.5f * Screen.height / Mathf.Tan(0.5f * usedCamera.fieldOfView * Mathf.Deg2Rad);
 
             var rendererTransform = transform;
-            rendererSpaceCameraPosition = transform.InverseTransformPoint(CullCamera.transform.position);
-            
+            var rendererSpaceCameraPosition = transform.InverseTransformPoint(usedCamera.transform.position);
+
             var m = rendererTransform.localToWorldMatrix;
-            var v = CullCamera.worldToCameraMatrix;
-            var p = CullCamera.projectionMatrix;
-            
+            var v = usedCamera.worldToCameraMatrix;
+            var p = usedCamera.projectionMatrix;
+
             GeometryUtility.CalculateFrustumPlanes(p * v * m, planes);
 
-            CullNodeRecursive(root);
+            CullNodeRecursive(root, usedCamera, rendererSpaceCameraPosition);
 
             if (visibleNodes.Count == 0)
             {
@@ -235,59 +286,27 @@ namespace Simulator.PointCloud.Trees
 
             visibleNodes.Sort(comparer);
             var index = 0;
-            
-            while (pointCount < pointLimit && index < visibleNodes.Count)
+
+            while (usedNodesPointCount < pointLimit && index < visibleNodes.Count)
             {
                 var node = visibleNodes[index++];
-                
+
                 // Adding this node would exceed point limit, terminate
-                if (pointCount + node.PointCount > pointLimit)
+                if (usedNodesPointCount + node.PointCount > pointLimit)
                     break;
-                
+
                 usedNodes.Add(node.Identifier);
-                pointCount += node.PointCount;
+                usedNodesPointCount += node.PointCount;
             }
-            
-            RefreshTree();
-        }
-
-        private void RefreshPreview()
-        {
-            var tree = nodeTreeLoader.Tree;
-            var root = tree.NodeRecords[TreeUtility.RootNodeIdentifier];
-            
-            if (previewDepth > 0)
-                PreparePreviewRecursive(root, 1);
-
-            foreach (var node in visibleNodes)
-            {
-                usedNodes.Add(node.Identifier);
-                pointCount += node.PointCount;
-            }
-
-            RefreshTree();
-        }
-
-        private void RefreshTree()
-        {
-            var tree = nodeTreeLoader.Tree;
-            if (pointCount == 0)
-            {
-                ClearBuffer();
-                return;
-            }
-
-            tree.NodeLoader.RequestLoad(usedNodes);
-            var buffer = bufferBuilder.GetPopulatedBuffer(usedNodes, out var validPointCount);
-            if (buffer != null)
-                Refresh(tree, buffer, validPointCount);
         }
 
         /// <summary>
         /// Checks node's visibility and importance. If node is viable for rendering, repeats the process for its children.
         /// </summary>
         /// <param name="node">Node to check.</param>
-        private void CullNodeRecursive(NodeRecord node)
+        /// <param name="usedCamera">Camera used for culling.</param>
+        /// <param name="rendererSpaceCameraPosition">Renderer position in camera-relative space.</param>
+        private void CullNodeRecursive(NodeRecord node, Camera usedCamera, Vector3 rendererSpaceCameraPosition)
         {
             if (cullMode == CullMode.CameraFrustum)
             {
@@ -296,14 +315,14 @@ namespace Simulator.PointCloud.Trees
                     return;
             }
 
-            var projectedSize = CullCamera.orthographic
+            var projectedSize = usedCamera.orthographic
                 ? viewMultiplier * node.BoundingSphereRadius
                 : viewMultiplier * node.BoundingSphereRadius /
                   node.CalculateDistanceTo(rendererSpaceCameraPosition);
-            
+
             if (projectedSize < minProjection)
                 return;
-            
+
             visibleNodes.Add(new VisibleNode(node.Identifier, projectedSize, node.PointCount));
 
             if (!node.HasChildren)
@@ -313,24 +332,8 @@ namespace Simulator.PointCloud.Trees
             {
                 if (node.Children[i] == null)
                     continue;
-                
-                CullNodeRecursive(node.Children[i]);
-            }
-        }
 
-        private void PreparePreviewRecursive(NodeRecord node, int currentDepth)
-        {
-            visibleNodes.Add(new VisibleNode(node.Identifier, 1f, node.PointCount));
-
-            if (!node.HasChildren || currentDepth >= previewDepth)
-                return;
-
-            for (var i = 0; i < node.Children.Length; ++i)
-            {
-                if (node.Children[i] == null)
-                    continue;
-                
-                PreparePreviewRecursive(node.Children[i], currentDepth + 1);
+                CullNodeRecursive(node.Children[i], usedCamera, rendererSpaceCameraPosition);
             }
         }
     }

@@ -37,21 +37,10 @@ namespace Simulator.PointCloud
                 return;
 
             var isLit = injectionPoint == PointCloudManager.LitInjectionPoint;
-            var forceRender = false;
-            
-            if (hdCamera.camera.cameraType == CameraType.SceneView)
-            {
-                // Scene preview camera is always rendered as unlit points - for lit pass, just skip it altogether...
-                if (isLit)
-                    return;
-                // ...and for unlit, render if even if renderer wants lit version
-                forceRender = true;
-            }
-            
-            RTHandle depthBuffer;
+
             RenderTargetIdentifier[] rtIds;
             
-            GetCameraBuffers(out var colorBuffer, out depthBuffer);
+            GetCameraBuffers(out var colorBuffer, out var depthBuffer);
 
             if (isLit)
             {
@@ -70,7 +59,7 @@ namespace Simulator.PointCloud
 
             foreach (var pcr in pointCloudRenderers)
             {
-                if (!(pcr.SupportsLighting ^ isLit) || forceRender)
+                if (!(pcr.SupportsLighting ^ isLit))
                 {
                     if (isLit)
                     {

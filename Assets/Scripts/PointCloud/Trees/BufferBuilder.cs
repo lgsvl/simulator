@@ -32,11 +32,11 @@ namespace Simulator.PointCloud.Trees
         private int lastProcessedNodeIndex;
         private int currentStepCount;
         private int constructedBufferItemsCount;
-        private int readyBufferItemsCount;
+        protected int readyBufferItemsCount;
         
         private bool bufferSwapFlag;
         
-        private bool busy;
+        protected bool busy;
 
         public bool Valid => !nodeLoader.Disposed && bufferA != null;
 
@@ -44,7 +44,7 @@ namespace Simulator.PointCloud.Trees
 
         public int RebuildSteps => rebuildSteps;
 
-        private ComputeBuffer ReadyBuffer => bufferSwapFlag ? bufferB : bufferA;
+        protected ComputeBuffer ReadyBuffer => bufferSwapFlag ? bufferB : bufferA;
         
         private ComputeBuffer ConstructedBuffer => bufferSwapFlag ? bufferA : bufferB;
 
@@ -76,7 +76,7 @@ namespace Simulator.PointCloud.Trees
         /// <para>Performs as single step in buffer building process. Buffer will be ready after up to [<see cref="rebuildSteps"/>] steps.</para>
         /// <para>Note that this method is not bound to update loop and has to be called externally.</para>
         /// </summary>
-        private void PerformBuildStep()
+        protected void PerformBuildStep()
         {
             // Calculate amount of points that should be reached during this step
             currentStepCount++;
@@ -127,7 +127,7 @@ namespace Simulator.PointCloud.Trees
         /// </summary>
         /// <param name="requiredNodes">Nodes that should be visible. This might be ignored if buffer is currently under construction.</param>
         /// <param name="validPointCount">Amount of valid points in returned buffer.</param>
-        public ComputeBuffer GetPopulatedBuffer(List<string> requiredNodes, out int validPointCount)
+        public virtual ComputeBuffer GetPopulatedBuffer(List<string> requiredNodes, out int validPointCount)
         {
             if (!busy)
             {
@@ -143,7 +143,7 @@ namespace Simulator.PointCloud.Trees
         }
 
         /// <inheritdoc/>
-        public void Dispose()
+        public virtual void Dispose()
         {
             bufferA?.Release();
             bufferB?.Release();

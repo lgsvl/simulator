@@ -868,8 +868,8 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         // Instead, NPCController uses linear interpolation.
         // var pose = CatmullRomInterpolate(time);
         var k = (float)(time - (times[index])) / (times[index+1] - times[index]);
-        var pose = Vector3.Slerp(poses[index], poses[index+1], k);
-        var rot = Quaternion.Slerp(Quaternion.Euler(angles[index]), Quaternion.Euler(angles[index+1]), k);
+        var pose = Vector3.Lerp(poses[index], poses[index+1], k);
+        var rot = Quaternion.Lerp(Quaternion.Euler(angles[index]), Quaternion.Euler(angles[index+1]), k);
 
         return (pose, rot);
     }

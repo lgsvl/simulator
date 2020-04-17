@@ -68,8 +68,8 @@ else
   CONTROLLABLES=
 fi
 
-if [ ! -z ${SIMULATOR_SENSORS+x} ]; then
-  SENSORS="-buildBundles -buildSensors ${SIMULATOR_SENSORS}"
+if [ ! -z ${SIM_SENSORS+x} ]; then
+  SENSORS="-buildBundles -buildSensors ${SIM_SENSORS}"
 else
   SENSORS=
 fi

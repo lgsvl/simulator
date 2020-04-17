@@ -23,6 +23,7 @@ public class LoaderUI : MonoBehaviour
     public Text StartButtonText;
 
     public GameObject SettingsPanel;
+    public GameObject SettingsButton;
     public Dropdown FullscreenDropdown;
     public Dropdown ResolutionDropdown;
     public Dropdown QualityDropdown;
@@ -40,7 +41,15 @@ public class LoaderUI : MonoBehaviour
 
     private void Start()
     {
-        SetDropdowns();
+        if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux)
+        {
+            SettingsPanel.SetActive(false);
+            SettingsButton.SetActive(false);
+        }
+        else
+        {
+            SetDropdowns();
+        }
 
         origStartButtonText = StartButtonText.text;
         bgCanvasRT = BGCanvasScaler.GetComponent<RectTransform>();

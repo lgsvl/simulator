@@ -52,8 +52,7 @@ MonoBehaviour:
   - {fileID: 7828034492281142325, guid: 61970a0718cf51548b55e82b4f69648d, type: 3}
   - {fileID: 8093688722859354482, guid: 3ba1d65b38a74534abecd6accfb130a6, type: 3}
   - {fileID: 1078072012845521517, guid: d1ec0c113a82eca4a995a6a52519aeda, type: 3}
-  - {fileID: 3189232175671269308, guid: fde4f182ccc25a54c9d08e45f0e531bb, type: 3}
   - {fileID: 5880534728978446651, guid: 8e6f98bf91745824f861d17132fc05a9, type: 3}
   - {fileID: 5600284615818658777, guid: 627038625183fc048a4fc063d32d0292, type: 3}
   - {fileID: 6253766243615944680, guid: 9276031e203f3a14e8ad57b2507703dd, type: 3}
-  pedVolume: 50
+  CurrentPooledPeds: []

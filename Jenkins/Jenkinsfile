@@ -25,7 +25,7 @@ pipeline {
     booleanParam(name: "BUILD_LINUX", defaultValue: true, description: "")
     booleanParam(name: "BUILD_MACOS", defaultValue: false, description: "")
     string(name: "CLOUD_URL", defaultValue: "${SIMULATOR_STAGING_CLOUD_URL}", description: "")
-    string(name: "BUILD_SIMULATOR_SENSORS", defaultValue: "${SIMULATOR_SENSORS}", description: "List of sensors to build from https://auto-gitlab.lgsvl.net/HDRP/Sensors")
+    string(name: "BUILD_SIMULATOR_SENSORS", defaultValue: "${SIMULATOR_SENSORS_RELEASE}", description: "List of sensors to build")
   }
 
   environment {
@@ -38,6 +38,8 @@ pipeline {
     JENKINS_BUILD_ID = "${BUILD_ID}"
     GIT_BRANCH = "${BRANCH_NAME}"
     CODE_SIGNING_FILE = "/dev/urandom"
+    SIMULATOR_ENVIRONMENTS = "${SIMULATOR_ENVIRONMENTS_RELEASE}"
+    SIMULATOR_SENSORS = "${BUILD_SIMULATOR_SENSORS}"
   }
 
   stages {
@@ -58,6 +60,12 @@ pipeline {
             url: "git@${GITLAB_HOST}:HDRP/Simulator.git"
           ]]
         ])
+
+        sh label:"Cleanup Assets/External/Sensors", script:"""
+            cd Assets/External/Sensors
+            find .  -mindepth 1 -maxdepth 1  -type d | xargs rm -rf
+            git clean -xdf .
+        """
 
         script {
 
@@ -118,12 +126,24 @@ pipeline {
             ])
           }
 
-          def sensors = env.BUILD_SIMULATOR_SENSORS.split(',')
+          def sensors = env.SIMULATOR_SENSORS.split(',')
+          def sim_sensors = []
+
           for (int i=0; i<sensors.size(); i++) {
-            def sensor = sensors[i]
+            def sensor_git_ref = sensors[i].split(":")
+
+            def sensor = sensor_git_ref[0]
+            def git_ref = "refs/heads/master"
+
+            if (sensor_git_ref.size() > 1) {
+                git_ref = sensor_git_ref[1]
+            }
+
+            sim_sensors.add(sensor)
+
             checkout([
               $class: "GitSCM",
-              branches: [[name: "refs/heads/master"]],
+              branches: [[name: "${git_ref}"]],
               browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Sensors/${sensor}", version: env.GITLAB_VERSION],
               extensions: [
                 [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Sensors/${sensor}"],
@@ -141,9 +161,12 @@ pipeline {
           env.GIT_COMMIT = sh(returnStdout: true, script: "git rev-parse HEAD").trim()
           env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 1").trim()
           env.SIM_VEHICLES = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 1").trim()
+          env.SIM_SENSORS = sim_sensors.join(",")
         } // script
 
         sh "rm -rf *.zip *.html *.xml"
+
+        sh label:"SIMULATOR env vars", script:"printenv | grep -E 'SIMULATOR|^SIM_' | sort"
       }
     }
 

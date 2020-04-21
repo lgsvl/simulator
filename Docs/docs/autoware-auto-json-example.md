@@ -28,6 +28,18 @@
 ```JSON
 [
   {
+    "type": "Transform",
+    "name": "base_link",
+    "transform": {
+      "x": -0.015,
+      "y": 0.369,
+      "z": -1.37,
+      "pitch": 0,
+      "yaw": 0,
+      "roll": 0
+    }
+  },
+  {
     "type": "CAN-Bus",
     "name": "CAN Bus",
     "params": {
@@ -44,14 +56,32 @@
     }
   },
   {
+    "type": "3D Ground Truth",
+    "name": "3D Ground Truth",
+    "params": {
+      "Frequency": 10,
+      "Topic": "/simulator/ground_truth/3d_detections",
+      "MaxDistance": 300
+    },
+    "transform": {
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "pitch": 0,
+      "yaw": 0,
+      "roll": 0
+    }
+  },
+  {
     "type": "GPS Device",
     "name": "GPS",
     "params": {
       "Frequency": 12.5,
-      "Topic": "/nmea_sentence",
+      "Topic": "/gps",
       "Frame": "gps",
       "IgnoreMapOrigin": true
     },
+    "parent": "base_link",
     "transform": {
       "x": 0,
       "y": 0,
@@ -66,10 +96,12 @@
     "name": "GPS Odometry",
     "params": {
       "Frequency": 12.5,
-      "Topic": "/vehicle_odometry",
-      "Frame": "gps",
-      "IgnoreMapOrigin": true
+      "Topic": "/odom",
+      "Frame": "map",
+      "ChildFrame": "gps",
+      "IgnoreMapOrigin": false
     },
+    "parent": "base_link",
     "transform": {
       "x": 0,
       "y": 0,
@@ -86,6 +118,7 @@
       "Topic": "/imu_raw",
       "Frame": "imu"
     },
+    "parent": "base_link",
     "transform": {
       "x": 0,
       "y": 0,
@@ -100,7 +133,7 @@
     "name": "LidarFront",
     "params": {
       "LaserCount": 16,
-      "MinDistance": 2.0,
+      "MinDistance": 2,
       "MaxDistance": 100,
       "RotationFrequency": 10,
       "MeasurementsPerRotation": 360,
@@ -111,21 +144,22 @@
       "Topic": "/points_raw",
       "Frame": "velodyne_front"
     },
+    "parent": "base_link",
     "transform": {
-      "x": 0,
-      "y": 1.8,
-      "z": 0.02,
+      "x": 0.022,
+      "y": 1.49,
+      "z": 1.498,
       "pitch": 0,
       "yaw": 0,
       "roll": 0
     }
   },
-{
+  {
     "type": "Lidar",
     "name": "LidarRear",
     "params": {
       "LaserCount": 16,
-      "MinDistance": 2.0,
+      "MinDistance": 2,
       "MaxDistance": 100,
       "RotationFrequency": 10,
       "MeasurementsPerRotation": 360,
@@ -136,50 +170,39 @@
       "Topic": "/points_raw_rear",
       "Frame": "velodyne_rear"
     },
+    "parent": "base_link",
     "transform": {
-      "x": 0,
-      "y": 1.8,
-      "z": -1.17,
+      "x": 0.022,
+      "y": 1.49,
+      "z": 0.308,
       "pitch": 0,
       "yaw": 0,
       "roll": 0
     }
   },
   {
-    "type": "Color Camera",
-    "name": "Main Camera",
-    "params": {
-      "Width": 1920,
-      "Height": 1080,
-      "Frequency": 15,
-      "JpegQuality": 75,
-      "FieldOfView": 50,
-      "MinDistance": 0.1,
-      "MaxDistance": 1000,
-      "Topic": "/simulator/camera_node/image/compressed",
-      "Frame": "camera"
-    },
-    "transform": {
-      "x": 0,
-      "y": 1.7,
-      "z": -0.2,
-      "pitch": 0,
-      "yaw": 0,
-      "roll": 0
-    }
+    "type": "Manual Control",
+    "name": "Manual Car Control"
   },
   {
     "type": "Vehicle Control",
     "name": "Autoware Car Control",
     "params": {
       "Topic": "/vehicle_control_command"
-	}
+    }
   },
   {
     "type": "Vehicle State",
     "name": "Autoware Auto Vehicle State",
     "params": {
       "Topic": "/vehicle_state_command"
+    }
+  },
+  {
+    "type": "Vehicle Odometry",
+    "name": "Vehicle Odometry Sensor",
+    "params": {
+      "Topic": "/vehicle_odometry"
     }
   }
 ]

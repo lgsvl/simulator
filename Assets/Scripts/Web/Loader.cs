@@ -528,7 +528,16 @@ namespace Simulator
                                     manfile = Encoding.UTF8.GetString(buffer);
                                 }
 
-                                Manifest manifest = new Deserializer().Deserialize<Manifest>(manfile);
+                                Manifest manifest;
+
+                                try
+                                {
+                                    manifest = new Deserializer().Deserialize<Manifest>(manfile);
+                                }
+                                catch
+                                {
+                                    throw new Exception("Out of date AssetBundle, rebuild or download latest AssetBundle.");
+                                }
 
                                 if (manifest.additionalFiles != null)
                                 {
@@ -752,7 +761,15 @@ namespace Simulator
                                 int streamSize = (int)entry.Size;
                                 byte[] buffer = new byte[streamSize];
                                 streamSize = ms.Read(buffer, 0, streamSize);
-                                manifest = new Deserializer().Deserialize<Manifest>(Encoding.UTF8.GetString(buffer, 0, streamSize));
+
+                                try
+                                {
+                                    manifest = new Deserializer().Deserialize<Manifest>(Encoding.UTF8.GetString(buffer, 0, streamSize));
+                                }
+                                catch
+                                {
+                                    throw new Exception("Out of date AssetBundle, rebuild or download latest AssetBundle.");
+                                }
                             }
 
                             if (manifest.bundleFormat != BundleConfig.VehicleBundleFormatVersion)

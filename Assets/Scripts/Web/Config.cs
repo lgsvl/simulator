@@ -133,7 +133,17 @@ namespace Simulator.Web
                         using (ZipFile zip = new ZipFile(path))
                         {
                             string manfile = Encoding.UTF8.GetString(GetFile(zip, "manifest"));
-                            Manifest manifest = new Deserializer().Deserialize<Manifest>(manfile);
+                            Manifest manifest;
+
+                            try
+                            {
+                                manifest = new Deserializer().Deserialize<Manifest>(manfile);
+                            }
+                            catch
+                            {
+                                throw new Exception("Out of date AssetBundle, rebuild or download latest AssetBundle.");
+                            }
+
                             Debug.Log($"Loading {manifest.assetName}");
                             if (manifest.bundleFormat != BundleConfig.SensorBundleFormatVersion)
                             {
@@ -190,7 +200,17 @@ namespace Simulator.Web
                         using (ZipFile zip = new ZipFile(path))
                         {
                             string manfile = Encoding.UTF8.GetString(GetFile(zip, "manifest"));
-                            Manifest manifest = new Deserializer().Deserialize<Manifest>(manfile);
+                            Manifest manifest;
+
+                            try
+                            {
+                                manifest = new Deserializer().Deserialize<Manifest>(manfile);
+                            }
+                            catch
+                            {
+                                throw new Exception("Out of date AssetBundle, rebuild or download latest AssetBundle.");
+                            }
+
                             if (manifest.bundleFormat != BundleConfig.ControllableBundleFormatVersion)
                             {
                                 throw new Exception("BundleFormat version mismatch");

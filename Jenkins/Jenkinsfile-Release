@@ -42,7 +42,7 @@ pipeline {
   stages {
     stage("Build environment") {
         steps {
-            sh label:"SIMULATOR env vars", script:"printenv | sort | grep SIMULATOR"
+            sh label:"SIMULATOR env vars", script:"printenv | grep -E 'SIMULATOR|^SIM_' | sort"
         }
     }
 

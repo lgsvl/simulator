@@ -85,14 +85,19 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     [Space(5, order = 0)]
     [Header("Rain", order = 1)]
-    public GameObject RainEffectPrefab;
-
+    public ParticleSystem rainPfx;
     [Range(0f, 1f)]
     public float rain = 0f;
     private float prevRain = 0f;
-    private float RainAmountMax = 100000f;
-    private GameObject RainEffect;
-    private List<VisualEffect> ActiveRainVfxs = new List<VisualEffect>();
+    private List<RainVolume> rainVolumes = new List<RainVolume>();
+    private List<ParticleSystem> rainPfxs = new List<ParticleSystem>();
+    // TODO mem issue
+    //[Space(5, order = 0)]
+    //[Header("Rain", order = 1)]
+    //public GameObject RainEffectPrefab;
+    //private float RainAmountMax = 100000f;
+    //private GameObject RainEffect;
+    //private List<VisualEffect> ActiveRainVfxs = new List<VisualEffect>();
 
     [Space(5, order = 0)]
     [Header("Fog", order = 1)]
@@ -215,42 +220,46 @@ public class EnvironmentEffectsManager : MonoBehaviour
         //SetRiseProfile.TryGet(out setRiseOverrides.colorAdjustments);
         //SetRiseProfile.TryGet(out setRiseOverrides.IndirectLightingController);
 
-        // TODO remove rainvolume.cs from maps and then remove class
-        RainEffect = Instantiate(RainEffectPrefab, Vector3.zero, Quaternion.identity);
-        ActiveRainVfxs.AddRange(RainEffect.GetComponentsInChildren<VisualEffect>());
+        rainVolumes.AddRange(FindObjectsOfType<RainVolume>());
+        foreach (var volume in rainVolumes)
+            rainPfxs.Add(volume.Init(rainPfx, RandomGenerator.Next()));
 
-        RaycastHit hit;
-        var seed = Convert.ToUInt32(RandomGenerator.Next());
-        for (int i = 0; i < ActiveRainVfxs.Count; i++)
-        {
-            ActiveRainVfxs[i].SetFloat("_RainfallAmount", 0f);
-            ActiveRainVfxs[i].startSeed = seed;
-            var fxBounds = ActiveRainVfxs[i].GetVector3("_RainfallFXBounds");
-            var wp = ActiveRainVfxs[i].transform.position;
-            Vector3[] boundsToCheck =
-            {
-                new Vector3(wp.x + fxBounds.x/2f, fxBounds.y, wp.z + fxBounds.z/2f),
-                new Vector3(wp.x + fxBounds.x/2f, fxBounds.y, wp.z - fxBounds.z/2f),
-                new Vector3(wp.x - fxBounds.x/2f, fxBounds.y, wp.z - fxBounds.z/2f),
-                new Vector3(wp.x - fxBounds.x/2f, fxBounds.y, wp.z + fxBounds.z/2f)
-            };
+        // TODO mem issue
+        //RainEffect = Instantiate(RainEffectPrefab, Vector3.zero, Quaternion.identity);
+        //ActiveRainVfxs.AddRange(RainEffect.GetComponentsInChildren<VisualEffect>());
 
-            bool isHit = false;
-            foreach (var pt in boundsToCheck)
-            {
-                if (Physics.Raycast(pt, ActiveRainVfxs[i].transform.TransformDirection(Vector3.down), out hit, Mathf.Infinity))
-                {
-                    isHit = true;
-                    continue;
-                }
-            }
+        //RaycastHit hit;
+        //var seed = Convert.ToUInt32(RandomGenerator.Next());
+        //for (int i = 0; i < ActiveRainVfxs.Count; i++)
+        //{
+        //    ActiveRainVfxs[i].SetFloat("_RainfallAmount", 0f);
+        //    ActiveRainVfxs[i].startSeed = seed;
+        //    var fxBounds = ActiveRainVfxs[i].GetVector3("_RainfallFXBounds");
+        //    var wp = ActiveRainVfxs[i].transform.position;
+        //    Vector3[] boundsToCheck =
+        //    {
+        //        new Vector3(wp.x + fxBounds.x/2f, fxBounds.y, wp.z + fxBounds.z/2f),
+        //        new Vector3(wp.x + fxBounds.x/2f, fxBounds.y, wp.z - fxBounds.z/2f),
+        //        new Vector3(wp.x - fxBounds.x/2f, fxBounds.y, wp.z - fxBounds.z/2f),
+        //        new Vector3(wp.x - fxBounds.x/2f, fxBounds.y, wp.z + fxBounds.z/2f)
+        //    };
 
-            if (!isHit)
-            {
-                ActiveRainVfxs[i].Stop();
-                ActiveRainVfxs[i].enabled = false;
-            }
-        }
+        //    bool isHit = false;
+        //    foreach (var pt in boundsToCheck)
+        //    {
+        //        if (Physics.Raycast(pt, ActiveRainVfxs[i].transform.TransformDirection(Vector3.down), out hit, Mathf.Infinity))
+        //        {
+        //            isHit = true;
+        //            continue;
+        //        }
+        //    }
+
+        //    if (!isHit)
+        //    {
+        //        ActiveRainVfxs[i].Stop();
+        //        ActiveRainVfxs[i].enabled = false;
+        //    }
+        //}
 
         wetObjects.AddRange(GameObject.FindGameObjectsWithTag("Road"));
         wetObjects.AddRange(GameObject.FindGameObjectsWithTag("Sidewalk"));
@@ -446,11 +455,21 @@ public class EnvironmentEffectsManager : MonoBehaviour
     {
         if (rain != prevRain)
         {
-            foreach (var vfx in ActiveRainVfxs)
+            foreach (var pfx in rainPfxs)
             {
-                vfx.SetFloat("_RainfallAmount", Mathf.Lerp(0f, RainAmountMax, rain));
+                var emit = pfx.emission;
+                emit.rateOverTime = rain * 100f;
             }
         }
+
+        // TODO mem issue
+        //if (rain != prevRain)
+        //{
+        //    foreach (var vfx in ActiveRainVfxs)
+        //    {
+        //        vfx.SetFloat("_RainfallAmount", Mathf.Lerp(0f, RainAmountMax, rain));
+        //    }
+        //}
 
         foreach (var m in wetMaterials)
         {

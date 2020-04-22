@@ -24,6 +24,7 @@ public class RainVolume : MonoBehaviour
         return particleSystem;
     }
 
+    // TODO mem issue
     public VisualEffect Init(VisualEffect vfx, int seed)
     {
         var effect = Instantiate(vfx, transform);

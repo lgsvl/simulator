@@ -15,7 +15,7 @@ using System.Collections.Concurrent;
 using WebSocketSharp;
 using SimpleJSON;
 using Simulator.Bridge.Data;
-using Simulator.Bridge.Ros.LGSVL;
+using Simulator.Bridge.Ros.Lgsvl;
 using Simulator.Bridge.Ros.Autoware;
 
 namespace Simulator.Bridge.Ros
@@ -138,8 +138,8 @@ namespace Simulator.Bridge.Ros
                     // type = typeof(Autoware.VehicleControlCommand);
                     // converter = (JSONNode json) => Conversions.ConvertTo((Autoware.VehicleControlCommand)Unserialize(json, type));
 
-                    type = typeof(Autoware.RawControlCommand);
-                    converter = (JSONNode json) => Conversions.ConvertTo((Autoware.RawControlCommand)Unserialize(json, type));
+                    type = typeof(Lgsvl.VehicleControlDataRos);
+                    converter = (JSONNode json) => Conversions.ConvertTo((Lgsvl.VehicleControlDataRos)Unserialize(json, type));
                 }
                 else
                 {
@@ -149,8 +149,8 @@ namespace Simulator.Bridge.Ros
             }
             else if (type == typeof(VehicleStateData))
             {
-                type = typeof(Autoware.VehicleStateCommand);
-                converter = (JSONNode json) => Conversions.ConvertTo((Autoware.VehicleStateCommand)Unserialize(json, type));
+                type = typeof(Lgsvl.VehicleStateDataRos);
+                converter = (JSONNode json) => Conversions.ConvertTo((Lgsvl.VehicleStateDataRos)Unserialize(json, type));
             }
             else if (BridgeConfig.bridgeConverters.ContainsKey(type))
             {
@@ -227,30 +227,41 @@ namespace Simulator.Bridge.Ros
             }
             else if (type == typeof(Detected3DObjectData))
             {
-                type = typeof(LGSVL.Detection3DArray);
-                writer = new Writer<Detected3DObjectData, LGSVL.Detection3DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                type = typeof(Lgsvl.Detection3DArray);
+                writer = new Writer<Detected3DObjectData, Lgsvl.Detection3DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
             else if (type == typeof(Detected2DObjectData))
             {
-                type = typeof(LGSVL.Detection2DArray);
-                writer = new Writer<Detected2DObjectData, LGSVL.Detection2DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                type = typeof(Lgsvl.Detection2DArray);
+                writer = new Writer<Detected2DObjectData, Lgsvl.Detection2DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
             else if (type == typeof(SignalDataArray))
             {
-                type = typeof(LGSVL.SignalArray);
-                writer = new Writer<SignalDataArray, LGSVL.SignalArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                type = typeof(Lgsvl.SignalArray);
+                writer = new Writer<SignalDataArray, Lgsvl.SignalArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
             else if (type == typeof(DetectedRadarObjectData) && Apollo)
             {
-                type = typeof(Apollo.Drivers.ContiRadar);
-                writer = new Writer<DetectedRadarObjectData, Apollo.Drivers.ContiRadar>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                if (Apollo)
+                {
+                    type = typeof(Apollo.Drivers.ContiRadar);
+                    writer = new Writer<DetectedRadarObjectData, Apollo.Drivers.ContiRadar>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                }
+                else
+                {
+                    type = typeof(Lgsvl.DetectedRadarObjectArray);
+                    writer = new Writer<DetectedRadarObjectData, Lgsvl.DetectedRadarObjectArray>(this, topic, Conversions.ROS2ConvertFrom) as IWriter<T>;
+                }
             }
             else if (type == typeof(CanBusData))
             {
                 if (Version == 2 && !Apollo)
                 {
-                    type = typeof(VehicleStateReport);
-                    writer = new Writer<CanBusData, VehicleStateReport>(this, topic, Conversions.ROS2ConvertFrom) as IWriter<T>;
+                    // type = typeof(VehicleStateReport);
+                    // writer = new Writer<CanBusData, VehicleStateReport>(this, topic, Conversions.ROS2ReturnAutowareAutoConvertFrom) as IWriter<T>;
+
+                    type = typeof(CanBusDataRos);
+                    writer = new Writer<CanBusData, CanBusDataRos>(this, topic, Conversions.ROS2ReturnLgsvlConvertFrom) as IWriter<T>;
                 }
                 else
                 {

@@ -6,7 +6,7 @@
  */
 
 
-interface IVehicleInputs
+public interface IVehicleInputs
 {
     float SteerInput { get; }
     float AccelInput { get; }

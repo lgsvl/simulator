@@ -635,7 +635,8 @@ namespace Simulator.Editor
                 foreach (var pair in roadId2Signals)
                 {
                     var signal = new List<OpenDRIVERoadSignalsSignal>(pair.Value);
-                    if (Roads[pair.Key].signals != null && Roads[pair.Key].signals.signal != null) {
+                    if (Roads[pair.Key].signals != null && Roads[pair.Key].signals.signal != null)
+                    {
                         signal.AddRange(Roads[pair.Key].signals.signal);
                     }
 
@@ -653,7 +654,8 @@ namespace Simulator.Editor
                     }
 
                     var signalReference = new List<OpenDRIVERoadSignalsSignalReference>(pair.Value);
-                    if (Roads[id].signals.signalReference != null) {
+                    if (Roads[id].signals.signalReference != null)
+                    {
                         signalReference.AddRange(Roads[id].signals.signalReference);
                     }
                     Roads[id].signals.signalReference = signalReference.ToArray();
@@ -755,7 +757,8 @@ namespace Simulator.Editor
 
             var dist2First = (signalSignPos - refLinePositions.First()).magnitude;
             var dist2Last = (signalSignPos - refLinePositions.Last()).magnitude;
-            if (dist2First > dist2Last && s == 0) {
+            if (dist2First > dist2Last && s == 0)
+            {
                 s = Roads[roadId].length;
                 p0 = refLinePositions.Last();
                 p1 = refLinePositions[refLinePositions.Count-2];
@@ -765,18 +768,21 @@ namespace Simulator.Editor
                     p0 = refLinePositions[refLinePositions.Count-2];
                 }
             }
-            else if (dist2First < dist2Last && s == Roads[roadId].length) {
+            else if (dist2First < dist2Last && s == Roads[roadId].length)
+            {
                 s = 0;
                 p0 = refLinePositions[0];
                 p1 = refLinePositions[1];
-                if (orien == orientation.Item1) {
+                if (orien == orientation.Item1)
+                {
                     p1 = refLinePositions[0];
                     p0 = refLinePositions[1];
                 }
             }
 
             t = GetT(signalSignPos, p0, p1);
-            if (Math.Abs(t) > 40) {
+            if (Math.Abs(t) > 40)
+            {
                 Debug.LogError($"t is {t}, signal might be associated with wrong s, please check signals near road {roadId}");
             }
 
@@ -1159,7 +1165,8 @@ namespace Simulator.Editor
 
                 junctionIds.Add(curJunctionId);
                 junctionId = curJunctionId;
-                if (junctionId == null) {
+                if (junctionId == null)
+                {
                     var msg = $"Road: {roadId} junction id is null, please double check the corresponding lane.";
                     Debug.LogWarning(msg, RoadId2Lanes[roadId][0].gameObject);
                     msg = "\tIf this lane belongs to a laneSection, please make sure all adjacent lanes are sharing correct boundary lines!";
@@ -1789,15 +1796,19 @@ namespace Simulator.Editor
                 allLanes.Add(laneSegment);
             }
 
-            while (stack.Count > 0) {
+            while (stack.Count > 0)
+            {
                 var lane = stack.Pop();
-                if (visitedLanes.Contains(lane)) {
+                if (visitedLanes.Contains(lane))
+                {
                     continue;
                 }
 
-                for (var i = 0; i < lane.afters.Count; i++) {
+                for (var i = 0; i < lane.afters.Count; i++)
+                {
                     var afterLane = lane.afters[i];
-                    if (!visitedLanes.Contains(afterLane)) {
+                    if (!visitedLanes.Contains(afterLane))
+                    {
                         stack.Push(afterLane);
                     }
                 }
@@ -1805,8 +1816,10 @@ namespace Simulator.Editor
                 visitedLanes.Add(lane);
             }
 
-            foreach (var lane in allLanes) {
-                if (!visitedLanes.Contains(lane)) {
+            foreach (var lane in allLanes)
+            {
+                if (!visitedLanes.Contains(lane))
+                {
                     startingLanes.Add(lane);
                 }
             }

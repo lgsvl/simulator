@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -43,9 +43,6 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
     private List<Light> fogLights = new List<Light>();
     private List<Light> interiorLights = new List<Light>();
 
-    private Color emitColorLow = new Color(0.1f, 0.1f, 0.1f);
-    private Color emitColorHigh = new Color(0.1f, 0.1f, 0.1f);
-
     //Network
     private MessagesManager messagesManager;
     private string key;
@@ -66,25 +63,29 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
             {
                 case HeadLightState.OFF:
                     headLights.ForEach(x => x.enabled = false);
+                    headLights.ForEach(x => x.intensity = 0f);
+                    headLightRenderer?.material.SetFloat("_EmissiveExposureWeight", 0f);
                     headLightRenderer?.material.SetVector("_EmissiveColor", Color.black);
                     break;
                 case HeadLightState.LOW:
                     headLights.ForEach(x => x.enabled = true);
-                    //headLights.ForEach(x => x.intensity = 5f);
+                    headLights.ForEach(x => x.intensity = 0.25f);
                     if (lowCookie != null)
                     {
                         headLights.ForEach(x => x.cookie = lowCookie);
                     }
-                    headLightRenderer?.material.SetVector("_EmissiveColor", emitColorLow);
+                    headLightRenderer?.material.SetFloat("_EmissiveExposureWeight", 0.25f);
+                    headLightRenderer?.material.SetVector("_EmissiveColor", Color.white);
                     break;
                 case HeadLightState.HIGH:
                     headLights.ForEach(x => x.enabled = true);
-                    headLights.ForEach(x => x.intensity = 1f);
+                    headLights.ForEach(x => x.intensity = 0.5f);
                     if (highCookie != null)
                     {
                         headLights.ForEach(x => x.cookie = highCookie);
                     }
-                    headLightRenderer?.material.SetVector("_EmissiveColor", emitColorHigh);
+                    headLightRenderer?.material.SetFloat("_EmissiveExposureWeight", 0.5f);
+                    headLightRenderer?.material.SetVector("_EmissiveColor", Color.white);
                     break;
             }
 
@@ -187,6 +188,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         set
         {
             _brakeLights = value;
+            brakeLightRenderer?.material.SetFloat("_EmissiveExposureWeight", _brakeLights ? 1f : 0.25f); // dial down exposure weight
             switch (_currentHeadLightState)
             {
                 case HeadLightState.OFF:
@@ -214,7 +216,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
                 return;
 
             _fogLights = value;
-            fogLightRenderer?.material.SetVector("_EmissiveColor", _fogLights ? emitColorLow : Color.black);
+            fogLightRenderer?.material.SetVector("_EmissiveColor", _fogLights ? Color.white : Color.black);
             fogLights.ForEach(x => x.enabled = _fogLights);
             
             if (Loader.Instance.Network.IsMaster)
@@ -229,7 +231,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         set
         {
             _reverseLights = value;
-            indicatorReverseLightRenderer?.material.SetVector("_EmissiveColor", _reverseLights ? emitColorLow : Color.black);
+            indicatorReverseLightRenderer?.material.SetVector("_EmissiveColor", _reverseLights ? Color.white : Color.black);
             indicatorReverseLights.ForEach(x => x.enabled = _reverseLights);
             
             if (Loader.Instance.Network.IsMaster)
@@ -316,6 +318,12 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         indicatorRightLightRenderer?.material.SetColor("_EmissiveColor", Color.black);
         indicatorReverseLightRenderer?.material.SetColor("_EmissiveColor", Color.black);
         fogLightRenderer?.material.SetColor("_EmissiveColor", Color.black);
+
+        brakeLightRenderer?.material.SetFloat("_EmissiveExposureWeight", 0.25f);
+        indicatorLeftLightRenderer?.material.SetFloat("_EmissiveExposureWeight", 0.5f);
+        indicatorRightLightRenderer?.material.SetFloat("_EmissiveExposureWeight", 0.5f);
+        indicatorReverseLightRenderer?.material.SetFloat("_EmissiveExposureWeight", 0.25f);
+        fogLightRenderer?.material.SetFloat("_EmissiveExposureWeight", 0.25f);
 
         foreach (Transform t in transform)
         {

@@ -86,7 +86,6 @@ namespace Simulator.PointCloud.Trees
 
             if (!File.Exists(indexPath))
             {
-                Debug.LogError("Index file not found.");
                 instance = null;
                 return false;
             }

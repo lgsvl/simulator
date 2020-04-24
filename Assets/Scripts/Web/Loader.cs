@@ -549,7 +549,7 @@ namespace Simulator
                                             {
                                                 Directory.CreateDirectory(Path.Combine(Application.persistentDataPath, manifest.assetGuid));
                                                 FastZip fastZip = new FastZip();
-                                                fastZip.ExtractZip(mapBundlePath, Path.Combine(Application.persistentDataPath, manifest.assetGuid), ".*\\.(pcnode|pcindex)$");
+                                                fastZip.ExtractZip(mapBundlePath, Path.Combine(Application.persistentDataPath, manifest.assetGuid), ".*\\.(pcnode|pcindex|pcmesh)$");
                                             }
                                         }
                                     }

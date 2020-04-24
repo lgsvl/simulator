@@ -534,7 +534,7 @@ namespace Simulator.Editor
                                     {
                                         foreach (FileInfo fi in new DirectoryInfo(manifest.additionalFiles[key]).GetFiles())
                                         {
-                                            if (fi.Extension == ".pcnode" || fi.Extension == ".pcindex")
+                                            if (fi.Extension == TreeUtility.IndexFileExtension || fi.Extension == TreeUtility.NodeFileExtension || fi.Extension == TreeUtility.MeshFileExtension)
                                             {
                                                 archive.Add(new StaticDiskDataSource(fi.FullName), Path.Combine(key, fi.Name), CompressionMethod.Stored, true);
                                             }

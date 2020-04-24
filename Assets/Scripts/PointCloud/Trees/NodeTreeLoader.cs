@@ -9,7 +9,6 @@ namespace Simulator.PointCloud.Trees
 {
     using System.IO;
     using Simulator.Utilities;
-
     using UnityEngine;
     using UnityEngine.Rendering;
     using Utilities.Attributes;
@@ -44,6 +43,7 @@ namespace Simulator.PointCloud.Trees
 #pragma warning restore 0649
 
         private bool corrupted;
+        private bool verboseLoad;
 
         private string lastUsedDataPath;
         
@@ -63,7 +63,9 @@ namespace Simulator.PointCloud.Trees
                 {
                     if (!NodeTree.TryLoadFromDisk(dataPath, pointLimit, out tree))
                     {
-                        Debug.LogError($"Unable to load octree under path {dataPath}. Check files.");
+                        var notBundleScene = Application.isPlaying && gameObject.scene.buildIndex != -1 || !Application.isPlaying;
+                        if (verboseLoad || notBundleScene)
+                            Debug.LogError($"Unable to load octree under path {dataPath}. Check files.");
                         corrupted = true;
                         tree = null;
                     }
@@ -71,6 +73,8 @@ namespace Simulator.PointCloud.Trees
                     {
                         LoadMeshes();
                     }
+
+                    verboseLoad = false;
                 }
 
                 lastUsedDataPath = dataPath;
@@ -92,6 +96,7 @@ namespace Simulator.PointCloud.Trees
         public void UpdateData(string newDataPath)
         {
             Cleanup();
+            verboseLoad = true;
             dataPath = newDataPath;
         }
 

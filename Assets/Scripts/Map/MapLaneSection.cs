@@ -42,8 +42,6 @@ namespace Simulator.Map
 
                 var laneIdx = lane.mapWorldPositions.Count - 1; // index to compute vector from lane to otherLane and distance between those two lanes
                 var laneDir = (lane.mapWorldPositions[1] - lane.mapWorldPositions[0]).normalized;
-                var minDistLeft = 50f;
-                var minDistRight = 50f;
 
                 for (var j = 0; j < lanes.Count; j++)
                 {

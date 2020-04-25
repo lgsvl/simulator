@@ -198,8 +198,6 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
     private NPCLightStateTypes currentNPCLightState = NPCLightStateTypes.Off;
 
     private Color runningLightEmissionColor = new Color(0.65f, 0.65f, 0.65f);
-    private float lowBeamEmission = 200f;
-    private float highBeamEmission = 300f;
 
     private bool isLaneDataSet = false;
     public bool isFrontDetectWithinStopDistance = false;

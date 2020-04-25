@@ -16,7 +16,13 @@ Shader "Simulator/PointCloud/HDRP/Circles"
 
     HLSLINCLUDE
 
+    #pragma target 4.5
+    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+    #pragma require geometry
+
     #include "PointCloudCommon.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
 
     float _Size;
     float _MinSize;
@@ -56,9 +62,7 @@ Shader "Simulator/PointCloud/HDRP/Circles"
                 nointerpolation float4 Color : COLOR;
                 nointerpolation float Height : HEIGHT;
                 float2 TexCoord : TEXCOORD0;
-                #ifdef _CONES
                 float3 ViewPos : TEXCOORD1;
-                #endif
             };
 
             PointCloudPoint Vert(uint id : SV_VertexID) : POINT
@@ -74,9 +78,7 @@ Shader "Simulator/PointCloud/HDRP/Circles"
 
                 float3 worldPos = PointCloudWorldPositionHDRP(pos);
                 float4 clip = TransformWorldToHClip(worldPos);
-                #ifdef _CONES
                 float3 view = TransformWorldToView(worldPos);
-                #endif
                 float2 scale = float2(_Size, _Size);
 
                 #ifdef _SIZE_IN_PIXELS
@@ -107,9 +109,7 @@ Shader "Simulator/PointCloud/HDRP/Circles"
                     o.Color = color;
                     o.TexCoord = offsets[i];
                     o.Height = pos.y;
-                    #ifdef _CONES
                     o.ViewPos = view;
-                    #endif
                     stream.Append(o);
                 }
             }
@@ -141,7 +141,12 @@ Shader "Simulator/PointCloud/HDRP/Circles"
 
                     float4 pos = mul(UNITY_MATRIX_P, float4(view, 1));
                     pos /= pos.w;
-                    outDepth = pos.z;
+                    float depth = pos.z;
+                    outDepth = depth;
+                #else
+                    float4 pos = mul(UNITY_MATRIX_P, float4(Input.ViewPos, 1));
+                    pos /= pos.w;
+                    float depth = pos.z;
                 #endif
 
                 float3 color = PointCloudColor(Input.Color, Input.Height).rgb;
@@ -151,7 +156,13 @@ Shader "Simulator/PointCloud/HDRP/Circles"
                     outGBuffer2 = float4(0, 0, 0, 0);
                     outGBuffer3 = float4(color * 0.1, 0);
                 #else
-                    outColor = float4(color, 1);
+                    PositionInputs posInput = GetPositionInput(Input.Position.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+                    float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+                    float3 fogColor;
+                    float3 fogAlpha;
+                    EvaluateAtmosphericScattering(posInput, V, fogColor, fogAlpha);
+                    outColor.rgb = lerp(color, fogColor, fogAlpha.r);
+                    outColor.a = 1;
                 #endif
             }
 

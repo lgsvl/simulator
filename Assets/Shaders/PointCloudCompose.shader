@@ -14,7 +14,9 @@ Shader "Simulator/PointCloud/HDRP/Compose"
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassCommon.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
@@ -121,14 +123,16 @@ Shader "Simulator/PointCloud/HDRP/Compose"
         float3 color = UnpackRGB(pcPacked.rg);
 
         #ifndef _PC_TARGET_GBUFFER
+
+            posInput = GetPositionInput(varyings.positionCS.xy, _ScreenSize.zw, eyeDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+
             #ifdef _PC_UNLIT_SHADOWS
                 HDShadowContext shadowContext = InitShadowContext();
                 float shadow;
                 float3 shadow3;
-                PositionInputs shadowPosInput = GetPositionInput(varyings.positionCS.xy, _ScreenSize.zw, eyeDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
                 float3 normalWS = pcNormalDepth.rgb;
                 uint renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
-                ShadowLoopMin(shadowContext, shadowPosInput, normalWS, asuint(_ShadowsFilter), renderingLayers, shadow3);
+                ShadowLoopMin(shadowContext, posInput, normalWS, asuint(_ShadowsFilter), renderingLayers, shadow3);
                 shadow = dot(shadow3, float3(1.0/3.0, 1.0/3.0, 1.0/3.0));
 
                 float4 shadowTint = float4(0,0,0,0.9);
@@ -136,7 +140,12 @@ Shader "Simulator/PointCloud/HDRP/Compose"
                 color = lerp(lerp(shadowColor.rgb, color, 1 - shadowTint.a), color, shadow);
             #endif
 
-            outColor = float4(color, 1);
+            float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+            float3 fogColor;
+            float3 fogAlpha;
+            EvaluateAtmosphericScattering(posInput, V, fogColor, fogAlpha);
+            outColor.rgb = lerp(color, fogColor, fogAlpha.r);
+            outColor.a = 1;
         #else
             NormalData nData;
             nData.normalWS = pcNormalDepth.rgb;

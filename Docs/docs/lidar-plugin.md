@@ -7,7 +7,7 @@ This page introduces the Velodyne Lidar Sensor plugin, as well as how to build y
 
 ## Velodyne Lidar Sensor Plugin [[top]] {: #velodyne-lidar-sensor-plugins data-toc-label='Velodyne Lidar Sensor Plugin'}
 
-This sensor plugin is for [Velodyne Lidar](https://velodynelidar.com/). VLP-16 and VLP-32C are currently supported. 
+This sensor plugin is for [Velodyne Lidar](https://velodynelidar.com/). VLP-16, VLP-32C and VLS-128 are currently supported. 
 The built asset bundle of this plugin (named `sensor_VelodyneLidarSensor`) can be found in `AssetBundles/Sensors` folder
 when you unzip the downloaded LGSVL Simulator (i.e. in the same level of the Simulator executable). 
 
@@ -48,42 +48,10 @@ of exhausted bridge bandwidth.
 
 Details of last four parameters are as follows:
 
-- Value of `VelodyneLidarType` can only be "VLP_16" or "VLP_32C". Note that it uses underscore ('_') not dash ('-').
+- Value of `VelodyneLidarType` can only be "VLP_16", "VLP_32C" or "VLS_128". Note that it uses underscore ('_') not dash ('-').
 - `HostName` is the IP address of the machine which receives the UDP packets (a.k.a. host machine).
-- `UDPPortData` and `UDPPortPosition` are UPD ports for data packets and position packets. If more than one
-Velodyne Lidar plugin is used, each one should have a unique port.
-
-VLP-16 configuration sample:
-```JSON
-{
-    "type": "VelodyneLidar",
-    "name": "Velodyne VLP-16",
-    "params": {
-      "FieldOfView": 30,
-      "CenterAngle": 0,
-      "MinDistance": 0.5,
-      "MaxDistance": 100,
-      "RotationFrequency": 10,
-      "MeasurementsPerRotation": 1800,
-      "Compensated": true,
-      "PointColor": "#ff000000",
-      "Topic": "/point_cloud",
-      "Frame": "velodyne",
- 	  "VelodyneLidarType": "VLP_16",
-      "HostName": "127.0.0.1",
-      "UdpPortData": 2368,
-      "UdpPortPosition": 8308
-    },
-    "transform": {
-      "x": 0,
-      "y": 2.312,
-      "z": -0.3679201,
-      "pitch": 0,
-      "yaw": 0,
-      "roll": 0
-    }
-}
-```
+- `UDPPortData` and `UDPPortPosition` are UPD ports for data packets and position packets. If more than one Velodyne Lidar plugin is used, each one should have a unique port.
+- `VerticalRayAngles`, `LaserCount`, `FieldOfView`, and `CenterAngle` will be ignored for Velodyne Lidar since they will be set internally following the corresponding model spec.
 
 VLP-32C configuration sample:
 ```JSON
@@ -99,18 +67,8 @@ VLP-32C configuration sample:
       "PointColor": "#ff000000",
       "Topic": "/point_cloud",
       "Frame": "velodyne",
-      "VerticalRayAngles": [
-        -25.0,   -1.0,    -1.667,  -15.639,
-        -11.31,   0.0,    -0.667,   -8.843,
-        -7.254,  0.333,  -0.333,   -6.148,
-        -5.333,  1.333,   0.667,   -4.0,
-        -4.667,  1.667,   1.0,     -3.667,
-        -3.333,  3.333,   2.333,   -2.667,
-        -3.0,    7.0,     4.667,   -2.333,
-        -2.0,   15.0,    10.333,   -1.333
-        ],
       "VelodyneLidarType": "VLP_32C",
-      "HostName": "10.195.248.155",
+      "HostName": "127.0.0.1",
       "UdpPortData": 2368,
       "UdpPortPosition": 8308
     },
@@ -159,6 +117,7 @@ Before running the Velodyne driver, you need to modify the launch files to setup
 
 * For VLP-16, edit velodyne_ws/src/velodyne/velodyne_pointcloud/launch/VLP16_points.launch and put the device IP after `device_ip`.
 * For VLP-32, edit velodyne_ws/src/velodyne/velodyne_pointcloud/launch/VLP-32C_points.launch and put the device IP after `device_ip`.
+* ROS Velodyne driver does not support VLS-128 for now. For more details please refer to the [official page](http://wiki.ros.org/velodyne_driver#Supported_Devices).
 
 <span>6.</span> Launch Velodyne driver
 
@@ -178,13 +137,13 @@ and ROS topic `/velodyne_points` is published by the driver. You can also use RV
 Fig. 1 shows point cloud of VLP-32C visualized in the simulator,
 
 |[![](images/visualize-VLP-32C.png)](images/full_size_images/visualize-VLP-32C.png)|
-|:--:| 
+|:--:|
 | Fig. 1: Visualized point clouds of VLP-32C Lidar in LGSVL Simulator. |
 
 and Fig. 2 shows the same point cloud visualized in RViz  (click to see in full resolution):
 
 |[![](images/rviz-VLP-32c.png)](images/full_size_images/rviz-VLP-32c.png)|
-|:--:| 
+|:--:|
 | Fig. 2: Visualized point clouds of VLP-32C Lidar in RViz. |
 
 Note that the output topic name (`/velodyne_points`) of ROS Velodyne driver is hard-coded and not configurable, while Autoware assumes point cloud published into ROS topic `/points_raw`.
@@ -212,7 +171,7 @@ include your own VLP-32C extrinsics if you want to get compensated point cloud.
 Fig. 3 shows the Dreamview web interface:
 
 |[![](images/dreamview-VLP-32C.png)](images/full_size_images/dreamview-VLP-32C.png)|
-|:--:| 
+|:--:|
 | Fig. 3: Dreamview web interface. |
 
 On the Simulator side, you can add Velodyne Lidar sensor into our [sample JSON](apollo5-0-json-example.md).
@@ -223,7 +182,7 @@ You can also use `cyber_visualizer` to visualize the point cloud in those channe
 Fig. 4 shows the point cloud of VLP-32C Lidar visualized in Cyber Visualizer (click to see in full resolution):
 
 |[![](images/cyber_visualizer-VLP-32C.png)](images/full_size_images/cyber_visualizer-VLP-32C.png)|
-|:--:| 
+|:--:|
 | Fig. 4: Visualized point clouds of VLP-32C Lidar in Cyber Visualizer. |
 
 ## Build Your Own Lidar Sensor Plugin [[top]] {: #build-your-own-lidar-sensor-plugin data-toc-label='Build Your Own Lidar Sensor Plugin'}

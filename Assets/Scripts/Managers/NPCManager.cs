@@ -166,12 +166,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         
         //Add required components for distributing rigidbody from master to clients
         if (Loader.Instance.Network.IsClusterSimulation)
-        {
-            //Add required components for cluster simulation
             ClusterSimulationUtilities.AddDistributedComponents(go);
-            if (Loader.Instance.Network.IsMaster)
-                BroadcastMessage(GetSpawnMessage(spawnData));
-        }
 
         return NPCController;
     }
@@ -207,6 +202,8 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
                 Seed = NPCSeedGenerator.Next(),
             };
             pooledNPCs.Add(SpawnNPC(spawnData));
+            if (Loader.Instance.Network.IsMaster)
+                BroadcastMessage(GetSpawnMessage(spawnData));
         }
         return pooledNPCs;
     }

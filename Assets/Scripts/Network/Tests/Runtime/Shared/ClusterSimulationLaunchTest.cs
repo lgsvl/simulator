@@ -254,6 +254,7 @@ namespace Simulator.Network.Tests.Runtime.Shared.Messaging.Data
 				UseTraffic = true
 			};
 			yield return RunSimulation(simulationModel);
+			yield return new WaitForSecondsRealtime(1.0f);
 			yield return RunPythonScriptTests();
 
 			Loader.StopAsync();
@@ -283,6 +284,7 @@ namespace Simulator.Network.Tests.Runtime.Shared.Messaging.Data
 					}
 				};
 				foo.Start();
+				yield return WaitForClients();
 				while (!foo.HasExited)
 				{
 					scriptTime += Time.unscaledDeltaTime;

@@ -161,11 +161,14 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
                 API = false,
                 GenId = System.Guid.NewGuid().ToString(),
                 Model = model,
+                ModelIndex = modelIndex,
                 Position = Vector3.zero,
                 Rotation = Quaternion.identity,
                 Seed = PEDSeedGenerator.Next(),
             };
             pooledPeds.Add(SpawnPedestrian(spawnData));
+            if (Loader.Instance.Network.IsMaster)
+                BroadcastMessage(GetSpawnMessage(spawnData));
         }
         return pooledPeds;
     }
@@ -191,12 +194,7 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
         //Add required components for distributing rigidbody from master to clients
         if (Loader.Instance.Network.IsClusterSimulation)
-        {
-            //Add required components for cluster simulation
             ClusterSimulationUtilities.AddDistributedComponents(ped);
-            if (Loader.Instance.Network.IsMaster)
-                BroadcastMessage(GetSpawnMessage(spawnData));
-        }
 
         return pedController;
     }

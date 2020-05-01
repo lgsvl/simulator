@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -89,13 +89,15 @@ namespace Simulator.Sensors
         protected RenderTextureReadWrite CameraTargetTextureReadWriteType = RenderTextureReadWrite.sRGB;
 
         public override SensorDistributionType DistributionType => SensorDistributionType.UltraHighLoad;
-        private int RenderTextureWidth, RenderTextureHeight;
+        protected int RenderTextureWidth, RenderTextureHeight;
         private int CurrentWidth, CurrentHeight;
         private float CurrentFieldOfView;
         private bool CurrentDistorted;
         private List<float> CurrentDistortionParameters;
         private float CurrentXi;
         private int CurrentCubemapSize;
+
+        protected SensorRenderTarget renderTarget;
 
         private LensDistortion LensDistortion;
         private RenderTexture DistortedTexture;
@@ -120,7 +122,7 @@ namespace Simulator.Sensors
         private ConcurrentBag<byte[]> JpegOutput = new ConcurrentBag<byte[]>();
         private Queue<Task> Tasks = new Queue<Task>();
 
-        public void Start()
+        public virtual void Start()
         {
             SensorCamera.enabled = false;
 
@@ -139,10 +141,8 @@ namespace Simulator.Sensors
 
         public void OnDestroy()
         {
-            if (SensorCamera != null && SensorCamera.targetTexture != null)
-            {
-                SensorCamera.targetTexture.Release();
-            }
+            renderTarget?.Release();
+            
             if (DistortedTexture != null)
             {
                 DistortedTexture.Release();
@@ -262,34 +262,20 @@ namespace Simulator.Sensors
             if (!Distorted || !Fisheye) // No-distortion and non-fisheye distortion use Camera.Render().
             {
                 // if this is not first time
-                if (SensorCamera.targetTexture != null)
+                if (renderTarget != null)
                 {
-                    if (RenderTextureWidth != SensorCamera.targetTexture.width || RenderTextureHeight != SensorCamera.targetTexture.height)
+                    if (!renderTarget.IsValid(RenderTextureWidth, RenderTextureHeight))
                     {
-                        // if camera capture size has changed
-                        SensorCamera.targetTexture.Release();
-                        SensorCamera.targetTexture = null;
-                    }
-                    else if (!SensorCamera.targetTexture.IsCreated())
-                    {
-                        // if we have lost rendertexture due to Unity window resizing or otherwise
-                        SensorCamera.targetTexture.Release();
-                        SensorCamera.targetTexture = null;
+                        // if camera capture size has changed or we have lost rendertexture due to Unity window resizing or otherwise
+                        renderTarget.Release();
+                        renderTarget = null;
                     }
                 }
 
-                if (SensorCamera.targetTexture == null)
+                if (renderTarget == null)
                 {
-                    SensorCamera.targetTexture = new RenderTexture(RenderTextureWidth, RenderTextureHeight, 24,
-                        RenderTextureFormat.ARGB32, CameraTargetTextureReadWriteType)
-                    {
-                        dimension = TextureDimension.Tex2D,
-                        antiAliasing = 1,
-                        useMipMap = false,
-                        useDynamicScale = false,
-                        wrapMode = TextureWrapMode.Clamp,
-                        filterMode = FilterMode.Bilinear,
-                    };
+                    renderTarget = SensorRenderTarget.Create2D(RenderTextureWidth, RenderTextureHeight);
+                    SensorCamera.targetTexture = renderTarget;
                 }
             }
             else // Fisheye camera uses Camera.RenderToCubemap(...), and thus do not need normal RenderTexture.
@@ -361,7 +347,7 @@ namespace Simulator.Sensors
                 SensorCamera.Render();
                 if (Distorted)
                 {
-                    LensDistortion.PlumbBobDistort(SensorCamera.targetTexture, DistortedTexture);
+                    LensDistortion.PlumbBobDistort(renderTarget, DistortedTexture);
                 }
             }
             else
@@ -397,7 +383,7 @@ namespace Simulator.Sensors
                     GpuData = gpuData,
                     CaptureTime = SimulatorManager.Instance.CurrentTime,
                 };
-                capture.Request = AsyncGPUReadback.Request(Distorted ? DistortedTexture : SensorCamera.targetTexture, 0, TextureFormat.RGBA32);
+                capture.Request = AsyncGPUReadback.Request(Distorted ? DistortedTexture : renderTarget.ColorTexture, 0, TextureFormat.RGBA32);
                 // TODO: Replace above AsyncGPUReadback.Request with following AsyncGPUReadback.RequestIntoNativeArray when we upgrade to Unity 2020.1
                 // See https://issuetracker.unity3d.com/issues/asyncgpureadback-dot-requestintonativearray-crashes-unity-when-trying-to-request-a-copy-to-the-same-nativearray-multiple-times
                 // for the detaisl of the bug in Unity.
@@ -467,11 +453,11 @@ namespace Simulator.Sensors
             CaptureList.RemoveAll(capture => capture.Request.done == true);
         }
 
-        public bool Save(string path, int quality, int compression)
+        public virtual bool Save(string path, int quality, int compression)
         {
             CheckTexture();
             RenderCamera();
-            var readback = AsyncGPUReadback.Request(Distorted ? DistortedTexture : SensorCamera.targetTexture, 0, TextureFormat.RGBA32);
+            var readback = AsyncGPUReadback.Request(Distorted ? DistortedTexture : renderTarget.ColorTexture, 0, TextureFormat.RGBA32);
             readback.WaitForCompletion();
 
             if (readback.hasError)
@@ -522,7 +508,7 @@ namespace Simulator.Sensors
         public override void OnVisualize(Visualizer visualizer)
         {
             Debug.Assert(visualizer != null);
-            visualizer.UpdateRenderTexture(Distorted ? DistortedTexture : SensorCamera.activeTexture, SensorCamera.aspect);
+            visualizer.UpdateRenderTexture(Distorted ? DistortedTexture : renderTarget.ColorTexture, SensorCamera.aspect);
         }
 
         public override void OnVisualizeToggle(bool state)

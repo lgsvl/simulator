@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -171,12 +171,6 @@ namespace Simulator.Editor.PointCloud
 
         protected void DrawProtectedProperties(PointCloudRenderer obj)
         {
-            if (!Application.isPlaying)
-            {
-                EditorGUILayout.HelpBox("Only preview is currently displayed. Enter play mode to see actual output.",
-                    MessageType.Info);
-            }
-
             EditorGUILayout.PropertyField(Colorize);
             EditorGUILayout.PropertyField(Render);
             EditorGUILayout.PropertyField(Mask);

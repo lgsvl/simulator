@@ -1,5 +1,5 @@
-﻿/**
- * Copyright (c) 2019 LG Electronics, Inc.
+/**
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -71,6 +71,18 @@ namespace Simulator.PointCloud
             foreach (var pointCloudRenderer in activeInstance.renderers)
                 pointCloudRenderer.RenderLidar(cmd, hdCamera, colorBuffer, depthBuffer);
             
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+        }
+        
+        public static void RenderDepth(ScriptableRenderContext context, CommandBuffer cmd, HDCamera hdCamera, RTHandle colorBuffer, RTHandle depthBuffer)
+        {
+            if (activeInstance == null)
+                return;
+
+            foreach (var pointCloudRenderer in activeInstance.renderers)
+                pointCloudRenderer.RenderDepth(cmd, hdCamera, colorBuffer, depthBuffer);
+
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
         }

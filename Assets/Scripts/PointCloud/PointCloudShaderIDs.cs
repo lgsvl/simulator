@@ -45,7 +45,7 @@ namespace Simulator.PointCloud
             public const string UnlitShadowsKeyword = "_PC_UNLIT_SHADOWS";
             public const string LinearDepthKeyword = "_PC_LINEAR_DEPTH";
             public static readonly int ColorTexture = Shader.PropertyToID("_ColorTex");
-            public static readonly int NormalDepthTexture = Shader.PropertyToID("_NormalDepthTex");
+            public static readonly int NormalTexture = Shader.PropertyToID("_NormalDepthTex");
             public static readonly int OriginalDepth = Shader.PropertyToID("_OriginalDepth");
             public static readonly int ReprojectionVector = Shader.PropertyToID("_SRMulVec");
             public static readonly int UnlitShadowsFilter = Shader.PropertyToID("_ShadowsFilter");

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -43,7 +43,7 @@ namespace Simulator.Sensors
         // TODO: Move this setting to SimulatorManager and use WebUI to set it.
         public List<InstanceCandidateTags> InstanceSegmentationTags = new List<InstanceCandidateTags>();
 
-        public void Start()
+        public override void Start()
         {
             base.Start();
             // SegmentationCameraSensor always use JpegQuality = 100

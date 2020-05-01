@@ -262,6 +262,100 @@ Shader "Simulator/PointCloud/HDRP/Circles"
 
         Pass
         {
+            Name "Point Cloud Circles Depth"
+
+            HLSLPROGRAM
+
+            #pragma vertex Vert
+            #pragma geometry Geom
+            #pragma fragment Frag
+            #pragma multi_compile_local _ _SIZE_IN_PIXELS
+
+            struct g2f
+            {
+                float4 Position : SV_POSITION;
+                nointerpolation float4 Color : COLOR;
+                float2 TexCoord : TEXCOORD0;
+                float3 WorldPos : TEXCOORD1;
+            };
+
+            PointCloudPoint Vert(uint id : SV_VertexID) : POINT
+            {
+                return _Buffer[id];
+            }
+
+            float3 EncodeFloatRGB(float v)
+            {
+                float4 kEncodeMul = float4(1.0, 255.0, 65025.0, 16581375.0);
+                float kEncodeBit = 1.0/255.0;
+                float4 enc = kEncodeMul * v * 0.5;
+                enc = frac (enc);
+                enc -= enc.yzww * kEncodeBit;
+                return enc.xyz;
+            }
+
+            [maxvertexcount(4)]
+            void Geom(point PointCloudPoint pt[1]: POINT, inout TriangleStream<g2f> stream)
+            {
+                float3 pos = pt[0].Position;
+                float4 color = PointCloudUnpack(pt[0].Color);
+                float3 worldPos = PointCloudWorldPositionHDRP(pos);
+                float4 clip = TransformWorldToHClip(worldPos);
+                float2 scale = float2(_Size, _Size);
+
+                #ifdef _SIZE_IN_PIXELS
+                    scale *= clip.w / _ScreenSize.xy;
+                #else
+                    float minSize = _MinSize * clip.w / _ScreenSize.x;
+                    if (_Size < minSize)
+                    {
+                        scale = float2(minSize, minSize);
+                    }
+                    scale.y *= _ScreenSize.x / _ScreenSize.y;
+                #endif
+
+                float2 offsets[] =
+                {
+                    float2(-1, -1),
+                    float2(1, -1),
+                    float2(-1, 1),
+                    float2(1, 1),
+                };
+
+                UNITY_UNROLL
+                for (int i = 0; i < 4; i++)
+                {
+                    g2f o;
+                    o.Position.xy = clip.xy + scale * offsets[i];
+                    o.Position.zw = clip.zw;
+                    o.Color = color;
+                    o.TexCoord = offsets[i];
+                    o.WorldPos = worldPos;
+                    stream.Append(o);
+                }
+            }
+
+            void Frag(g2f Input, out float4 outColor : SV_Target0)
+            {
+                // TODO: this discard changes color of discarded pixels the output texture - fix
+                // if (dot(Input.TexCoord, Input.TexCoord) > 1)
+                // {
+                //     discard;
+                // }
+
+                float depth = length(GetPrimaryCameraPosition() - Input.WorldPos);
+
+                float d = Linear01Depth(depth, _ZBufferParams);
+                d = pow(abs(d), 0.1);
+
+                outColor = float4(d, d, d, 1);
+            }
+
+            ENDHLSL
+        }
+
+        Pass
+        {
             Name "Point Cloud Circles ShadowCaster"
         
             Cull [_CullMode]

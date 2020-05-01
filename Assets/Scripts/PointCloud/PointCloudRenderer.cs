@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -285,6 +285,23 @@ namespace Simulator.PointCloud
             else
                 RenderLidarPoints(cmd, targetCamera, colorBuffer, depthBuffer);
         }
+        
+        public void RenderDepth(CommandBuffer cmd, HDCamera targetCamera, RTHandle colorBuffer, RTHandle depthBuffer)
+        {
+            var solid = RenderMode == RenderType.Solid;
+            RenderDepth(cmd, targetCamera, colorBuffer, depthBuffer, solid);
+        }
+
+        public void RenderDepth(CommandBuffer cmd, HDCamera targetCamera, RTHandle colorBuffer, RTHandle depthBuffer, bool solid)
+        {
+            if ((Mask & RenderMask.Camera) == 0 || Buffer == null || PointCount == 0 || !isActiveAndEnabled)
+                return;
+
+            if (solid)
+                RenderDepthSolid(cmd, targetCamera, colorBuffer, depthBuffer);
+            else
+                RenderDepthPoints(cmd, targetCamera, colorBuffer, depthBuffer);
+        }
 
         private void RenderLidarSolid(CommandBuffer cmd, HDCamera targetCamera, RTHandle colorBuffer, RTHandle depthBuffer)
         {
@@ -298,13 +315,32 @@ namespace Simulator.PointCloud
             cmd.CopyTexture(depthBuffer, rtLidarCopy);
 
             cmd.SetGlobalTexture(PointCloudShaderIDs.SolidCompose.ColorTexture, Resources.GetRTHandle(RTUsage.ColorBuffer));
-            cmd.SetGlobalTexture(PointCloudShaderIDs.SolidCompose.NormalDepthTexture, Resources.GetRTHandle(RTUsage.Generic0));
             cmd.SetGlobalTexture(PointCloudShaderIDs.SolidCompose.OriginalDepth, rtLidarCopy);
             cmd.SetGlobalVector(PointCloudShaderIDs.SolidCompose.ReprojectionVector, GetFovReprojectionVector(targetCamera.camera));
             var lidarComposePass = Resources.Passes.lidarCompose;
 
             CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer);
             CoreUtils.DrawFullScreen(cmd, Resources.SolidComposeMaterial, shaderPassId: lidarComposePass);
+        }
+        
+        private void RenderDepthSolid(CommandBuffer cmd, HDCamera targetCamera, RTHandle colorBuffer, RTHandle depthBuffer)
+        {
+            // This value changes multiple times per frame, so it has to be set through command buffer, hence global
+            CoreUtils.SetKeyword(cmd, PointCloudShaderIDs.SolidCompose.TargetGBufferKeyword, false);
+
+            RenderSolidCore(cmd, targetCamera, null, false, false);
+
+            // One texture can't be set as target and read from at the same time - copy needed
+            var rtDepthCopy = Resources.GetCustomSizedDepthRT(depthBuffer.referenceSize);
+            cmd.CopyTexture(depthBuffer, rtDepthCopy);
+
+            cmd.SetGlobalTexture(PointCloudShaderIDs.SolidCompose.ColorTexture, Resources.GetRTHandle(RTUsage.ColorBuffer));
+            cmd.SetGlobalTexture(PointCloudShaderIDs.SolidCompose.OriginalDepth, rtDepthCopy);
+            cmd.SetGlobalVector(PointCloudShaderIDs.SolidCompose.ReprojectionVector, GetFovReprojectionVector(targetCamera.camera));
+            var depthComposePass = Resources.Passes.depthCompose;
+
+            CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer);
+            CoreUtils.DrawFullScreen(cmd, Resources.SolidComposeMaterial, shaderPassId: depthComposePass);
         }
 
         private void RenderAsSolid(CommandBuffer cmd, HDCamera targetCamera, RenderTargetIdentifier[] rtIds, RTHandle depthBuffer, RTHandle cameraColorBuffer)
@@ -325,8 +361,8 @@ namespace Simulator.PointCloud
             cmd.CopyTexture(depthBuffer, depthCopy);
 
             cmd.SetGlobalTexture(PointCloudShaderIDs.SolidCompose.ColorTexture, Resources.GetRTHandle(RTUsage.ColorBuffer));
-            cmd.SetGlobalTexture(PointCloudShaderIDs.SolidCompose.NormalDepthTexture, Resources.GetRTHandle(RTUsage.Generic0));
-            cmd.SetGlobalTexture(PointCloudShaderIDs.SolidCompose.OriginalDepth, Resources.GetRTHandle(RTUsage.DepthCopy));
+            cmd.SetGlobalTexture(PointCloudShaderIDs.SolidCompose.NormalTexture, Resources.GetRTHandle(RTUsage.Generic0));
+            cmd.SetGlobalTexture(PointCloudShaderIDs.SolidCompose.OriginalDepth, depthCopy);
             cmd.SetGlobalVector(PointCloudShaderIDs.SolidCompose.ReprojectionVector, GetFovReprojectionVector(targetCamera.camera));
             var composePass = Resources.Passes.solidCompose;
 
@@ -533,6 +569,15 @@ namespace Simulator.PointCloud
 
             CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer);
             var pass = Resources.Passes.lidarCircles;
+            cmd.DrawProcedural(Matrix4x4.identity, Resources.CirclesMaterial, pass, MeshTopology.Points, PointCount);
+        }
+        
+        private void RenderDepthPoints(CommandBuffer cmd, HDCamera targetCamera, RTHandle colorBuffer, RTHandle depthBuffer)
+        {
+            SetCirclesMaterialProperties(cmd, targetCamera);
+
+            CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer);
+            var pass = Resources.Passes.depthCircles;
             cmd.DrawProcedural(Matrix4x4.identity, Resources.CirclesMaterial, pass, MeshTopology.Points, PointCount);
         }
 

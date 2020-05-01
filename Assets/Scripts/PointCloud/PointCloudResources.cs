@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -25,6 +25,8 @@ namespace Simulator.PointCloud
             public readonly int circlesGBuffer;
             public readonly int lidarCircles;
             public readonly int lidarCompose;
+            public readonly int depthCompose;
+            public readonly int depthCircles;
             public readonly int solidCompose;
             public readonly int circlesShadowcaster;
 
@@ -32,6 +34,8 @@ namespace Simulator.PointCloud
             {
                 circlesGBuffer = circlesMat.FindPass("Point Cloud Circles GBuffer");
                 lidarCompose = solidComposeMat.FindPass("Point Cloud Lidar Compose");
+                depthCompose = solidComposeMat.FindPass("Point Cloud Depth Compose");
+                depthCircles = solidComposeMat.FindPass("Point Cloud Depth Circles");
                 solidCompose = solidComposeMat.FindPass("Point Cloud Default Compose");
                 circlesShadowcaster = circlesMat.FindPass("Point Cloud Circles ShadowCaster");
                 lidarCircles = circlesMat.FindPass("Point Cloud Circles Lidar");

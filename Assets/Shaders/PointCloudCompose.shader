@@ -188,7 +188,7 @@ Shader "Simulator/PointCloud/HDRP/Compose"
         if (eyeDepth < camDepth || linearDepth > 0.999)
             discard;
 
-        // Lidar uses unusual depth format - just calculate it here
+        // Sensors use unusual depth format - just calculate it here
         float2 positionNDC = varyings.positionCS.xy * _ScreenSize.zw;
         float3 positionWS = ComputeWorldSpacePosition(positionNDC, eyeDepth, UNITY_MATRIX_I_VP);
         float lidarDepth = length(GetPrimaryCameraPosition() - positionWS);
@@ -197,6 +197,40 @@ Shader "Simulator/PointCloud/HDRP/Compose"
         float intensity = (pcColor.r + pcColor.g + pcColor.b) / 3;
 
         outColor = float4(EncodeFloatRGB(lidarDepth * _ProjectionParams.w), intensity);
+    }
+
+    void DepthComposePass(Varyings varyings, out float4 outColor : SV_Target0)
+    {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(varyings);
+        float camDepth = LOAD_TEXTURE2D_X_LOD(_OriginalDepth, varyings.positionCS.xy, 0).r;
+        PositionInputs posInput = GetPositionInput(varyings.positionCS.xy, _ScreenSize.zw, camDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+
+        float2 insetSS = posInput.positionSS;
+        insetSS.x = insetSS.x * _SRMulVec.x + _SRMulVec.y;
+        insetSS.y = insetSS.y * _SRMulVec.x + _SRMulVec.z;
+
+        float4 pcPacked = _ColorTex.Load(int3(insetSS, 0));
+
+        #ifdef _PC_LINEAR_DEPTH
+            float linearDepth = 1.0 - pcPacked.w;
+            float eyeDepth = (1 / (linearDepth) - _ZBufferParams.y) / _ZBufferParams.x;
+        #else
+            float linearDepth = Linear01Depth(pcPacked.w, _ZBufferParams);
+            float eyeDepth = pcPacked.w;
+        #endif
+
+        if (eyeDepth < camDepth || linearDepth > 0.999)
+            discard;
+
+        // Sensors use unusual depth format - just calculate it here
+        float2 positionNDC = varyings.positionCS.xy * _ScreenSize.zw;
+        float3 positionWS = ComputeWorldSpacePosition(positionNDC, eyeDepth, UNITY_MATRIX_I_VP);
+
+        float d = length(GetPrimaryCameraPosition() - positionWS);
+        d = 1.0 / (_ZBufferParams.x * d + _ZBufferParams.y);
+        d = pow(abs(d), 0.1);
+
+        outColor = float4(d, d, d, 1);
     }
 
     void DebugComposePass(Varyings varyings, out float4 outColor : SV_Target0)
@@ -258,6 +292,20 @@ Shader "Simulator/PointCloud/HDRP/Compose"
 
             HLSLPROGRAM
                 #pragma fragment LidarComposePass
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "Point Cloud Depth Compose"
+
+            ZWrite On
+            ZTest Always
+            Blend One Zero
+            Cull Off
+
+            HLSLPROGRAM
+                #pragma fragment DepthComposePass
             ENDHLSL
         }
 

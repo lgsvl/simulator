@@ -64,19 +64,22 @@ pipeline {
 
           def environments = env.SIMULATOR_ENVIRONMENTS.split(',')
           for (int i=0; i<environments.size(); i++) {
-            def environment = environments[i]
+            def environment_path = environments[i]
+            def environment_path_parts = environment_path.split('/')
+            def environment_name = environment_path_parts.last()
+
             checkout([
               $class: "GitSCM",
               branches: [[name: "refs/heads/master"]],
-              browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Environments/${environment}", version: env.GITLAB_VERSION],
+              browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Environments/${environment_path}", version: env.GITLAB_VERSION],
               extensions: [
-                [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Environments/${environment}"],
+                [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Environments/${environment_name}"],
                 [$class: "LocalBranch"],
                 [$class: "GitLFSPull"]
               ],
               userRemoteConfigs: [[
                 credentialsId: "auto-gitlab",
-                url: "git@${GITLAB_HOST}:HDRP/Environments/${environment}.git"
+                url: "git@${GITLAB_HOST}:HDRP/Environments/${environment_path}.git"
               ]]
             ])
           }

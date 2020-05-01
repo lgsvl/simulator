@@ -63,25 +63,34 @@ pipeline {
         script {
 
           def environments = env.BUILD_SIMULATOR_ENVIRONMENTS.split(',')
+          def environment_names_list = []
+
           for (int i=0; i<environments.size(); i++) {
-            def environment = environments[i]
+            def environment_path = environments[i]
+            def environment_path_parts = environment_path.split('/')
+            def environment_name = environment_path_parts.last()
+
+            environment_names_list.add(environment_name)
+
             checkout([
               $class: "GitSCM",
               branches: [[name: "refs/heads/master"]],
-              browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Environments/${environment}", version: env.GITLAB_VERSION],
+              browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Environments/${environment_path}", version: env.GITLAB_VERSION],
               extensions: [
-                [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Environments/${environment}"],
+                [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Environments/${environment_name}"],
                 [$class: "LocalBranch"],
                 [$class: "GitLFSPull"]
               ],
               userRemoteConfigs: [[
                 credentialsId: "auto-gitlab",
-                url: "git@${GITLAB_HOST}:HDRP/Environments/${environment}.git"
+                url: "git@${GITLAB_HOST}:HDRP/Environments/${environment_path}.git"
               ]]
             ])
           }
 
-          env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 0 ${BUILD_SIMULATOR_ENVIRONMENTS}").trim()
+          def environment_names = environment_names_list.join(",")
+
+          env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 0 ${environment_names}").trim()
         } // script
         sh "printenv SIM_ENVIRONMENTS | tee environments.txt"
       }

@@ -57,6 +57,11 @@ else
   fi
 fi
 
+# Replace any '/' with '-' using bash's Pattern Replace
+# ${VAR//pattern/replacement}
+
+SUFFIX=${SUFFIX//\//-}
+
 if [ ! -z ${SIMULATOR_CONTROLLABLES+x} ]; then
   CONTROLLABLES="-buildBundles -buildControllables ${SIMULATOR_CONTROLLABLES}"
 else

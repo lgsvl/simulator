@@ -24,6 +24,8 @@ pipeline {
     booleanParam(name: "BUILD_WINDOWS", defaultValue: true, description: "")
     booleanParam(name: "BUILD_LINUX", defaultValue: true, description: "")
     booleanParam(name: "BUILD_MACOS", defaultValue: false, description: "")
+    booleanParam(name: "FORCE_CHECK", defaultValue: false, description: "")
+    booleanParam(name: "FORCE_TEST", defaultValue: false, description: "")
     string(name: "CLOUD_URL", defaultValue: "${SIMULATOR_STAGING_CLOUD_URL}", description: "")
   }
 
@@ -171,6 +173,13 @@ pipeline {
     }
 
     stage("Check") {
+      when {
+        anyOf {
+            buildingTag()
+            branch 'master'
+            environment name: "FORCE_CHECK", value: "true"
+        }
+      }
       steps {
         dir("Jenkins") {
           sh "UID=`id -u` docker-compose run --rm build-simulator check"
@@ -184,6 +193,13 @@ pipeline {
     }
 
     stage("Test") {
+      when {
+        anyOf {
+            buildingTag()
+            branch 'master'
+            environment name: "FORCE_TEST", value: "true"
+        }
+      }
       steps {
         dir("Jenkins") {
           sh "UID=`id -u` docker-compose run --rm build-simulator test"

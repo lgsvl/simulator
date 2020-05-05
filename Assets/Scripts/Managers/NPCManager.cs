@@ -328,7 +328,6 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         {
             callback(npc);
         }
-
     }
 
     public void DestroyNPC(NPCController obj)
@@ -367,7 +366,6 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         }
 
         ActiveNPCCount = 0;
-        ClearDespawnCallbacks();
     }
 
     public void Reset()
@@ -382,6 +380,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         }
 
         CurrentPooledNPCs.Clear();
+        ClearDespawnCallbacks();
     }
 
     private string GetNPCLabel(string npc_name)

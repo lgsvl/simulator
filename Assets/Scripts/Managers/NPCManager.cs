@@ -79,6 +79,27 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     private Camera SimulatorCamera;
     private MapManager MapManager;
 
+    public delegate void DespawnCallbackType(NPCController controller);
+    List<DespawnCallbackType> DespawnCallbacks = new List<DespawnCallbackType>();
+
+    public void RegisterDespawnCallback(DespawnCallbackType callback)
+    {
+        DespawnCallbacks.Add(callback);
+    }
+
+    public void DeregisterDespawnCallback(DespawnCallbackType callback)
+    {
+        if (!DespawnCallbacks.Remove(callback))
+        {
+            Debug.LogError("Error in DeregisterDespawnCallback. " + callback + " is not registered before.");
+        }
+    }
+
+    public void ClearDespawnCallbacks()
+    {
+        DespawnCallbacks.Clear();
+    }
+
     public void InitRandomGenerator(int seed)
     {
         Seed = seed;
@@ -302,6 +323,12 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
         if(NPCActive)
             ActiveNPCCount--;
+
+        foreach (var callback in DespawnCallbacks)
+        {
+            callback(npc);
+        }
+
     }
 
     public void DestroyNPC(NPCController obj)
@@ -340,6 +367,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         }
 
         ActiveNPCCount = 0;
+        ClearDespawnCallbacks();
     }
 
     public void Reset()

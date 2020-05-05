@@ -52,6 +52,7 @@ namespace Simulator.Sensors
             {
                 radar.Init();
             }
+            SimulatorManager.Instance.NPCManager.RegisterDespawnCallback(OnExitRange);
         }
 
         private void Start()
@@ -150,7 +151,17 @@ namespace Simulator.Sensors
             }
         }
 
+        void OnExitRange(NPCController controller)
+        {
+            OnExitRange(controller.MainCollider);
+        }
+
         void OnExitRange(Collider other, RadarMesh radar)
+        {
+            OnExitRange(other);
+        }
+
+        void OnExitRange(Collider other)
         {
             if (Detected.ContainsKey(other))
                 Detected.Remove(other);

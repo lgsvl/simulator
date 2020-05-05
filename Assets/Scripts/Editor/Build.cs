@@ -873,9 +873,10 @@ namespace Simulator.Editor
                 {
                     Match match = buildBundleParam.Match(args[i]);
                     if(match.Success) {
-                    var group = match.Captures[0].Value;
+                        var group = match.Groups[1].Captures[0].Value;
+
                         if (i == args.Length - 1)
-                            throw new Exception($"-build{group} expects comma seperated environment names!");
+                            throw new Exception($"-build{group} expects comma seperated names!");
 
                         var bundleGroup = build.buildGroups[group];
                         i++;
@@ -891,7 +892,7 @@ namespace Simulator.Editor
                             }
                             else
                             {
-                                build.buildGroups[match.Captures[0].Value].EnableByName(name);
+                                bundleGroup.EnableByName(name);
                                 bundleSum++;
                             }
                         }

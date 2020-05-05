@@ -16,8 +16,6 @@ namespace Simulator.Bridge.Cyber
 {
     static class Conversions
     {
-        static readonly DateTime GpsEpoch = new DateTime(1980, 1, 6, 0, 0, 0, DateTimeKind.Utc);
-
         static byte[] ActualBytes(byte[] array, int length)
         {
             byte[] result = new byte[length];
@@ -236,7 +234,7 @@ namespace Simulator.Bridge.Cyber
             else dir = 45 * Mathf.Round((eul.y % 360 + 360) / 45.0f);
 
             var dt = DateTimeOffset.FromUnixTimeMilliseconds((long)(data.Time * 1000.0)).UtcDateTime;
-            var measurement_time = (dt - GpsEpoch).TotalSeconds + 18.0;
+            var measurement_time = GpsUtils.UtcToGpsSeconds(dt);
             var gpsTime = DateTimeOffset.FromUnixTimeSeconds((long)measurement_time).DateTime.ToLocalTime();
 
             return new apollo.canbus.Chassis()
@@ -297,7 +295,7 @@ namespace Simulator.Bridge.Cyber
             double Height = 0; // sea level to WGS84 ellipsoid
 
             var dt = DateTimeOffset.FromUnixTimeMilliseconds((long)(data.Time * 1000.0)).UtcDateTime;
-            var measurement_time = (dt - GpsEpoch).TotalSeconds + 18.0;
+            var measurement_time = GpsUtils.UtcToGpsSeconds(dt);
 
             return new apollo.drivers.gnss.GnssBestPose()
             {

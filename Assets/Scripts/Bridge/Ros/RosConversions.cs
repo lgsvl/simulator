@@ -17,8 +17,6 @@ namespace Simulator.Bridge.Ros
 {
     static class Conversions
     {
-        static readonly DateTime GpsEpoch = new DateTime(1980, 1, 6, 0, 0, 0, DateTimeKind.Utc);
-
         public static CompressedImage ConvertFrom(ImageData data)
         {
             return new CompressedImage()
@@ -210,7 +208,7 @@ namespace Simulator.Bridge.Ros
             else dir = 45 * UnityEngine.Mathf.Round((eul.y % 360 + 360) / 45.0f);
 
             var dt = DateTimeOffset.FromUnixTimeMilliseconds((long)(data.Time * 1000.0)).UtcDateTime;
-            var measurement_time = (dt - GpsEpoch).TotalSeconds + 18.0;
+            var measurement_time = GpsUtils.UtcToGpsSeconds(dt);
             var gpsTime = DateTimeOffset.FromUnixTimeSeconds((long)measurement_time).DateTime.ToLocalTime();
 
             return new Apollo.ChassisMsg()
@@ -338,7 +336,7 @@ namespace Simulator.Bridge.Ros
             double Height = 0; // sea level to WGS84 ellipsoid
 
             var dt = DateTimeOffset.FromUnixTimeMilliseconds((long)(data.Time * 1000.0)).UtcDateTime;
-            var measurement_time = (dt - GpsEpoch).TotalSeconds + 18.0;
+            var measurement_time = GpsUtils.UtcToGpsSeconds(dt);
 
             return new Apollo.GnssBestPose()
             {
@@ -462,7 +460,7 @@ namespace Simulator.Bridge.Ros
             {
                 header = new Apollo.Header()
                 {
-                    timestamp_sec = (dt - GpsEpoch).TotalSeconds + 18.0,
+                    timestamp_sec = GpsUtils.UtcToGpsSeconds(dt),
                     sequence_num = data.Sequence,
                 },
 

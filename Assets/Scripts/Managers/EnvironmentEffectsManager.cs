@@ -189,7 +189,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
         ActiveProfile.TryGet(out volumetricFog);
 
-        clouds = Instantiate(CloudPrefab, new Vector3(0f, 100f, 0f), Quaternion.identity);
+        clouds = Instantiate(CloudPrefab, new Vector3(0f, 0f, 0f), Quaternion.identity);
         cloudRenderer = clouds.GetComponentInChildren<Renderer>();
 
         //ActiveProfile.TryGet(out activeOverrides.proceduralSky);

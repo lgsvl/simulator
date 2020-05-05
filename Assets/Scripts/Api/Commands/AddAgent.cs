@@ -158,8 +158,7 @@ namespace Simulator.Api.Commands
                 };
 
                 var npcController = SimulatorManager.Instance.NPCManager.SpawnNPC(spawnData);
-
-                npcController.Control = NPCController.ControlType.Manual;
+                npcController.SetBehaviour<NPCManualBehaviour>();
 
                 var body = npcController.GetComponent<Rigidbody>();
                 body.velocity = velocity;
@@ -270,7 +269,7 @@ namespace Simulator.Api.Commands
                         manifest = new Deserializer().Deserialize<Manifest>(Encoding.UTF8.GetString(buffer, 0, streamSize));
                     }
 
-                    if (manifest.bundleFormat != BundleConfig.VehicleBundleFormatVersion)
+                    if (manifest.bundleFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Vehicle])
                     {
                         ApiManager.Instance.SendError(this, "Out of date Vehicle AssetBundle. Please check content website for updated bundle or rebuild the bundle.");
                         return null;

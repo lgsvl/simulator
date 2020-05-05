@@ -4,14 +4,31 @@
  * This software contains code licensed as described in LICENSE.
  *
  */
-
+using System.Collections.Generic;
+using System;
+using System.IO;
 namespace Simulator
 {
     public static class BundleConfig
     {
-        public const int VehicleBundleFormatVersion = 3;
-        public const int MapBundleFormatVersion = 2;
-        public const int SensorBundleFormatVersion = 2;
-        public const int ControllableBundleFormatVersion = 0;
+        public enum BundleTypes
+        {
+            Vehicle,
+            Environment,
+            Sensor,
+            Controllable,
+            NPC
+        }
+
+        public static Dictionary<BundleTypes, int> Versions = new Dictionary<BundleTypes, int>(){
+            [BundleTypes.Vehicle]     = 3,
+            [BundleTypes.Environment] = 2,
+            [BundleTypes.Sensor]      = 2,
+            [BundleTypes.Controllable]= 0,
+            [BundleTypes.NPC]         = 0,
+        };
+
+        public static string pluralOf(BundleTypes type) => Enum.GetName(typeof(BundleConfig.BundleTypes), type) + "s";
+        public static string ExternalBase = Path.Combine("Assets", "External");
     }
 }

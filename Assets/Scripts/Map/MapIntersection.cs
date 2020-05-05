@@ -203,12 +203,9 @@ namespace Simulator.Map
             if (stopQueue.Count == 0) return;
             if (Vector3.Distance(stopQueue[0].transform.position, transform.position) > triggerBounds.x * 2f) // needs a distance
             {
-                NPCController npcC = stopQueue[0].GetComponent<NPCController>();
-                if (npcC != null)
-                {
-                    ExitStopSignQueue(npcC);
-                    npcC.currentIntersection = null;
-                }
+                NPCController npcC = stopQueue[0];
+                ExitStopSignQueue(npcC);
+                npcC.currentIntersection = null;
             }
         }
 
@@ -218,6 +215,8 @@ namespace Simulator.Map
                 return;
 
             NPCController npcController = other.GetComponentInParent<NPCController>();
+            if(npcController == null) return;
+
             SimulatorManager.Instance?.MapManager?.RemoveNPCFromIntersections(npcController);
             npcsInIntersection.Add(npcController.transform);
         }
@@ -228,6 +227,8 @@ namespace Simulator.Map
                 return;
 
             NPCController npcController = other.GetComponentInParent<NPCController>();
+            if(npcController == null) return;
+
             ExitIntersectionList(npcController);
             ExitStopSignQueue(npcController);
         }

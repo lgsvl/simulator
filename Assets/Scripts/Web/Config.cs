@@ -9,6 +9,7 @@ using Simulator.Bridge;
 using Simulator.Controllable;
 using Simulator.Sensors;
 using Simulator.Utilities;
+using Simulator.Api;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,6 +17,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using UnityEngine;
+using VirtualFileSystem;
 using YamlDotNet.Serialization;
 
 namespace Simulator.Web
@@ -48,6 +50,17 @@ namespace Simulator.Web
         public static List<IBridgeFactory> Bridges;
 
         public static Dictionary<string, IControllable> Controllables;
+        public static Dictionary<string, Type> NPCBehaviours = new Dictionary<string, Type>();
+
+        public struct NPCAssetData {
+            public GameObject prefab;
+            public Simulator.Map.NPCSizeType NPCType;
+            public string Name;
+            public string AssetGuid;
+            public int Weight;
+        }
+        public static Dictionary<string, NPCAssetData> NPCVehicles = new Dictionary<string, NPCAssetData>();
+
         public static Dictionary<string, IntPtr> FMUs = new Dictionary<string, IntPtr>(); // managed by FMU.cs
 
         public static int DefaultPageSize = 100;
@@ -63,8 +76,23 @@ namespace Simulator.Web
         {
             Root = Path.Combine(Application.dataPath, "..");
             PersistentDataPath = Application.persistentDataPath;
-            SensorPrefabs = LoadSensorPlugins();
-            Controllables = LoadControllablePlugins();
+            AssetBundle.UnloadAllAssetBundles(false);
+            SensorPrefabs = RuntimeSettings.Instance.SensorPrefabs.ToList();
+
+            if (SensorPrefabs.Any(s=> s == null))
+            {
+                Debug.LogError("Null Sensor Prefab Detected - Check RuntimeSettings SensorPrefabs List for missing Sensor Prefab");
+#if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+#else
+                // return non-zero exit code
+                Application.Quit(1);
+#endif
+                return;
+            }
+
+            LoadBuiltinAssets();
+            LoadExternalAssets();
             Sensors = SensorTypes.ListSensorFields(SensorPrefabs);
             Bridges = BridgeTypes.GetBridgeTypes();
 
@@ -72,6 +100,222 @@ namespace Simulator.Web
             if (!Application.isEditor)
             {
                 ParseCommandLine();
+            }
+        }
+
+        public delegate void AssetLoadFunc(Manifest manifest, VfsEntry dir);
+
+        static void checkDir(VfsEntry dir, AssetLoadFunc loadFunc)
+        {
+            if(dir == null) return;
+            var manifestFile = dir.Find("manifest");
+            if (manifestFile != null && manifestFile.IsFile)
+            {
+                Debug.Log($"found manifest at {manifestFile.Path}");
+                using(var reader = new StreamReader(manifestFile.SeekableStream())) {
+                    try
+                    {
+                        if(reader == null) Debug.Log("no reader?");
+                        Manifest manifest;
+                        try
+                        {
+                            manifest = new Deserializer().Deserialize<Manifest>(reader);
+                        }
+                        catch
+                        {
+                            throw new Exception("Out of date AssetBundle, rebuild or download latest AssetBundle.");
+                        }
+                        loadFunc(manifest, dir);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogWarning($"failed to load asset from {manifestFile.Path}: {ex.Message} STACK: {ex.StackTrace}");
+                    }
+                }
+            }
+            else
+            {
+                foreach (var entry in dir)
+                {
+                    checkDir(entry, loadFunc);
+                }
+            }
+
+        }
+
+        static void LoadBuiltinAssets()
+        {
+            var npcSettings = NPCSettings.Load();
+            var prefabs = new[]
+            {
+                ("Hatchback", Simulator.Map.NPCSizeType.Compact, 5),
+                ("Sedan", Simulator.Map.NPCSizeType.MidSize, 6),
+                ("Jeep", Simulator.Map.NPCSizeType.MidSize, 5),
+                ("SUV", Simulator.Map.NPCSizeType.SUV, 6),
+                ("BoxTruck", Simulator.Map.NPCSizeType.Large, 2),
+                ("SchoolBus", Simulator.Map.NPCSizeType.Schoolbus, 1),
+            };
+            foreach (var entry in prefabs)
+            {
+                var go = npcSettings.NPCPrefabs.Find(x => x.name == entry.Item1);
+                if (go as GameObject == null)
+                {
+                    // I was seeing this in editor a few times, where it was not able to find the builtin assets
+                    Debug.LogError($"Failed to load builtin {entry.Item1} "+(go==null?"null":go.ToString()));
+                    continue;
+                }
+                NPCVehicles.Add(entry.Item1, new NPCAssetData
+                {
+                    prefab = go as GameObject,
+                    NPCType = entry.Item2,
+                    Name = entry.Item1,
+                    AssetGuid = $"builtin-{entry.Item1}",
+                    Weight = entry.Item3,
+                });
+            }
+
+            var behaviours = new[]{
+                typeof(NPCLaneFollowBehaviour),
+                typeof(NPCWaypointBehaviour),
+                typeof(NPCManualBehaviour),
+            };
+            foreach (var b in behaviours)
+            {
+                NPCBehaviours.Add(b.ToString(), b);
+            }
+        }
+
+        static void LoadExternalAssets()
+        {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+
+            var dir = Path.Combine(Application.dataPath, "..", "AssetBundles");
+            var vfs = VfsEntry.makeRoot(dir);
+            // descend into each known dir looking for only specific asset types. todo: add asset type to manifest?
+            checkDir(vfs.GetChild(BundleConfig.pluralOf(BundleConfig.BundleTypes.Controllable)), LoadControllablePlugin);
+            checkDir(vfs.GetChild(BundleConfig.pluralOf(BundleConfig.BundleTypes.Sensor)), LoadSensorPlugin);
+            checkDir(vfs.GetChild(BundleConfig.pluralOf(BundleConfig.BundleTypes.NPC)), loadNPCAsset);
+
+            Debug.Log($"loaded {NPCBehaviours.Count} NPCs behaviours and {NPCVehicles.Count} NPC models in {sw.Elapsed}");
+        }
+
+        private static Assembly loadAssembly(VfsEntry dir, string name)
+        {
+            var dll = dir.Find(name);
+            if (dll == null)
+            {
+                return null;
+            }
+            byte[] buffer = new byte[dll.Size];
+            dll.GetStream().Read(buffer, 0, (int)dll.Size);
+            return Assembly.Load(buffer);
+        }
+        public static void LoadSensorPlugin(Manifest manifest, VfsEntry dir) 
+        {
+            if(manifest.bundleFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Sensor]) {
+                throw new Exception($"manifest version mismatch, expected {BundleConfig.Versions[BundleConfig.BundleTypes.Sensor]}, got {manifest.bundleFormat}");
+            }
+
+            Assembly pluginSource = loadAssembly(dir, $"{manifest.assetName}.dll");
+
+            foreach (Type ty in pluginSource.GetTypes())
+            {
+                Type interfaceType = ty.GetInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IDataConverter<>));
+                if (interfaceType != null)
+                {
+                    Type converterType = interfaceType.GetGenericArguments()[0];
+                    if (!BridgeConfig.bridgeConverters.ContainsKey(converterType))
+                    {
+                        var instance = Activator.CreateInstance(ty);
+                        BridgeConfig.bridgeConverters.Add(converterType, instance as IDataConverter);
+                    }
+                }
+            }
+
+            string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
+            var pluginStream = dir.Find($"{manifest.assetGuid}_sensor_main_{platform}").SeekableStream();
+            AssetBundle pluginBundle = AssetBundle.LoadFromStream(pluginStream);
+            var pluginAssets = pluginBundle.GetAllAssetNames();
+            SensorPrefabs.Add(pluginBundle.LoadAsset<GameObject>(pluginAssets[0]).GetComponent<SensorBase>());
+        }
+
+        public static void LoadControllablePlugin(Manifest manifest, VfsEntry dir) 
+        {
+            if(manifest.bundleFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Controllable]) {
+                throw new Exception($"manifest version mismatch, expected {BundleConfig.Versions[BundleConfig.BundleTypes.Controllable]}, got {manifest.bundleFormat}");
+            }
+            var texStream = dir.Find($"{manifest.assetGuid}_controllable_textures").SeekableStream();
+            var textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+
+            Assembly pluginSource = loadAssembly(dir, $"{manifest.assetName}.dll");
+
+            string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
+            var pluginStream = dir.Find($"{manifest.assetGuid}_controllable_main_{platform}").SeekableStream();
+            AssetBundle pluginBundle = AssetBundle.LoadFromStream(pluginStream);
+            var pluginAssets = pluginBundle.GetAllAssetNames();
+            if (!AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
+            {
+                textureBundle.LoadAllAssets();
+            }
+            Controllables.Add(manifest.assetName, pluginBundle.LoadAsset<GameObject>(pluginAssets[0]).GetComponent<IControllable>());
+        }
+
+        private static void loadNPCAsset(Manifest manifest, VfsEntry dir)
+        {
+            if (manifest.bundleFormat != BundleConfig.Versions[BundleConfig.BundleTypes.NPC])
+            {
+                throw new Exception($"manifest version mismatch, expected {BundleConfig.Versions[BundleConfig.BundleTypes.NPC]}, got {manifest.bundleFormat}");
+            }
+            Assembly pluginSource = loadAssembly(dir, $"{manifest.assetName}.dll");
+            if (pluginSource != null)
+            {
+                foreach (Type ty in pluginSource.GetTypes())
+                {
+                    if(ty.IsAbstract) continue;
+                    if (typeof(NPCBehaviourBase).IsAssignableFrom(ty))
+                    {
+                        NPCBehaviours.Add(ty.ToString(), ty);
+                    }
+                    else if (typeof(ICommand).IsAssignableFrom(ty))
+                    {
+                        var cmd = Activator.CreateInstance(ty) as ICommand;
+                        ApiManager.Commands.Add(cmd.Name, cmd);
+                    }
+                }
+            }
+            var texEntry = dir.Find($"{manifest.assetGuid}_npc_textures");
+            AssetBundle textureBundle = null;
+            if (texEntry != null)
+            {
+                var texStream = VirtualFileSystem.VirtualFileSystem.EnsureSeekable(texEntry.SeekableStream(), (int)texEntry.Size);
+                textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+            }
+
+            string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
+            var pluginEntry = dir.Find($"{manifest.assetGuid}_npc_main_{platform}");
+            if (pluginEntry != null)
+            {
+
+                AssetBundle pluginBundle = AssetBundle.LoadFromStream(pluginEntry.SeekableStream());
+                var pluginAssets = pluginBundle.GetAllAssetNames();
+                GameObject prefab = pluginBundle.LoadAsset<GameObject>(pluginAssets[0]);
+                NPCVehicles.Add(manifest.assetName, new NPCAssetData()
+                {
+                    prefab = prefab,
+                    Name = manifest.assetName,
+                    AssetGuid = manifest.assetGuid,
+                    NPCType = Simulator.Map.NPCSizeType.Compact, // FIXME get from manifest
+                    Weight = 5, // FIXME get from manifest
+                });
+            }
+            else
+            {
+                Debug.LogError("main asset bundle not found!");
+            }
+
+            if (textureBundle && !AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
+            {
+                textureBundle.LoadAllAssets();
             }
         }
 
@@ -105,151 +349,6 @@ namespace Simulator.Web
             return null;
         }
 
-        public static List<SensorBase> LoadSensorPlugins()
-        {
-            AssetBundle.UnloadAllAssetBundles(false);
-            List<SensorBase> prefabs = RuntimeSettings.Instance.SensorPrefabs.ToList();
-            if (prefabs.Any(s=> s == null))
-            {
-                Debug.LogError("Null Sensor Prefab Detected - Check RuntimeSettings SensorPrefabs List for missing Sensor Prefab");
-#if UNITY_EDITOR
-                UnityEditor.EditorApplication.isPlaying = false;
-#else
-                // return non-zero exit code
-                Application.Quit(1);
-#endif
-                return null;
-            }
-
-            var sensorDirectory = Path.Combine(Application.dataPath, "..", "AssetBundles", "Sensors");
-            if (Directory.Exists(sensorDirectory))
-            {
-                DirectoryInfo dir = new DirectoryInfo(sensorDirectory);
-                foreach (FileInfo file in dir.GetFiles())
-                {
-                    try
-                    {
-                        var path = file.FullName;
-                        using (ZipFile zip = new ZipFile(path))
-                        {
-                            string manfile = Encoding.UTF8.GetString(GetFile(zip, "manifest"));
-                            Manifest manifest;
-
-                            try
-                            {
-                                manifest = new Deserializer().Deserialize<Manifest>(manfile);
-                            }
-                            catch
-                            {
-                                throw new Exception("Out of date AssetBundle, rebuild or download latest AssetBundle.");
-                            }
-
-                            Debug.Log($"Loading {manifest.assetName}");
-                            if (manifest.bundleFormat != BundleConfig.SensorBundleFormatVersion)
-                            {
-                                throw new Exception("BundleFormat version mismatch");
-                            }
-
-                            Assembly pluginSource = Assembly.Load(GetFile(zip, $"{manifest.assetName}.dll"));
-                            foreach (Type ty in pluginSource.GetTypes())
-                            {
-                                Type interfaceType = ty.GetInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IDataConverter<>));
-                                if (interfaceType != null)
-                                {
-                                    Type converterType = interfaceType.GetGenericArguments()[0];
-                                    if (!BridgeConfig.bridgeConverters.ContainsKey(converterType))
-                                    {
-                                        var instance = Activator.CreateInstance(ty);
-                                        BridgeConfig.bridgeConverters.Add(converterType, instance as IDataConverter);
-                                    }
-                                }
-                            }
-
-                            string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
-                            var pluginStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_sensor_main_{platform}"));
-                            AssetBundle pluginBundle = AssetBundle.LoadFromStream(pluginStream);
-                            var pluginAssets = pluginBundle.GetAllAssetNames();
-                            prefabs.Add(pluginBundle.LoadAsset<GameObject>(pluginAssets[0]).GetComponent<SensorBase>());
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.LogException(ex);
-                        Debug.LogError($"Failed to load sensor plugin {file.FullName}, skipping it.");
-                    }
-                }
-            }
-
-            return prefabs;
-        }
-
-        public static Dictionary<string, IControllable> LoadControllablePlugins()
-        {
-            AssetBundle.UnloadAllAssetBundles(false);
-            Dictionary<string, IControllable> prefabs = new Dictionary<string, IControllable>();
-
-            var controllableDirectory = Path.Combine(Application.dataPath, "..", "AssetBundles", "Controllables");
-            if (Directory.Exists(controllableDirectory))
-            {
-                DirectoryInfo dir = new DirectoryInfo(controllableDirectory);
-                foreach (FileInfo file in dir.GetFiles())
-                {
-                    try
-                    {
-                        var path = file.FullName;
-                        using (ZipFile zip = new ZipFile(path))
-                        {
-                            string manfile = Encoding.UTF8.GetString(GetFile(zip, "manifest"));
-                            Manifest manifest;
-
-                            try
-                            {
-                                manifest = new Deserializer().Deserialize<Manifest>(manfile);
-                            }
-                            catch
-                            {
-                                throw new Exception("Out of date AssetBundle, rebuild or download latest AssetBundle.");
-                            }
-
-                            if (manifest.bundleFormat != BundleConfig.ControllableBundleFormatVersion)
-                            {
-                                throw new Exception("BundleFormat version mismatch");
-                            }
-
-                            var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_controllable_textures"));
-                            var textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
-
-                            Assembly.Load(GetFile(zip, $"{manifest.assetName}.dll"));
-                            string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
-                            var pluginStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_controllable_main_{platform}"));
-                            AssetBundle pluginBundle = AssetBundle.LoadFromStream(pluginStream);
-                            var pluginAssets = pluginBundle.GetAllAssetNames();
-                            if (!AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
-                            {
-                                textureBundle.LoadAllAssets();
-                            }
-                            prefabs.Add(manifest.assetName, pluginBundle.LoadAsset<GameObject>(pluginAssets[0]).GetComponent<IControllable>());
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.LogException(ex);
-                        Debug.LogError($"Failed to load controllable plugin {file.FullName}, skipping it.");
-                    }
-                }
-            }
-
-            return prefabs;
-        }
-
-        static byte[] GetFile(ZipFile zip, string entryName)
-        {
-            var entry = zip.GetEntry(entryName);
-            int streamSize = (int)entry.Size;
-            byte[] buffer = new byte[streamSize];
-            zip.GetInputStream(entry).Read(buffer, 0, streamSize);
-            return buffer;
-        }
 
         static void ParseConfigFile()
         {

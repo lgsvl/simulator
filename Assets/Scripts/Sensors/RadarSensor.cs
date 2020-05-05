@@ -255,7 +255,7 @@ namespace Simulator.Sensors
             Vector3 velocity = Vector3.zero;
             var npc = col.GetComponent<NPCController>();
             if (npc != null)
-                velocity = npc.currentVelocity;
+                velocity = npc.simpleVelocity;
             var ped = col.GetComponent<NavMeshAgent>();
             if (ped != null)
                 velocity = ped.desiredVelocity;

@@ -52,7 +52,7 @@ namespace Simulator.Api
         public float TimeScale;
 
         WebSocketServer Server;
-        static Dictionary<string, ICommand> Commands = new Dictionary<string, ICommand>();
+        public static Dictionary<string, ICommand> Commands = new Dictionary<string, ICommand>();
 
         public Dictionary<string, GameObject> CachedVehicles = new Dictionary<string, GameObject>();
 

@@ -183,7 +183,7 @@ public class AgentManager : MonoBehaviour
                                         manifest = new Deserializer().Deserialize<Manifest>(Encoding.UTF8.GetString(buffer, 0, streamSize));
                                     }
 
-                                    if (manifest.bundleFormat != BundleConfig.VehicleBundleFormatVersion)
+                                    if (manifest.bundleFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Vehicle])
                                     {
                                         throw new Exception("Out of date Vehicle AssetBundle. Please check content website for updated bundle or rebuild the bundle.");
                                     }

@@ -7,20 +7,32 @@
 
 using SimpleJSON;
 using UnityEngine;
+using System;
+using System.Reflection;
+
 
 namespace Simulator.Api.Commands
 {
-    class VehicleFollowClosestLane : ICommand
+    class VehicleBehaviour : ICommand
     {
-        public string Name => "vehicle/follow_closest_lane";
+        public string Name => "vehicle/behaviour";
 
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
-            var follow = args["follow"].AsBool;
-            var maxSpeed = args["max_speed"].AsFloat;
-            var isLaneChange = args["isLaneChange"].AsBool;
+            var behaviour = args["behaviour"].Value;
             var api = ApiManager.Instance;
+
+            if(!Simulator.Web.Config.NPCBehaviours.ContainsKey(behaviour))
+            {
+                api.SendError(this, $"could not find behaviour '{behaviour}'");
+                return;
+            }
+            Type behaviourType = Simulator.Web.Config.NPCBehaviours[behaviour];
+            if(behaviourType == null) {
+                api.SendError(this, $"could not find behaviour '{behaviour}'");
+                return;
+            }
 
             if (api.Agents.TryGetValue(uid, out GameObject obj))
             {
@@ -31,15 +43,9 @@ namespace Simulator.Api.Commands
                     return;
                 }
 
-                if (follow)
-                {
-                    var laneFollow = npc.SetBehaviour<NPCLaneFollowBehaviour>();
-                    laneFollow.SetFollowClosestLane(maxSpeed, isLaneChange);
-                }
-                else
-                {
-                    npc.SetBehaviour<NPCManualBehaviour>();
-                }
+                MethodInfo method = typeof(NPCController).GetMethod("SetBehaviour");
+                MethodInfo generic = method.MakeGenericMethod(behaviourType);
+                generic.Invoke(npc, null);
 
                 api.SendResult(this);
             }
@@ -50,3 +56,4 @@ namespace Simulator.Api.Commands
         }
     }
 }
+

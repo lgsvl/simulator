@@ -22,10 +22,10 @@ namespace Simulator.Api.Commands
 
             if (api.Agents.TryGetValue(uid, out GameObject obj))
             {
-                var npc = obj.GetComponent<NPCController>();
+                var npc = obj.GetComponent<NPCLaneFollowBehaviour>();
                 if (npc == null)
                 {
-                    api.SendError(this, $"Agent '{uid}' is not a NPC agent");
+                    api.SendError(this, $"Agent '{uid}' is not a NPC agent with lane capabilities");
                     return;
                 }
 

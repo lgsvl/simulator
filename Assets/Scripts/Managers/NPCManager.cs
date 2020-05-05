@@ -95,6 +95,16 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         SimulatorCamera = SimulatorManager.Instance.CameraManager.SimulatorCamera;
         MapManager = SimulatorManager.Instance.MapManager;
 
+        NPCVehicles.Clear();
+        foreach (var data in Simulator.Web.Config.NPCVehicles)
+        {
+            NPCVehicles.Add(new NPCS{
+                NPCType = data.Value.NPCType,
+                Prefab = data.Value.prefab,
+                Weight = data.Value.Weight
+            });
+        }
+
         var network = Loader.Instance.Network;
         network.MessagesManager?.RegisterObject(this);
         if (!SimulatorManager.Instance.IsAPI && !network.IsClient)
@@ -160,6 +170,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         NPCController.Init(spawnData.Seed);
         go.transform.SetPositionAndRotation(spawnData.Position, spawnData.Rotation);
         NPCController.SetLastPosRot(spawnData.Position, spawnData.Rotation);
+        NPCController.SetBehaviour<NPCLaneFollowBehaviour>();
         CurrentPooledNPCs.Add(NPCController);
 
         SimulatorManager.Instance.UpdateSegmentationColors(go);
@@ -280,18 +291,17 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         return CurrentPooledNPCs[index].transform;
     }
 
-    public void DespawnNPC(GameObject npc)
+    public void DespawnNPC(NPCController npc)
     {
-        npc.SetActive(false);
-        ActiveNPCCount--;
+        npc.gameObject.SetActive(false);
         npc.transform.position = transform.position;
         npc.transform.rotation = Quaternion.identity;
-        var npcC = npc.GetComponent<NPCController>();
-        if (npcC)
-        {
-            npcC.StopNPCCoroutines();
-            npcC.enabled = false;
-        }
+
+        npc.StopNPCCoroutines();
+        npc.enabled = false;
+
+        if(NPCActive)
+            ActiveNPCCount--;
     }
 
     public void DestroyNPC(NPCController obj)
@@ -308,7 +318,10 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         }
 
         obj.StopNPCCoroutines();
-        if (obj.currentIntersection != null) obj.currentIntersection.npcsInIntersection.Remove(obj.transform);
+        
+        if(obj.currentIntersection != null)
+            obj.currentIntersection.npcsInIntersection.Remove(obj.transform);
+
         CurrentPooledNPCs.Remove(obj);
         Destroy(obj.gameObject);
     }
@@ -319,7 +332,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
         for (int i = 0; i < CurrentPooledNPCs.Count; i++)
         {
-            DespawnNPC(CurrentPooledNPCs[i].gameObject);
+            DespawnNPC(CurrentPooledNPCs[i]);
         }
         foreach (var item in FindObjectsOfType<MapIntersection>())
         {
@@ -419,20 +432,23 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
     public bool IsVisible(GameObject npc)
     {
-        bool visible = false;
-        var activeAgentController = SimulatorManager.Instance.AgentManager.CurrentActiveAgentController;
+        var activeAgents = SimulatorManager.Instance.AgentManager.ActiveAgents;
         var npcColliderBounds = npc.GetComponent<NPCController>().MainCollider.bounds;
 
         var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(SimulatorCamera);
-        visible = GeometryUtility.TestPlanesAABB(activeCameraPlanes, npcColliderBounds);
+        if(GeometryUtility.TestPlanesAABB(activeCameraPlanes, npcColliderBounds))
+            return true;
 
-        foreach (var sensor in activeAgentController.AgentSensors)
+        foreach (var activeAgent in activeAgents)
         {
-            visible = sensor.CheckVisible(npcColliderBounds);
-            if (visible) break;
+            var activeAgentController = activeAgent.GetComponent<AgentController>();
+            foreach (var sensor in activeAgentController.AgentSensors)
+            {
+                if(sensor.CheckVisible(npcColliderBounds))
+                    return true;
+            }
         }
-
-        return visible;
+        return false;
     }
 
     private void DrawSpawnArea()

@@ -555,7 +555,7 @@ namespace Simulator
                                     }
                                 }
 
-                                if (manifest.bundleFormat != BundleConfig.MapBundleFormatVersion)
+                                if (manifest.bundleFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Environment])
                                 {
                                     zip.Close();
 
@@ -772,7 +772,7 @@ namespace Simulator
                                 }
                             }
 
-                            if (manifest.bundleFormat != BundleConfig.VehicleBundleFormatVersion)
+                            if (manifest.bundleFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Vehicle])
                             {
                                 zip.Close();
 
@@ -809,7 +809,7 @@ namespace Simulator
                                         var dll = zip.GetEntry($"{manifest.fmuName}_windows.dll");
                                         if (dll == null)
                                         {
-                                            throw new ArgumentException($"{manifest.fmuName}.dll not found in Zip");
+                                            throw new ArgumentException($"{manifest.fmuName}.dll not found in Zip {bundlePath}");
                                         }
 
                                         using (Stream s = zip.GetInputStream(dll))
@@ -829,7 +829,7 @@ namespace Simulator
                                         var dll = zip.GetEntry($"{manifest.fmuName}_linux.so");
                                         if (dll == null)
                                         {
-                                            throw new ArgumentException($"{manifest.fmuName}.so not found in Zip");
+                                            throw new ArgumentException($"{manifest.fmuName}.so not found in Zip {bundlePath}");
                                         }
 
                                         using (Stream s = zip.GetInputStream(dll))

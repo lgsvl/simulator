@@ -1,10 +1,16 @@
+/**
+ * Copyright (c) 2020 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
 using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Collections;
 using ICSharpCode.SharpZipLib.Zip;
-using System.Diagnostics;
 
 namespace VirtualFileSystem {
     public class VfsEntry : IEnumerable<VfsEntry>

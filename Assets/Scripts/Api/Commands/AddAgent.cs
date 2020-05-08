@@ -146,6 +146,12 @@ namespace Simulator.Api.Commands
             {
                 var colorData = args["color"].ReadVector3();
                 var template = sim.NPCManager.NPCVehicles.Find(obj => obj.Prefab.name == name); // TODO need to search all available npcs including npc bundles
+                if (template.Prefab == null)
+                {
+                    api.SendError(this, $"Unknown '{name}' NPC name");
+                    return;
+                }
+
                 var spawnData = new NPCManager.NPCSpawnData
                 {
                     Active = true,
@@ -187,6 +193,12 @@ namespace Simulator.Api.Commands
                 }
 
                 var model = sim.PedestrianManager.pedModels.Find(obj => obj.name == name);
+                if (model == null)
+                {
+                    api.SendError(this, $"Unknown '{name}' pedestrian name");
+                    return;
+                }
+
                 var spawnData = new PedestrianManager.PedSpawnData
                 {
                     Active = true,
@@ -201,7 +213,7 @@ namespace Simulator.Api.Commands
                 var pedController = pedManager.SpawnPedestrian(spawnData);
                 if (pedController == null)
                 {
-                    api.SendError(this, $"Unknown '{name}' pedestrian name");
+                    api.SendError(this, $"Pedestrian controller error for '{name}'");
                     return;
                 }
 

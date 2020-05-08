@@ -418,7 +418,7 @@ namespace Simulator.Bridge.Ros
                     {
                         position = new Point()
                         {
-                            x = data.Easting + (data.IgnoreMapOrigin ? -500000 : 0),
+                            x = data.Easting,
                             y = data.Northing,
                             z = data.Altitude,
                         },

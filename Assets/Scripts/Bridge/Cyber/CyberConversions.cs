@@ -333,10 +333,7 @@ namespace Simulator.Bridge.Cyber
         public static apollo.localization.Gps ConvertFrom(GpsOdometryData data)
         {
             var angles = data.Orientation.eulerAngles;
-            float roll = angles.z;
-            float pitch = angles.x;
             float yaw = -angles.y;
-            var q = Quaternion.Euler(pitch, roll, yaw);
 
             return new apollo.localization.Gps()
             {
@@ -357,13 +354,7 @@ namespace Simulator.Bridge.Cyber
 
                     // A quaternion that represents the rotation from the IMU coordinate
                     // (Right/Forward/Up) to the world coordinate (East/North/Up).
-                    orientation = new apollo.common.Quaternion()
-                    {
-                        qx = q.x,
-                        qy = q.y,
-                        qz = q.z,
-                        qw = q.w,
-                    },
+                    orientation = Convert(data.Orientation),
 
                     // Linear velocity of the VRP in the map reference frame.
                     // East/north/up in meters per second.
@@ -425,7 +416,7 @@ namespace Simulator.Bridge.Cyber
                 SteerTarget = (float)data.steering_target / 100,
                 TimeStampSec = data.header.timestamp_sec,
             };
-            
+
             switch (data.gear_location)
             {
                 case global::apollo.canbus.Chassis.GearPosition.GearNeutral:
@@ -516,7 +507,7 @@ namespace Simulator.Bridge.Cyber
         {
             return new apollo.common.Point3D() { x = v.x, y = v.y, z = v.z };
         }
-        
+
         static apollo.common.Point3D ConvertToPoint(double3 v)
         {
             return new apollo.common.Point3D() { x = v.x, y = v.y, z = v.z };

@@ -408,7 +408,7 @@ namespace Simulator.Bridge.Ros
                 header = new Header()
                 {
                     stamp = ConvertTime(data.Time),
-                    seq = data.Sequence, 
+                    seq = data.Sequence,
                     frame_id = data.Frame,
                 },
                 child_frame_id = data.ChildFrame,
@@ -449,11 +449,7 @@ namespace Simulator.Bridge.Ros
         public static Apollo.Gps ApolloConvertFrom(GpsOdometryData data)
         {
             var angles = data.Orientation.eulerAngles;
-            float roll = angles.z;
-            float pitch = angles.x;
             float yaw = -angles.y;
-            var q = UnityEngine.Quaternion.Euler(pitch, roll, yaw);
-
             var dt = DateTimeOffset.FromUnixTimeMilliseconds((long)(data.Time * 1000.0)).UtcDateTime;
 
             return new Apollo.Gps()
@@ -477,13 +473,7 @@ namespace Simulator.Bridge.Ros
 
                     // A quaternion that represents the rotation from the IMU coordinate
                     // (Right/Forward/Up) to the world coordinate (East/North/Up).
-                    orientation = new Apollo.Quaternion()
-                    {
-                        qx = q.x,
-                        qy = q.y,
-                        qz = q.z,
-                        qw = q.w,
-                    },
+                    orientation = ConvertApolloQuaternion(data.Orientation),
 
                     // Linear velocity of the VRP in the map reference frame.
                     // East/north/up in meters per second.
@@ -739,6 +729,11 @@ namespace Simulator.Bridge.Ros
         static Quaternion Convert(UnityEngine.Quaternion q)
         {
             return new Quaternion() { x = q.x, y = q.y, z = q.z, w = q.w };
+        }
+
+        static Apollo.Quaternion ConvertApolloQuaternion(UnityEngine.Quaternion q)
+        {
+            return new Apollo.Quaternion() { qx = q.x, qy = q.y, qz = q.z, qw = q.w };
         }
 
         static double3 Convert(Point p)

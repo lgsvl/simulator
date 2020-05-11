@@ -73,7 +73,7 @@ namespace Simulator.Editor
             {
                 string header = bundlePath;
                 GUILayout.Label(header, EditorStyles.boldLabel);
-                EditorGUILayout.HelpBox($"Following {bundleType} were automatically detected:", UnityEditor.MessageType.None);
+                EditorGUILayout.HelpBox($"Following {bundlePath} were automatically detected:", UnityEditor.MessageType.None);
                 scroll = EditorGUILayout.BeginScrollView(scroll);
 
                 if (entries.Count != 0)
@@ -143,7 +143,8 @@ namespace Simulator.Editor
             public void EnableByName(string name)
             {
                 if(!entries.ContainsKey(name)) {
-                    throw new Exception($"could not enable entry {name} as it was not found");
+                    var knownKeys = string.Join(",", entries.Keys);
+                    throw new Exception($"could not enable entry {name} as it was not found. Known entirs of {bundlePath} are {knownKeys}");
                 }
                 entries[name].selected = true;
             }
@@ -568,10 +569,17 @@ namespace Simulator.Editor
                 buildGroups.Add(data.bundlePath, data);
             }
 
+
             buildGroups = buildGroups.Where(g => Directory.Exists(g.Value.sourcePath)).ToDictionary(e => e.Key, e => e.Value);
             foreach (var NPCDir in Directory.EnumerateDirectories(Path.Combine(BundleConfig.ExternalBase, BundleConfig.pluralOf(BundleConfig.BundleTypes.NPC))))
             {
                 var bundlePath = NPCDir.Substring(BundleConfig.ExternalBase.Length + 1);
+
+                // Ignore temp folders created by Jenkins
+                if (bundlePath.EndsWith("@tmp")) {
+                    continue;
+                }
+
                 if (!buildGroups.ContainsKey(bundlePath))
                 {
                     var data = new BundleData(BundleConfig.BundleTypes.NPC, bundlePath);
@@ -804,7 +812,7 @@ namespace Simulator.Editor
             Build build = new Build();
             build.Refresh();
 
-            var buildBundleParam = new Regex("^-build(Environments|Vehicles|Sensors|Controllables)$");
+            var buildBundleParam = new Regex("^-build(Environment|Vehicle|Sensor|Controllable|NPC)s$");
             int bundleSum = 0;
 
             var args = Environment.GetCommandLineArgs();
@@ -873,31 +881,33 @@ namespace Simulator.Editor
                 {
                     Match match = buildBundleParam.Match(args[i]);
                     if(match.Success) {
-                        var group = match.Groups[1].Captures[0].Value;
-
+                        var val = match.Groups[1].Captures[0].Value;
+                        var bundleType = (BundleConfig.BundleTypes) Enum.Parse(typeof(BundleConfig.BundleTypes), val);
                         if (i == args.Length - 1)
-                            throw new Exception($"-build{group} expects comma seperated names!");
+                            throw new Exception($"-build{val} expects comma seperated environment names!");
 
-                        var bundleGroup = build.buildGroups[group];
+                        var bundleGroups = build.buildGroups.Values.Where(g => g.bundleType == bundleType);
                         i++;
                         foreach (var name in args[i].Split(','))
                         {
-                            if(name == "all")
+                            foreach (var buildGroup in bundleGroups)
                             {
-                                foreach (var entry in bundleGroup.entries.Values)
+                                if (name == "all")
                                 {
-                                    entry.selected = true;
+                                    foreach (var entry in buildGroup.entries.Values)
+                                    {
+                                        entry.selected = true;
+                                        bundleSum++;
+                                    }
+                                }
+                                else
+                                {
+                                    buildGroup.EnableByName(name);
                                     bundleSum++;
                                 }
                             }
-                            else
-                            {
-                                bundleGroup.EnableByName(name);
-                                bundleSum++;
-                            }
                         }
                     }
-
                 }
             }
 

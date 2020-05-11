@@ -27,6 +27,7 @@ services:
       - SIM_VEHICLES
       - SIMULATOR_CONTROLLABLES
       - SIMULATOR_SENSORS
+      - SIMULATOR_NPCS
       - CLOUD_URL
       - JENKINS_BUILD_ID
       - GIT_COMMIT

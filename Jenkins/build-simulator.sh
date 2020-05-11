@@ -74,6 +74,12 @@ else
   SENSORS=
 fi
 
+if [ ! -z ${SIMULATOR_NPCS+x} ]; then
+  NPCS="-buildBundles -buildNPCs ${SIMULATOR_NPCS}"
+else
+  NPCS=
+fi
+
 function check_unity_log {
     ${CHECK_UNITY_LOG} $@
 }
@@ -81,14 +87,19 @@ function check_unity_log {
 function get_unity_license {
     echo "Fetching unity license"
 
+    mkdir -p dummy-unity-project
+    pushd dummy-unity-project
+
     /opt/Unity/Editor/Unity \
         -logFile /dev/stdout \
         -batchmode \
         -serial ${UNITY_SERIAL} \
         -username ${UNITY_USERNAME} \
         -password ${UNITY_PASSWORD} \
-        -projectPath /mnt \
+        -projectPath /mnt/dummy-unity-project \
         -quit
+
+    popd
 }
 
 function finish
@@ -163,8 +174,10 @@ else
 
 fi
 
-rm -Rf /mnt/AssetBundles/Controllables || true
-mkdir -p /mnt/AssetBundles/Controllables || true
+echo "I: Cleanup AssetBundles before build"
+
+rm -Rf /mnt/AssetBundles || true
+mkdir -p /mnt/AssetBundles/{Controllables,NPCs,Sensors} || true
 
 /opt/Unity/Editor/Unity ${DEVELOPMENT_BUILD} \
   -batchmode \
@@ -177,6 +190,7 @@ mkdir -p /mnt/AssetBundles/Controllables || true
   -buildPlayer /tmp/${BUILD_OUTPUT} \
   ${CONTROLLABLES} \
   ${SENSORS} \
+  ${NPCS} \
   -logFile /dev/stdout | tee unity-build-player-${BUILD_TARGET}.log
 
 check_unity_log unity-build-player-${BUILD_TARGET}.log
@@ -219,6 +233,9 @@ cp /mnt/AssetBundles/Controllables/controllable_* /tmp/${BUILD_OUTPUT}/AssetBund
 
 mkdir -p /tmp/${BUILD_OUTPUT}/AssetBundles/Sensors
 cp /mnt/AssetBundles/Sensors/sensor_* /tmp/${BUILD_OUTPUT}/AssetBundles/Sensors
+
+mkdir -p /tmp/${BUILD_OUTPUT}/AssetBundles/NPCs
+cp -R /mnt/AssetBundles/NPCs/* /tmp/${BUILD_OUTPUT}/AssetBundles/NPCs
 
 cd /tmp
 zip -r /mnt/${BUILD_OUTPUT}.zip ${BUILD_OUTPUT}

@@ -148,6 +148,31 @@ pipeline {
       }
     }
 
+    stage("Checkout NPCs") {
+      steps {
+        script {
+          def npcs = env.SIMULATOR_NPCS_REPOS.split(',')
+          for (int i=0; i<npcs.size(); i++) {
+            def npc = npcs[i]
+            checkout([
+              $class: "GitSCM",
+              branches: [[name: "refs/heads/master"]],
+              browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/NPC/${npc}", version: env.GITLAB_VERSION],
+              extensions: [
+                [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/NPCs/${npc}"],
+                [$class: "LocalBranch"],
+                [$class: "GitLFSPull"]
+              ],
+              userRemoteConfigs: [[
+                credentialsId: "auto-gitlab",
+                url: "git@${GITLAB_HOST}:HDRP/NPC/${npc}.git"
+              ]]
+            ])
+          }
+        } // script
+      }
+    }
+
     stage("Docker") {
       environment {
         DOCKER = credentials("Jenkins-Gitlab")

@@ -21,7 +21,7 @@ pipeline {
   }
 
   parameters {
-    booleanParam(name: "BUILD_WINDOWS", defaultValue: true, description: "")
+    booleanParam(name: "BUILD_WINDOWS", defaultValue: false, description: "")
     booleanParam(name: "BUILD_LINUX", defaultValue: true, description: "")
     booleanParam(name: "BUILD_MACOS", defaultValue: false, description: "")
     booleanParam(name: "FORCE_CHECK", defaultValue: false, description: "")
@@ -148,6 +148,31 @@ pipeline {
         } // script
 
         sh "rm -rf *.zip *.html *.xml *.log"
+      }
+    }
+
+    stage("Checkout NPCs") {
+      steps {
+        script {
+          def npcs = env.SIMULATOR_NPCS_REPOS.split(',')
+          for (int i=0; i<npcs.size(); i++) {
+            def npc = npcs[i]
+            checkout([
+              $class: "GitSCM",
+              branches: [[name: "refs/heads/master"]],
+              browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/NPC/${npc}", version: env.GITLAB_VERSION],
+              extensions: [
+                [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/NPCs/${npc}"],
+                [$class: "LocalBranch"],
+                [$class: "GitLFSPull"]
+              ],
+              userRemoteConfigs: [[
+                credentialsId: "auto-gitlab",
+                url: "git@${GITLAB_HOST}:HDRP/NPC/${npc}.git"
+              ]]
+            ])
+          }
+        } // script
       }
     }
 

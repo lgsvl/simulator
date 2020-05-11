@@ -321,7 +321,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         npc.StopNPCCoroutines();
         npc.enabled = false;
 
-        if(NPCActive)
+        if (NPCActive)
             ActiveNPCCount--;
 
         foreach (var callback in DespawnCallbacks)
@@ -345,7 +345,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
         obj.StopNPCCoroutines();
         
-        if(obj.currentIntersection != null)
+        if (obj.currentIntersection != null)
             obj.currentIntersection.npcsInIntersection.Remove(obj.transform);
 
         CurrentPooledNPCs.Remove(obj);
@@ -463,7 +463,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         var npcColliderBounds = npc.GetComponent<NPCController>().MainCollider.bounds;
 
         var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(SimulatorCamera);
-        if(GeometryUtility.TestPlanesAABB(activeCameraPlanes, npcColliderBounds))
+        if (GeometryUtility.TestPlanesAABB(activeCameraPlanes, npcColliderBounds))
             return true;
 
         foreach (var activeAgent in activeAgents)
@@ -471,7 +471,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             var activeAgentController = activeAgent.GetComponent<AgentController>();
             foreach (var sensor in activeAgentController.AgentSensors)
             {
-                if(sensor.CheckVisible(npcColliderBounds))
+                if (sensor.CheckVisible(npcColliderBounds))
                     return true;
             }
         }

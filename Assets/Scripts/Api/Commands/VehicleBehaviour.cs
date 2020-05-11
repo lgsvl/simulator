@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -9,7 +9,6 @@ using SimpleJSON;
 using UnityEngine;
 using System;
 using System.Reflection;
-
 
 namespace Simulator.Api.Commands
 {
@@ -23,13 +22,14 @@ namespace Simulator.Api.Commands
             var behaviour = args["behaviour"].Value;
             var api = ApiManager.Instance;
 
-            if(!Simulator.Web.Config.NPCBehaviours.ContainsKey(behaviour))
+            if (!Simulator.Web.Config.NPCBehaviours.ContainsKey(behaviour))
             {
                 api.SendError(this, $"could not find behaviour '{behaviour}'");
                 return;
             }
             Type behaviourType = Simulator.Web.Config.NPCBehaviours[behaviour];
-            if(behaviourType == null) {
+            if (behaviourType == null)
+            {
                 api.SendError(this, $"could not find behaviour '{behaviour}'");
                 return;
             }

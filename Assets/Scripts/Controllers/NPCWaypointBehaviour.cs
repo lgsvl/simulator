@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -16,7 +16,6 @@ using Simulator.Utilities;
 public class NPCWaypointBehaviour : NPCBehaviourBase
 {
     #region vars
-
     // map data
     public MapLane currentMapLane;
     public List<float> laneSpeed; // used for waypoint mode
@@ -49,7 +48,8 @@ public class NPCWaypointBehaviour : NPCBehaviourBase
     // State kept for checking for reaching to waypoint
     private bool checkReachBlocked = false;
 
-    Coroutine idleCoroutine;
+    private Coroutine idleCoroutine;
+
     // Waypoint Driving
     private enum WaypointDriveState
     {
@@ -72,10 +72,14 @@ public class NPCWaypointBehaviour : NPCBehaviourBase
     public override void PhysicsUpdate()
     {
         if (!rb.isKinematic)
+        {
             rb.isKinematic = true;
+        }
         if (!controller.MainCollider.isTrigger)
+        {
             controller.MainCollider.isTrigger = true;
-        
+        }
+
         controller.SetBrakeLights(currentSpeed < 2.0f);
         
         NPCProcessIdleTime();
@@ -404,7 +408,6 @@ public class NPCWaypointBehaviour : NPCBehaviourBase
 
         currentTarget = laneData[++currentIndex];
     }
-
     #endregion
 
     public void SetFollowWaypoints(List<DriveWaypoint> waypoints, bool loop)

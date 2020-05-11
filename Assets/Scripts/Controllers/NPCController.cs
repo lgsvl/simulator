@@ -164,7 +164,8 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         if (!gameObject.activeInHierarchy)
             return;
 
-        if(wheels.Count < 4) {
+        if (wheels.Count < 4)
+        {
             Vector3 newLeft = Vector3.Cross(transform.forward, Vector3.up);
             Vector3 desiredUp = Vector3.Cross(transform.forward, newLeft);
             if(desiredUp.y < 0) desiredUp = -desiredUp;
@@ -193,9 +194,15 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
             SetLastPosRot(rb.position, rb.rotation);
         }
 
-        if(activeBehaviour)
+        if (activeBehaviour)
+        {
             activeBehaviour.PhysicsUpdate();
-        WheelMovement();
+        }
+
+        if (currentSpeed > 0.1f)
+        {
+            WheelMovement();
+        }
     }
 
     void OnTriggerEnter(Collider other)
@@ -259,7 +266,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         {
             if (child.name.Contains("Wheel") && !child.name.Contains("Spare"))
             {
-                addWheel(child.transform);
+                AddWheel(child.transform);
             }
 
             if (child.name.Contains("Body"))
@@ -380,7 +387,6 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         go.transform.position = new Vector3(Bounds.center.x - Bounds.max.x, Bounds.min.y + 0.5f, Bounds.center.z + Bounds.max.z);
         go.transform.SetParent(transform, true);
         frontLeft = go.transform;
-
     }
 
     public T SetBehaviour<T>() where T: NPCBehaviourBase
@@ -401,7 +407,8 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         _activeBehaviour.Init(_seed);
         return behaviour;
     }
-    void addWheel(Transform wheel)
+
+    void AddWheel(Transform wheel)
     {
         GameObject go = new GameObject("Collider for " + wheel.name);
         go.transform.SetParent(wheelColliderHolder.transform);
@@ -427,6 +434,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         wheels.Add(data);
         DistributeTransform(wheel);
     }
+
     // api
     public void SetLastPosRot(Vector3 pos, Quaternion rot)
     {
@@ -466,7 +474,6 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
     #endregion
 
     #region physics
-
     public Vector3 GetVelocity()
     {
         return simpleVelocity;
@@ -479,12 +486,10 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
     #endregion
 
     #region inputs
-
     public void ForceEStop(bool isStop)
     {
         isForcedStop = isStop;
     }
-
     #endregion
 
     #region lights
@@ -654,7 +659,6 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
             BroadcastMessage(message);
         }
     }
-
 
     public void SetNPCTurnSignal(bool isForced = false, bool isLeft = false, bool isRight = false)
     {

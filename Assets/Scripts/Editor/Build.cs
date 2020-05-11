@@ -51,7 +51,8 @@ namespace Simulator.Editor
         public const string SceneExtension = "unity";
         public const string PrefabExtension = "prefab";
 
-        class BundleData {
+        class BundleData
+        {
             public BundleData(BundleConfig.BundleTypes type, string path = null)
             {
                 bundleType = type;
@@ -61,7 +62,8 @@ namespace Simulator.Editor
             public BundleConfig.BundleTypes bundleType;
             public string bundlePath;
             public string sourcePath => Path.Combine(BundleConfig.ExternalBase, bundlePath);
-            public class Entry {
+            public class Entry
+            {
                 public string name;
                 public string mainAssetFile;
                 public bool selected;
@@ -123,7 +125,7 @@ namespace Simulator.Editor
                     {
                         continue;
                     }
-                    if(!entries.ContainsKey(name))
+                    if (!entries.ContainsKey(name))
                     {
                         var extension = bundleType == BundleConfig.BundleTypes.Environment ? SceneExtension : PrefabExtension;
                         var fullPath = Path.Combine(sourcePath, name, $"{name}.{extension}");
@@ -142,7 +144,8 @@ namespace Simulator.Editor
 
             public void EnableByName(string name)
             {
-                if(!entries.ContainsKey(name)) {
+                if (!entries.ContainsKey(name))
+                {
                     var knownKeys = string.Join(",", entries.Keys);
                     throw new Exception($"could not enable entry {name} as it was not found. Known entirs of {bundlePath} are {knownKeys}");
                 }
@@ -283,7 +286,8 @@ namespace Simulator.Editor
                             break;
                         }
 
-                        if(asmDef != null) {
+                        if (asmDef != null)
+                        {
                             AsmdefBody asmdefContents = new AsmdefBody();
                             asmdefContents.name = entry.name;
                             asmdefContents.references = asmDef.references;
@@ -336,7 +340,8 @@ namespace Simulator.Editor
 
                             buildArtifacts.Add((Path.Combine(outputFolder, buildConf.build.assetBundleName), buildConf.build.assetBundleName));
                             buildArtifacts.Add((Path.Combine(outputFolder, buildConf.build.assetBundleName+".manifest"), null));
-                            if (buildTextureBundle) {
+                            if (buildTextureBundle)
+                            {
                                 buildArtifacts.Add((Path.Combine(outputFolder, textureBuild.assetBundleName), textureBuild.assetBundleName));
                                 buildArtifacts.Add((Path.Combine(outputFolder, textureBuild.assetBundleName+".manifest"), null));
                             }
@@ -576,7 +581,8 @@ namespace Simulator.Editor
                 var bundlePath = NPCDir.Substring(BundleConfig.ExternalBase.Length + 1);
 
                 // Ignore temp folders created by Jenkins
-                if (bundlePath.EndsWith("@tmp")) {
+                if (bundlePath.EndsWith("@tmp"))
+                {
                     continue;
                 }
 
@@ -880,7 +886,8 @@ namespace Simulator.Editor
                 else
                 {
                     Match match = buildBundleParam.Match(args[i]);
-                    if(match.Success) {
+                    if (match.Success)
+                    {
                         var val = match.Groups[1].Captures[0].Value;
                         var bundleType = (BundleConfig.BundleTypes) Enum.Parse(typeof(BundleConfig.BundleTypes), val);
                         if (i == args.Length - 1)

@@ -215,7 +215,7 @@ namespace Simulator.Map
                 return;
 
             NPCController npcController = other.GetComponentInParent<NPCController>();
-            if(npcController == null) return;
+            if (npcController == null) return;
 
             SimulatorManager.Instance?.MapManager?.RemoveNPCFromIntersections(npcController);
             npcsInIntersection.Add(npcController.transform);
@@ -227,7 +227,7 @@ namespace Simulator.Map
                 return;
 
             NPCController npcController = other.GetComponentInParent<NPCController>();
-            if(npcController == null) return;
+            if (npcController == null) return;
 
             ExitIntersectionList(npcController);
             ExitStopSignQueue(npcController);

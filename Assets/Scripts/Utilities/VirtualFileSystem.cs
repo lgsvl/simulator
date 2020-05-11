@@ -12,20 +12,24 @@ using System.Linq;
 using System.Collections;
 using ICSharpCode.SharpZipLib.Zip;
 
-namespace VirtualFileSystem {
+namespace VirtualFileSystem
+{
     public class VfsEntry : IEnumerable<VfsEntry>
     {
         // we use a lazy loaded implementation so that we only check if it is
         // a archive file we can descend into if someone asks us if it is.
         protected System.Lazy<IVfsImpl> _impl;
-        public VfsEntry(string name, bool isFile, long size, VfsEntry parent) {
+        public VfsEntry(string name, bool isFile, long size, VfsEntry parent)
+        {
             _name = name;
             _size = size;
             _isFile = isFile;
             _parent = parent;
             _impl = new Lazy<IVfsImpl>(() => CreateImplementation(this));
         }  
-        public VfsEntry(string name, bool isFile, long size, VfsEntry parent, IVfsImpl implementation) {
+        
+        public VfsEntry(string name, bool isFile, long size, VfsEntry parent, IVfsImpl implementation)
+        {
             _name = name;
             _size = size;
             _isFile = isFile;
@@ -33,7 +37,8 @@ namespace VirtualFileSystem {
             _impl = new Lazy<IVfsImpl>(() => implementation);
         }  
 
-        public static VfsEntry makeRoot(string path) {
+        public static VfsEntry makeRoot(string path)
+        {
             return new VfsEntry("", false, 0, null, new VfsPhysicalDirectory(new DirectoryInfo(path)));
         }
         public bool IsFile => _isFile;
@@ -77,26 +82,32 @@ namespace VirtualFileSystem {
             return null;
         }
         
-        static IVfsImpl CreateImplementation(VfsEntry entry) {
-            if(entry.IsFile) {
+        static IVfsImpl CreateImplementation(VfsEntry entry)
+        {
+            if(entry.IsFile)
+            {
                 //22 appears to be the smallest possible zip file
                 // TODO potentially we could check for the magic number - would it be faster?
-                if(entry.Size > 22) {
-                    try {
+                if(entry.Size > 22)
+                {
+                    try
+                    {
                         return new VfsZipDirectory(entry);
-                    } catch(Exception e) {
-                        //Console.WriteLine("zip exception "+e.Message);
+                    }
+                    catch
+                    {
+                        // I found no better way to test if something is a zip file than actually trying it.
+                        // this is not a failure so we don't want to log the exception
                     }
                 }
                 return new VfsPhysicalPlainFile();
             }
             return new VfsPhysicalDirectory(entry);
-            throw new NotImplementedException();
         }
-
     }
 
-    public interface IVfsImpl {
+    public interface IVfsImpl
+    {
         bool CanDescend { get; }
         IEnumerator<VfsEntry> GetEnumerator(VfsEntry entry);
         VfsEntry GetChild(string name, VfsEntry entry);
@@ -184,9 +195,12 @@ namespace VirtualFileSystem {
             ZipEntry ze = _zipFile.GetEntry(realPath+"/") ?? _zipFile.GetEntry(realPath);
 
             if(ze == null) return null;
-            if(ze.IsFile) {
+            if(ze.IsFile)
+            {
                 return new VfsEntry(name, true, ze.Size, entry);
-            } else {
+            }
+            else
+            {
                 return new VfsEntry(name, false, 0, entry, new VfsZipDirectory(_zipFile, Path.Combine(_pathInZip, name)));
             }
         }
@@ -231,17 +245,6 @@ namespace VirtualFileSystem {
 
     class VirtualFileSystem
     {
-        List<VfsEntry> roots;
-        public VirtualFileSystem() { }
-
-        public VfsEntry Find(string path)
-        {
-            foreach (var root in roots)
-            {
-                root.Find(path);
-            }
-            return null;
-        }
         static public Stream EnsureSeekable(Stream stream, long length)
         {
             if (!stream.CanSeek)

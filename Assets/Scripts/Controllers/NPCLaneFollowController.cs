@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -15,8 +15,8 @@ using Simulator.Utilities;
 public class NPCLaneFollowBehaviour : NPCBehaviourBase
 {
     #region vars
-
-    bool automaticMode = true;
+    private bool DebugMode = false;
+    private bool AutomaticMode = true;
     // physics
     public LayerMask groundHitBitmask;
     public LayerMask carCheckBlockBitmask;
@@ -26,7 +26,6 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     protected RaycastHit groundCheckInfo = new RaycastHit();
     protected float frontRaycastDistance = 20f;
     protected bool atStopTarget;
-
 
     // map data
     public MapLane currentMapLane;
@@ -74,10 +73,8 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     public bool isDodge = false;
     public bool isWaitingToDodge = false;
 
-
     protected float stopSignWaitTime = 1f;
     protected float currentStopTime = 0f;
-
     #endregion
 
     #region mono
@@ -94,12 +91,12 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
             CollisionCheck();
             EvaluateTarget();
             GetIsTurn();
-            if (automaticMode) GetDodge();
+            if (AutomaticMode) GetDodge();
             SetTargetSpeed();
             SetTargetTurn();
             NPCTurn();
             NPCMove();
-            if (automaticMode)
+            if (AutomaticMode)
             {
                 StopTimeDespawnCheck();
                 EvaluateDistanceFromFocus();
@@ -142,14 +139,13 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     {
         if (!SimulatorManager.Instance.NPCManager.WithinSpawnArea(transform.position) && !SimulatorManager.Instance.NPCManager.IsVisible(gameObject))
         {
-            Debug.Log("NPC Despawn: not visible and not within spawn area");
             Despawn();
         }
     }
 
     protected void Despawn()
     {
-        if (automaticMode)
+        if (AutomaticMode)
         {
             ResetData();
             NPCManager.DespawnNPC(controller);
@@ -443,7 +439,16 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
 
     public void OnDrawGizmos()
     {
-        if(!isLaneDataSet) return;
+        if (!DebugMode)
+        {
+            return;
+        }
+
+        if(!isLaneDataSet)
+        {
+            return;
+        }
+
         for (int i = 0; i < laneData.Count-1; i++)
         {
             Debug.DrawLine(laneData[i], laneData[i+1], currentIndex == i ? Color.yellow : Color.red);
@@ -452,7 +457,6 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         Gizmos.DrawSphere(currentTarget, 0.5f);
         Gizmos.color = Color.red;
         Gizmos.DrawSphere(stopTarget, 0.5f);
-
     }
 
     protected void EvaluateTarget()
@@ -509,7 +513,6 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         else // issue getting new waypoints so despawn
         {
             // TODO raycast to see adjacent lanes? Need system
-            Debug.Log($"NPC Despawn: issue getting new waypoints");
             Despawn();
         }
     }
@@ -718,7 +721,6 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
 
         laneData.InsertRange(currentIndex, dodgeData);
 
-
         currentTarget = laneData[currentIndex];
     }
 
@@ -763,7 +765,6 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     #endregion
 
     #region lights
-
     protected void ToggleBrakeLights()
     {
         if (targetSpeed < 2f || isStopLight || isFrontDetectWithinStopDistance || (isStopSign && distanceToStopTarget < stopLineDistance))
@@ -772,6 +773,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
             controller.SetBrakeLights(false);
     }
     #endregion
+
     #region utility
     protected void CollisionCheck()
     {
@@ -801,7 +803,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         groundCheckInfo = new RaycastHit();
         if (!Physics.Raycast(transform.position + Vector3.up, Vector3.down, out groundCheckInfo, 5f, groundHitBitmask))
         {
-            Debug.Log($"NPC Despawn: ground raycast failed");
+            //Debug.Log($"NPC Despawn: ground raycast failed");
             Despawn();
         }
 
@@ -907,7 +909,9 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
             }
         }
     }
-    void OnDisable() {
+
+    void OnDisable()
+    {
         ResetData();
     }
 

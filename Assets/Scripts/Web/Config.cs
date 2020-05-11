@@ -52,12 +52,12 @@ namespace Simulator.Web
         public static Dictionary<string, IControllable> Controllables;
         public static Dictionary<string, Type> NPCBehaviours = new Dictionary<string, Type>();
 
-        public struct NPCAssetData {
+        public struct NPCAssetData
+        {
             public GameObject prefab;
-            public Simulator.Map.NPCSizeType NPCType;
+            public Map.NPCSizeType NPCType;
             public string Name;
             public string AssetGuid;
-            public int Weight;
         }
         public static Dictionary<string, NPCAssetData> NPCVehicles = new Dictionary<string, NPCAssetData>();
 
@@ -148,29 +148,40 @@ namespace Simulator.Web
             var npcSettings = NPCSettings.Load();
             var prefabs = new[]
             {
-                ("Hatchback", Simulator.Map.NPCSizeType.Compact, 5),
-                ("Sedan", Simulator.Map.NPCSizeType.MidSize, 6),
-                ("Jeep", Simulator.Map.NPCSizeType.MidSize, 5),
-                ("SUV", Simulator.Map.NPCSizeType.SUV, 6),
-                ("BoxTruck", Simulator.Map.NPCSizeType.Large, 2),
-                ("SchoolBus", Simulator.Map.NPCSizeType.Schoolbus, 1),
+                "Hatchback",
+                "Sedan",
+                "Jeep",
+                "SUV",
+                "BoxTruck",
+                "SchoolBus",
             };
             foreach (var entry in prefabs)
             {
-                var go = npcSettings.NPCPrefabs.Find(x => x.name == entry.Item1);
-                if (go as GameObject == null)
+                var go = npcSettings.NPCPrefabs.Find(x => x.name == entry) as GameObject;
+                if (go == null)
                 {
                     // I was seeing this in editor a few times, where it was not able to find the builtin assets
-                    Debug.LogError($"Failed to load builtin {entry.Item1} "+(go==null?"null":go.ToString()));
+                    Debug.LogError($"Failed to load builtin {entry} "+(go==null?"null":go.ToString()));
                     continue;
                 }
-                NPCVehicles.Add(entry.Item1, new NPCAssetData
+                Map.NPCSizeType size = Map.NPCSizeType.MidSize;
+                var meta = go.GetComponent<NPCMetaData>();
+
+                if (meta != null)
                 {
-                    prefab = go as GameObject,
-                    NPCType = entry.Item2,
-                    Name = entry.Item1,
-                    AssetGuid = $"builtin-{entry.Item1}",
-                    Weight = entry.Item3,
+                    size = meta.SizeType;
+                }
+                else
+                {
+                    Debug.LogWarning($"NPC {entry} missing meta info, setting default size");
+                }
+
+                NPCVehicles.Add(entry, new NPCAssetData
+                {
+                    prefab = go,
+                    NPCType = size,
+                    Name = entry,
+                    AssetGuid = $"builtin-{entry}",
                 });
             }
 
@@ -299,13 +310,25 @@ namespace Simulator.Web
                 AssetBundle pluginBundle = AssetBundle.LoadFromStream(pluginEntry.SeekableStream());
                 var pluginAssets = pluginBundle.GetAllAssetNames();
                 GameObject prefab = pluginBundle.LoadAsset<GameObject>(pluginAssets[0]);
+
+                Map.NPCSizeType size = Map.NPCSizeType.MidSize;
+                var meta = prefab.GetComponent<NPCMetaData>();
+
+                if (meta != null)
+                {
+                    size = meta.SizeType;
+                }
+                else
+                {
+                    Debug.LogWarning($"NPC {manifest.assetName} missing meta info, setting default type");
+                }
+
                 NPCVehicles.Add(manifest.assetName, new NPCAssetData()
                 {
                     prefab = prefab,
                     Name = manifest.assetName,
                     AssetGuid = manifest.assetGuid,
-                    NPCType = Simulator.Map.NPCSizeType.Compact, // FIXME get from manifest
-                    Weight = 5, // FIXME get from manifest
+                    NPCType = size,
                 });
             }
             else

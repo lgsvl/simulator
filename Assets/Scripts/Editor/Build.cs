@@ -244,6 +244,9 @@ namespace Simulator.Editor
                 Directory.CreateDirectory(outputFolder);
                 var currentScenes = new HashSet<Scene>();
 
+                var selected = entries.Values.Where(e => e.selected && e.available).ToList();
+                if (selected.Count == 0) return;
+
                 if (bundleType == BundleConfig.BundleTypes.Environment)
                 {
                     if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
@@ -257,7 +260,7 @@ namespace Simulator.Editor
                     }
                 }
 
-                foreach (var entry in entries.Values.Where(e => e.selected && e.available))
+                foreach (var entry in selected)
                 {
                     Manifest manifest;
                     if (bundleType == BundleConfig.BundleTypes.Environment)
@@ -459,6 +462,9 @@ namespace Simulator.Editor
                     Debug.Log("done");
                     Resources.UnloadUnusedAssets();
                 }
+                // these are an artifact of the asset building pipeline and we don't use them
+                SilentDelete(Path.Combine(outputFolder, Path.GetFileName(outputFolder)));
+                SilentDelete(Path.Combine(outputFolder, Path.GetFileName(outputFolder))+".manifest");
             }
         }
 

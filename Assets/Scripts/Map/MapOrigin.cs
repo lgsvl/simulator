@@ -33,7 +33,9 @@ namespace Simulator.Map
         MiniVan = 1 << 6,
         Large = 1 << 7,
         Emergency = 1 << 8,
-        Schoolbus = 1 << 9,
+        Bus = 1 << 9,
+        Trailer = 1 << 10,
+        Motorcycle = 1 << 11,
     };
 
     public partial class MapOrigin : MonoBehaviour

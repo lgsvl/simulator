@@ -1455,6 +1455,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5488056421117074308}
+  - component: {fileID: -5486122724821607246}
   m_Layer: 0
   m_Name: Sedan
   m_TagString: Untagged
@@ -1478,6 +1479,19 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &-5486122724821607246
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5488056421117074307}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 34034bbdd243ad801a8dfe2497925ca9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SizeType: 2
 --- !u!1 &5488056421346168125
 GameObject:
   m_ObjectHideFlags: 0

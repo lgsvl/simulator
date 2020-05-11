@@ -24,10 +24,25 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     public struct NPCS
     {
         public GameObject Prefab;
-        public int Weight;
         public NPCSizeType NPCType;
     }
     public List<NPCS> NPCVehicles = new List<NPCS>();
+
+    public Dictionary<NPCSizeType, int> NPCFrequencyWeights = new Dictionary<NPCSizeType, int> ()
+    {
+        [NPCSizeType.Compact]       = 5,
+        [NPCSizeType.MidSize]       = 6,
+        [NPCSizeType.Luxury]        = 2,
+        [NPCSizeType.Sport]         = 1,
+        [NPCSizeType.LightTruck]    = 2,
+        [NPCSizeType.SUV]           = 4,
+        [NPCSizeType.MiniVan]       = 3,
+        [NPCSizeType.Large]         = 2,
+        [NPCSizeType.Emergency]     = 1,
+        [NPCSizeType.Bus]           = 1,
+        [NPCSizeType.Trailer]       = 0,
+        [NPCSizeType.Motorcycle]    = 1,
+    };
 
     [System.Serializable]
     public struct NPCColors
@@ -122,7 +137,6 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             NPCVehicles.Add(new NPCS{
                 NPCType = data.Value.NPCType,
                 Prefab = data.Value.prefab,
-                Weight = data.Value.Weight
             });
         }
 
@@ -402,20 +416,30 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         return RandomGenerator.Next(max);
     }
 
+    int GetNPCFrequencyWeight(NPCSizeType type)
+    {
+        if(NPCFrequencyWeights.ContainsKey(type))
+        {
+            return NPCFrequencyWeights[type];
+        }
+        return 1;
+    }
+
     private NPCS GetWeightedRandomNPC()
     {
-        int totalWeight = NPCVehicles.Where(npcs => HasSizeFlag(npcs.NPCType)).Sum(npcs => npcs.Weight);
+        int totalWeight = NPCVehicles.Where(npc => HasSizeFlag(npc.NPCType)).Sum(npc => GetNPCFrequencyWeight(npc.NPCType));
         int rnd = RandomGenerator.Next(totalWeight);
 
-        for (int i = 0; i < NPCVehicles.Count; i++)
+        foreach (var npc in NPCVehicles)
         {
-            if (HasSizeFlag(NPCVehicles[i].NPCType))
+            if (npc.NPCType != NPCSizeType.Trailer && HasSizeFlag(npc.NPCType))
             {
-                if (rnd < NPCVehicles[i].Weight)
+                int weight = GetNPCFrequencyWeight(npc.NPCType);
+                if (rnd < weight)
                 {
-                    return NPCVehicles[i];
+                    return npc;
                 }
-                rnd -= NPCVehicles[i].Weight;
+                rnd -= weight;
             }
         }
 

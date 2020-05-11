@@ -26,7 +26,7 @@ namespace Simulator.Bridge.Cyber
             Topic = Encoding.ASCII.GetBytes(topic);
         }
 
-        public void Write(T message, Action completed = null)
+        public void Write(T message, Action completed = null, Type type = null)
         {
             byte[] msg;
             using (var stream = new MemoryStream(4096))
@@ -65,7 +65,7 @@ namespace Simulator.Bridge.Cyber
             Convert = convert;
         }
 
-        public void Write(From message, Action completed)
+        public void Write(From message, Action completed = null, Type type = null)
         {
             To converted = Convert(message);
             OriginalWriter.Write(converted, completed);

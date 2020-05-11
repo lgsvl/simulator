@@ -21,8 +21,13 @@ namespace Simulator.Bridge.Ros
             Topic = topic;
         }
 
-        public void Write(T message, Action completed = null)
+        public void Write(T message, Action completed = null, Type type = null)
         {
+            if (type == null)
+            {
+                type = typeof(T);
+            }
+
             var sb = new StringBuilder(1024);
             sb.Append('{');
             {
@@ -33,7 +38,7 @@ namespace Simulator.Bridge.Ros
                 sb.Append("\",");
 
                 sb.Append("\"msg\":");
-                Bridge.Serialize(message, typeof(T), sb);
+                Bridge.Serialize(message, type, sb);
             }
             sb.Append('}');
 
@@ -46,19 +51,33 @@ namespace Simulator.Bridge.Ros
         where From : class
         where To : class
     {
+        Bridge Bridge;
         Writer<To> OriginalWriter;
         Func<From, To> Convert;
 
         public Writer(Bridge bridge, string topic, Func<From, To> convert)
         {
-            OriginalWriter = new Writer<To>(bridge, topic);
+            Bridge = bridge;
+            OriginalWriter = new Writer<To>(Bridge, topic);
             Convert = convert;
         }
 
-        public void Write(From message, Action completed)
+        public void Write(From message, Action completed = null, Type type = null)
         {
+            if (type == null)
+            {
+                if (BridgeConfig.bridgeConverters.ContainsKey(typeof(From)))
+                {
+                    type = BridgeConfig.bridgeConverters[typeof(From)].GetOutputType(Bridge);
+                }
+                else
+                {
+                    type = typeof(To);
+                }
+            }
+
             To converted = Convert(message);
-            OriginalWriter.Write(converted, completed);
+            OriginalWriter.Write(converted, completed, type);
         }
     }
 }

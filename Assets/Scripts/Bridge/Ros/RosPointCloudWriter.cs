@@ -21,7 +21,7 @@ namespace Simulator.Bridge.Ros
             OriginalWriter = new Writer<PointCloud2>(bridge, topic);
         }
 
-        public void Write(PointCloudData data, Action completed)
+        public void Write(PointCloudData data, Action completed = null, Type type = null)
         {
             if (Buffer == null || Buffer.Length != data.Points.Length)
             {

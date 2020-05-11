@@ -253,8 +253,8 @@ namespace Simulator.Bridge.Cyber
             }
             else if (BridgeConfig.bridgeConverters.ContainsKey(type))
             {
-                writer = new Writer<T, object>(this, topic, (BridgeConfig.bridgeConverters[type] as IDataConverter<T>).GetConverter(this)) as IWriter<T>;
                 type = (BridgeConfig.bridgeConverters[type] as IDataConverter<T>).GetOutputType(this);
+                throw new Exception($"Creating a writer for custom message type {type} is not supported for CyberRT bridge yet");
             }
             else
             {

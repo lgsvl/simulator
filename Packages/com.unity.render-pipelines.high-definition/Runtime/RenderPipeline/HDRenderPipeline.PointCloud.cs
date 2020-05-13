@@ -45,6 +45,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_GbufferManager.GetBuffersRTI(hdCamera.frameSettings);
         }
 
+        public void ForceRenderSky(HDCamera camera, CommandBuffer cmd)
+        {
+            RenderSky(camera, cmd);
+        }
+
         /// <summary>
         /// <para>
         /// Event called after each shadow request rendering is done. State is set up to render to proper viewport

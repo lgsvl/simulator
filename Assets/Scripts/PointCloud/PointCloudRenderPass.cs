@@ -30,6 +30,25 @@ namespace Simulator.PointCloud
             base.Setup(renderContext, cmd);
         }
 
+        private bool SkyPreRenderRequired()
+        {
+            // Unlit injection point has sky already rendered - skip
+            if (injectionPoint != PointCloudManager.LitInjectionPoint)
+                return false;
+
+            foreach (var pointCloudRenderer in pointCloudRenderers)
+            {
+                if ((pointCloudRenderer.Mask & PointCloudRenderer.RenderMask.Camera) != 0 &&
+                    pointCloudRenderer.SupportsLighting &&
+                    pointCloudRenderer.DebugBlendSky)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera,
             CullingResults cullingResult)
         {
@@ -56,6 +75,9 @@ namespace Simulator.PointCloud
                 
                 rtIds = cachedTargetIdentifiers;
             }
+            
+            if (SkyPreRenderRequired())
+                RenderPipeline.ForceRenderSky(hdCamera, cmd);
 
             foreach (var pcr in pointCloudRenderers)
             {

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -130,8 +130,8 @@ namespace Simulator.Sensors
             var acceleration = (velocity - LastVelocity) / Time.fixedDeltaTime;
             LastVelocity = velocity;
 
-            acceleration -= transform.InverseTransformDirection(Physics.gravity);
-            acceleration.Set(acceleration.z, -acceleration.x, acceleration.y);
+            var localGravity = transform.InverseTransformDirection(Physics.gravity);
+            acceleration -= new Vector3(localGravity.z, -localGravity.x, localGravity.y);
 
             var angularVelocity = RigidBody.angularVelocity;
             angularVelocity.Set(-angularVelocity.z, angularVelocity.x, -angularVelocity.y); // converting to right handed xyz

@@ -42,9 +42,13 @@ namespace Simulator
     public class AgentConfig
     {
         public string Name;
+        public uint GTID;
         public string Url;
         public string AssetBundle;
+        [NonSerialized]
         public GameObject Prefab;
+        [NonSerialized]
+        public GameObject AgentGO;
         public IBridgeFactory Bridge;
         public string Connection;
         public string Sensors;
@@ -114,6 +118,7 @@ namespace Simulator
 
         private void Init()
         {
+            RenderLimiter.RenderLimitEnabled();
             if (Instance != null)
             {
                 Destroy(gameObject);
@@ -121,7 +126,6 @@ namespace Simulator
             }
 
             stopWatch.Start();
-            RenderLimiter.RenderLimitEnabled();
 
             var info = Resources.Load<BuildInfo>("BuildInfo");
             SIM.Init(info == null ? "Development" : info.Version);

@@ -35,7 +35,7 @@ public class AgentManager : MonoBehaviour
     
     public GameObject CurrentActiveAgent { get; private set; } = null;
     public AgentController CurrentActiveAgentController { get; private set; } = null;
-    public List<GameObject> ActiveAgents { get; private set; } = new List<GameObject>();
+    public List<AgentConfig> ActiveAgents { get; private set; } = new List<AgentConfig>();
 
     public MessagesManager NetworkMessagesManager
     {
@@ -56,9 +56,12 @@ public class AgentManager : MonoBehaviour
         var agentController = go.GetComponent<AgentController>();
         agentController.SensorsChanged += AgentControllerOnSensorsChanged;
         agentController.Config = config;
+        agentController.Config.AgentGO = go;
         SIM.LogSimulation(SIM.Simulation.VehicleStart, config.Name);
-        ActiveAgents.Add(go);
+        
+        ActiveAgents.Add(agentController.Config);
         agentController.GTID = ++SimulatorManager.Instance.GTIDs;
+        agentController.Config.GTID = agentController.GTID;
 
         BridgeClient bridgeClient = null;
         if (config.Bridge != null)
@@ -142,7 +145,13 @@ public class AgentManager : MonoBehaviour
 
     public void SetupDevAgents()
     {
-        ActiveAgents.AddRange(GameObject.FindGameObjectsWithTag("Player"));
+        var sceneAgents = GameObject.FindGameObjectsWithTag("Player");
+        foreach (var agent in sceneAgents)
+        {
+            var config = agent.GetComponent<AgentController>().Config;
+            config.AgentGO = agent;
+            ActiveAgents.Add(config);
+        }
 
         if (ActiveAgents.Count == 0)
         {
@@ -301,17 +310,17 @@ public class AgentManager : MonoBehaviour
         }
         else
         {
-            var go = ActiveAgents[0];
+            var config = ActiveAgents[0];
 
-            var bridgeClient = go.AddComponent<BridgeClient>();
+            var bridgeClient = config.AgentGO.AddComponent<BridgeClient>();
             bridgeClient.Init(new Simulator.Bridge.Ros.RosApolloBridgeFactory());
             bridgeClient.Connect("localhost", 9090);
 
-            var sensorsController = go.GetComponent<SensorsController>();
+            var sensorsController = config.AgentGO.GetComponent<SensorsController>();
             if (sensorsController == null)
             {
-                sensorsController = go.AddComponent<SensorsController>();
-                var agentController = go.GetComponent<AgentController>();
+                sensorsController = config.AgentGO.AddComponent<SensorsController>();
+                var agentController = config.AgentGO.GetComponent<AgentController>();
                 if (agentController != null)
                     agentController.AgentSensorsController = sensorsController;
             }
@@ -319,7 +328,7 @@ public class AgentManager : MonoBehaviour
             sensorsController.SetupSensors(DefaultSensors.Apollo30);
         }
 
-        ActiveAgents.ForEach(agent => agent.GetComponent<AgentController>().Init());
+        ActiveAgents.ForEach(agent => agent.AgentGO.GetComponent<AgentController>().Init());
 
         SetCurrentActiveAgent(0);
     }
@@ -329,7 +338,7 @@ public class AgentManager : MonoBehaviour
         Debug.Assert(agent != null);
         for (int i = 0; i < ActiveAgents.Count; i++)
         {
-            if (ActiveAgents[i] == agent)
+            if (ActiveAgents[i].AgentGO == agent)
             {
                 SetCurrentActiveAgent(i);
                 break;
@@ -343,12 +352,12 @@ public class AgentManager : MonoBehaviour
         if (index < 0 || index > ActiveAgents.Count - 1) return;
         if (ActiveAgents[index] == null) return;
 
-        CurrentActiveAgent = ActiveAgents[index];
+        CurrentActiveAgent = ActiveAgents[index].AgentGO;
         CurrentActiveAgentController = CurrentActiveAgent.GetComponent<AgentController>();
 
-        foreach (var agent in ActiveAgents)
+        foreach (var config in ActiveAgents)
         {
-            agent.GetComponent<AgentController>().Active = (agent == CurrentActiveAgent);
+            config.AgentGO.GetComponent<AgentController>().Active = (config.AgentGO == CurrentActiveAgent);
         }
         ActiveAgentChanged(CurrentActiveAgent);
     }
@@ -370,7 +379,7 @@ public class AgentManager : MonoBehaviour
         int index = 0;
         for (int i = 0; i < ActiveAgents.Count; i++)
         {
-            if (ActiveAgents[i] == CurrentActiveAgent)
+            if (ActiveAgents[i].AgentGO == CurrentActiveAgent)
                 index = i;
         }
         return index;
@@ -399,7 +408,7 @@ public class AgentManager : MonoBehaviour
 
     public void DestroyAgent(GameObject go)
     {
-        ActiveAgents.RemoveAll(x => x == go);
+        ActiveAgents.RemoveAll(config => config.AgentGO == go);
         var agentController = go.GetComponent<AgentController>();
         if (agentController!= null)
             agentController.SensorsChanged -= AgentControllerOnSensorsChanged;
@@ -417,10 +426,10 @@ public class AgentManager : MonoBehaviour
 
     public void Reset()
     {
-        List<GameObject> agents = new List<GameObject>(ActiveAgents);
-        foreach (var agent in agents)
+        List<AgentConfig> configs = new List<AgentConfig>(ActiveAgents);
+        foreach (var config in configs)
         {
-            DestroyAgent(agent);
+            DestroyAgent(config.AgentGO);
         }
 
         ActiveAgents.Clear();

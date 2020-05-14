@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -16,6 +16,7 @@ public class VehicleController : AgentController
     private IVehicleDynamics dynamics;
     private VehicleActions actions;
     private SensorsController sensorsController;
+    private AgentController AgentController;
 
     private List<IVehicleInputs> inputs = new List<IVehicleInputs>();
 
@@ -72,6 +73,7 @@ public class VehicleController : AgentController
         vehicleName = transform.root.name;
         dynamics = GetComponent<IVehicleDynamics>();
         actions = GetComponent<VehicleActions>();
+        AgentController = GetComponent<AgentController>();
         inputs.AddRange(GetComponentsInChildren<IVehicleInputs>());
         initialPosition = transform.position;
         initialRotation = transform.rotation;
@@ -205,9 +207,28 @@ public class VehicleController : AgentController
     {
         int layerMask = LayerMask.GetMask("Obstacle", "Agent", "Pedestrian", "NPC");
         int layer = collision.gameObject.layer;
+        string otherLayer = LayerMask.LayerToName(layer);
+        var otherRB = collision.gameObject.GetComponent<Rigidbody>();
+        var otherVel = otherRB != null ? otherRB.velocity : Vector3.zero;
         if ((layerMask & (1 << layer)) != 0)
         {
             ApiManager.Instance?.AddCollision(gameObject, collision.gameObject, collision);
+            SimulatorManager.Instance.AnalysisManager.IncrementEgoCollision(AgentController.GTID, transform.position, dynamics.RB.velocity, otherVel, otherLayer);
+            SIM.LogSimulation(SIM.Simulation.EgoCollision);
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        int layerMask = LayerMask.GetMask("Obstacle", "Agent", "Pedestrian", "NPC");
+        int layer = other.gameObject.layer;
+        string otherLayer = LayerMask.LayerToName(layer);
+        var otherRB = other.gameObject.GetComponent<Rigidbody>();
+        var otherVel = otherRB != null ? otherRB.velocity : Vector3.zero;
+        if ((layerMask & (1 << layer)) != 0)
+        {
+            ApiManager.Instance?.AddCollision(gameObject, other.attachedRigidbody.gameObject);
+            SimulatorManager.Instance.AnalysisManager.IncrementEgoCollision(AgentController.GTID, transform.position, dynamics.RB.velocity, otherVel, otherLayer);
             SIM.LogSimulation(SIM.Simulation.EgoCollision);
         }
     }

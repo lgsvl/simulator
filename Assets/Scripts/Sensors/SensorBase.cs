@@ -9,7 +9,9 @@ using UnityEngine;
 using Simulator.Bridge;
 using Simulator.Utilities;
 using Simulator.Sensors.UI;
+using Simulator.Analysis;
 using System.Collections.Generic;
+using System.Collections;
 
 namespace Simulator.Sensors
 {
@@ -22,7 +24,8 @@ namespace Simulator.Sensors
             HighLoad = 2,
             UltraHighLoad = 3
         }
-        
+
+        public Hashtable SensorAnalysisData;
         public string Name;
 
         [SensorParameter]
@@ -35,6 +38,8 @@ namespace Simulator.Sensors
         public abstract void OnBridgeSetup(IBridge bridge);
         public abstract void OnVisualize(Visualizer visualizer);
         public abstract void OnVisualizeToggle(bool state);
+        public virtual void OnAnalyze() { }
+        public virtual void SetAnalysisData() { }
         public virtual bool CheckVisible(Bounds bounds) => false;
     }
 }

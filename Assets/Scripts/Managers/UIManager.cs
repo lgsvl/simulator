@@ -311,7 +311,7 @@ public class UIManager : MonoBehaviour
         AgentDropdown.ClearOptions();
         for (int i = 0; i < SimulatorManager.Instance.AgentManager.ActiveAgents.Count; i++)
         {
-            AgentDropdown.options.Add(new Dropdown.OptionData((i + 1) + " - " + SimulatorManager.Instance.AgentManager.ActiveAgents[i].name));
+            AgentDropdown.options.Add(new Dropdown.OptionData((i + 1) + " - " + SimulatorManager.Instance.AgentManager.ActiveAgents[i].AgentGO.name));
         }
         AgentDropdown.value = SimulatorManager.Instance.AgentManager.GetCurrentActiveAgentIndex();
         AgentDropdown.RefreshShownValue();

@@ -84,7 +84,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     private Vector3 SpawnBoundsSize;
     private bool DebugSpawnArea = false;
     private int NPCMaxCount = 0;
-    private int ActiveNPCCount = 0;
+    private  int ActiveNPCCount = 0;
     private System.Random RandomGenerator;
     public System.Random NPCSeedGenerator { get; private set; } // Only use this for initializing a new NPC
     private int Seed = new System.Random().Next();
@@ -492,7 +492,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
         foreach (var activeAgent in activeAgents)
         {
-            var activeAgentController = activeAgent.GetComponent<AgentController>();
+            var activeAgentController = activeAgent.AgentGO.GetComponent<AgentController>();
             foreach (var sensor in activeAgentController.AgentSensors)
             {
                 if (sensor.CheckVisible(npcColliderBounds))

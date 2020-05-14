@@ -26,6 +26,8 @@ public enum TimeOfDayStateTypes
 
 public class EnvironmentEffectsManager : MonoBehaviour
 {
+    SimulationConfig Config;
+
     [System.Serializable]
     public struct TimeOfDayProfileOverrides
     {
@@ -154,6 +156,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
         UpdateSunPosition();
         UpdateClouds();
         //UpdateMoonPosition();
+        UpdateConfig();
 
         if (Loader.Instance.Network.IsMaster)
         {
@@ -178,6 +181,8 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     private void InitEnvironmentEffects()
     {
+        Config = Loader.Instance?.SimConfig;
+
         sunGO = Instantiate(sunGO, new Vector3(0f, 50f, 0f), Quaternion.Euler(90f, 0f, 0f));
         sun = sunGO.GetComponent<Light>();
 
@@ -300,14 +305,13 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     public void Reset()
     {
-        var config = Loader.Instance?.SimConfig;
-        if (config != null)
+        if (Config != null)
         {
-            fog = config.Fog;
-            rain = config.Rain;
-            wet = config.Wetness;
-            cloud = config.Cloudiness;
-            var dateTime = config.TimeOfDay;
+            fog = Config.Fog;
+            rain = Config.Rain;
+            wet = Config.Wetness;
+            cloud = Config.Cloudiness;
+            var dateTime = Config.TimeOfDay;
             ResetTime(dateTime);
         }
 
@@ -527,5 +531,18 @@ public class EnvironmentEffectsManager : MonoBehaviour
             cloudRenderer.material.SetFloat("_Cover", Mathf.Lerp(0f, 1f, cloud));
         }
         prevCloud = cloud;
+    }
+
+    private void UpdateConfig()
+    {
+        if (Config != null)
+        {
+            Config.Fog = fog;
+            Config.Rain = rain;
+            Config.Wetness = wet;
+            Config.Cloudiness = cloud;
+            Config.TimeOfDay = Config.TimeOfDay.Date + TimeSpan.FromHours(currentTimeOfDay);
+        }
+
     }
 }

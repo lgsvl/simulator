@@ -363,7 +363,7 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
         {
             for (int i = 0; i < players.Count; i++)
             {
-                if (Vector3.Distance(players[i].transform.position, pos) < dist)
+                if (Vector3.Distance(players[i].AgentGO.transform.position, pos) < dist)
                 {
                     CurrentTriggerDistance = 0;
                     ThisPedState = PedestrianState.Walking;
@@ -527,6 +527,7 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
         if (collision.gameObject.layer == LayerMask.NameToLayer("Agent"))
         {
             ApiManager.Instance?.AddCollision(gameObject, collision.gameObject, collision);
+            SimulatorManager.Instance.AnalysisManager.IncrementPedCollision();
             SIM.LogSimulation(SIM.Simulation.NPCCollision);
         }
     }

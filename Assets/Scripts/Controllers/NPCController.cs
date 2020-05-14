@@ -210,6 +210,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         if (other.gameObject.layer == agentLayer)
         {
             ApiManager.Instance?.AddCollision(rb.gameObject, other.attachedRigidbody.gameObject);
+            SimulatorManager.Instance.AnalysisManager.IncrementNPCCollision();
             SIM.LogSimulation(SIM.Simulation.NPCCollision);
             if(_activeBehaviour) _activeBehaviour.OnAgentCollision(other.gameObject);
         }
@@ -846,6 +847,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         if (collision.gameObject.layer == agentLayer)
         {
             ApiManager.Instance?.AddCollision(gameObject, collision.gameObject, collision);
+            SimulatorManager.Instance.AnalysisManager.IncrementNPCCollision();
             SIM.LogSimulation(SIM.Simulation.NPCCollision);
             activeBehaviour?.OnAgentCollision(collision.gameObject);
         }

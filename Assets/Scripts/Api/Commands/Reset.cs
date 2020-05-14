@@ -18,6 +18,8 @@ namespace Simulator.Api.Commands
         public static void Run()
         {
             var api = ApiManager.Instance;
+            var sim = SimulatorManager.Instance;
+            sim.AnalysisManager.AnalysisSave();
             api.Reset();
             SIM.LogAPI(SIM.API.SimulationReset);
         }

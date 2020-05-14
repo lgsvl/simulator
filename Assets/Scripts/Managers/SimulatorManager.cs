@@ -12,7 +12,7 @@ using Simulator.Utilities;
 using Simulator;
 using Simulator.Api;
 using Simulator.Controllable;
-using Simulator.Network;
+using Simulator.Analysis;
 using Simulator.Network.Core.Messaging.Data;
 
 using UnityEngine.SceneManagement;
@@ -44,6 +44,7 @@ public class SimulatorManager : MonoBehaviour
     }
     #endregion
 
+    public AnalysisManager analysisManagerPrefab;
     public AgentManager agentManagerPrefab;
     public MapManager mapManagerPrefab;
     public NPCManager npcManagerPrefab;
@@ -54,6 +55,7 @@ public class SimulatorManager : MonoBehaviour
     public UIManager uiManagerPrefab;
     public SimulatorControls controls;
 
+    public AnalysisManager AnalysisManager { get; private set; }
     public AgentManager AgentManager { get; private set; }
     public MapManager MapManager { get; private set; }
     public NPCManager NPCManager { get; private set; }
@@ -169,6 +171,7 @@ public class SimulatorManager : MonoBehaviour
 
         ManagerHolder = new GameObject("ManagerHolder");
         ManagerHolder.transform.SetParent(transform);
+        AnalysisManager = Instantiate(analysisManagerPrefab, ManagerHolder.transform);
         AgentManager = Instantiate(agentManagerPrefab, ManagerHolder.transform);
         CameraManager = Instantiate(cameraManagerPrefab, ManagerHolder.transform);
         ControllableManager = Instantiate(controllableManagerPrefab, ManagerHolder.transform);
@@ -264,6 +267,11 @@ public class SimulatorManager : MonoBehaviour
         }
 
         return b;
+    }
+
+    public long GetSessionElapsedTime()
+    {
+        return (long)(CurrentTime - SessionStartTime);
     }
 
     public long GetElapsedTime(double startTime)

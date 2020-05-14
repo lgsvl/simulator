@@ -7,7 +7,6 @@
 
 using Simulator.Bridge;
 using Simulator.Bridge.Data;
-using Simulator.Map;
 using Simulator.Utilities;
 using UnityEngine;
 using Simulator.Sensors.UI;

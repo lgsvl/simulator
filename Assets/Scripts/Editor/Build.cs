@@ -49,6 +49,7 @@ namespace Simulator.Editor
         }
 
         public const string SceneExtension = "unity";
+        public const string ScriptExtension = "cs";
         public const string PrefabExtension = "prefab";
 
         class BundleData
@@ -129,6 +130,14 @@ namespace Simulator.Editor
                     {
                         var extension = bundleType == BundleConfig.BundleTypes.Environment ? SceneExtension : PrefabExtension;
                         var fullPath = Path.Combine(sourcePath, name, $"{name}.{extension}");
+                        
+                        // NPC type can be both prefab and behaviour script
+                        if (bundleType == BundleConfig.BundleTypes.NPC && !File.Exists(fullPath)) 
+                        {
+                            extension = ScriptExtension;
+                            fullPath = Path.Combine(sourcePath, name, $"{name}.{extension}");
+                        }
+
                         entries.Add(name, new Entry
                         {
                             name = name,
@@ -279,6 +288,7 @@ namespace Simulator.Editor
 
 
                     var buildArtifacts = new List<(string source, string archiveName)>();
+                    bool mainAssetIsScript = entry.mainAssetFile.EndsWith("."+ScriptExtension);
                     try
                     {
                         Debug.Log($"building asset:{entry.mainAssetFile} -> " + Path.Combine(outputFolder, $"{thing}_{entry.name}"));
@@ -300,53 +310,54 @@ namespace Simulator.Editor
                         }
 
                         AssetDatabase.Refresh();
-
-                        var textureBuild = new AssetBundleBuild()
-                        {
-                            assetBundleName = $"{manifest.assetGuid}_{thing}_textures",
-                            assetNames = AssetDatabase.GetDependencies(entry.mainAssetFile).Where(a => a.EndsWith(".png") || a.EndsWith(".jpg")).ToArray()
-                        };
-
-                        bool buildTextureBundle = textureBuild.assetNames.Length > 0;
-
-                        var windowsBuild = new AssetBundleBuild()
-                        {
-                            assetBundleName = $"{manifest.assetGuid}_{thing}_main_windows",
-                            assetNames = new[] { entry.mainAssetFile },
-                        };
-
-                        var linuxBuild = new AssetBundleBuild()
-                        {
-                            assetBundleName = $"{manifest.assetGuid}_{thing}_main_linux",
-                            assetNames = new[] { entry.mainAssetFile },
-                        };
-
-                        var builds = new[]{
-                            (build: linuxBuild,     platform: UnityEditor.BuildTarget.StandaloneLinux64),
-                            (build: windowsBuild,   platform: UnityEditor.BuildTarget.StandaloneWindows64)
-                        };
-
-                        foreach (var buildConf in builds)
-                        {
-                            var taskItems = new List<AssetBundleBuild>() { buildConf.build };
-
-                            if (buildTextureBundle)
+                        if (!mainAssetIsScript) {
+                            var textureBuild = new AssetBundleBuild()
                             {
-                                taskItems.Add(textureBuild);
-                            }
+                                assetBundleName = $"{manifest.assetGuid}_{thing}_textures",
+                                assetNames = AssetDatabase.GetDependencies(entry.mainAssetFile).Where(a => a.EndsWith(".png") || a.EndsWith(".jpg")).ToArray()
+                            };
 
-                            BuildPipeline.BuildAssetBundles(
-                                    outputFolder,
-                                    taskItems.ToArray(),
-                                    BuildAssetBundleOptions.ChunkBasedCompression | BuildAssetBundleOptions.StrictMode,
-                                    buildConf.platform);
+                            bool buildTextureBundle = textureBuild.assetNames.Length > 0;
 
-                            buildArtifacts.Add((Path.Combine(outputFolder, buildConf.build.assetBundleName), buildConf.build.assetBundleName));
-                            buildArtifacts.Add((Path.Combine(outputFolder, buildConf.build.assetBundleName+".manifest"), null));
-                            if (buildTextureBundle)
+                            var windowsBuild = new AssetBundleBuild()
                             {
-                                buildArtifacts.Add((Path.Combine(outputFolder, textureBuild.assetBundleName), textureBuild.assetBundleName));
-                                buildArtifacts.Add((Path.Combine(outputFolder, textureBuild.assetBundleName+".manifest"), null));
+                                assetBundleName = $"{manifest.assetGuid}_{thing}_main_windows",
+                                assetNames = new[] { entry.mainAssetFile },
+                            };
+
+                            var linuxBuild = new AssetBundleBuild()
+                            {
+                                assetBundleName = $"{manifest.assetGuid}_{thing}_main_linux",
+                                assetNames = new[] { entry.mainAssetFile },
+                            };
+
+                            var builds = new[] {
+                                (build: linuxBuild,     platform: UnityEditor.BuildTarget.StandaloneLinux64),
+                                (build: windowsBuild,   platform: UnityEditor.BuildTarget.StandaloneWindows64)
+                            };
+
+                            foreach (var buildConf in builds)
+                            {
+                                var taskItems = new List<AssetBundleBuild>() { buildConf.build };
+
+                                if (buildTextureBundle)
+                                {
+                                    taskItems.Add(textureBuild);
+                                }
+
+                                BuildPipeline.BuildAssetBundles(
+                                        outputFolder,
+                                        taskItems.ToArray(),
+                                        BuildAssetBundleOptions.ChunkBasedCompression | BuildAssetBundleOptions.StrictMode,
+                                        buildConf.platform);
+
+                                buildArtifacts.Add((Path.Combine(outputFolder, buildConf.build.assetBundleName), buildConf.build.assetBundleName));
+                                buildArtifacts.Add((Path.Combine(outputFolder, buildConf.build.assetBundleName + ".manifest"), null));
+                                if (buildTextureBundle)
+                                {
+                                    buildArtifacts.Add((Path.Combine(outputFolder, textureBuild.assetBundleName), textureBuild.assetBundleName));
+                                    buildArtifacts.Add((Path.Combine(outputFolder, textureBuild.assetBundleName + ".manifest"), null));
+                                }
                             }
                         }
 

@@ -331,9 +331,10 @@ namespace Simulator.Web
                     NPCType = size,
                 });
             }
-            else
+
+            if(pluginEntry == null && pluginSource == null)
             {
-                Debug.LogError("main asset bundle not found!");
+                Debug.LogError("Neither assembly nor prefab found in "+manifest.assetName);
             }
 
             if (textureBundle && !AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))

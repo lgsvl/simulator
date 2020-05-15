@@ -534,6 +534,7 @@ namespace Simulator.PointCloud
         {
             // More that 1 RT currently means that render is targeting GBuffer
             var targetGBuffer = rtIds.Length > 1;
+            CoreUtils.SetKeyword(cmd, PointCloudShaderIDs.PointsRender.ConesKeyword, RenderMode == RenderType.Cones);
 
             if (ConstantSize && Mathf.Approximately(PixelSize, 1f))
             {

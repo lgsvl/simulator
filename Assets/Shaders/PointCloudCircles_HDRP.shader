@@ -53,7 +53,7 @@ Shader "Simulator/PointCloud/HDRP/Circles"
             #pragma geometry Geom
             #pragma fragment Frag
             #pragma multi_compile_local _ _SIZE_IN_PIXELS
-            #pragma multi_compile_local _CIRCLES _CONES
+            #pragma multi_compile _CIRCLES _CONES
             #pragma multi_compile _ _PC_TARGET_GBUFFER
 
             struct g2f

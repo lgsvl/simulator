@@ -11,6 +11,6 @@ namespace Simulator.Bridge
 {
     public interface IWriter<T> where T : class
     {
-        void Write(T message, Action completed = null, Type type = null);
+        void Write(T message, Action completed = null);
     }
 }

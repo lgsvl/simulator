@@ -22,7 +22,7 @@ namespace Simulator.Bridge.Ros
             Writer = new Writer<Sentence>(bridge, topic);
         }
 
-        public void Write(GpsData message, Action completed = null, Type type = null)
+        public void Write(GpsData message, Action completed)
         {
             char latitudeS = message.Latitude < 0 ? 'S' : 'N';
             char longitudeS = message.Longitude < 0 ? 'W' : 'E';

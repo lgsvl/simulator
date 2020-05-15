@@ -809,8 +809,7 @@ namespace Simulator.Bridge.Ros
                 sb.Append("\"data\":");
                 SerializeInternal(message, type, sb);
                 sb.Append('}');
-            }
-            else if (BridgeConfig.bridgeConverters.ContainsKey(type))
+            }else if (BridgeConfig.bridgeConverters.ContainsKey(type))
             {
                 SerializeInternal(message, BridgeConfig.bridgeConverters[type].GetOutputType(this), sb);
             }

@@ -138,6 +138,11 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
                 NPCType = data.Value.NPCType,
                 Prefab = data.Value.prefab,
             });
+           
+            if(NPCColorData.Count(d => d.Type == data.Value.NPCType) == 0)
+            {
+                Debug.LogWarning($"NPC of type {data.Value.NPCType} loaded but no colors to pick configured for this type");
+            }
         }
 
         var network = Loader.Instance.Network;

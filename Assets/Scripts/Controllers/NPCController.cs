@@ -25,9 +25,8 @@ using Simulator.Utilities;
 [SelectionBase]
 public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IGloballyUniquelyIdentified
 {
-    public NPCBehaviourBase activeBehaviour { get => _activeBehaviour; }
-    NPCBehaviourBase _activeBehaviour;
-
+    public NPCBehaviourBase ActiveBehaviour => _ActiveBehaviour;
+    private NPCBehaviourBase _ActiveBehaviour;
 
     #region vars
     [HideInInspector]
@@ -40,7 +39,8 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
     public Vector3 simpleVelocity;
     public Vector3 simpleAngularVelocity;
     private GameObject wheelColliderHolder;
-    class WheelData {
+    class WheelData
+    {
         public Transform transform;
         public WheelCollider collider;
         public bool steering;
@@ -65,7 +65,8 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
     public float adjustFactor = 10f; // this value requires tuning
     // wheel visuals
 
-    class IndicatorRenderer {
+    class IndicatorRenderer
+    {
         public Renderer renderer = null;
         public int materialIndex;
         public void SetEmission(Color value)
@@ -77,7 +78,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
     }
 
     // emitters
-    private System.Collections.Generic.List<UnityEngine.Renderer> allRenderers;
+    private List<Renderer> allRenderers;
     private IndicatorRenderer headLight;
     private IndicatorRenderer brakeLight;
     private IndicatorRenderer indicatorLeft;
@@ -150,13 +151,16 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged += OnTimeOfDayChange;
         GetSimulatorTimeOfDay();
         agentLayer = LayerMask.NameToLayer("Agent");
-        if(_activeBehaviour) _activeBehaviour.enabled = true;
+        if (_ActiveBehaviour)
+        {
+            _ActiveBehaviour.enabled = true;
+        }
     }
 
     private void OnDisable()
     {
         SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged -= OnTimeOfDayChange;
-        _activeBehaviour.enabled = false;
+        _ActiveBehaviour.enabled = false;
     }
 
     public void PhysicsUpdate()
@@ -194,9 +198,9 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
             SetLastPosRot(rb.position, rb.rotation);
         }
 
-        if (activeBehaviour)
+        if (ActiveBehaviour)
         {
-            activeBehaviour.PhysicsUpdate();
+            ActiveBehaviour.PhysicsUpdate();
         }
 
         if (currentSpeed > 0.1f)
@@ -212,7 +216,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
             ApiManager.Instance?.AddCollision(rb.gameObject, other.attachedRigidbody.gameObject);
             SimulatorManager.Instance.AnalysisManager.IncrementNPCCollision();
             SIM.LogSimulation(SIM.Simulation.NPCCollision);
-            if(_activeBehaviour) _activeBehaviour.OnAgentCollision(other.gameObject);
+            if(_ActiveBehaviour) _ActiveBehaviour.OnAgentCollision(other.gameObject);
         }
     }
 
@@ -232,16 +236,20 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         _seed = seed;
         SetNeededComponents();
         ResetData();
-        if(_activeBehaviour) {
-            _activeBehaviour.controller = this;
-            _activeBehaviour.rb = rb;
-            _activeBehaviour.Init(seed);
+        if (_ActiveBehaviour)
+        {
+            _ActiveBehaviour.controller = this;
+            _ActiveBehaviour.rb = rb;
+            _ActiveBehaviour.Init(seed);
         }
     }
 
     public void InitLaneData(MapLane lane)
     {
-        if(_activeBehaviour) _activeBehaviour.InitLaneData(lane);
+        if (_ActiveBehaviour)
+        {
+            _ActiveBehaviour.InitLaneData(lane);
+        }
     }
 
     private void SetNeededComponents()
@@ -278,7 +286,8 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
                     if (rendererMats[i].name.Contains("Body"))
                         rendererMats[i].SetColor("_BaseColor", NPCColor);
                 }
-                if(MainCollider == null) {
+                if (MainCollider == null)
+                {
                     MainCollider = child.gameObject.AddComponent<MeshCollider>();
                     MainCollider.convex = true;
                 }
@@ -307,62 +316,85 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         foreach (Light light in allLights)
         {
             if (light.name.Contains("Head"))
+            {
                 headLights.Add(light);
+            }
             else if (light.name.Contains("Brake"))
+            {
                 brakeLights.Add(light);
+            }
             else if (light.name.Contains("IndicatorLeft"))
+            {
                 indicatorLeftLights.Add(light);
+            }
             else if (light.name.Contains("IndicatorRight"))
+            {
                 indicatorRightLights.Add(light);
+            }
             else if (light.name.Contains("IndicatorReverse"))
+            {
                 indicatorReverseLight = light;
+            }
         }
 
-        if(headLights.Count == 0) {
+        if(headLights.Count == 0)
+        {
             Debug.LogWarning($"Asset {gameObject.name} missing light 'Head'");
         }
-        if(brakeLights.Count == 0) {
+        if(brakeLights.Count == 0)
+        {
             Debug.LogWarning($"Asset {gameObject.name} missing light 'Brake'");
         }
-        if(indicatorLeftLights.Count == 0) {
+        if(indicatorLeftLights.Count == 0)
+        {
             Debug.LogWarning($"Asset {gameObject.name} missing light 'IndicatorLeft'");
         }
-        if(indicatorRightLights.Count == 0) {
+        if(indicatorRightLights.Count == 0)
+        {
             Debug.LogWarning($"Asset {gameObject.name} missing light 'IndicatorRight'");
         }
-        if(indicatorReverseLight == null) {
+        if(indicatorReverseLight == null)
+        {
             Debug.LogWarning($"Asset {gameObject.name} missing light 'IndicatorReverse'");
         }
-        if(MainCollider == null) {
+        if(MainCollider == null)
+        {
             Debug.LogWarning($"Asset {gameObject.name} missing renderer 'Body'");
         }
-        if(headLight == null) {
+        if(headLight == null)
+        {
             Debug.LogWarning($"Asset {gameObject.name} missing material 'LightHead'");
         }
-        if(brakeLight == null) {
+        if(brakeLight == null)
+        {
             Debug.LogWarning($"Asset {gameObject.name} missing material 'LightBrake'");
         }
-        if(indicatorRight == null) {
+        if(indicatorRight == null)
+        {
             Debug.LogWarning($"Asset {gameObject.name} missing material 'IndicatorRight'");
         }
-        if(indicatorLeft == null) {
+        if(indicatorLeft == null)
+        {
             Debug.LogWarning($"Asset {gameObject.name} missing material 'IndicatorLeft'");
         }
-        if(indicatorReverse == null) {
+        if(indicatorReverse == null)
+        {
             Debug.LogWarning($"Asset {gameObject.name} missing material 'IndicatorReverse'");
         }
 
         Bounds = new Bounds(transform.position, Vector3.zero);
         foreach (Renderer renderer in allRenderers)
         {
-            // renderer.bounds is world space 
-            Bounds.Encapsulate(renderer.bounds);
+            Bounds.Encapsulate(renderer.bounds); // renderer.bounds is world space 
         }
 
         // centerOfMass is relative to the transform origin
-        if(wheels.Count < 4 || name.Contains("Trailer")) {
+        if (wheels.Count < 4 || name.Contains("Trailer"))
+        {
             rb.centerOfMass = Bounds.center + new Vector3(0, -Bounds.extents.y * 0.15f , 0);
-        } else {
+        }
+        else
+        {
             rb.centerOfMass = Bounds.center + new Vector3(0, 0, Bounds.extents.z * 0.3f);
         }
 
@@ -392,20 +424,23 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
 
     public T SetBehaviour<T>() where T: NPCBehaviourBase
     {
-        if(activeBehaviour as T != null)
-            return _activeBehaviour as T;
+        if (ActiveBehaviour as T != null)
+        {
+            return _ActiveBehaviour as T;
+        }
 
-        if(_activeBehaviour != null) {
-            Destroy(_activeBehaviour);
-            _activeBehaviour = null;
+        if (_ActiveBehaviour != null)
+        {
+            Destroy(_ActiveBehaviour);
+            _ActiveBehaviour = null;
         }
 
         T behaviour = gameObject.AddComponent<T>();
 
-        _activeBehaviour = behaviour;
-        _activeBehaviour.controller = this;
-        _activeBehaviour.rb = rb;
-        _activeBehaviour.Init(_seed);
+        _ActiveBehaviour = behaviour;
+        _ActiveBehaviour.controller = this;
+        _ActiveBehaviour.rb = rb;
+        _ActiveBehaviour.Init(_seed);
         return behaviour;
     }
 
@@ -426,7 +461,8 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         wheelCollider.ConfigureVehicleSubsteps(5.0f, 30, 10);
         wheelCollider.wheelDampingRate = wheelDampingRate;
 
-        var data = new WheelData() {
+        var data = new WheelData()
+        {
             transform = wheel,
             collider = wheelCollider,
             origPos = wheelColliderHolder.transform.InverseTransformPoint(wheel.position),
@@ -447,7 +483,9 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
     #region spawn
     public void StopNPCCoroutines()
     {
-        if (FixedUpdateManager == null) return;
+        if (FixedUpdateManager == null)
+            return;
+
         foreach (Coroutine coroutine in Coroutines)
         {
             if (coroutine != null)
@@ -670,7 +708,10 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         }
 
         if (turnSignalIE != null)
+        {
             FixedUpdateManager.StopCoroutine(turnSignalIE);
+        }
+
         turnSignalIE = StartTurnSignal();
 
         Coroutines.Add(FixedUpdateManager.StartCoroutine(turnSignalIE));
@@ -692,7 +733,9 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
     public void SetNPCHazards(bool state = false)
     {
         if (hazardSignalIE != null)
+        {
             FixedUpdateManager.StopCoroutine(hazardSignalIE);
+        }
 
         isLeftTurn = state;
         isRightTurn = state;
@@ -771,7 +814,10 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
     public void SetIndicatorReverse(bool state)
     {
         indicatorReverse?.SetEmission(state ? reverseEmission : Color.black);
-        if(indicatorReverseLight != null) indicatorReverseLight.enabled = state;
+        if (indicatorReverseLight != null)
+        {
+            indicatorReverseLight.enabled = state;
+        }
 
         if (Loader.Instance.Network.IsMaster)
         {
@@ -824,12 +870,17 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         }
     }
 
-    private void wheelMovement(Transform wheel, WheelCollider collider, Vector3 origPos, float theta, Quaternion Q, bool steering) {
+    private void wheelMovement(Transform wheel, WheelCollider collider, Vector3 origPos, float theta, Quaternion Q, bool steering)
+    {
         if (wheel.localPosition != origPos)
+        {
             wheel.localPosition = origPos;
+        }
 
-        if(steering) 
+        if (steering)
+        {
             wheel.rotation = Quaternion.RotateTowards(wheel.rotation, Q, Time.fixedDeltaTime * 50f);
+        }
         
         wheel.transform.Rotate(Vector3.right, theta, Space.Self);
 
@@ -849,7 +900,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
             ApiManager.Instance?.AddCollision(gameObject, collision.gameObject, collision);
             SimulatorManager.Instance.AnalysisManager.IncrementNPCCollision();
             SIM.LogSimulation(SIM.Simulation.NPCCollision);
-            activeBehaviour?.OnAgentCollision(collision.gameObject);
+            ActiveBehaviour?.OnAgentCollision(collision.gameObject);
         }
     }
 
@@ -875,10 +926,15 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
         var network = Loader.Instance.Network;
         if (transformToDistribute.gameObject.GetComponent<DistributedTransform>() != null)
             return;
+
         if (network.IsMaster)
+        {
             transformToDistribute.gameObject.AddComponent<DistributedTransform>();
+        }
         else if (network.IsClient)
+        {
             transformToDistribute.gameObject.AddComponent<DistributedTransform>();
+        }
     }
 
     /// <inheritdoc/>
@@ -914,14 +970,18 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
     public void UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage)
     {
         if (!string.IsNullOrEmpty(key))
+        {
             messagesManager?.UnicastMessage(endPoint, distributedMessage);
+        }
     }
 
     /// <inheritdoc/>
     public void BroadcastMessage(DistributedMessage distributedMessage)
     {
         if (!string.IsNullOrEmpty(key))
+        {
             messagesManager?.BroadcastMessage(distributedMessage);
+        }
     }
 
     /// <inheritdoc/>
@@ -949,11 +1009,13 @@ public abstract class NPCBehaviourBase : MonoBehaviour
     public bool autonomous = true;
     public uint GTID { get => controller.GTID; }
 
-    public bool isLeftTurn {
+    public bool isLeftTurn
+    {
         get => controller.isLeftTurn;
         set { controller.isLeftTurn = value; }
     }
-    public bool isRightTurn {
+    public bool isRightTurn
+    {
         get => controller.isRightTurn;
         set { controller.isRightTurn = value; }
     }
@@ -962,14 +1024,15 @@ public abstract class NPCBehaviourBase : MonoBehaviour
     [HideInInspector]
     public Rigidbody rb;
 
-
     // targeting
-    public float currentSpeed {
+    public float currentSpeed
+    {
         get => controller.currentSpeed;
         set { controller.currentSpeed = value; }
     }
 
-    public bool isForcedStop {
+    public bool isForcedStop
+    {
         get => controller.isForcedStop;
         set { controller.isForcedStop = value; }
     }

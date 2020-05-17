@@ -78,7 +78,8 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     #endregion
 
     #region mono
-    void Awake() {
+    private void Awake()
+    {
         groundHitBitmask = LayerMask.GetMask("Default");
         carCheckBlockBitmask = LayerMask.GetMask("Agent", "NPC", "Pedestrian");
     }
@@ -91,7 +92,10 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
             CollisionCheck();
             EvaluateTarget();
             GetIsTurn();
-            if (AutomaticMode) GetDodge();
+            if (AutomaticMode)
+            {
+                GetDodge();
+            }
             SetTargetSpeed();
             SetTargetTurn();
             NPCTurn();
@@ -103,7 +107,6 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
             }
         }
     }
-
     #endregion
 
     #region init
@@ -121,7 +124,8 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     {
         ResetData();
         laneSpeedLimit = lane.speedLimit;
-        if(laneSpeedLimit > 0) {
+        if (laneSpeedLimit > 0)
+        {
             aggressionAdjustRate = laneSpeedLimit / 11.176f; // give more space at faster speeds
             stopHitDistance = 12 / aggression * aggressionAdjustRate;
         }
@@ -296,7 +300,9 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         {
             tempD = distanceToStopTarget > stopLineDistance ? stopLineDistance : distanceToStopTarget / stopLineDistance;
             if (distanceToStopTarget < minTargetDistance)
+            {
                 tempD = 0f;
+            }
         }
 
         return tempD;

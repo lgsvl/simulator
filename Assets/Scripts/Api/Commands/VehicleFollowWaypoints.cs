@@ -57,7 +57,7 @@ namespace Simulator.Api.Commands
 
                 var loopValue = loop.IsBoolean ? loop.AsBool : false;
                 var waypointFollow = npc.SetBehaviour<NPCWaypointBehaviour>();
-                waypointFollow.SetFollowWaypoints(wp, loop);
+                waypointFollow.SetFollowWaypoints(wp, loop); // TODO use NPCController to init waypoint data
                 api.SendResult(this);
                 SIM.LogAPI(SIM.API.FollowWaypoints, "NPC");
             }

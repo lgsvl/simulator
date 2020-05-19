@@ -185,7 +185,6 @@ MonoBehaviour:
   - {fileID: -3579125841344806366}
   - {fileID: 2009626105351207816}
   - {fileID: -5472647498024721378}
-  - {fileID: 8242147780310912203}
   - {fileID: 8734624370285724581}
 --- !u!114 &1451188550250353699
 MonoBehaviour:
@@ -480,7 +479,7 @@ MonoBehaviour:
     m_Value: {fileID: 8900000, guid: 645f879525f4ab04e888530eddccc67b, type: 3}
   spaceEmissionMultiplier:
     m_OverrideState: 0
-    m_Value: 0
+    m_Value: 100
     min: 0
   spaceRotation:
     m_OverrideState: 0
@@ -679,54 +678,6 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 1
     min: 0.001
---- !u!114 &8242147780310912203
-MonoBehaviour:
-  m_ObjectHideFlags: 3
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bcf384b154398e341b6b29969c078198, type: 3}
-  m_Name: MotionBlur
-  m_EditorClassIdentifier: 
-  active: 0
-  m_AdvancedMode: 0
-  quality:
-    m_OverrideState: 1
-    m_Value: 1
-  intensity:
-    m_OverrideState: 1
-    m_Value: 0.5
-    min: 0
-  maximumVelocity:
-    m_OverrideState: 0
-    m_Value: 200
-    min: 0
-    max: 1500
-  minimumVelocity:
-    m_OverrideState: 0
-    m_Value: 2
-    min: 0
-    max: 64
-  cameraRotationVelocityClamp:
-    m_OverrideState: 0
-    m_Value: 0.03
-    min: 0
-    max: 0.2
-  depthComparisonExtent:
-    m_OverrideState: 0
-    m_Value: 1
-    min: 0
-    max: 20
-  cameraMotionBlur:
-    m_OverrideState: 0
-    m_Value: 1
-  m_SampleCount:
-    m_OverrideState: 0
-    m_Value: 8
-    min: 2
 --- !u!114 &8734624370285724581
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -745,23 +696,23 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 1
   meteringMode:
-    m_OverrideState: 0
-    m_Value: 2
-  luminanceSource:
     m_OverrideState: 1
+    m_Value: 0
+  luminanceSource:
+    m_OverrideState: 0
     m_Value: 1
   fixedExposure:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0
   compensation:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 1
   limitMin:
     m_OverrideState: 1
-    m_Value: -10
+    m_Value: -2
   limitMax:
     m_OverrideState: 1
-    m_Value: 10
+    m_Value: 0.25
   curveMap:
     m_OverrideState: 0
     m_Value:

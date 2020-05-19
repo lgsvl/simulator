@@ -13,7 +13,7 @@ using System;
 public class TimeOfDayBuilding : MonoBehaviour
 {
     private List<Material> allBuildingMaterials = new List<Material>();
-    private Color emitColor = new Color(0.1f, 0.1f, 0.1f);
+    private Color emitColor = new Color(6f, 6f, 6f);
 
     public void Init(TimeOfDayStateTypes state)
     {

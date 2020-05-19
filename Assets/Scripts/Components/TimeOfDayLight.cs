@@ -11,7 +11,7 @@ public class TimeOfDayLight : MonoBehaviour
 {
     private Light[] streetLights;
     private Renderer lightMesh; // TODO multiple meshes
-    private Color emitColor = new Color(0.1f, 0.1f, 0.1f);
+    private Color emitColor = new Color(8f, 8f, 8f);
 
     public void Init(TimeOfDayStateTypes state)
     {

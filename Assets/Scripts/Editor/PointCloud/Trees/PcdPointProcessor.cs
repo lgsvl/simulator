@@ -37,7 +37,7 @@ namespace Simulator.Editor.PointCloud.Trees
                 string[] fields = null;
                 string[] sizes = null;
                 string[] types = null;
-                
+
                 using (var view = file.CreateViewStream(0, 4096, MemoryMappedFileAccess.Read))
                 {
                     var buffer = new byte[4096];
@@ -76,7 +76,7 @@ namespace Simulator.Editor.PointCloud.Trees
 
                             if (line.StartsWith("VERSION"))
                             {
-                                var version = line.Split(new[] {' '}, 2);
+                                var version = line.Split(new[] { ' ' }, 2);
                                 if (version[1] != "0.7")
                                 {
                                     throw new Exception($"Unsupported PCD version: {version[1]}");
@@ -104,7 +104,7 @@ namespace Simulator.Editor.PointCloud.Trees
                             }
                             else if (line.StartsWith("HEIGHT"))
                             {
-                                var height = line.Split(new[] {' '}, 2);
+                                var height = line.Split(new[] { ' ' }, 2);
                                 if (height[1] != "1")
                                 {
                                     throw new Exception($"Unsupported PCD height: {height[1]}");
@@ -112,12 +112,12 @@ namespace Simulator.Editor.PointCloud.Trees
                             }
                             else if (line.StartsWith("POINTS"))
                             {
-                                var points = line.Split(new[] {' '}, 2);
+                                var points = line.Split(new[] { ' ' }, 2);
                                 result.DataCount = long.Parse(points[1]);
                             }
                             else if (line.StartsWith("DATA"))
                             {
-                                var data = line.Split(new[] {' '}, 2);
+                                var data = line.Split(new[] { ' ' }, 2);
                                 if (data[1] != "binary")
                                 {
                                     throw new Exception($"Unsupported PCD data format: {data[1]}");
@@ -154,6 +154,7 @@ namespace Simulator.Editor.PointCloud.Trees
                     if (fields[i] == "z") name = PointElementName.Z;
                     if (fields[i] == "intensity") name = PointElementName.I;
                     if (fields[i] == "scalar_intensity") name = PointElementName.I;
+                    if (fields[i] == "rgb") name = PointElementName.RGB;
 
                     if (types[i] == "U" && elementSize == 1) type = PointElementType.Byte;
                     if (types[i] == "F" && elementSize == 4) type = PointElementType.Float;
@@ -162,7 +163,7 @@ namespace Simulator.Editor.PointCloud.Trees
                     if (type.HasValue && name.HasValue)
                     {
                         result.Elements.Add(new PointElement()
-                            {Type = type.Value, Name = name.Value, Offset = elementOffset});
+                        { Type = type.Value, Name = name.Value, Offset = elementOffset });
                     }
 
                     elementOffset += elementSize;

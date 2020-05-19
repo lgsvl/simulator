@@ -21,8 +21,9 @@ namespace Simulator.Editor.PointCloud
         X, Y, Z,
         R, G, B,
         I,
+        RGB,
     }
-    
+
     public struct PointElement
     {
         public PointElementType Type;

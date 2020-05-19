@@ -36,8 +36,8 @@ namespace Simulator.Editor.PointCloud.Trees
                 {
                     unsafe
                     {
-                        void* ptr = (byte*) Data + index * Stride;
-                        return Size == 4 ? *(float*) ptr : *(double*) ptr;
+                        void* ptr = (byte*)Data + index * Stride;
+                        return Size == 4 ? *(float*)ptr : *(double*)ptr;
                     }
                 }
             }
@@ -49,6 +49,9 @@ namespace Simulator.Editor.PointCloud.Trees
 
             [NativeDisableUnsafePtrRestriction]
             public unsafe void* Color;
+
+            [NativeDisableUnsafePtrRestriction]
+            public unsafe void* ColorF;
 
             [NativeDisableUnsafePtrRestriction]
             public unsafe void* Intensity;
@@ -69,11 +72,19 @@ namespace Simulator.Editor.PointCloud.Trees
                         byte b = 0;
                         if (Color != null)
                         {
-                            var ptr = (byte*) Color + index * Stride;
+                            var ptr = (byte*)Color + index * Stride;
                             r = ptr[0];
                             g = ptr[1];
                             b = ptr[2];
-                            color = (uint) ((b << 16) | (g << 8) | r);
+                            color = (uint)((b << 16) | (g << 8) | r);
+                        }
+                        else if (ColorF != null)
+                        {
+                            var ptr = (byte*)ColorF + index * Stride;
+                            r = ptr[2];
+                            g = ptr[1];
+                            b = ptr[0];
+                            color = (uint)((b << 16) | (g << 8) | r);
                         }
 
                         if (Intensity != null || IntensityF != null)
@@ -81,25 +92,25 @@ namespace Simulator.Editor.PointCloud.Trees
                             byte intensity;
                             if (Intensity != null)
                             {
-                                var ptr = (byte*) Intensity + index * Stride;
+                                var ptr = (byte*)Intensity + index * Stride;
                                 intensity = *ptr;
                             }
                             else
                             {
-                                var ptr = (float*) ((byte*) IntensityF + index * Stride);
-                                intensity = (byte) *ptr;
+                                var ptr = (float*)((byte*)IntensityF + index * Stride);
+                                intensity = (byte)*ptr;
                             }
 
-                            color |= (uint) intensity << 24;
+                            color |= (uint)intensity << 24;
                             if (Color == null)
                             {
-                                color |= (uint) ((intensity << 16) | (intensity << 8) | intensity);
+                                color |= (uint)((intensity << 16) | (intensity << 8) | intensity);
                             }
                         }
-                        else if (Color != null)
+                        else if (Color != null || ColorF != null)
                         {
-                            var intensity = (byte) ((r + g + b) / 3);
-                            color |= (uint) intensity << 24;
+                            var intensity = (byte)((r + g + b) / 3);
+                            color |= (uint)intensity << 24;
                         }
 
                         return color;
@@ -162,7 +173,7 @@ namespace Simulator.Editor.PointCloud.Trees
                 var y = (Y[index] + OutputCenterY) * OutputScaleY;
                 var z = (Z[index] + OutputCenterZ) * OutputScaleZ;
 
-                var pt = Transform.MultiplyVector(new Vector3((float) x, (float) y, (float) z));
+                var pt = Transform.MultiplyVector(new Vector3((float)x, (float)y, (float)z));
 
                 Output[index] = new PointCloudPoint()
                 {
@@ -215,7 +226,7 @@ namespace Simulator.Editor.PointCloud.Trees
 
             public void Execute(int index)
             {
-                int* data = (int*) (Input + Stride * index);
+                int* data = (int*)(Input + Stride * index);
 
                 double x = data[0] * InputScaleX + InputOffsetX;
                 double y = data[1] * InputScaleY + InputOffsetY;
@@ -225,43 +236,43 @@ namespace Simulator.Editor.PointCloud.Trees
                 y = (y + OutputCenterY) * OutputScaleY;
                 z = (z + OutputCenterZ) * OutputScaleZ;
 
-                var pt = Transform.MultiplyVector(new Vector3((float) x, (float) y, (float) z));
+                var pt = Transform.MultiplyVector(new Vector3((float)x, (float)y, (float)z));
 
                 byte intensity;
                 {
-                    ushort* iptr = (ushort*) (Input + Stride * index + 12);
+                    ushort* iptr = (ushort*)(Input + Stride * index + 12);
                     if (LasRGB8BitWorkaround)
                     {
-                        intensity = (byte) *iptr;
+                        intensity = (byte)*iptr;
                     }
                     else
                     {
-                        intensity = (byte) (*iptr >> 8);
+                        intensity = (byte)(*iptr >> 8);
                     }
                 }
 
-                uint color = (uint) (intensity << 24);
+                uint color = (uint)(intensity << 24);
                 if (ColorInput == null)
                 {
-                    color |= (uint) ((intensity << 16) | (intensity << 8) | intensity);
+                    color |= (uint)((intensity << 16) | (intensity << 8) | intensity);
                 }
                 else
                 {
-                    ushort* rgb = (ushort*) (ColorInput + Stride * index);
+                    ushort* rgb = (ushort*)(ColorInput + Stride * index);
 
                     if (LasRGB8BitWorkaround)
                     {
-                        byte r = (byte) rgb[0];
-                        byte g = (byte) rgb[1];
-                        byte b = (byte) rgb[2];
-                        color |= (uint) ((b << 16) | (g << 8) | r);
+                        byte r = (byte)rgb[0];
+                        byte g = (byte)rgb[1];
+                        byte b = (byte)rgb[2];
+                        color |= (uint)((b << 16) | (g << 8) | r);
                     }
                     else
                     {
-                        byte r = (byte) (rgb[0] >> 8);
-                        byte g = (byte) (rgb[1] >> 8);
-                        byte b = (byte) (rgb[2] >> 8);
-                        color |= (uint) ((b << 16) | (g << 8) | r);
+                        byte r = (byte)(rgb[0] >> 8);
+                        byte g = (byte)(rgb[1] >> 8);
+                        byte b = (byte)(rgb[2] >> 8);
+                        color |= (uint)((b << 16) | (g << 8) | r);
                     }
                 }
 
@@ -309,18 +320,18 @@ namespace Simulator.Editor.PointCloud.Trees
                             X = GetInputAccess(PointElementName.X, elements, ptr, stride),
                             Y = GetInputAccess(PointElementName.Y, elements, ptr, stride),
                             Z = GetInputAccess(PointElementName.Z, elements, ptr, stride),
-                            Bounds = (PointCloudBounds*) bounds.GetUnsafePtr(),
-                            Counts = (int*) counts.GetUnsafePtr(),
+                            Bounds = (PointCloudBounds*)bounds.GetUnsafePtr(),
+                            Counts = (int*)counts.GetUnsafePtr(),
                             ThreadIndex = 0,
                         };
 
-                        var h = job.Schedule((int) count, 65536);
+                        var h = job.Schedule((int)count, 65536);
                         while (!h.IsCompleted)
                         {
                             System.Threading.Thread.Sleep(100);
 
                             var processed = counts.Sum();
-                            var progress = (float) ((double) processed / count);
+                            var progress = (float)((double)processed / count);
 
                             EditorUtility.DisplayProgressBar(
                                 string.IsNullOrEmpty(progressBarTitle) ? "Calculating bounds" : progressBarTitle,
@@ -399,17 +410,17 @@ namespace Simulator.Editor.PointCloud.Trees
                             OutputScaleY = transformationData.OutputScaleY,
                             OutputScaleZ = transformationData.OutputScaleZ,
 
-                            Counts = (int*) counts.GetUnsafePtr(),
+                            Counts = (int*)counts.GetUnsafePtr(),
                             ThreadIndex = 0,
                         };
 
-                        var h = job.Schedule((int) count, 65536);
+                        var h = job.Schedule((int)count, 65536);
                         while (!h.IsCompleted)
                         {
                             System.Threading.Thread.Sleep(100);
 
                             var processed = counts.Sum();
-                            var progress = (float) ((double) processed / count);
+                            var progress = (float)((double)processed / count);
                             EditorUtility.DisplayProgressBar(
                                 string.IsNullOrEmpty(progressBarTitle) ? $"Applying transformation" : progressBarTitle,
                                 $"{processed:N0} points", progress);
@@ -462,7 +473,7 @@ namespace Simulator.Editor.PointCloud.Trees
                             OutputScaleY = transformationData.OutputScaleY,
                             OutputScaleZ = transformationData.OutputScaleZ,
 
-                            Counts = (int*) counts.GetUnsafePtr(),
+                            Counts = (int*)counts.GetUnsafePtr(),
                             ThreadIndex = 0,
                         };
 
@@ -486,7 +497,7 @@ namespace Simulator.Editor.PointCloud.Trees
                             System.Threading.Thread.Sleep(100);
 
                             int processed = counts.Sum();
-                            float progress = (float) ((double) processed / count);
+                            float progress = (float)((double)processed / count);
                             EditorUtility.DisplayProgressBar(
                                 string.IsNullOrEmpty(progressBarTitle) ? $"Applying transformation" : progressBarTitle,
                                 $"{processed:N0} points", progress);
@@ -511,7 +522,7 @@ namespace Simulator.Editor.PointCloud.Trees
                     if (element.Type == PointElementType.Float || element.Type == PointElementType.Double)
                     {
                         var elementSize = PointElement.GetSize(element.Type);
-                        return new InputAccess() {Size = elementSize, Stride = stride, Data = data + element.Offset};
+                        return new InputAccess() { Size = elementSize, Stride = stride, Data = data + element.Offset };
                     }
                     else
                     {
@@ -540,6 +551,10 @@ namespace Simulator.Editor.PointCloud.Trees
                 {
                     result.IntensityF = data + elements[i].Offset;
                 }
+                else if (elements[i].Name == PointElementName.RGB && elements[i].Type == PointElementType.Float)
+                {
+                    result.ColorF = data + elements[i].Offset;
+                }
                 else if (i < elements.Count - 2
                          && elements[i].Name == PointElementName.R
                          && elements[i + 1].Name == PointElementName.G
@@ -552,7 +567,7 @@ namespace Simulator.Editor.PointCloud.Trees
                 }
             }
 
-            if (result.Intensity == null && result.IntensityF == null && result.Color == null)
+            if (result.Intensity == null && result.IntensityF == null && result.Color == null && result.ColorF == null)
             {
                 Debug.LogError("Point Cloud has no color and intensity data. Everything will be black!");
             }

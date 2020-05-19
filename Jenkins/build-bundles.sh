@@ -102,6 +102,10 @@ else
   SUFFIX=
 fi
 
+echo "I: Cleanup AssetBundles before build"
+
+rm -Rf /mnt/AssetBundles || true
+
 /opt/Unity/Editor/Unity \
   -batchmode \
   -force-vulkan \

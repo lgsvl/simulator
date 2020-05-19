@@ -1,6 +1,7 @@
 #!/bin/sh
 
 set -eu
+set -x
 
 if [[ `id -u` -eq 0 ]]; then
   echo "ERROR: running as root is not supported"
@@ -12,20 +13,21 @@ BUNDLES=/mnt/AssetBundles
 
 function uploadAssets()
 {
-  local PREFIX=$2
+  local SOURCE_FOLDER=$2
+  local PREFIX=$3
   echo "$1" | while IFS= read -r LINE ; do
     local ID="${LINE%% *}"
     local NAME="${LINE#* }"
-    aws s3 cp "${BUNDLES}/${PREFIX}_${NAME}" s3://${S3_BUCKET_NAME}/${ID}/
+    aws s3 cp "${SOURCE_FOLDER}/${PREFIX}_${NAME}" s3://${S3_BUCKET_NAME}/${ID}/
   done
 }
 
 ###
 
 if [ ! -z ${SIM_ENVIRONMENTS+x} ]; then
-  uploadAssets "${SIM_ENVIRONMENTS}" environment
+  uploadAssets "${SIM_ENVIRONMENTS}" ${BUNDLES}/Environments environment
 fi
 
 if [ ! -z ${SIM_VEHICLES+x} ]; then
-  uploadAssets "${SIM_VEHICLES}" vehicle
+  uploadAssets "${SIM_VEHICLES}" ${BUNDLES}/Vehicles vehicle
 fi

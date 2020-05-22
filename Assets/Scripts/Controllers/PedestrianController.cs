@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -173,6 +173,11 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
 
         ThisPedState = PedestrianState.None;
         Control = ControlType.Manual;
+    }
+
+    public void SetSpeed(float speed)
+    {
+        LinearSpeed = speed;
     }
     #endregion
 

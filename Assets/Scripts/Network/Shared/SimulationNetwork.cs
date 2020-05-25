@@ -7,10 +7,19 @@
 
 namespace Simulator.Network.Shared
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Net;
     using Client;
     using Core.Configs;
     using Core.Messaging;
+    using Core.Threading;
+    using Database;
     using Master;
+    using UnityEngine;
+    using Web;
+    using Object = UnityEngine.Object;
 
     /// <summary>
     /// Network objects used in a single simulation
@@ -63,6 +72,31 @@ namespace Simulator.Network.Shared
         public ClientManager Client { get; set; }
 
         /// <summary>
+        /// Raw cluster configuration data from the cloud
+        /// </summary>
+        public ClusterData ClusterData { get; private set; }
+
+        /// <summary>
+        /// Identifier of this machine in the simulation
+        /// </summary>
+        public string LocalIdentifier { get; private set; }
+
+        /// <summary>
+        /// IP end point addresses for this machine in the simulation
+        /// </summary>
+        public List<IPEndPoint> LocalAddresses { get; } = new List<IPEndPoint>();
+
+        /// <summary>
+        /// Identifier of the simulation master
+        /// </summary>
+        public string MasterIdentifier { get; private set; }
+
+        /// <summary>
+        /// IP end point addresses for the simulation master
+        /// </summary>
+        public List<IPEndPoint> MasterAddresses { get; } = new List<IPEndPoint>();
+
+        /// <summary>
         /// Messages manager used either in master node or in client node
         /// </summary>
         public MessagesManager MessagesManager
@@ -82,14 +116,160 @@ namespace Simulator.Network.Shared
         }
 
         /// <summary>
+        /// Cached current simulation model
+        /// </summary>
+        public SimulationModel CurrentSimulation { get; set; }
+
+        /// <summary>
+        /// Checks if simulation is ready to be started
+        /// </summary>
+        public bool IsSimulationReady => CurrentSimulation != null;
+
+        /// <summary>
         /// Initialization method for setting up the simulation network 
         /// </summary>
-        /// <param name="type">Type of The cluster node type of this simulation</param>
+        /// <param name="simulationId">This machine simulation id</param>
+        /// <param name="clusterData">Cluster data for this simulation</param>
         /// <param name="settings">Settings used in this simulation</param>
-        public void Initialize(ClusterNodeType type, NetworkSettings settings)
+        public void Initialize(string simulationId, ClusterData clusterData, NetworkSettings settings)
         {
-            Type = type;
+            ClusterData = clusterData;
             Settings = settings;
+            
+            //Check what cluster node type is this machine in the simulation
+            if (ClusterData.Instances.Length <= 1)
+            {
+                Type = ClusterNodeType.NotClusterNode;
+            }
+            else
+            {
+                //Set this machine type
+                var instancesData = ClusterData.Instances.Where(instance => instance.SimId == simulationId).ToArray();
+                var resultsCount = instancesData.Length;
+                if (resultsCount == 0)
+                    throw new ArgumentException(
+                        $"Invalid cluster settings. Could not find instance data for the simulation id '{simulationId}'.");
+                if (resultsCount > 1)
+                    throw new ArgumentException(
+                        $"Invalid cluster settings. Found multiple instance data for the simulation id '{simulationId}'.");
+                var thisInstanceData = instancesData[0];
+                Type = thisInstanceData.IsMaster ? ClusterNodeType.Master : ClusterNodeType.Client;
+                LocalIdentifier = thisInstanceData.SimId;
+                foreach (var ip in thisInstanceData.Ip)
+                    LocalAddresses.Add(new IPEndPoint(IPAddress.Parse(ip), Settings.ConnectionPort));
+
+                //Setup master addresses 
+                var masterInstanceData = ClusterData.Instances.Where(instance => instance.IsMaster).ToArray();
+                resultsCount = masterInstanceData.Length;
+                if (resultsCount == 0)
+                    throw new ArgumentException($"Invalid cluster settings. Could not find master instance data.");
+                if (resultsCount > 1)
+                    throw new ArgumentException($"Invalid cluster settings. Found multiple master instance data.");
+                MasterIdentifier = masterInstanceData[0].SimId;
+                foreach (var ip in masterInstanceData[0].Ip)
+                    MasterAddresses.Add(new IPEndPoint(IPAddress.Parse(ip), Settings.ConnectionPort));
+            }
+
+            //Initialize network objects
+            if (Type == ClusterNodeType.Master)
+            {
+                var masterGameObject = new GameObject("MasterManager");
+                Object.DontDestroyOnLoad(masterGameObject);
+                Master = masterGameObject.AddComponent<MasterManager>();
+                masterGameObject.AddComponent<MainThreadDispatcher>();
+                Master.SetSettings(Settings);
+                var clientsIdentifiers = ClusterData.Instances.Where(instanceData => !instanceData.IsMaster)
+                    .Select(instanceData => instanceData.SimId).ToList();
+                Master.StartConnection(clientsIdentifiers);
+            }
+            else if (Type == ClusterNodeType.Client)
+            {
+                var clientGameObject = new GameObject("ClientManager");
+                Object.DontDestroyOnLoad(clientGameObject);
+                Client = clientGameObject.AddComponent<ClientManager>();
+                clientGameObject.AddComponent<MainThreadDispatcher>();
+                Client.SetSettings(Settings);
+                Client.StartConnection();
+                Client.TryConnectToMaster();
+            }
+        }
+
+        /// <summary>
+        /// Deinitialization method cleaning all the created objects
+        /// </summary>
+        public void Deinitialize()
+        {
+            if (Type == ClusterNodeType.Master)
+                Object.Destroy(Master.gameObject);
+            else if (Type == ClusterNodeType.Client)
+                Object.Destroy(Client.gameObject);
+
+            MasterAddresses.Clear();
+            CurrentSimulation = null;
+        }
+
+        /// <summary>
+        /// Master tries to start the simulation, client reports about being ready
+        /// </summary>
+        /// <param name="simulationModel">Simulation model which will be used to run the simulation</param>
+        public void SetSimulationModel(SimulationModel simulationModel)
+        {
+            CurrentSimulation = simulationModel;
+            switch (Type)
+            {
+                case ClusterNodeType.NotClusterNode:
+                    break;
+                case ClusterNodeType.Master:
+                    Master.TryStartSimulation();
+                    break;
+                case ClusterNodeType.Client:
+                    simulationModel.Interactive = false;
+                    Client.SendReadyCommand();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        /// <summary>
+        /// Initializes network objects on the prepared simulation scene
+        /// </summary>
+        /// <param name="simulationRoot">The root game object of the simulation</param>
+        public void InitializeSimulationScene(GameObject simulationRoot)
+        {
+            switch (Type)
+            {
+                case ClusterNodeType.NotClusterNode:
+                    break;
+                case ClusterNodeType.Master:
+                    Master.InitializeSimulationScene(simulationRoot);
+                    break;
+                case ClusterNodeType.Client:
+                    Client.InitializeSimulationScene(simulationRoot);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        /// <summary>
+        /// Stops the connection as the simulation has ended 
+        /// </summary>
+        public void StopConnection()
+        {
+            switch (Type)
+            {
+                case ClusterNodeType.NotClusterNode:
+                    break;
+                case ClusterNodeType.Master:
+                    Master.StopConnection();
+                    break;
+                case ClusterNodeType.Client:
+                    Client.StopConnection();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
     }
 }

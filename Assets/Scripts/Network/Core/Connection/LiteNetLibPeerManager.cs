@@ -23,6 +23,11 @@ namespace Simulator.Network.Core.Connection
 		/// Managed NetPeer
 		/// </summary>
 		public NetPeer Peer { get; }
+		
+		/// <summary>
+		/// Unique identifier of the peer
+		/// </summary>
+		public string Identifier { get; }
 
 		/// <inheritdoc/>
 		public long RemoteTimeTicksDifference => Peer.RemoteTimeDelta;
@@ -37,9 +42,11 @@ namespace Simulator.Network.Core.Connection
 		/// Constructor
 		/// </summary>
 		/// <param name="peer">Managed NetPeer</param>
-		public LiteNetLibPeerManager(NetPeer peer)
+		/// <param name="identifier">Unique identifier of the peer</param>
+		public LiteNetLibPeerManager(NetPeer peer, string identifier = null)
 		{
 			Peer = peer;
+			Identifier = identifier;
 		}
 
 		/// <inheritdoc/>

@@ -116,15 +116,8 @@ namespace Simulator.Api.Commands
 
                 var sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
 
-                var clusters = Loader.Instance.SimConfig?.Clusters;
-                var isMasterSimulation = clusters != null && clusters.Length != 0;
-                var loadAdditive = isMasterSimulation &&
-                                   SceneManager.GetSceneByName(Loader.Instance.LoaderScene).isLoaded;
-                var loader = SceneManager.LoadSceneAsync(sceneName,
-                    loadAdditive ? LoadSceneMode.Additive : LoadSceneMode.Single);
+                var loader = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
                 yield return new WaitUntil(() => loader.isDone);
-                if (loadAdditive)
-                    SceneManager.SetActiveScene(SceneManager.GetSceneByName(sceneName));
                 SIM.LogAPI(SIM.API.SimulationLoad, sceneName);
 
                 if (Loader.Instance.SimConfig != null)
@@ -136,10 +129,6 @@ namespace Simulator.Api.Commands
 
                 var sim = Loader.CreateSimulatorManager();
                 sim.Init(seed);
-                if (isMasterSimulation)
-                    Loader.Instance.Network.Master.InitializeSimulation(sim.gameObject);
-                else if (Loader.Instance.Network.IsClient)
-                    Loader.Instance.Network.Client.InitializeSimulation(sim.gameObject);
             }
             finally
             {

@@ -84,11 +84,6 @@ namespace Simulator.Network.Master
         public MessagesManager MessagesManager { get; }
 
         /// <summary>
-        /// Simulation configuration
-        /// </summary>
-        public SimulationConfig Simulation { get; set; }
-
-        /// <summary>
         /// Current state of the simulation on the server
         /// </summary>
         public SimulationState State
@@ -142,11 +137,8 @@ namespace Simulator.Network.Master
         /// </summary>
         private void Awake()
         {
-            PacketsProcessor.RegisterNestedType(SerializationHelpers.SerializeLoadAgent,
-                SerializationHelpers.DeserializeLoadAgent);
-            PacketsProcessor.SubscribeReusable<Commands.Info, IPeerManager>(OnInfoCommand);
-            PacketsProcessor.SubscribeReusable<Commands.LoadResult, IPeerManager>(OnLoadResultCommand);
             PacketsProcessor.SubscribeReusable<Commands.Pong, IPeerManager>(OnPongCommand);
+            PacketsProcessor.SubscribeReusable<Commands.Ready, IPeerManager>(OnReadyCommand);
         }
 
         /// <summary>
@@ -177,7 +169,7 @@ namespace Simulator.Network.Master
         /// Initializes the simulation, adds <see cref="MasterObjectsRoot"/> component to the root game object
         /// </summary>
         /// <param name="rootGameObject">Root game object where new component will be added</param>
-        public void InitializeSimulation(GameObject rootGameObject)
+        public void InitializeSimulationScene(GameObject rootGameObject)
         {
             if (Loader.Instance.LoaderUI != null)
                 Loader.Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.PROGRESS);
@@ -186,15 +178,7 @@ namespace Simulator.Network.Master
             objectsRoot = rootGameObject.AddComponent<MasterObjectsRoot>();
             ObjectsRoot.SetMessagesManager(MessagesManager);
             ObjectsRoot.SetSettings(settings);
-            if (clients.Count == 0)
-            {
-                if (!timescaleLockCalled)
-                {
-                    SimulatorManager.Instance.TimeManager.TimeScaleSemaphore.Lock();
-                    timescaleLockCalled = true;
-                }
-                ConnectToClients();
-            }
+            Log.Info($"{GetType().Name} was initialized and waits for all the clients.");
         }
 
         /// <summary>
@@ -211,14 +195,18 @@ namespace Simulator.Network.Master
         /// <summary>
         /// Start the connection listening for incoming packets
         /// </summary>
-        public void StartConnection()
+        /// <param name="acceptableIdentifiers">Client identifiers in the cluster from which connection can be accepted</param>
+        public void StartConnection(List<string> acceptableIdentifiers)
         {
             if (settings == null)
                 throw new NullReferenceException("Set network settings before starting the connection.");
             MessagesManager.RegisterObject(this);
+            ConnectionManager.AcceptableIdentifiers.AddRange(acceptableIdentifiers);
             ConnectionManager.Start(settings.ConnectionPort);
             ConnectionManager.PeerConnected += OnClientConnected;
             ConnectionManager.PeerDisconnected += OnClientDisconnected;
+            State = SimulationState.Connecting;
+            Log.Info($"{GetType().Name} started the connection manager.");
         }
 
         /// <summary>
@@ -231,24 +219,9 @@ namespace Simulator.Network.Master
             ConnectionManager.PeerConnected -= OnClientConnected;
             ConnectionManager.PeerDisconnected -= OnClientDisconnected;
             ConnectionManager.Stop();
+            ConnectionManager.AcceptableIdentifiers.Clear();
             MessagesManager.UnregisterObject(this);
-        }
-
-        /// <summary>
-        /// Tries to connect to the clients defined in the simulation config clusters
-        /// </summary>
-        public void ConnectToClients()
-        {
-            Debug.Assert(State == SimulationState.Initial);
-            foreach (var address in Simulation.Clusters)
-            {
-                Log.Info($"Trying to connect to the address: {address}");
-                var endPoint = new IPEndPoint(IPAddress.Parse(address), settings.ConnectionPort);
-                var peer = ConnectionManager.Connect(endPoint);
-                Clients.Add(new ClientConnection() {Peer = peer, State = SimulationState.Initial});
-            }
-
-            State = SimulationState.Connecting;
+            Log.Info($"{GetType().Name} stopped the connection manager.");
         }
 
         /// <summary>
@@ -261,6 +234,18 @@ namespace Simulator.Network.Master
             foreach (var client in Clients.Where(client => client.Peer.Connected))
                 client.Peer.Disconnect();
             State = SimulationState.Initial;
+            Log.Info($"{GetType().Name} disconnected from all the clients.");
+        }
+
+        /// <summary>
+        /// Tries to start the simulation
+        /// </summary>
+        public void TryStartSimulation()
+        {
+            if (!Loader.Instance.Network.IsSimulationReady || State != SimulationState.Connected ||
+                clients.Any(c => c.State != SimulationState.Ready)) return;
+            State = SimulationState.Ready;
+            RunSimulation();
         }
 
         /// <summary>
@@ -269,13 +254,20 @@ namespace Simulator.Network.Master
         /// <param name="clientPeerManager">Connected client peer manager</param>
         private void OnClientConnected(IPeerManager clientPeerManager)
         {
-            Log.Info($"Client connected: {clientPeerManager.PeerEndPoint.Address}");
-            Debug.Assert(State == SimulationState.Connecting);
-            var client = Clients.Find(c => c.Peer == clientPeerManager);
-            Debug.Assert(client != null);
-            Debug.Assert(client.State == SimulationState.Initial);
+            Log.Info($"Client connected: {clientPeerManager.PeerEndPoint.ToString()}");
+            var client = new ClientConnection
+            {
+                Peer = clientPeerManager,
+                State = SimulationState.Connected
+            };
+            Clients.Add(client);
 
-            client.State = SimulationState.Connecting;
+            if (State == SimulationState.Connecting)
+            {
+                var requiredClients = Loader.Instance.Network.ClusterData.Instances.Length - 1;
+                if (Clients.Count == requiredClients)
+                    State = SimulationState.Connected;
+            }
         }
 
         /// <summary>
@@ -285,6 +277,7 @@ namespace Simulator.Network.Master
         private void OnClientDisconnected(IPeerManager clientPeerManager)
         {
             var client = Clients.Find(c => c.Peer == clientPeerManager);
+            Log.Info($"{GetType().Name} disconnected from the client with address '{client.Peer.PeerEndPoint.ToString()}'.");
             Debug.Assert(client != null);
             Clients.Remove(client);
 
@@ -331,148 +324,22 @@ namespace Simulator.Network.Master
         }
 
         /// <summary>
-        /// Method invoked when manager receives info command
+        /// Method invoked when manager receives ready result command
         /// </summary>
-        /// <param name="info">Received info command</param>
+        /// <param name="ready">Received ready result command</param>
         /// <param name="peer">Peer which has sent the command</param>
-        public void OnInfoCommand(Commands.Info info, IPeerManager peer)
+        public void OnReadyCommand(Commands.Ready ready, IPeerManager peer)
         {
-            Debug.Assert(State == SimulationState.Connecting);
-            var client = Clients.Find(c => c.Peer == peer);
-            Debug.Assert(client != null);
-            Debug.Assert(client.State == SimulationState.Connecting);
-
-            Log.Info($"NET: Client connected from {peer.PeerEndPoint}");
-
-            Log.Info($"NET: Client version = {info.Version}");
-            Log.Info($"NET: Client Unity version = {info.UnityVersion}");
-            Log.Info($"NET: Client OS = {info.OperatingSystem}");
-
-            client.State = SimulationState.Connected;
-
-            var sim = Loader.Instance.SimConfig;
-
-            if (Clients.All(c => c.State == SimulationState.Connected))
+            var client = clients.First(c => c.Peer == peer);
+            if (client == null)
             {
-                var load = new Commands.Load()
-                {
-                    UseSeed = sim.Seed != null,
-                    Seed = sim.Seed ?? 0,
-                    Name = sim.Name,
-                    MapName = sim.MapName,
-                    MapUrl = sim.MapUrl,
-                    ApiOnly = sim.ApiOnly,
-                    Headless = sim.Headless,
-                    Interactive = false,
-                    TimeOfDay = sim.TimeOfDay.ToString("o", CultureInfo.InvariantCulture),
-                    Rain = sim.Rain,
-                    Fog = sim.Fog,
-                    Wetness = sim.Wetness,
-                    Cloudiness = sim.Cloudiness,
-                    Agents = Simulation.Agents.Select(a => new Commands.LoadAgent()
-                    {
-                        Name = a.Name,
-                        Url = a.Url,
-                        Bridge = a.Bridge == null ? string.Empty : a.Bridge.Name,
-                        Connection = a.Connection,
-                        Sensors = a.Sensors,
-                    }).ToArray(),
-                    UseTraffic = false,
-                    UsePedestrians = false
-//                        UseTraffic = Simulation.UseTraffic,
-//                        UsePedestrians = Simulation.UsePedestrians,
-                };
-
-                foreach (var c in Clients)
-                {
-                    var loadData = PacketsProcessor.Write(load);
-                    var message = MessagesPool.Instance.GetMessage(loadData.Length);
-                    message.AddressKey = Key;
-                    message.Content.PushBytes(loadData);
-                    message.Type = DistributedMessageType.ReliableOrdered;
-                    UnicastMessage(c.Peer.PeerEndPoint, message);
-                    c.State = SimulationState.Loading;
-                }
-
-                State = SimulationState.Loading;
-            }
-        }
-
-        /// <summary>
-        /// Method invoked when manager receives load result command
-        /// </summary>
-        /// <param name="res">Received load result command</param>
-        /// <param name="peer">Peer which has sent the command</param>
-        public void OnLoadResultCommand(Commands.LoadResult res, IPeerManager peer)
-        {
-            Debug.Assert(State == SimulationState.Loading);
-            var client = Clients.Find(c => c.Peer == peer);
-            Debug.Assert(client != null);
-            Debug.Assert(client.State == SimulationState.Loading);
-
-            if (res.Success)
-            {
-                Log.Info("Client loaded");
-            }
-            else
-            {
-                // TODO: stop simulation / cancel loading for other clients
-                Log.Error($"Failed to start '{Simulation.Name}' simulation. Client failed to load: {res.ErrorMessage}");
-
-                // TODO: reset all other clients
-
-                // TODO: update simulation status in DB
-                // simulation.Status = "Invalid";
-                // db.Update(simulation);
-
-                // NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
-
-                Loader.ResetLoaderScene();
-
-                DisconnectFromClients();
-                Clients.Clear();
+                Log.Warning("Received ready command from a unconnected client.");
                 return;
             }
 
             client.State = SimulationState.Ready;
+            TryStartSimulation();
 
-            if (Clients.All(c => c.State == SimulationState.Ready))
-            {
-                Log.Info("All clients are ready. Resuming time.");
-
-                var run = new Commands.Run();
-                foreach (var c in Clients)
-                {
-                    var runData = PacketsProcessor.Write(run);
-                    var message = MessagesPool.Instance.GetMessage(runData.Length);
-                    message.AddressKey = Key;
-                    message.Content.PushBytes(runData);
-                    message.Type = DistributedMessageType.ReliableOrdered;
-                    UnicastMessage(c.Peer.PeerEndPoint, message);
-                    c.State = SimulationState.Running;
-                }
-
-                State = SimulationState.Running;
-
-                // Notify WebUI simulation is running
-                Loader.Instance.CurrentSimulation.Status = "Running";
-
-                // Flash main window to let user know simulation is ready
-                WindowFlasher.Flash();
-
-                if (Loader.Instance.LoaderUI != null)
-                {
-                    Loader.Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.READY);
-                    Loader.Instance.LoaderUI.DisableUI();
-                }
-
-                SceneManager.UnloadSceneAsync(Loader.Instance.LoaderScene);
-                if (timescaleLockCalled)
-                {
-                    SimulatorManager.Instance.TimeManager.TimeScaleSemaphore.Unlock();
-                    timescaleLockCalled = false;
-                }
-            }
         }
 
         /// <summary>
@@ -486,10 +353,29 @@ namespace Simulator.Network.Master
         }
 
         /// <summary>
-        /// Broadcast the stop command to all clients' simulations
+        /// Broadcast the run command to all clients' simulations and runs the simulation
         /// </summary>
-        public void BroadcastSimulationStop()
+        public void RunSimulation()
         {
+            Log.Info($"{GetType().Name} broadcasts the simulation stop command.");
+
+            var stopData = PacketsProcessor.Write(new Commands.Run());
+            var message = MessagesPool.Instance.GetMessage(stopData.Length);
+            message.AddressKey = Key;
+            message.Content.PushBytes(stopData);
+            message.Type = DistributedMessageType.ReliableOrdered;
+            BroadcastMessage(message);
+            
+            Loader.StartAsync(Loader.Instance.Network.CurrentSimulation);
+        }
+
+        /// <summary>
+        /// Broadcast the stop command to all clients' simulations and reverse changes in the Simulation
+        /// </summary>
+        public void SimulationStopped()
+        {
+            Log.Info($"{GetType().Name} broadcasts the simulation stop command.");
+
             var stopData = PacketsProcessor.Write(new Commands.Stop());
             var message = MessagesPool.Instance.GetMessage(stopData.Length);
             message.AddressKey = Key;
@@ -504,11 +390,13 @@ namespace Simulator.Network.Master
         /// </summary>
         private void RevertChangesInSimulator()
         {
+            Log.Info($"{GetType().Name} reverts the changes done in the simulator.");
             DisconnectFromClients();
             if (timescaleLockCalled)
             {
                 SimulatorManager.Instance.TimeManager.TimeScaleSemaphore.Unlock();
                 timescaleLockCalled = false;
+                Log.Info($"{GetType().Name} unlocks the simulator timescale.");
             }
         }
 

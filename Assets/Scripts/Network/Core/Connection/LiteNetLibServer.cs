@@ -9,6 +9,7 @@ namespace Simulator.Network.Core.Connection
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net;
     using System.Net.Sockets;
     using LiteNetLib;
@@ -20,11 +21,11 @@ namespace Simulator.Network.Core.Connection
     /// The server's connection manager using LiteNetLib
     /// </summary>
     public class LiteNetLibServer : IConnectionManager, INetEventListener, INetLogger
-    {
+    {       
         /// <summary>
         /// Connection application key
         /// </summary>
-        public const string ApplicationKey = "SimulatorServer"; // TODO: this can be unique per run
+        public const string ApplicationKey = "LGSVL";
 
         /// <summary>
         /// The LiteNetLib net manager
@@ -48,6 +49,9 @@ namespace Simulator.Network.Core.Connection
 
         /// <inheritdoc/>
         public int ConnectedPeersCount => peers.Count;
+        
+        /// <inheritdoc/>
+        public List<string> AcceptableIdentifiers { get; } = new List<string>();
 
         /// <inheritdoc/>
         public event Action<IPeerManager> PeerConnected;
@@ -65,7 +69,12 @@ namespace Simulator.Network.Core.Connection
             NetDebug.Logger = this;
             netServer = new NetManager(this)
                 {BroadcastReceiveEnabled = false, UpdateTime = 5, DisconnectTimeout = Timeout};
-            return netServer.Start(port);
+            var result = netServer.Start(port);
+            if (result)
+                Log.Info($"{GetType().Name} started using the port '{port}'.");
+            else 
+                Log.Error($"{GetType().Name} failed to start using the port '{port}'.");
+            return result;
         }
 
         /// <inheritdoc/>
@@ -73,13 +82,15 @@ namespace Simulator.Network.Core.Connection
         {
             NetDebug.Logger = null;
             netServer?.Stop();
+            Log.Info($"{GetType().Name} was stopped.");
         }
 
         /// <inheritdoc/>
-        public IPeerManager Connect(IPEndPoint endPoint)
+        public IPeerManager Connect(IPEndPoint endPoint, string identifier)
         {
-            var peerManager = new LiteNetLibPeerManager(netServer.Connect(endPoint, ApplicationKey));
+            var peerManager = new LiteNetLibPeerManager(netServer.Connect(endPoint, identifier));
             peers.Add(peerManager.PeerEndPoint, peerManager);
+            Log.Info($"{GetType().Name} starts the connection to a peer with address '{endPoint.ToString()}'.");
             return peerManager;
         }
 
@@ -114,7 +125,11 @@ namespace Simulator.Network.Core.Connection
         public void OnPeerConnected(NetPeer peer)
         {
             if (!peers.TryGetValue(peer.EndPoint, out var peerManager))
+            {
                 peerManager = new LiteNetLibPeerManager(peer);
+                peers.Add(peer.EndPoint, peerManager);
+            }
+
             PeerConnected?.Invoke(peerManager);
         }
 
@@ -161,7 +176,18 @@ namespace Simulator.Network.Core.Connection
         /// <inheritdoc/>
         public void OnConnectionRequest(ConnectionRequest request)
         {
-            request.AcceptIfKey(LiteNetLibClient.ApplicationKey);
+            var key = request.Data.GetString();
+            if (ApplicationKey != key)
+                return;
+            var identifier = request.Data.GetString();
+            var peerConnected = peers.Any(peer => peer.Value.Identifier == identifier);
+            if (peerConnected)
+                return;
+            var acceptIdentifier = AcceptableIdentifiers.Contains(identifier);
+            if (!acceptIdentifier)
+                return;
+            Log.Info($"{GetType().Name} received and accepted an connection request from address '{request.RemoteEndPoint.Address}'.");
+            request.Accept();
         }
 
         /// <inheritdoc/>

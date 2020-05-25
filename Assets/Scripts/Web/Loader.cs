@@ -126,26 +126,6 @@ namespace Simulator
             var info = Resources.Load<BuildInfo>("BuildInfo");
             SIM.Init(info == null ? "Development" : info.Version);
 
-            if (Config.RunAsMaster)
-            {
-                var masterGameObject = new GameObject("MasterManager");
-                Network.Master = masterGameObject.AddComponent<MasterManager>();
-                masterGameObject.AddComponent<MainThreadDispatcher>();
-                Network.Master.SetSettings(NetworkSettings);
-                Network.Master.StartConnection();
-                DontDestroyOnLoad(masterGameObject);
-            }
-            else
-            {
-                var clientGameObject = new GameObject("ClientManager");
-                Network.Client = clientGameObject.AddComponent<ClientManager>();
-                clientGameObject.AddComponent<MainThreadDispatcher>();
-                Network.Client.SetSettings(NetworkSettings);
-                Network.Client.StartConnection();
-                Network.Initialize(SimulationNetwork.ClusterNodeType.Client, NetworkSettings);
-                DontDestroyOnLoad(clientGameObject);
-            }
-
             DatabaseManager.Init();
 
             DownloadManager.Init();
@@ -281,6 +261,7 @@ namespace Simulator
 
         public static async void StartSimulation(SimulationData simData)
         {
+            Instance.Network.Initialize(Config.SimID, simData.Cluster, Instance.NetworkSettings);
             MapService mapService = new MapService();
             VehicleService vehicleService = new VehicleService();
             AssetService assetService = new AssetService();
@@ -355,8 +336,8 @@ namespace Simulator
             {
                 await Task.Delay(1000);
             }
-            
-            StartAsync(new SimulationModel()
+
+            var simulationModel = new SimulationModel()
             {
                 Id = 1,
                 Guid = simData.Id,
@@ -379,7 +360,12 @@ namespace Simulator
                 UsePedestrians = simData.UsePedestrians,
                 UseTraffic = simData.UseTraffic,
                 Error = "",
-            });
+            };
+
+            if (!Instance.Network.IsClusterSimulation)
+                StartAsync(simulationModel);
+            else
+                Instance.Network.SetSimulationModel(simulationModel);
         }
 
         public static void StartAsync(SimulationModel simulation)
@@ -451,18 +437,6 @@ namespace Simulator
                                 return config;
 
                             }).ToArray();
-                        }
-
-                        //Initialize network for the master, client has initialized network since startup
-                        if (Instance.SimConfig.Clusters == null || Instance.SimConfig.Clusters.Length == 0)
-                        {
-                            if (Config.RunAsMaster)
-                                Instance.Network.Initialize(SimulationNetwork.ClusterNodeType.NotClusterNode, Instance.NetworkSettings);
-                        }
-                        else if (Config.RunAsMaster)
-                        {
-                            Instance.Network.Initialize(SimulationNetwork.ClusterNodeType.Master, Instance.NetworkSettings);
-                            Instance.Network.Master.Simulation = Instance.SimConfig;
                         }
 
                         // load environment
@@ -559,16 +533,11 @@ namespace Simulator
                                 Instance.SimConfig.MapName = sceneName;
                                 Instance.SimConfig.MapUrl = Path.Combine("http://wise.dev.lgsvlsimulator.com/api/v1/assets/download/bundle", mapModel.AssetGuid);
 
-                                var isMasterSimulation = Instance.SimConfig.Clusters.Length > 0;
-                                var loader =
-                                    SceneManager.LoadSceneAsync(sceneName,
-                                        isMasterSimulation ? LoadSceneMode.Additive : LoadSceneMode.Single);
+                                var loader = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
                                 loader.completed += op =>
                                 {
                                     if (op.isDone)
                                     {
-                                        if (isMasterSimulation)
-                                            SceneManager.SetActiveScene(SceneManager.GetSceneByName(sceneName));
                                         textureBundle?.Unload(false);
                                         mapBundle.Unload(false);
                                         zip.Close();
@@ -647,8 +616,7 @@ namespace Simulator
         {
             if (Instance.CurrentSimulation == null) return;
 
-            if (Instance.Network.Master != null)
-                Instance.Network.Master.BroadcastSimulationStop();
+            Instance.Network.StopConnection();
 
             Instance.Actions.Enqueue(() =>
             {
@@ -837,15 +805,8 @@ namespace Simulator
                         ConnectionManager.instance.UpdateStatus("Running", Instance.CurrentSimulation.Guid);
                     }
 
-                    if (Instance.SimConfig.Clusters.Length == 0)
-                    {
-                        // Flash main window to let user know simulation is ready
-                        WindowFlasher.Flash();
-                    }
-                    else
-                    {
-                        Instance.Network.Master.InitializeSimulation(sim.gameObject);
-                    }
+                    // Flash main window to let user know simulation is ready
+                    WindowFlasher.Flash();
                 }
                 catch (ZipException ex)
                 {
@@ -905,6 +866,7 @@ namespace Simulator
         {
             var sim = Instantiate(Instance.SimulatorManagerPrefab);
             sim.name = "SimulatorManager";
+            Instance.Network.InitializeSimulationScene(sim.gameObject);
 
             return sim;
         }

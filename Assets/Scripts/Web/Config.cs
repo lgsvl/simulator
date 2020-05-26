@@ -49,7 +49,7 @@ namespace Simulator.Web
         public static List<SensorConfig> Sensors;
         public static List<IBridgeFactory> Bridges;
 
-        public static Dictionary<string, IControllable> Controllables;
+        public static Dictionary<string, IControllable> Controllables = new Dictionary<string, IControllable>();
         public static Dictionary<string, Type> NPCBehaviours = new Dictionary<string, Type>();
 
         public struct NPCAssetData

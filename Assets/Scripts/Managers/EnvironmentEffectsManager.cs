@@ -307,6 +307,14 @@ public class EnvironmentEffectsManager : MonoBehaviour
     {
         if (Config != null)
         {
+            if (SimulatorManager.Instance.IsAPI)
+            {
+                Config.Fog = 0f;
+                Config.Rain = 0f;
+                Config.Wetness = 0f;
+                Config.Cloudiness = 0f;
+                Config.TimeOfDay = new DateTime(1980, 3, 24, 12, 0, 0);
+            }
             fog = Config.Fog;
             rain = Config.Rain;
             wet = Config.Wetness;
@@ -543,6 +551,5 @@ public class EnvironmentEffectsManager : MonoBehaviour
             Config.Cloudiness = cloud;
             Config.TimeOfDay = Config.TimeOfDay.Date + TimeSpan.FromHours(currentTimeOfDay);
         }
-
     }
 }

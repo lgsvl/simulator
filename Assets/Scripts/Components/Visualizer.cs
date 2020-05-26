@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -115,15 +115,18 @@ namespace Simulator.Sensors.UI
         
         private void Update()
         {
-            Debug.Assert(Sensor != null);
-            Sensor.OnVisualize(this);
-
             // save rt size/position for full to window
             if (CurrentWindowSizeType == WindowSizeType.Window && rt != null)
             {
                 windowSize = rt.sizeDelta;
                 windowPosition = rt.localPosition;
             }
+        }
+
+        private void LateUpdate()
+        {
+            Debug.Assert(Sensor != null);
+            Sensor.OnVisualize(this);
         }
 
         private void OnDisable()

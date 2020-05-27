@@ -37,7 +37,8 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
 
     private Color colorWhiteLow = new Color(10, 10, 10);
     private Color colorWhiteHigh = new Color(15, 15, 15);
-    private Color colorBrakeOff = new Color(4, 0, 0);
+    private Color colorBrakeOff = new Color(0, 0, 0);
+    private Color colorBrakeIdle = new Color(4, 0, 0);
     private Color colorBrakeOn = new Color(8, 0, 0);
     private Color colorIndicatorTurn = new Color(10, 5, 0);
 
@@ -200,7 +201,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
                     break;
                 case HeadLightState.LOW:
                 case HeadLightState.HIGH:
-                    brakeLightRenderer?.material.SetVector("_EmissiveColor", _brakeLights ? colorBrakeOn : colorBrakeOff);
+                    brakeLightRenderer?.material.SetVector("_EmissiveColor", _brakeLights ? colorBrakeOn : colorBrakeIdle);
                     break;
             }
             brakeLights.ForEach(x => x.enabled = _brakeLights);

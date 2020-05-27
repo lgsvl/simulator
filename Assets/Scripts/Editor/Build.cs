@@ -1000,6 +1000,7 @@ namespace Simulator.Editor
                 else
                 {
                     Debug.LogError($"Player build result: {r.summary.result}!");
+                    throw new Exception($"Player build result: {r.summary.result}!");
                 }
 
             }

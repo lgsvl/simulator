@@ -33,7 +33,9 @@ namespace Simulator.Sensors
         private float Speed = 0f;
 
         private Vector3 Acceleration = new Vector3(0f, 0f, 0f);
+        private Vector3 LastLocalAcceleration = new Vector3(0f, 0f, 0f);
         private Vector3 Velocity = new Vector3(0f, 0f, 0f);
+        private Vector3 LastLocalVelocity = new Vector3(0f, 0f, 0f);
         private Quaternion Rotation = Quaternion.identity;
         private float AngularVelocity = 0f;
         private float AngularAcceleration = 0f;
@@ -122,13 +124,24 @@ namespace Simulator.Sensors
             Slip = Vector3.Angle(RB.velocity, transform.forward);
             SteerAngle = Dynamics.WheelAngle;
 
-            float AccelLong = Acceleration.x;
-            float AccelLat = Acceleration.z;
+            // Compute local acceleration and jerk
+            var localVelocity = transform.InverseTransformDirection(RB.velocity);
+            localVelocity.Set(localVelocity.z, -localVelocity.x, localVelocity.y);
+            var localAcceleration = (localVelocity - LastLocalVelocity) / Time.fixedDeltaTime;
+            LastLocalVelocity = localVelocity;
+            var localGravity = transform.InverseTransformDirection(Physics.gravity);
+            localAcceleration -= new Vector3(localGravity.z, -localGravity.x, localGravity.y);
+
+            var localJerk = (localAcceleration - LastLocalAcceleration) / Time.fixedDeltaTime;
+            LastLocalAcceleration = localAcceleration;
+
+            float AccelLong = localAcceleration.x;
+            float AccelLat = localAcceleration.y;
             UpdateMinMax(AccelLong, ref AccelLongMin, ref AccelLongMax);
             UpdateMinMax(AccelLat, ref AccelLatMin, ref AccelLatMax);
 
-            float JerkLong = Jerk.x;
-            float JerkLat = Jerk.z;
+            float JerkLong = localJerk.x;
+            float JerkLat = localJerk.y;
             UpdateMinMax(JerkLong, ref JerkLongMin, ref JerkLongMax);
             UpdateMinMax(JerkLat, ref JerkLatMin, ref JerkLatMax);
 

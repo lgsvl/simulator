@@ -36,12 +36,21 @@ namespace Simulator.Database.Services
             }
         }
 
-        public VehicleModel Get(long id, string owner)
+        public VehicleModel Get(long id)
         {
             using (var db = DatabaseManager.Open())
             {
-                var sql = Sql.Builder.Where("id = @0", id).Where("owner = @0 OR owner IS NULL", owner);
+                var sql = Sql.Builder.Where("id = @0", id);
                 return db.Single<VehicleModel>(sql);
+            }
+        }
+
+        public VehicleModel Get(string guid)
+        {
+            using (var db = DatabaseManager.Open())
+            {
+                var sql = Sql.Builder.Where("assetGuid = @0", guid);
+                return db.SingleOrDefault<VehicleModel>(sql);
             }
         }
 
@@ -94,11 +103,11 @@ namespace Simulator.Database.Services
             }
         }
 
-        public int Delete(long id, string owner)
+        public int Delete(long id)
         {
             using (var db = DatabaseManager.Open())
             {
-                var sql = Sql.Builder.Where("id = @0", id).Where("owner = @0 OR owner IS NULL", owner);
+                var sql = Sql.Builder.Where("id = @0", id);
                 return db.Delete<VehicleModel>(sql);
             }
         }

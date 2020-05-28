@@ -5,7 +5,7 @@ pipeline {
   agent {
     node {
       label "unity3d-2019.3-vulkan"
-      customWorkspace "/home/jenkins/workspace/simulator-2019.3"
+      customWorkspace "/home/jenkins/workspace/simulator-cloud-release"
     }
   }
 
@@ -183,16 +183,7 @@ pipeline {
             docker login -u ${DOCKER_USR} -p ${DOCKER_PSW} ${GITLAB_HOST}:4567
             docker-compose build build-simulator
             docker-compose push build-simulator
-            docker-compose pull build-webui
           """
-        }
-      }
-    }
-
-    stage("WebUI") {
-      steps {
-        dir("Jenkins") {
-          sh "UID=`id -u` docker-compose run --rm build-webui-p"
         }
       }
     }

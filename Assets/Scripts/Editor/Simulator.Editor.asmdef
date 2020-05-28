@@ -8,7 +8,8 @@
         "Simulator.Network.Core",
         "Unity.RenderPipelines.HighDefinition.Editor",
         "Unity.RenderPipelines.Core.Editor",
-        "Unity.RenderPipelines.Core.Runtime"
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.Formats.Fbx.Editor"
     ],
     "includePlatforms": [
         "Editor"

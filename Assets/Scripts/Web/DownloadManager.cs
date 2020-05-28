@@ -77,6 +77,7 @@ namespace Simulator.Web
         public static void Init()
         {
             client = new WebClient();
+            client.Headers.Add("simid", Config.SimID);
             ManageDownloads();
         }
 

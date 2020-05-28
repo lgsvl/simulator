@@ -1,1 +1,0 @@
-Composite components that make up a distinct view go here

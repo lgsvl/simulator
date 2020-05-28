@@ -36,6 +36,7 @@ namespace Simulator.Database
     {
         public long Id { get; set; }
         public string Name { get; set; }
+        public string AssetGuid { get; set; }
         public string Status { get; set; }
         public string Owner { get; set; }
         public string Url { get; set; }
@@ -50,6 +51,7 @@ namespace Simulator.Database
     {
         public long Id { get; set; }
         public string Name { get; set; }
+        public string AssetGuid { get; set; }
         public string Status { get; set; }
         public string Owner { get; set; }
         public string Url { get; set; }
@@ -76,6 +78,7 @@ namespace Simulator.Database
     public class SimulationModel
     {
         public long Id { get; set; }
+        public string Guid { get; set; }
         public string Name { get; set; }
         public string Status { get; set; }
         public string Owner { get; set; }
@@ -106,5 +109,14 @@ namespace Simulator.Database
         public long Simulation { get; set; }
         public long Vehicle { get; set; }
         public string Connection { get; set; }
+    }
+
+    [TableName("assets")]
+    [PrimaryKey("Id", AutoIncrement = true)]
+    public class AssetModel
+    {
+        public long Id { get; set; }
+        public string Type { get; set; }
+        public string Guid { get; set; }
     }
 }

@@ -140,6 +140,8 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         var parents = new Dictionary<string, GameObject>()
         {
             {string.Empty, gameObject},
+            //Needed for WISE Parsing
+            {"null", gameObject},
         };
 
         var agentController = GetComponent<AgentController>();

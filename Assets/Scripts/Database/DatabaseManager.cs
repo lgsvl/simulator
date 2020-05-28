@@ -112,8 +112,6 @@ namespace Simulator.Database
                     {
                         command.ExecuteNonQuery();
                     }
-
-                    CreateDefaultDbAssets();
                 }
                 connection.Close();
             }
@@ -173,139 +171,6 @@ namespace Simulator.Database
             Debug.Log($"Final Database Version: {currentVersion}");
         }
 
-        static void CreateDefaultDbAssets()
-        {
-            var info = Resources.Load<Utilities.BuildInfo>("BuildInfo");
-            if (info == null || info.DownloadHost == null)
-            {
-                Debug.Log("*** No debug info, or downloadhost is nulll");
-                return;
-            }
-
-            using (var db = Open())
-            {
-                long? defaultMap = null;
-
-                if (info.DownloadEnvironments != null)
-                {
-                    foreach (var e in info.DownloadEnvironments)
-                    {
-                        var url = $"https://{info.DownloadHost}/{e.Id}/environment_{e.Name}";
-                        var localPath = WebUtilities.GenerateLocalPath("Maps");
-                        var map = new MapModel()
-                        {
-                            Name = e.Name,
-                            Status = "Downloading",
-                            Url = url,
-                            LocalPath = localPath,
-                        };
-
-                        var id = db.Insert(map);
-
-                        if (map.Name == "BorregasAve")
-                        {
-                            defaultMap = map.Id;
-                        }
-                    }
-                }
-
-                long? autowareVehicle = null;
-                long? noBridgeVehicle = null;
-                long? apolloVehicle = null;
-
-                if (info.DownloadVehicles != null)
-                {
-                    foreach (var v in info.DownloadVehicles)
-                    {
-                        var localPath = WebUtilities.GenerateLocalPath("Vehicles");
-                        if (v.Name == "Jaguar2015XE")
-                        {
-                            AddVehicle(db, info, v, localPath, DefaultSensors.Autoware, " (Autoware)", new RosBridgeFactory().Name);
-                            AddVehicle(db, info, v, localPath, DefaultSensors.Apollo30, " (Apollo 3.0)", new RosApolloBridgeFactory().Name);
-
-                            noBridgeVehicle = AddVehicle(db, info, v, localPath, DefaultSensors.DataCollection, " (No Bridge)");
-                        }
-                        else if (v.Name == "Lexus2016RXHybrid")
-                        {
-                            autowareVehicle = AddVehicle(db, info, v, localPath, DefaultSensors.Autoware, " (Autoware)", new RosBridgeFactory().Name);
-                        }
-                        else if (v.Name == "Lincoln2017MKZ")
-                        {
-                            apolloVehicle = AddVehicle(db, info, v, localPath, DefaultSensors.Apollo50, " (Apollo 5.0)", new CyberBridgeFactory().Name);
-                        }
-                        else
-                        {
-                            apolloVehicle = AddVehicle(db, info, v, localPath, DefaultSensors.Apollo50, " (Apollo 5.0)", new CyberBridgeFactory().Name);
-                        }
-                    }
-                }
-
-                if (defaultMap.HasValue)
-                {
-                    var dt = DateTime.Now.Date + new TimeSpan(12, 0, 0);
-                    var dtEvening = DateTime.Now.Date + new TimeSpan(17, 20, 0);
-
-                    var sim1 = new SimulationModel()
-                    {
-                        Name = "BorregasAve, no bridge, data collection",
-                        Cluster = 0,
-                        Map = defaultMap.Value,
-                        ApiOnly = false,
-                        Interactive = true,
-                        TimeOfDay = dt,
-                    };
-                    AddSimulation(db, sim1, noBridgeVehicle);
-
-                    var sim2 = new SimulationModel()
-                    {
-                        Name = "BorregasAve (with Autoware)",
-                        Cluster = 0,
-                        Map = defaultMap.Value,
-                        ApiOnly = false,
-                        Interactive = true,
-                        TimeOfDay = dt,
-                    };
-                    AddSimulation(db, sim2, autowareVehicle);
-
-                    var sim3 = new SimulationModel()
-                    {
-                        Name = "BorregasAve, noninteractive (with Apollo 5.0)",
-                        Cluster = 0,
-                        Map = defaultMap.Value,
-                        ApiOnly = false,
-                        Seed = 12345,
-                        TimeOfDay = dt,
-                        Wetness = 0.4f,
-                        Cloudiness = 0.6f,
-                        Fog = 0.5f,
-                        UseTraffic = true,
-                    };
-                    AddSimulation(db, sim3, apolloVehicle);
-
-                    var sim4 = new SimulationModel()
-                    {
-                        Name = "BorregasAve, evening (with Apollo 5.0)",
-                        Cluster = 0,
-                        Map = defaultMap.Value,
-                        ApiOnly = false,
-                        Interactive = true,
-                        TimeOfDay = dtEvening,
-                        UseTraffic = true,
-                    };
-                    AddSimulation(db, sim4, apolloVehicle);
-
-                    var sim5 = new SimulationModel()
-                    {
-                        Name = "API Only",
-                        Cluster = 0,
-                        Map = defaultMap.Value,
-                        ApiOnly = true,
-                    };
-                    db.Insert(sim5);
-                }
-            }
-        }
-
         static void AddSimulation(IDatabase db, SimulationModel sim, long? vehicle)
         {
             if (!vehicle.HasValue)
@@ -331,7 +196,7 @@ namespace Simulator.Database
             var vehicle = new VehicleModel()
             {
                 Name = item.Name + (suffix == null ? string.Empty : suffix),
-                Status = "Downloading",
+                AssetGuid = "",
                 Url = url,
                 LocalPath = localPath,
                 BridgeType = bridge,
@@ -340,24 +205,6 @@ namespace Simulator.Database
             db.Insert(vehicle);
 
             return vehicle.Id;
-        }
-
-        public static IEnumerable<MapModel> PendingMapDownloads()
-        {
-            using (var db = Open())
-            {
-                var sql = Sql.Builder.From("maps").Where("status = @0", "Downloading");
-                return db.Query<MapModel>(sql);
-            }
-        }
-
-        public static IEnumerable<VehicleModel> PendingVehicleDownloads()
-        {
-            using (var db = Open())
-            {
-                var sql = Sql.Builder.From("vehicles").Where("status = @0", "Downloading");
-                return db.Query<VehicleModel>(sql);
-            }
         }
 
         public static bool TablesExist(string[] tableNames, SqliteConnection connection)

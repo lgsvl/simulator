@@ -50,7 +50,7 @@ namespace Simulator.Api.Commands
                 }
                 // Add uid key to arguments, as it will be distributed to the clients' simulations
                 if (Loader.Instance.Network.IsMaster)
-                    args.Add("url", map.Url);
+                    args.Add("url", "");
 
                 api.StartCoroutine(LoadMapAssets(this, map, name, seed));
             }
@@ -67,16 +67,16 @@ namespace Simulator.Api.Commands
             try
             {
                 Manifest manifest;
-                ZipEntry entry = zip.GetEntry("manifest");
+                ZipEntry entry = zip.GetEntry("manifest.json");
                 using (var ms = zip.GetInputStream(entry))
                 {
                     int streamSize = (int) entry.Size;
                     byte[] buffer = new byte[streamSize];
                     streamSize = ms.Read(buffer, 0, streamSize);
-                    manifest = new Deserializer().Deserialize<Manifest>(Encoding.UTF8.GetString(buffer));
+                    manifest = Newtonsoft.Json.JsonConvert.DeserializeObject<Manifest>(Encoding.UTF8.GetString(buffer));
                 }
 
-                if (manifest.bundleFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Environment])
+                if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Environment])
                 {
                     api.SendError(sourceCommand, 
                         "Out of date Map AssetBundle. Please check content website for updated bundle or rebuild the bundle.");
@@ -99,7 +99,7 @@ namespace Simulator.Api.Commands
 
                 if (mapBundle == null)
                 {
-                    api.SendError(sourceCommand, $"Failed to load environment from '{map.Name}' asset bundle");
+                    api.SendError(sourceCommand, $"Failed to load environment from '{map.AssetGuid}' asset bundle '{map.Name}'");
                     api.ActionsSemaphore.Unlock();
                     yield break;
                 }
@@ -109,7 +109,7 @@ namespace Simulator.Api.Commands
                 var scenes = mapBundle.GetAllScenePaths();
                 if (scenes.Length != 1)
                 {
-                    api.SendError(sourceCommand, $"Unsupported environment in '{map.Name}' asset bundle, only 1 scene expected");
+                    api.SendError(sourceCommand, $"Unsupported environment in '{map.AssetGuid}' asset bundle '{map.Name}', only 1 scene expected");
                     api.ActionsSemaphore.Unlock();
                     yield break;
                 }
@@ -131,7 +131,7 @@ namespace Simulator.Api.Commands
                 {
                     Loader.Instance.SimConfig.Seed = seed;
                     Loader.Instance.SimConfig.MapName = name;
-                    Loader.Instance.SimConfig.MapUrl = map.Url;
+                    Loader.Instance.SimConfig.MapUrl = map.AssetGuid;
                 }
 
                 var sim = Loader.CreateSimulatorManager();
@@ -165,8 +165,6 @@ namespace Simulator.Api.Commands
                 {
                     var map = new MapModel()
                     {
-                        Name = name,
-                        Url = url,
                         LocalPath = localPath
                     };
 

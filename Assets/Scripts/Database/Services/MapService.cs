@@ -53,11 +53,20 @@ namespace Simulator.Database.Services
             }
         }
 
-        public MapModel Get(long id, string owner)
+        public MapModel Get(string guid)
         {
             using (var db = DatabaseManager.Open())
             {
-                var sql = Sql.Builder.Where("id = @0", id).Where("owner = @0 OR owner IS NULL", owner);
+                var sql = Sql.Builder.Where("assetGuid = @0", guid);
+                return db.SingleOrDefault<MapModel>(sql);
+            }
+        }
+
+        public MapModel Get(long id)
+        {
+            using (var db = DatabaseManager.Open())
+            {
+                var sql = Sql.Builder.Where("id = @0", id);
                 return db.Single<MapModel>(sql);
             }
         }
@@ -78,11 +87,11 @@ namespace Simulator.Database.Services
             }
         }
 
-        public int Delete(long id, string owner)
+        public int Delete(long id)
         {
             using (var db = DatabaseManager.Open())
             {
-                var sql = Sql.Builder.Where("id = @0", id).Where("owner = @0 OR owner IS NULL", owner);
+                var sql = Sql.Builder.Where("id = @0", id);
                 return db.Delete<MapModel>(sql);
             }
         }

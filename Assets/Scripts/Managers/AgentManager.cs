@@ -183,16 +183,16 @@ public class AgentManager : MonoBehaviour
                                 using (ZipFile zip = new ZipFile(bundlePath))
                                 {
                                     Manifest manifest;
-                                    ZipEntry entry = zip.GetEntry("manifest");
+                                    ZipEntry entry = zip.GetEntry("manifest.json");
                                     using (var ms = zip.GetInputStream(entry))
                                     {
                                         int streamSize = (int)entry.Size;
                                         byte[] buffer = new byte[streamSize];
                                         streamSize = ms.Read(buffer, 0, streamSize);
-                                        manifest = new Deserializer().Deserialize<Manifest>(Encoding.UTF8.GetString(buffer, 0, streamSize));
+                                        manifest = Newtonsoft.Json.JsonConvert.DeserializeObject<Manifest>(Encoding.UTF8.GetString(buffer));
                                     }
 
-                                    if (manifest.bundleFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Vehicle])
+                                    if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Vehicle])
                                     {
                                         throw new Exception("Out of date Vehicle AssetBundle. Please check content website for updated bundle or rebuild the bundle.");
                                     }

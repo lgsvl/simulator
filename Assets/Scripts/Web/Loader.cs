@@ -12,18 +12,14 @@ using System.Collections.Concurrent;
 using System.Net.Sockets;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Nancy.Hosting.Self;
 using Simulator.Database;
 using Simulator.Api;
 using Simulator.Web;
-using Simulator.Web.Modules;
 using Simulator.Utilities;
 using Simulator.Bridge;
 using System.Text;
 using System.Security.Cryptography;
-using Simulator.Database.Services;
 using System.Linq;
-using Web;
 using ICSharpCode.SharpZipLib.Zip;
 using YamlDotNet.Serialization;
 using System.Net.Http;
@@ -36,6 +32,8 @@ using MasterManager = Simulator.Network.Master.MasterManager;
 using ICSharpCode.SharpZipLib.Core;
 using Simulator.FMU;
 using Simulator.PointCloud.Trees;
+using Simulator.Database.Services;
+using System.Threading.Tasks;
 
 namespace Simulator
 {
@@ -79,9 +77,6 @@ namespace Simulator
 
     public class Loader : MonoBehaviour
     {
-        public string Address { get; private set; }
-
-        private NancyHost Server;
         public SimulationNetwork Network { get; } = new SimulationNetwork();
         public SimulatorManager SimulatorManagerPrefab;
         public ApiManager ApiManagerPrefab;
@@ -101,6 +96,7 @@ namespace Simulator
         // Loader object is never destroyed, even between scene reloads
         public static Loader Instance { get; private set; }
         private System.Diagnostics.Stopwatch stopWatch = new System.Diagnostics.Stopwatch();
+        public static int CompletedDownloads;
 
         public bool EditorLoader { get; set; } = false;
 
@@ -130,19 +126,6 @@ namespace Simulator
             var info = Resources.Load<BuildInfo>("BuildInfo");
             SIM.Init(info == null ? "Development" : info.Version);
 
-            if (PlayerPrefs.HasKey("Salt"))
-            {
-                Config.salt = StringToByteArray(PlayerPrefs.GetString("Salt"));
-            }
-            else
-            {
-                Config.salt = new byte[8];
-                RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
-                rng.GetBytes(Config.salt);
-                PlayerPrefs.SetString("Salt", ByteArrayToString(Config.salt));
-                PlayerPrefs.Save();
-            }
-
             if (Config.RunAsMaster)
             {
                 var masterGameObject = new GameObject("MasterManager");
@@ -166,37 +149,6 @@ namespace Simulator
             DatabaseManager.Init();
 
             DownloadManager.Init();
-            RestartPendingDownloads();
-
-            if (Config.RunAsMaster)
-                try
-                {
-                    var host = Config.WebHost == "*" ? "localhost" : Config.WebHost;
-                    Address = $"http://{host}:{Config.WebPort}";
-
-                    var config = new HostConfiguration { RewriteLocalhost = Config.WebHost == "*" };
-
-                    Server = new NancyHost(new UnityBootstrapper(), config, new Uri(Address));
-                    if (!string.IsNullOrEmpty(Config.Username))
-                    {
-                        LoginAsync();
-                    }
-                    else
-                    {
-                        Server.Start();
-                    }
-                }
-                catch (SocketException ex)
-                {
-                    Debug.LogException(ex);
-#if UNITY_EDITOR
-                    UnityEditor.EditorApplication.isPlaying = false;
-#else
-                    // return non-zero exit code
-                    Application.Quit(1);
-#endif
-                    return;
-                }
 
             LoaderScene = SceneManager.GetActiveScene().name;
             SIM.LogSimulation(SIM.Simulation.ApplicationStart);
@@ -250,159 +202,71 @@ namespace Simulator
 #endif
         }
 
-        async void LoginAsync()
+        void SimDownloads(List<MapModel> mapDownloads, List<VehicleModel> vehicleDownloads)
         {
-            try
-            {
-                var client = new HttpClient();
-                client.DefaultRequestHeaders.Add("Accept", "application/json");
-
-                var postData = new[] {  new KeyValuePair<string, string>("username", Config.Username),
-                                    new KeyValuePair<string, string>("password", Config.Password),
-                                    new KeyValuePair<string, string>("returnUrl", Config.WebHost + Config.WebPort)};
-                var postForm = new FormUrlEncodedContent(postData);
-                var postResponse = await client.PostAsync(Config.CloudUrl + "/users/signin", postForm);
-                var postContent = await postResponse.Content.ReadAsStringAsync();
-
-                var postJson = JSONNode.Parse(postContent);
-
-                var putData = new[] { new KeyValuePair<string, string>("token", postJson["token"].Value) };
-                var formContent = new FormUrlEncodedContent(putData);
-
-                var response = await client.PutAsync(Config.CloudUrl + "/users/token", formContent);
-                var content = await response.Content.ReadAsStringAsync();
-
-                var json = JSONNode.Parse(content);
-                UserModel userModel = new UserModel()
-                {
-                    Username = json["username"].Value,
-                    SecretKey = json["secretKey"].Value,
-                    Settings = json["settings"].Value
-                };
-
-                if (string.IsNullOrEmpty(userModel.Username))
-                {
-                    throw new Exception("Invalid Login: incorrect login info or account does not exist");
-                }
-
-                UserService userService = new UserService();
-                userService.AddOrUpdate(userModel);
-                SIM.InitUser(userModel.Username);
-
-                var guid = Guid.NewGuid();
-                UserMapper.RegisterUserSession(guid, userModel.Username);
-                Config.SessionGUID = guid.ToString();
-
-                Server.Start();
-            }
-            catch (Exception ex)
-            {
-                Debug.LogException(ex);
-#if UNITY_EDITOR
-                UnityEditor.EditorApplication.isPlaying = false;
-#else
-                // return non-zero exit code
-                Application.Quit(1);
-#endif
-                return;
-            }
-        }
-
-        void RestartPendingDownloads()
-        {
+            AssetService assetService = new AssetService();
+            ConnectionUI.instance.SetLinkingButtonActive(false);
             using (var db = DatabaseManager.Open())
             {
-                foreach (var map in DatabaseManager.PendingMapDownloads())
+                foreach (var map in mapDownloads)
                 {
-                    SIM.LogWeb(SIM.Web.MapDownloadStart, map.Name);
-                    Uri uri = new Uri(map.Url);
+                    Uri uri = new Uri(Config.CloudUrl + "/api/v1/assets/download/bundle/" + map.AssetGuid);
                     DownloadManager.AddDownloadToQueue(
                         uri,
                         map.LocalPath,
                         progress =>
                         {
+                            ConnectionUI.instance.UpdateDownloadProgress(map.Name, progress);
                             Debug.Log($"Map Download at {progress}%");
-                            NotificationManager.SendNotification("MapDownload", new { map.Id, progress }, map.Owner);
                         },
                         (success, ex) =>
                         {
-                            var updatedModel = db.Single<MapModel>(map.Id);
-                            bool passesValidation = false;
                             if (success)
                             {
-                                passesValidation = Validation.BeValidAssetBundle(map.LocalPath);
-                                if (!passesValidation)
+                                CompletedDownloads++;
+                                assetService.Add(new AssetModel()
                                 {
-                                    updatedModel.Error = "You must specify a valid AssetBundle";
-                                }
+                                    Type = "Map",
+                                    Guid = map.AssetGuid
+                                });
+                                Debug.Log("Map Download Complete");
                             }
-
-                            updatedModel.Status = passesValidation ? "Valid" : "Invalid";
-
-                            if (ex != null)
-                            {
-                                updatedModel.Error = ex.Message;
-                            }
-
-                            db.Update(updatedModel);
-                            NotificationManager.SendNotification("MapDownloadComplete", updatedModel, map.Owner);
-
-                            SIM.LogWeb(SIM.Web.MapDownloadFinish, map.Name);
                         }
                     );
                 }
 
-                var added = new HashSet<Uri>();
-                var vehicles = new VehicleService();
-
-                foreach (var vehicle in DatabaseManager.PendingVehicleDownloads())
+                foreach (var vehicle in vehicleDownloads)
                 {
-                    Uri uri = new Uri(vehicle.Url);
-                    if (added.Contains(uri))
-                    {
-                        continue;
-                    }
-                    added.Add(uri);
-
-                    SIM.LogWeb(SIM.Web.VehicleDownloadStart, vehicle.Name);
+                    Uri uri = new Uri(Config.CloudUrl + "/api/v1/assets/download/bundle/" + vehicle.AssetGuid);
                     DownloadManager.AddDownloadToQueue(
                         uri,
                         vehicle.LocalPath,
                         progress =>
                         {
+                            ConnectionUI.instance.UpdateDownloadProgress(vehicle.Name, progress);
                             Debug.Log($"Vehicle Download at {progress}%");
-                            NotificationManager.SendNotification("VehicleDownload", new { vehicle.Id, progress }, vehicle.Owner);
                         },
                         (success, ex) =>
                         {
-                            bool passesValidation = success && Validation.BeValidAssetBundle(vehicle.LocalPath);
-
-                            string status = passesValidation ? "Valid" : "Invalid";
-                            vehicles.SetStatusForPath(status, vehicle.LocalPath);
-                            vehicles.GetAllMatchingUrl(vehicle.Url).ForEach(v =>
+                            if (success)
                             {
-                                if (!passesValidation)
+                                CompletedDownloads++;
+                                assetService.Add(new AssetModel()
                                 {
-                                    v.Error = "You must specify a valid AssetBundle";
-                                }
-
-                                if (ex != null)
-                                {
-                                    v.Error = ex.Message;
-                                }
-
-                                NotificationManager.SendNotification("VehicleDownloadComplete", v, v.Owner);
-                                SIM.LogWeb(SIM.Web.VehicleDownloadFinish, vehicle.Name);
-                            });
+                                    Type = "Vehicle",
+                                    Guid = vehicle.AssetGuid
+                                });
+                                Debug.Log("Vehicle Download Complete");
+                            }
                         }
                     );
                 }
+                var added = new HashSet<Uri>();
             }
         }
 
         void OnApplicationQuit()
         {
-            Server?.Stop();
             stopWatch.Stop();
             SIM.LogSimulation(SIM.Simulation.ApplicationExit, value: (long)stopWatch.Elapsed.TotalSeconds);
         }
@@ -413,6 +277,109 @@ namespace Simulator
             {
                 action();
             }
+        }
+
+        public static async void StartSimulation(SimulationData simData)
+        {
+            MapService mapService = new MapService();
+            VehicleService vehicleService = new VehicleService();
+            AssetService assetService = new AssetService();
+
+            List<MapModel> mapModels = new List<MapModel>();
+            List<VehicleModel> vehicleModels = new List<VehicleModel>();
+            
+            CompletedDownloads = 0;
+
+            if(assetService.Get(simData.Map.AssetGuid) == null)
+            {
+                MapModel map = new MapModel()
+                {
+                    Name = simData.Map.Name,
+                    Url = Config.CloudUrl + "/api/v1/assets/download/bundle/" + simData.Map.AssetGuid,
+                    AssetGuid = simData.Map.AssetGuid,
+                    LocalPath = WebUtilities.GenerateLocalPath("Maps")
+                };
+                mapService.Add(map);
+                mapModels.Add(map);
+            }
+
+            List<ConnectionModel> connections = new List<ConnectionModel>();
+
+            foreach (var vehicle in simData.Vehicles)
+            {
+                if (assetService.Get(vehicle.AssetGuid) == null)
+                {
+                    VehicleModel vehicleModel = new VehicleModel()
+                    {
+                        Name = vehicle.Name,
+                        Url = Config.CloudUrl + "/api/v1/assets/download/bundle/" + vehicle.AssetGuid,
+                        Sensors = Newtonsoft.Json.JsonConvert.SerializeObject(vehicle.Sensors),
+                        AssetGuid = vehicle.AssetGuid,
+                        LocalPath = WebUtilities.GenerateLocalPath("Vehicles"),
+                        BridgeType = vehicle.bridge?.type,
+                    };
+                    vehicleService.Add(vehicleModel);
+                    vehicleModels.Add(vehicleModel);
+                }
+                else
+                {
+                    VehicleModel model = vehicleService.Get(vehicle.AssetGuid);
+                    model.Sensors = Newtonsoft.Json.JsonConvert.SerializeObject(vehicle.Sensors);
+                    model.BridgeType = vehicle.bridge != null ? vehicle.bridge.type : null;
+                    vehicleService.Update(model);
+                }
+                connections.Add(new ConnectionModel()
+                {
+                    Connection = vehicle.bridge?.connectionString,
+                    Vehicle = vehicleService.Get(vehicle.AssetGuid).Id,
+                    Simulation = 1,
+                });
+            }
+
+            Instance.SimDownloads(mapModels, vehicleModels);
+
+            Debug.Log("All Downloads Complete");
+            long id;
+            using(var db = DatabaseManager.Open())
+            {
+                id = (long)db.Insert(new ClusterModel()
+                {
+                    Name = simData.Cluster.Name,
+                    Ips = "127.0.0.1",
+                    Owner = "",
+                    Status = ""
+                });
+            }
+
+            while (CompletedDownloads < mapModels.Count + vehicleModels.Count)
+            {
+                await Task.Delay(1000);
+            }
+            
+            StartAsync(new SimulationModel()
+            {
+                Id = 1,
+                Guid = simData.Id,
+                Name = simData.Name,
+                Status = "Valid",
+                Owner = "",
+                Cluster = id,
+                Map = mapService.Get(simData.Map.AssetGuid).Id,
+                Vehicles = connections.ToArray(),
+                ApiOnly = simData.ApiOnly,
+                Interactive = simData.Interactive,
+                Headless = simData.Headless,
+                TimeOfDay = simData.TimeOfDay,
+                Rain = simData.Rain,
+                Fog = simData.Fog,
+                Wetness = simData.Wetness,
+                Cloudiness = simData.Cloudiness,
+                Seed = simData.Seed,
+                UseBicyclists = simData.UseBicyclists,
+                UsePedestrians = simData.UsePedestrians,
+                UseTraffic = simData.UseTraffic,
+                Error = "",
+            });
         }
 
         public static void StartAsync(SimulationModel simulation)
@@ -433,7 +400,6 @@ namespace Simulator
                         }
 
                         simulation.Status = "Starting";
-                        NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
                         Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.PROGRESS);
 
                         Instance.SimConfig = new SimulationConfig()
@@ -467,9 +433,9 @@ namespace Simulator
                                 var config = new AgentConfig()
                                 {
                                     Name = vehicle.Name,
+                                    Connection = v.Connection,
                                     Url = vehicle.Url,
                                     AssetBundle = vehicle.LocalPath,
-                                    Connection = v.Connection,
                                     Sensors = vehicle.Sensors,
                                 };
 
@@ -509,7 +475,6 @@ namespace Simulator
 
                             // ready to go!
                             Instance.CurrentSimulation.Status = "Running";
-                            NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
 
                             Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.READY);
                         }
@@ -523,7 +488,7 @@ namespace Simulator
                             ZipFile zip = new ZipFile(mapBundlePath);
                             {
                                 string manfile;
-                                ZipEntry entry = zip.GetEntry("manifest");
+                                ZipEntry entry = zip.GetEntry("manifest.json");
                                 using (var ms = zip.GetInputStream(entry))
                                 {
                                     int streamSize = (int)entry.Size;
@@ -536,16 +501,16 @@ namespace Simulator
 
                                 try
                                 {
-                                    manifest = new Deserializer().Deserialize<Manifest>(manfile);
+                                    manifest = Newtonsoft.Json.JsonConvert.DeserializeObject<Manifest>(manfile);
                                 }
                                 catch
                                 {
                                     throw new Exception("Out of date AssetBundle, rebuild or download latest AssetBundle.");
                                 }
 
-                                if (manifest.additionalFiles != null)
+                                if (manifest.attachments != null)
                                 {
-                                    foreach (string key in manifest.additionalFiles.Keys)
+                                    foreach (string key in manifest.attachments.Keys)
                                     {
                                         if (key.Contains("pointcloud"))
                                         {
@@ -559,7 +524,7 @@ namespace Simulator
                                     }
                                 }
 
-                                if (manifest.bundleFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Environment])
+                                if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Environment])
                                 {
                                     zip.Close();
 
@@ -592,7 +557,7 @@ namespace Simulator
 
                                 var sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
                                 Instance.SimConfig.MapName = sceneName;
-                                Instance.SimConfig.MapUrl = mapModel.Url;
+                                Instance.SimConfig.MapUrl = Path.Combine("http://wise.dev.lgsvlsimulator.com/api/v1/assets/download/bundle", mapModel.AssetGuid);
 
                                 var isMasterSimulation = Instance.SimConfig.Clusters.Length > 0;
                                 var loader =
@@ -638,9 +603,6 @@ namespace Simulator
                         mapBundle?.Unload(false);
                         AssetBundle.UnloadAllAssetBundles(true);
                         Instance.CurrentSimulation = null;
-
-                        // TODO: take ex.Message and append it to response here
-                        NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
                     }
                     catch (Exception ex)
                     {
@@ -661,9 +623,6 @@ namespace Simulator
                         mapBundle?.Unload(false);
                         AssetBundle.UnloadAllAssetBundles(true);
                         Instance.CurrentSimulation = null;
-
-                        // TODO: take ex.Message and append it to response here
-                        NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
                     }
                 }
             });
@@ -686,7 +645,7 @@ namespace Simulator
 
         public static void StopAsync()
         {
-            Debug.Assert(Instance.CurrentSimulation != null);
+            if (Instance.CurrentSimulation == null) return;
 
             if (Instance.Network.Master != null)
                 Instance.Network.Master.BroadcastSimulationStop();
@@ -699,8 +658,7 @@ namespace Simulator
                     try
                     {
                         simulation.Status = "Stopping";
-                        NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
-
+                        ConnectionManager.instance.UpdateStatus("Stopping", simulation.Guid);
                         if (ApiManager.Instance != null)
                         {
                             SceneManager.MoveGameObjectToScene(ApiManager.Instance.gameObject, SceneManager.GetActiveScene());
@@ -715,8 +673,8 @@ namespace Simulator
                                 Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.START);
 
                                 simulation.Status = "Valid";
-                                NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
                                 Instance.CurrentSimulation = null;
+                                ConnectionManager.instance.UpdateStatus("Idle", simulation.Guid);
                             }
                         };
                     }
@@ -729,9 +687,6 @@ namespace Simulator
                         simulation.Status = "Invalid";
                         simulation.Error = ex.Message;
                         db.Update(simulation);
-
-                        // TODO: take ex.Message and append it to response here
-                        NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
                     }
                 }
             });
@@ -759,7 +714,7 @@ namespace Simulator
                         using (ZipFile zip = new ZipFile(bundlePath))
                         {
                             Manifest manifest;
-                            ZipEntry entry = zip.GetEntry("manifest");
+                            ZipEntry entry = zip.GetEntry("manifest.json");
                             using (var ms = zip.GetInputStream(entry))
                             {
                                 int streamSize = (int)entry.Size;
@@ -768,7 +723,7 @@ namespace Simulator
 
                                 try
                                 {
-                                    manifest = new Deserializer().Deserialize<Manifest>(Encoding.UTF8.GetString(buffer, 0, streamSize));
+                                    manifest = Newtonsoft.Json.JsonConvert.DeserializeObject<Manifest>(Encoding.UTF8.GetString(buffer, 0, streamSize));
                                 }
                                 catch
                                 {
@@ -776,7 +731,7 @@ namespace Simulator
                                 }
                             }
 
-                            if (manifest.bundleFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Vehicle])
+                            if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Vehicle])
                             {
                                 zip.Close();
 
@@ -876,10 +831,11 @@ namespace Simulator
 
                     Instance.CurrentSimulation = simulation;
                     Instance.CurrentSimulation.Status = "Running";
-                    // Notify WebUI simulation is running
-                    NotificationManager.SendNotification("simulation",
-                        SimulationResponse.Create(Loader.Instance.CurrentSimulation),
-                        Loader.Instance.CurrentSimulation.Owner);
+
+                    if (Instance.CurrentSimulation != null)
+                    {
+                        ConnectionManager.instance.UpdateStatus("Running", Instance.CurrentSimulation.Guid);
+                    }
 
                     if (Instance.SimConfig.Clusters.Length == 0)
                     {
@@ -901,9 +857,6 @@ namespace Simulator
                     simulation.Error = "Out of date Vehicle AssetBundle. Please check content website for updated bundle or rebuild the bundle.";
                     db.Update(simulation);
 
-                    // TODO: take ex.Message and append it to response here
-                    NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
-
                     ResetLoaderScene();
                 }
                 catch (Exception ex)
@@ -915,9 +868,6 @@ namespace Simulator
                     simulation.Status = "Invalid";
                     simulation.Error = ex.Message;
                     db.Update(simulation);
-
-                    // TODO: take ex.Message and append it to response here
-                    NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
 
                     ResetLoaderScene();
                 }

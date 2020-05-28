@@ -218,7 +218,8 @@ if [ "$1" == "windows" ] && [ -v CODE_SIGNING_PASSWORD ]; then
   mv "${SIGNED}" "${EXE}"
 fi
 
-cp /mnt/config.yml /tmp/${BUILD_OUTPUT}/
+cp /mnt/config.yml.template /tmp/${BUILD_OUTPUT}/config.yml
+
 if [ -v CLOUD_URL ]; then
   echo "cloud_url: \"${CLOUD_URL}\"" >> /tmp/${BUILD_OUTPUT}/config.yml
 fi

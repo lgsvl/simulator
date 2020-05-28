@@ -1,22 +1,6 @@
 version: "2.4"
 
 services:
-  build-webui:
-    image: node:10.15-slim
-    user: ${UID}
-    volumes:
-      - ..:/mnt
-      - /etc/localtime:/etc/localtime:ro
-    command: "/mnt/Jenkins/build-webui.sh pack"
-
-  build-webui-p:
-    image: node:10.15-slim
-    user: ${UID}
-    volumes:
-      - ..:/mnt
-      - /etc/localtime:/etc/localtime:ro
-    command: "/mnt/Jenkins/build-webui.sh pack-p"
-
   build-simulator:
     build: .
     image: ${SIMULATOR_DOCKER_IMAGE}

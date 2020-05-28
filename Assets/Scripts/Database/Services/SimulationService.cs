@@ -8,7 +8,6 @@
 using PetaPoco;
 using System.Linq;
 using System.Collections.Generic;
-using Nancy.Extensions;
 
 namespace Simulator.Database.Services
 {
@@ -74,7 +73,6 @@ namespace Simulator.Database.Services
                 {
                     var sql = Sql.Builder.Where("id = @0", id).Where("owner = @0 OR owner IS NULL", owner);
                     var sim = db.Single<SimulationModel>(sql);
-                    sim.Vehicles = db.Query<ConnectionModel>(Sql.Builder.Where("simulation = @0", sim.Id).OrderBy("id")).ToArray();
                     db.CompleteTransaction();
                     return sim;
                 }
@@ -162,75 +160,6 @@ namespace Simulator.Database.Services
                 connection.Simulation = simulation.Id;
                 db.Insert(connection);
             }
-        }
-
-        public void GetActualStatus(SimulationModel simulation, bool allowDownloading)
-        {
-            simulation.Error = "";
-
-            using (var db = DatabaseManager.Open())
-            {
-                // Is it running right now?
-                if (Loader.Instance.CurrentSimulation != null && simulation.Id == Loader.Instance.CurrentSimulation.Id)
-                {
-                    simulation.Status = "Running";
-                    return;
-                }
-
-                // Does cluster exist in database?
-                if (!db.Exists<ClusterModel>(simulation.Cluster))
-                {
-                    simulation.Error = "Cluster does not exist";
-                    simulation.Status = "Invalid";
-                    return;
-                }
-
-                if (simulation.ApiOnly.GetValueOrDefault())
-                {
-                    simulation.Status = "Valid";
-                    return;
-                }
-
-                // Does maps exists and is valid
-                MapModel map = db.SingleOrDefault<MapModel>(simulation.Map);
-                if (map == null)
-                {
-                    simulation.Error = "Map does not exist";
-                    simulation.Status = "Invalid";
-                    return;
-                }
-
-                if (allowDownloading && map.Status == "Downloading")
-                {
-                    // allow it
-                }
-                else if (map.Status != "Valid")
-                {
-                    simulation.Error = map.Error;
-                    simulation.Status = "Invalid";
-                    return;
-                }
-
-                if (simulation.Vehicles == null || simulation.Vehicles.Length == 0)
-                {
-                    simulation.Error = "Vehicle does not exist";
-                    simulation.Status = "Invalid";
-                    return;
-                }
-
-                // Do all required vehicles exist and are valid
-                var sql = Sql.Builder.Select("COUNT(*)").From("vehicles").Where("id IN (@0)", simulation.Vehicles.Select(v => v.Vehicle).ToArray());
-                var count = allowDownloading ? db.Single<int>(sql.Where("status != @0", "Invalid")) : db.Single<int>(sql.Where("status = @0", "Valid"));
-
-                if (simulation.Vehicles.DistinctBy(v => v.Vehicle).Count() != count)
-                {
-                    simulation.Error = "One of added vehicles is not valid";
-                    simulation.Status = "Invalid";
-                    return;
-                }
-            }
-
-            simulation.Status = "Valid";
         }
 
         // TODO: these probably should be in different service

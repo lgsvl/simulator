@@ -27,6 +27,7 @@ DROP TABLE IF EXISTS maps;
 CREATE TABLE maps (
 	id INTEGER PRIMARY KEY,
 	owner VARCHAR(512) DEFAULT NULL,
+	assetGuid VARCHAR(1024) DEFAULT NULL,
 	name VARCHAR(128) NOT NULL,
 	url VARCHAR(1024) NOT NULL,
 	previewUrl VARCHAR(1024),
@@ -44,6 +45,7 @@ DROP TABLE IF EXISTS vehicles;
 CREATE TABLE vehicles (
 	id INTEGER PRIMARY KEY,
 	owner VARCHAR(512) DEFAULT NULL,
+	assetGuid VARCHAR(1024) DEFAULT NULL,
 	name VARCHAR(128) NOT NULL,
 	url VARCHAR(1024) NOT NULL,
 	bridgeType VARCHAR(128) DEFAULT NULL,
@@ -79,6 +81,7 @@ CREATE INDEX clusters_status_index ON clusters (status);
 DROP TABLE IF EXISTS simulations;
 CREATE TABLE simulations (
 	id INTEGER PRIMARY KEY,
+	guid VARCHAR(1024) DEFAULT NULL,
 	owner VARCHAR(512) DEFAULT NULL,
 	name VARCHAR(128) NOT NULL,
 	cluster INTEGER DEFAULT NULL,
@@ -121,6 +124,13 @@ CREATE TABLE connections (
 CREATE INDEX connections_simulation_vehicle_index ON connections (simulation, vehicle);
 CREATE INDEX connections_vehicle_index ON connections (vehicle);
 
+DROP TABLE IF EXISTS assets;
+CREATE TABLE assets (
+	id INTEGER PRIMARY KEY,
+	type VARCHAR(256) NOT NULL,
+	guid VARCHAR(512) NOT NULL
+);
+
 PRAGMA user_version = 3;
 
 PRAGMA table_info(users);
@@ -130,6 +140,7 @@ PRAGMA table_info(vehicles);
 PRAGMA table_info(clusters);
 PRAGMA table_info(simulations);
 PRAGMA table_info(connections);
+PRAGMA table_info(assets);
 
 INSERT INTO clusters(id, name, status, ips)
 VALUES(0, 'Local Machine', 'Valid', '127.0.0.1');

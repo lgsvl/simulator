@@ -5,7 +5,7 @@ pipeline {
   agent {
     node {
       label "unity3d-2019.3-vulkan"
-      customWorkspace "/home/jenkins/workspace/simulator-2019.3-bundles"
+      customWorkspace "/home/jenkins/workspace/simulator-cloud-bundles"
     }
   }
 
@@ -21,7 +21,7 @@ pipeline {
   }
 
   parameters {
-    string(name: "CLOUD_URL", defaultValue: "${SIMULATOR_STAGING_CLOUD_URL}", description: "")
+    string(name: "CLOUD_URL", defaultValue: "${SIMULATOR_WISE_STAGING_URL}", description: "")
     booleanParam(name: "FORCE_REBUILD", defaultValue: false, description: "")
     booleanParam(name: "UPLOAD", defaultValue: true, description: "Upload bundles to S3")
     string(name: "BUILD_SIMULATOR_ENVIRONMENTS", defaultValue: "${SIMULATOR_ENVIRONMENTS}", description: "Environments to build")
@@ -35,6 +35,7 @@ pipeline {
     PYTHONUNBUFFERED = "1"
     DISPLAY = ":0"
     JENKINS_BUILD_ID = "${BUILD_ID}"
+    S3_DOWNLOAD_HOST = "${S3_DOWNLOAD_HOST}/v2"
   }
 
   stages {

@@ -14,9 +14,10 @@ namespace Simulator.Database.Services
         IEnumerable<MapModel> List(string filter, int offset, int count, string owner);
         string GetExistingLocalPath(string url);
         int GetCountOfLocal(string localPath);
-        MapModel Get(long id, string owner);
+        MapModel Get(string guid);
+        MapModel Get(long id);
         long Add(MapModel map);
         int Update(MapModel map);
-        int Delete(long id, string owner);
+        int Delete(long id);
     }
 }

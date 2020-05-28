@@ -18,7 +18,7 @@ function uploadAssets()
   echo "$1" | while IFS= read -r LINE ; do
     local ID="${LINE%% *}"
     local NAME="${LINE#* }"
-    aws s3 cp "${SOURCE_FOLDER}/${PREFIX}_${NAME}" s3://${S3_BUCKET_NAME}/${ID}/
+    aws s3 cp "${SOURCE_FOLDER}/${PREFIX}_${NAME}" s3://${S3_BUCKET_NAME}/v2/${ID}/
   done
 }
 

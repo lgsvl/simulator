@@ -14,17 +14,17 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEditor.Formats.Fbx.Exporter;
 using ICSharpCode.SharpZipLib.Zip;
 using Simulator.Map;
-using YamlDotNet.Serialization;
 using System.Net;
 using UnityEditor.Compilation;
-using Simulator.Controllable;
-using System.Reflection;
-using System.Text;
 using Simulator.FMU;
 using Simulator.PointCloud.Trees;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json;
+using Simulator.Sensors;
+using Simulator.Utilities;
 
 namespace Simulator.Editor
 {
@@ -52,6 +52,11 @@ namespace Simulator.Editor
         public const string ScriptExtension = "cs";
         public const string PrefabExtension = "prefab";
 
+        public static string ZipPath(params string[] elements)
+        {
+            return String.Join(Path.AltDirectorySeparatorChar.ToString(), elements);
+        }
+
         class BundleData
         {
             public BundleData(BundleConfig.BundleTypes type, string path = null)
@@ -59,6 +64,7 @@ namespace Simulator.Editor
                 bundleType = type;
                 bundlePath = path ?? BundleConfig.pluralOf(type);
             }
+
             public Vector2 scroll;
             public BundleConfig.BundleTypes bundleType;
             public string bundlePath;
@@ -72,6 +78,7 @@ namespace Simulator.Editor
             }
 
             public Dictionary<string, Entry> entries = new Dictionary<string, Entry>();
+
             public void OnGUI()
             {
                 string header = bundlePath;
@@ -115,6 +122,7 @@ namespace Simulator.Editor
 
                 EditorGUILayout.EndScrollView();
             }
+
             public void Refresh()
             {
                 var updated = new HashSet<string>();
@@ -130,9 +138,9 @@ namespace Simulator.Editor
                     {
                         var extension = bundleType == BundleConfig.BundleTypes.Environment ? SceneExtension : PrefabExtension;
                         var fullPath = Path.Combine(sourcePath, name, $"{name}.{extension}");
-                        
+
                         // NPC type can be both prefab and behaviour script
-                        if (bundleType == BundleConfig.BundleTypes.NPC && !File.Exists(fullPath)) 
+                        if (bundleType == BundleConfig.BundleTypes.NPC && !File.Exists(fullPath))
                         {
                             extension = ScriptExtension;
                             fullPath = Path.Combine(sourcePath, name, $"{name}.{extension}");
@@ -161,19 +169,20 @@ namespace Simulator.Editor
                 entries[name].selected = true;
             }
 
-            Manifest PreparePrefabManifest(Entry prefabEntry)
+            Manifest PreparePrefabManifest(Entry prefabEntry, string outputFolder, List<(string, string)> buildArtifacts)
             {
                 string assetGuid = Guid.NewGuid().ToString();
                 Manifest manifest = new Manifest
                 {
                     assetName = prefabEntry.name,
                     assetGuid = assetGuid,
-                    bundleFormat = BundleConfig.Versions[bundleType],
+                    assetFormat = BundleConfig.Versions[bundleType],
                     description = "",
                     licenseName = "",
                     authorName = "",
                     authorUrl = "",
                     fmuName = "",
+                    copyright = "",
                 };
 
                 if (bundleType == BundleConfig.BundleTypes.Vehicle)
@@ -186,12 +195,80 @@ namespace Simulator.Editor
                     }
                     manifest.licenseName = info.LicenseName;
                     manifest.description = info.Description;
+                    manifest.assetType = "vehicle";
                     manifest.fmuName = fmu == null ? "" : fmu.FMUData.Name;
+                    manifest.baseLink = new float[] { 0, 0, 0 };
+                    Dictionary<string, object> files = new Dictionary<string, object>();
+                    manifest.attachments = files;
+
+                    UnityEngine.Object tempObj = AssetDatabase.LoadAssetAtPath(prefabEntry.mainAssetFile, typeof(GameObject));
+
+                    foreach (Collider col in ((GameObject)tempObj).transform.GetComponentsInChildren<Collider>())
+                    {
+                        MeshRenderer mr = col.transform.GetComponent<MeshRenderer>();
+                        if (mr != null)
+                        {
+                            mr.enabled = false;
+                        }
+                    }
+
+                    string export = ModelExporter.ExportObject(Path.Combine("Assets", "External", "Vehicles", manifest.assetName, $"{manifest.assetName}.fbx"), tempObj);
+                    var glbOut = Path.Combine(outputFolder, $"{manifest.assetGuid}_vehicle_{manifest.assetName}.glb");
+                    System.Diagnostics.Process p = new System.Diagnostics.Process();
+                    p.EnableRaisingEvents = true;
+                    p.StartInfo.FileName = Path.Combine(Application.dataPath, "Plugins", "FBX2glTF",
+                        SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "FBX2glTF-windows-x64.exe" : "FBX2glTF-linux-x64");
+                    p.StartInfo.Arguments = $"--binary --input {export} --output {glbOut}";
+                    p.OutputDataReceived += new System.Diagnostics.DataReceivedEventHandler((o, e) => Debug.Log(e.Data));
+                    p.ErrorDataReceived += new System.Diagnostics.DataReceivedEventHandler((o, e) => Debug.Log(e.Data));
+                    p.Exited += new EventHandler((o, e) =>
+                    {
+                        Debug.Log("Successfully Exited");
+                        buildArtifacts.Add((glbOut, $"{manifest.assetGuid}_vehicle_{manifest.assetName}.glb"));
+                        File.Delete(export);
+                        File.Delete($"{export}.meta");
+                        files.Add("gltf", ZipPath("gltf",$"{assetGuid}_vehicle_{manifest.assetName}.glb"));
+                    });
+
+                    p.Start();
+
+                    GameObject go = new GameObject();
+                    Camera camera = go.AddComponent<Camera>();
+                    RenderTexture rt = new RenderTexture(camera.pixelWidth, camera.pixelHeight, 24);
+
+                    Texture2D screenShot = new Texture2D(camera.pixelWidth, camera.pixelHeight, TextureFormat.RGB24, false);
+                    camera.Render();
+                    RenderTexture.active = rt;
+                    screenShot.ReadPixels(new Rect(0, 0, camera.pixelWidth, camera.pixelHeight), 0, 0);
+                    camera.targetTexture = null;
+                    RenderTexture.active = null; // JC: added to avoid errors
+                    DestroyImmediate(rt);
+                    byte[] bytes = screenShot.EncodeToPNG();
+
+                    string tmpdir = Path.Combine(outputFolder, $"{manifest.assetName}_pictures");
+                    Directory.CreateDirectory(tmpdir);
+                    File.WriteAllBytes(Path.Combine(tmpdir, "small.jpg"), bytes);
+                    File.WriteAllBytes(Path.Combine(tmpdir, "medium.jpg"), bytes);
+                    File.WriteAllBytes(Path.Combine(tmpdir, "large.jpg"), bytes);
+                    DestroyImmediate(go);
+
+                    var images = new Images()
+                    {
+                        small =  ZipPath("images", "small.jpg"),
+                        medium = ZipPath("images", "medium.jpg"),
+                        large =  ZipPath("images", "large.jpg"),
+                    };
+                    manifest.attachments.Add("images", images);
+
+                    buildArtifacts.Add((Path.Combine(tmpdir, "small.jpg"), images.small));
+                    buildArtifacts.Add((Path.Combine(tmpdir, "medium.jpg"), images.medium));
+                    buildArtifacts.Add((Path.Combine(tmpdir, "large.jpg"), images.large));
+                    buildArtifacts.Add((tmpdir, null));
                 }
                 return manifest;
             }
 
-            Manifest PrepareSceneManifest(Entry sceneEntry, HashSet<Scene> currentScenes)
+            Manifest PrepareSceneManifest(Entry sceneEntry, HashSet<Scene> currentScenes, string outputFolder, List<(string, string)> buildArtifacts)
             {
                 Scene scene = EditorSceneManager.OpenScene(sceneEntry.mainAssetFile, OpenSceneMode.Additive);
                 NodeTreeLoader[] loaders = GameObject.FindObjectsOfType<NodeTreeLoader>();
@@ -210,23 +287,111 @@ namespace Simulator.Editor
                         MapOrigin origin = root.GetComponentInChildren<MapOrigin>();
                         if (origin != null)
                         {
+
                             var manifest = new Manifest
                             {
                                 assetName = sceneEntry.name,
+                                assetType = "map",
                                 assetGuid = Guid.NewGuid().ToString(),
-                                bundleFormat = BundleConfig.Versions[BundleConfig.BundleTypes.Environment],
+                                mapOrigin = new float[]{(float)origin.OriginEasting, (float)origin.OriginNorthing},
+                                assetFormat = BundleConfig.Versions[BundleConfig.BundleTypes.Environment],
                                 description = origin.Description,
                                 licenseName = origin.LicenseName,
                                 authorName = "",
                                 authorUrl = "",
                                 fmuName = "",
+                                copyright = "",
+                                attachments = new Dictionary<string, object>()
                             };
-                            manifest.additionalFiles = new Dictionary<string, string>();
+
+                            string name = manifest.assetName;
+                            
+                            var hdMaps = new HdMaps() {
+                                apollo30 = ZipPath("hdmaps", "apollo30",  "base_map.bin"),
+                                apollo50 = ZipPath("hdmaps", "apollo50",  "base_map.bin"),
+                                autoware = ZipPath("hdmaps", "autoware",  "AutowareVectorMap.zip"),
+                                lanelet2 = ZipPath("hdmaps", "lanelet2",  name+".osm"),
+                                opendrive =ZipPath("hdmaps", "opendrive", name+".xodr"),
+                            };
+                            manifest.attachments.Add("hdMaps", hdMaps);
+
+                            string tmpdir = "";
+                            Lanelet2MapExporter lanelet2MapExporter = new Lanelet2MapExporter();
+                            tmpdir = Path.Combine(outputFolder, $"{name}_lanelet2");
+                            Directory.CreateDirectory(tmpdir);
+                            lanelet2MapExporter.Export(Path.Combine(tmpdir, $"{name}.osm"));
+                            buildArtifacts.Add((Path.Combine(tmpdir, $"{name}.osm"), hdMaps.lanelet2));
+                            buildArtifacts.Add((tmpdir, null));
+
+                            OpenDriveMapExporter openDriveMapExporter = new OpenDriveMapExporter();
+                            tmpdir = Path.Combine(outputFolder, $"{name}_opendrive");
+                            Directory.CreateDirectory(tmpdir);
+                            openDriveMapExporter.Export(Path.Combine(tmpdir, $"{manifest.assetName}.xodr"));
+                            buildArtifacts.Add((Path.Combine(tmpdir, $"{manifest.assetName}.xodr"), hdMaps.opendrive));
+                            buildArtifacts.Add((tmpdir, null));
+
+                            ApolloMapTool apolloMapTool = new ApolloMapTool(ApolloMapTool.ApolloVersion.Apollo_5_0);
+                            tmpdir = Path.Combine(outputFolder, $"{name}_apollomap_5_0");
+                            Directory.CreateDirectory(tmpdir);
+                            apolloMapTool.Export(Path.Combine(tmpdir, "base_map.bin"));
+                            buildArtifacts.Add((Path.Combine(tmpdir, "base_map.bin"), hdMaps.apollo50));
+                            buildArtifacts.Add((tmpdir, null));
+
+                            apolloMapTool = new ApolloMapTool(ApolloMapTool.ApolloVersion.Apollo_3_0);
+                            tmpdir = Path.Combine(outputFolder, $"{name}_apollomap_3_0");
+                            Directory.CreateDirectory(tmpdir);
+                            apolloMapTool.Export(Path.Combine(tmpdir, "base_map.bin"));
+                            buildArtifacts.Add((Path.Combine(tmpdir, "base_map.bin"), hdMaps.apollo30));
+                            buildArtifacts.Add((tmpdir, null));
+
+                            AutowareMapTool autowareMapTool = new AutowareMapTool();
+                            tmpdir = Path.Combine(outputFolder, $"{name}_autoware");
+                            Directory.CreateDirectory(tmpdir);
+                            apolloMapTool.Export(Path.Combine(tmpdir, "AutowareVectorMap.zip"));
+                            buildArtifacts.Add((Path.Combine(tmpdir, "AutowareVectorMap.zip"), hdMaps.autoware));
+                            buildArtifacts.Add((tmpdir, null));
+
+                            Camera camera = origin.transform.gameObject.GetComponent<Camera>();
+                            if (camera == null)
+                            {
+                                camera = origin.transform.gameObject.AddComponent<Camera>();
+                            }
+                            
+                            Texture2D screenShot = new Texture2D(1920, 1080, TextureFormat.RGB24, false);
+                            
+                            origin.transform.gameObject.AddComponent<Light>();
+                            RenderTexture rt = new RenderTexture(1920, 1080, 24);
+                            camera.targetTexture = rt;
+                            camera.Render();
+                            RenderTexture.active = rt;
+                            screenShot.ReadPixels(new Rect(0, 0, camera.pixelWidth, camera.pixelHeight), 0, 0);
+                            camera.targetTexture = null;
+                            RenderTexture.active = null; // JC: added to avoid errors
+                            DestroyImmediate(rt);
+
+                            byte[] bytes = screenShot.EncodeToPNG();
+                            tmpdir = Path.Combine(outputFolder, $"{name}_pictures");
+                            Directory.CreateDirectory(tmpdir);
+                            File.WriteAllBytes(Path.Combine(tmpdir, "small.jpg"), bytes);
+                            File.WriteAllBytes(Path.Combine(tmpdir, "medium.jpg"), bytes);
+                            File.WriteAllBytes(Path.Combine(tmpdir, "large.jpg"), bytes);
+                            var images = new Images()
+                            {
+                                small =  ZipPath("images", "small.jpg"),
+                                medium = ZipPath("images", "medium.jpg"),
+                                large =  ZipPath("images", "large.jpg"),
+                            };
+                            manifest.attachments.Add("images", images);
+                            buildArtifacts.Add((Path.Combine(tmpdir, "small.jpg"), images.small));
+                            buildArtifacts.Add((Path.Combine(tmpdir, "medium.jpg"), images.medium));
+                            buildArtifacts.Add((Path.Combine(tmpdir, "large.jpg"), images.large));
+                            buildArtifacts.Add((tmpdir, null));
+
                             foreach (Tuple<string, string> t in loaderPaths)
                             {
-                                if (!manifest.additionalFiles.ContainsKey($"pointcloud_{t.Item1}"))
+                                if (!manifest.attachments.ContainsKey($"pointcloud_{t.Item1}"))
                                 {
-                                    manifest.additionalFiles.Add($"pointcloud_{t.Item1}", t.Item2);
+                                    manifest.attachments.Add($"pointcloud_{t.Item1}", t.Item2);
                                 }
                             }
 
@@ -272,13 +437,17 @@ namespace Simulator.Editor
                 foreach (var entry in selected)
                 {
                     Manifest manifest;
+                    var buildArtifacts = new List<(string source, string archiveName)>();
+                    bool mainAssetIsScript = entry.mainAssetFile.EndsWith("."+ScriptExtension);
                     if (bundleType == BundleConfig.BundleTypes.Environment)
                     {
-                        manifest = PrepareSceneManifest(entry, currentScenes);
+                        manifest = PrepareSceneManifest(entry, currentScenes, outputFolder, buildArtifacts);
+                        manifest.assetType = "map";
                     }
                     else
                     {
-                        manifest = PreparePrefabManifest(entry);
+                        manifest = PreparePrefabManifest(entry, outputFolder, buildArtifacts);
+                        manifest.assetType = thing;
                     }
 
                     var asmDefPath = Path.Combine(BundleConfig.ExternalBase, Things, $"Simulator.{Things}.asmdef");
@@ -286,9 +455,6 @@ namespace Simulator.Editor
                     if (File.Exists(asmDefPath))
                         asmDef = JsonUtility.FromJson<AsmdefBody>(File.ReadAllText(asmDefPath));
 
-
-                    var buildArtifacts = new List<(string source, string archiveName)>();
-                    bool mainAssetIsScript = entry.mainAssetFile.EndsWith("."+ScriptExtension);
                     try
                     {
                         Debug.Log($"building asset:{entry.mainAssetFile} -> " + Path.Combine(outputFolder, $"{thing}_{entry.name}"));
@@ -310,7 +476,8 @@ namespace Simulator.Editor
                         }
 
                         AssetDatabase.Refresh();
-                        if (!mainAssetIsScript) {
+                        if (!mainAssetIsScript)
+                        {
                             var textureBuild = new AssetBundleBuild()
                             {
                                 assetBundleName = $"{manifest.assetGuid}_{thing}_textures",
@@ -364,9 +531,10 @@ namespace Simulator.Editor
                         DirectoryInfo prefabDir = new DirectoryInfo(Path.Combine(sourcePath, entry.name));
                         var scripts = prefabDir.GetFiles("*.cs", SearchOption.AllDirectories).Select(script => script.FullName).ToArray();
 
+                        string outputAssembly = null;
                         if (scripts.Length > 0)
                         {
-                            var outputAssembly = Path.Combine(outputFolder, $"{entry.name}.dll");
+                            outputAssembly = Path.Combine(outputFolder, $"{entry.name}.dll");
                             var assemblyBuilder = new AssemblyBuilder(outputAssembly, scripts);
                             assemblyBuilder.compilerOptions.AllowUnsafeCode = true;
 
@@ -401,6 +569,7 @@ namespace Simulator.Editor
                                 else
                                 {
                                     buildArtifacts.Add((outputAssembly, $"{entry.name}.dll"));
+                                    buildArtifacts.Add((Path.Combine(outputFolder, $"{entry.name}.pdb"), null));
                                 }
                             };
 
@@ -427,13 +596,13 @@ namespace Simulator.Editor
                                 buildArtifacts.Add((fmuPathLinux, $"{manifest.fmuName}_linux.so"));
                             }
                         }
-                        if (manifest.additionalFiles != null)
+                        if (manifest.attachments != null)
                         {
-                            foreach (string key in manifest.additionalFiles.Keys)
+                            foreach (string key in manifest.attachments.Keys)
                             {
                                 if (key.Contains("pointcloud"))
                                 {
-                                    foreach (FileInfo fi in new DirectoryInfo(manifest.additionalFiles[key]).GetFiles())
+                                    foreach (FileInfo fi in new DirectoryInfo(manifest.attachments[key].ToString()).GetFiles())
                                     {
                                         if (fi.Extension == TreeUtility.IndexFileExtension || fi.Extension == TreeUtility.NodeFileExtension || fi.Extension == TreeUtility.MeshFileExtension)
                                         {
@@ -444,13 +613,47 @@ namespace Simulator.Editor
                             }
                         }
 
-                        var manifestOutput = Path.Combine(outputFolder, "manifest");
-                        File.WriteAllText(manifestOutput, new Serializer().Serialize(manifest));
-                        buildArtifacts.Add((manifestOutput, "manifest"));
+                        if (outputAssembly != null && !mainAssetIsScript)
+                        {
+                            Debug.Log("attempting to load "+outputAssembly+" exists: "+File.Exists(outputAssembly));
+                            string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
+                            var assembly = System.Reflection.Assembly.LoadFile(outputAssembly);
+                            AssetBundle pluginBundle = AssetBundle.LoadFromFile(Path.Combine(outputFolder, $"{manifest.assetGuid}_{thing}_main_{platform}"));
+                            var pluginAssets = pluginBundle.GetAllAssetNames();
+                            foreach (var asset in pluginAssets)
+                            {
+                                SensorBase sensor = pluginBundle.LoadAsset<GameObject>(pluginAssets[0]).GetComponent<SensorBase>();
+                                if (sensor == null)
+                                {
+                                    continue;
+                                }
+
+                                manifest.sensorParams = new Dictionary<string, Param>();
+                                foreach (SensorParam param in SensorTypes.GetConfig(sensor).Parameters)
+                                {
+                                    manifest.sensorParams.Add(param.Name, new Param()
+                                    {
+                                        Type = param.Type,
+                                        DefaultValue = param.DefaultValue,
+                                        Min = param.Min,
+                                        Max = param.Max,
+                                        Values = param.Values,
+                                        Unit = param.Unit
+                                    });
+                                }
+                                // we only take the first found
+                                break;
+                            }
+                            pluginBundle.Unload(true);
+                        }
+
+                        var manifestOutput = Path.Combine(outputFolder, "manifest.json");
+                        File.WriteAllText(manifestOutput, JsonConvert.SerializeObject(manifest));
+                        buildArtifacts.Add((manifestOutput, "manifest.json"));
 
                         ZipFile archive = ZipFile.Create(Path.Combine(outputFolder, $"{thing}_{entry.name}"));
                         archive.BeginUpdate();
-                        foreach(var file in buildArtifacts.Where(e => e.archiveName != null))
+                        foreach (var file in buildArtifacts.Where(e => e.archiveName != null))
                         {
                             archive.Add(new StaticDiskDataSource(file.source), file.archiveName, CompressionMethod.Stored, true);
                         }
@@ -459,11 +662,13 @@ namespace Simulator.Editor
                     }
                     catch (Exception e)
                     {
-                        Debug.Log($"Failed to build archive: {e.Message} {e.StackTrace}");
+                        Debug.LogError($"Failed to build archive, exception follows:");
+                        Debug.LogException(e);
+
                     }
                     finally
                     {
-                        foreach(var file in buildArtifacts) 
+                        foreach (var file in buildArtifacts) 
                         {
                             SilentDelete(file.source);
                             SilentDelete(file.source + ".meta");
@@ -572,6 +777,7 @@ namespace Simulator.Editor
                 finally
                 {
                     Running = false;
+                    Application.OpenURL(Simulator.Web.Config.CloudUrl);
                 }
             }
         }
@@ -590,7 +796,6 @@ namespace Simulator.Editor
                 data = new BundleData(BundleConfig.BundleTypes.Controllable);
                 buildGroups.Add(data.bundlePath, data);
             }
-
 
             buildGroups = buildGroups.Where(g => Directory.Exists(g.Value.sourcePath)).ToDictionary(e => e.Key, e => e.Value);
             foreach (var NPCDir in Directory.EnumerateDirectories(Path.Combine(BundleConfig.ExternalBase, BundleConfig.pluralOf(BundleConfig.BundleTypes.NPC))))
@@ -730,13 +935,6 @@ namespace Simulator.Editor
 
         static void RunPlayerBuild(BuildTarget target, string folder, bool development)
         {
-            // TODO: this is temporary until we learn how to build WebUI output directly in Web folder
-            var webui = Path.Combine(Application.dataPath, "..", "WebUI", "dist");
-            if (!File.Exists(Path.Combine(webui, "index.html")))
-            {
-                throw new Exception($"WebUI files are missing! Please build WebUI at least once before building Player");
-            }
-
             var oldGraphicsJobSetting = PlayerSettings.graphicsJobs;
             try
             {
@@ -797,17 +995,6 @@ namespace Simulator.Editor
                 var r = BuildPipeline.BuildPlayer(build);
                 if (r.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded)
                 {
-                    // TODO: this is temporary until we learn how to build WebUI output directly in Web folder
-                    var webFolder = target == BuildTarget.MacOS ? Path.Combine(folder, "simulator.app") : folder;
-                    var web = Path.Combine(webFolder, "Web");
-                    Directory.CreateDirectory(web);
-
-                    var files = new[] { "index.html", "main.css", "main.js", "favicon.png" };
-                    foreach (var file in files)
-                    {
-                        File.Copy(Path.Combine(webui, file), Path.Combine(web, file), true);
-                    }
-
                     Debug.Log("Player build succeeded!");
                 }
                 else
@@ -978,6 +1165,10 @@ namespace Simulator.Editor
             if (File.Exists(path))
             {
                 File.Delete(path);
+            }
+            else if (Directory.Exists(path)) 
+            {
+                Directory.Delete(path);
             }
         }
     }

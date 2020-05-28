@@ -33,11 +33,12 @@ namespace Simulator.Web
         public static int ApiPort = 8181;
 
         public static bool RunAsMaster = true;
-
-        public static string CloudUrl = "https://account.lgsvlsimulator.com";
+        
+        public static string CloudUrl = "https://wise.lgsvlsimulator.com";
         public static string Username;
         public static string Password;
         public static string SessionGUID;
+        public static string SimID;
         public static bool AgreeToLicense = false;
 
         public static bool Headless = false;
@@ -65,14 +66,12 @@ namespace Simulator.Web
 
         public static int DefaultPageSize = 100;
 
-        public static byte[] salt { get; set; }
-
 #if UNITY_EDITOR
         [UnityEditor.InitializeOnLoadMethod]
 #else
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
 #endif
-        static void Initialize()
+        private static void Initialize()
         {
             Root = Path.Combine(Application.dataPath, "..");
             PersistentDataPath = Application.persistentDataPath;
@@ -97,6 +96,7 @@ namespace Simulator.Web
             Bridges = BridgeTypes.GetBridgeTypes();
 
             ParseConfigFile();
+            SaveConfigFile();
             if (!Application.isEditor)
             {
                 ParseCommandLine();
@@ -105,21 +105,30 @@ namespace Simulator.Web
 
         public delegate void AssetLoadFunc(Manifest manifest, VfsEntry dir);
 
-        static void checkDir(VfsEntry dir, AssetLoadFunc loadFunc)
+        private static void CheckDir(VfsEntry dir, AssetLoadFunc loadFunc)
         {
-            if(dir == null) return;
-            var manifestFile = dir.Find("manifest");
+            if (dir == null)
+            {
+                return;
+            }
+
+            var manifestFile = dir.Find("manifest.json");
             if (manifestFile != null && manifestFile.IsFile)
             {
                 Debug.Log($"found manifest at {manifestFile.Path}");
-                using(var reader = new StreamReader(manifestFile.SeekableStream())) {
+                using (var reader = new StreamReader(manifestFile.SeekableStream()))
+                {
                     try
                     {
-                        if(reader == null) Debug.Log("no reader?");
+                        if (reader == null)
+                        {
+                            Debug.Log("no reader cannot open stream");
+                        }
                         Manifest manifest;
                         try
                         {
-                            manifest = new Deserializer().Deserialize<Manifest>(reader);
+                            var buffer = reader.ReadToEnd();
+                            manifest = Newtonsoft.Json.JsonConvert.DeserializeObject<Manifest>(buffer);
                         }
                         catch
                         {
@@ -137,13 +146,12 @@ namespace Simulator.Web
             {
                 foreach (var entry in dir)
                 {
-                    checkDir(entry, loadFunc);
+                    CheckDir(entry, loadFunc);
                 }
             }
-
         }
 
-        static void LoadBuiltinAssets()
+        private static void LoadBuiltinAssets()
         {
             var npcSettings = NPCSettings.Load();
             var prefabs = new[]
@@ -155,6 +163,7 @@ namespace Simulator.Web
                 "BoxTruck",
                 "SchoolBus",
             };
+
             foreach (var entry in prefabs)
             {
                 var go = npcSettings.NPCPrefabs.Find(x => x.name == entry) as GameObject;
@@ -196,21 +205,33 @@ namespace Simulator.Web
             }
         }
 
-        static void LoadExternalAssets()
+        private static void SaveConfigFile()
+        {
+            try
+            {
+                File.WriteAllText(Path.Combine(Root, "config.yml"), new Serializer().Serialize(ConvertConfigFile()));
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError(ex);
+            }
+        }
+
+        private static void LoadExternalAssets()
         {
             var sw = System.Diagnostics.Stopwatch.StartNew();
 
             var dir = Path.Combine(Application.dataPath, "..", "AssetBundles");
             var vfs = VfsEntry.makeRoot(dir);
             // descend into each known dir looking for only specific asset types. todo: add asset type to manifest?
-            checkDir(vfs.GetChild(BundleConfig.pluralOf(BundleConfig.BundleTypes.Controllable)), LoadControllablePlugin);
-            checkDir(vfs.GetChild(BundleConfig.pluralOf(BundleConfig.BundleTypes.Sensor)), LoadSensorPlugin);
-            checkDir(vfs.GetChild(BundleConfig.pluralOf(BundleConfig.BundleTypes.NPC)), loadNPCAsset);
+            CheckDir(vfs.GetChild(BundleConfig.pluralOf(BundleConfig.BundleTypes.Controllable)), LoadControllablePlugin);
+            CheckDir(vfs.GetChild(BundleConfig.pluralOf(BundleConfig.BundleTypes.Sensor)), LoadSensorPlugin);
+            CheckDir(vfs.GetChild(BundleConfig.pluralOf(BundleConfig.BundleTypes.NPC)), LoadNPCAsset);
 
             Debug.Log($"loaded {NPCBehaviours.Count} NPCs behaviours and {NPCVehicles.Count} NPC models in {sw.Elapsed}");
         }
 
-        private static Assembly loadAssembly(VfsEntry dir, string name)
+        private static Assembly LoadAssembly(VfsEntry dir, string name)
         {
             var dll = dir.Find(name);
             if (dll == null)
@@ -221,13 +242,15 @@ namespace Simulator.Web
             dll.GetStream().Read(buffer, 0, (int)dll.Size);
             return Assembly.Load(buffer);
         }
+
         public static void LoadSensorPlugin(Manifest manifest, VfsEntry dir) 
         {
-            if(manifest.bundleFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Sensor]) {
-                throw new Exception($"manifest version mismatch, expected {BundleConfig.Versions[BundleConfig.BundleTypes.Sensor]}, got {manifest.bundleFormat}");
+            if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Sensor])
+            {
+                throw new Exception($"manifest version mismatch, expected {BundleConfig.Versions[BundleConfig.BundleTypes.Sensor]}, got {manifest.assetFormat}");
             }
 
-            Assembly pluginSource = loadAssembly(dir, $"{manifest.assetName}.dll");
+            Assembly pluginSource = LoadAssembly(dir, $"{manifest.assetName}.dll");
 
             foreach (Type ty in pluginSource.GetTypes())
             {
@@ -252,13 +275,14 @@ namespace Simulator.Web
 
         public static void LoadControllablePlugin(Manifest manifest, VfsEntry dir) 
         {
-            if(manifest.bundleFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Controllable]) {
-                throw new Exception($"manifest version mismatch, expected {BundleConfig.Versions[BundleConfig.BundleTypes.Controllable]}, got {manifest.bundleFormat}");
+            if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Controllable])
+            {
+                throw new Exception($"manifest version mismatch, expected {BundleConfig.Versions[BundleConfig.BundleTypes.Controllable]}, got {manifest.assetFormat}");
             }
             var texStream = dir.Find($"{manifest.assetGuid}_controllable_textures").SeekableStream();
             var textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
 
-            Assembly pluginSource = loadAssembly(dir, $"{manifest.assetName}.dll");
+            Assembly pluginSource = LoadAssembly(dir, $"{manifest.assetName}.dll");
 
             string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
             var pluginStream = dir.Find($"{manifest.assetGuid}_controllable_main_{platform}").SeekableStream();
@@ -271,18 +295,21 @@ namespace Simulator.Web
             Controllables.Add(manifest.assetName, pluginBundle.LoadAsset<GameObject>(pluginAssets[0]).GetComponent<IControllable>());
         }
 
-        private static void loadNPCAsset(Manifest manifest, VfsEntry dir)
+        private static void LoadNPCAsset(Manifest manifest, VfsEntry dir)
         {
-            if (manifest.bundleFormat != BundleConfig.Versions[BundleConfig.BundleTypes.NPC])
+            if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.NPC])
             {
-                throw new Exception($"manifest version mismatch, expected {BundleConfig.Versions[BundleConfig.BundleTypes.NPC]}, got {manifest.bundleFormat}");
+                throw new Exception($"manifest version mismatch, expected {BundleConfig.Versions[BundleConfig.BundleTypes.NPC]}, got {manifest.assetFormat}");
             }
-            Assembly pluginSource = loadAssembly(dir, $"{manifest.assetName}.dll");
+            Assembly pluginSource = LoadAssembly(dir, $"{manifest.assetName}.dll");
             if (pluginSource != null)
             {
                 foreach (Type ty in pluginSource.GetTypes())
                 {
-                    if(ty.IsAbstract) continue;
+                    if (ty.IsAbstract)
+                    {
+                        continue;
+                    }
                     if (typeof(NPCBehaviourBase).IsAssignableFrom(ty))
                     {
                         NPCBehaviours.Add(ty.ToString(), ty);
@@ -294,6 +321,7 @@ namespace Simulator.Web
                     }
                 }
             }
+
             var texEntry = dir.Find($"{manifest.assetGuid}_npc_textures");
             AssetBundle textureBundle = null;
             if (texEntry != null)
@@ -332,7 +360,7 @@ namespace Simulator.Web
                 });
             }
 
-            if(pluginEntry == null && pluginSource == null)
+            if (pluginEntry == null && pluginSource == null)
             {
                 Debug.LogError("Neither assembly nor prefab found in "+manifest.assetName);
             }
@@ -343,7 +371,7 @@ namespace Simulator.Web
             }
         }
 
-        class YamlConfig
+        private class YamlConfig
         {
             public string hostname { get; set; } = Config.WebHost;
             public int port { get; set; } = Config.WebPort;
@@ -354,9 +382,10 @@ namespace Simulator.Web
             public int api_port { get; set; } = Config.ApiPort;
             public string cloud_url { get; set; } = Config.CloudUrl;
             public string data_path { get; set; } = Config.PersistentDataPath;
+            public string sim_id { get; set; } = Config.SimID;
         }
 
-        static YamlConfig LoadConfigFile(string file)
+        private static YamlConfig LoadConfigFile(string file)
         {
             using (var fs = File.OpenText(file))
             {
@@ -373,8 +402,28 @@ namespace Simulator.Web
             return null;
         }
 
+        private static YamlConfig ConvertConfigFile()
+        {
+            if (string.IsNullOrEmpty(SimID))
+            {
+                SimID = Guid.NewGuid().ToString();
+            }
 
-        static void ParseConfigFile()
+            return new YamlConfig()
+            {
+                hostname = WebHost,
+                port = WebPort,
+                api_hostname = ApiHost,
+                api_port = ApiPort,
+                data_path = PersistentDataPath,
+                sim_id = SimID,
+                cloud_url = CloudUrl,
+                client = !RunAsMaster,
+                headless = Headless
+            };
+        }
+
+        private static void ParseConfigFile()
         {
             var configFile = Path.Combine(Root, "config.yml");
             if (!File.Exists(configFile))
@@ -396,6 +445,8 @@ namespace Simulator.Web
 
             PersistentDataPath = config.data_path;
 
+            SimID = !string.IsNullOrEmpty(config.sim_id) ? config.sim_id : Guid.NewGuid().ToString();
+
             CloudUrl = config.cloud_url;
             string cloudUrl = Environment.GetEnvironmentVariable("SIMULATOR_CLOUDURL");
             if (!string.IsNullOrEmpty(cloudUrl))
@@ -407,7 +458,7 @@ namespace Simulator.Web
             Headless = config.headless;
         }
 
-        static void ParseCommandLine()
+        private static void ParseCommandLine()
         {
             var args = Environment.GetCommandLineArgs();
             for (int i = 1; i < args.Length; i++)

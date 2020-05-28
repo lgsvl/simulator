@@ -30,6 +30,7 @@ namespace Simulator.Utilities
         public string[] Values;
         public float? Min;
         public float? Max;
+        public string Unit;
     }
 
     public static class SensorTypes

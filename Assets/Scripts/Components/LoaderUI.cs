@@ -61,7 +61,6 @@ public class LoaderUI : MonoBehaviour
         if (BGSprites.Count > 0)
             StartCoroutine(BGFadeSwitch());
 
-        StartButton.onClick.AddListener(OnStartButtonClick);
         SetLoaderUIState(LoaderUIStateType.START);
     }
 
@@ -81,13 +80,6 @@ public class LoaderUI : MonoBehaviour
     private void OnDestroy()
     {
         StopAllCoroutines();
-        StartButton.onClick.RemoveListener(OnStartButtonClick);
-    }
-    
-    private void OnStartButtonClick()
-    {
-        Application.OpenURL(Loader.Instance.Address + "/");
-        SIM.LogSimulation(SIM.Simulation.ApplicationClick, "Open Browser");
     }
 
     private IEnumerator BGFadeSwitch()

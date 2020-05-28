@@ -20,7 +20,6 @@ namespace Simulator.Network.Client
     using Core.Messaging;
     using Core.Messaging.Data;
     using Database;
-    using global::Web;
     using ICSharpCode.SharpZipLib.Zip;
     using LiteNetLib.Utils;
     using PetaPoco;
@@ -31,7 +30,6 @@ namespace Simulator.Network.Client
     using UnityEngine;
     using UnityEngine.SceneManagement;
     using Web;
-    using Web.Modules;
     using YamlDotNet.Serialization;
 
     /// <summary>
@@ -554,14 +552,13 @@ namespace Simulator.Network.Client
                 using (ZipFile zip = new ZipFile(bundle))
                 {
                     Manifest manifest;
-                    ZipEntry entry = zip.GetEntry("manifest");
+                    ZipEntry entry = zip.GetEntry("manifest.json");
                     using (var ms = zip.GetInputStream(entry))
                     {
                         int streamSize = (int) entry.Size;
                         byte[] buffer = new byte[streamSize];
                         streamSize = ms.Read(buffer, 0, streamSize);
-                        manifest = new Deserializer().Deserialize<Manifest>(
-                            Encoding.UTF8.GetString(buffer, 0, streamSize));
+                        manifest = new Deserializer().Deserialize<Manifest>(Encoding.UTF8.GetString(buffer, 0, streamSize));
                     }
 
                     AssetBundle textureBundle = null;
@@ -654,17 +651,15 @@ namespace Simulator.Network.Client
                 }
                 var zip = new ZipFile(mapBundlePath);
                 {
-                    string manfile;
-                    ZipEntry entry = zip.GetEntry("manifest");
+                    ZipEntry entry = zip.GetEntry("manifest.json");
+                    Manifest manifest;
                     using (var ms = zip.GetInputStream(entry))
                     {
                         int streamSize = (int) entry.Size;
                         byte[] buffer = new byte[streamSize];
                         streamSize = ms.Read(buffer, 0, streamSize);
-                        manfile = Encoding.UTF8.GetString(buffer);
+                        manifest = Newtonsoft.Json.JsonConvert.DeserializeObject<Manifest>(Encoding.UTF8.GetString(buffer));
                     }
-
-                    Manifest manifest = new Deserializer().Deserialize<Manifest>(manfile);
 
                     AssetBundle textureBundle = null;
 
@@ -762,11 +757,6 @@ namespace Simulator.Network.Client
                                 else
                                     simulatorManager.Init();
                                 InitializeSimulation(simulatorManager.gameObject);
-                                
-                                // Notify WebUI simulation is running
-                                NotificationManager.SendNotification("simulation",
-                                    SimulationResponse.Create(Loader.Instance.CurrentSimulation),
-                                    Loader.Instance.CurrentSimulation.Owner);
 
                                 Log.Info($"Client ready to start");
 

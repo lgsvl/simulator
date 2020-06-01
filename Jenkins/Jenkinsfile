@@ -175,6 +175,14 @@ pipeline {
     }
 
     stage("Checkout NPCs") {
+      when {
+        not {
+            anyOf {
+                environment name: "SIMULATOR_NPCS_REPOS", value: ""
+                environment name: "SIMULATOR_NPCS", value: ""
+            }
+        }
+      }
       steps {
         script {
           def npcs = env.SIMULATOR_NPCS_REPOS.split(',')

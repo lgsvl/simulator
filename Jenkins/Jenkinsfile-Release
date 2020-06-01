@@ -28,6 +28,8 @@ pipeline {
     FORCE_REBUILD = "${FORCE_REBUILD}"
     SIMULATOR_ENVIRONMENTS = "${SIMULATOR_ENVIRONMENTS_RELEASE}"
     SIMULATOR_SENSORS = "${SIMULATOR_SENSORS_RELEASE}"
+    SIMULATOR_NPCS_REPOS = "${SIMULATOR_NPCS_REPOS_RELEASE}"
+    SIMULATOR_NPCS = "${SIMULATOR_NPCS_RELEASE}"
   }
 
   stages {
@@ -174,6 +176,14 @@ pipeline {
     }
 
     stage("Checkout NPCs") {
+      when {
+        not {
+            anyOf {
+                environment name: "SIMULATOR_NPCS_REPOS", value: ""
+                environment name: "SIMULATOR_NPCS", value: ""
+            }
+        }
+      }
       steps {
         script {
           def npcs = env.SIMULATOR_NPCS_REPOS.split(',')

@@ -12,59 +12,24 @@ using System;
 
 public class TimeOfDayBuilding : MonoBehaviour
 {
+    private static readonly int EmissiveColor = Shader.PropertyToID("_EmissiveColor");
+
     private List<Material> allBuildingMaterials = new List<Material>();
     private Color emitColor = new Color(6f, 6f, 6f);
 
     public void Init(TimeOfDayStateTypes state)
     {
         var materials = new List<Material>();
-        var sharedMaterials = new List<Material>();
-        var mapping = new Dictionary<Material, Material>();
 
         Array.ForEach(transform.GetComponentsInChildren<Renderer>(), renderer =>
         {
-            if (Application.isEditor)
+            renderer.GetSharedMaterials(materials);
+            foreach (var material in materials)
             {
-                renderer.GetSharedMaterials(sharedMaterials);
-                renderer.GetMaterials(materials);
-
-                Debug.Assert(sharedMaterials.Count == materials.Count);
-
-                for (int i = 0; i < materials.Count; i++)
-                {
-                    if (sharedMaterials[i] == null)
-                    {
-                        Debug.LogError($"{renderer.gameObject.name} has null material", renderer.gameObject);
-                    }
-                    else
-                    {
-                        if (mapping.TryGetValue(sharedMaterials[i], out var mat))
-                        {
-                            DestroyImmediate(materials[i]);
-                            materials[i] = mat;
-                        }
-                        else
-                        {
-                            mapping.Add(sharedMaterials[i], materials[i]);
-                        }
-                    }
-                }
-
-                renderer.materials = materials.ToArray();
-            }
-            else
-            {
-                renderer.GetSharedMaterials(materials);
-                materials.ForEach(m =>
-                {
-                    if (!mapping.ContainsKey(m))
-                    {
-                        mapping.Add(m, m);
-                    }
-                });
+                if (!allBuildingMaterials.Contains(material))
+                    allBuildingMaterials.Add(material);
             }
         });
-        allBuildingMaterials.AddRange(mapping.Values);
         SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged += OnTimeOfDayChange;
         OnTimeOfDayChange(state);
     }
@@ -90,6 +55,11 @@ public class TimeOfDayBuilding : MonoBehaviour
 
     private void UpdateBuildingMats(Color color)
     {
-        allBuildingMaterials.ForEach(material => material?.SetVector("_EmissiveColor", color));
+        foreach (var material in allBuildingMaterials)
+        {
+            if (material == null)
+                continue;
+            material.SetVector(EmissiveColor, color);
+        }
     }
 }

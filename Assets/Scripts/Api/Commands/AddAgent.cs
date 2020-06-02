@@ -11,7 +11,6 @@ using PetaPoco;
 using SimpleJSON;
 using UnityEngine;
 using Simulator.Sensors;
-using YamlDotNet.Serialization;
 using ICSharpCode.SharpZipLib.Zip;
 using Simulator.Database;
 using UnityEngine.SceneManagement;

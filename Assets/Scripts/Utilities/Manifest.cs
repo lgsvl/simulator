@@ -5,7 +5,6 @@
  *
  */
 
-using Simulator.Utilities;
 using System.Collections.Generic;
 
 namespace Simulator
@@ -16,8 +15,8 @@ namespace Simulator
         public string assetType;
         public string assetGuid;
         public int assetFormat;
-        public float[] mapOrigin;
-        public float[] baseLink;
+        public double[] mapOrigin;
+        public double[] baseLink;
         public string description;
         public string licenseName;
         public string authorName;

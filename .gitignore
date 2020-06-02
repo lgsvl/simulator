@@ -40,6 +40,7 @@
 /Assets/Resources/Database/default*
 /WebUI/node_modules/
 /WebUI/dist/
+/config.yml
 /lgsvlsimulator-test*.xml
 /lgsvlsimulator-check*.html
 /lgsvlsimulator-bundles*.html

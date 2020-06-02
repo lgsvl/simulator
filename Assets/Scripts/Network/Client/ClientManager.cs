@@ -8,28 +8,18 @@
 namespace Simulator.Network.Client
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Net;
-    using System.Text;
-    using System.Threading;
     using Core.Configs;
     using Core.Connection;
     using Core.Messaging;
     using Core.Messaging.Data;
-    using Database;
-    using ICSharpCode.SharpZipLib.Zip;
     using LiteNetLib.Utils;
-    using PetaPoco;
     using Shared;
 
     using Simulator.Network.Core;
 
     using UnityEngine;
-    using UnityEngine.SceneManagement;
-    using Web;
-    using YamlDotNet.Serialization;
 
     /// <summary>
     /// Simulation network client manager

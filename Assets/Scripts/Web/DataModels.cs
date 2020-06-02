@@ -1,12 +1,10 @@
-﻿/**
+/**
  * Copyright (c) 2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
  */
 
-using PetaPoco;
-using Simulator.Utilities;
 using System;
 using System.Collections.Generic;
 

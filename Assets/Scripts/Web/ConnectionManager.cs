@@ -1,4 +1,10 @@
-﻿using Newtonsoft.Json.Linq;
+/**
+ * Copyright (c) 2020 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+using Newtonsoft.Json.Linq;
 using Simulator;
 using Simulator.Web;
 using System;

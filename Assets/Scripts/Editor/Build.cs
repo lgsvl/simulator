@@ -197,7 +197,7 @@ namespace Simulator.Editor
                     manifest.description = info.Description;
                     manifest.assetType = "vehicle";
                     manifest.fmuName = fmu == null ? "" : fmu.FMUData.Name;
-                    manifest.baseLink = new float[] { 0, 0, 0 };
+                    manifest.baseLink = new double[] { 0, 0, 0 };
                     Dictionary<string, object> files = new Dictionary<string, object>();
                     manifest.attachments = files;
 
@@ -293,7 +293,7 @@ namespace Simulator.Editor
                                 assetName = sceneEntry.name,
                                 assetType = "map",
                                 assetGuid = Guid.NewGuid().ToString(),
-                                mapOrigin = new float[]{(float)origin.OriginEasting, (float)origin.OriginNorthing},
+                                mapOrigin = new double[] { origin.OriginEasting, origin.OriginNorthing },
                                 assetFormat = BundleConfig.Versions[BundleConfig.BundleTypes.Environment],
                                 description = origin.Description,
                                 licenseName = origin.LicenseName,

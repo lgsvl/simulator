@@ -465,6 +465,43 @@ namespace Simulator.Web
             {
                 switch (args[i])
                 {
+                    case "--simid":
+                        if (i == args.Length - 1)
+                        {
+                            Debug.LogError("No value for sim id provided!");
+                            Application.Quit(1);
+                        }
+                        SimID = args[++i];
+                        break;
+                    case "--cloudurl":
+                        if (i == args.Length - 1)
+                        {
+                            Debug.LogError("No value for cloud url provided!");
+                            Application.Quit(1);
+                        }
+                        CloudUrl = args[++i];
+                        break;
+                    case "--apihost":
+                        if (i == args.Length - 1)
+                        {
+                            Debug.LogError("No value for api hostname provided!");
+                            Application.Quit(1);
+                        }
+                        ApiHost = args[++i];
+                        break;
+                    case "--apiport":
+                        if (i == args.Length - 1)
+                        {
+                            Debug.LogError("No value for api port provided!");
+                            Application.Quit(1);
+                        }
+
+                        if (!int.TryParse(args[++i], out ApiPort))
+                        {
+                            Debug.LogError("Port must be an integer!");
+                            Application.Quit(1);
+                        }
+                        break;
                     case "--hostname":
                     case "-h":
                         if (i == args.Length - 1)

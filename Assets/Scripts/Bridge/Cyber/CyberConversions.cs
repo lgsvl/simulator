@@ -411,7 +411,7 @@ namespace Simulator.Bridge.Cyber
             var vehicleControlData = new VehicleControlData()
             {
                 Acceleration = (float)data.throttle / 100,
-                Breaking = (float)data.brake / 100,
+                Braking = (float)data.brake / 100,
                 SteerRate = (float)data.steering_rate,
                 SteerTarget = (float)data.steering_target / 100,
                 TimeStampSec = data.header.timestamp_sec,

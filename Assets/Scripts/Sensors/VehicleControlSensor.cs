@@ -96,7 +96,7 @@ namespace Simulator.Sensors
                         if (data.ShiftGearUp) Dynamics.GearboxShiftUp();
                         if (data.ShiftGearDown) Dynamics.GearboxShiftDown();
 
-                        ADAccelInput = data.Acceleration.GetValueOrDefault() - data.Breaking.GetValueOrDefault(); // converted from lin accel 
+                        ADAccelInput = data.Acceleration.GetValueOrDefault() - data.Braking.GetValueOrDefault(); // converted from lin accel 
                         ADSteerInput = data.SteerAngle.GetValueOrDefault(); // angle should be in degrees
                     }
                     else
@@ -110,8 +110,8 @@ namespace Simulator.Sensors
                 }
                 else if (data.SteerRate.HasValue) // apollo
                 {
-                    if (double.IsInfinity(data.Acceleration.GetValueOrDefault()) || double.IsInfinity(data.Breaking.GetValueOrDefault()) ||
-                        double.IsNaN(data.Acceleration.GetValueOrDefault()) || double.IsNaN(data.Breaking.GetValueOrDefault()))
+                    if (double.IsInfinity(data.Acceleration.GetValueOrDefault()) || double.IsInfinity(data.Braking.GetValueOrDefault()) ||
+                        double.IsNaN(data.Acceleration.GetValueOrDefault()) || double.IsNaN(data.Braking.GetValueOrDefault()))
                     {
                         return;
                     }
@@ -122,15 +122,15 @@ namespace Simulator.Sensors
                     LastTimeStamp = timeStamp;
 
                     Debug.Assert(data.Acceleration.GetValueOrDefault() >= 0 && data.Acceleration.GetValueOrDefault() <= 1);
-                    Debug.Assert(data.Breaking.GetValueOrDefault() >= 0 && data.Breaking.GetValueOrDefault() <= 1);
-                    var linearAccel = AccelerationInputCurve.Evaluate(data.Acceleration.GetValueOrDefault()) - BrakeInputCurve.Evaluate(data.Breaking.GetValueOrDefault());
+                    Debug.Assert(data.Braking.GetValueOrDefault() >= 0 && data.Braking.GetValueOrDefault() <= 1);
+                    var linearAccel = AccelerationInputCurve.Evaluate(data.Acceleration.GetValueOrDefault()) - BrakeInputCurve.Evaluate(data.Braking.GetValueOrDefault());
 
                     var steeringTarget = -data.SteerTarget.GetValueOrDefault();
                     var steeringAngle = Controller.SteerInput;
                     var sgn = Mathf.Sign(steeringTarget - steeringAngle);
                     var steeringRate = data.SteerRate.GetValueOrDefault() * sgn;
                     steeringAngle += steeringRate * dt;
-                    
+
                     if (sgn != steeringTarget - steeringAngle) // to prevent oversteering
                         steeringAngle = steeringTarget;
 
@@ -154,7 +154,7 @@ namespace Simulator.Sensors
                 else if (data.Acceleration.HasValue)
                 {
                     controlType = ControlType.AutowareAuto;
-                    ADAccelInput = data.Acceleration.GetValueOrDefault() - data.Breaking.GetValueOrDefault();
+                    ADAccelInput = data.Acceleration.GetValueOrDefault() - data.Braking.GetValueOrDefault();
                     ADSteerInput = data.SteerAngle.GetValueOrDefault();
                 }
                 else
@@ -189,7 +189,7 @@ namespace Simulator.Sensors
                     graphData.Add("Shift Up", controlData.ShiftGearUp);
                     graphData.Add("Shift Down", controlData.ShiftGearDown);
                     graphData.Add("Acceleration", controlData.Acceleration.GetValueOrDefault());
-                    graphData.Add("Braking", controlData.Breaking.GetValueOrDefault());
+                    graphData.Add("Braking", controlData.Braking.GetValueOrDefault());
                     graphData.Add("Steer Angle", controlData.SteerAngle.GetValueOrDefault());
                     graphData.Add("Velocity", controlData.Velocity.GetValueOrDefault());
                     graphData.Add("Steer Angle Velocity", controlData.SteerAngularVelocity.GetValueOrDefault());
@@ -200,7 +200,7 @@ namespace Simulator.Sensors
                         return;
                     }
                     graphData.Add("Acceleration", controlData.Acceleration.GetValueOrDefault());
-                    graphData.Add("Braking", controlData.Breaking.GetValueOrDefault());
+                    graphData.Add("Braking", controlData.Braking.GetValueOrDefault());
                     graphData.Add("Steer Angle", controlData.SteerAngle.GetValueOrDefault());
                     break;
                 case ControlType.Apollo:
@@ -209,7 +209,7 @@ namespace Simulator.Sensors
                         return;
                     }
                     graphData.Add("Acceleration", controlData.Acceleration.GetValueOrDefault());
-                    graphData.Add("Braking", controlData.Breaking.GetValueOrDefault());
+                    graphData.Add("Braking", controlData.Braking.GetValueOrDefault());
                     graphData.Add("Time Stamp Sec", controlData.TimeStampSec.GetValueOrDefault());
                     graphData.Add("Steer Rate", controlData.SteerRate.GetValueOrDefault());
                     graphData.Add("Steer Target", controlData.SteerTarget.GetValueOrDefault());

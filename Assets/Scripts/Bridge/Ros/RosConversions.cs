@@ -538,7 +538,7 @@ namespace Simulator.Bridge.Ros
             {
                 TimeStampSec = ConvertTime(data.header.stamp),
                 Acceleration = (float)data.ctrl_cmd.linear_acceleration > 0 ? (float)data.ctrl_cmd.linear_acceleration : 0f,
-                Breaking = (float)data.ctrl_cmd.linear_acceleration < 0 ? -(float)data.ctrl_cmd.linear_acceleration : 0f,
+                Braking = (float)data.ctrl_cmd.linear_acceleration < 0 ? -(float)data.ctrl_cmd.linear_acceleration : 0f,
                 Velocity = (float)data.twist_cmd.twist.linear.x,
                 SteerAngularVelocity = (float)data.twist_cmd.twist.angular.z,
                 SteerAngle = (float)data.ctrl_cmd.steering_angle,
@@ -574,7 +574,7 @@ namespace Simulator.Bridge.Ros
             return new VehicleControlData()
             {
                 Acceleration = data.acceleration_pct,
-                Breaking = data.braking_pct,
+                Braking = data.braking_pct,
                 SteerAngle = UnityEngine.Mathf.Lerp(-1f, 1f, k),
             };
         }
@@ -600,7 +600,7 @@ namespace Simulator.Bridge.Ros
             return new VehicleControlData()
             {
                 Acceleration = (float)data.throttle / 100,
-                Breaking = (float)data.brake / 100,
+                Braking = (float)data.brake / 100,
                 SteerRate = (float)data.steering_rate,
                 SteerTarget = (float)data.steering_target / 100,
                 TimeStampSec = (float)data.header.timestamp_sec,

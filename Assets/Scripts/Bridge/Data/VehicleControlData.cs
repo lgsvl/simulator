@@ -22,7 +22,7 @@ namespace Simulator.Bridge.Data
     {
         // common
         public float? Acceleration; // 0..1
-        public float? Breaking; // 0..1
+        public float? Braking; // 0..1
 
         // autoware
         public float? Velocity;

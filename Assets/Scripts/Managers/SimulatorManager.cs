@@ -92,6 +92,7 @@ public class SimulatorManager : MonoBehaviour
     private float wet = 0f;
     private float fog = 0f;
     private float cloud = 0f;
+    private float Damage = 0f;
     private string simulationName = "Development";
     private string mapName;
     private string clusterName = "Development";
@@ -225,6 +226,7 @@ public class SimulatorManager : MonoBehaviour
             wet = config.Wetness;
             fog = config.Fog;
             cloud = config.Cloudiness;
+            Damage = config.Damage;
 
             if (headless)
             {
@@ -240,11 +242,11 @@ public class SimulatorManager : MonoBehaviour
         SIM.LogSimulation(SIM.Simulation.UsePredefinedSeedStart, state: useSeed);
         SIM.LogSimulation(SIM.Simulation.NPCStart, state: npc);
         SIM.LogSimulation(SIM.Simulation.RandomPedestrianStart, state: pedestrian);
-        SIM.LogSimulation(SIM.Simulation.TimeOfDayStart, timeOfDay == "" ? string.Format("{0:hh}:{0:mm}", TimeSpan.FromHours(EnvironmentEffectsManager.currentTimeOfDay)) : timeOfDay);
-        SIM.LogSimulation(SIM.Simulation.RainStart, rain == 0f ? EnvironmentEffectsManager.rain.ToString() : rain.ToString());
-        SIM.LogSimulation(SIM.Simulation.WetnessStart, wet == 0f ? EnvironmentEffectsManager.wet.ToString() : wet.ToString());
-        SIM.LogSimulation(SIM.Simulation.FogStart, fog == 0f ? EnvironmentEffectsManager.fog.ToString() : fog.ToString());
-        SIM.LogSimulation(SIM.Simulation.CloudinessStart, cloud == 0f ? EnvironmentEffectsManager.cloud.ToString() : cloud.ToString());
+        SIM.LogSimulation(SIM.Simulation.TimeOfDayStart, timeOfDay == "" ? string.Format("{0:hh}:{0:mm}", TimeSpan.FromHours(EnvironmentEffectsManager.CurrentTimeOfDay)) : timeOfDay);
+        SIM.LogSimulation(SIM.Simulation.RainStart, rain == 0f ? EnvironmentEffectsManager.Rain.ToString() : rain.ToString());
+        SIM.LogSimulation(SIM.Simulation.WetnessStart, wet == 0f ? EnvironmentEffectsManager.Wet.ToString() : wet.ToString());
+        SIM.LogSimulation(SIM.Simulation.FogStart, fog == 0f ? EnvironmentEffectsManager.Fog.ToString() : fog.ToString());
+        SIM.LogSimulation(SIM.Simulation.CloudinessStart, cloud == 0f ? EnvironmentEffectsManager.Cloud.ToString() : cloud.ToString());
         InitSegmenationColors();
         WireframeBoxes = gameObject.AddComponent<WireframeBoxes>();
         if (Loader.Instance != null) TimeManager.Initialize(Loader.Instance.Network.MessagesManager);
@@ -302,16 +304,16 @@ public class SimulatorManager : MonoBehaviour
             SIM.LogSimulation(SIM.Simulation.RandomPedestrianStop, value: elapsedTime, state: pedestrian);
             SIM.LogSimulation(SIM.Simulation.TimeOfDayStop,
                 timeOfDay == ""
-                    ? string.Format("{0:hh}:{0:mm}", TimeSpan.FromHours(EnvironmentEffectsManager.currentTimeOfDay))
+                    ? string.Format("{0:hh}:{0:mm}", TimeSpan.FromHours(EnvironmentEffectsManager.CurrentTimeOfDay))
                     : timeOfDay, value: elapsedTime);
             SIM.LogSimulation(SIM.Simulation.RainStop,
-                rain == 0f ? EnvironmentEffectsManager.rain.ToString() : rain.ToString(), elapsedTime);
+                rain == 0f ? EnvironmentEffectsManager.Rain.ToString() : rain.ToString(), elapsedTime);
             SIM.LogSimulation(SIM.Simulation.WetnessStop,
-                wet == 0f ? EnvironmentEffectsManager.wet.ToString() : wet.ToString(), elapsedTime);
+                wet == 0f ? EnvironmentEffectsManager.Wet.ToString() : wet.ToString(), elapsedTime);
             SIM.LogSimulation(SIM.Simulation.FogStop,
-                fog == 0f ? EnvironmentEffectsManager.fog.ToString() : fog.ToString(), elapsedTime);
+                fog == 0f ? EnvironmentEffectsManager.Fog.ToString() : fog.ToString(), elapsedTime);
             SIM.LogSimulation(SIM.Simulation.CloudinessStop,
-                cloud == 0f ? EnvironmentEffectsManager.cloud.ToString() : cloud.ToString(), elapsedTime);
+                cloud == 0f ? EnvironmentEffectsManager.Cloud.ToString() : cloud.ToString(), elapsedTime);
             SIM.LogSimulation(SIM.Simulation.MapStop,
                 string.IsNullOrEmpty(mapName)
                     ? UnityEngine.SceneManagement.SceneManager.GetActiveScene().name

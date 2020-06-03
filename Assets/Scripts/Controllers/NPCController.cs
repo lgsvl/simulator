@@ -526,7 +526,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
     #region lights
     public void GetSimulatorTimeOfDay()
     {
-        switch (SimulatorManager.Instance.EnvironmentEffectsManager.currentTimeOfDayState)
+        switch (SimulatorManager.Instance.EnvironmentEffectsManager.CurrentTimeOfDayState)
         {
             case TimeOfDayStateTypes.Day:
                 currentNPCLightState = NPCLightStateTypes.Off;

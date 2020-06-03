@@ -45,21 +45,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   PostProcessingVolumePrefab: {fileID: 2394428975082883579, guid: 411d60fab451be34d83fa8d9f355bf27,
     type: 3}
-  dayOverrides:
-    SunColor: {r: 1, g: 1, b: 1, a: 1}
-  nightOverrides:
-    SunColor: {r: 0, g: 0, b: 0, a: 1}
-  setRiseOverrides:
-    SunColor: {r: 1, g: 1, b: 1, a: 1}
-  RainSkyColor: {r: 0.24528301, g: 0.18396226, b: 0, a: 1}
-  currentTimeOfDay: 12
-  jday: 0
-  currentTimeOfDayCycle: 0
-  sunGO: {fileID: 5489468262300979065, guid: b06b1e4ae1fc6af418eb69d11ed9c664, type: 3}
-  rainPfx: {fileID: 8043753324636774091, guid: a83827b2838f9b8439f8cc0622795953, type: 3}
-  rain: 0
-  fog: 0
-  cloud: 0
+  CurrentTimeOfDay: 12
+  CurrentTimeOfDayCycle: 0
+  SunGO: {fileID: 5489468262300979065, guid: b06b1e4ae1fc6af418eb69d11ed9c664, type: 3}
+  RainPfx: {fileID: 8043753324636774091, guid: a83827b2838f9b8439f8cc0622795953, type: 3}
+  Rain: 0
+  Fog: 0
+  Cloud: 0
   CloudPrefab: {fileID: 7254588568927184557, guid: 043a03688fcd3a54a848a197092491db,
     type: 3}
-  wet: 0
+  Wet: 0
+  Damage: 0

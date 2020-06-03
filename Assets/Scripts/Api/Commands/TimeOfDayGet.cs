@@ -24,7 +24,7 @@ namespace Simulator.Api.Commands
                 return;
             }
 
-            api.SendResult(this, new JSONNumber(env.currentTimeOfDay));
+            api.SendResult(this, new JSONNumber(env.CurrentTimeOfDay));
         }
     }
 }

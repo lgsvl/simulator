@@ -23,9 +23,9 @@ namespace Simulator.Api.Commands
                 return;
             }
 
-            env.rain = args["rain"].AsFloat;
-            env.fog = args["fog"].AsFloat;
-            env.wet = args["wetness"].AsFloat;
+            env.Rain = args["rain"].AsFloat;
+            env.Fog = args["fog"].AsFloat;
+            env.Wet = args["wetness"].AsFloat;
 
             api.SendResult(this);
         }

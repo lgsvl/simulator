@@ -24,8 +24,8 @@ namespace Simulator.Api.Commands
                 return;
             }
 
-            env.currentTimeOfDay = args["time"].AsFloat;
-            env.currentTimeOfDayCycle = args["fixed"].AsBool ? EnvironmentEffectsManager.TimeOfDayCycleTypes.Freeze : EnvironmentEffectsManager.TimeOfDayCycleTypes.Normal;
+            env.CurrentTimeOfDay = args["time"].AsFloat;
+            env.CurrentTimeOfDayCycle = args["fixed"].AsBool ? EnvironmentEffectsManager.TimeOfDayCycleTypes.Freeze : EnvironmentEffectsManager.TimeOfDayCycleTypes.Normal;
 
             api.SendResult(this);
         }

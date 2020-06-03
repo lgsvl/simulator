@@ -94,6 +94,7 @@ namespace Simulator.Database
         public float? Fog { get; set; }
         public float? Wetness { get; set; }
         public float? Cloudiness { get; set; }
+        public float? Damage { get; set; }
         public int? Seed { get; set; }
         public bool? UseTraffic { get; set; }
         public bool? UsePedestrians { get; set; }

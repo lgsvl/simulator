@@ -69,6 +69,7 @@ namespace Simulator
         public float Fog;
         public float Wetness;
         public float Cloudiness;
+        public float Damage;
         public AgentConfig[] Agents;
         public bool UseTraffic;
         public bool UsePedestrians;
@@ -355,6 +356,7 @@ namespace Simulator
                 Fog = simData.Fog,
                 Wetness = simData.Wetness,
                 Cloudiness = simData.Cloudiness,
+                Damage = simData.Damage,
                 Seed = simData.Seed,
                 UseBicyclists = simData.UseBicyclists,
                 UsePedestrians = simData.UsePedestrians,
@@ -401,6 +403,7 @@ namespace Simulator
                             Fog = simulation.Fog.GetValueOrDefault(),
                             Wetness = simulation.Wetness.GetValueOrDefault(),
                             Cloudiness = simulation.Cloudiness.GetValueOrDefault(),
+                            Damage = simulation.Damage.GetValueOrDefault(),
                             UseTraffic = simulation.UseTraffic.GetValueOrDefault(),
                             UsePedestrians = simulation.UsePedestrians.GetValueOrDefault(),
                             Seed = simulation.Seed,

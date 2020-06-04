@@ -540,7 +540,7 @@ namespace Simulator.Editor
                 // create node and way from boundary
                 Way leftWay = CreateWayFromLine(leftLine, left_way_tags, true);
                 Way rightWay = CreateWayFromLine(rightLine, right_way_tags, true);
-                
+
                 UpdateLineStartEnd2NodeId(leftLine, leftWay);
                 UpdateLineStartEnd2NodeId(rightLine, rightWay);
 
@@ -577,24 +577,27 @@ namespace Simulator.Editor
 
 
                 AddBoundaryTagToWay(lane, leftWay, rightWay);
-                // create lanelet from left/right way
-                if (lane.laneTurnType == MapLane.LaneTurnType.NO_TURN)
+
+                if (lane.isIntersectionLane)
                 {
-                    lanelet_tags.Add(
-                        new Tag("turn_direction", "straight")
-                    );
-                }
-                if (lane.laneTurnType == MapLane.LaneTurnType.RIGHT_TURN)
-                {
-                    lanelet_tags.Add(
-                        new Tag("turn_direction", "right")
-                    );
-                }
-                if (lane.laneTurnType == MapLane.LaneTurnType.LEFT_TURN)
-                {
-                    lanelet_tags.Add(
-                        new Tag("turn_direction", "left")
-                    );
+                    if (lane.laneTurnType == MapLane.LaneTurnType.NO_TURN)
+                    {
+                        lanelet_tags.Add(
+                            new Tag("turn_direction", "straight")
+                        );
+                    }
+                    if (lane.laneTurnType == MapLane.LaneTurnType.RIGHT_TURN)
+                    {
+                        lanelet_tags.Add(
+                            new Tag("turn_direction", "right")
+                        );
+                    }
+                    if (lane.laneTurnType == MapLane.LaneTurnType.LEFT_TURN)
+                    {
+                        lanelet_tags.Add(
+                            new Tag("turn_direction", "left")
+                        );
+                    }
                 }
 
                 var members = new[]

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -106,6 +106,13 @@ namespace Simulator.Sensors
             }
 
             Visualized = GTID2Collider.Values.ToArray();
+        }
+
+        private void FixedUpdate()
+        {
+            // Detected and GTID2Collider are updated WhileInRange which is called in OnTriggerStay.
+            // So we clear them in FixedUpdate() which happens before OnTriggerStay.
+            // Details of excution order can be found at: https://docs.unity3d.com/Manual/ExecutionOrder.html
             Detected.Clear();
             GTID2Collider.Clear();
         }

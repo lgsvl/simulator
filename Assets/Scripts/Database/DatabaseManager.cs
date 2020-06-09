@@ -103,7 +103,7 @@ namespace Simulator.Database
         {
             using (var connection = new SqliteConnection(GetConnectionString()))
             {
-                string[] expectedTables = { "maps", "vehicles", "clusters", "simulations" };
+                string[] expectedTables = { "assets", "clientSettings", "simulations" };
                 connection.Open();
                 if (!TablesExist(expectedTables, connection))
                 {
@@ -169,25 +169,6 @@ namespace Simulator.Database
             }
 
             Debug.Log($"Final Database Version: {currentVersion}");
-        }
-
-        static void AddSimulation(IDatabase db, SimulationModel sim, long? vehicle)
-        {
-            if (!vehicle.HasValue)
-            {
-                return;
-            }
-
-            var id = (long)db.Insert(sim);
-
-            var conn = new ConnectionModel()
-            {
-                Simulation = id,
-                Vehicle = vehicle.Value,
-                Connection = "localhost:9090",
-            };
-
-            db.Insert(conn);
         }
 
         public static bool TablesExist(string[] tableNames, SqliteConnection connection)

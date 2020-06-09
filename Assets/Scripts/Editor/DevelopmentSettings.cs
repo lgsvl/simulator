@@ -12,18 +12,19 @@ using UnityEditor;
 using UnityEngine;
 using PetaPoco;
 using Simulator.Database;
+using Simulator.Web;
 
 namespace Simulator.Editor
 {
     public class DevelopmentSettings : EditorWindow
     {
-        List<VehicleModel> Vehicles;
+        List<VehicleDetailData> Vehicles = new List<VehicleDetailData>();
 
         [SerializeField]
         bool CreateVehicle;
 
         [SerializeField]
-        string VehicleName;
+        string VehicleCloudId;
 
         [SerializeField]
         string Connection = "localhost:9090";
@@ -42,6 +43,8 @@ namespace Simulator.Editor
 
         [SerializeField]
         bool EnablePEDs;
+        CloudAPI API;
+        string errorMessage;
 
         [MenuItem("Simulator/Development Settings...", false, 50)]
         public static void Open()
@@ -55,39 +58,67 @@ namespace Simulator.Editor
 
         void OnEnable()
         {
-            try
-            {
-                using (var db = DatabaseManager.GetConfig(DatabaseManager.GetConnectionString()).Create())
-                {
-                    Vehicles = db.Fetch<VehicleModel>();
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogException(ex);
-                Vehicles = new List<VehicleModel>();
-            }
-
-            if (string.IsNullOrEmpty(VehicleName) && Vehicles.Count != 0)
-            {
-                VehicleName = Vehicles[0].Name;
-            }
+            Refresh();
         }
 
+        async void Refresh()
+        {
+            try 
+            {
+                errorMessage = "";
+                Simulator.Web.Config.ParseConfigFile();
+
+                Simulator.Database.DatabaseManager.Init();
+                var csservice = new Simulator.Database.Services.ClientSettingsService();
+                ClientSettings settings = csservice.GetOrMake();
+                Config.SimID = settings.simid;
+                if (String.IsNullOrEmpty(Config.CloudUrl))
+                {
+                    errorMessage = "Cloud URL not set";
+                    return;
+                }
+                if (String.IsNullOrEmpty(Config.SimID))
+                {
+                    errorMessage = "Simulator not linked";
+                    return;
+                }
+
+                API = new CloudAPI(new Uri(Config.CloudUrl), settings.simid);
+                var ret = await API.GetLibrary<VehicleDetailData>();
+                Vehicles = ret.ToList();
+                if (!Vehicles.Any(v => v.Id == VehicleCloudId) && Vehicles.Count > 0)
+                {
+                    VehicleCloudId = Vehicles[0].Name;
+                }
+            }
+            catch(Exception ex)
+            {
+                Debug.LogException(ex);
+                errorMessage = ex.Message;
+                if(ex.InnerException != null)
+                    errorMessage += "\n"+ex.InnerException.Message;
+            }
+        }
         void OnGUI()
         {
-            if (Vehicles == null || Vehicles.Count == 0)
-            {
-                EditorGUILayout.HelpBox("No vehicles found in database, please create at least one with WebUI", MessageType.Warning);
-            }
-            else
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.HelpBox("Cloud URL: "+Config.CloudUrl, MessageType.Info);
+
+            if(!String.IsNullOrEmpty(errorMessage))
+                EditorGUILayout.HelpBox(errorMessage, MessageType.Warning);
+
+
+            if (GUILayout.Button("Refresh"))
+                Refresh();
+
+            if (Vehicles.Count > 0)
             {
                 GUILayout.BeginHorizontal();
                 CreateVehicle = GUILayout.Toggle(CreateVehicle, "Create vehicle: ");
 
                 EditorGUI.BeginDisabledGroup(!CreateVehicle);
 
-                int selected = Vehicles.FindIndex(v => v.Name == VehicleName);
+                int selected = Vehicles.FindIndex(v => v.Id == VehicleCloudId);
                 selected = EditorGUILayout.Popup(selected, Vehicles.Select(v => v.Name).ToArray(), GUILayout.ExpandWidth(true));
 
                 EditorGUI.EndDisabledGroup();
@@ -96,12 +127,12 @@ namespace Simulator.Editor
                 if (selected >= 0 && selected < Vehicles.Count)
                 {
                     var vehicle = Vehicles[selected];
-                    VehicleName = vehicle.Name;
+                    VehicleCloudId = vehicle.Id;
 
-                    if (!string.IsNullOrEmpty(vehicle.BridgeType))
+                    if (vehicle.bridge != null && !string.IsNullOrEmpty(vehicle.bridge.type))
                     {
                         GUILayout.BeginHorizontal();
-                        GUILayout.Label($"{vehicle.BridgeType} Bridge:");
+                        GUILayout.Label($"{vehicle.bridge.type} Bridge:");
                         Connection = GUILayout.TextField(Connection, GUILayout.ExpandWidth(true));
                         GUILayout.EndHorizontal();
                     }
@@ -119,7 +150,7 @@ namespace Simulator.Editor
             EnableNPCs = GUILayout.Toggle(EnableNPCs, "Enable NPCs");
             EnablePEDs = GUILayout.Toggle(EnablePEDs, "Enable Pedestrians");
 
-            if (GUILayout.Button("Apply"))
+            if (EditorGUI.EndChangeCheck())
             {
                 var data = JsonUtility.ToJson(this, false);
                 EditorPrefs.SetString("Simulator/DevelopmentSettings", data);

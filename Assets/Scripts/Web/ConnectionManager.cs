@@ -6,6 +6,8 @@
  */
 using Newtonsoft.Json.Linq;
 using Simulator;
+using Simulator.Database;
+using Simulator.Database.Services;
 using Simulator.Web;
 using System;
 using System.Collections.Generic;
@@ -30,17 +32,14 @@ public class ConnectionManager : MonoBehaviour
     
     public static ConnectionStatus Status = ConnectionStatus.Offline;
     public static ConnectionManager instance;
+    public static CloudAPI API;
     public SimulatorInfo simInfo;
-    public float connectionStartTime;
-    HttpClient client;
-    HttpResponseMessage response;
-    Task task;
-    CancellationTokenSource requestTokenSource;
-    CancellationTokenSource onlineTokenSource;
     static int unityThread;
     static Queue<Action> runInUpdate = new Queue<Action>();
     static int[] timeOutSequence = new[]{1, 5, 15, 30};
     int timeoutAttempts;
+    ClientSettingsService service;
+    public string LinkUrl => Config.CloudUrl + "/clusters/link?token=" + simInfo.linkToken;
 
     private void Start()
     {
@@ -53,6 +52,15 @@ public class ConnectionManager : MonoBehaviour
         DontDestroyOnLoad(this);
         instance = this;
         unityThread = Thread.CurrentThread.ManagedThreadId;
+        service = new ClientSettingsService();
+        ClientSettings settings = service.GetOrMake();
+        Config.SimID = settings.simid;
+        API = new CloudAPI(new Uri(Config.CloudUrl), settings.simid);
+
+        if (settings.onlineStatus)
+        {
+            ConnectionStatusEvent();
+        }
     }
 
     private void OnDestroy()
@@ -65,53 +73,34 @@ public class ConnectionManager : MonoBehaviour
     {
         try
         {
-            client = new HttpClient();
-
             simInfo = GetInfo();
-            var json = Newtonsoft.Json.JsonConvert.SerializeObject(simInfo);
             Status = ConnectionStatus.Connecting;
             RunOnUnityThread(() =>
             {
                 ConnectionUI.instance.UpdateStatus();
                 ConnectionUI.instance.statusButton.interactable = false;
-                connectionStartTime = Time.time;
             });
 
-            HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, Config.CloudUrl + "/api/v1/clusters/connect");
-            message.Content = new StringContent(json, Encoding.UTF8, "application/json");
-            message.Headers.Add("SimID", Config.SimID);
-            message.Headers.Add("Accept", "application/json");
-            message.Headers.Add("Connection", "Keep-Alive");
-            message.Headers.Add("X-Accel-Buffering", "no");
-            response = await client.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, requestTokenSource.Token).ConfigureAwait(false);
-            await ReadResponse(response.Content.ReadAsStreamAsync().Result);
-
-            if (!response.IsSuccessStatusCode)
+            foreach (var timeOut in timeOutSequence)
             {
-                Status = ConnectionStatus.Offline;
-                RunOnUnityThread(() =>
+                try
                 {
-                    ConnectionUI.instance.UpdateStatus();
-                });
-
-                throw new Exception(response.StatusCode.ToString());
-            }
-            else
-            {
-                await Task.Delay(1000 * timeOutSequence[timeOutSequence.Length - 1 > timeoutAttempts ? timeoutAttempts : timeOutSequence.Length -1]);
-                timeoutAttempts = timeOutSequence.Length - 1 > timeoutAttempts ? timeoutAttempts++ : timeOutSequence.Length - 1;
-                await Connect();
+                    var stream = await API.Connect(simInfo);
+                    await ReadResponse(stream);
+                }
+                catch(CloudAPI.NoSuccessException)
+                {
+                    await Task.Delay(1000 * timeOut);
+                }
             }
         }
-        catch (TaskCanceledException ex)
+        catch (TaskCanceledException)
         {
             Debug.Log("Linking task canceled.");
-            Debug.LogException(ex);
             Disconnect();
         }
         catch (Exception ex)
         {
-            Debug.Log(Config.CloudUrl);
             Debug.LogException(ex);
             Disconnect();
         }
@@ -136,10 +125,7 @@ public class ConnectionManager : MonoBehaviour
     {
         try
         {
-            requestTokenSource.Cancel();
-            onlineTokenSource.Cancel();
-            client.CancelPendingRequests();
-            client.Dispose();
+            API.Disconnect();
             RunOnUnityThread(() =>
             {
                 Status = ConnectionStatus.Offline;
@@ -158,7 +144,7 @@ public class ConnectionManager : MonoBehaviour
         if (string.IsNullOrEmpty(s)) return;
         try
         {
-            if (s.StartsWith("data:") && !string.IsNullOrEmpty(s.Substring(5)))
+            if (s.StartsWith("data:") && !string.IsNullOrEmpty(s.Substring(6)))
             {
                 JObject deserialized = JObject.Parse(s.Substring(5));
                 if (deserialized != null && deserialized.HasValues)
@@ -237,19 +223,7 @@ public class ConnectionManager : MonoBehaviour
     {
         try
         {
-            StatusMessage messageBody = new StatusMessage();
-            messageBody.status = status;
-            messageBody.message = "Is this really necessary?";
-            Debug.Log("Posting status of " + status + " to " + Config.CloudUrl + "/api/v1/simulations/" + simGuid + "/status");
-            HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, Config.CloudUrl + "/api/v1/simulations/" + simGuid + "/status");
-            message.Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(messageBody), Encoding.UTF8, "application/json");
-            message.Headers.Add("simid", Config.SimID);
-            message.Headers.Add("Accept", "application/json");
-            var response = await client.SendAsync(message);
-            if (response.IsSuccessStatusCode)
-            {
-                Debug.Log("Receiving response of " + response.StatusCode + " " + response.Content);
-            }
+            await API.UpdateStatus(status, simGuid);
         }
         catch (Exception ex)
         {
@@ -269,15 +243,11 @@ public class ConnectionManager : MonoBehaviour
             }
             action?.Invoke();
         }
-
     }
 
     async void RunConnectTask()
     {
-        requestTokenSource = new CancellationTokenSource();
-        onlineTokenSource = new CancellationTokenSource();
-        task = Connect();
-        await task;
+        await Connect();
     }
 
     public SimulatorInfo GetInfo()
@@ -312,15 +282,55 @@ public class ConnectionManager : MonoBehaviour
         {
             case ConnectionStatus.Offline:
                 RunConnectTask();
+                service.UpdateOnlineStatus(true);
                 break;
             case ConnectionStatus.Connecting:
             case ConnectionStatus.Connected:
             case ConnectionStatus.Online:
                 Disconnect();
+                service.UpdateOnlineStatus(false);
                 break;
             default:
                 break;
         }
+    }
+}
+
+public class CloudAPI 
+{
+    HttpClient client = new HttpClient();
+    string SimId;
+    Uri InstanceURL;
+
+    CancellationTokenSource onlineTokenSource = new CancellationTokenSource();
+    CancellationTokenSource requestTokenSource = new CancellationTokenSource();
+
+    public CloudAPI(Uri instanceURL, string simId)
+    {
+        InstanceURL = instanceURL;
+        SimId = simId;
+    }
+
+    public class NoSuccessException: Exception
+    {
+        public NoSuccessException(string status) :base(status) { }
+    }
+
+    public async Task<Stream> Connect(SimulatorInfo simInfo)
+    {
+        var json = Newtonsoft.Json.JsonConvert.SerializeObject(simInfo);
+        HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, new Uri(InstanceURL, "/api/v1/clusters/connect"));
+        message.Content = new StringContent(json, Encoding.UTF8, "application/json");
+        message.Headers.Add("SimID", Config.SimID);
+        message.Headers.Add("Accept", "application/json");
+        message.Headers.Add("Connection", "Keep-Alive");
+        message.Headers.Add("X-Accel-Buffering", "no");
+        var response = await client.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, requestTokenSource.Token).ConfigureAwait(false);
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new NoSuccessException(response.StatusCode.ToString());
+        }
+        return await response.Content.ReadAsStreamAsync();
     }
 
     public Task<DetailData> Get<DetailData>(string cloudId) where DetailData: CloudAssetDetails
@@ -368,20 +378,52 @@ public class ConnectionManager : MonoBehaviour
 
     public async Task<ApiModelType> GetApi<ApiModelType>(string routeAndParams) 
     {
-        HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Get, $"{Config.CloudUrl}/{routeAndParams}");
-        message.Headers.Add("SimID", Config.SimID);
+        HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Get, new Uri(InstanceURL, routeAndParams));
+        message.Headers.Add("SimID", SimId);
         message.Headers.Add("Accept", "application/json");
-        response = await client.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, requestTokenSource.Token).ConfigureAwait(false);
+        var response = await client.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, requestTokenSource.Token).ConfigureAwait(false);
         if (!response.IsSuccessStatusCode)
         {
-            throw new Exception(response.StatusCode.ToString());
+            throw new NoSuccessException(response.StatusCode.ToString());
         }
         using (var stream = await response.Content.ReadAsStreamAsync())
         using (var reader = new StreamReader(stream))
         {
             var jsonString = await reader.ReadToEndAsync();
+            Debug.Log("GOT:"+jsonString);
             return Newtonsoft.Json.JsonConvert.DeserializeObject<ApiModelType>(jsonString);
         }
+    }
+
+    public async Task UpdateStatus(string status, string simGuid)
+    {
+        var message = new StatusMessage
+        {
+            message = "",
+            status = status,
+        };
+        await PostApi<StatusMessage>($"/api/v1/simulations/{simGuid}/status", message);
+    }
+
+    public async Task PostApi<ApiData>(string route, ApiData data)
+    {
+        HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, new Uri(InstanceURL, route));
+        message.Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+        message.Headers.Add("simid", Config.SimID);
+        message.Headers.Add("Accept", "application/json");
+        var response = await client.SendAsync(message);
+        if (response.IsSuccessStatusCode)
+        {
+            Debug.Log("Receiving response of " + response.StatusCode + " " + response.Content);
+        }
+    }
+
+    public void Disconnect()
+    {
+        onlineTokenSource.Cancel();
+        requestTokenSource.Cancel();
+        client.CancelPendingRequests();
+        client.Dispose();
     }
 }
 

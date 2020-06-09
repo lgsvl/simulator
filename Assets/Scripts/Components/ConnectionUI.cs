@@ -21,7 +21,7 @@ namespace Simulator.Web
         public static ConnectionUI instance;
         public Color offlineColor;
         public Color onlineColor;
-        public void Start()
+        public void Awake()
         {
             if (instance != null)
             {
@@ -93,7 +93,7 @@ namespace Simulator.Web
         {
             if (ConnectionManager.Status == ConnectionManager.ConnectionStatus.Connected)
             {
-                Application.OpenURL(Simulator.Web.Config.CloudUrl + "/clusters/link?token=" + ConnectionManager.instance.simInfo.linkToken);
+                Application.OpenURL(ConnectionManager.instance.LinkUrl);
             }
             else if (ConnectionManager.Status == ConnectionManager.ConnectionStatus.Online)
             {

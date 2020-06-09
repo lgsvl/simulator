@@ -6,7 +6,7 @@
  */
 
 using SimpleJSON;
-
+using System.Threading.Tasks;
 namespace Simulator.Api
 {
     public interface ICommand

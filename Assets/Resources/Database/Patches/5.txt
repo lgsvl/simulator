@@ -1,9 +1,13 @@
-DROP TABLE IF EXISTS sessions;
-DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS maps;
-DROP TABLE IF EXISTS vehicles;
-DROP TABLE IF EXISTS clusters;
-DROP TABLE IF EXISTS connections;
+PRAGMA foreign_keys = off;
+
+BEGIN TRANSACTION;
+
+DROP TABLE sessions;
+DROP TABLE users;
+DROP TABLE maps;
+DROP TABLE vehicles;
+DROP TABLE clusters;
+DROP TABLE connections;
 
 DROP TABLE IF EXISTS assets;
 CREATE TABLE assets (
@@ -24,7 +28,6 @@ CREATE TABLE simulations (
 	simData TEXT NOT NULL
 );
 
-PRAGMA user_version = 5;
-PRAGMA table_info(assets);
-PRAGMA table_info(clientSettings);
-PRAGMA table_info(simulations);
+COMMIT;
+
+PRAGMA foreign_keys=on;

@@ -30,7 +30,7 @@ namespace Simulator.Api.Commands
             MapDetailData mapData;
             try
             {
-                mapData = await ConnectionManager.instance.GetByIdOrName<MapDetailData>(mapId);
+                mapData = await ConnectionManager.API.GetByIdOrName<MapDetailData>(mapId);
             }
             catch(Exception e)
             {
@@ -40,9 +40,14 @@ namespace Simulator.Api.Commands
 
             //Lock executing other API commands while map is being downloaded
             api.ActionsSemaphore.Lock();
+            try
             {
                 var ret = await DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, mapData.AssetGuid, mapData.Name);
                 api.StartCoroutine(LoadMapAssets(this, mapData, ret.LocalPath, seed));
+            }
+            catch
+            {
+                api.ActionsSemaphore.Unlock();
             }
         }
 

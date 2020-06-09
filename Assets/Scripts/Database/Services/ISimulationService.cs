@@ -1,23 +1,17 @@
-/**
- * Copyright (c) 2019 LG Electronics, Inc.
- *
- * This software contains code licensed as described in LICENSE.
- *
- */
+﻿/**
+* Copyright (c) 2020 LG Electronics, Inc.
+*
+* This software contains code licensed as described in LICENSE.
+*
+*/
 
-using System.Collections.Generic;
+using Simulator.Web;
 
 namespace Simulator.Database.Services
 {
     public interface ISimulationService
     {
-        IEnumerable<SimulationModel> List(string filter, int offset, int count, string owner);
-        SimulationModel Get(long id, string owner);
-        long Add(SimulationModel simulation);
-        int Update(SimulationModel simulation);
-        int Delete(long id, string owner);
-        SimulationModel GetCurrent(string owner);
-        void Start(SimulationModel simulation);
-        void Stop();
+        SimulationData Get(string simid);
+        void Add(SimulationData data);
     }
 }

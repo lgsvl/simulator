@@ -19,6 +19,8 @@ using System.Text;
 using UnityEngine;
 using VirtualFileSystem;
 using YamlDotNet.Serialization;
+using Simulator.Database;
+using Simulator.Database.Services;
 
 namespace Simulator.Web
 {
@@ -39,6 +41,7 @@ namespace Simulator.Web
         public static string Password;
         public static string SessionGUID;
         public static string SimID;
+
         public static bool AgreeToLicense = false;
 
         public static bool Headless = false;
@@ -98,6 +101,8 @@ namespace Simulator.Web
 
             ParseConfigFile();
             SaveConfigFile();
+            DatabaseManager.Init();
+
             if (!Application.isEditor)
             {
                 ParseCommandLine();
@@ -383,7 +388,6 @@ namespace Simulator.Web
             public int api_port { get; set; } = Config.ApiPort;
             public string cloud_url { get; set; } = Config.CloudUrl;
             public string data_path { get; set; } = Config.PersistentDataPath;
-            public string sim_id { get; set; } = Config.SimID;
         }
 
         private static YamlConfig LoadConfigFile(string file)
@@ -405,11 +409,6 @@ namespace Simulator.Web
 
         private static YamlConfig ConvertConfigFile()
         {
-            if (string.IsNullOrEmpty(SimID))
-            {
-                SimID = Guid.NewGuid().ToString();
-            }
-
             return new YamlConfig()
             {
                 hostname = WebHost,
@@ -417,14 +416,13 @@ namespace Simulator.Web
                 api_hostname = ApiHost,
                 api_port = ApiPort,
                 data_path = PersistentDataPath,
-                sim_id = SimID,
                 cloud_url = CloudUrl,
                 client = !RunAsMaster,
                 headless = Headless
             };
         }
 
-        private static void ParseConfigFile()
+        public static void ParseConfigFile()
         {
             var configFile = Path.Combine(Root, "config.yml");
             if (!File.Exists(configFile))
@@ -445,8 +443,6 @@ namespace Simulator.Web
             ApiPort = config.api_port;
 
             PersistentDataPath = config.data_path;
-
-            SimID = !string.IsNullOrEmpty(config.sim_id) ? config.sim_id : Guid.NewGuid().ToString();
 
             CloudUrl = config.cloud_url;
             string cloudUrl = Environment.GetEnvironmentVariable("SIMULATOR_CLOUDURL");

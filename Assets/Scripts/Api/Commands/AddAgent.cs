@@ -68,7 +68,7 @@ namespace Simulator.Api.Commands
                 VehicleDetailData vehicleData;
                 try
                 {
-                    vehicleData = await ConnectionManager.instance.GetByIdOrName<VehicleDetailData>(name);
+                    vehicleData = await ConnectionManager.API.GetByIdOrName<VehicleDetailData>(name);
                 }
                 catch (Exception e)
                 {

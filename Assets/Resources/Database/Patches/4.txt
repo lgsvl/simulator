@@ -1,46 +1,50 @@
 PRAGMA foreign_keys = off;
 
 BEGIN TRANSACTION;
-DROP INDEX IF EXISTS vehicles_url_index;
-    
-CREATE TABLE vehicles_v4 (
+
+ALTER TABLE simulations
+	ADD testCaseMode BOOLEAN DEFAULT FALSE;
+
+ALTER TABLE simulations
+	ADD generateResults BOOLEAN DEFAULT FALSE;
+
+ALTER TABLE simulations
+	ADD testCaseReportName VARCHAR(128) DEFAULT NULL;
+
+ALTER TABLE simulations
+	ADD runtimeTemplateType VARCHAR(512) DEFAULT NULL;
+
+ALTER TABLE simulations
+	ADD testCaseFile VARCHAR(1024) DEFAULT NULL;
+
+ALTER TABLE simulations
+	ADD testCaseBridge VARCHAR(512) DEFAULT NULL;
+
+DROP TABLE IF EXISTS testresults;
+CREATE TABLE testresults (
 	id INTEGER PRIMARY KEY,
-	owner VARCHAR(512) DEFAULT NULL,
-	assetGuid VARCHAR(1024) DEFAULT NULL,
+	created DATETIME DEFAULT NOW,
 	name VARCHAR(128) NOT NULL,
-	bridgeType VARCHAR(128) DEFAULT NULL,
-	previewUrl VARCHAR(1024),
-	localPath VARCHAR(1024),
-	sensors TEXT DEFAULT NULL,
+	owner VARCHAR(512) DEFAULT NULL,
+	runtimeTemplateType VARCHAR(512),
+	simulation INTEGER,
+  	success BOOL DEFAULT FALSE,
 	status VARCHAR(64),
-	error VARCHAR(512) DEFAULT NULL,
+	iterations INTEGER DEFAULT 0,
+	result TEXT,
+
+	FOREIGN KEY (simulation) REFERENCES simulations(id) ON DELETE SET NULL,
 	FOREIGN KEY (owner) REFERENCES users(username)
 );
-INSERT INTO vehicles_v4 SELECT id, owner, assetGuid, name, bridgeType, previewUrl, localPath, sensors, status, error FROM vehicles;
-DROP TABLE vehicles;
-ALTER TABLE vehicles_v4 RENAME TO vehicles;
 
-CREATE TABLE maps_v4 (
-	id INTEGER PRIMARY KEY,
-	owner VARCHAR(512) DEFAULT NULL,
-	assetGuid VARCHAR(1024) DEFAULT NULL,
-	name VARCHAR(128) NOT NULL,
-	previewUrl VARCHAR(1024),
-	localPath VARCHAR(1024),
-	status VARCHAR(64),
-	error VARCHAR(512) DEFAULT NULL,
-	FOREIGN KEY (owner) REFERENCES users(username)
-);
-INSERT INTO maps_v4 SELECT id, owner, assetGuid, name, previewUrl, localPath, status, error FROM maps;
-DROP TABLE maps;
-ALTER TABLE maps_v4 RENAME TO maps;
+CREATE INDEX testresults_id_index ON testresults (id);
+CREATE INDEX testresults_created_index ON testresults (created);
+CREATE INDEX testresults_owner_index ON testresults (owner);
+CREATE INDEX testresults_name_index ON testresults (name);
+CREATE INDEX testresults_simulation_index ON testresults (simulation);
+CREATE INDEX testresults_runtimeTemplateType_index ON testresults (runtimeTemplateType);
+CREATE INDEX testresults_success_index ON testresults (success);
 
-DROP TABLE IF EXISTS assets;
-CREATE TABLE assets (
-	assetGuid VARCHAR(512) NOT NULL PRIMARY KEY,
-	type VARCHAR(256) NOT NULL,
-	localPath VARCHAR(4096) NOT NULL
-);
 COMMIT;
 
 PRAGMA foreign_keys=on;

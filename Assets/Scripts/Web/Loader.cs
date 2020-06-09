@@ -83,7 +83,7 @@ namespace Simulator
         public LoaderUI LoaderUI => FindObjectOfType<LoaderUI>();
 
         // NOTE: When simulation is not running this reference will be null.
-        public SimulationModel CurrentSimulation;
+        public SimulationData CurrentSimulation;
 
         ConcurrentQueue<Action> Actions = new ConcurrentQueue<Action>();
         public string LoaderScene { get; private set; }
@@ -121,8 +121,6 @@ namespace Simulator
 
             var info = Resources.Load<BuildInfo>("BuildInfo");
             SIM.Init(info == null ? "Development" : info.Version);
-
-            DatabaseManager.Init();
 
             DownloadManager.Init();
 
@@ -195,143 +193,64 @@ namespace Simulator
         public static async void StartSimulation(SimulationData simData)
         {
             Instance.Network.Initialize(Config.SimID, simData.Cluster, Instance.NetworkSettings);
-            MapService mapService = new MapService();
-            VehicleService vehicleService = new VehicleService();
-            AssetService assetService = new AssetService();
-            var simulationModel = new SimulationModel()
-            {
-                Id = 1,
-                Guid = simData.Id,
-                Name = simData.Name,
-                Status = "Valid",
-                Owner = "",
-                ApiOnly = simData.ApiOnly,
-                Interactive = simData.Interactive,
-                Headless = simData.Headless,
-                TimeOfDay = simData.TimeOfDay,
-                Rain = simData.Rain,
-                Fog = simData.Fog,
-                Wetness = simData.Wetness,
-                Cloudiness = simData.Cloudiness,
-                Damage = simData.Damage,
-                Seed = simData.Seed,
-                UseBicyclists = simData.UseBicyclists,
-                UsePedestrians = simData.UsePedestrians,
-                UseTraffic = simData.UseTraffic,
-                Error = "",
-            };
-
             var downloads = new List<Task>();
-
-            if(simulationModel.ApiOnly == false)
+            if(simData.ApiOnly == false)
             {
-                if (assetService.Get(simData.Map.AssetGuid) == null)
-                {
-                    MapModel map = new MapModel()
-                    {
-                        Name = simData.Map.Name,
-                        AssetGuid = simData.Map.AssetGuid,
-                        LocalPath = WebUtilities.GenerateLocalPath(simData.Map.AssetGuid, BundleConfig.BundleTypes.Environment),
-                    };
-                    simulationModel.Map = mapService.Add(map);
-                    downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, map.AssetGuid));
-                }
-
-                List<ConnectionModel> connections = new List<ConnectionModel>();
+                downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, simData.Map.AssetGuid));
 
                 foreach (var vehicle in simData.Vehicles)
                 {
-                    if (assetService.Get(vehicle.AssetGuid) == null)
-                    {
-                        VehicleModel vehicleModel = new VehicleModel()
-                        {
-                            Name = vehicle.Name,
-                            Sensors = Newtonsoft.Json.JsonConvert.SerializeObject(vehicle.Sensors),
-                            AssetGuid = vehicle.AssetGuid,
-                            LocalPath = WebUtilities.GenerateLocalPath(vehicle.AssetGuid, BundleConfig.BundleTypes.Vehicle),
-                            BridgeType = vehicle.bridge?.type,
-                        };
-                        vehicleService.Add(vehicleModel);
-                        downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicle.AssetGuid));
-                    }
-                    else
-                    {
-                        VehicleModel model = vehicleService.Get(vehicle.AssetGuid);
-                        model.Sensors = Newtonsoft.Json.JsonConvert.SerializeObject(vehicle.Sensors);
-                        model.BridgeType = vehicle.bridge != null ? vehicle.bridge.type : null;
-                        vehicleService.Update(model);
-                    }
-                    connections.Add(new ConnectionModel()
-                    {
-                        Connection = vehicle.bridge?.connectionString,
-                        Vehicle = vehicleService.Get(vehicle.AssetGuid).Id,
-                        Simulation = 1,
-                    });
+                    downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicle.AssetGuid));
                 }
-                simulationModel.Vehicles = connections.ToArray();
             }
 
             ConnectionUI.instance.SetLinkingButtonActive(false);
             await Task.WhenAll(downloads);
 
             Debug.Log("All Downloads Complete");
-            using(var db = DatabaseManager.Open())
-            {
-                simulationModel.Cluster = (long)db.Insert(new ClusterModel()
-                {
-                    Name = simData.Cluster.Name,
-                    Ips = "127.0.0.1",
-                    Owner = "",
-                    Status = ""
-                });
-            }
 
             if (!Instance.Network.IsClusterSimulation)
-                StartAsync(simulationModel);
+                StartAsync(simData);
             else
-                Instance.Network.SetSimulationModel(simulationModel);
+                Instance.Network.SetSimulationModel(simData);
         }
 
-        public static void StartAsync(SimulationModel simulation)
+        public static void StartAsync(SimulationData simulation)
         {
             Debug.Assert(Instance.CurrentSimulation == null);
 
             Instance.Actions.Enqueue(() =>
             {
-                using (var db = DatabaseManager.Open())
-                {
                     AssetBundle textureBundle = null;
                     AssetBundle mapBundle = null;
                     try
                     {
-                        if (Config.Headless && (simulation.Headless.HasValue && !simulation.Headless.Value))
+                        if (Config.Headless && (simulation.Headless))
                         {
                             throw new Exception("Simulator is configured to run in headless mode, only headless simulations are allowed");
                         }
-
-                        simulation.Status = "Starting";
+                        
                         Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.PROGRESS);
-
                         Instance.SimConfig = new SimulationConfig()
                         {
                             Name = simulation.Name,
-                            Clusters = db.Single<ClusterModel>(simulation.Cluster).Ips.Split(',').Where(c => c != "127.0.0.1").ToArray(),
-                            ClusterName = db.Single<ClusterModel>(simulation.Cluster).Name,
-                            ApiOnly = simulation.ApiOnly.GetValueOrDefault(),
-                            Headless = simulation.Headless.GetValueOrDefault(),
-                            Interactive = simulation.Interactive.GetValueOrDefault(),
-                            TimeOfDay = simulation.TimeOfDay.GetValueOrDefault(new DateTime(1980, 3, 24, 12, 0, 0)),
-                            Rain = simulation.Rain.GetValueOrDefault(),
-                            Fog = simulation.Fog.GetValueOrDefault(),
-                            Wetness = simulation.Wetness.GetValueOrDefault(),
-                            Cloudiness = simulation.Cloudiness.GetValueOrDefault(),
-                            Damage = simulation.Damage.GetValueOrDefault(),
-                            UseTraffic = simulation.UseTraffic.GetValueOrDefault(),
-                            UsePedestrians = simulation.UsePedestrians.GetValueOrDefault(),
+                            Clusters = simulation.Cluster.Instances.Length > 1 ? simulation.Cluster.Instances.SelectMany(i => i.Ip).ToArray() : new string[] { },
+                            ClusterName = simulation.Cluster.Name,
+                            ApiOnly = simulation.ApiOnly,
+                            Headless = simulation.Headless,
+                            Interactive = simulation.Interactive,
+                            TimeOfDay = simulation.TimeOfDay,
+                            Rain = simulation.Rain,
+                            Fog = simulation.Fog,
+                            Wetness = simulation.Wetness,
+                            Cloudiness = simulation.Cloudiness,
+                            Damage = simulation.Damage,
+                            UseTraffic = simulation.UseTraffic,
+                            UsePedestrians = simulation.UsePedestrians,
                             Seed = simulation.Seed,
                         };
 
-                        if (simulation.Vehicles == null || simulation.Vehicles.Length == 0 || simulation.ApiOnly.GetValueOrDefault())
+                        if (simulation.Vehicles == null || simulation.Vehicles.Length == 0 || simulation.ApiOnly)
                         {
                             Instance.SimConfig.Agents = Array.Empty<AgentConfig>();
                         }
@@ -339,23 +258,21 @@ namespace Simulator
                         {
                             Instance.SimConfig.Agents = simulation.Vehicles.Select(v =>
                             {
-                                var vehicle = db.SingleOrDefault<VehicleModel>(v.Vehicle);
-
                                 var config = new AgentConfig()
                                 {
-                                    Name = vehicle.Name,
-                                    Connection = v.Connection,
-                                    AssetGuid = vehicle.AssetGuid,
-                                    AssetBundle = vehicle.LocalPath,
-                                    Sensors = vehicle.Sensors,
+                                    Name = v.Name,
+                                    Connection = v.bridge != null ? v.bridge.connectionString : "",
+                                    AssetGuid = v.AssetGuid,
+                                    AssetBundle = Web.WebUtilities.GenerateLocalPath(v.AssetGuid, BundleConfig.BundleTypes.Vehicle),
+                                    Sensors = Newtonsoft.Json.JsonConvert.SerializeObject(v.Sensors),
                                 };
 
-                                if (!string.IsNullOrEmpty(vehicle.BridgeType))
+                                if (v.bridge != null && !string.IsNullOrEmpty(v.bridge.type))
                                 {
-                                    config.Bridge = Config.Bridges.Find(bridge => bridge.Name == vehicle.BridgeType);
+                                    config.Bridge = Config.Bridges.Find(bridge => bridge.Name == v.bridge.type);
                                     if (config.Bridge == null)
                                     {
-                                        throw new Exception($"Bridge {vehicle.BridgeType} not found");
+                                        throw new Exception($"Bridge {v.bridge.type} not found");
                                     }
                                 }
 
@@ -372,15 +289,12 @@ namespace Simulator
 
                             Instance.CurrentSimulation = simulation;
 
-                            // ready to go!
-                            Instance.CurrentSimulation.Status = "Running";
-
                             Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.READY);
                         }
                         else
                         {
-                            var mapModel = db.Single<MapModel>(simulation.Map);
-                            var mapBundlePath = mapModel.LocalPath;
+                            var mapData = simulation.Map;
+                            var mapBundlePath = WebUtilities.GenerateLocalPath(mapData.AssetGuid, BundleConfig.BundleTypes.Environment);
                             mapBundle = null;
                             textureBundle = null;
 
@@ -443,7 +357,7 @@ namespace Simulator
 
                                 if (mapBundle == null)
                                 {
-                                    throw new Exception($"Failed to load environment from '{mapModel.Name}' asset bundle");
+                                    throw new Exception($"Failed to load environment from '{mapData.Name}' asset bundle");
                                 }
 
                                 textureBundle?.LoadAllAssets();
@@ -451,12 +365,12 @@ namespace Simulator
                                 var scenes = mapBundle.GetAllScenePaths();
                                 if (scenes.Length != 1)
                                 {
-                                    throw new Exception($"Unsupported environment in '{mapModel.Name}' asset bundle, only 1 scene expected");
+                                    throw new Exception($"Unsupported environment in '{mapData.Name}' asset bundle, only 1 scene expected");
                                 }
 
                                 var sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
                                 Instance.SimConfig.MapName = sceneName;
-                                Instance.SimConfig.MapAssetGuid = mapModel.AssetGuid;
+                                Instance.SimConfig.MapAssetGuid = simulation.Map.AssetGuid;
 
                                 var loader = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
                                 loader.completed += op =>
@@ -483,11 +397,6 @@ namespace Simulator
                         Debug.Log($"Failed to start '{simulation.Name}' simulation");
                         Debug.LogException(ex);
 
-                        // NOTE: In case of failure we have to update Simulation state
-                        simulation.Status = "Invalid";
-                        simulation.Error = "Out of date Map AssetBundle. Please check content website for updated bundle or rebuild the bundle.";
-                        db.Update(simulation);
-
                         if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
                         {
                             SceneManager.LoadScene(Instance.LoaderScene);
@@ -503,11 +412,6 @@ namespace Simulator
                         Debug.Log($"Failed to start '{simulation.Name}' simulation");
                         Debug.LogException(ex);
 
-                        // NOTE: In case of failure we have to update Simulation state
-                        simulation.Status = "Invalid";
-                        simulation.Error = ex.Message;
-                        db.Update(simulation);
-
                         if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
                         {
                             SceneManager.LoadScene(Instance.LoaderScene);
@@ -518,7 +422,6 @@ namespace Simulator
                         AssetBundle.UnloadAllAssetBundles(true);
                         Instance.CurrentSimulation = null;
                     }
-                }
             });
         }
 
@@ -550,8 +453,7 @@ namespace Simulator
                 {
                     try
                     {
-                        simulation.Status = "Stopping";
-                        ConnectionManager.instance.UpdateStatus("Stopping", simulation.Guid);
+                        ConnectionManager.instance.UpdateStatus("Stopping", simulation.Id);
                         if (ApiManager.Instance != null)
                         {
                             SceneManager.MoveGameObjectToScene(ApiManager.Instance.gameObject, SceneManager.GetActiveScene());
@@ -564,10 +466,9 @@ namespace Simulator
                             {
                                 AssetBundle.UnloadAllAssetBundles(false);
                                 Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.START);
-
-                                simulation.Status = "Valid";
+                                
                                 Instance.CurrentSimulation = null;
-                                ConnectionManager.instance.UpdateStatus("Idle", simulation.Guid);
+                                ConnectionManager.instance.UpdateStatus("Idle", simulation.Id);
                             }
                         };
                     }
@@ -575,22 +476,14 @@ namespace Simulator
                     {
                         Debug.Log($"Failed to stop '{simulation.Name}' simulation");
                         Debug.LogException(ex);
-
-                        // NOTE: In case of failure we have to update Simulation state
-                        simulation.Status = "Invalid";
-                        simulation.Error = ex.Message;
-                        db.Update(simulation);
                     }
                 }
             });
         }
 
-        static void SetupScene(SimulationModel simulation)
+        static void SetupScene(SimulationData simulation)
         {
             Dictionary<string, GameObject> cachedVehicles = new Dictionary<string, GameObject>();
-
-            using (var db = DatabaseManager.Open())
-            {
                 try
                 {
                     foreach (var agentConfig in Instance.SimConfig.Agents)
@@ -723,11 +616,10 @@ namespace Simulator
                         sim.Init();
 
                     Instance.CurrentSimulation = simulation;
-                    Instance.CurrentSimulation.Status = "Running";
 
                     if (Instance.CurrentSimulation != null)
                     {
-                        ConnectionManager.instance.UpdateStatus("Running", Instance.CurrentSimulation.Guid);
+                        ConnectionManager.instance.UpdateStatus("Running", Instance.CurrentSimulation.Id);
                     }
 
                     // Flash main window to let user know simulation is ready
@@ -738,11 +630,6 @@ namespace Simulator
                     Debug.Log($"Failed to start '{simulation.Name}' simulation - out of date asset bundles");
                     Debug.LogException(ex);
 
-                    // NOTE: In case of failure we have to update Simulation state
-                    simulation.Status = "Invalid";
-                    simulation.Error = "Out of date Vehicle AssetBundle. Please check content website for updated bundle or rebuild the bundle.";
-                    db.Update(simulation);
-
                     ResetLoaderScene();
                 }
                 catch (Exception ex)
@@ -750,14 +637,8 @@ namespace Simulator
                     Debug.Log($"Failed to start '{simulation.Name}' simulation");
                     Debug.LogException(ex);
 
-                    // NOTE: In case of failure we have to update Simulation state
-                    simulation.Status = "Invalid";
-                    simulation.Error = ex.Message;
-                    db.Update(simulation);
-
                     ResetLoaderScene();
                 }
-            }
         }
 
         public static void ResetLoaderScene()

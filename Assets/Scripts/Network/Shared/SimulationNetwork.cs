@@ -118,7 +118,7 @@ namespace Simulator.Network.Shared
         /// <summary>
         /// Cached current simulation model
         /// </summary>
-        public SimulationModel CurrentSimulation { get; set; }
+        public SimulationData CurrentSimulation { get; set; }
 
         /// <summary>
         /// Checks if simulation is ready to be started
@@ -212,9 +212,9 @@ namespace Simulator.Network.Shared
         /// Master tries to start the simulation, client reports about being ready
         /// </summary>
         /// <param name="simulationModel">Simulation model which will be used to run the simulation</param>
-        public void SetSimulationModel(SimulationModel simulationModel)
+        public void SetSimulationModel(SimulationData simulationData)
         {
-            CurrentSimulation = simulationModel;
+            CurrentSimulation = simulationData;
             switch (Type)
             {
                 case ClusterNodeType.NotClusterNode:
@@ -223,7 +223,7 @@ namespace Simulator.Network.Shared
                     Master.TryStartSimulation();
                     break;
                 case ClusterNodeType.Client:
-                    simulationModel.Interactive = false;
+                    simulationData.Interactive = false;
                     Client.SendReadyCommand();
                     break;
                 default:

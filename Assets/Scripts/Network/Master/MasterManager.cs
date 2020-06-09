@@ -202,7 +202,7 @@ namespace Simulator.Network.Master
                 throw new NullReferenceException("Set network settings before starting the connection.");
             MessagesManager.RegisterObject(this);
             ConnectionManager.AcceptableIdentifiers.AddRange(acceptableIdentifiers);
-            ConnectionManager.Start(settings.ConnectionPort);
+            ConnectionManager.Start(settings.ConnectionPort, settings.Timeout);
             ConnectionManager.PeerConnected += OnClientConnected;
             ConnectionManager.PeerDisconnected += OnClientDisconnected;
             State = SimulationState.Connecting;

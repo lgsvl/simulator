@@ -16,7 +16,7 @@ namespace Simulator.Controllable
 {
     public class ControllableManager : MonoBehaviour
     {
-        public IControllable SpawnControllable(GameObject prefab, Vector3 pos, Quaternion rot, Vector3 velocity, Vector3 angVelocity)
+        public IControllable SpawnControllable(GameObject prefab, string uid, Vector3 pos, Quaternion rot, Vector3 velocity, Vector3 angVelocity)
         {
             var api = ApiManager.Instance;
             var obj = Instantiate(prefab, pos, rot);
@@ -39,7 +39,6 @@ namespace Simulator.Controllable
                 return null;
             }
 
-            var uid = System.Guid.NewGuid().ToString();
             controllable.UID = uid;
             controllable.Spawned = true;
 

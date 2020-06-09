@@ -148,7 +148,8 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
     private void OnDisable()
     {
         SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged -= OnTimeOfDayChange;
-        _ActiveBehaviour.enabled = false;
+        if (_ActiveBehaviour!=null)
+            _ActiveBehaviour.enabled = false;
     }
 
     public void PhysicsUpdate()

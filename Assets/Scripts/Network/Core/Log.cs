@@ -7,7 +7,6 @@
 
 namespace Simulator.Network.Core
 {
-    using System.Diagnostics;
     using UnityEngine;
     using Debug = UnityEngine.Debug;
 
@@ -21,7 +20,6 @@ namespace Simulator.Network.Core
         /// Logs an info message
         /// </summary>
         /// <param name="message">Message to be logged</param>
-        [Conditional("ENABLE_SIMULATOR_NETWORK_LOGS")]
         public static void Info(object message)
         {
             Debug.Log(message);
@@ -32,7 +30,6 @@ namespace Simulator.Network.Core
         /// </summary>
         /// <param name="message">Message to be logged</param>
         /// <param name="context">Context of the message </param>
-        [Conditional("ENABLE_SIMULATOR_NETWORK_LOGS")]
         public static void Info(object message, Object context)
         {
             Debug.Log(message, context);

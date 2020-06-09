@@ -43,7 +43,7 @@ namespace Simulator.Network.Core.Connection
         public int Port { get; private set; }
 
         /// <inheritdoc/>
-        public int Timeout => 30000;
+        public int Timeout { get; private set; }
 
         /// <inheritdoc/>
         public int ConnectedPeersCount => masterPeer == null ? 0 : 1;
@@ -57,7 +57,7 @@ namespace Simulator.Network.Core.Connection
         /// Current latency for this connection with the server
         /// </summary>
         public int Latency { get; private set; }
-        
+
         /// <inheritdoc/>
         public List<string> AcceptableIdentifiers { get; } = new List<string>();
 
@@ -76,12 +76,13 @@ namespace Simulator.Network.Core.Connection
         public event Action<int> LatencyUpdated;
 
         /// <inheritdoc/>
-        public bool Start(int port)
+        public bool Start(int port, int timeout)
         {
             Port = port;
+            Timeout = timeout;
             netClient = new NetManager(this)
             {
-                UnconnectedMessagesEnabled = false, UpdateTime = 5, DisconnectTimeout = Timeout,
+                UnconnectedMessagesEnabled = false, UpdateTime = 5, DisconnectTimeout = timeout,
                 AutoRecycle = true
             };
             var result = NetClient.Start(port);
@@ -127,7 +128,18 @@ namespace Simulator.Network.Core.Connection
         /// <inheritdoc/>
         public void Broadcast(DistributedMessage distributedMessage)
         {
-            masterPeer?.Send(distributedMessage);
+            var bytesStack = distributedMessage.Content;
+            try
+            {
+                NetworkStatistics.ReportSentPackage(bytesStack.Count);
+                NetClient.SendToAll(bytesStack.RawData, 0, bytesStack.Count,
+                    LiteNetLibPeerManager.GetDeliveryMethod(distributedMessage.Type));
+            }
+            catch (TooBigPacketException)
+            {
+                Log.Error($"Too large message to be sent: {bytesStack.Count}.");
+            }
+
             distributedMessage.Release();
         }
 

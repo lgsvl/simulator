@@ -8,6 +8,7 @@
 namespace Simulator.Network.Client
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Net;
     using Core.Configs;
@@ -164,7 +165,7 @@ namespace Simulator.Network.Client
             if (settings == null)
                 throw new NullReferenceException("Set network settings before starting the connection.");
             MessagesManager.RegisterObject(this);
-            ConnectionManager.Start(settings.ConnectionPort);
+            ConnectionManager.Start(settings.ConnectionPort, settings.Timeout);
             ConnectionManager.PeerConnected += OnPeerConnected;
             ConnectionManager.PeerDisconnected += OnPeerDisconnected;
             Log.Info($"{GetType().Name} started the connection manager.");
@@ -205,9 +206,11 @@ namespace Simulator.Network.Client
         /// <param name="peer">Peer that has disconnected</param>
         public void OnPeerDisconnected(IPeerManager peer)
         {
+            if (peer != MasterPeer)
+                return;
             MasterPeer = null;
-            OnStopCommand(new Commands.Stop());
-            MessagesManager.RevokeIdentifiers();
+            // OnStopCommand(new Commands.Stop());
+            // MessagesManager.RevokeIdentifiers();
             Log.Info($"Peer {peer.PeerEndPoint} disconnected.");
         }
 
@@ -247,10 +250,27 @@ namespace Simulator.Network.Client
             foreach (var masterEndPoint in masterEndPoints)
             {
                 //Check if client is already connected
-                if (ConnectionManager.ConnectedPeersCount > 0)
+                if (MasterPeer != null)
                     return;
                 if (!localEndPoints.Contains(masterEndPoint))
                     ConnectionManager.Connect(masterEndPoint, identifier);
+            }
+
+            StartCoroutine(CheckInitialTimeout());
+        }
+
+        /// <summary>
+        /// Coroutine checking if this client connected to a master after timeout time
+        /// </summary>
+        /// <returns></returns>
+        private IEnumerator CheckInitialTimeout()
+        {
+            yield return new WaitForSecondsRealtime(settings.Timeout/1000.0f);
+            if (MasterPeer == null)
+            {
+                Log.Error(
+                    $"{GetType().Name} could not establish the connection to the master. This client ip addresses: '{Loader.Instance.Network.LocalAddresses}', master ip addresses: '{Loader.Instance.Network.MasterAddresses}'.");
+                Loader.StopAsync();
             }
         }
 
@@ -318,7 +338,7 @@ namespace Simulator.Network.Client
         /// <param name="ping">Ping command</param>
         private void OnPingCommand(Commands.Ping ping)
         {
-            var pongData = PacketsProcessor.Write(new Commands.Pong() { Id = ping.Id});
+            var pongData = PacketsProcessor.Write(new Commands.Pong() {Id = ping.Id});
             var message = MessagesPool.Instance.GetMessage(pongData.Length);
             message.AddressKey = Key;
             message.Content.PushBytes(pongData);

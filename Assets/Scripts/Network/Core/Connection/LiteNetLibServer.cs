@@ -45,7 +45,7 @@ namespace Simulator.Network.Core.Connection
         public int Port { get; private set; }
 
         /// <inheritdoc/>
-        public int Timeout => 30000;
+        public int Timeout { get; private set; }
 
         /// <inheritdoc/>
         public int ConnectedPeersCount => peers.Count;
@@ -63,12 +63,13 @@ namespace Simulator.Network.Core.Connection
         public event Action<DistributedMessage> MessageReceived;
 
         /// <inheritdoc/>
-        public bool Start(int port)
+        public bool Start(int port, int timeout)
         {
             Port = port;
+            Timeout = timeout;
             NetDebug.Logger = this;
             netServer = new NetManager(this)
-                {BroadcastReceiveEnabled = false, UpdateTime = 5, DisconnectTimeout = Timeout};
+                {BroadcastReceiveEnabled = false, UpdateTime = 5, DisconnectTimeout = timeout};
             var result = netServer.Start(port);
             if (result)
                 Log.Info($"{GetType().Name} started using the port '{port}'.");
@@ -110,8 +111,21 @@ namespace Simulator.Network.Core.Connection
         /// <inheritdoc/>
         public void Broadcast(DistributedMessage distributedMessage)
         {
-            foreach (var peer in peers)
-                peer.Value.Send(distributedMessage);
+            if (netServer != null)
+            {
+                var bytesStack = distributedMessage.Content;
+                try
+                {
+                    NetworkStatistics.ReportSentPackage(bytesStack.Count);
+                    netServer.SendToAll(bytesStack.RawData, 0, bytesStack.Count,
+                        LiteNetLibPeerManager.GetDeliveryMethod(distributedMessage.Type));
+                }
+                catch (TooBigPacketException)
+                {
+                    Log.Error($"Too large message to be sent: {bytesStack.Count}.");
+                }
+            }
+
             distributedMessage.Release();
         }
 

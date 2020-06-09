@@ -34,7 +34,20 @@ namespace Simulator.Api.Commands
                 return;
             }
 
-            var controllable = controlManager.SpawnControllable(prefab.gameObject, position, Quaternion.Euler(rotation), velocity, angular_velocity);
+            string uid;
+            var argsUid = args["uid"];
+            if (argsUid == null)
+            {
+                uid = System.Guid.NewGuid().ToString();
+                // Add uid key to arguments, as it will be distributed to the clients' simulations
+                if (Loader.Instance.Network.IsMaster)
+                    args.Add("uid", uid);
+            }
+            else
+                uid = argsUid.Value;
+
+            var controllable = controlManager.SpawnControllable(prefab.gameObject, uid, position,
+                Quaternion.Euler(rotation), velocity, angular_velocity);
             if (controllable == null)
             {
                 api.SendError(this, $"Failed to spawn '{name}' controllable");

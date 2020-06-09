@@ -303,7 +303,7 @@ namespace Simulator.Bridge.Cyber
                 {
                     sequence_num = data.Sequence,
                     frame_id = data.Frame,
-                    timestamp_sec = measurement_time,
+                    timestamp_sec = data.Time,
                 },
                 measurement_time = measurement_time,
                 sol_status = apollo.drivers.gnss.SolutionStatus.SolComputed,

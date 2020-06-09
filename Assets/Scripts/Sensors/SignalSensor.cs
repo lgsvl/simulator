@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -67,6 +67,13 @@ namespace Simulator.Sensors
             }
 
             Visualized = DetectedSignals.Keys.ToArray();
+        }
+
+        private void FixedUpdate()
+        {
+            // Detected is updated OnTriggerStay.
+            // So we clear it in FixedUpdate() which happens before OnTriggerStay.
+            // Details of excution order can be found at: https://docs.unity3d.com/Manual/ExecutionOrder.html
             DetectedSignals.Clear();
         }
 

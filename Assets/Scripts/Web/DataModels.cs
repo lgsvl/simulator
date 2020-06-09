@@ -9,34 +9,52 @@ using System;
 using System.Collections.Generic;
 
 namespace Simulator.Web
-{    
-    public class MapData
+{
+    [AttributeUsage(AttributeTargets.Class)]
+    public class CloudData : Attribute
+    {
+        public string ApiPath { get; set; }
+    }
+
+    public class CloudIdData
     {
         public string Id { get; set; }
         public string Name { get; set; }
-        public string AssetGuid { get; set; }
         public string OwnerId { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
 
-    public class MapDetailData: MapData
+    public class CloudAssetDetails: CloudIdData
     {
+        public string AssetGuid { get; set; }
         public bool IsShared { get; set; }
         public bool IsFavored { get; set; }
         public bool IsOwned { get; set; }
         public string Description { get; set; }
         public string ImageUrl { get; set; }
-        public string SupportedPlatforms { get; set; }
         public string Version { get; set; }
         public string LicenseName { get; set; }
         public string AuthorName { get; set; }
         public string AuthorUrl { get; set; }
         public string Copyright { get; set; }
-        public string Hdmaps { get; set; }
-        public string AccessType { get; set; }
+        public string AccessType { get; set; } // "e.g. "public"
         public TagData[] Tags { get; set; }
-        public OwnerData Owner { get; set; }
+        public UserData Owner { get; set; }
+        public UserData[] FavoredBy {get; set; }
+        public UserData[] SharedWith {get; set; }
+    }
+
+    public class MapData: CloudIdData
+    {
+        public string AssetGuid { get; set; }
+    }
+
+    [CloudData(ApiPath = "api/v1/maps")]
+    public class MapDetailData: CloudAssetDetails
+    {
+        public string SupportedPlatforms { get; set; }
+        public string Hdmaps { get; set; }
     }
 
     public class TagData
@@ -44,7 +62,7 @@ namespace Simulator.Web
         public string Name;
     }
 
-    public class OwnerData
+    public class UserData
     {
         public string id {get; set; }
         public string email {get; set; }
@@ -52,37 +70,27 @@ namespace Simulator.Web
         public string lastName {get; set; }
     }
 
-    public class VehicleData
+    public class VehicleData: CloudIdData
     {
-        public string Id { get; set; }
-        public string OwnerId { get; set; }
-        public string Name { get; set; }
         public string AssetGuid { get; set; }
         public SensorData[] Sensors { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
         public BridgeData bridge { get; set; }
     }
 
-    public class VehicleDetailData: VehicleData
+    [CloudData(ApiPath = "api/v1/vehicles")]
+    public class VehicleDetailData: CloudAssetDetails
     {
-        public bool IsShared { get; set; }
-        public bool IsFavored { get; set; }
-        public bool IsOwned { get; set; }
-        public string Description { get; set; }
-        public string ImageUrl { get; set; }
-        public string Version { get; set; }
-        public string LicenseName { get; set; }
-        public string AuthorName { get; set; }
-        public string AuthorUrl { get; set; }
-        public string Copyright { get; set; }
+        public SensorData[] Sensors { get; set; }
+        public BridgeData bridge { get; set; }
         public string fmu { get; set; }
-        public string AccessType { get; set; }
         public string BridgePluginId { get; set; }
-        public TagData[] Tags { get; set; }
-        public OwnerData Owner { get; set; }
-        public string[] favoredBy {get; set; }
-        public string[] sharedWith {get; set; }
+    }
+
+    [CloudData(ApiPath = "api/v1/plugins")]
+    public class PluginDetailData: CloudAssetDetails
+    {
+        public string Category { get; set; } // e.g. "sensor"
+        public string Type { get; set; } // e.g. "Comfort"
     }
 
     public class BridgeData
@@ -92,22 +100,24 @@ namespace Simulator.Web
         public string type { get; set; }
         public string connectionString { get; set; }
     }
-    
-    public class ClusterData
+
+    public class ClusterData: CloudIdData
     {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public string OwnerId { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
         public InstanceData[] Instances { get; set; }
     }
 
     public class InstanceData
     {
-        public string SimId;
-        public string[] Ip;
-        public bool IsMaster;
+        public string Id { get; set; }
+        public string HostName { get; set; }
+        public string SimId { get; set; }
+        public string MacAddress { get; set; }
+        public string Platform { get; set; } //e.g. "Unix 4.15.0.96"
+        public string[] Ip { get; set; }
+        public string Version { get; set; } // e.g. "2020.05",
+        public bool IsMaster { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public string Status { get; set; } // e.g. "online"
     }
 
     public class SensorData
@@ -129,12 +139,9 @@ namespace Simulator.Web
         public float yaw;
         public float roll;
     }
-    
-    public class SimulationData
+
+    public class SimulationData: CloudIdData
     {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public string OwnerId { get; set; }
         public bool ApiOnly { get; set; }
         public bool Interactive { get; set; }
         public bool Headless { get; set; }
@@ -148,10 +155,14 @@ namespace Simulator.Web
         public bool UseTraffic { get; set; }
         public bool UseBicyclists { get; set; }
         public bool UsePedestrians { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
         public MapData Map { get; set; }
         public VehicleData[] Vehicles { get; set; }
         public ClusterData Cluster { get; set; }
+    }
+
+    public class LibraryList<DetailData>
+    {
+        public int Count {get; set; }
+        public DetailData[] rows {get; set;}
     }
 }

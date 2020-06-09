@@ -11,10 +11,9 @@ namespace Simulator.Database.Services
 {
     public interface IAssetService
     {
-        AssetModel Get(string guid);
-        AssetModel Get(long id);
-        long Add(AssetModel asset);
+        AssetModel Get(string assetGuid);
+        void Add(AssetModel asset);
         int Update(AssetModel asset);
-        int Delete(long id);
+        int Delete(string assetGuid);
     }
 }

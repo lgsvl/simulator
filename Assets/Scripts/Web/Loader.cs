@@ -9,7 +9,6 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
-using System.Net.Sockets;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Simulator.Database;
@@ -18,11 +17,8 @@ using Simulator.Web;
 using Simulator.Utilities;
 using Simulator.Bridge;
 using System.Text;
-using System.Security.Cryptography;
 using System.Linq;
 using ICSharpCode.SharpZipLib.Zip;
-using YamlDotNet.Serialization;
-using System.Net.Http;
 using SimpleJSON;
 using Simulator.Network.Shared;
 using Simulator.Network.Client;
@@ -41,7 +37,7 @@ namespace Simulator
     {
         public string Name;
         public uint GTID;
-        public string Url;
+        public string AssetGuid;
         public string AssetBundle;
         [NonSerialized]
         public GameObject Prefab;
@@ -58,7 +54,7 @@ namespace Simulator
     {
         public string Name;
         public string MapName;
-        public string MapUrl;
+        public string MapAssetGuid;
         public string[] Clusters;
         public string ClusterName;
         public bool ApiOnly;
@@ -97,7 +93,6 @@ namespace Simulator
         // Loader object is never destroyed, even between scene reloads
         public static Loader Instance { get; private set; }
         private System.Diagnostics.Stopwatch stopWatch = new System.Diagnostics.Stopwatch();
-        public static int CompletedDownloads;
 
         public bool EditorLoader { get; set; } = false;
 
@@ -183,69 +178,6 @@ namespace Simulator
 #endif
         }
 
-        void SimDownloads(List<MapModel> mapDownloads, List<VehicleModel> vehicleDownloads)
-        {
-            AssetService assetService = new AssetService();
-            ConnectionUI.instance.SetLinkingButtonActive(false);
-            using (var db = DatabaseManager.Open())
-            {
-                foreach (var map in mapDownloads)
-                {
-                    Uri uri = new Uri(Config.CloudUrl + "/api/v1/assets/download/bundle/" + map.AssetGuid);
-                    DownloadManager.AddDownloadToQueue(
-                        uri,
-                        map.LocalPath,
-                        progress =>
-                        {
-                            ConnectionUI.instance.UpdateDownloadProgress(map.Name, progress);
-                            Debug.Log($"Map Download at {progress}%");
-                        },
-                        (success, ex) =>
-                        {
-                            if (success)
-                            {
-                                CompletedDownloads++;
-                                assetService.Add(new AssetModel()
-                                {
-                                    Type = "Map",
-                                    Guid = map.AssetGuid
-                                });
-                                Debug.Log("Map Download Complete");
-                            }
-                        }
-                    );
-                }
-
-                foreach (var vehicle in vehicleDownloads)
-                {
-                    Uri uri = new Uri(Config.CloudUrl + "/api/v1/assets/download/bundle/" + vehicle.AssetGuid);
-                    DownloadManager.AddDownloadToQueue(
-                        uri,
-                        vehicle.LocalPath,
-                        progress =>
-                        {
-                            ConnectionUI.instance.UpdateDownloadProgress(vehicle.Name, progress);
-                            Debug.Log($"Vehicle Download at {progress}%");
-                        },
-                        (success, ex) =>
-                        {
-                            if (success)
-                            {
-                                CompletedDownloads++;
-                                assetService.Add(new AssetModel()
-                                {
-                                    Type = "Vehicle",
-                                    Guid = vehicle.AssetGuid
-                                });
-                                Debug.Log("Vehicle Download Complete");
-                            }
-                        }
-                    );
-                }
-                var added = new HashSet<Uri>();
-            }
-        }
-
         void OnApplicationQuit()
         {
             stopWatch.Stop();
@@ -266,78 +198,6 @@ namespace Simulator
             MapService mapService = new MapService();
             VehicleService vehicleService = new VehicleService();
             AssetService assetService = new AssetService();
-
-            List<MapModel> mapModels = new List<MapModel>();
-            List<VehicleModel> vehicleModels = new List<VehicleModel>();
-            
-            CompletedDownloads = 0;
-
-            if(assetService.Get(simData.Map.AssetGuid) == null)
-            {
-                MapModel map = new MapModel()
-                {
-                    Name = simData.Map.Name,
-                    Url = Config.CloudUrl + "/api/v1/assets/download/bundle/" + simData.Map.AssetGuid,
-                    AssetGuid = simData.Map.AssetGuid,
-                    LocalPath = WebUtilities.GenerateLocalPath("Maps")
-                };
-                mapService.Add(map);
-                mapModels.Add(map);
-            }
-
-            List<ConnectionModel> connections = new List<ConnectionModel>();
-
-            foreach (var vehicle in simData.Vehicles)
-            {
-                if (assetService.Get(vehicle.AssetGuid) == null)
-                {
-                    VehicleModel vehicleModel = new VehicleModel()
-                    {
-                        Name = vehicle.Name,
-                        Url = Config.CloudUrl + "/api/v1/assets/download/bundle/" + vehicle.AssetGuid,
-                        Sensors = Newtonsoft.Json.JsonConvert.SerializeObject(vehicle.Sensors),
-                        AssetGuid = vehicle.AssetGuid,
-                        LocalPath = WebUtilities.GenerateLocalPath("Vehicles"),
-                        BridgeType = vehicle.bridge?.type,
-                    };
-                    vehicleService.Add(vehicleModel);
-                    vehicleModels.Add(vehicleModel);
-                }
-                else
-                {
-                    VehicleModel model = vehicleService.Get(vehicle.AssetGuid);
-                    model.Sensors = Newtonsoft.Json.JsonConvert.SerializeObject(vehicle.Sensors);
-                    model.BridgeType = vehicle.bridge != null ? vehicle.bridge.type : null;
-                    vehicleService.Update(model);
-                }
-                connections.Add(new ConnectionModel()
-                {
-                    Connection = vehicle.bridge?.connectionString,
-                    Vehicle = vehicleService.Get(vehicle.AssetGuid).Id,
-                    Simulation = 1,
-                });
-            }
-
-            Instance.SimDownloads(mapModels, vehicleModels);
-
-            Debug.Log("All Downloads Complete");
-            long id;
-            using(var db = DatabaseManager.Open())
-            {
-                id = (long)db.Insert(new ClusterModel()
-                {
-                    Name = simData.Cluster.Name,
-                    Ips = "127.0.0.1",
-                    Owner = "",
-                    Status = ""
-                });
-            }
-
-            while (CompletedDownloads < mapModels.Count + vehicleModels.Count)
-            {
-                await Task.Delay(1000);
-            }
-
             var simulationModel = new SimulationModel()
             {
                 Id = 1,
@@ -345,9 +205,6 @@ namespace Simulator
                 Name = simData.Name,
                 Status = "Valid",
                 Owner = "",
-                Cluster = id,
-                Map = mapService.Get(simData.Map.AssetGuid).Id,
-                Vehicles = connections.ToArray(),
                 ApiOnly = simData.ApiOnly,
                 Interactive = simData.Interactive,
                 Headless = simData.Headless,
@@ -363,6 +220,71 @@ namespace Simulator
                 UseTraffic = simData.UseTraffic,
                 Error = "",
             };
+
+            var downloads = new List<Task>();
+
+            if(simulationModel.ApiOnly == false)
+            {
+                if (assetService.Get(simData.Map.AssetGuid) == null)
+                {
+                    MapModel map = new MapModel()
+                    {
+                        Name = simData.Map.Name,
+                        AssetGuid = simData.Map.AssetGuid,
+                        LocalPath = WebUtilities.GenerateLocalPath(simData.Map.AssetGuid, BundleConfig.BundleTypes.Environment),
+                    };
+                    simulationModel.Map = mapService.Add(map);
+                    downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, map.AssetGuid));
+                }
+
+                List<ConnectionModel> connections = new List<ConnectionModel>();
+
+                foreach (var vehicle in simData.Vehicles)
+                {
+                    if (assetService.Get(vehicle.AssetGuid) == null)
+                    {
+                        VehicleModel vehicleModel = new VehicleModel()
+                        {
+                            Name = vehicle.Name,
+                            Sensors = Newtonsoft.Json.JsonConvert.SerializeObject(vehicle.Sensors),
+                            AssetGuid = vehicle.AssetGuid,
+                            LocalPath = WebUtilities.GenerateLocalPath(vehicle.AssetGuid, BundleConfig.BundleTypes.Vehicle),
+                            BridgeType = vehicle.bridge?.type,
+                        };
+                        vehicleService.Add(vehicleModel);
+                        downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicle.AssetGuid));
+                    }
+                    else
+                    {
+                        VehicleModel model = vehicleService.Get(vehicle.AssetGuid);
+                        model.Sensors = Newtonsoft.Json.JsonConvert.SerializeObject(vehicle.Sensors);
+                        model.BridgeType = vehicle.bridge != null ? vehicle.bridge.type : null;
+                        vehicleService.Update(model);
+                    }
+                    connections.Add(new ConnectionModel()
+                    {
+                        Connection = vehicle.bridge?.connectionString,
+                        Vehicle = vehicleService.Get(vehicle.AssetGuid).Id,
+                        Simulation = 1,
+                    });
+                }
+                simulationModel.Vehicles = connections.ToArray();
+            }
+
+            ConnectionUI.instance.SetLinkingButtonActive(false);
+            await Task.WhenAll(downloads);
+
+            Debug.Log("All Downloads Complete");
+            using(var db = DatabaseManager.Open())
+            {
+                simulationModel.Cluster = (long)db.Insert(new ClusterModel()
+                {
+                    Name = simData.Cluster.Name,
+                    Ips = "127.0.0.1",
+                    Owner = "",
+                    Status = ""
+                });
+            }
 
             if (!Instance.Network.IsClusterSimulation)
                 StartAsync(simulationModel);
@@ -423,7 +345,7 @@ namespace Simulator
                                 {
                                     Name = vehicle.Name,
                                     Connection = v.Connection,
-                                    Url = vehicle.Url,
+                                    AssetGuid = vehicle.AssetGuid,
                                     AssetBundle = vehicle.LocalPath,
                                     Sensors = vehicle.Sensors,
                                 };
@@ -534,7 +456,7 @@ namespace Simulator
 
                                 var sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
                                 Instance.SimConfig.MapName = sceneName;
-                                Instance.SimConfig.MapUrl = Path.Combine("http://wise.dev.lgsvlsimulator.com/api/v1/assets/download/bundle", mapModel.AssetGuid);
+                                Instance.SimConfig.MapAssetGuid = mapModel.AssetGuid;
 
                                 var loader = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
                                 loader.completed += op =>

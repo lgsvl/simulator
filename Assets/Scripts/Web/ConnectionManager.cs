@@ -15,6 +15,7 @@ using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 using UnityEngine;
 
 public class ConnectionManager : MonoBehaviour
@@ -322,9 +323,52 @@ public class ConnectionManager : MonoBehaviour
         }
     }
 
-    public async Task<MapDetailData> GetMapDetailData(string mapId)
+    public Task<DetailData> Get<DetailData>(string cloudId) where DetailData: CloudAssetDetails
     {
-        HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Get, Config.CloudUrl + "/api/v1/maps/" + mapId);
+        var meta = (CloudData) Attribute.GetCustomAttribute(typeof(DetailData), typeof (CloudData));
+        return GetApi<DetailData>($"{meta.ApiPath}/{cloudId}");
+    }
+
+    public async Task<DetailData[]> GetLibrary<DetailData>() where DetailData: CloudAssetDetails
+    {
+        var meta = (CloudData) Attribute.GetCustomAttribute(typeof(DetailData), typeof (CloudData));
+        var result = await GetApi<LibraryList<DetailData>>($"{meta.ApiPath}?display=fav");
+        return result.rows;
+    }
+
+    public async Task<DetailData> GetByIdOrName<DetailData>(string cloudIdOrName) where DetailData: CloudAssetDetails
+
+    {
+        var meta = (CloudData) Attribute.GetCustomAttribute(typeof(DetailData), typeof (CloudData));
+        Guid guid;
+        if (Guid.TryParse(cloudIdOrName, out guid)) 
+        {
+            try
+            {   
+                return await GetApi<DetailData>($"{meta.ApiPath}/{guid.ToString()}");
+            }
+            catch(Exception e)
+            {
+                throw new Exception($"Could not find asset with Id {guid} ({e.Message})");
+            }
+        }
+        var library = await GetLibrary<DetailData>();
+
+        var matches = library.Where(m => m.Name == cloudIdOrName).ToList();
+        if (matches.Count > 1)
+        {
+            throw new Exception($"multiple assets matching name '{cloudIdOrName}' in your library, please use Id");
+        }
+        if (matches.Count == 0)
+        {
+            throw new Exception($"no assets matching name '{cloudIdOrName}' in your library");
+        }
+        return matches[0];
+    }
+
+    public async Task<ApiModelType> GetApi<ApiModelType>(string routeAndParams) 
+    {
+        HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Get, $"{Config.CloudUrl}/{routeAndParams}");
         message.Headers.Add("SimID", Config.SimID);
         message.Headers.Add("Accept", "application/json");
         response = await client.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, requestTokenSource.Token).ConfigureAwait(false);
@@ -335,29 +379,10 @@ public class ConnectionManager : MonoBehaviour
         using (var stream = await response.Content.ReadAsStreamAsync())
         using (var reader = new StreamReader(stream))
         {
-            var data = await reader.ReadToEndAsync();
-            return Newtonsoft.Json.JsonConvert.DeserializeObject<MapDetailData>(data);
+            var jsonString = await reader.ReadToEndAsync();
+            return Newtonsoft.Json.JsonConvert.DeserializeObject<ApiModelType>(jsonString);
         }
     }
-
-    public async Task<VehicleDetailData> GetVehicleDetailData(string vehicleId)
-    {
-        HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Get, Config.CloudUrl + "/api/v1/vehicles/" + vehicleId);
-        message.Headers.Add("SimID", Config.SimID);
-        message.Headers.Add("Accept", "application/json");
-        response = await client.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, requestTokenSource.Token).ConfigureAwait(false);
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new Exception(response.StatusCode.ToString());
-        }
-        using (var stream = await response.Content.ReadAsStreamAsync())
-        using (var reader = new StreamReader(stream))
-        {
-            var data = await reader.ReadToEndAsync();
-            return Newtonsoft.Json.JsonConvert.DeserializeObject<VehicleDetailData>(data);
-        }
-    }
-
 }
 
 public struct SimulatorInfo

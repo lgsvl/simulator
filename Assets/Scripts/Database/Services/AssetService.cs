@@ -12,29 +12,20 @@ namespace Simulator.Database.Services
 {
     public class AssetService : IAssetService
     {
-        public AssetModel Get(string guid)
+        public AssetModel Get(string assetGuid)
         {
             using (var db = DatabaseManager.Open())
             {
-                var sql = Sql.Builder.Where("guid = @0", guid);
+                var sql = Sql.Builder.Where("assetGuid = @0", assetGuid);
                 return db.SingleOrDefault<AssetModel>(sql);
             }
         }
 
-        public AssetModel Get(long id)
+        public void Add(AssetModel asset)
         {
             using (var db = DatabaseManager.Open())
             {
-                var sql = Sql.Builder.Where("id = @0", id);
-                return db.Single<AssetModel>(sql);
-            }
-        }
-
-        public long Add(AssetModel asset)
-        {
-            using (var db = DatabaseManager.Open())
-            {
-                return (long)db.Insert(asset);
+                db.Insert(asset);
             }
         }
 
@@ -46,13 +37,23 @@ namespace Simulator.Database.Services
             }
         }
 
-        public int Delete(long id)
+        public int Delete(string assetGuid)
         {
             using (var db = DatabaseManager.Open())
             {
-                var sql = Sql.Builder.Where("id = @0", id);
+                var sql = Sql.Builder.Where("assetGuid = @0", assetGuid);
                 return db.Delete<AssetModel>(sql);
             }
         }
+
+        public IEnumerable<AssetModel> List(BundleConfig.BundleTypes type)
+        {
+            using (var db = DatabaseManager.Open())
+            {
+                var sql = Sql.Builder.Where("type = @0", type);
+                return db.Query<AssetModel>(sql);
+            }
+        }
+
     }
 }

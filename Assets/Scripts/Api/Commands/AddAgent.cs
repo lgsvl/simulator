@@ -7,7 +7,7 @@
 
 using System.Text;
 using System.Linq;
-using PetaPoco;
+using System;
 using SimpleJSON;
 using UnityEngine;
 using Simulator.Sensors;
@@ -30,9 +30,9 @@ namespace Simulator.Api.Commands
     {
         public string Name => "simulator/add_agent";
 
-        public void Execute(JSONNode args)
+        public async void Execute(JSONNode args)
         {
-            var sim = Object.FindObjectOfType<SimulatorManager>();
+            var sim = UnityEngine.Object.FindObjectOfType<SimulatorManager>();
             var api = ApiManager.Instance;
 
             if (sim == null)
@@ -59,71 +59,62 @@ namespace Simulator.Api.Commands
             }
             else
                 uid = argsUid.Value;
-            
+
             if (type == (int)AgentType.Ego)
             {
                 var agents = SimulatorManager.Instance.AgentManager;
                 GameObject agentGO = null;
 
-                using (var db = DatabaseManager.Open())
+                VehicleDetailData vehicleData;
+                try
                 {
-                    var sql = Sql.Builder.From("vehicles").Where("name = @0", name);
-                    var vehicle = db.FirstOrDefault<VehicleModel>(sql);
-                    if (vehicle == null)
+                    vehicleData = await ConnectionManager.instance.GetByIdOrName<VehicleDetailData>(name);
+                }
+                catch (Exception e)
+                {
+                    api.SendError(this, e.Message);
+                    return;
+                }
+
+                var assetModel = await DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicleData.AssetGuid, vehicleData.Name);
+
+                var prefab = AquirePrefab(vehicleData, assetModel);
+                if (prefab == null)
+                {
+                    api.SendError(this, $"failed to acquire ego prefab");
+                    return;
+                }
+
+                var config = new AgentConfig()
+                {
+                    AssetGuid = vehicleData.AssetGuid,
+                    Name = vehicleData.Name,
+                    Prefab = prefab,
+                    Sensors = Newtonsoft.Json.JsonConvert.SerializeObject(vehicleData.Sensors),
+                };
+
+                if (vehicleData.bridge != null)
+                {
+                    config.Bridge = Web.Config.Bridges.Find(bridge => bridge.Name == vehicleData.bridge.type);
+                    if (config.Bridge == null)
                     {
-                        var url = args["url"];
-                        //Disable using url on master simulation
-                        if (Loader.Instance.Network.IsMaster || string.IsNullOrEmpty(url))
-                        {
-                            api.SendError(this, $"Vehicle '{name}' is not available");
-                            return;
-                        }
-                        
-                        DownloadVehicleFromUrl(args, name, url);
+                        api.SendError(this, $"Bridge '{vehicleData.bridge.type}' not available");
                         return;
                     }
-                    else
-                    {
-                        var prefab = AquirePrefab(vehicle);
-                        if (prefab == null)
-                        {
-                            return;
-                        }
-
-                        var config = new AgentConfig()
-                        {
-                            Name = vehicle.Name,
-                            Prefab = prefab,
-                            Sensors = vehicle.Sensors,
-                        };
-
-                        if (!string.IsNullOrEmpty(vehicle.BridgeType))
-                        {
-                            config.Bridge = Web.Config.Bridges.Find(bridge => bridge.Name == vehicle.BridgeType);
-                            if (config.Bridge == null)
-                            {
-                                api.SendError(this, $"Bridge '{vehicle.BridgeType}' not available");
-                                return;
-                            }
-                        }
-
-                        agentGO = agents.SpawnAgent(config);
-                        agentGO.transform.position = position;
-                        agentGO.transform.rotation = Quaternion.Euler(rotation);
-
-                        if (agents.ActiveAgents.Count == 1)
-                        {
-                            agents.SetCurrentActiveAgent(agentGO);
-                        }
-
-                        var rb = agentGO.GetComponent<Rigidbody>();
-                        rb.velocity = velocity;
-                        rb.angularVelocity = angular_velocity;
-                        // Add url key to arguments, as it will be distributed to the clients' simulations
-                        if (Loader.Instance.Network.IsMaster)
-                            args.Add("url", vehicle.Url);
-                    }
                 }
+
+                agentGO = agents.SpawnAgent(config);
+                agentGO.transform.position = position;
+                agentGO.transform.rotation = Quaternion.Euler(rotation);
+
+                if (agents.ActiveAgents.Count == 1)
+                {
+                    agents.SetCurrentActiveAgent(agentGO);
+                }
+
+                var rb = agentGO.GetComponent<Rigidbody>();
+                rb.velocity = velocity;
+                rb.angularVelocity = angular_velocity;
 
                 Debug.Assert(agentGO != null);
                 api.Agents.Add(uid, agentGO);
@@ -227,39 +218,7 @@ namespace Simulator.Api.Commands
             }
         }
 
-        private void DownloadVehicleFromUrl(JSONNode args, string name, string url)
-        {
-            //Remove url from args, so download won't be retried
-            args.Remove("url");
-            var localPath = WebUtilities.GenerateLocalPath("Vehicles");
-            DownloadManager.AddDownloadToQueue(new System.Uri(url), localPath, null,
-                (success, ex) =>
-                {
-                    if (success)
-                    {
-                        var vehicleModel = new VehicleModel()
-                        {
-                            Name = name,
-                            Url = url,
-                            BridgeType = args["bridge_type"],
-                            LocalPath = localPath,
-                            Sensors = null
-                        };
-                        using (var db = DatabaseManager.Open())
-                        {
-                            db.Insert(vehicleModel);
-                        }
-                        Execute(args);
-                    }
-                    else
-                    {
-                        Debug.LogError($"Vehicle '{name}' is not available. Error occured while downloading from url: {ex}.");
-                        ApiManager.Instance.SendError(this, $"Vehicle '{name}' is not available");
-                    }
-                });
-        }
-
-        public GameObject AquirePrefab(VehicleModel vehicle)
+        public GameObject AquirePrefab(VehicleDetailData vehicle, AssetModel asset)
         {
             if (ApiManager.Instance.CachedVehicles.ContainsKey(vehicle.Name))
             {
@@ -267,7 +226,7 @@ namespace Simulator.Api.Commands
             }
             else
             {
-                var bundlePath = vehicle.LocalPath;
+                var bundlePath = asset.LocalPath;
                 using (ZipFile zip = new ZipFile(bundlePath))
                 {
                     Manifest manifest;
@@ -300,7 +259,7 @@ namespace Simulator.Api.Commands
 
                     if (vehicleBundle == null)
                     {
-                        ApiManager.Instance.SendError(this, $"Failed to load vehicle from '{bundlePath}' asset bundle");
+                        ApiManager.Instance.SendError(this, $"Failed to load vehicle {vehicle.Name} from '{bundlePath}' asset bundle");
                         return null;
                     }
 

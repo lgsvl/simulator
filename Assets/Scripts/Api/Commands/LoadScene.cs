@@ -8,17 +8,15 @@
 using System.Collections;
 using System.Text;
 using System.IO;
+using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using PetaPoco;
 using SimpleJSON;
 using ICSharpCode.SharpZipLib.Zip;
-using YamlDotNet.Serialization;
-using Simulator.Network.Core.Identification;
+using System.Threading.Tasks;
 
 namespace Simulator.Api.Commands
 {
-    using System;
     using Database;
     using Web;
 
@@ -26,44 +24,36 @@ namespace Simulator.Api.Commands
     {
         public string Name => "simulator/load_scene";
 
-        private void LoadMap(JSONNode args, string name, int? seed = null)
+        private async Task LoadMap(JSONNode args, string mapId, int? seed = null)
         {
             var api = ApiManager.Instance;
+            MapDetailData mapData;
+            try
+            {
+                mapData = await ConnectionManager.instance.GetByIdOrName<MapDetailData>(mapId);
+            }
+            catch(Exception e)
+            {
+                api.SendError(this, e.Message);
+                return;
+            }
+
             //Lock executing other API commands while map is being downloaded
             api.ActionsSemaphore.Lock();
-            using (var db = Database.DatabaseManager.Open())
             {
-                var sql = Sql.Builder.From("maps").Where("name = @0", name);
-                var map = db.FirstOrDefault<Database.MapModel>(sql);
-                if (map == null)
-                {
-                    var url = args["url"].Value;
-                    //Disable using url on master simulation
-                    if (Loader.Instance.Network.IsMaster || string.IsNullOrEmpty(url))
-                    {
-                        api.SendError(this, $"Environment '{name}' is not available");
-                        return;
-                    }
-
-                    DownloadMapFromUrl(this, args, name, seed, url);
-                    return;
-                }
-                // Add uid key to arguments, as it will be distributed to the clients' simulations
-                if (Loader.Instance.Network.IsMaster)
-                    args.Add("url", "");
-
-                api.StartCoroutine(LoadMapAssets(this, map, name, seed));
+                var ret = await DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, mapData.AssetGuid, mapData.Name);
+                api.StartCoroutine(LoadMapAssets(this, mapData, ret.LocalPath, seed));
             }
         }
 
-        static IEnumerator LoadMapAssets(LoadScene sourceCommand, MapModel map, string name, int? seed = null)
+        static IEnumerator LoadMapAssets(LoadScene sourceCommand, MapDetailData map, string localPath, int? seed = null)
         {
             var api = ApiManager.Instance;
 
             AssetBundle textureBundle = null;
             AssetBundle mapBundle = null;
 
-            ZipFile zip = new ZipFile(map.LocalPath);
+            ZipFile zip = new ZipFile(localPath);
             try
             {
                 Manifest manifest;
@@ -123,8 +113,8 @@ namespace Simulator.Api.Commands
                 if (Loader.Instance.SimConfig != null)
                 {
                     Loader.Instance.SimConfig.Seed = seed;
-                    Loader.Instance.SimConfig.MapName = name;
-                    Loader.Instance.SimConfig.MapUrl = map.AssetGuid;
+                    Loader.Instance.SimConfig.MapName = map.Name;
+                    Loader.Instance.SimConfig.MapAssetGuid = map.AssetGuid;
                 }
 
                 var sim = Loader.CreateSimulatorManager();
@@ -138,53 +128,22 @@ namespace Simulator.Api.Commands
             }
 
             api.Reset();
-            api.CurrentScene = name;
+            api.CurrentScene = map.Name;
             api.ActionsSemaphore.Unlock();
             api.SendResult(sourceCommand);
         }
 
-        private static void DownloadMapFromUrl(LoadScene sourceCommand, JSONNode args, string name, int? seed, string url)
-        {
-            //Remove url from args, so download won't be retried
-            args.Remove("url");
-            var localPath = WebUtilities.GenerateLocalPath("Maps");
-            DownloadManager.AddDownloadToQueue(new Uri(url), localPath, null, (success, ex) =>
-            {
-                if (success)
-                {
-                    var map = new MapModel()
-                    {
-                        LocalPath = localPath
-                    };
-
-                    using (var db = DatabaseManager.Open())
-                    {
-                        db.Insert(map);
-                    }
-
-                    ApiManager.Instance.StartCoroutine(LoadMapAssets(sourceCommand, map, name, seed));
-                }
-                else
-                {
-                    Debug.LogError(
-                        $"Vehicle '{name}' is not available. Error occured while downloading from url: {ex}.");
-                    ApiManager.Instance.SendError(sourceCommand, $"Vehicle '{name}' is not available");
-                    ApiManager.Instance.ActionsSemaphore.Unlock();
-                }
-            });
-        }
-
-        public void Execute(JSONNode args)
+        public async void Execute(JSONNode args)
         {
             var api = ApiManager.Instance;
-            var name = args["scene"].Value;
+            var mapId = args["scene"].Value;
             int? seed = null;
             if (!args["seed"].IsNull)
             {
                 seed = args["seed"].AsInt;
             }
 
-            LoadMap(args, name, seed);
+            await LoadMap(args, mapId, seed);
         }
     }
 }

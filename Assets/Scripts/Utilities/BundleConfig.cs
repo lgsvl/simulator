@@ -28,6 +28,7 @@ namespace Simulator
             [BundleTypes.NPC]         = 0,
         };
 
+        public static string singularOf(BundleTypes type) => Enum.GetName(typeof(BundleConfig.BundleTypes), type);
         public static string pluralOf(BundleTypes type) => Enum.GetName(typeof(BundleConfig.BundleTypes), type) + "s";
         public static string ExternalBase = Path.Combine("Assets", "External");
     }

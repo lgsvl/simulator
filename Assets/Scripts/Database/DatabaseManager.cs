@@ -190,23 +190,6 @@ namespace Simulator.Database
             db.Insert(conn);
         }
 
-        static long AddVehicle(IDatabase db, Utilities.BuildInfo info, Utilities.BuildItem item, string localPath, string sensors, string suffix = null, string bridge = null)
-        {
-            var url = $"https://{info.DownloadHost}/{item.Id}/vehicle_{item.Name}";
-            var vehicle = new VehicleModel()
-            {
-                Name = item.Name + (suffix == null ? string.Empty : suffix),
-                AssetGuid = "",
-                Url = url,
-                LocalPath = localPath,
-                BridgeType = bridge,
-                Sensors = sensors,
-            };
-            db.Insert(vehicle);
-
-            return vehicle.Id;
-        }
-
         public static bool TablesExist(string[] tableNames, SqliteConnection connection)
         {
             for (int i = 0; i < tableNames.Length; i++)

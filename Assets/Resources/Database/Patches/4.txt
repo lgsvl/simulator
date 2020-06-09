@@ -1,0 +1,46 @@
+PRAGMA foreign_keys = off;
+
+BEGIN TRANSACTION;
+DROP INDEX IF EXISTS vehicles_url_index;
+    
+CREATE TABLE vehicles_v4 (
+	id INTEGER PRIMARY KEY,
+	owner VARCHAR(512) DEFAULT NULL,
+	assetGuid VARCHAR(1024) DEFAULT NULL,
+	name VARCHAR(128) NOT NULL,
+	bridgeType VARCHAR(128) DEFAULT NULL,
+	previewUrl VARCHAR(1024),
+	localPath VARCHAR(1024),
+	sensors TEXT DEFAULT NULL,
+	status VARCHAR(64),
+	error VARCHAR(512) DEFAULT NULL,
+	FOREIGN KEY (owner) REFERENCES users(username)
+);
+INSERT INTO vehicles_v4 SELECT id, owner, assetGuid, name, bridgeType, previewUrl, localPath, sensors, status, error FROM vehicles;
+DROP TABLE vehicles;
+ALTER TABLE vehicles_v4 RENAME TO vehicles;
+
+CREATE TABLE maps_v4 (
+	id INTEGER PRIMARY KEY,
+	owner VARCHAR(512) DEFAULT NULL,
+	assetGuid VARCHAR(1024) DEFAULT NULL,
+	name VARCHAR(128) NOT NULL,
+	previewUrl VARCHAR(1024),
+	localPath VARCHAR(1024),
+	status VARCHAR(64),
+	error VARCHAR(512) DEFAULT NULL,
+	FOREIGN KEY (owner) REFERENCES users(username)
+);
+INSERT INTO maps_v4 SELECT id, owner, assetGuid, name, previewUrl, localPath, status, error FROM maps;
+DROP TABLE maps;
+ALTER TABLE maps_v4 RENAME TO maps;
+
+DROP TABLE IF EXISTS assets;
+CREATE TABLE assets (
+	assetGuid VARCHAR(512) NOT NULL PRIMARY KEY,
+	type VARCHAR(256) NOT NULL,
+	localPath VARCHAR(4096) NOT NULL
+);
+COMMIT;
+
+PRAGMA foreign_keys=on;

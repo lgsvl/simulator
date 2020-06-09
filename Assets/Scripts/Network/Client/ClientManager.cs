@@ -16,9 +16,7 @@ namespace Simulator.Network.Client
     using Core.Messaging.Data;
     using LiteNetLib.Utils;
     using Shared;
-
     using Simulator.Network.Core;
-
     using UnityEngine;
 
     /// <summary>

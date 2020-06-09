@@ -39,7 +39,6 @@ namespace Simulator.Database
         public string AssetGuid { get; set; }
         public string Status { get; set; }
         public string Owner { get; set; }
-        public string Url { get; set; }
         public string PreviewUrl { get; set; }
         public string LocalPath { get; set; }
         public string Error { get; set; }
@@ -54,7 +53,6 @@ namespace Simulator.Database
         public string AssetGuid { get; set; }
         public string Status { get; set; }
         public string Owner { get; set; }
-        public string Url { get; set; }
         public string BridgeType { get; set; }
         public string PreviewUrl { get; set; }
         public string LocalPath { get; set; }
@@ -113,11 +111,11 @@ namespace Simulator.Database
     }
 
     [TableName("assets")]
-    [PrimaryKey("Id", AutoIncrement = true)]
+    [PrimaryKey("AssetGuid", AutoIncrement = false)]
     public class AssetModel
     {
-        public long Id { get; set; }
+        public string AssetGuid { get; set; }
         public string Type { get; set; }
-        public string Guid { get; set; }
+        public string LocalPath { get; set; }
     }
 }

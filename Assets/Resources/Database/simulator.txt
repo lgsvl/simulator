@@ -29,7 +29,6 @@ CREATE TABLE maps (
 	owner VARCHAR(512) DEFAULT NULL,
 	assetGuid VARCHAR(1024) DEFAULT NULL,
 	name VARCHAR(128) NOT NULL,
-	url VARCHAR(1024) NOT NULL,
 	previewUrl VARCHAR(1024),
 	localPath VARCHAR(1024),
 	status VARCHAR(64),
@@ -47,7 +46,6 @@ CREATE TABLE vehicles (
 	owner VARCHAR(512) DEFAULT NULL,
 	assetGuid VARCHAR(1024) DEFAULT NULL,
 	name VARCHAR(128) NOT NULL,
-	url VARCHAR(1024) NOT NULL,
 	bridgeType VARCHAR(128) DEFAULT NULL,
 	previewUrl VARCHAR(1024),
 	localPath VARCHAR(1024),
@@ -61,7 +59,6 @@ CREATE TABLE vehicles (
 CREATE INDEX vehicles_name_index ON vehicles (name);
 CREATE INDEX vehicles_localpath_index ON vehicles (localpath);
 CREATE INDEX vehicles_owner_index ON vehicles (owner);
-CREATE INDEX vehicles_url_index ON vehicles (url);
 
 DROP TABLE IF EXISTS clusters;
 CREATE TABLE clusters (
@@ -126,9 +123,9 @@ CREATE INDEX connections_vehicle_index ON connections (vehicle);
 
 DROP TABLE IF EXISTS assets;
 CREATE TABLE assets (
-	id INTEGER PRIMARY KEY,
+	assetGuid VARCHAR(512) NOT NULL PRIMARY KEY,
 	type VARCHAR(256) NOT NULL,
-	guid VARCHAR(512) NOT NULL
+	localPath VARCHAR(4096) NOT NULL
 );
 
 PRAGMA user_version = 3;

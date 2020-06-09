@@ -410,7 +410,7 @@ namespace Simulator.Editor
             }
             public void RunBuild(string outputFolder)
             {
-                string Thing = Enum.GetName(typeof(BundleConfig.BundleTypes), bundleType);
+                string Thing = BundleConfig.singularOf(bundleType);
                 string Things = BundleConfig.pluralOf(bundleType);
                 string thing = Thing.ToLower();
 

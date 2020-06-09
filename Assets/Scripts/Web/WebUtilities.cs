@@ -12,15 +12,15 @@ namespace Simulator.Web
 {
     public class WebUtilities
     {
-        public static string GenerateLocalPath(string header)
+        public static string GenerateLocalPath(string assetGuid, BundleConfig.BundleTypes type)
         {
-            string directoryPath = Path.Combine(Config.PersistentDataPath, header);
+            string directoryPath = Path.Combine(Config.PersistentDataPath, BundleConfig.pluralOf(type));
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
             }
 
-            return Path.Combine(directoryPath, Guid.NewGuid().ToString());
+            return Path.Combine(directoryPath, assetGuid);
         }
     }
 }

@@ -12,7 +12,8 @@ using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using UnityEngine;
 using System.Linq;
-
+using Simulator.Database.Services;
+using Simulator.Database;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace Simulator.Web
@@ -84,6 +85,48 @@ namespace Simulator.Web
         public static void AddDownloadToQueue(Uri uri, string path, Action<int> update = null, Action<bool, Exception> completed = null)
         {
             downloads.Enqueue(new Download(uri, path, update, completed));
+        }
+
+        public static Task<AssetModel> GetAsset(BundleConfig.BundleTypes type, string assetGuid, string name = null)
+        {
+            var assetService = new AssetService();
+            var found = assetService.Get(assetGuid);
+            if(found != null) {
+                return Task.FromResult(found);
+            }
+
+            var typeString = BundleConfig.singularOf(type);
+
+            if (name == null) name = typeString;
+
+            string localPath = WebUtilities.GenerateLocalPath(assetGuid, type);
+
+            Uri uri = new Uri(Config.CloudUrl + "/api/v1/assets/download/bundle/" + assetGuid);
+
+            var t = new TaskCompletionSource<AssetModel>();
+            downloads.Enqueue(new Download(uri, localPath,
+            progress => {
+                ConnectionUI.instance.UpdateDownloadProgress(name, progress);
+                Debug.Log($"{name} Download at {progress}%");
+            } ,
+            (success, ex) => {
+                if (success)
+                {
+                    var model = new AssetModel()
+                    {
+                        AssetGuid = assetGuid,
+                        Type = typeString,
+                        LocalPath = localPath
+                    };
+                    assetService.Add(model);
+                    t.TrySetResult(model);
+                }
+                else
+                {
+                    t.TrySetException(ex);
+                }
+            }));
+            return t.Task;
         }
 
         public static void StopDownload(string url)

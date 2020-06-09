@@ -297,40 +297,6 @@ namespace Simulator.Bridge.Ros
             };
         }
 
-        public static Lgsvl.CanBusDataRos ROS2ReturnLgsvlConvertFrom(CanBusData data)
-        {
-            return new Lgsvl.CanBusDataRos()
-            {
-                header = new Header()
-                {
-                    stamp = ConvertTime(data.Time),
-                    seq = data.Sequence,
-                    frame_id = data.Frame,
-                },
-                speed_mps = data.Speed,
-                throttle_pct = data.Throttle,
-                brake_pct = data.Braking,
-                steer_pct = data.Steering,
-                parking_brake_active = false,   // parking brake is not supported in Simulator side
-                high_beams_active = data.HighBeamSignal,
-                low_beams_active = data.LowBeamSignal,
-                hazard_lights_active = data.HazardLights,
-                fog_lights_active = data.FogLights,
-                left_turn_signal_active = data.LeftTurnSignal,
-                right_turn_signal_active = data.RightTurnSignal,
-                wipers_active = data.Wipers,
-                reverse_gear_active = data.InReverse,
-                selected_gear = (data.InReverse ? Gear.GEAR_REVERSE : Gear.GEAR_DRIVE),
-                engine_active = data.EngineOn,
-                engine_rpm = data.EngineRPM,
-                gps_latitude = data.Latitude,
-                gps_longitude = data.Longitude,
-                gps_altitude = data.Altitude,
-                orientation = Convert(data.Orientation),
-                linear_velocities = ConvertToVector(data.Velocity),
-            };
-        }
-
         public static Apollo.GnssBestPose ConvertFrom(GpsData data)
         {
             float Accuracy = 0.01f; // just a number to report
@@ -369,36 +335,6 @@ namespace Simulator.Bridge.Ros
                 extended_solution_status = 33,  // extended solution status - OEMV and greater only
                 galileo_beidou_used_mask = 0,
                 gps_glonass_used_mask = 51
-            };
-        }
-
-        public static NavSatFix ROS2ConvertFrom(GpsData data)
-        {
-            return new NavSatFix()
-            {
-                header = new Header()
-                {
-                    stamp = ConvertTime(data.Time),
-                    seq = data.Sequence,
-                    frame_id = data.Frame,
-                },
-                status = new NavSatStatus()
-                {
-                    status = NavFixStatus.STATUS_FIX,
-                    service = GpsServisType.SERVICE_GPS,
-                },
-                latitude = data.Latitude,
-                longitude = data.Longitude,
-                altitude = data.Altitude,
-
-                position_covariance = new double[]
-                {
-                    0.0001, 0, 0,
-                    0, 0.0001, 0,
-                    0, 0, 0.0001
-                },
-
-                position_covariance_type = CovarianceType.COVARIANCE_TYPE_DIAGONAL_KNOWN
             };
         }
 
@@ -488,17 +424,6 @@ namespace Simulator.Bridge.Ros
                     // The heading is zero when the car is facing East and positive when facing North.
                     heading = yaw,  // not used ??
                 }
-            };
-        }
-
-        public static Autoware.VehicleOdometry ROS2ConvertFrom(VehicleOdometryData data)
-        {
-            return new Autoware.VehicleOdometry()
-            {
-                stamp = ConvertTime(data.Time),
-                velocity_mps = data.Speed,
-                front_wheel_angle_rad = UnityEngine.Mathf.Deg2Rad * data.SteeringAngleFront,
-                rear_wheel_angle_rad = UnityEngine.Mathf.Deg2Rad * data.SteeringAngleBack,
             };
         }
 

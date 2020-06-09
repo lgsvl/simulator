@@ -23,7 +23,6 @@ namespace Simulator.Bridge.Ros
     public class Bridge : IBridge
     {
         WebSocket Socket;
-        int Version;
         bool Apollo;
 
         ConcurrentQueue<Action> QueuedActions = new ConcurrentQueue<Action>();
@@ -48,9 +47,8 @@ namespace Simulator.Bridge.Ros
             f.SetValue(null, 65536 - 8);
         }
 
-        public Bridge(int version, bool apollo = false)
+        public Bridge(bool apollo = false)
         {
-            Version = version;
             Status = Status.Disconnected;
             Apollo = apollo;
         }
@@ -130,16 +128,6 @@ namespace Simulator.Bridge.Ros
                 {
                     type = typeof(Apollo.control_command);
                     converter = (JSONNode json) => Conversions.ConvertTo((Apollo.control_command)Unserialize(json, type));
-                }
-                else if (Version == 2)
-                {
-                    // Since there is no mapping acceleration to throttle, VehicleControlCommand is not supported for now.
-                    // After supporting it, VehicleControlCommand will replace RawControlCommand.
-                    // type = typeof(Autoware.VehicleControlCommand);
-                    // converter = (JSONNode json) => Conversions.ConvertTo((Autoware.VehicleControlCommand)Unserialize(json, type));
-
-                    type = typeof(Lgsvl.VehicleControlDataRos);
-                    converter = (JSONNode json) => Conversions.ConvertTo((Lgsvl.VehicleControlDataRos)Unserialize(json, type));
                 }
                 else
                 {
@@ -253,21 +241,10 @@ namespace Simulator.Bridge.Ros
                     writer = new Writer<DetectedRadarObjectData, Lgsvl.DetectedRadarObjectArray>(this, topic, Conversions.ROS2ConvertFrom) as IWriter<T>;
                 }
             }
-            else if (type == typeof(CanBusData))
+            else if (type == typeof(CanBusData) && Apollo)
             {
-                if (Version == 2 && !Apollo)
-                {
-                    // type = typeof(VehicleStateReport);
-                    // writer = new Writer<CanBusData, VehicleStateReport>(this, topic, Conversions.ROS2ReturnAutowareAutoConvertFrom) as IWriter<T>;
-
-                    type = typeof(CanBusDataRos);
-                    writer = new Writer<CanBusData, CanBusDataRos>(this, topic, Conversions.ROS2ReturnLgsvlConvertFrom) as IWriter<T>;
-                }
-                else
-                {
-                    type = typeof(Apollo.ChassisMsg);
-                    writer = new Writer<CanBusData, Apollo.ChassisMsg>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
-                }
+                type = typeof(Apollo.ChassisMsg);
+                writer = new Writer<CanBusData, Apollo.ChassisMsg>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
             else if (type == typeof(GpsData))
             {
@@ -275,11 +252,6 @@ namespace Simulator.Bridge.Ros
                 {
                     type = typeof(Apollo.GnssBestPose);
                     writer = new Writer<GpsData, Apollo.GnssBestPose>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
-                }
-                else if (Version == 2)
-                {
-                    type = typeof(NavSatFix);
-                    writer = new Writer<GpsData, NavSatFix>(this, topic, Conversions.ROS2ConvertFrom) as IWriter<T>;
                 }
                 else
                 {
@@ -317,11 +289,6 @@ namespace Simulator.Bridge.Ros
                     type = typeof(Odometry);
                     writer = new Writer<GpsOdometryData, Odometry>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
                 }
-            }
-            else if (type == typeof(VehicleOdometryData))
-            {
-                type = typeof(VehicleOdometry);
-                writer =  new Writer<VehicleOdometryData, VehicleOdometry>(this, topic, Conversions.ROS2ConvertFrom) as IWriter<T>;
             }
             else if (type == typeof(ClockData))
             {
@@ -641,7 +608,7 @@ namespace Simulator.Bridge.Ros
             }
 
             var attribute = attributes[0] as MessageTypeAttribute;
-            return Version == 1 ? attribute.Type : attribute.Type2;
+            return attribute.Type;
         }
 
         public void SerializeInternal(object message, Type type, StringBuilder sb)
@@ -681,56 +648,22 @@ namespace Simulator.Bridge.Ros
             else if (type == typeof(PartialByteArray))
             {
                 var arr = message as PartialByteArray;
-                if (Version == 1)
+                sb.Append('"');
+                if (arr.Base64 == null)
                 {
-                    sb.Append('"');
-                    if (arr.Base64 == null)
-                    {
-                        sb.Append(Convert.ToBase64String(arr.Array, 0, arr.Length));
-                    }
-                    else
-                    {
-                        sb.Append(arr.Base64);
-                    }
-                    sb.Append('"');
+                    sb.Append(Convert.ToBase64String(arr.Array, 0, arr.Length));
                 }
                 else
                 {
-                    sb.Append('[');
-                    for (int i = 0; i < arr.Length; i++)
-                    {
-                        sb.Append(arr.Array[i]);
-                        if (i < arr.Length - 1)
-                        {
-                            sb.Append(',');
-                        }
-                    }
-                    sb.Append(']');
+                    sb.Append(arr.Base64);
                 }
+                sb.Append('"');
             }
             else if (type.IsArray)
             {
-                if (type.GetElementType() == typeof(byte) && Version == 1)
-                {
-                    sb.Append('"');
-                    sb.Append(Convert.ToBase64String((byte[])message));
-                    sb.Append('"');
-                }
-                else
-                {
-                    var array = message as Array;
-                    var elementType = type.GetElementType();
-                    sb.Append('[');
-                    for (int i = 0; i < array.Length; i++)
-                    {
-                        SerializeInternal(array.GetValue(i), elementType, sb);
-                        if (i < array.Length - 1)
-                        {
-                            sb.Append(',');
-                        }
-                    }
-                    sb.Append(']');
-                }
+                sb.Append('"');
+                sb.Append(Convert.ToBase64String((byte[])message));
+                sb.Append('"');
             }
             else if (type.IsGenericList())
             {
@@ -750,14 +683,7 @@ namespace Simulator.Bridge.Ros
             else if (type == typeof(Time))
             {
                 var t = message as Time;
-                if (Version == 1)
-                {
-                    sb.AppendFormat("{{\"secs\":{0},\"nsecs\":{1}}}", (uint)t.secs, (uint)t.nsecs);
-                }
-                else
-                {
-                    sb.AppendFormat("{{\"sec\":{0},\"nanosec\":{1}}}", (int)t.secs, (uint)t.nsecs);
-                }
+                sb.AppendFormat("{{\"secs\":{0},\"nsecs\":{1}}}", (uint)t.secs, (uint)t.nsecs);
             }
             else
             {
@@ -768,11 +694,6 @@ namespace Simulator.Bridge.Ros
                 for (int i = 0; i < fields.Length; i++)
                 {
                     var field = fields[i];
-                    if (Version == 2 && type == typeof(Header) && field.Name == "seq")
-                    {
-                        continue;
-                    }
-
                     var fieldType = field.FieldType;
                     var fieldValue = field.GetValue(message);
                     if (fieldValue != null)
@@ -923,16 +844,8 @@ namespace Simulator.Bridge.Ros
             {
                 var nodeObj = node.AsObject;
                 var obj = new Time();
-                if (Version == 1)
-                {
-                    obj.secs = uint.Parse(nodeObj["secs"].Value);
-                    obj.nsecs = uint.Parse(nodeObj["nsecs"].Value);
-                }
-                else
-                {
-                    obj.secs = int.Parse(nodeObj["sec"].Value);
-                    obj.nsecs = uint.Parse(nodeObj["nanosec"].Value);
-                }
+                obj.secs = uint.Parse(nodeObj["secs"].Value);
+                obj.nsecs = uint.Parse(nodeObj["nsecs"].Value);
                 return obj;
             }
             else if (type.IsEnum)

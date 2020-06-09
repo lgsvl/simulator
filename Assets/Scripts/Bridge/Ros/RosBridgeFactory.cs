@@ -41,23 +41,17 @@ namespace Simulator.Bridge.Ros
     public class RosBridgeFactory : RosBridgeFactoryBase
     {
         public override string Name => "ROS";
-        public override IBridge Create() => new Bridge(1);
+        public override IBridge Create() => new Bridge();
     }
 
     public class RosApolloBridgeFactory : RosBridgeFactoryBase
     {
         public override string Name => "ROS Apollo";
-        public override IBridge Create() => new Bridge(1, apollo: true);
+        public override IBridge Create() => new Bridge(apollo: true);
 
         public override IEnumerable<Type> SupportedDataTypes => base.SupportedDataTypes.Concat(new[]
         {
             typeof(DetectedRadarObjectData),
         });
-    }
-
-    public class Ros2BridgeFactory : RosBridgeFactoryBase
-    {
-        public override string Name => "ROS2";
-        public override IBridge Create() => new Bridge(2);
     }
 }

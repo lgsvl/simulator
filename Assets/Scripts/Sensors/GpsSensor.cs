@@ -95,8 +95,9 @@ namespace Simulator.Sensors
                     {
                         msg.Item2();
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        UnityEngine.Debug.LogException(ex, this);
                     }
                     nextPublish = now + (long)(Stopwatch.Frequency / Frequency);
                     LastTimestamp = msg.Item1;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -13,18 +13,15 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using UnityEngine;
 using Simulator.Bridge.Data;
-using Google.Protobuf.Reflection;
-using System.IO;
-using ProtoBuf;
+using Simulator.Bridge.Ros2.Lgsvl;
 
-namespace Simulator.Bridge.Cyber
+namespace Simulator.Bridge.Ros2
 {
     enum BridgeOp : byte
     {
-        RegisterDesc = 1,
-        AddReader = 2,
-        AddWriter = 3,
-        Publish = 4,
+        AddSubscriber = 1,
+        AddPublisher = 2,
+        Publish = 3,
     }
 
     public partial class Bridge : IBridge
@@ -33,9 +30,7 @@ namespace Simulator.Bridge.Cyber
 
         Socket Socket;
 
-        Dictionary<string, Tuple<Func<byte[], int, int, object>, List<Action<object>>>> Readers
-            = new Dictionary<string, Tuple<Func<byte[], int, int, object>, List<Action<object>>>>();
-
+        Dictionary<string, IReader> Readers = new Dictionary<string, IReader>();
         ConcurrentQueue<Action> QueuedActions = new ConcurrentQueue<Action>();
 
         List<byte[]> Setup = new List<byte[]>();
@@ -111,41 +106,100 @@ namespace Simulator.Bridge.Cyber
             }
         }
 
+        interface IReader
+        {
+            Type BridgeType { get; }
+            Type NativeType { get; }
+
+            void Add(Delegate reader);
+            void Read(byte[] data, int offset, int length);
+        }
+
+        class Reader<RosType, BridgeData> : IReader
+        {
+            public Type BridgeType => typeof(BridgeData);
+            public Type NativeType => typeof(RosType);
+
+            Func<RosType, BridgeData> Converter;
+            ConcurrentQueue<Action> Actions;
+            List<Action<BridgeData>> Readers = new List<Action<BridgeData>>();
+
+            public Reader(Func<RosType, BridgeData> converter, ConcurrentQueue<Action> actions)
+            {
+                Converter = converter;
+                Actions = actions;
+            }
+
+            public void Add(Delegate reader)
+            {
+                lock (Readers)
+                {
+                    Readers.Add(reader as Action<BridgeData>);
+                }
+            }
+
+            public void Read(byte[] data, int offset, int length)
+            {
+                var message = Converter(Serialization.Unserialize<RosType>(data, offset, length));
+                lock (Readers)
+                {
+                    foreach (var reader in Readers)
+                    {
+                        Actions.Enqueue(() => reader(message));
+                    }
+                }
+            }
+        }
+
         public void AddReader<T>(string topic, Action<T> callback) where T : class
         {
+            if (topic.Split('/').Any(x => char.IsDigit(x.FirstOrDefault())))
+            {
+                throw new ArgumentException($"ROS2 does not allow part topic name start with digit - '{topic}'");
+            }
+
             var type = typeof(T);
 
-            Func<object, object> converter = null;
+            IReader reader;
             if (type == typeof(Detected3DObjectArray))
             {
-                converter = (object msg) => Conversions.ConvertTo(msg as apollo.common.Detection3DArray);
-                type = typeof(apollo.common.Detection3DArray);
+                type = typeof(Detection3DArray);
+                reader = new Reader<Detection3DArray, Detected3DObjectArray>(Conversions.ConvertTo, QueuedActions);
             }
-            else if(type == typeof(Detected2DObjectArray))
+            else if (type == typeof(Detected2DObjectArray))
             {
-                converter = (object msg) => Conversions.ConvertTo(msg as apollo.common.Detection2DArray);
-                type = typeof(apollo.common.Detection2DArray);
+                type = typeof(Detection2DArray);
+                reader = new Reader<Detection2DArray, Detected2DObjectArray>(Conversions.ConvertTo, QueuedActions);
             }
             else if (type == typeof(VehicleControlData))
             {
-                type = typeof(apollo.control.ControlCommand);
-                converter = (object msg) => Conversions.ConvertTo(msg as apollo.control.ControlCommand);
+                type = typeof(VehicleControlDataRos);
+                reader = new Reader<VehicleControlDataRos, VehicleControlData>(Conversions.ConvertTo, QueuedActions);
+            }
+            else if (type == typeof(VehicleStateData))
+            {
+                type = typeof(VehicleStateDataRos);
+                reader = new Reader<VehicleStateDataRos, VehicleStateData>(Conversions.ConvertTo, QueuedActions);
             }
             else
             {
-                throw new Exception($"Cyber bridge does not support {typeof(T).Name} type");
+                throw new Exception($"ros2-lgsvl-bridge does not support {typeof(T).Name} type");
             }
 
-            var channelBytes = Encoding.ASCII.GetBytes(topic);
-            var typeBytes = Encoding.ASCII.GetBytes(type.ToString());
+            var topicBytes = Encoding.ASCII.GetBytes(topic);
+            var messageType = GetMessageType(type);
+            var typeBytes = Encoding.ASCII.GetBytes(messageType);
 
             var bytes = new List<byte>(1024);
-            bytes.Add((byte)BridgeOp.AddReader);
-            bytes.Add((byte)(channelBytes.Length >> 0));
-            bytes.Add((byte)(channelBytes.Length >> 8));
-            bytes.Add((byte)(channelBytes.Length >> 16));
-            bytes.Add((byte)(channelBytes.Length >> 24));
-            bytes.AddRange(channelBytes);
+
+            bytes.Add((byte)BridgeOp.AddSubscriber);
+
+            bytes.Add((byte)(topicBytes.Length >> 0));
+            bytes.Add((byte)(topicBytes.Length >> 8));
+            bytes.Add((byte)(topicBytes.Length >> 16));
+            bytes.Add((byte)(topicBytes.Length >> 24));
+            bytes.AddRange(topicBytes);
+
             bytes.Add((byte)(typeBytes.Length >> 0));
             bytes.Add((byte)(typeBytes.Length >> 8));
             bytes.Add((byte)(typeBytes.Length >> 16));
@@ -166,89 +220,83 @@ namespace Simulator.Bridge.Cyber
             {
                 if (!Readers.ContainsKey(topic))
                 {
-                    Readers.Add(topic,
-                        Tuple.Create<Func<byte[], int, int, object>, List<Action<object>>>(
-                            (msg, offset, count) =>
-                            {
-                                using (var stream = new MemoryStream(msg, offset, count))
-                                {
-                                    return converter(Serializer.Deserialize(type, stream));
-                                }
-                            },
-                            new List<Action<object>>())
-                    );
+                    Readers.Add(topic, reader);
                 }
-
-                Readers[topic].Item2.Add(msg => callback((T)msg));
             }
+            Readers[topic].Add(callback);
 
             TopicSubscriptions.Add(new TopicUIData()
             {
                 Topic = topic,
-                Type = type.ToString(),
+                Type = messageType,
                 Frequency = 0f,
             });
         }
 
         public IWriter<T> AddWriter<T>(string topic) where T : class
         {
+            if (topic.Split('/').Any(x => char.IsDigit(x.FirstOrDefault())))
+            {
+                throw new ArgumentException($"ROS2 does not allow part topic name start with digit - '{topic}'");
+            }
+
             IWriter<T> writer;
 
             var type = typeof(T);
             if (type == typeof(ImageData))
             {
-                type = typeof(apollo.drivers.CompressedImage);
-                writer = new Writer<ImageData, apollo.drivers.CompressedImage>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                type = typeof(CompressedImage);
+                writer = new Writer<ImageData, CompressedImage>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
             else if (type == typeof(PointCloudData))
             {
-                type = typeof(apollo.drivers.PointCloud);
-                writer = new Writer<PointCloudData, apollo.drivers.PointCloud>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                type = typeof(PointCloud2);
+                writer = new PointCloudWriter(this, topic) as IWriter<T>;
             }
             else if (type == typeof(Detected3DObjectData))
             {
-                type = typeof(apollo.common.Detection3DArray);
-                writer = new Writer<Detected3DObjectData, apollo.common.Detection3DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                type = typeof(Detection3DArray);
+                writer = new Writer<Detected3DObjectData, Detection3DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
-            else if(type == typeof(Detected2DObjectData))
+            else if (type == typeof(Detected2DObjectData))
             {
-                type = typeof(apollo.common.Detection2DArray);
-                writer = new Writer<Detected2DObjectData, apollo.common.Detection2DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                type = typeof(Detection2DArray);
+                writer = new Writer<Detected2DObjectData, Detection2DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
-            else if (type == typeof(DetectedRadarObjectData))
+            else if (type == typeof(SignalDataArray))
             {
-                type = typeof(apollo.drivers.ContiRadar);
-                writer = new Writer<DetectedRadarObjectData, apollo.drivers.ContiRadar>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                type = typeof(SignalArray);
+                writer = new Writer<SignalDataArray, SignalArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
             else if (type == typeof(CanBusData))
             {
-                type = typeof(apollo.canbus.Chassis);
-                writer = new Writer<CanBusData, apollo.canbus.Chassis>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                type = typeof(CanBusDataRos);
+                writer = new Writer<CanBusData, CanBusDataRos>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
             else if (type == typeof(GpsData))
             {
-                type = typeof(apollo.drivers.gnss.GnssBestPose);
-                writer = new Writer<GpsData, apollo.drivers.gnss.GnssBestPose>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
-            }
-            else if (type == typeof(GpsOdometryData))
-            {
-                type = typeof(apollo.localization.Gps);
-                writer = new Writer<GpsOdometryData, apollo.localization.Gps>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
-            }
-            else if (type == typeof(GpsInsData))
-            {
-                type = typeof(apollo.drivers.gnss.InsStat);
-                writer = new Writer<GpsInsData, apollo.drivers.gnss.InsStat>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                type = typeof(NavSatFix);
+                writer = new Writer<GpsData, NavSatFix>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
             else if (type == typeof(ImuData))
             {
-                type = typeof(apollo.drivers.gnss.Imu);
-                writer = new Writer<ImuData, apollo.drivers.gnss.Imu>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                type = typeof(Imu);
+                writer = new Writer<ImuData, Imu>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
-            else if (type == typeof(CorrectedImuData))
+            else if (type == typeof(GpsOdometryData))
             {
-                type = typeof(apollo.localization.CorrectedImu);
-                writer = new Writer<CorrectedImuData, apollo.localization.CorrectedImu>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                type = typeof(Odometry);
+                writer = new Writer<GpsOdometryData, Odometry>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+            }
+            // else if (type == typeof(VehicleOdometryData))
+            // {
+            //     type = typeof(VehicleOdometry);
+            //     writer = new Writer<VehicleOdometryData, VehicleOdometry>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+            // }
+            else if (type == typeof(ClockData))
+            {
+                type = typeof(Clock);
+                writer = new Writer<ClockData, Clock>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
             else if (BridgeConfig.bridgeConverters.ContainsKey(type))
             {
@@ -257,42 +305,23 @@ namespace Simulator.Bridge.Cyber
             }
             else
             {
-                throw new Exception($"Unsupported message type {type} used for CyberRT bridge");
+                throw new Exception($"Unsupported message type {type} used for ros2-lgsvl-bridge");
             }
 
-            var descriptorName = NameByMsgType[type.ToString()];
-            var descriptor = DescriptorByName[descriptorName].Item2;
-
-            var descriptors = new List<byte[]>();
-            GetDescriptors(descriptors, descriptor);
-
-            int count = descriptors.Count;
+            var topicBytes = Encoding.ASCII.GetBytes(topic);
+            var messageType = GetMessageType(type);
+            var typeBytes = Encoding.ASCII.GetBytes(messageType);
 
             var bytes = new List<byte>(4096);
-            bytes.Add((byte)BridgeOp.RegisterDesc);
-            bytes.Add((byte)(count >> 0));
-            bytes.Add((byte)(count >> 8));
-            bytes.Add((byte)(count >> 16));
-            bytes.Add((byte)(count >> 24));
-            foreach (var desc in descriptors)
-            {
-                int length = desc.Length;
-                bytes.Add((byte)(length >> 0));
-                bytes.Add((byte)(length >> 8));
-                bytes.Add((byte)(length >> 16));
-                bytes.Add((byte)(length >> 24));
-                bytes.AddRange(desc);
-            }
 
-            var channelBytes = Encoding.ASCII.GetBytes(topic);
-            var typeBytes = Encoding.ASCII.GetBytes(type.ToString());
+            bytes.Add((byte)BridgeOp.AddPublisher);
 
-            bytes.Add((byte)BridgeOp.AddWriter);
-            bytes.Add((byte)(channelBytes.Length >> 0));
-            bytes.Add((byte)(channelBytes.Length >> 8));
-            bytes.Add((byte)(channelBytes.Length >> 16));
-            bytes.Add((byte)(channelBytes.Length >> 24));
-            bytes.AddRange(channelBytes);
+            bytes.Add((byte)(topicBytes.Length >> 0));
+            bytes.Add((byte)(topicBytes.Length >> 8));
+            bytes.Add((byte)(topicBytes.Length >> 16));
+            bytes.Add((byte)(topicBytes.Length >> 24));
+            bytes.AddRange(topicBytes);
+
             bytes.Add((byte)(typeBytes.Length >> 0));
             bytes.Add((byte)(typeBytes.Length >> 8));
             bytes.Add((byte)(typeBytes.Length >> 16));
@@ -302,7 +331,7 @@ namespace Simulator.Bridge.Cyber
             TopicPublishers.Add(new TopicUIData()
             {
                 Topic = topic,
-                Type = type.ToString(),
+                Type = messageType,
                 Frequency = 0f,
             });
 
@@ -321,7 +350,7 @@ namespace Simulator.Bridge.Cyber
 
         public void AddService<Argument, Result>(string topic, Func<Argument, Result> callback)
         {
-            Debug.Log("AddService is not supported by CyberBridge");
+            Debug.Log("AddService is not supported by ros2-lgsvl-bridge");
             throw new NotImplementedException();
         }
 
@@ -341,7 +370,7 @@ namespace Simulator.Bridge.Cyber
 
             if (read == 0)
             {
-                Debug.Log($"CyberBridge socket is closed");
+                Debug.Log($"ros2-lgsvl-bridge socket is closed");
                 Disconnect();
                 return;
             }
@@ -368,7 +397,7 @@ namespace Simulator.Bridge.Cyber
                 }
                 else
                 {
-                    Debug.Log($"Unknown CyberBridge operation {op} received, disconnecting");
+                    Debug.Log($"Unknown ros2-lgsvl-bridge operation {op} received, disconnecting");
                     Disconnect();
                     return;
                 }
@@ -397,15 +426,15 @@ namespace Simulator.Bridge.Cyber
 
             int offset = 1;
 
-            int channel_size = Get32le(offset);
+            int topic_size = Get32le(offset);
             offset += 4;
-            if (offset + channel_size > Buffer.Count)
+            if (offset + topic_size > Buffer.Count)
             {
                 return false;
             }
 
-            int channel_offset = offset;
-            offset += channel_size;
+            int topic_offset = offset;
+            offset += topic_size;
 
             int message_size = Get32le(offset);
             offset += 4;
@@ -417,28 +446,26 @@ namespace Simulator.Bridge.Cyber
             int message_offset = offset;
             offset += message_size;
 
-            var channel = Encoding.ASCII.GetString(Buffer.Data, channel_offset, channel_size);
+            var topic = Encoding.ASCII.GetString(Buffer.Data, topic_offset, topic_size);
 
-            if (Readers.TryGetValue(channel, out var readersPair))
+            IReader reader;
+
+            lock (Readers)
             {
-                var parser = readersPair.Item1;
-                var readers = readersPair.Item2;
+                Readers.TryGetValue(topic, out reader);
+            }
 
-                var message = parser(Buffer.Data, message_offset, message_size);
-
-                foreach (var reader in readers)
+            if (reader != null)
+            {
+                reader.Read(Buffer.Data, message_offset, message_size);
+                if (!string.IsNullOrEmpty(topic))
                 {
-                    QueuedActions.Enqueue(() => reader(message));
-                }
-
-                if (!string.IsNullOrEmpty(channel))
-                {
-                    TopicSubscriptions.Find(x => x.Topic == channel).Count++;
+                    TopicSubscriptions.Find(x => x.Topic == topic).Count++;
                 }
             }
             else
             {
-                Debug.Log($"Received message on channel '{channel}' which nobody subscribed");
+                Debug.Log($"Received message on topic '{topic}' which nobody subscribed");
             }
 
             Buffer.RemoveFirst(offset);
@@ -475,15 +502,37 @@ namespace Simulator.Bridge.Cyber
             }
         }
 
-        static void GetDescriptors(List<byte[]> descriptors, FileDescriptorProto descriptor)
+        static readonly Dictionary<Type, string> BuiltinMessageTypes = new Dictionary<Type, string> {
+            { typeof(bool), "std_msgs/Bool" },
+            { typeof(sbyte), "std_msgs/Int8" },
+            { typeof(short), "std_msgs/Int16" },
+            { typeof(int), "std_msgs/Int32" },
+            { typeof(long), "std_msgs/Int64" },
+            { typeof(byte), "std_msgs/UInt8" },
+            { typeof(ushort), "std_msgs/UInt16" },
+            { typeof(uint), "std_msgs/UInt32" },
+            { typeof(ulong), "std_msgs/UInt64" },
+            { typeof(float), "std_msgs/Float32" },
+            { typeof(double), "std_msgs/Float64" },
+            { typeof(string), "std_msgs/String" },
+        };
+
+        static string GetMessageType(Type type)
         {
-            foreach (var dependency in descriptor.Dependencies)
+            string name;
+            if (BuiltinMessageTypes.TryGetValue(type, out name))
             {
-                var desc = DescriptorByName[dependency].Item2;
-                GetDescriptors(descriptors, desc);
+                return name;
             }
-            var bytes = DescriptorByName[descriptor.Name].Item1;
-            descriptors.Add(bytes);
+
+            object[] attributes = type.GetCustomAttributes(typeof(MessageTypeAttribute), false);
+            if (attributes == null || attributes.Length == 0)
+            {
+                throw new Exception($"Type {type.Name} does not have {nameof(MessageTypeAttribute)} attribute");
+            }
+
+            var attribute = attributes[0] as MessageTypeAttribute;
+            return attribute.Type;
         }
     }
 }

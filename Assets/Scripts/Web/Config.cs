@@ -95,6 +95,7 @@ namespace Simulator.Web
             LoadExternalAssets();
             Sensors = SensorTypes.ListSensorFields(SensorPrefabs);
             Bridges = BridgeTypes.GetBridgeTypes();
+            Bridges.Sort((a, b) => string.Compare(a.Name, b.Name));
 
             ParseConfigFile();
             if (!Application.isEditor)

@@ -60,7 +60,6 @@ namespace Simulator.Tests.Web
             var bridgeTypes = new []
             {
                 GetBridgeType<RosBridgeFactory>(),
-                GetBridgeType<Ros2BridgeFactory>(),
                 GetBridgeType<RosApolloBridgeFactory>(),
                 GetBridgeType<CyberBridgeFactory>(),
             };

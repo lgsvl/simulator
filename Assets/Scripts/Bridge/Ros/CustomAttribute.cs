@@ -13,17 +13,15 @@ namespace Simulator.Bridge.Ros
     public class MessageTypeAttribute : Attribute
     {
         public string Type { get; private set; }
-        public string Type2 { get; private set; }
 
         public MessageTypeAttribute(string type)
         {
-            Type = Type2 = type;
+            Type = type;
         }
 
         public MessageTypeAttribute(string type, string type2)
         {
             Type = type;
-            Type2 = type2;
         }
     }
 

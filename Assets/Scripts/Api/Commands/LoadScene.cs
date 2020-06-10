@@ -138,7 +138,7 @@ namespace Simulator.Api.Commands
             api.SendResult(sourceCommand);
         }
 
-        public async void Execute(JSONNode args)
+        public void Execute(JSONNode args)
         {
             var api = ApiManager.Instance;
             var mapId = args["scene"].Value;
@@ -148,7 +148,7 @@ namespace Simulator.Api.Commands
                 seed = args["seed"].AsInt;
             }
 
-            await LoadMap(args, mapId, seed);
+            LoadMap(args, mapId, seed).RunSynchronously();
         }
     }
 }

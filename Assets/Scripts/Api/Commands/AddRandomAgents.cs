@@ -17,10 +17,9 @@ namespace Simulator.Api.Commands
 
         public void Execute(JSONNode args)
         {
-            var sim = Object.FindObjectOfType<SimulatorManager>();
             var api = ApiManager.Instance;
 
-            if (sim == null)
+            if (SimulatorManager.Instance == null)
             {
                 api.SendError(this, "SimulatorManager not found! Is scene loaded?");
                 return;

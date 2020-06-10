@@ -30,9 +30,9 @@ namespace Simulator.Api.Commands
     {
         public string Name => "simulator/add_agent";
 
-        public async void Execute(JSONNode args)
+        public void Execute(JSONNode args)
         {
-            var sim = UnityEngine.Object.FindObjectOfType<SimulatorManager>();
+            var sim = SimulatorManager.Instance;
             var api = ApiManager.Instance;
 
             if (sim == null)
@@ -68,7 +68,7 @@ namespace Simulator.Api.Commands
                 VehicleDetailData vehicleData;
                 try
                 {
-                    vehicleData = await ConnectionManager.API.GetByIdOrName<VehicleDetailData>(name);
+                    vehicleData = ConnectionManager.API.GetByIdOrName<VehicleDetailData>(name).Result;
                 }
                 catch (Exception e)
                 {
@@ -76,7 +76,7 @@ namespace Simulator.Api.Commands
                     return;
                 }
 
-                var assetModel = await DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicleData.AssetGuid, vehicleData.Name);
+                var assetModel = DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicleData.AssetGuid, vehicleData.Name).Result;
 
                 var prefab = AquirePrefab(vehicleData, assetModel);
                 if (prefab == null)

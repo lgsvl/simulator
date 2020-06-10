@@ -53,7 +53,7 @@ namespace Simulator.Sensors
 
         [SensorParameter]
         [Range(0.01f, 2000.0f)]
-        public float MaxDistance = 1000.0f;
+        public float MaxDistance = 2000.0f;
 
         [SensorParameter]
         public bool Distorted = false;

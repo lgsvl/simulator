@@ -148,7 +148,7 @@ namespace Simulator.Api.Commands
                 seed = args["seed"].AsInt;
             }
 
-            LoadMap(args, mapId, seed).RunSynchronously();
+            LoadMap(args, mapId, seed).Wait();
         }
     }
 }

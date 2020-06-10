@@ -139,7 +139,7 @@ namespace Simulator.Editor
         }
 
         // Link before and after lanes/lines
-        bool LinkSegments<T>(HashSet<T> segments) where T : MapDataPoints, IMapLaneLineCommon<T>
+        public static bool LinkSegments<T>(HashSet<T> segments) where T : MapDataPoints, IMapLaneLineCommon<T>
         {
             foreach (var segment in segments)
             {

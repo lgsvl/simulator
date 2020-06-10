@@ -26,6 +26,7 @@
 #pragma kernel Downsample
 #pragma kernel RemoveHidden                     REMOVE_HIDDEN=RemoveHidden
 #pragma kernel RemoveHiddenDebug                REMOVE_HIDDEN=RemoveHiddenDebug                                         DEBUG_CASCADES
+#pragma kernel RemoveHiddenDepthPrepass                                                                                 DEPTH_PREPASS
 #pragma kernel ApplyPreviousFrame
 #pragma kernel PullKernel
 #pragma kernel PushKernel
@@ -64,6 +65,7 @@ CBUFFER_START(cb0)
     float _RemoveHiddenCascadesSize;
     int _RemoveHiddenLevelCount;
     int _RemoveHiddenLevel = 0;
+    float _PointScale;
 
     // Pull kernel parameters
     int _PullInputLevel;
@@ -87,7 +89,7 @@ SamplerState sampler_LinearClamp;
 float2 PackRGB(float3 rgb)
 {
     // TODO: Either pack or unpack loses R channel data when B is exactly zero - fix
-    rgb.r = max(rgb.r, 0.0001);
+    rgb.b = max(rgb.b, 0.0001);
     rgb = saturate(rgb);
     // NOTE: green channel is left as is because there is enough space and it can be used to
     //       debug throughout the pipeline
@@ -194,8 +196,8 @@ void Downsample(uint3 id : SV_DispatchThreadID)
 // ============================================================================================
 
 Texture2D<float4> _RemoveHiddenPosition;
+Texture2D<float> _RemoveHiddenEarlyDepth;
 RWTexture2D<float4> _RemoveHiddenColor;
-RWTexture2D<float4> _RemoveHiddenDepthBuffer;
 
 float GetOcclusion(float4 x, float4 y)
 {
@@ -282,8 +284,31 @@ void REMOVE_HIDDEN(uint3 id : SV_DispatchThreadID)
         _RemoveHiddenColor[id.xy] = packed;
     }
 #endif
+}
 
-    // _RemoveHiddenDepthBuffer[id.xy] = pix;
+[numthreads(BLOCKSIZE, BLOCKSIZE, 1)]
+void RemoveHiddenDepthPrepass(uint3 id : SV_DispatchThreadID)
+{
+    float4 pix = _RemoveHiddenPosition.Load(int3(id.xy, 0));
+    float earlyDepth = _RemoveHiddenEarlyDepth.Load(int3(id.xy, 0));
+
+    float2 uv = id.xy * _TexSize.zw + 0.5 * _TexSize.zw;
+    float x = uv.x * 2.0f - 1.0f;
+    float y = (1.0 - uv.y) * 2.0f - 1.0f;
+    float4 projPos = float4(x, y, earlyDepth, 1.0f);
+    float4 viewPos = mul(_InverseProj, projPos);
+    viewPos /= viewPos.w;
+    float earlyZ = -viewPos.z;
+    
+    float linMul = (1.0 - (earlyZ / _FarPlane));
+    float threshold = _PointScale * 2 / sqrt(earlyDepth);
+    float offset = abs(pix.z - earlyZ);
+
+    if (offset > threshold)
+    {
+        float3 col = float3(0, 0, 0);//
+        _RemoveHiddenColor[id.xy] = float4(PackRGB(col), 0, 0);
+    }
 }
 
 // ============================================================================================

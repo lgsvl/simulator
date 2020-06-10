@@ -124,12 +124,8 @@ namespace Simulator.PointCloud
         {
             renderers = null;
             
-            var customPassVolume = gameObject.GetComponent<CustomPassVolume>();
-            if (customPassVolume != null && customPassVolume.customPasses.Count == 1 &&
-                customPassVolume.customPasses[0] is PointCloudRenderPass pass)
-            {
-                pass.UpdateRenderers(null);
-            }
+            litPass?.UpdateRenderers(null);
+            unlitPass?.UpdateRenderers(null);
             
             activeInstance.resources?.ReleaseAll();
             activeInstance.resources = null;

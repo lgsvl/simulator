@@ -92,13 +92,15 @@ namespace Simulator.PointCloud
             {
                 public const string KernelName = "RemoveHidden";
                 public const string DebugKernelName = "RemoveHiddenDebug";
+                public const string DepthPrepassKernelName = "RemoveHiddenDepthPrepass";
                 public static readonly int LevelCount = Shader.PropertyToID("_RemoveHiddenLevelCount");
                 public static readonly int Position = Shader.PropertyToID("_RemoveHiddenPosition");
                 public static readonly int Color = Shader.PropertyToID("_RemoveHiddenColor");
-                public static readonly int DepthBuffer = Shader.PropertyToID("_RemoveHiddenDepthBuffer");
+                public static readonly int EarlyDepth = Shader.PropertyToID("_RemoveHiddenEarlyDepth");
                 public static readonly int CascadesOffset = Shader.PropertyToID("_RemoveHiddenCascadesOffset");
                 public static readonly int CascadesSize = Shader.PropertyToID("_RemoveHiddenCascadesSize");
                 public static readonly int FixedLevel = Shader.PropertyToID("_RemoveHiddenLevel");
+                public static readonly int PointScale = Shader.PropertyToID("_PointScale");
             }
 
             public static class PullKernel

@@ -23,6 +23,7 @@ namespace Simulator.PointCloud
         public class PointCloudPasses
         {
             public readonly int circlesGBuffer;
+            public readonly int circlesDepthPrepass;
             public readonly int lidarCircles;
             public readonly int lidarCompose;
             public readonly int depthCompose;
@@ -33,6 +34,7 @@ namespace Simulator.PointCloud
             public PointCloudPasses(Material pointsMat, Material circlesMat, Material solidComposeMat)
             {
                 circlesGBuffer = circlesMat.FindPass("Point Cloud Circles GBuffer");
+                circlesDepthPrepass = circlesMat.FindPass("Point Cloud Circles Depth Prepass");
                 lidarCompose = solidComposeMat.FindPass("Point Cloud Lidar Compose");
                 depthCompose = solidComposeMat.FindPass("Point Cloud Depth Compose");
                 depthCircles = solidComposeMat.FindPass("Point Cloud Depth Circles");
@@ -57,6 +59,7 @@ namespace Simulator.PointCloud
 
             public readonly int RemoveHidden;
             public readonly int RemoveHiddenDebug;
+            public readonly int RemoveHiddenDepthPrepass;
 
             public readonly int Pull;
             public readonly int Push;
@@ -84,6 +87,7 @@ namespace Simulator.PointCloud
 
                 RemoveHidden = cs.FindKernel(PointCloudShaderIDs.SolidCompute.RemoveHidden.KernelName);
                 RemoveHiddenDebug = cs.FindKernel(PointCloudShaderIDs.SolidCompute.RemoveHidden.DebugKernelName);
+                RemoveHiddenDepthPrepass = cs.FindKernel(PointCloudShaderIDs.SolidCompute.RemoveHidden.DepthPrepassKernelName);
 
                 Pull = cs.FindKernel(PointCloudShaderIDs.SolidCompute.PullKernel.KernelName);
                 Push = cs.FindKernel(PointCloudShaderIDs.SolidCompute.PushKernel.KernelName);

@@ -22,6 +22,9 @@ namespace Simulator.Editor.PointCloud
             public static readonly GUIContent LightingContent = 
                 new GUIContent("Lighting Mode", "Defines lighting mode used by this renderer.");
             
+            public static readonly GUIContent HprModeContent = 
+                new GUIContent("Hidden Point Removal", "Defines method used for hidden point removal.");
+            
             public static readonly GUIContent CascadeShowPreviewContent =
                 new GUIContent("Show Preview", "Visible only in play mode.");
 
@@ -84,6 +87,7 @@ namespace Simulator.Editor.PointCloud
         private SerializedProperty Render;
         private SerializedProperty Lighting;
         private SerializedProperty Mask;
+        private SerializedProperty HprMode;
         private SerializedProperty ConstantSize;
         private SerializedProperty PixelSize;
         private SerializedProperty AbsoluteSize;
@@ -124,6 +128,7 @@ namespace Simulator.Editor.PointCloud
             Render = serializedObject.FindProperty(nameof(PointCloudRenderer.RenderMode));
             Lighting = serializedObject.FindProperty(nameof(PointCloudRenderer.Lighting));
             Mask = serializedObject.FindProperty(nameof(PointCloudRenderer.Mask));
+            HprMode = serializedObject.FindProperty(nameof(PointCloudRenderer.HiddenPointRemoval));
             ConstantSize = serializedObject.FindProperty(nameof(PointCloudRenderer.ConstantSize));
             PixelSize = serializedObject.FindProperty(nameof(PointCloudRenderer.PixelSize));
             AbsoluteSize = serializedObject.FindProperty(nameof(PointCloudRenderer.AbsoluteSize));
@@ -202,8 +207,9 @@ namespace Simulator.Editor.PointCloud
                     case PointCloudRenderer.RenderType.Solid:
                     {
                         DrawLightingContent();
+                        EditorGUILayout.PropertyField(HprMode, Styles.HprModeContent);
                         DrawShadowsContent((obj.Mask & PointCloudRenderer.RenderMask.Shadowcaster) != 0);
-                        DrawRemoveHiddenCascadesContent();
+                        DrawRemoveHiddenContent();
                         DrawNormalsContent(obj);
                         DrawFovReprojectionContent(obj.SolidFovReprojection);
                         DrawTemporalSmoothingContent(obj.TemporalSmoothing);
@@ -246,25 +252,50 @@ namespace Simulator.Editor.PointCloud
                 EditorGUILayout.HelpBox("Normals are calculated, but unnecessary for unlit rendering.", MessageType.Warning);
         }
 
-        private void DrawRemoveHiddenCascadesContent()
+        private void DrawRemoveHiddenContent()
         {
-            var rect = CreateBox(4);
-            
-            var indentLevel = EditorGUI.indentLevel;
-            EditorGUI.indentLevel = 0;
+            switch (HprMode.enumValueIndex)
+            {
+                case (int) PointCloudRenderer.HprMode.ScreenSpace:
+                {
+                    var rect = CreateBox(4);
 
-            EditorGUI.LabelField(rect, "Cascades (Remove Hidden)", EditorStyles.boldLabel);
-            
-            rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-            EditorGUI.PropertyField(rect, DebugShowRemoveHiddenCascades, Styles.CascadeShowPreviewContent);
-            
-            rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-            EditorGUI.PropertyField(rect, RemoveHiddenCascadeOffset, Styles.CascadeOffsetContent);
-            
-            rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-            EditorGUI.PropertyField(rect, RemoveHiddenCascadeSize, Styles.CascadeSizeContent);
+                    var indentLevel = EditorGUI.indentLevel;
+                    EditorGUI.indentLevel = 0;
 
-            EditorGUI.indentLevel = indentLevel;
+                    EditorGUI.LabelField(rect, "Cascades (Remove Hidden)", EditorStyles.boldLabel);
+
+                    rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                    EditorGUI.PropertyField(rect, DebugShowRemoveHiddenCascades, Styles.CascadeShowPreviewContent);
+
+                    rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                    EditorGUI.PropertyField(rect, RemoveHiddenCascadeOffset, Styles.CascadeOffsetContent);
+
+                    rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                    EditorGUI.PropertyField(rect, RemoveHiddenCascadeSize, Styles.CascadeSizeContent);
+
+                    EditorGUI.indentLevel = indentLevel;
+                }
+                    break;
+                case (int) PointCloudRenderer.HprMode.DepthPrepass:
+                {
+                    var rect = CreateBox(3);
+
+                    var indentLevel = EditorGUI.indentLevel;
+                    EditorGUI.indentLevel = 0;
+
+                    EditorGUI.LabelField(rect, "Point Settings (Remove Hidden)", EditorStyles.boldLabel);
+
+                    rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                    EditorGUI.PropertyField(rect, AbsoluteSize);
+
+                    rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                    EditorGUI.PropertyField(rect, MinPixelSize);
+
+                    EditorGUI.indentLevel = indentLevel;
+                }
+                    break;
+            }
         }
 
         private void DrawNormalsContent(PointCloudRenderer editedObject)

@@ -30,6 +30,60 @@ Shader "Simulator/PointCloud/HDRP/Circles"
     float4x4 _ViewProj;
     float4x4 _ViewProjShadow;
 
+    struct g2fd
+    {
+        float4 Position : SV_POSITION;
+        nointerpolation float4 Color : COLOR;
+        nointerpolation float Height : HEIGHT;
+        float2 TexCoord : TEXCOORD0;
+        nointerpolation float3 WorldPos : TEXCOORD1;
+        float3 ViewPos : TEXCOORD2;
+    };
+
+    [maxvertexcount(4)]
+    void GeomDefault(point PointCloudPoint pt[1]: POINT, inout TriangleStream<g2fd> stream)
+    {
+        float3 pos = pt[0].Position;
+        float4 color = PointCloudUnpack(pt[0].Color);
+        float3 worldPos = PointCloudWorldPositionHDRP(pos);
+        float4 clip = TransformWorldToHClip(worldPos);
+        float3 view = TransformWorldToView(worldPos);
+        float2 scale = float2(_Size, _Size);
+
+        #ifdef _SIZE_IN_PIXELS
+            scale *= clip.w / _ScreenSize.xy;
+        #else
+            float minSize = _MinSize * clip.w / _ScreenSize.x;
+            if (_Size < minSize)
+            {
+                scale = float2(minSize, minSize);
+            }
+            scale.y *= _ScreenSize.x / _ScreenSize.y;
+        #endif
+
+        float2 offsets[] =
+        {
+            float2(-1, -1),
+            float2(1, -1),
+            float2(-1, 1),
+            float2(1, 1),
+        };
+
+        UNITY_UNROLL
+        for (int i = 0; i < 4; i++)
+        {
+            g2fd o;
+            o.Position.xy = clip.xy + scale * offsets[i];
+            o.Position.zw = clip.zw;
+            o.Color = color;
+            o.TexCoord = offsets[i];
+            o.WorldPos = worldPos;
+            o.Height = pos.y;
+            o.ViewPos = view;
+            stream.Append(o);
+        }
+    }
+
     ENDHLSL
 
     SubShader
@@ -46,75 +100,21 @@ Shader "Simulator/PointCloud/HDRP/Circles"
                 Pass Replace
             }
 
-
             HLSLPROGRAM
 
             #pragma vertex Vert
-            #pragma geometry Geom
+            #pragma geometry GeomDefault
             #pragma fragment Frag
             #pragma multi_compile_local _ _SIZE_IN_PIXELS
             #pragma multi_compile _CIRCLES _CONES
             #pragma multi_compile _ _PC_TARGET_GBUFFER
-
-            struct g2f
-            {
-                float4 Position : SV_POSITION;
-                nointerpolation float4 Color : COLOR;
-                nointerpolation float Height : HEIGHT;
-                float2 TexCoord : TEXCOORD0;
-                float3 ViewPos : TEXCOORD1;
-            };
 
             PointCloudPoint Vert(uint id : SV_VertexID) : POINT
             {
                 return _Buffer[id];
             }
 
-            [maxvertexcount(4)]
-            void Geom(point PointCloudPoint pt[1]: POINT, inout TriangleStream<g2f> stream)
-            {
-                float3 pos = pt[0].Position;
-                float4 color = PointCloudUnpack(pt[0].Color);
-
-                float3 worldPos = PointCloudWorldPositionHDRP(pos);
-                float4 clip = TransformWorldToHClip(worldPos);
-                float3 view = TransformWorldToView(worldPos);
-                float2 scale = float2(_Size, _Size);
-
-                #ifdef _SIZE_IN_PIXELS
-                    scale *= clip.w / _ScreenParams.xy;
-                #else
-                    float minSize = _MinSize * clip.w / _ScreenParams.x;
-                    if (_Size < minSize)
-                    {
-                        scale = float2(minSize, minSize);
-                    }
-                    scale.y *= _ScreenParams.x / _ScreenParams.y;
-                #endif
-
-                float2 offsets[] =
-                {
-                    float2(-1, -1),
-                    float2(1, -1),
-                    float2(-1, 1),
-                    float2(1, 1),
-                };
-
-                UNITY_UNROLL
-                for (int i = 0; i < 4; i++)
-                {
-                    g2f o;
-                    o.Position.xy = clip.xy + scale * offsets[i];
-                    o.Position.zw = clip.zw;
-                    o.Color = color;
-                    o.TexCoord = offsets[i];
-                    o.Height = pos.y;
-                    o.ViewPos = view;
-                    stream.Append(o);
-                }
-            }
-
-            void Frag(g2f Input,
+            void Frag(g2fd Input,
             #ifdef _PC_TARGET_GBUFFER
                 out float4 outGBuffer0 : SV_Target0, 
                 out float4 outGBuffer1 : SV_Target1,
@@ -176,16 +176,9 @@ Shader "Simulator/PointCloud/HDRP/Circles"
             HLSLPROGRAM
 
             #pragma vertex Vert
-            #pragma geometry Geom
+            #pragma geometry GeomDefault
             #pragma fragment Frag
             #pragma multi_compile_local _ _SIZE_IN_PIXELS
-
-            struct g2f
-            {
-                float4 Position : SV_POSITION;
-                nointerpolation float4 Color : COLOR;
-                float3 WorldPos : TEXCOORD1;
-            };
 
             PointCloudPoint Vert(uint id : SV_VertexID) : POINT
             {
@@ -202,48 +195,7 @@ Shader "Simulator/PointCloud/HDRP/Circles"
                 return enc.xyz;
             }
 
-
-            [maxvertexcount(4)]
-            void Geom(point PointCloudPoint pt[1]: POINT, inout TriangleStream<g2f> stream)
-            {
-                float3 pos = pt[0].Position;
-                float4 color = PointCloudUnpack(pt[0].Color);
-                float3 worldPos = PointCloudWorldPositionHDRP(pos);
-                float4 clip = TransformWorldToHClip(worldPos);
-                float2 scale = float2(_Size, _Size);
-
-                #ifdef _SIZE_IN_PIXELS
-                    scale *= clip.w / _ScreenSize.xy;
-                #else
-                    float minSize = _MinSize * clip.w / _ScreenSize.x;
-                    if (_Size < minSize)
-                    {
-                        scale = float2(minSize, minSize);
-                    }
-                    scale.y *= _ScreenSize.x / _ScreenSize.y;
-                #endif
-
-                float2 offsets[] =
-                {
-                    float2(-1, -1),
-                    float2(1, -1),
-                    float2(-1, 1),
-                    float2(1, 1),
-                };
-
-                UNITY_UNROLL
-                for (int i = 0; i < 4; i++)
-                {
-                    g2f o;
-                    o.Position.xy = clip.xy + scale * offsets[i];
-                    o.Position.zw = clip.zw;
-                    o.Color = color;
-                    o.WorldPos = worldPos;
-                    stream.Append(o);
-                }
-            }
-
-            void Frag(g2f Input, out float4 outColor : SV_Target0)
+            void Frag(g2fd Input, out float4 outColor : SV_Target0)
             {
                 // if (dot(Input.TexCoord, Input.TexCoord) > 1)
                 // {
@@ -262,7 +214,8 @@ Shader "Simulator/PointCloud/HDRP/Circles"
 
         Pass
         {
-            Name "Point Cloud Circles Depth"
+            Name "Point Cloud Circles Depth Prepass"
+            ColorMask 0
 
             HLSLPROGRAM
 
@@ -271,36 +224,21 @@ Shader "Simulator/PointCloud/HDRP/Circles"
             #pragma fragment Frag
             #pragma multi_compile_local _ _SIZE_IN_PIXELS
 
-            struct g2f
-            {
-                float4 Position : SV_POSITION;
-                nointerpolation float4 Color : COLOR;
-                float2 TexCoord : TEXCOORD0;
-                float3 WorldPos : TEXCOORD1;
-            };
+            float4x4 _PointCloudMVP;
 
             PointCloudPoint Vert(uint id : SV_VertexID) : POINT
             {
                 return _Buffer[id];
             }
 
-            float3 EncodeFloatRGB(float v)
-            {
-                float4 kEncodeMul = float4(1.0, 255.0, 65025.0, 16581375.0);
-                float kEncodeBit = 1.0/255.0;
-                float4 enc = kEncodeMul * v * 0.5;
-                enc = frac (enc);
-                enc -= enc.yzww * kEncodeBit;
-                return enc.xyz;
-            }
-
             [maxvertexcount(4)]
-            void Geom(point PointCloudPoint pt[1]: POINT, inout TriangleStream<g2f> stream)
+            void Geom(point PointCloudPoint pt[1]: POINT, inout TriangleStream<g2fd> stream)
             {
                 float3 pos = pt[0].Position;
                 float4 color = PointCloudUnpack(pt[0].Color);
                 float3 worldPos = PointCloudWorldPositionHDRP(pos);
-                float4 clip = TransformWorldToHClip(worldPos);
+                float4 clip = mul(_PointCloudMVP, float4(pos, 1));
+                float3 view = TransformWorldToView(worldPos);
                 float2 scale = float2(_Size, _Size);
 
                 #ifdef _SIZE_IN_PIXELS
@@ -325,17 +263,65 @@ Shader "Simulator/PointCloud/HDRP/Circles"
                 UNITY_UNROLL
                 for (int i = 0; i < 4; i++)
                 {
-                    g2f o;
+                    g2fd o;
                     o.Position.xy = clip.xy + scale * offsets[i];
                     o.Position.zw = clip.zw;
                     o.Color = color;
                     o.TexCoord = offsets[i];
                     o.WorldPos = worldPos;
+                    o.Height = pos.y;
+                    o.ViewPos = view;
                     stream.Append(o);
                 }
             }
 
-            void Frag(g2f Input, out float4 outColor : SV_Target0)
+            void Frag(g2fd Input, out float4 outColor : SV_Target0, out float outDepth : SV_Depth)
+            {
+                if (dot(Input.TexCoord, Input.TexCoord) > 1)
+                    discard;
+
+                float uvlen = Input.TexCoord.x * Input.TexCoord.x + Input.TexCoord.y * Input.TexCoord.y;
+                float3 view = Input.ViewPos;
+                view.z += (1 - sqrt(uvlen)) * _Size;
+
+                float4 pos = mul(UNITY_MATRIX_P, float4(view, 1));
+                pos /= pos.w;
+                float depth = pos.z;
+                outDepth = depth;
+                
+                outColor = float4(1,1,1,1);
+            }
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "Point Cloud Circles Depth"
+
+            HLSLPROGRAM
+
+            #pragma vertex Vert
+            #pragma geometry GeomDefault
+            #pragma fragment Frag
+            #pragma multi_compile_local _ _SIZE_IN_PIXELS
+
+            PointCloudPoint Vert(uint id : SV_VertexID) : POINT
+            {
+                return _Buffer[id];
+            }
+
+            float3 EncodeFloatRGB(float v)
+            {
+                float4 kEncodeMul = float4(1.0, 255.0, 65025.0, 16581375.0);
+                float kEncodeBit = 1.0/255.0;
+                float4 enc = kEncodeMul * v * 0.5;
+                enc = frac (enc);
+                enc -= enc.yzww * kEncodeBit;
+                return enc.xyz;
+            }
+
+            void Frag(g2fd Input, out float4 outColor : SV_Target0)
             {
                 // TODO: this discard changes color of discarded pixels the output texture - fix
                 // if (dot(Input.TexCoord, Input.TexCoord) > 1)

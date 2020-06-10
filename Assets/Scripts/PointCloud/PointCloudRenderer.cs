@@ -38,6 +38,12 @@ namespace Simulator.PointCloud
             RainbowIntensity = 2,
             RainbowHeight = 3,
         }
+        
+        public enum HprMode
+        {
+            ScreenSpace,
+            DepthPrepass
+        }
 
         [Flags]
         public enum RenderMask
@@ -58,6 +64,8 @@ namespace Simulator.PointCloud
         public RenderMask Mask = RenderMask.Default;
 
         public LightingMode Lighting = LightingMode.Unlit;
+
+        public HprMode HiddenPointRemoval = HprMode.ScreenSpace;
 
         public bool ConstantSize;
 
@@ -442,28 +450,52 @@ namespace Simulator.PointCloud
 
             if (SolidRemoveHidden)
             {
-                var downsample = Resources.Kernels.Downsample;
-                for (var i = 1; i <= maxLevel + 3; i++)
+                switch (HiddenPointRemoval)
                 {
-                    GetMipData(resolution, i - 1, out var mipRes, out var mipVec);
-                    cmd.SetComputeVectorParam(cs, PointCloudShaderIDs.SolidCompute.MipTextureSize, mipVec);
-                    cmd.SetComputeTextureParam(cs, downsample, PointCloudShaderIDs.SolidCompute.Downsample.InputPosition, rt1, i - 1);
-                    cmd.SetComputeTextureParam(cs, downsample, PointCloudShaderIDs.SolidCompute.Downsample.OutputPosition, rt1, i);
-                    cmd.DispatchCompute(cs, downsample, GetGroupSize(mipRes.x, 16), GetGroupSize(mipRes.y, 16), 1);
+                    case HprMode.ScreenSpace:
+                    {
+                        var downsample = Resources.Kernels.Downsample;
+                        for (var i = 1; i <= maxLevel + 3; i++)
+                        {
+                            GetMipData(resolution, i - 1, out var mipRes, out var mipVec);
+                            cmd.SetComputeVectorParam(cs, PointCloudShaderIDs.SolidCompute.MipTextureSize, mipVec);
+                            cmd.SetComputeTextureParam(cs, downsample, PointCloudShaderIDs.SolidCompute.Downsample.InputPosition, rt1, i - 1);
+                            cmd.SetComputeTextureParam(cs, downsample, PointCloudShaderIDs.SolidCompute.Downsample.OutputPosition, rt1, i);
+                            cmd.DispatchCompute(cs, downsample, GetGroupSize(mipRes.x, 16), GetGroupSize(mipRes.y, 16), 1);
+                        }
+
+                        DebugSolidFixedLevel = Math.Min(Math.Max(DebugSolidFixedLevel, 0), maxLevel);
+
+                        var removeHidden = Resources.Kernels.GetRemoveHiddenKernel(DebugShowRemoveHiddenCascades);
+                        var removeHiddenMagic = RemoveHiddenCascadeOffset * height * 0.5f / Mathf.Tan(0.5f * fov * Mathf.Deg2Rad);
+
+                        cmd.SetComputeIntParam(cs, PointCloudShaderIDs.SolidCompute.RemoveHidden.LevelCount, maxLevel);
+                        cmd.SetComputeTextureParam(cs, removeHidden, PointCloudShaderIDs.SolidCompute.RemoveHidden.Position, rt1);
+                        cmd.SetComputeTextureParam(cs, removeHidden, PointCloudShaderIDs.SolidCompute.RemoveHidden.Color, rtColor, 0);
+                        cmd.SetComputeFloatParam(cs, PointCloudShaderIDs.SolidCompute.RemoveHidden.CascadesOffset, removeHiddenMagic);
+                        cmd.SetComputeFloatParam(cs, PointCloudShaderIDs.SolidCompute.RemoveHidden.CascadesSize, RemoveHiddenCascadeSize);
+                        cmd.SetComputeIntParam(cs, PointCloudShaderIDs.SolidCompute.RemoveHidden.FixedLevel, DebugSolidFixedLevel);
+                        cmd.DispatchCompute(cs, removeHidden, GetGroupSize(width, 8), GetGroupSize(height, 8), 1);
+                    }
+                        break;
+                    case HprMode.DepthPrepass:
+                    {
+                        SetCirclesMaterialProperties(cmd, targetCamera);
+                        CoreUtils.SetRenderTarget(cmd, rt2, rtDepth);
+                        var pass = Resources.Passes.circlesDepthPrepass;
+                        cmd.DrawProcedural(Matrix4x4.identity, Resources.CirclesMaterial, pass, MeshTopology.Points, GetPointCountForCamera(targetCamera));
+
+                        var removeHidden = Resources.Kernels.RemoveHiddenDepthPrepass;
+                        cmd.SetComputeTextureParam(cs, removeHidden, PointCloudShaderIDs.SolidCompute.RemoveHidden.Position, rt1);
+                        cmd.SetComputeTextureParam(cs, removeHidden, PointCloudShaderIDs.SolidCompute.RemoveHidden.EarlyDepth, rtDepth, 0);
+                        cmd.SetComputeTextureParam(cs, removeHidden, PointCloudShaderIDs.SolidCompute.RemoveHidden.Color, rtColor, 0);
+                        cmd.SetComputeFloatParam(cs, PointCloudShaderIDs.SolidCompute.RemoveHidden.PointScale, AbsoluteSize);
+                        cmd.DispatchCompute(cs, removeHidden, GetGroupSize(width, 8), GetGroupSize(height, 8), 1);
+                    }
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
-
-                DebugSolidFixedLevel = Math.Min(Math.Max(DebugSolidFixedLevel, 0), maxLevel);
-
-                var removeHidden = Resources.Kernels.GetRemoveHiddenKernel(DebugShowRemoveHiddenCascades);
-                var removeHiddenMagic = RemoveHiddenCascadeOffset * height * 0.5f / Mathf.Tan(0.5f * fov * Mathf.Deg2Rad);
-
-                cmd.SetComputeIntParam(cs, PointCloudShaderIDs.SolidCompute.RemoveHidden.LevelCount, maxLevel);
-                cmd.SetComputeTextureParam(cs, removeHidden, PointCloudShaderIDs.SolidCompute.RemoveHidden.Position, rt1);
-                cmd.SetComputeTextureParam(cs, removeHidden, PointCloudShaderIDs.SolidCompute.RemoveHidden.Color, rtColor, 0);
-                cmd.SetComputeFloatParam(cs, PointCloudShaderIDs.SolidCompute.RemoveHidden.CascadesOffset, removeHiddenMagic);
-                cmd.SetComputeFloatParam(cs, PointCloudShaderIDs.SolidCompute.RemoveHidden.CascadesSize, RemoveHiddenCascadeSize);
-                cmd.SetComputeIntParam(cs, PointCloudShaderIDs.SolidCompute.RemoveHidden.FixedLevel, DebugSolidFixedLevel);
-                cmd.DispatchCompute(cs, removeHidden, GetGroupSize(width, 8), GetGroupSize(height, 8), 1);
             }
 
             if (DebugSolidPullPush)

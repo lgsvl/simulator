@@ -1317,7 +1317,7 @@ namespace Simulator.Editor
         bool isSameDirection(MapLane mapLane, MapLine mapLine)
         {
             var lanePositions = mapLane.mapWorldPositions;
-            var linePositions = mapLine.mapWorldPositions;;
+            var linePositions = mapLine.mapWorldPositions;
             var dir = lanePositions.Last() - lanePositions[0];
             var lineDir = linePositions.Last() - linePositions[0];
             return Vector3.Dot(dir, lineDir) > 0;

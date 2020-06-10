@@ -14,6 +14,8 @@ using Simulator.Map;
 using System.Linq;
 using UnityEditorInternal;
 using UnityEngine.SceneManagement;
+using System.Text.RegularExpressions;
+using Simulator.Editor;
 
 public class MapAnnotations : EditorWindow
 {
@@ -78,6 +80,7 @@ public class MapAnnotations : EditorWindow
     private SerializedObject serializedObject;
     private SerializedProperty mapLaneProperty;
     private Vector2 scrollPos;
+    private int ExtraLinesCnt;
 
     [MenuItem("Simulator/Annotate HD Map #&m", false, 100)]
     public static void Open()
@@ -377,12 +380,18 @@ public class MapAnnotations : EditorWindow
                                                        InternalEditorUtility.LayerMaskToConcatenatedLayersMask(layerMask),
                                                        InternalEditorUtility.layers, buttonStyle);
         layerMask = InternalEditorUtility.ConcatenatedLayersMaskToLayerMask(tempMask);
-        GUILayout.Space(5);
+        GUILayout.Space(10);
 
+        EditorGUILayout.LabelField("Utilities", titleLabelStyle, GUILayout.ExpandWidth(true));
         GUILayout.BeginHorizontal();
         EditorGUILayout.LabelField("Snap annotated positions to layer");
         if (GUILayout.Button(new GUIContent("Snap all", "Snap all annotated local positions to ground layer"), GUILayout.MaxWidth(100f)))
             SnapAllToLayer();
+        GUILayout.EndHorizontal();
+        GUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField("Remove extra boundary lines");
+        if (GUILayout.Button(new GUIContent("Remove lines", "Remove extra boundary lines for parallel lanes"), GUILayout.MaxWidth(100f)))
+            RemoveExtraLines();
         GUILayout.EndHorizontal();
         if (!EditorGUIUtility.isProSkin)
             GUI.backgroundColor = Color.white;
@@ -1836,6 +1845,292 @@ public class MapAnnotations : EditorWindow
             case MapAnnotationTool.CreateMode.PEDESTRIAN:
                 CreateTempWaypoint();
                 break;
+        }
+    }
+
+    private int GetLaneNumber(MapLane lane)
+    {
+        var laneName = lane.name;
+        var laneNumber = Regex.Match(laneName, @"\d+").Value;
+        if (laneNumber != "") {return int.Parse(laneNumber);}
+        return lane.GetInstanceID();
+    }
+
+    private string RenameLine(MapLane lane, MapLane otherLane)
+    {
+        var newName = new List<string>(){"MapLine"};
+        var otherLaneNumber = GetLaneNumber(otherLane);
+        var laneNumber = GetLaneNumber(lane);
+        newName.Add("Shared");
+        var laneNames = laneNumber < otherLaneNumber ? laneNumber + "_" + otherLaneNumber : otherLaneNumber + "_" + laneNumber;
+        newName.Add(laneNames);
+
+        return String.Join("_", newName);
+    }
+
+    private void AddWorldPositions(MapDataPoints mapDataPoints)
+    {
+        mapDataPoints.mapWorldPositions.Clear();
+        foreach (var localPos in mapDataPoints.mapLocalPositions)
+            mapDataPoints.mapWorldPositions.Add(mapDataPoints.transform.TransformPoint(localPos));
+    }
+
+    private void AddWorldPositions(List<MapLane> lanes)
+    {
+        foreach (var lane in lanes)
+        {
+            AddWorldPositions(lane);
+            var leftLine = lane.leftLineBoundry;
+            var rightLine = lane.rightLineBoundry;
+            AddWorldPositions(leftLine);
+            AddWorldPositions(rightLine);
+        }
+    }
+
+    private void FindAndRemoveExtraLines(List<MapLane> lanes)
+    {
+        var visitedLanesLeft = new HashSet<MapLane>();
+        var visitedLanesRight = new HashSet<MapLane>();
+        var threshold = 1.0;
+
+        foreach (var lane in lanes)
+        {
+            if (!visitedLanesLeft.Contains(lane))
+            {
+                CheckLeftLine(lanes, visitedLanesLeft, visitedLanesRight, threshold, lane);
+            }
+
+            if (!visitedLanesRight.Contains(lane))
+            {
+                CheckRightLine(lanes, visitedLanesLeft, visitedLanesRight, threshold, lane);
+            }
+        }
+    }
+
+    private Vector3 getClosestPoint(Vector3 point, MapLine line)
+    {
+        var closestPoint = line.mapWorldPositions.First();
+        if ((line.mapWorldPositions.First() - point).magnitude >
+            (line.mapWorldPositions.Last() - point).magnitude)
+        {
+            closestPoint =line.mapWorldPositions.Last();
+        }
+
+        return closestPoint;
+    }
+
+    private bool isSameDirection(MapLane lane, MapLine line)
+    {
+        var laneVec = lane.mapWorldPositions.Last() - lane.mapWorldPositions.First();
+        var lineVec = line.mapWorldPositions.Last() - line.mapWorldPositions.First();
+
+        return Vector3.Dot(laneVec, lineVec) > 0;
+    }
+
+    private void CheckLeftLine(List<MapLane> lanes, HashSet<MapLane> visitedLanesLeft, HashSet<MapLane> visitedLanesRight, double threshold, MapLane lane)
+    {
+        var leftLine = lane.leftLineBoundry;
+        var leftStartPoint = leftLine.mapWorldPositions.First();
+        var leftEndPoint = leftLine.mapWorldPositions.Last();
+        foreach (var otherLane in lanes)
+        {
+            if (lane == otherLane) continue;
+
+            if (!visitedLanesLeft.Contains(otherLane))
+            {
+                var otherLeftLine = otherLane.leftLineBoundry;
+                var otherLeftStartPoint = otherLeftLine.mapWorldPositions.First();
+                var otherLeftEndPoint = otherLeftLine.mapWorldPositions.Last();
+                if ((leftStartPoint - otherLeftEndPoint).magnitude < threshold &&
+                    (leftEndPoint - otherLeftStartPoint).magnitude < threshold)
+                {
+                    if (leftLine == otherLeftLine)
+                    {
+                        // Extra line already removed.
+                        break;
+                    }
+
+                    GameObject.DestroyImmediate(otherLeftLine.gameObject);
+                    ExtraLinesCnt += 1;
+                    otherLane.leftLineBoundry = leftLine;
+                    leftLine.name = RenameLine(lane, otherLane);
+
+                    visitedLanesLeft.Add(lane);
+                    visitedLanesLeft.Add(otherLane);
+                    break;
+                }
+            }
+
+            if (!visitedLanesRight.Contains(otherLane))
+            {
+                var otherRightLine = otherLane.rightLineBoundry;
+                var otherRightStartPoint = otherRightLine.mapWorldPositions.First();
+                var otherRightEndPoint = otherRightLine.mapWorldPositions.Last();
+                if ((leftStartPoint - otherRightStartPoint).magnitude < threshold &&
+                    (leftEndPoint - otherRightEndPoint).magnitude < threshold)
+                {
+                    if (leftLine == otherRightLine)
+                    {
+                        // Extra line already removed.
+                        break;
+                    }
+
+                    GameObject.DestroyImmediate(otherRightLine.gameObject);
+                    ExtraLinesCnt += 1;
+                    otherLane.rightLineBoundry = leftLine;
+                    leftLine.name = RenameLine(lane, otherLane);
+
+                    visitedLanesLeft.Add(lane);
+                    visitedLanesRight.Add(otherLane);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void CheckRightLine(List<MapLane> lanes, HashSet<MapLane> visitedLanesLeft, HashSet<MapLane> visitedLanesRight, double threshold, MapLane lane)
+    {
+        var rightLine = lane.rightLineBoundry;
+        var rightStartPoint = rightLine.mapWorldPositions.First();
+        var rightEndPoint = rightLine.mapWorldPositions.Last();
+        foreach (var otherLane in lanes)
+        {
+            if (lane == otherLane) continue;
+
+            if (!visitedLanesLeft.Contains(otherLane))
+            {
+                var otherLeftLine = otherLane.leftLineBoundry;
+                var otherLeftStartPoint = otherLeftLine.mapWorldPositions.First();
+                var otherLeftEndPoint = otherLeftLine.mapWorldPositions.Last();
+                if ((rightStartPoint - otherLeftStartPoint).magnitude < threshold &&
+                    (rightEndPoint - otherLeftEndPoint).magnitude < threshold)
+                {
+                    if (rightLine == otherLeftLine)
+                    {
+                        // Extra line already removed.
+                        break;
+                    }
+
+                    GameObject.DestroyImmediate(otherLeftLine.gameObject);
+                    ExtraLinesCnt += 1;
+                    otherLane.leftLineBoundry = rightLine;
+                    rightLine.name = RenameLine(lane, otherLane);
+
+                    visitedLanesRight.Add(lane);
+                    visitedLanesLeft.Add(otherLane);
+                    break;
+                }
+            }
+
+            if (!visitedLanesRight.Contains(otherLane))
+            {
+                var otherRightLine = otherLane.rightLineBoundry;
+                var otherRightStartPoint = otherRightLine.mapWorldPositions.First();
+                var otherRightEndPoint = otherRightLine.mapWorldPositions.Last();
+                if ((rightStartPoint - otherRightEndPoint).magnitude < threshold &&
+                    (rightEndPoint - otherRightStartPoint).magnitude < threshold)
+                {
+                    if (rightLine == otherRightLine)
+                    {
+                        // Extra line already removed.
+                        break;
+                    }
+
+                    GameObject.DestroyImmediate(otherRightLine.gameObject);
+                    ExtraLinesCnt += 1;
+                    otherLane.rightLineBoundry = rightLine;
+                    rightLine.name = RenameLine(lane, otherLane);
+
+                    visitedLanesRight.Add(lane);
+                    visitedLanesRight.Add(otherLane);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void AlignLineEndPoints(List<MapLane> mapLanes)
+    {
+        foreach (MapLane lane in mapLanes)
+        {
+            AlignLineEndPoints(lane, lane.leftLineBoundry, true);
+            AlignLineEndPoints(lane, lane.rightLineBoundry, false);
+        }
+    }
+
+    private void AlignLineEndPoints(MapLane lane, MapLine line, bool isLeft)
+    {
+        var sameDirection = isSameDirection(lane, line);
+        if (lane.befores.Count > 0)
+        {
+            var lineBefore = isLeft ? lane.befores[0].leftLineBoundry : lane.befores[0].rightLineBoundry;
+            var startIdx = sameDirection ? 0 : line.mapWorldPositions.Count - 1;
+            line.mapWorldPositions[startIdx] = getClosestPoint(line.mapWorldPositions[startIdx], lineBefore);
+        }
+
+        if (lane.afters.Count > 0)
+        {
+            var lineAfter = isLeft ? lane.afters[0].leftLineBoundry : lane.afters[0].rightLineBoundry;
+            var endIndex = sameDirection ? line.mapWorldPositions.Count - 1 : 0;
+            line.mapWorldPositions[endIndex] = getClosestPoint(line.mapWorldPositions[endIndex], lineAfter);
+        }
+        ApolloMapImporter.UpdateLocalPositions(line);
+    }
+
+    private void RemoveExtraLines()
+    {
+        var mapAnnotationData = new MapManagerData();
+        if (mapAnnotationData.MapHolder == null)
+            return;
+
+        Undo.RecordObject(mapAnnotationData.MapHolder, "Remove extra boundary lines");
+        PrefabUtility.RecordPrefabInstancePropertyModifications(mapAnnotationData.MapHolder);
+
+        var root = PrefabUtility.GetOutermostPrefabInstanceRoot(mapAnnotationData.MapHolder);
+        var assetPath = "";
+        var isPrefab = root != null;
+        if (isPrefab)
+        {
+            assetPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(root);
+            PrefabUtility.UnpackPrefabInstance(root, PrefabUnpackMode.OutermostRoot, InteractionMode.UserAction);
+        }
+
+        var mapIntersections = mapAnnotationData.GetIntersections();
+        var mapLaneSections = mapAnnotationData.GetLaneSections();
+
+        ExtraLinesCnt = 0;
+        var allLanes = new HashSet<MapLane>(mapAnnotationData.GetData<MapLane>());
+        AddWorldPositions(allLanes.ToList());
+        OpenDriveMapExporter.LinkSegments(allLanes);
+        foreach (var mapLaneSection in mapLaneSections)
+        {
+            var mapLanes = new List<MapLane>(mapLaneSection.GetComponentsInChildren<MapLane>());
+            FindAndRemoveExtraLines(mapLanes);
+        }
+        Debug.Log($"Removed {ExtraLinesCnt} extra boundary lines from MapLaneSections.");
+        var changed = ExtraLinesCnt > 0;
+
+        ExtraLinesCnt = 0;
+        foreach (var mapIntersection in mapIntersections)
+        {
+            var mapLanes = new List<MapLane>(mapIntersection.GetComponentsInChildren<MapLane>());
+            AlignLineEndPoints(mapLanes);
+            FindAndRemoveExtraLines(mapLanes);
+        }
+        Debug.Log($"Removed {ExtraLinesCnt} extra boundary lines from MapIntersections.");
+        changed = changed || ExtraLinesCnt > 0;
+
+        if (isPrefab)
+        {
+            if (changed)
+            {
+                PrefabUtility.SaveAsPrefabAssetAndConnect(root, assetPath, InteractionMode.UserAction);
+                Debug.Log($"Updated map prefab: {assetPath}");
+            }
+            else
+            {
+                Undo.PerformUndo(); // Undo changes due to precision
+            }
         }
     }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -32,6 +32,7 @@ namespace Simulator.Sensors
         double LastTimestamp;
 
         ClockData data;
+        private bool Sending = false;
         
         public override SensorDistributionType DistributionType => SensorDistributionType.LowLoad;
 
@@ -75,12 +76,17 @@ namespace Simulator.Sensors
 
                 if (msg != null)
                 {
-                    try
+                    if (!Sending) // Drop this message if previous sending has not finished.
                     {
-                        msg.Item3();
-                    }
-                    catch
-                    {
+                        try
+                        {
+                            Sending = true;
+                            msg.Item3();
+                        }
+                        catch
+                        {
+                            Sending = false;
+                        }
                     }
                     nextPublish = now + (long)(Stopwatch.Frequency * msg.Item2);
                     LastTimestamp = msg.Item1;
@@ -117,7 +123,8 @@ namespace Simulator.Sensors
             {
                 lock (MessageQueue)
                 {
-                    MessageQueue.Enqueue(Tuple.Create(time, Time.fixedDeltaTime, (Action)(() => Writer.Write(data, null))));
+                    MessageQueue.Enqueue(Tuple.Create(time, Time.fixedDeltaTime,
+                        (Action)(() => Writer.Write(data, () => { Sending = false; }))));
                 }
             }
         }

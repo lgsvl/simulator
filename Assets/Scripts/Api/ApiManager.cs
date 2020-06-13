@@ -489,6 +489,9 @@ namespace Simulator.Api
                         var line = frame.GetFileLineNumber();
                         SendError($"{ex.Message} at {fname}@{line}");
                     }
+                    // If an exception was thrown from an async api handler, make sure
+                    // we unlock the semaphore, if not done so already
+                    if(ActionsSemaphore.IsLocked) ActionsSemaphore.Unlock();
                 }
             }
         }

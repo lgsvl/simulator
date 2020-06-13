@@ -27,28 +27,10 @@ namespace Simulator.Api.Commands
         private async Task LoadMap(JSONNode args, string mapId, int? seed = null)
         {
             var api = ApiManager.Instance;
-            MapDetailData mapData;
-            try
-            {
-                mapData = await ConnectionManager.API.GetByIdOrName<MapDetailData>(mapId);
-            }
-            catch(Exception e)
-            {
-                api.SendError(this, e.Message);
-                return;
-            }
+            MapDetailData mapData = await ConnectionManager.API.GetByIdOrName<MapDetailData>(mapId);
 
-            //Lock executing other API commands while map is being downloaded
-            api.ActionsSemaphore.Lock();
-            try
-            {
-                var ret = await DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, mapData.AssetGuid, mapData.Name);
-                api.StartCoroutine(LoadMapAssets(this, mapData, ret.LocalPath, seed));
-            }
-            catch
-            {
-                api.ActionsSemaphore.Unlock();
-            }
+            var ret = await DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, mapData.AssetGuid, mapData.Name);
+            api.StartCoroutine(LoadMapAssets(this, mapData, ret.LocalPath, seed));
         }
 
         static IEnumerator LoadMapAssets(LoadScene sourceCommand, MapDetailData map, string localPath, int? seed = null)
@@ -138,7 +120,7 @@ namespace Simulator.Api.Commands
             api.SendResult(sourceCommand);
         }
 
-        public void Execute(JSONNode args)
+        public async void Execute(JSONNode args)
         {
             var api = ApiManager.Instance;
             var mapId = args["scene"].Value;
@@ -147,8 +129,17 @@ namespace Simulator.Api.Commands
             {
                 seed = args["seed"].AsInt;
             }
-
-            LoadMap(args, mapId, seed).Wait();
+            api.ActionsSemaphore.Lock();
+            try
+            {
+                await LoadMap(args, mapId, seed);
+            }
+            catch(Exception e)
+            {
+                api.SendError(this, e.Message);
+                // only unlock in error case as map loading continues in coroutine after which we unlock
+                api.ActionsSemaphore.Unlock();
+            }
         }
     }
 }

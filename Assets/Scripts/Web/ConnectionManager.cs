@@ -406,7 +406,6 @@ public class CloudAPI
         using (var reader = new StreamReader(stream))
         {
             var jsonString = await reader.ReadToEndAsync();
-            Debug.Log("GOT:"+jsonString);
             return Newtonsoft.Json.JsonConvert.DeserializeObject<ApiModelType>(jsonString);
         }
     }

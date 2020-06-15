@@ -43,12 +43,16 @@ namespace Simulator.Sensors
         // TODO: Move this setting to SimulatorManager and use WebUI to set it.
         public List<InstanceCandidateTags> InstanceSegmentationTags = new List<InstanceCandidateTags>();
 
+        private ShaderTagId passId;
+
         public override void Start()
         {
             base.Start();
             // SegmentationCameraSensor always use JpegQuality = 100
             JpegQuality = 100;
             SensorCamera.GetComponent<HDAdditionalCameraData>().customRender += CustomRender;
+            passId = new ShaderTagId("SimulatorSegmentationPass");
+            // passId = new ShaderTagId("GBuffer");
 
             if (InstanceSegmentationTags.Count > 0)
             {
@@ -66,29 +70,31 @@ namespace Simulator.Sensors
             }
         }
 
+        protected override void RenderToCubemap()
+        {
+            // SensorPassRenderer handles cubemap rendering
+            SensorCamera.Render();
+        }
+
+        protected override void CheckCubemapTexture()
+        {
+            if (renderTarget != null && (!renderTarget.IsCube || !renderTarget.IsValid(CubemapSize, CubemapSize)))
+            {
+                renderTarget.Release();
+                renderTarget = null;
+            }
+            if (renderTarget == null)
+            {
+                renderTarget = SensorRenderTarget.CreateCube(CubemapSize, CubemapSize, faceMask);
+                SensorCamera.targetTexture = null;
+            }
+        }
+
         void CustomRender(ScriptableRenderContext context, HDCamera hd)
         {
-            var camera = hd.camera;
-
-            ScriptableCullingParameters culling;
-            if (camera.TryGetCullingParameters(out culling))
-            {
-                var cull = context.Cull(ref culling);
-
-                context.SetupCameraProperties(camera);
-
-                var cmd = CommandBufferPool.Get();
-                hd.SetupGlobalParams(cmd, 0);
-                cmd.ClearRenderTarget(true, true, SimulatorManager.Instance.SkySegmentationColor);
-                context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
-
-                var sorting = new SortingSettings(camera);
-                var drawing = new DrawingSettings(new ShaderTagId("SimulatorSegmentationPass"), sorting);
-                var filter = new FilteringSettings(RenderQueueRange.all);
-
-                context.DrawRenderers(cull, ref drawing, ref filter);
-            }
+            var cmd = CommandBufferPool.Get();
+            SensorPassRenderer.Render(context, cmd, hd, renderTarget, passId, SimulatorManager.Instance.SkySegmentationColor);
+            CommandBufferPool.Release(cmd);
         }
     }
 }

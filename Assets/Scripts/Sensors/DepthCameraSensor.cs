@@ -10,52 +10,49 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using Simulator.Bridge.Data;
 using Simulator.Utilities;
+using Simulator.PointCloud;
 
 namespace Simulator.Sensors
 {
-    using Simulator.PointCloud;
-
     [SensorType("Depth Camera", new[] {typeof(ImageData)})]
     public class DepthCameraSensor : CameraSensorBase
     {
+        private ShaderTagId passId;
+        
         public override void Start()
         {
             base.Start();
+            passId = new ShaderTagId("SimulatorDepthPass");
             CameraTargetTextureReadWriteType = RenderTextureReadWrite.Linear;
             SensorCamera.GetComponent<HDAdditionalCameraData>().customRender += CustomRender;
         }
 
+        protected override void RenderToCubemap()
+        {
+            // SensorPassRenderer handles cubemap rendering
+            SensorCamera.Render();
+        }
+
+        protected override void CheckCubemapTexture()
+        {
+            if (renderTarget != null && (!renderTarget.IsCube || !renderTarget.IsValid(CubemapSize, CubemapSize)))
+            {
+                renderTarget.Release();
+                renderTarget = null;
+            }
+            if (renderTarget == null)
+            {
+                renderTarget = SensorRenderTarget.CreateCube(CubemapSize, CubemapSize, faceMask);
+                SensorCamera.targetTexture = null;
+            }
+        }
+        
         void CustomRender(ScriptableRenderContext context, HDCamera hd)
         {
-            var camera = hd.camera;
-
             var cmd = CommandBufferPool.Get();
-            hd.SetupGlobalParams(cmd, 0);
-
-            if (!Fisheye)
-                CoreUtils.SetRenderTarget(cmd, renderTarget.ColorHandle, renderTarget.DepthHandle);
-            
-            CoreUtils.ClearRenderTarget(cmd, ClearFlag.All, Color.clear);
-
-            ScriptableCullingParameters culling;
-            if (camera.TryGetCullingParameters(out culling))
-            {
-                var cull = context.Cull(ref culling);
-
-                context.SetupCameraProperties(camera);
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-
-                var sorting = new SortingSettings(camera);
-                var drawing = new DrawingSettings(new ShaderTagId("SimulatorDepthPass"), sorting);
-                var filter = new FilteringSettings(RenderQueueRange.all);
-
-                context.DrawRenderers(cull, ref drawing, ref filter);
-            }
-
+            SensorPassRenderer.Render(context, cmd, hd, renderTarget, passId, Color.clear);
             if (!Fisheye)
                 PointCloudManager.RenderDepth(context, cmd, hd, renderTarget.ColorHandle, renderTarget.DepthHandle);
-            
             CommandBufferPool.Release(cmd);
         }
 

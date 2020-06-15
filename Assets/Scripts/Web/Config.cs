@@ -26,12 +26,9 @@ namespace Simulator.Web
 {
     public static class Config
     {
-        public static string WebHost = "localhost";
-        public static int WebPort = 8080;
-
         public static int sessionTimeout = 60*60*24*365;
 
-        public static string ApiHost = WebHost;
+        public static string ApiHost = "localhost";
         public static int ApiPort = 8181;
 
         public static bool RunAsMaster = true;
@@ -100,13 +97,13 @@ namespace Simulator.Web
             Bridges.Sort((a, b) => string.Compare(a.Name, b.Name));
 
             ParseConfigFile();
-            SaveConfigFile();
-            DatabaseManager.Init();
 
             if (!Application.isEditor)
             {
                 ParseCommandLine();
             }
+
+            DatabaseManager.Init();
         }
 
         public delegate void AssetLoadFunc(Manifest manifest, VfsEntry dir);
@@ -379,8 +376,6 @@ namespace Simulator.Web
 
         private class YamlConfig
         {
-            public string hostname { get; set; } = Config.WebHost;
-            public int port { get; set; } = Config.WebPort;
             public bool headless { get; set; } = Config.Headless;
             public bool client { get; set; } = !Config.RunAsMaster;
             public bool read_only { get; set; } = false;
@@ -411,8 +406,6 @@ namespace Simulator.Web
         {
             return new YamlConfig()
             {
-                hostname = WebHost,
-                port = WebPort,
                 api_hostname = ApiHost,
                 api_port = ApiPort,
                 data_path = PersistentDataPath,
@@ -434,12 +427,9 @@ namespace Simulator.Web
             if (config == null)
             {
                 return;
-            }
+            }            
 
-            WebHost = config.hostname;
-            WebPort = config.port;
-
-            ApiHost = config.api_hostname ?? WebHost;
+            ApiHost = config.api_hostname ?? "localhost";
             ApiPort = config.api_port;
 
             PersistentDataPath = config.data_path;
@@ -498,29 +488,6 @@ namespace Simulator.Web
                             Debug.LogError("Port must be an integer!");
                             Application.Quit(1);
                         }
-                        break;
-                    case "--hostname":
-                    case "-h":
-                        if (i == args.Length - 1)
-                        {
-                            Debug.LogError("No value for hostname provided!");
-                            Application.Quit(1);
-                        }
-                        WebHost = args[++i];
-                        break;
-                    case "--port":
-                    case "-p":
-                        if (i == args.Length - 1)
-                        {
-                            Debug.LogError("No value for port provided!");
-                            Application.Quit(1);
-                        }
-                        if (!int.TryParse(args[++i], out WebPort))
-                        {
-                            Debug.LogError("Port must be an integer!");
-                            Application.Quit(1);
-                        }
-
                         break;
                     case "--client":
                     case "-c":

@@ -110,12 +110,15 @@ public class ConnectionManager : MonoBehaviour
     {
         await Task.Run(() =>
         {
-            using (var reader = new StreamReader(stream))
+            if (stream != null)
             {
-                while (!reader.EndOfStream)
+                using (var reader = new StreamReader(stream))
                 {
-                    //We are ready to read the stream
-                    Parse(reader.ReadLine());
+                    while (!reader.EndOfStream)
+                    {
+                        //We are ready to read the stream
+                        Parse(reader.ReadLine());
+                    }
                 }
             }
         });
@@ -131,6 +134,10 @@ public class ConnectionManager : MonoBehaviour
                 Status = ConnectionStatus.Offline;
                 ConnectionUI.instance?.UpdateStatus();
             });
+        }
+        catch(ObjectDisposedException ex)
+        {
+
         }
         catch (Exception ex)
         {
@@ -318,19 +325,26 @@ public class CloudAPI
 
     public async Task<Stream> Connect(SimulatorInfo simInfo)
     {
-        var json = Newtonsoft.Json.JsonConvert.SerializeObject(simInfo);
-        HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, new Uri(InstanceURL, "/api/v1/clusters/connect"));
-        message.Content = new StringContent(json, Encoding.UTF8, "application/json");
-        message.Headers.Add("SimID", Config.SimID);
-        message.Headers.Add("Accept", "application/json");
-        message.Headers.Add("Connection", "Keep-Alive");
-        message.Headers.Add("X-Accel-Buffering", "no");
-        var response = await client.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, requestTokenSource.Token).ConfigureAwait(false);
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            throw new NoSuccessException(response.StatusCode.ToString());
+            var json = Newtonsoft.Json.JsonConvert.SerializeObject(simInfo);
+            HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, new Uri(InstanceURL, "/api/v1/clusters/connect"));
+            message.Content = new StringContent(json, Encoding.UTF8, "application/json");
+            message.Headers.Add("SimID", Config.SimID);
+            message.Headers.Add("Accept", "application/json");
+            message.Headers.Add("Connection", "Keep-Alive");
+            message.Headers.Add("X-Accel-Buffering", "no");
+            var response = await client.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, requestTokenSource.Token).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new NoSuccessException(response.StatusCode.ToString());
+            }
+            return await response.Content.ReadAsStreamAsync();
         }
-        return await response.Content.ReadAsStreamAsync();
+        catch
+        {
+            return await Task.FromResult<Stream>(null);
+        }
     }
 
     public Task<DetailData> Get<DetailData>(string cloudId) where DetailData: CloudAssetDetails
@@ -420,10 +434,10 @@ public class CloudAPI
 
     public void Disconnect()
     {
-        onlineTokenSource.Cancel();
-        requestTokenSource.Cancel();
-        client.CancelPendingRequests();
-        client.Dispose();
+        onlineTokenSource?.Cancel();
+        requestTokenSource?.Cancel();
+        client?.CancelPendingRequests();
+        client?.Dispose();
     }
 }
 

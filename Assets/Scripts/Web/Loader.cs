@@ -399,7 +399,9 @@ namespace Simulator
 
                         if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
                         {
+                            ConnectionManager.instance.UpdateStatus("Stopping", simulation.Id);
                             SceneManager.LoadScene(Instance.LoaderScene);
+                            ConnectionManager.instance.UpdateStatus("Idle", simulation.Id);
                         }
 
                         textureBundle?.Unload(false);
@@ -414,7 +416,9 @@ namespace Simulator
 
                         if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
                         {
+                            ConnectionManager.instance.UpdateStatus("Stopping", simulation.Id);
                             SceneManager.LoadScene(Instance.LoaderScene);
+                            ConnectionManager.instance.UpdateStatus("Idle", simulation.Id);
                         }
 
                         textureBundle?.Unload(false);
@@ -630,24 +634,26 @@ namespace Simulator
                     Debug.Log($"Failed to start '{simulation.Name}' simulation - out of date asset bundles");
                     Debug.LogException(ex);
 
-                    ResetLoaderScene();
+                    ResetLoaderScene(simulation);
                 }
                 catch (Exception ex)
                 {
                     Debug.Log($"Failed to start '{simulation.Name}' simulation");
                     Debug.LogException(ex);
 
-                    ResetLoaderScene();
+                    ResetLoaderScene(simulation);
                 }
         }
 
-        public static void ResetLoaderScene()
+        public static void ResetLoaderScene(SimulationData simulation)
         {
             if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
             {
+                ConnectionManager.instance.UpdateStatus("Stopping", simulation.Id);
                 SceneManager.LoadScene(Instance.LoaderScene);
                 AssetBundle.UnloadAllAssetBundles(true);
                 Instance.CurrentSimulation = null;
+                ConnectionManager.instance.UpdateStatus("Idle", simulation.Id);
             }
         }
 

@@ -55,11 +55,22 @@ namespace Simulator.Sensors
         /// <see cref="RTHandle"/> pointing to depth texture.
         /// </summary>
         public RTHandle DepthHandle => depthRt;
+        
+        /// <summary>
+        /// Is this target a cube map?
+        /// </summary>
+        public bool IsCube { get; private set; }
+        
+        /// <summary>
+        /// Mask for cubemap faces used on this target.
+        /// </summary>
+        public int CubeFaceMask { get; private set; }
 
         private SensorRenderTarget(int width, int height, bool cube)
         {
             currentWidth = width;
             currentHeight = height;
+            IsCube = cube;
 
             if (cube)
                 AllocCube();
@@ -87,7 +98,25 @@ namespace Simulator.Sensors
         /// <param name="height">Height (in pixels) of the texture.</param>
         public static SensorRenderTarget CreateCube(int width, int height)
         {
-            var instance = new SensorRenderTarget(width, height, true);
+            var faceMask = 0;
+            faceMask |= 1 << (int)(CubemapFace.PositiveX);
+            faceMask |= 1 << (int)(CubemapFace.NegativeX);
+            faceMask |= 1 << (int)(CubemapFace.PositiveY);
+            faceMask |= 1 << (int)(CubemapFace.NegativeY);
+            faceMask |= 1 << (int)(CubemapFace.PositiveZ);
+            faceMask |= 1 << (int)(CubemapFace.NegativeZ);
+            return CreateCube(width, height, faceMask);
+        }
+
+        /// <summary>
+        /// Creates new instance of <see cref="SensorRenderTarget"/> and allocates required resources. Uses cube map.
+        /// </summary>
+        /// <param name="width">Width (in pixels) of the texture.</param>
+        /// <param name="height">Height (in pixels) of the texture.</param>
+        /// <param name="faceMask">Mask for cubemap faces that should be rendered.</param>
+        public static SensorRenderTarget CreateCube(int width, int height, int faceMask)
+        {
+            var instance = new SensorRenderTarget(width, height, true) {CubeFaceMask = faceMask};
             return instance;
         }
 
@@ -138,7 +167,7 @@ namespace Simulator.Sensors
             depthRt = RTHandles.Alloc(
                 currentWidth,
                 currentHeight,
-                TextureXR.slices,
+                1,
                 DepthBits.Depth32,
                 GraphicsFormat.R32_UInt,
                 dimension: TextureDimension.Cube,

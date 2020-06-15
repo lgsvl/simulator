@@ -20,10 +20,10 @@ using Simulator.Sensors.UI;
 using UnityEngine.Rendering.HighDefinition;
 using Unity.Collections;
 
+using LensDistortion = Simulator.Utilities.LensDistortion;
+
 namespace Simulator.Sensors
 {
-    using LensDistortion = Simulator.Utilities.LensDistortion;
-
     [RequireComponent(typeof(Camera))]
     public abstract class CameraSensorBase: SensorBase
     {
@@ -106,7 +106,7 @@ namespace Simulator.Sensors
         [SensorParameter]
         public int CubemapSize = 1024;
         private RenderTexture CubemapTexture;
-        private int faceMask;
+        protected int faceMask;
 
         bool SizeChanged;
         ConcurrentBag<NativeArray<byte>> AvailableGpuDataArrays = new ConcurrentBag<NativeArray<byte>>();
@@ -278,31 +278,9 @@ namespace Simulator.Sensors
                     SensorCamera.targetTexture = renderTarget;
                 }
             }
-            else // Fisheye camera uses Camera.RenderToCubemap(...), and thus do not need normal RenderTexture.
+            else
             {
-                // Although Camera.RenderToCubemap has its own target texture as parameter,
-                // setting Camera.targetTexture will still affect its result.
-                // So we set Camera.targetTexture to null to make sure its result is correct.
-                SensorCamera.targetTexture = null;
-
-                if (CurrentCubemapSize != CubemapSize)
-                {
-                    CubemapTexture.Release();
-                    CubemapTexture = null;
-                }
-                if (CubemapTexture == null)
-                {
-                    CubemapTexture = new RenderTexture(CubemapSize, CubemapSize, 24, RenderTextureFormat.ARGB32, CameraTargetTextureReadWriteType)
-                    {
-                        dimension = TextureDimension.Cube,
-                        antiAliasing = 1,
-                        useMipMap = false,
-                        useDynamicScale = false,
-                        wrapMode = TextureWrapMode.Clamp,
-                        filterMode = FilterMode.Bilinear,
-                    };
-                    CubemapTexture.Create();
-                }
+                CheckCubemapTexture();
             }
 
             if (Distorted)
@@ -352,14 +330,48 @@ namespace Simulator.Sensors
             }
             else
             {
-                // Monoscopic mode of RenderToCubemap generates the result ALWAYS aligned with world coordinate system.
-                // Stereoscopi mode of RenderToCubemap can generate the result rotate with camera correctly.
-                // Setting Camera.stereoSeparation to 0 makes the result from Left/Right eye same as monoscopic mode.
-                SensorCamera.stereoSeparation = 0f;
-                SensorCamera.RenderToCubemap(CubemapTexture, faceMask, Camera.MonoOrStereoscopicEye.Left);
-
-                LensDistortion.UnifiedProjectionDistort(CubemapTexture, DistortedTexture);
+                RenderToCubemap();
+                LensDistortion.UnifiedProjectionDistort(renderTarget ?? CubemapTexture, DistortedTexture);
             }
+        }
+
+        protected virtual void CheckCubemapTexture()
+        {
+            // Fisheye camera uses Camera.RenderToCubemap(...), and thus do not need normal RenderTexture.
+            // Although Camera.RenderToCubemap has its own target texture as parameter,
+            // setting Camera.targetTexture will still affect its result.
+            // So we set Camera.targetTexture to null to make sure its result is correct.
+            SensorCamera.targetTexture = null;
+            renderTarget?.Release();
+            renderTarget = null;
+
+            if (CurrentCubemapSize != CubemapSize)
+            {
+                CubemapTexture.Release();
+                CubemapTexture = null;
+            }
+            if (CubemapTexture == null)
+            {
+                CubemapTexture = new RenderTexture(CubemapSize, CubemapSize, 24, RenderTextureFormat.ARGB32, CameraTargetTextureReadWriteType)
+                {
+                    dimension = TextureDimension.Cube,
+                    antiAliasing = 1,
+                    useMipMap = false,
+                    useDynamicScale = false,
+                    wrapMode = TextureWrapMode.Clamp,
+                    filterMode = FilterMode.Bilinear,
+                };
+                CubemapTexture.Create();
+            }
+        }
+        
+        protected virtual void RenderToCubemap()
+        {
+            // Monoscopic mode of RenderToCubemap generates the result ALWAYS aligned with world coordinate system.
+            // Stereoscopi mode of RenderToCubemap can generate the result rotate with camera correctly.
+            // Setting Camera.stereoSeparation to 0 makes the result from Left/Right eye same as monoscopic mode.
+            SensorCamera.stereoSeparation = 0f;
+            SensorCamera.RenderToCubemap(CubemapTexture, faceMask, Camera.MonoOrStereoscopicEye.Left);
         }
 
         void CheckCapture()

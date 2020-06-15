@@ -71,8 +71,11 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
                 case HeadLightState.OFF:
                     headLights.ForEach(x => x.enabled = false);
                     headLights.ForEach(x => x.intensity = 0f);
-                    headLightRenderer?.material.SetFloat("_EmissiveExposureWeight", 0f);
-                    headLightRenderer?.material.SetVector("_EmissiveColor", Color.black);
+                    if (headLightRenderer != null)
+                    {
+                        headLightRenderer.material.SetFloat("_EmissiveExposureWeight", 0f);
+                        headLightRenderer.material.SetVector("_EmissiveColor", Color.black);
+                    }
                     break;
                 case HeadLightState.LOW:
                     headLights.ForEach(x => x.enabled = true);
@@ -81,8 +84,11 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
                     {
                         headLights.ForEach(x => x.cookie = lowCookie);
                     }
-                    headLightRenderer?.material.SetFloat("_EmissiveExposureWeight", 0.8f);
-                    headLightRenderer?.material.SetVector("_EmissiveColor", colorWhiteLow);
+                    if (headLightRenderer != null)
+                    {
+                        headLightRenderer.material.SetFloat("_EmissiveExposureWeight", 0.8f);
+                        headLightRenderer.material.SetVector("_EmissiveColor", colorWhiteLow);
+                    }
                     break;
                 case HeadLightState.HIGH:
                     headLights.ForEach(x => x.enabled = true);
@@ -91,8 +97,11 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
                     {
                         headLights.ForEach(x => x.cookie = highCookie);
                     }
-                    headLightRenderer?.material.SetFloat("_EmissiveExposureWeight", 1.0f);
-                    headLightRenderer?.material.SetVector("_EmissiveColor", colorWhiteHigh);
+                    if (headLightRenderer != null)
+                    {
+                        headLightRenderer.material.SetFloat("_EmissiveExposureWeight", 1.0f);
+                        headLightRenderer.material.SetVector("_EmissiveColor", colorWhiteHigh);
+                    }
                     break;
             }
 
@@ -193,19 +202,25 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         set
         {
             _brakeLights = value;
-            brakeLightRenderer?.material.SetFloat("_EmissiveExposureWeight", _brakeLights ? 1f : 0.5f);
+            brakeLights.ForEach(x => x.enabled = _brakeLights);
             switch (_currentHeadLightState)
             {
                 case HeadLightState.OFF:
-                    brakeLightRenderer?.material.SetVector("_EmissiveColor", _brakeLights ? colorBrakeOn : colorBrakeOff);
+                    if (brakeLightRenderer != null)
+                    {
+                        brakeLightRenderer.material.SetFloat("_EmissiveExposureWeight", _brakeLights ? 1f : 0.5f);
+                        brakeLightRenderer.material.SetVector("_EmissiveColor", _brakeLights ? colorBrakeOn : colorBrakeOff);
+                    }
                     break;
                 case HeadLightState.LOW:
                 case HeadLightState.HIGH:
-                    brakeLightRenderer?.material.SetVector("_EmissiveColor", _brakeLights ? colorBrakeOn : colorBrakeIdle);
+                    if (brakeLightRenderer != null)
+                    {
+                        brakeLightRenderer.material.SetFloat("_EmissiveExposureWeight", _brakeLights ? 1f : 0.5f);
+                        brakeLightRenderer.material.SetVector("_EmissiveColor", _brakeLights ? colorBrakeOn : colorBrakeIdle);
+                    }
                     break;
             }
-            brakeLights.ForEach(x => x.enabled = _brakeLights);
-            
             if (Loader.Instance.Network.IsMaster)
                 BroadcastProperty(VehicleActionsPropertyName.BrakeLights, value);
         }
@@ -221,9 +236,11 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
                 return;
 
             _fogLights = value;
-            fogLightRenderer?.material.SetVector("_EmissiveColor", _fogLights ? Color.white : Color.black);
             fogLights.ForEach(x => x.enabled = _fogLights);
-            
+            if (fogLightRenderer != null)
+            {
+                fogLightRenderer.material.SetVector("_EmissiveColor", _fogLights ? Color.white : Color.black);
+            }
             if (Loader.Instance.Network.IsMaster)
                 BroadcastProperty(VehicleActionsPropertyName.FogLights, value);
         }
@@ -236,9 +253,11 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         set
         {
             _reverseLights = value;
-            indicatorReverseLightRenderer?.material.SetVector("_EmissiveColor", _reverseLights ? Color.white : Color.black);
             indicatorReverseLights.ForEach(x => x.enabled = _reverseLights);
-            
+            if (indicatorReverseLightRenderer != null)
+            {
+                indicatorReverseLightRenderer.material.SetVector("_EmissiveColor", _reverseLights ? Color.white : Color.black);
+            }
             if (Loader.Instance.Network.IsMaster)
                 BroadcastProperty(VehicleActionsPropertyName.ReverseLights, value);
         }
@@ -292,17 +311,58 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         foreach (Renderer child in allRenderers)
         {
             if (child.name == "HeadLights")
+            {
                 headLightRenderer = child;
+                if (headLightRenderer != null)
+                {
+                    headLightRenderer.material.SetColor("_EmissiveColor", Color.black);
+                }
+            }
             if (child.name == "BrakeLights")
+            {
                 brakeLightRenderer = child;
+                if (brakeLightRenderer != null)
+                {
+                    brakeLightRenderer.material.SetColor("_EmissiveColor", Color.black);
+                    brakeLightRenderer.material.SetFloat("_EmissiveExposureWeight", 1.0f);
+                }
+            }
             if (child.name == "LeftTurnIndicator")
+            {
                 indicatorLeftLightRenderer = child;
+                if (indicatorLeftLightRenderer != null)
+                {
+                    indicatorLeftLightRenderer.material.SetColor("_EmissiveColor", Color.black);
+                    indicatorLeftLightRenderer.material.SetFloat("_EmissiveExposureWeight", 1.0f);
+                }
+            }
             if (child.name == "RightTurnIndicator")
+            {
                 indicatorRightLightRenderer = child;
+                if (indicatorRightLightRenderer != null)
+                {
+                    indicatorRightLightRenderer.material.SetColor("_EmissiveColor", Color.black);
+                    indicatorRightLightRenderer.material.SetFloat("_EmissiveExposureWeight", 1.0f);
+                }
+            }
             if (child.name == "ReverseIndicator")
+            {
                 indicatorReverseLightRenderer = child;
+                if (indicatorReverseLightRenderer != null)
+                {
+                    indicatorReverseLightRenderer.material.SetColor("_EmissiveColor", Color.black);
+                    indicatorReverseLightRenderer.material.SetFloat("_EmissiveExposureWeight", 1.0f);
+                }
+            }
             if (child.name == "FogLights")
+            {
                 fogLightRenderer = child;
+                if (fogLightRenderer != null)
+                {
+                    fogLightRenderer.material.SetColor("_EmissiveColor", Color.black);
+                    fogLightRenderer.material.SetFloat("_EmissiveExposureWeight", 1.0f);
+                }
+            }
             Bounds.Encapsulate(child.bounds);
         }
 
@@ -316,19 +376,6 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         gtBoxCollider.center = new Vector3(gtBoxCollider.center.x, Bounds.size.y / 2, gtBoxCollider.center.z);
         gtBox.transform.parent = transform;
         gtBox.layer = LayerMask.NameToLayer("GroundTruth");
-        
-        headLightRenderer?.material.SetColor("_EmissiveColor", Color.black);
-        brakeLightRenderer?.material.SetColor("_EmissiveColor", Color.black);
-        indicatorLeftLightRenderer?.material.SetColor("_EmissiveColor", Color.black);
-        indicatorRightLightRenderer?.material.SetColor("_EmissiveColor", Color.black);
-        indicatorReverseLightRenderer?.material.SetColor("_EmissiveColor", Color.black);
-        fogLightRenderer?.material.SetColor("_EmissiveColor", Color.black);
-
-        brakeLightRenderer?.material.SetFloat("_EmissiveExposureWeight", 1.0f);
-        indicatorLeftLightRenderer?.material.SetFloat("_EmissiveExposureWeight", 1.0f);
-        indicatorRightLightRenderer?.material.SetFloat("_EmissiveExposureWeight", 1.0f);
-        indicatorReverseLightRenderer?.material.SetFloat("_EmissiveExposureWeight", 1.0f);
-        fogLightRenderer?.material.SetFloat("_EmissiveExposureWeight", 1.0f);
 
         foreach (Transform t in transform)
         {

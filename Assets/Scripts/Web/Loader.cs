@@ -21,14 +21,10 @@ using System.Linq;
 using ICSharpCode.SharpZipLib.Zip;
 using SimpleJSON;
 using Simulator.Network.Shared;
-using Simulator.Network.Client;
 using Simulator.Network.Core.Configs;
-using Simulator.Network.Core.Threading;
-using MasterManager = Simulator.Network.Master.MasterManager;
 using ICSharpCode.SharpZipLib.Core;
 using Simulator.FMU;
 using Simulator.PointCloud.Trees;
-using Simulator.Database.Services;
 using System.Threading.Tasks;
 
 namespace Simulator
@@ -72,6 +68,14 @@ namespace Simulator
         public int? Seed;
     }
 
+    public enum SimulatorStatus
+    {
+        Idle = 0,
+        Starting = 1,
+        Running = 2,
+        Stopping = 3
+    }
+
     public class Loader : MonoBehaviour
     {
         public SimulationNetwork Network { get; } = new SimulationNetwork();
@@ -93,8 +97,39 @@ namespace Simulator
         // Loader object is never destroyed, even between scene reloads
         public static Loader Instance { get; private set; }
         private System.Diagnostics.Stopwatch stopWatch = new System.Diagnostics.Stopwatch();
+        private SimulatorStatus status = SimulatorStatus.Idle;
 
         public bool EditorLoader { get; set; } = false;
+
+        public SimulatorStatus Status
+        {
+            get => status;
+            private set
+            {
+                if (status == value)
+                    return;
+                status = value;
+                switch (status)
+                {
+                    case SimulatorStatus.Idle:
+                        ConnectionManager.instance.UpdateStatus("Idle", CurrentSimulation.Id);
+                        break;
+                    case SimulatorStatus.Starting:
+                        //Start command received from the cloud
+                        break;
+                    case SimulatorStatus.Running:
+                        ConnectionManager.instance.UpdateStatus("Running", Instance.CurrentSimulation.Id);
+                        // Flash main window to let user know simulation is ready
+                        WindowFlasher.Flash();
+                        break;
+                    case SimulatorStatus.Stopping:
+                        ConnectionManager.instance.UpdateStatus("Stopping", CurrentSimulation.Id);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+        }
 
         private void Start()
         {
@@ -192,6 +227,12 @@ namespace Simulator
 
         public static async void StartSimulation(SimulationData simData)
         {
+            if (Instance.Status != SimulatorStatus.Idle)
+            {
+                Debug.LogWarning("Received start simulation command while Simulator is not idle.");
+                return;
+            }
+            Instance.Status = SimulatorStatus.Starting;
             Instance.Network.Initialize(Config.SimID, simData.Cluster, Instance.NetworkSettings);
             var downloads = new List<Task>();
             if(simData.ApiOnly == false)
@@ -209,6 +250,8 @@ namespace Simulator
 
             Debug.Log("All Downloads Complete");
 
+
+            Instance.CurrentSimulation = simData;
             if (!Instance.Network.IsClusterSimulation)
                 StartAsync(simData);
             else
@@ -217,7 +260,7 @@ namespace Simulator
 
         public static void StartAsync(SimulationData simulation)
         {
-            Debug.Assert(Instance.CurrentSimulation == null);
+            Debug.Assert(Instance.Status == SimulatorStatus.Starting);
 
             Instance.Actions.Enqueue(() =>
             {
@@ -286,8 +329,6 @@ namespace Simulator
                         {
                             var api = Instantiate(Instance.ApiManagerPrefab);
                             api.name = "ApiManager";
-
-                            Instance.CurrentSimulation = simulation;
 
                             Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.READY);
                         }
@@ -399,9 +440,9 @@ namespace Simulator
 
                         if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
                         {
-                            ConnectionManager.instance.UpdateStatus("Stopping", simulation.Id);
+                            Instance.Status = SimulatorStatus.Stopping;
                             SceneManager.LoadScene(Instance.LoaderScene);
-                            ConnectionManager.instance.UpdateStatus("Idle", simulation.Id);
+                            Instance.Status = SimulatorStatus.Idle;
                         }
 
                         textureBundle?.Unload(false);
@@ -416,9 +457,9 @@ namespace Simulator
 
                         if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
                         {
-                            ConnectionManager.instance.UpdateStatus("Stopping", simulation.Id);
+                            Instance.Status = SimulatorStatus.Stopping;
                             SceneManager.LoadScene(Instance.LoaderScene);
-                            ConnectionManager.instance.UpdateStatus("Idle", simulation.Id);
+                            Instance.Status = SimulatorStatus.Idle;
                         }
 
                         textureBundle?.Unload(false);
@@ -446,7 +487,7 @@ namespace Simulator
 
         public static void StopAsync()
         {
-            if (Instance.CurrentSimulation == null) return;
+            if (Instance.Status == SimulatorStatus.Idle || Instance.Status == SimulatorStatus.Stopping) return;
 
             Instance.Network.StopConnection();
 
@@ -457,7 +498,7 @@ namespace Simulator
                 {
                     try
                     {
-                        ConnectionManager.instance.UpdateStatus("Stopping", simulation.Id);
+                        Instance.Status = SimulatorStatus.Stopping;
                         if (ApiManager.Instance != null)
                         {
                             SceneManager.MoveGameObjectToScene(ApiManager.Instance.gameObject, SceneManager.GetActiveScene());
@@ -470,9 +511,8 @@ namespace Simulator
                             {
                                 AssetBundle.UnloadAllAssetBundles(false);
                                 Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.START);
-                                
+                                Instance.Status = SimulatorStatus.Idle;
                                 Instance.CurrentSimulation = null;
-                                ConnectionManager.instance.UpdateStatus("Idle", simulation.Id);
                             }
                         };
                     }
@@ -619,15 +659,8 @@ namespace Simulator
                     else
                         sim.Init();
 
-                    Instance.CurrentSimulation = simulation;
-
                     if (Instance.CurrentSimulation != null)
-                    {
-                        ConnectionManager.instance.UpdateStatus("Running", Instance.CurrentSimulation.Id);
-                    }
-
-                    // Flash main window to let user know simulation is ready
-                    WindowFlasher.Flash();
+                        Instance.Status = SimulatorStatus.Running;
                 }
                 catch (ZipException ex)
                 {
@@ -649,11 +682,11 @@ namespace Simulator
         {
             if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
             {
-                ConnectionManager.instance.UpdateStatus("Stopping", simulation.Id);
+                Instance.Status = SimulatorStatus.Stopping;
                 SceneManager.LoadScene(Instance.LoaderScene);
                 AssetBundle.UnloadAllAssetBundles(true);
                 Instance.CurrentSimulation = null;
-                ConnectionManager.instance.UpdateStatus("Idle", simulation.Id);
+                Instance.Status = SimulatorStatus.Idle;
             }
         }
 

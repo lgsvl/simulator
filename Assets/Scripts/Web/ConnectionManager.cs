@@ -65,8 +65,10 @@ public class ConnectionManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        if(instance == this && Status != ConnectionStatus.Offline)
-        Disconnect();
+        if (instance == this && Status != ConnectionStatus.Offline)
+        {
+            Disconnect();
+        }
     }
 
     async Task Connect()

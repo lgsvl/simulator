@@ -217,6 +217,11 @@ public class EnvironmentEffectsManager : MonoBehaviour
                 r.GetSharedMaterials(materials);
                 materials.ForEach(m =>
                 {
+                    if (r.GetComponent<ParticleSystem>() != null || r.GetComponent<ReflectionProbe>() != null)
+                    {
+                        return;
+                    }
+
                     if (m == null)
                     {
                         Debug.Log($"Object {r.gameObject.name} has null material", r.gameObject);

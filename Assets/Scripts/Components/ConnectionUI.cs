@@ -21,6 +21,7 @@ namespace Simulator.Web
         public static ConnectionUI instance;
         public Color offlineColor;
         public Color onlineColor;
+
         public void Awake()
         {
             if (instance != null)
@@ -45,6 +46,9 @@ namespace Simulator.Web
 
         public void UpdateStatus()
         {
+            if (statusText == null || linkButton == null || statusButtonIcon == null || statusButtonText == null || linkButtonText == null || statusButton == null)
+                return; // fix for editor stop playmode null
+
             switch (ConnectionManager.Status)
             {
                 case ConnectionManager.ConnectionStatus.Connecting:

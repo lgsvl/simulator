@@ -518,7 +518,6 @@ public class SimulatorManager : MonoBehaviour
             SimulatorTimeManager.SetUnityTimeScale(scale);
     }
 
-    float oldTimeScale = 0f;
     void Update()
     {
         if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux && Application.isEditor)
@@ -540,13 +539,6 @@ public class SimulatorManager : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Alpha8)) AgentManager.SetCurrentActiveAgent(7);
             if (Input.GetKeyDown(KeyCode.Alpha9)) AgentManager.SetCurrentActiveAgent(8);
             if (Input.GetKeyDown(KeyCode.Alpha0)) AgentManager.SetCurrentActiveAgent(9);
-        }
-
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            float temp = Time.timeScale;
-            Time.timeScale = oldTimeScale;
-            oldTimeScale = temp;
         }
     }
 

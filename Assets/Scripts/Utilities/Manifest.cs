@@ -19,6 +19,9 @@ namespace Simulator
         public string authorName;
         public string authorUrl;
         public string fmuName;
+        public double[] mapOrigin;
+        public double[] baseLink;
+
         public Dictionary<string, string> additionalFiles;
     }
 }

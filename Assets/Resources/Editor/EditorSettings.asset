@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 988c35d7377cc8c478675cada3dd4d17, type: 3}
   m_Name: EditorSettings
   m_EditorClassIdentifier: 
-  LidarSensor: {fileID: 6094055635804432560, guid: 74b095570caaa9344b671b1f651ebb06,
+  LidarSensor: {fileID: -6915071163242918046, guid: 74b095570caaa9344b671b1f651ebb06,
     type: 3}
   MapTrafficSignalPrefab: {fileID: 3756271736546270, guid: f9b66ddc80dcc038d969b320678b3eb3,
     type: 3}

@@ -144,6 +144,8 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
 
         var agentController = GetComponent<AgentController>();
         var requested = JSONNode.Parse(sensors).Children.ToList();
+        var baseLink = transform.GetComponentInChildren<BaseLink>();
+        Debug.Log("looking for BaseLink");
         while (requested.Count != 0)
         {
             int requestedCount = requested.Count;
@@ -166,7 +168,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                             throw new Exception($"Unknown sensor type {type} for {gameObject.name} vehicle");
                         }
 
-                        var sensor = CreateSensor(gameObject, parentObject, prefabs[type].gameObject, item);
+                        var sensor = CreateSensor(gameObject, parentObject, prefabs[type].gameObject, item, baseLink);
                         var sensorBase = sensor.GetComponent<SensorBase>();
                         sensorBase.Name = name;
                         sensor.name = name;
@@ -199,18 +201,17 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         }
     }
 
-    private GameObject CreateSensor(GameObject agent, GameObject parent, GameObject prefab, JSONNode item)
+    private GameObject CreateSensor(GameObject agent, GameObject parent, GameObject prefab, JSONNode item, BaseLink baseLink)
     {
-        Vector3 position;
-        Quaternion rotation;
+        if (baseLink != null)
+        {
+            parent = parent == gameObject ? baseLink.gameObject : parent; // replace baselink with the default gameObject parent
+        }
+        var position = parent.transform.position;
+        var rotation = parent.transform.rotation;
 
         var transform = item["transform"];
-        if (transform == null)
-        {
-            position = parent.transform.position;
-            rotation = parent.transform.rotation;
-        }
-        else
+        if (transform != null)
         {
             position = parent.transform.TransformPoint(transform.ReadVector3());
             rotation = parent.transform.rotation * Quaternion.Euler(transform.ReadVector3("pitch", "yaw", "roll"));
@@ -219,6 +220,8 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         var sensor = Instantiate(prefab, position, rotation, agent.transform);
 
         var sb = sensor.GetComponent<SensorBase>();
+        sb.ParentTransform = parent.transform;
+
         var sbType = sb.GetType();
 
         foreach (var param in item["params"])

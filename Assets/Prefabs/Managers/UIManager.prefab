@@ -12122,6 +12122,7 @@ MonoBehaviour:
   VisualizerButton: {fileID: 8806184664872811651}
   ResetButton: {fileID: 5425773618583764235}
   DisableAllButton: {fileID: 1552574965704299106}
+  TFVisualizeButton: {fileID: 0}
   BridgeButton: {fileID: 4438335835402514818}
   PlayText: {fileID: 8268383727808082042}
   PauseText: {fileID: 4541412864413211000}

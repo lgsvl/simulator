@@ -180,6 +180,8 @@ namespace Simulator.Editor
                 {
                     var info = AssetDatabase.LoadAssetAtPath<GameObject>(prefabEntry.mainAssetFile).GetComponent<VehicleInfo>();
                     var fmu = AssetDatabase.LoadAssetAtPath<GameObject>(prefabEntry.mainAssetFile).GetComponent<VehicleFMU>();
+                    var baseLink = AssetDatabase.LoadAssetAtPath<GameObject>(prefabEntry.mainAssetFile).GetComponent<BaseLink>();
+
                     if (info == null)
                     {
                         throw new Exception($"Build failed: Vehicle info on {prefabEntry.mainAssetFile} not found. Please add a VehicleInfo component and rebuild.");
@@ -187,6 +189,9 @@ namespace Simulator.Editor
                     manifest.licenseName = info.LicenseName;
                     manifest.description = info.Description;
                     manifest.fmuName = fmu == null ? "" : fmu.FMUData.Name;
+                    manifest.baseLink = baseLink != null ?
+                        new double[] { baseLink.transform.position.x, baseLink.transform.position.y, baseLink.transform.position.z } : // rotation
+                        new double[] { 0, 0, 0 };
                 }
                 return manifest;
             }

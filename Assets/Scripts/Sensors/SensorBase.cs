@@ -35,6 +35,9 @@ namespace Simulator.Sensors
 
         public virtual SensorDistributionType DistributionType => SensorDistributionType.DoNotDistribute;
 
+        [HideInInspector]
+        public Transform ParentTransform;
+
         public abstract void OnBridgeSetup(IBridge bridge);
         public abstract void OnVisualize(Visualizer visualizer);
         public abstract void OnVisualizeToggle(bool state);

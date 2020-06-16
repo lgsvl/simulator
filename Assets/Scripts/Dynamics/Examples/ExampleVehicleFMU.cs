@@ -15,6 +15,9 @@ namespace Simulator.FMU
     {
         public Rigidbody RB { get; set; }
 
+        public Transform BaseLink { get { return BaseLinkTransform; } }
+        public Transform BaseLinkTransform;
+
         public float AccellInput { get; set; } = 0f;
         public float SteerInput { get; set; } = 0f;
 

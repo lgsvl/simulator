@@ -4,7 +4,7 @@
  * Mozilla Public License, version 2.0.  The full text of the
  * Mozilla Public License is at https://www.mozilla.org/MPL/2.0/
  * 
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  */
 
 using System.Collections.Generic;
@@ -14,6 +14,9 @@ using UnityEngine;
 public class VehicleSMI : MonoBehaviour, IVehicleDynamics
 {
     public Rigidbody RB { get; set; }
+
+    public Transform BaseLink { get { return BaseLinkTransform; } }
+    public Transform BaseLinkTransform;
 
     public float AccellInput { get; set; } = 0f;
     public float SteerInput { get; set; } = 0f;

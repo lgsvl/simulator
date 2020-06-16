@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -17,7 +17,6 @@ using Simulator.Sensors;
 using Simulator.Components;
 using System.Text;
 using System.Collections.Concurrent;
-using System.Linq;
 
 public class UIManager : MonoBehaviour
 {
@@ -735,15 +734,16 @@ public class UIManager : MonoBehaviour
         visualizerToggles.Add(tog);
         tog.VisualizerNameText.text = sensor.Name;
         tog.Sensor = sensor;
-
+        
         var vis = Instantiate(VisualizerPrefab, VisualizerCanvasGO.transform);
         visualizers.Add(vis);
         vis.transform.localPosition = Vector2.zero;
-        vis.Init(sensor.Name);
         vis.Sensor = sensor;
+        vis.Init(sensor.Name);
         vis.VisualizerToggle = tog;
         vis.gameObject.SetActive(false);
         tog.Visualizer = vis;
+        tog.Init(sensor.name, sensor.ParentTransform);
 
         if (!VisualizerCanvasGO.activeInHierarchy)
         {
@@ -770,6 +770,7 @@ public class UIManager : MonoBehaviour
     private void DisableAllOnClick()
     {
         visualizers.ForEach(x => x.gameObject.SetActive(false));
+        visualizerToggles.ForEach(x => x.ResetToggle());
     }
 
     public void ToggleVisualizers()

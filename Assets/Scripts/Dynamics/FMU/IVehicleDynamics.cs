@@ -12,6 +12,7 @@ public enum IgnitionStatus { Off, On };
 public interface IVehicleDynamics
 {
     Rigidbody RB { get; }
+    Transform BaseLink { get; }
 
     float AccellInput { get; }
     float SteerInput { get; }

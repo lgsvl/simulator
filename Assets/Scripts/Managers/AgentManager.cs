@@ -57,6 +57,14 @@ public class AgentManager : MonoBehaviour
         agentController.SensorsChanged += AgentControllerOnSensorsChanged;
         agentController.Config = config;
         agentController.Config.AgentGO = go;
+
+        var baseLink = go.GetComponentInChildren<BaseLink>();
+        if (baseLink == null)
+        {
+            baseLink = new GameObject("BaseLink").AddComponent<BaseLink>();
+            baseLink.transform.SetParent(go.transform, false);
+        }
+
         SIM.LogSimulation(SIM.Simulation.VehicleStart, config.Name);
         
         ActiveAgents.Add(agentController.Config);

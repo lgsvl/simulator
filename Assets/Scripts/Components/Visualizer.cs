@@ -29,7 +29,7 @@ namespace Simulator.Sensors.UI
         public GameObject HeaderGO;
         public GameObject CameraVisualGO;
         public GameObject ValuesVisualGO;
-        
+
         public VisualizerToggle VisualizerToggle { get; set; }
         public SensorBase Sensor { get; set; }
         public RawImage CameraRawImage { get; private set; }
@@ -74,6 +74,7 @@ namespace Simulator.Sensors.UI
         {
             this.name = name;
             VisualizerNameText.text = name;
+
             if (rt == null)
             {
                 return;
@@ -110,7 +111,6 @@ namespace Simulator.Sensors.UI
         private void OnEnable()
         {
             Sensor?.OnVisualizeToggle(true);
-            VisualizerToggle?.UpdateToggleUI();
         }
         
         private void Update()
@@ -132,7 +132,6 @@ namespace Simulator.Sensors.UI
         private void OnDisable()
         {
             Sensor?.OnVisualizeToggle(false);
-            VisualizerToggle?.UpdateToggleUI();
 
             if (rt != null)
             {
@@ -220,7 +219,7 @@ namespace Simulator.Sensors.UI
 
         private void ExitButtonOnClick()
         {
-            VisualizerToggle.OnToggleClicked(false);
+            VisualizerToggle.ExitButtonClicked();
         }
 
         private void ResizeOnClick()

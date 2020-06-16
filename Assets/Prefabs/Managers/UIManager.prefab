@@ -8985,8 +8985,8 @@ MonoBehaviour:
     Toggle ignition\nH - Head lights\nF - Fog lights\n<> - Turn signals\nM - Hazard
     signals\nI - Interior light\n\nCamera\nWASD - Forward/Back Strafe\nQE - Up/Down\nMouse
     RightClick - Look\nLeft Shift - Boost\nWS - Zoom\n\nWheel Logitech G920\nPedals
-    Right - Accel\nPedals Center - Brake\nWheel - Steer\nA - Toggle Vehicle\r\nB
-    - Toggle NPC\r\nX - Toggle Visualizers\r\nY - Toggle Camera State\r\nRB - Accel\r\nLB
+    Right - Accel\nPedals Center - Brake\nWheel - Steer\nA - Toggle Vehicle\r\nB -
+    Toggle NPC\r\nX - Toggle Visualizers\r\nY - Toggle Camera State\r\nRB - Accel\r\nLB
     - Brake\r\nStart - Pause\r Interactive Mode\nSelect - Menu\r\nRSB - Lights\r\nLSB
     - Toggle Reverse\r\nCenter - Toggle Interior Light\r"
 --- !u!1 &5169069315417926461
@@ -12600,6 +12600,7 @@ MonoBehaviour:
   VisualizerButton: {fileID: 8806184664872811651}
   ResetButton: {fileID: 5425773618583764235}
   DisableAllButton: {fileID: 1552574965704299106}
+  TFVisualizeButton: {fileID: 0}
   BridgeButton: {fileID: 4438335835402514818}
   PlayText: {fileID: 8268383727808082042}
   PauseText: {fileID: 4541412864413211000}

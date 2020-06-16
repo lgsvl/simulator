@@ -1,5 +1,3 @@
-hostname: "localhost"
-port: 8080
 headless: false
 read_only: false
 api_hostname: "localhost"

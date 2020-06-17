@@ -661,9 +661,27 @@ namespace Simulator.Bridge.Ros
             }
             else if (type.IsArray)
             {
-                sb.Append('"');
-                sb.Append(Convert.ToBase64String((byte[])message));
-                sb.Append('"');
+                if (type.GetElementType() == typeof(byte))
+                {
+                    sb.Append('"');
+                    sb.Append(Convert.ToBase64String((byte[])message));
+                    sb.Append('"');
+                }
+                else
+                {
+                    var array = message as Array;
+                    var elementType = type.GetElementType();
+                    sb.Append('[');
+                    for (int i = 0; i < array.Length; i++)
+                    {
+                        SerializeInternal(array.GetValue(i), elementType, sb);
+                        if (i < array.Length - 1)
+                        {
+                            sb.Append(',');
+                        }
+                    }
+                    sb.Append(']');
+                }
             }
             else if (type.IsGenericList())
             {

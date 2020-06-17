@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace Simulator
 {
-    public struct Manifest
+    public class Manifest
     {
         public string assetName;
         public string assetType;

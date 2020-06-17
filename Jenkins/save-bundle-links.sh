@@ -55,7 +55,6 @@ fi
   -batchmode \
   -force-vulkan \
   -silent-crashes \
-  -quit \
   -projectPath /mnt \
   -executeMethod Simulator.Editor.Build.Run \
   -saveBundleLinks /mnt/${PREFIX}-bundles-${SUFFIX}.html \

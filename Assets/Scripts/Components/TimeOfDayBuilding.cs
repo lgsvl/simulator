@@ -5,23 +5,23 @@
  *
  */
 
-using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class TimeOfDayBuilding : MonoBehaviour
 {
-    private static readonly int EmissiveColor = Shader.PropertyToID("_EmissiveColor");
-
+    private static readonly int EmissiveColorId = Shader.PropertyToID("_EmissiveColor");
     private List<Material> allBuildingMaterials = new List<Material>();
+    private Renderer[] allRenderers;
     private Color emitColor = new Color(6f, 6f, 6f);
 
     public void Init(TimeOfDayStateTypes state)
     {
+        allRenderers = transform.GetComponentsInChildren<Renderer>();
         var materials = new List<Material>();
 
-        Array.ForEach(transform.GetComponentsInChildren<Renderer>(), renderer =>
+        Array.ForEach(allRenderers, renderer =>
         {
             renderer.GetSharedMaterials(materials);
             foreach (var material in materials)
@@ -30,10 +30,13 @@ public class TimeOfDayBuilding : MonoBehaviour
                     allBuildingMaterials.Add(material);
             }
         });
-        SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged += OnTimeOfDayChange;
+
+        if (SimulatorManager.InstanceAvailable)
+            SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged += OnTimeOfDayChange;
+
         OnTimeOfDayChange(state);
     }
-    
+
     private void OnTimeOfDayChange(TimeOfDayStateTypes state)
     {
         switch (state)
@@ -55,11 +58,32 @@ public class TimeOfDayBuilding : MonoBehaviour
 
     private void UpdateBuildingMats(Color color)
     {
-        foreach (var material in allBuildingMaterials)
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
         {
-            if (material == null)
-                continue;
-            material.SetVector(EmissiveColor, color);
+            foreach (var r in allRenderers)
+            {
+                var sharedMats = r.sharedMaterials;
+                var tmpMats = new Material[sharedMats.Length];
+
+                for (var i = 0; i < sharedMats.Length; ++i)
+                {
+                    tmpMats[i] = new Material(sharedMats[i]);
+                    tmpMats[i].SetVector(EmissiveColorId, color);
+                }
+
+                r.sharedMaterials = tmpMats;
+            }
+        }
+        else
+#endif
+        {
+            foreach (var material in allBuildingMaterials)
+            {
+                if (material == null)
+                    continue;
+                material.SetVector(EmissiveColorId, color);
+            }
         }
     }
 }

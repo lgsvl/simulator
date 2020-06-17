@@ -9,7 +9,9 @@
         "Unity.RenderPipelines.HighDefinition.Editor",
         "Unity.RenderPipelines.Core.Editor",
         "Unity.RenderPipelines.Core.Runtime",
-        "Unity.Formats.Fbx.Editor"
+        "Unity.Formats.Fbx.Editor",
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.EditorCoroutines.Editor"
     ],
     "includePlatforms": [
         "Editor"

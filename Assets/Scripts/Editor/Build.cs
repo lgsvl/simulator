@@ -25,12 +25,15 @@ using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Simulator.Sensors;
 using Simulator.Utilities;
+using System.Collections;
+using Unity.EditorCoroutines.Editor;
 
 namespace Simulator.Editor
 {
     public class Build : EditorWindow
     {
-        static public bool Running;
+        public static bool Running;
+        private static bool CoroutineRunning;
 
         enum BuildTarget
         {
@@ -57,7 +60,7 @@ namespace Simulator.Editor
             return String.Join(Path.AltDirectorySeparatorChar.ToString(), elements);
         }
 
-        class BundleData
+        public class BundleData
         {
             public BundleData(BundleConfig.BundleTypes type, string path = null)
             {
@@ -169,21 +172,18 @@ namespace Simulator.Editor
                 entries[name].selected = true;
             }
 
-            Manifest PreparePrefabManifest(Entry prefabEntry, string outputFolder, List<(string, string)> buildArtifacts)
+            private IEnumerator PreparePrefabManifest(Entry prefabEntry, string outputFolder, List<(string, string)> buildArtifacts, Manifest manifest)
             {
                 string assetGuid = Guid.NewGuid().ToString();
-                Manifest manifest = new Manifest
-                {
-                    assetName = prefabEntry.name,
-                    assetGuid = assetGuid,
-                    assetFormat = BundleConfig.Versions[bundleType],
-                    description = "",
-                    licenseName = "",
-                    authorName = "",
-                    authorUrl = "",
-                    fmuName = "",
-                    copyright = "",
-                };
+                manifest.assetName = prefabEntry.name;
+                manifest.assetGuid = assetGuid;
+                manifest.assetFormat = BundleConfig.Versions[bundleType];
+                manifest.description = "";
+                manifest.licenseName = "";
+                manifest.authorName = "";
+                manifest.authorUrl = "";
+                manifest.fmuName = "";
+                manifest.copyright = "";
 
                 if (bundleType == BundleConfig.BundleTypes.Vehicle)
                 {
@@ -195,10 +195,12 @@ namespace Simulator.Editor
                     {
                         throw new Exception($"Build failed: Vehicle info on {prefabEntry.mainAssetFile} not found. Please add a VehicleInfo component and rebuild.");
                     }
+
                     manifest.licenseName = info.LicenseName;
                     manifest.description = info.Description;
                     manifest.assetType = "vehicle";
                     manifest.fmuName = fmu == null ? "" : fmu.FMUData.Name;
+
                     manifest.baseLink = baseLink != null ?
                         new double[] { baseLink.transform.position.x, baseLink.transform.position.y, baseLink.transform.position.z } : // rotation
                         new double[] { 0, 0, 0 };
@@ -208,7 +210,7 @@ namespace Simulator.Editor
 
                     UnityEngine.Object tempObj = AssetDatabase.LoadAssetAtPath(prefabEntry.mainAssetFile, typeof(GameObject));
 
-                    foreach (Collider col in ((GameObject)tempObj).transform.GetComponentsInChildren<Collider>())
+                    foreach (Collider col in ((GameObject) tempObj).transform.GetComponentsInChildren<Collider>())
                     {
                         MeshRenderer mr = col.transform.GetComponent<MeshRenderer>();
                         if (mr != null)
@@ -237,31 +239,28 @@ namespace Simulator.Editor
 
                     p.Start();
 
-                    GameObject go = new GameObject();
-                    Camera camera = go.AddComponent<Camera>();
-                    RenderTexture rt = new RenderTexture(camera.pixelWidth, camera.pixelHeight, 24);
+                    while (!p.HasExited)
+                    {
+                        yield return new WaitForSeconds(1f);
+                    }
 
-                    Texture2D screenShot = new Texture2D(camera.pixelWidth, camera.pixelHeight, TextureFormat.RGB24, false);
-                    camera.Render();
-                    RenderTexture.active = rt;
-                    screenShot.ReadPixels(new Rect(0, 0, camera.pixelWidth, camera.pixelHeight), 0, 0);
-                    camera.targetTexture = null;
-                    RenderTexture.active = null; // JC: added to avoid errors
-                    DestroyImmediate(rt);
-                    byte[] bytes = screenShot.EncodeToPNG();
+                    var textures = new BundlePreviewRenderer.PreviewTextures();
+                    yield return EditorCoroutineUtility.StartCoroutineOwnerless(BundlePreviewRenderer.RenderVehiclePreview(prefabEntry.mainAssetFile, textures));
+                    var bytesLarge = textures.large.EncodeToPNG();
+                    var bytesMedium = textures.medium.EncodeToPNG();
+                    var bytesSmall = textures.small.EncodeToPNG();
 
                     string tmpdir = Path.Combine(outputFolder, $"{manifest.assetName}_pictures");
                     Directory.CreateDirectory(tmpdir);
-                    File.WriteAllBytes(Path.Combine(tmpdir, "small.jpg"), bytes);
-                    File.WriteAllBytes(Path.Combine(tmpdir, "medium.jpg"), bytes);
-                    File.WriteAllBytes(Path.Combine(tmpdir, "large.jpg"), bytes);
-                    DestroyImmediate(go);
+                    File.WriteAllBytes(Path.Combine(tmpdir, "small.jpg"), bytesSmall);
+                    File.WriteAllBytes(Path.Combine(tmpdir, "medium.jpg"), bytesMedium);
+                    File.WriteAllBytes(Path.Combine(tmpdir, "large.jpg"), bytesLarge);
 
                     var images = new Images()
                     {
-                        small =  ZipPath("images", "small.jpg"),
+                        small = ZipPath("images", "small.jpg"),
                         medium = ZipPath("images", "medium.jpg"),
-                        large =  ZipPath("images", "large.jpg"),
+                        large = ZipPath("images", "large.jpg"),
                     };
                     manifest.attachments.Add("images", images);
 
@@ -270,10 +269,9 @@ namespace Simulator.Editor
                     buildArtifacts.Add((Path.Combine(tmpdir, "large.jpg"), images.large));
                     buildArtifacts.Add((tmpdir, null));
                 }
-                return manifest;
             }
 
-            Manifest PrepareSceneManifest(Entry sceneEntry, HashSet<Scene> currentScenes, string outputFolder, List<(string, string)> buildArtifacts)
+            private IEnumerator PrepareSceneManifest(Entry sceneEntry, HashSet<Scene> currentScenes, string outputFolder, List<(string, string)> buildArtifacts, Manifest manifest)
             {
                 Scene scene = EditorSceneManager.OpenScene(sceneEntry.mainAssetFile, OpenSceneMode.Additive);
                 NodeTreeLoader[] loaders = GameObject.FindObjectsOfType<NodeTreeLoader>();
@@ -292,22 +290,18 @@ namespace Simulator.Editor
                         MapOrigin origin = root.GetComponentInChildren<MapOrigin>();
                         if (origin != null)
                         {
-
-                            var manifest = new Manifest
-                            {
-                                assetName = sceneEntry.name,
-                                assetType = "map",
-                                assetGuid = Guid.NewGuid().ToString(),
-                                mapOrigin = new double[] { origin.OriginEasting, origin.OriginNorthing },
-                                assetFormat = BundleConfig.Versions[BundleConfig.BundleTypes.Environment],
-                                description = origin.Description,
-                                licenseName = origin.LicenseName,
-                                authorName = "",
-                                authorUrl = "",
-                                fmuName = "",
-                                copyright = "",
-                                attachments = new Dictionary<string, object>()
-                            };
+                            manifest.assetName = sceneEntry.name;
+                            manifest.assetType = "map";
+                            manifest.assetGuid = Guid.NewGuid().ToString();
+                            manifest.mapOrigin = new double[] {origin.OriginEasting, origin.OriginNorthing};
+                            manifest.assetFormat = BundleConfig.Versions[BundleConfig.BundleTypes.Environment];
+                            manifest.description = origin.Description;
+                            manifest.licenseName = origin.LicenseName;
+                            manifest.authorName = "";
+                            manifest.authorUrl = "";
+                            manifest.fmuName = "";
+                            manifest.copyright = "";
+                            manifest.attachments = new Dictionary<string, object>();
 
                             string name = manifest.assetName;
                             
@@ -356,30 +350,18 @@ namespace Simulator.Editor
                             buildArtifacts.Add((Path.Combine(tmpdir, "AutowareVectorMap.zip"), hdMaps.autoware));
                             buildArtifacts.Add((tmpdir, null));
 
-                            Camera camera = origin.transform.gameObject.GetComponent<Camera>();
-                            if (camera == null)
-                            {
-                                camera = origin.transform.gameObject.AddComponent<Camera>();
-                            }
-                            
-                            Texture2D screenShot = new Texture2D(1920, 1080, TextureFormat.RGB24, false);
-                            
-                            origin.transform.gameObject.AddComponent<Light>();
-                            RenderTexture rt = new RenderTexture(1920, 1080, 24);
-                            camera.targetTexture = rt;
-                            camera.Render();
-                            RenderTexture.active = rt;
-                            screenShot.ReadPixels(new Rect(0, 0, camera.pixelWidth, camera.pixelHeight), 0, 0);
-                            camera.targetTexture = null;
-                            RenderTexture.active = null; // JC: added to avoid errors
-                            DestroyImmediate(rt);
+                            var textures = new BundlePreviewRenderer.PreviewTextures();
+                            yield return EditorCoroutineUtility.StartCoroutineOwnerless(BundlePreviewRenderer.RenderScenePreview(origin.transform, textures));
+                            var bytesLarge = textures.large.EncodeToPNG();
+                            var bytesMedium = textures.medium.EncodeToPNG();
+                            var bytesSmall = textures.small.EncodeToPNG();
 
-                            byte[] bytes = screenShot.EncodeToPNG();
                             tmpdir = Path.Combine(outputFolder, $"{name}_pictures");
                             Directory.CreateDirectory(tmpdir);
-                            File.WriteAllBytes(Path.Combine(tmpdir, "small.jpg"), bytes);
-                            File.WriteAllBytes(Path.Combine(tmpdir, "medium.jpg"), bytes);
-                            File.WriteAllBytes(Path.Combine(tmpdir, "large.jpg"), bytes);
+                            File.WriteAllBytes(Path.Combine(tmpdir, "small.jpg"), bytesSmall);
+                            File.WriteAllBytes(Path.Combine(tmpdir, "medium.jpg"), bytesMedium);
+                            File.WriteAllBytes(Path.Combine(tmpdir, "large.jpg"), bytesLarge);
+
                             var images = new Images()
                             {
                                 small =  ZipPath("images", "small.jpg"),
@@ -400,7 +382,7 @@ namespace Simulator.Editor
                                 }
                             }
 
-                            return manifest;
+                            yield break;
                         }
                     }
                     throw new Exception($"Build failed: MapOrigin on {sceneEntry.name} not found. Please add a MapOrigin component.");
@@ -413,7 +395,8 @@ namespace Simulator.Editor
                     }
                 }
             }
-            public void RunBuild(string outputFolder)
+
+            public IEnumerator RunBuild(string outputFolder)
             {
                 string Thing = BundleConfig.singularOf(bundleType);
                 string Things = BundleConfig.pluralOf(bundleType);
@@ -424,14 +407,14 @@ namespace Simulator.Editor
                 var currentScenes = new HashSet<Scene>();
 
                 var selected = entries.Values.Where(e => e.selected && e.available).ToList();
-                if (selected.Count == 0) return;
+                if (selected.Count == 0) yield break;
 
                 if (bundleType == BundleConfig.BundleTypes.Environment)
                 {
                     if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                     {
                         Debug.LogWarning("Cancelling the build.");
-                        return;
+                        yield break;
                     }
                     for (int i = 0; i < EditorSceneManager.loadedSceneCount; i++)
                     {
@@ -441,17 +424,17 @@ namespace Simulator.Editor
 
                 foreach (var entry in selected)
                 {
-                    Manifest manifest;
+                    Manifest manifest = new Manifest();
                     var buildArtifacts = new List<(string source, string archiveName)>();
                     bool mainAssetIsScript = entry.mainAssetFile.EndsWith("."+ScriptExtension);
                     if (bundleType == BundleConfig.BundleTypes.Environment)
                     {
-                        manifest = PrepareSceneManifest(entry, currentScenes, outputFolder, buildArtifacts);
+                        yield return EditorCoroutineUtility.StartCoroutineOwnerless(PrepareSceneManifest(entry, currentScenes, outputFolder, buildArtifacts, manifest));
                         manifest.assetType = "map";
                     }
                     else
                     {
-                        manifest = PreparePrefabManifest(entry, outputFolder, buildArtifacts);
+                        yield return EditorCoroutineUtility.StartCoroutineOwnerless(PreparePrefabManifest(entry, outputFolder, buildArtifacts, manifest));
                         manifest.assetType = thing;
                     }
 
@@ -582,7 +565,7 @@ namespace Simulator.Editor
                             if (!assemblyBuilder.Build())
                             {
                                 Debug.LogErrorFormat("Failed to start build of assembly {0}!", assemblyBuilder.assemblyPath);
-                                return;
+                                yield break;
                             }
 
                             while (assemblyBuilder.status != AssemblyBuilderStatus.Finished) { }
@@ -759,6 +742,12 @@ namespace Simulator.Editor
 
             if (GUILayout.Button("Build"))
             {
+                void OnCompltete()
+                {
+                    Running = false;
+                    Application.OpenURL(Web.Config.CloudUrl);
+                }
+
                 Running = true;
                 try
                 {
@@ -774,15 +763,14 @@ namespace Simulator.Editor
 
                         assetBundlesLocation = Path.Combine(PlayerFolder, "AssetBundles");
                     }
-                    foreach (var group in buildGroups)
-                    {
-                        group.Value.RunBuild(assetBundlesLocation);
-                    }
+
+                    CoroutineRunning = true;
+                    EditorCoroutineUtility.StartCoroutineOwnerless(BuildBundles(assetBundlesLocation, OnCompltete));
                 }
                 finally
                 {
-                    Running = false;
-                    Application.OpenURL(Simulator.Web.Config.CloudUrl);
+                    if (!CoroutineRunning)
+                        OnCompltete();
                 }
             }
         }
@@ -1015,7 +1003,34 @@ namespace Simulator.Editor
             }
         }
 
-        static void Run()
+        private IEnumerator BuildBundles(string outputFolder, Action onComplete = null)
+        {
+            try
+            {
+                CoroutineRunning = true;
+
+                foreach (var group in buildGroups.Values)
+                    yield return EditorCoroutineUtility.StartCoroutineOwnerless(group.RunBuild(outputFolder));
+
+                CoroutineRunning = false;
+            }
+            finally
+            {
+                onComplete?.Invoke();
+            }
+        }
+
+        // Called from command line
+        private static void Run()
+        {
+            var hasQuitArg = Environment.GetCommandLineArgs().Contains("-quit");
+            if (hasQuitArg)
+                throw new Exception("Batch mode build utilizes coroutines - start it with no `-quit` flag.");
+
+            EditorCoroutineUtility.StartCoroutineOwnerless(RunImpl());
+        }
+
+        private static IEnumerator RunImpl()
         {
             BuildTarget? buildTarget = null;
 
@@ -1149,10 +1164,7 @@ namespace Simulator.Editor
                 if (buildBundles)
                 {
                     var assetBundlesLocation = Path.Combine(Application.dataPath, "..", "AssetBundles");
-                    foreach (var group in build.buildGroups.Values)
-                    {
-                        group.RunBuild(assetBundlesLocation);
-                    }
+                    yield return EditorCoroutineUtility.StartCoroutineOwnerless(build.BuildBundles(assetBundlesLocation));
                 }
 
                 if (saveBundleLinks != null)
@@ -1163,6 +1175,7 @@ namespace Simulator.Editor
             finally
             {
                 Running = false;
+                EditorApplication.Exit(0);
             }
         }
 

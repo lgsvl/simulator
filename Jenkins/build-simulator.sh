@@ -183,7 +183,6 @@ mkdir -p /mnt/AssetBundles/{Controllables,NPCs,Sensors} || true
   -batchmode \
   -force-vulkan \
   -silent-crashes \
-  -quit \
   -projectPath /mnt \
   -executeMethod Simulator.Editor.Build.Run \
   -buildTarget ${BUILD_TARGET} \

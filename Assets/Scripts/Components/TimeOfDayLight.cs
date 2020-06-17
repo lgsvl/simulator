@@ -9,6 +9,8 @@ using UnityEngine;
 
 public class TimeOfDayLight : MonoBehaviour
 {
+    private static readonly int EmissiveColorId = Shader.PropertyToID("_EmissiveColor");
+
     private Light[] streetLights;
     private Renderer lightMesh; // TODO multiple meshes
     private Color emitColor = new Color(8f, 8f, 8f);
@@ -17,7 +19,8 @@ public class TimeOfDayLight : MonoBehaviour
     {
         streetLights = GetComponentsInChildren<Light>();
         lightMesh = GetComponent<Renderer>();
-        SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged += OnTimeOfDayChange;
+        if (SimulatorManager.InstanceAvailable)
+            SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged += OnTimeOfDayChange;
         OnTimeOfDayChange(state);
     }
     
@@ -54,7 +57,21 @@ public class TimeOfDayLight : MonoBehaviour
 
     private void SetMeshEmissiveColor(Color color)
     {
-        if (lightMesh != null)
-            lightMesh.material.SetVector("_EmissiveColor", color);
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
+        {
+            if (lightMesh != null)
+            {
+                var tmpMat = new Material(lightMesh.sharedMaterial);
+                tmpMat.SetVector(EmissiveColorId, color);
+                lightMesh.sharedMaterial = tmpMat;
+            }
+        }
+        else
+#endif
+        {
+            if (lightMesh != null)
+                lightMesh.material.SetVector(EmissiveColorId, color);
+        }
     }
 }

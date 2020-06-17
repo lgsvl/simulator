@@ -30,6 +30,26 @@ namespace Simulator.Database.Services
             }
         }
 
+        public void SetSimID(string simid)
+        {
+            using (var db = DatabaseManager.Open())
+            {
+                ClientSettings settings = db.FirstOrDefault<ClientSettings>("");
+                if (settings == null)
+                {
+                    settings = new ClientSettings();
+                    settings.simid = simid;
+                    settings.onlineStatus = true;
+                    db.Insert(settings);
+                }
+                else
+                {
+                    settings.simid = simid;
+                    db.Update(settings);
+                }
+            }
+        }
+
         public void UpdateOnlineStatus(bool online)
         {
             using (var db = DatabaseManager.Open())

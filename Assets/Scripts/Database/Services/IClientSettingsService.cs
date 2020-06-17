@@ -12,6 +12,7 @@ namespace Simulator.Database.Services
     public interface IClientSettingsService
     {
         ClientSettings GetOrMake();
+        void SetSimID(string simid);
         void UpdateOnlineStatus(bool online);
     }
 }

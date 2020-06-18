@@ -258,6 +258,15 @@ namespace Simulator.Bridge.Ros2
                             z = data.Altitude,
                         },
                         orientation = Convert(data.Orientation),
+                    },
+                    covariance = new double[]
+                    {
+                        0.0001, 0, 0, 0, 0, 0,
+                        0, 0.0001, 0, 0, 0, 0,
+                        0, 0, 0.0001, 0, 0, 0,
+                        0, 0, 0, 0.0001, 0, 0,
+                        0, 0, 0, 0, 0.0001, 0,
+                        0, 0, 0, 0, 0, 0.0001
                     }
                 },
                 twist = new TwistWithCovariance()
@@ -277,6 +286,15 @@ namespace Simulator.Bridge.Ros2
                             z = -data.AngularVelocity.y,
                         }
                     },
+                    covariance = new double[]
+                    {
+                        0.0001, 0, 0, 0, 0, 0,
+                        0, 0.0001, 0, 0, 0, 0,
+                        0, 0, 0.0001, 0, 0, 0,
+                        0, 0, 0, 0.0001, 0, 0,
+                        0, 0, 0, 0, 0.0001, 0,
+                        0, 0, 0, 0, 0, 0.0001
+                    }
                 }
             };
         }

@@ -47,6 +47,7 @@ namespace Simulator.Editor
 
         public static IEnumerator RenderScenePreview(Transform origin, PreviewTextures textures)
         {
+            ReinitializeRenderPipeline();
             var previewRootPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/ScenePreviewRoot.prefab");
             var previewRoot = Object.Instantiate(previewRootPrefab, origin);
             var camera = previewRoot.GetComponentInChildren<Camera>();
@@ -193,7 +194,7 @@ namespace Simulator.Editor
                         rt.IncrementUpdateCount();
                         EditorApplication.QueuePlayerLoopUpdate();
                         timeElapsed = Time.realtimeSinceStartup - startTime;
-                        yield return null;
+                        yield return new WaitForEndOfFrame();
                     }
 
                     if (!SkyDone(volume, hd))

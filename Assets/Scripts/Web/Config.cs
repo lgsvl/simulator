@@ -98,12 +98,15 @@ namespace Simulator.Web
 
             ParseConfigFile();
 
-            DatabaseManager.Init();
-
             if (!Application.isEditor)
             {
                 ParseCommandLine();
             }
+
+            DatabaseManager.Init();
+
+            ClientSettingsService csservice = new ClientSettingsService();
+            csservice.SetSimID(SimID);
         }
 
         public delegate void AssetLoadFunc(Manifest manifest, VfsEntry dir);
@@ -459,8 +462,6 @@ namespace Simulator.Web
                             Application.Quit(1);
                         }
                         SimID = args[++i];
-                        ClientSettingsService csservice = new ClientSettingsService();
-                        csservice.SetSimID(SimID);
                         break;
                     case "--cloudurl":
                         if (i == args.Length - 1)

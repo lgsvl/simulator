@@ -8,6 +8,8 @@
 namespace Simulator.Network.Core.Messaging.Data
 {
 	using System;
+	using System.IO;
+	using System.Runtime.Serialization.Formatters.Binary;
 	using System.Text;
 
 	using UnityEngine;
@@ -544,6 +546,57 @@ namespace Simulator.Network.Core.Messaging.Data
 				case 0: return "";
 				default: return encoding.GetString(data, position - 4 - offset - length, length);
 			}
+		}
+
+		/// <summary>
+		/// Push object value to the buffer, method uses performance heavy serializer!
+		/// </summary>
+		/// <param name="value">Object value to be pushed</param>
+		public void PushObject(object value)
+		{
+			if(value == null)
+				return;
+			var bf = new BinaryFormatter();
+			using (var ms = new MemoryStream())
+			{
+				bf.Serialize(ms, value);
+				var array = ms.ToArray();
+				PushBytes(array);
+				PushInt(array.Length);
+			}
+		}
+
+		/// <summary>
+		/// Pop object value from the buffer, method uses performance heavy serializer!
+		/// </summary>
+		/// <returns>Object value returned from the buffer</returns>
+		public object PopObject()
+		{
+			var memStream = new MemoryStream();
+			var binForm = new BinaryFormatter();
+			var arrBytes = PopBytes(PopInt());
+			memStream.Write(arrBytes, 0, arrBytes.Length);
+			memStream.Seek(0, SeekOrigin.Begin);
+			var obj = binForm.Deserialize(memStream);
+
+			return obj;
+		}
+
+		/// <summary>
+		/// Peek object value from the buffer
+		/// </summary>
+		/// <param name="offset">Offset from the stack top</param>
+		/// <returns>Value returned from the buffer</returns>
+		public object PeekObject(int offset = 0)
+		{
+			var memStream = new MemoryStream();
+			var binForm = new BinaryFormatter();
+			var arrBytes = PeekBytes(PeekInt(4, offset), offset+4);
+			memStream.Write(arrBytes, 0, arrBytes.Length);
+			memStream.Seek(0, SeekOrigin.Begin);
+			var obj = binForm.Deserialize(memStream);
+
+			return obj;
 		}
 
 		/// <summary>

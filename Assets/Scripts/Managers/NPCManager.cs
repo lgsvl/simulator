@@ -5,6 +5,7 @@
  *
  */
 
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Simulator.Map;
@@ -59,6 +60,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     // loosely based on ppg 2017 trends https://news.ppg.com/automotive-color-trends/
     public List<NPCColors> NPCColorData = new List<NPCColors>();
 
+    [Serializable]
     public struct NPCSpawnData
     {
         public bool Active;
@@ -531,49 +533,39 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             ByteCompression.RotationMaxRequiredBytes +
             ByteCompression.PositionRequiredBytes +
             12 +
-            BytesStack.GetMaxByteCount(data.GenId));
-        var indexOfPrefab = NPCVehicles.FindIndex(npc => npc.Equals(data.Template));
+            BytesStack.GetMaxByteCount(data.GenId)+
+            1 +
+            ByteCompression.RequiredBytes<NPCManagerCommandType>());
         message.AddressKey = Key;
+        var indexOfPrefab = NPCVehicles.FindIndex(npc => npc.Equals(data.Template));
         message.Content.PushCompressedRotation(data.Rotation);
         message.Content.PushCompressedPosition(data.Position);
         message.Content.PushCompressedColor(data.Color, 1);
         message.Content.PushInt(data.Seed);
         message.Content.PushInt(indexOfPrefab, 2);
         message.Content.PushString(data.GenId);
+        message.Content.PushBool(data.Active);
         message.Content.PushEnum<NPCManagerCommandType>((int) NPCManagerCommandType.SpawnNPC);
         message.Type = DistributedMessageType.ReliableOrdered;
         return message;
     }
 
-    private void SpawnNPCMock(string vehicleId, NPCS npcData, int npcControllerSeed, Color color, Vector3 position, Quaternion rotation)  // TODO can this use SpawnNPC method?
+    private void SpawnNPCMock(DistributedMessage message)
     {
-        var go = new GameObject("NPC " + vehicleId);
-        go.SetActive(false);
-        go.transform.SetParent(transform);
-        go.layer = LayerMask.NameToLayer("NPC");
-        go.tag = "Car";
-        var rb = go.AddComponent<Rigidbody>();
-        rb.mass = 2000;
+        var data = new NPCSpawnData()
+        {
+            Active = message.Content.PopBool(),
+            GenId = message.Content.PopString(),
+            Template = NPCVehicles[message.Content.PopInt(2)],
+            Seed = message.Content.PopInt(),
+            Color = message.Content.PopDecompressedColor(1),
+            Position = message.Content.PopDecompressedPosition(),
+            Rotation = message.Content.PopDecompressedRotation()
+        };
+        var npc = SpawnNPC(data);
+        var rb = npc.GetComponentInChildren<Rigidbody>();
         rb.interpolation = RigidbodyInterpolation.Interpolate;
         rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
-        rb.position = position;
-        rb.rotation = rotation;
-        go.transform.SetPositionAndRotation(position, rotation);
-        go.AddComponent<NPCController>();
-        var npc_name = Instantiate(npcData.Prefab, go.transform).name;
-        go.name = npc_name + vehicleId;
-        var NPCController = go.GetComponent<NPCController>();
-        NPCController.Size = npcData.NPCType;
-        NPCController.NPCColor = color;
-        NPCController.NPCLabel = GetNPCLabel(npc_name);
-        NPCController.id = vehicleId;
-        NPCController.Init(NPCSeedGenerator.Next());
-        CurrentPooledNPCs.Add(NPCController);
-
-        SimulatorManager.Instance.UpdateSegmentationColors(go);
-
-        //Add required components for cluster simulation
-        ClusterSimulationUtilities.AddDistributedComponents(go);
     }
 
     private DistributedMessage GetDespawnMessage(int orderNumber)
@@ -592,9 +584,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         switch (commandType)
         {
             case NPCManagerCommandType.SpawnNPC:
-                SpawnNPCMock(distributedMessage.Content.PopString(), NPCVehicles[distributedMessage.Content.PopInt(2)],
-                    distributedMessage.Content.PopInt(), distributedMessage.Content.PopDecompressedColor(1),
-                    distributedMessage.Content.PopDecompressedPosition(), distributedMessage.Content.PopDecompressedRotation());
+                SpawnNPCMock(distributedMessage);
                 break;
             case NPCManagerCommandType.DespawnNPC:
                 var npcId = distributedMessage.Content.PopInt(2);

@@ -11,6 +11,7 @@ namespace Simulator.Network.Client
     using System.Collections;
     using System.Collections.Generic;
     using System.Net;
+    using System.Text;
     using Core.Configs;
     using Core.Connection;
     using Core.Messaging;
@@ -61,7 +62,7 @@ namespace Simulator.Network.Client
         /// <summary>
         /// Connection manager for this server simulation
         /// </summary>
-        public LiteNetLibClient ConnectionManager { get; } = new LiteNetLibClient();
+        public LiteNetLibClient Connection { get; } = new LiteNetLibClient();
 
         /// <summary>
         /// Cached connection manager to the master peer
@@ -78,7 +79,7 @@ namespace Simulator.Network.Client
         /// </summary>
         public ClientManager()
         {
-            MessagesManager = new MessagesManager(ConnectionManager);
+            MessagesManager = new MessagesManager(Connection);
         }
 
         /// <summary>
@@ -99,7 +100,7 @@ namespace Simulator.Network.Client
         /// </summary>
         private void LateUpdate()
         {
-            ConnectionManager.PoolEvents();
+            Connection.PoolEvents();
         }
 
         /// <summary>
@@ -165,9 +166,9 @@ namespace Simulator.Network.Client
             if (settings == null)
                 throw new NullReferenceException("Set network settings before starting the connection.");
             MessagesManager.RegisterObject(this);
-            ConnectionManager.Start(settings.ConnectionPort, settings.Timeout);
-            ConnectionManager.PeerConnected += OnPeerConnected;
-            ConnectionManager.PeerDisconnected += OnPeerDisconnected;
+            Connection.Start(settings.ConnectionPort, settings.Timeout);
+            Connection.PeerConnected += OnPeerConnected;
+            Connection.PeerDisconnected += OnPeerDisconnected;
             Log.Info($"{GetType().Name} started the connection manager.");
         }
 
@@ -176,10 +177,12 @@ namespace Simulator.Network.Client
         /// </summary>
         public void StopConnection()
         {
+            if (State == SimulationState.Initial)
+                return;
             State = SimulationState.Initial;
-            ConnectionManager.PeerConnected -= OnPeerConnected;
-            ConnectionManager.PeerDisconnected -= OnPeerDisconnected;
-            ConnectionManager.Stop();
+            Connection.PeerConnected -= OnPeerConnected;
+            Connection.PeerDisconnected -= OnPeerDisconnected;
+            Connection.Stop();
             MessagesManager.UnregisterObject(this);
             Log.Info($"{GetType().Name} stopped the connection manager.");
         }
@@ -253,7 +256,7 @@ namespace Simulator.Network.Client
                 if (MasterPeer != null)
                     return;
                 if (!localEndPoints.Contains(masterEndPoint))
-                    ConnectionManager.Connect(masterEndPoint, identifier);
+                    Connection.Connect(masterEndPoint, identifier);
             }
 
             StartCoroutine(CheckInitialTimeout());
@@ -265,13 +268,32 @@ namespace Simulator.Network.Client
         /// <returns></returns>
         private IEnumerator CheckInitialTimeout()
         {
-            yield return new WaitForSecondsRealtime(settings.Timeout/1000.0f);
-            if (MasterPeer == null)
+            yield return new WaitForSecondsRealtime(settings.Timeout / 1000.0f);
+            if (MasterPeer != null) yield break;
+
+            //Could not connect to any master address, log error and stop the simulation
+            var localAddressesSb = new StringBuilder();
+            for (var i = 0; i < Loader.Instance.Network.LocalAddresses.Count; i++)
             {
-                Log.Error(
-                    $"{GetType().Name} could not establish the connection to the master. This client ip addresses: '{Loader.Instance.Network.LocalAddresses}', master ip addresses: '{Loader.Instance.Network.MasterAddresses}'.");
-                Loader.StopAsync();
+                var ipEndPoint = Loader.Instance.Network.LocalAddresses[i];
+                localAddressesSb.Append(ipEndPoint);
+                if (i+1 < Loader.Instance.Network.LocalAddresses.Count)
+                    localAddressesSb.Append(", ");
             }
+            var masterAddressesSb = new StringBuilder();
+            for (var i = 0; i < Loader.Instance.Network.MasterAddresses.Count; i++)
+            {
+                var ipEndPoint = Loader.Instance.Network.MasterAddresses[i];
+                masterAddressesSb.Append(ipEndPoint);
+                if (i+1 < Loader.Instance.Network.MasterAddresses.Count)
+                    masterAddressesSb.Append(", ");
+            }
+
+            Log.Error(
+                $"{GetType().Name} could not establish the connection to the master. This client ip addresses: '{localAddressesSb}', master ip addresses: '{masterAddressesSb}'.");
+
+            var simulation = Loader.Instance.Network.CurrentSimulation;
+            ConnectionManager.instance.UpdateStatus("Stopping", simulation?.Id);
         }
 
         /// <summary>

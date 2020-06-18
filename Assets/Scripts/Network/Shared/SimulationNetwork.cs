@@ -12,6 +12,7 @@ namespace Simulator.Network.Shared
     using System.Linq;
     using System.Net;
     using Client;
+    using Core;
     using Core.Configs;
     using Core.Messaging;
     using Core.Threading;
@@ -192,6 +193,7 @@ namespace Simulator.Network.Shared
                 Client.StartConnection();
                 Client.TryConnectToMaster();
             }
+            Log.Info("Initialized the Simulation Network data.");
         }
 
         /// <summary>
@@ -199,22 +201,35 @@ namespace Simulator.Network.Shared
         /// </summary>
         public void Deinitialize()
         {
+            StopConnection();
+
+            ThreadingUtilities.DispatchToMainThread(ClearNetworkObjects);
+
+            LocalAddresses.Clear();
+            MasterAddresses.Clear();
+            CurrentSimulation = null;
+            Log.Info("Deinitialized the Simulation Network data.");
+        }
+
+        /// <summary>
+        /// Removes instantiated objects by the network system
+        /// </summary>
+        private void ClearNetworkObjects()
+        {
             if (Type == ClusterNodeType.Master)
                 Object.Destroy(Master.gameObject);
             else if (Type == ClusterNodeType.Client)
                 Object.Destroy(Client.gameObject);
-
-            MasterAddresses.Clear();
-            CurrentSimulation = null;
         }
 
         /// <summary>
         /// Master tries to start the simulation, client reports about being ready
         /// </summary>
-        /// <param name="simulationModel">Simulation model which will be used to run the simulation</param>
-        public void SetSimulationModel(SimulationData simulationData)
+        /// <param name="simulationData">Simulation model which will be used to run the simulation</param>
+        public void SetSimulationData(SimulationData simulationData)
         {
             CurrentSimulation = simulationData;
+            Log.Info($"Simulation with id '{simulationData.Id}' set for the network system.");
             switch (Type)
             {
                 case ClusterNodeType.NotClusterNode:
@@ -250,6 +265,7 @@ namespace Simulator.Network.Shared
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+            Log.Info("Initialized the Simulation scene for the network manager");
         }
 
         /// <summary>

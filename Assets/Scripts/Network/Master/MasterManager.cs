@@ -357,7 +357,7 @@ namespace Simulator.Network.Master
         /// </summary>
         public void RunSimulation()
         {
-            Log.Info($"{GetType().Name} broadcasts the simulation stop command.");
+            Log.Info($"{GetType().Name} runs the prepared simulation and broadcasts run command.");
 
             var stopData = PacketsProcessor.Write(new Commands.Run());
             var message = MessagesPool.Instance.GetMessage(stopData.Length);

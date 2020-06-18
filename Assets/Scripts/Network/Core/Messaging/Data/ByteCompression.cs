@@ -120,6 +120,9 @@ namespace Simulator.Network.Core.Messaging.Data
         /// </summary>
         public static int RotationMaxRequiredBytes => 1 + 3 * DefaultBytesForCompressedFloat;
 
+        /// <summary>
+        /// Cached count of required bytes to encode selected enum type
+        /// </summary>
         public static Dictionary<Type, int> EnumRequiredBytes = new Dictionary<Type, int>();
 
         /// <summary>

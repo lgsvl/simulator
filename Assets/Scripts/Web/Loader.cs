@@ -71,9 +71,10 @@ namespace Simulator
     public enum SimulatorStatus
     {
         Idle = 0,
-        Starting = 1,
-        Running = 2,
-        Stopping = 3
+        Loading = 1,
+        Starting = 2,
+        Running = 3,
+        Stopping = 4
     }
 
     public class Loader : MonoBehaviour
@@ -113,6 +114,9 @@ namespace Simulator
                 {
                     case SimulatorStatus.Idle:
                         ConnectionManager.instance.UpdateStatus("Idle", CurrentSimulation.Id);
+                        break;
+                    case SimulatorStatus.Loading:
+                        //Start command received from the cloud
                         break;
                     case SimulatorStatus.Starting:
                         //Start command received from the cloud
@@ -232,7 +236,7 @@ namespace Simulator
                 Debug.LogWarning("Received start simulation command while Simulator is not idle.");
                 return;
             }
-            Instance.Status = SimulatorStatus.Starting;
+            Instance.Status = SimulatorStatus.Loading;
             Instance.Network.Initialize(Config.SimID, simData.Cluster, Instance.NetworkSettings);
             var downloads = new List<Task>();
             if(simData.ApiOnly == false)
@@ -255,12 +259,13 @@ namespace Simulator
             if (!Instance.Network.IsClusterSimulation)
                 StartAsync(simData);
             else
-                Instance.Network.SetSimulationModel(simData);
+                Instance.Network.SetSimulationData(simData);
         }
 
         public static void StartAsync(SimulationData simulation)
         {
-            Debug.Assert(Instance.Status == SimulatorStatus.Starting);
+            Debug.Assert(Instance.Status == SimulatorStatus.Loading);
+            Instance.Status = SimulatorStatus.Starting;
 
             Instance.Actions.Enqueue(() =>
             {
@@ -449,6 +454,7 @@ namespace Simulator
                         mapBundle?.Unload(false);
                         AssetBundle.UnloadAllAssetBundles(true);
                         Instance.CurrentSimulation = null;
+                        Instance.Network.Deinitialize();
                     }
                     catch (Exception ex)
                     {
@@ -466,6 +472,7 @@ namespace Simulator
                         mapBundle?.Unload(false);
                         AssetBundle.UnloadAllAssetBundles(true);
                         Instance.CurrentSimulation = null;
+                        Instance.Network.Deinitialize();
                     }
             });
         }
@@ -487,13 +494,22 @@ namespace Simulator
 
         public static void StopAsync()
         {
-            if (Instance.Status == SimulatorStatus.Idle || Instance.Status == SimulatorStatus.Stopping) return;
-
-            Instance.Network.StopConnection();
+            if (Instance.Status == SimulatorStatus.Idle || Instance.Status == SimulatorStatus.Stopping)
+                return;
+            
+            //Check if simulation scene was initialized
+            if (Instance.Status == SimulatorStatus.Loading)
+            {
+                Instance.Status = SimulatorStatus.Stopping;
+                Instance.Network.Deinitialize();
+                Instance.Status = SimulatorStatus.Idle;
+                Instance.CurrentSimulation = null;
+                return;
+            }
 
             Instance.Actions.Enqueue(() =>
             {
-                var simulation = Instance.CurrentSimulation;
+                Instance.Network.Deinitialize();
                 using (var db = DatabaseManager.Open())
                 {
                     try
@@ -518,8 +534,10 @@ namespace Simulator
                     }
                     catch (Exception ex)
                     {
-                        Debug.Log($"Failed to stop '{simulation.Name}' simulation");
+                        Debug.Log($"Failed to stop '{Instance.CurrentSimulation.Name}' simulation");
                         Debug.LogException(ex);
+                        Instance.Status = SimulatorStatus.Idle;
+                        Instance.CurrentSimulation = null;
                     }
                 }
             });

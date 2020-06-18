@@ -32,6 +32,12 @@ namespace Simulator.Network.Core.Connection
         private NetManager netClient;
 
         /// <summary>
+        /// Currently active connections made by this connection manager
+        /// </summary>
+        private Dictionary<IPEndPoint, LiteNetLibPeerManager> activeConnections =
+            new Dictionary<IPEndPoint, LiteNetLibPeerManager>();
+
+        /// <summary>
         /// Peer manager for connection with the server
         /// </summary>
         private LiteNetLibPeerManager masterPeer;
@@ -103,12 +109,18 @@ namespace Simulator.Network.Core.Connection
         /// <inheritdoc/>
         public IPeerManager Connect(IPEndPoint endPoint, string peerIdentifier)
         {
+            if (activeConnections.ContainsKey(endPoint))
+            {
+                Log.Warning($"{GetType().Name} already got a connection active to the endpoint '{endPoint}'.");
+                return null;
+            }
             var writer = new NetDataWriter();
             writer.Put(ApplicationKey);
             writer.Put(peerIdentifier);
-            masterPeer = new LiteNetLibPeerManager(NetClient.Connect(endPoint, writer));
-            Log.Info($"{GetType().Name} starts connection with peer at address '{endPoint.ToString()}.");
-            return masterPeer;
+            var peer = new LiteNetLibPeerManager(NetClient.Connect(endPoint, writer));
+            activeConnections.Add(endPoint, peer);
+            Log.Info($"{GetType().Name} tries to connect with a peer at address '{endPoint}.");
+            return peer;
         }
 
         /// <inheritdoc/>
@@ -152,19 +164,20 @@ namespace Simulator.Network.Core.Connection
         /// <inheritdoc/>
         public void OnPeerConnected(NetPeer peer)
         {
-            if (masterPeer == null)
-                masterPeer = new LiteNetLibPeerManager(peer);
-            else if (!Equals(masterPeer.PeerEndPoint, peer.EndPoint))
-                throw new ArgumentException("Client can be connected only to a single peer.");
+            if (masterPeer != null)
+                return;
+
+            masterPeer = activeConnections[peer.EndPoint];
             PeerConnected?.Invoke(masterPeer);
         }
 
         /// <inheritdoc/>
         public void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
         {
+            if (masterPeer == null || masterPeer.Peer != peer)
+                return;
             var disconnectedPeer = masterPeer;
-            if (masterPeer.Peer == peer)
-                masterPeer = null;
+            masterPeer = null;
             PeerDisconnected?.Invoke(disconnectedPeer);
         }
 

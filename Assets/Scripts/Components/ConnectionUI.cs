@@ -90,7 +90,6 @@ namespace Simulator.Web
         public void OnStatusButtonClicked()
         {
             ConnectionManager.instance.ConnectionStatusEvent();
-            statusButton.interactable = false;
         }
 
         public void OnLinkButtonClicked()

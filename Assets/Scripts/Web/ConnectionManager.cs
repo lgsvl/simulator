@@ -36,7 +36,7 @@ public class ConnectionManager : MonoBehaviour
     public SimulatorInfo simInfo;
     static int unityThread;
     static Queue<Action> runInUpdate = new Queue<Action>();
-    static int[] timeOutSequence = new[]{1, 5, 15, 30};
+    static int[] timeOutSequence = new[] { 1, 5, 15, 30};
     int timeoutAttempts;
     ClientSettingsService service;
     public string LinkUrl => Config.CloudUrl + "/clusters/link?token=" + simInfo.linkToken;
@@ -82,13 +82,14 @@ public class ConnectionManager : MonoBehaviour
                 ConnectionUI.instance.UpdateStatus();
                 ConnectionUI.instance.statusButton.interactable = false;
             });
-
+            
             foreach (var timeOut in timeOutSequence)
             {
                 try
                 {
                     var stream = await API.Connect(simInfo);
                     await ReadResponse(stream);
+                    break;
                 }
                 catch(CloudAPI.NoSuccessException)
                 {
@@ -311,7 +312,6 @@ public class CloudAPI
     string SimId;
     Uri InstanceURL;
 
-    CancellationTokenSource onlineTokenSource = new CancellationTokenSource();
     CancellationTokenSource requestTokenSource = new CancellationTokenSource();
 
     public CloudAPI(Uri instanceURL, string simId)
@@ -435,10 +435,12 @@ public class CloudAPI
 
     public void Disconnect()
     {
-        onlineTokenSource?.Cancel();
         requestTokenSource?.Cancel();
+        requestTokenSource?.Dispose();
+        requestTokenSource = new CancellationTokenSource();
         client?.CancelPendingRequests();
         client?.Dispose();
+        client = new HttpClient();
     }
 }
 

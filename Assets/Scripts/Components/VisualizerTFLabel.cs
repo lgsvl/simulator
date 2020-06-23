@@ -6,16 +6,19 @@
  */
 
 using UnityEngine;
+using UnityEngine.UI;
 
 public class VisualizerTFLabel : MonoBehaviour
 {
     private string Label { get; set; }
     private LineRenderer LRenderer;
+    private Text[] Labels;
     private Transform ParentTransform;
 
     private void Awake()
     {
         LRenderer = GetComponent<LineRenderer>();
+        Labels = GetComponentsInChildren<Text>();
     }
 
     public void Init(string label, Transform parent = null)
@@ -28,15 +31,15 @@ public class VisualizerTFLabel : MonoBehaviour
         }
     }
 
-    void OnGUI()
+    void LateUpdate()
     {
         var position = Camera.main.WorldToScreenPoint(ParentTransform.position);
-        var textSize = GUI.skin.label.CalcSize(new GUIContent(ParentTransform.name));
-        var offset = ParentTransform.position == transform.position ? textSize.y : 0f;
-        GUI.Label(new Rect(position.x, Screen.height - position.y + offset, textSize.x, textSize.y), ParentTransform.name);
+        var offset = ParentTransform.position == transform.position ? Labels[0].rectTransform.rect.height : 0f;
+        Labels[0].text = ParentTransform.name;
+        Labels[0].rectTransform.anchoredPosition = new Vector2(position.x, position.y + offset);
 
         position = Camera.main.WorldToScreenPoint(gameObject.transform.position);
-        textSize = GUI.skin.label.CalcSize(new GUIContent(Label));
-        GUI.Label(new Rect(position.x, Screen.height - position.y, textSize.x, textSize.y), Label);
+        Labels[1].text = Label;
+        Labels[1].rectTransform.anchoredPosition = new Vector2(position.x, position.y);
     }
 }

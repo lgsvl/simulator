@@ -38,8 +38,10 @@ using apollo.hdmap;
         Dictionary<string, MapLine> Id2RightLineBoundary = new Dictionary<string, MapLine>();
         Dictionary<string, MapLine> Id2StopLine = new Dictionary<string, MapLine>();
         Dictionary<string, string> LaneId2JunctionId = new Dictionary<string, string>();
+        Dictionary<string, List<string>> JunctionId2LaneIds = new Dictionary<string, List<string>>();
         Dictionary<string, GameObject> LaneId2MapLaneSection = new Dictionary<string, GameObject>(); // map lane section id is same as road id
         Dictionary<string, Tuple<string, double>> SignalSignId2LaneIdStartS = new Dictionary<string, Tuple<string, double>>();
+        Dictionary<string, string> SignalSignId2JunctionId = new Dictionary<string, string>();
 
         public ApolloMapImporter(float downSampleDistanceThreshold, float downSampleDeltaThreshold, bool isMeshNeeded)
         {
@@ -102,9 +104,9 @@ using apollo.hdmap;
         {
             // Create Map object
             var fileName = Path.GetFileName(filePath).Split('.')[0];
-            
+
             // Check existence of same name map
-            if (GameObject.Find(mapName)) 
+            if (GameObject.Find(mapName))
             {
                 Debug.LogError("A map with same name exists, cancelling map importing.");
                 return false;
@@ -136,7 +138,7 @@ using apollo.hdmap;
                 .Select(s => s.Split('='))
                 .Where(s => s.Length > 1)
                 .ToDictionary(element => element[0].Trim(), element => element[1].Trim());
-            
+
             if (!items.ContainsKey("proj") || items["proj"] != "utm") return false;
 
             double latitude, longitude;
@@ -149,10 +151,10 @@ using apollo.hdmap;
                 zoneNumber = int.Parse(items["zone"]);
             }
             else
-            {               
+            {
                 zoneNumber = MapOrigin.GetZoneNumberFromLatLon(latitude, longitude);
             }
-            
+
             mapOrigin.UTMZoneId = zoneNumber;
             mapOrigin.FromLatitudeLongitude(latitude, longitude, out mapOrigin.OriginNorthing, out mapOrigin.OriginEasting);
 
@@ -182,7 +184,7 @@ using apollo.hdmap;
             var mapIntersection = mapIntersectionObj.AddComponent<MapIntersection>();
             mapIntersection.transform.parent = Intersections.transform;
             Id2MapIntersection[id] = mapIntersection;
-            
+
             return mapIntersection;
         }
 
@@ -203,7 +205,7 @@ using apollo.hdmap;
         {
             var ObjPosition = Lanelet2MapImporter.GetAverage(mapDataPoints.mapWorldPositions);
             objectTransform.position = ObjPosition;
-            // Update child local positions after parent position changed 
+            // Update child local positions after parent position changed
             UpdateLocalPositions(mapDataPoints);
         }
 
@@ -273,7 +275,7 @@ using apollo.hdmap;
             sampledPoints.Add(points[0]);
 
             Debug.Assert(points.Count > 1);
-            
+
             double3 currentDir = math.normalize(points[1] - points[0]);
             double3 lastPoint = points[0];
             for (int i = 2; i < points.Count - 1; i++)
@@ -389,6 +391,7 @@ using apollo.hdmap;
                 }
 
                 LaneId2JunctionId[id] = junctionId;
+                JunctionId2LaneIds.CreateOrAdd(junctionId, id);
             }
         }
 
@@ -411,7 +414,7 @@ using apollo.hdmap;
                     GameObject mapLaneSection = new GameObject($"MapLaneSection_{road.id.id}");
                     mapLaneSection.AddComponent<MapLaneSection>();
                     mapLaneSection.transform.parent = TrafficLanes.transform;
-                    
+
                     foreach (var id in laneIds)
                     {
                         LaneId2MapLaneSection[id] = mapLaneSection;
@@ -432,10 +435,10 @@ using apollo.hdmap;
                 if (junctionId != null) MoveLaneToJunction(laneIds, junctionId.id.ToString());
             }
         }
-        
+
         string GetLaneId(string laneName)
         {
-            return "lane_" + laneName.Split('_').Last();
+            return string.Join("_", laneName.Split('_').Skip(1));
         }
 
         List<Vector3> GetCenterLinePoints(MapLine mapLine1, MapLine mapLine2)
@@ -446,8 +449,7 @@ using apollo.hdmap;
             {
                 points2.Reverse();
             }
-            var apolloMapTool = new ApolloMapTool(ApolloMapTool.ApolloVersion.Apollo_5_0);
-            return apolloMapTool.ComputeCenterLine(points1, points2);
+            return ApolloMapTool.ComputeCenterLine(points1, points2);
         }
 
         string RenameLine(string laneName, string otherLaneName)
@@ -478,7 +480,7 @@ using apollo.hdmap;
                 if (visitedLanesLeft.Contains(laneId)) continue;
                 var lane = Id2Lane[laneId];
                 var leftLine = lane.leftLineBoundry;
-                if (lane.leftLaneForward != null)
+                if (lane.leftLaneForward != null && laneIds.Contains(GetLaneId(lane.leftLaneForward.name)))
                 {
                     otherLane = lane.leftLaneForward;
                     var otherRightLine = otherLane.rightLineBoundry;
@@ -492,7 +494,7 @@ using apollo.hdmap;
                     leftLine.name = RenameLine(leftLine.name, otherLane.name);
                     visitedLanesRight.Add(GetLaneId(otherLane.name));
                 }
-                else if (lane.leftLaneReverse != null)
+                else if (lane.leftLaneReverse != null && laneIds.Contains(GetLaneId(lane.leftLaneReverse.name)))
                 {
                     otherLane = lane.leftLaneReverse;
                     var otherLeftLine = otherLane.leftLineBoundry;
@@ -520,7 +522,7 @@ using apollo.hdmap;
                 var lane = Id2Lane[laneId];
                 var rightLine = lane.rightLineBoundry;
 
-                if (lane.rightLaneForward != null)
+                if (lane.rightLaneForward != null && laneIds.Contains(GetLaneId(lane.rightLaneForward.name)))
                 {
                     otherLane = lane.rightLaneForward;
                     var otherLeftLine = otherLane.leftLineBoundry;
@@ -534,7 +536,7 @@ using apollo.hdmap;
                     rightLine.name = RenameLine(rightLine.name, otherLane.name);
                     visitedLanesLeft.Add(GetLaneId(otherLane.name));
                 }
-                else if (lane.rightLaneReverse != null)
+                else if (lane.rightLaneReverse != null && laneIds.Contains(GetLaneId(lane.rightLaneReverse.name)))
                 {
                     otherLane = lane.rightLaneReverse;
                     var otherRightLine = otherLane.rightLineBoundry;
@@ -598,7 +600,6 @@ using apollo.hdmap;
                 {
                     foreach (var predecessorId in predecessorIds.Select(x => x.id.ToString()))
                     {
-                        Id2Lane[laneId].befores.Add(Id2Lane[predecessorId]);
                         if (!visitedLaneIdsEnd.Contains(predecessorId)) AdjustStartOrEndPoint(positions, predecessorId, true);
                         visitedLaneIdsEnd.Add(predecessorId);
                     }
@@ -608,12 +609,13 @@ using apollo.hdmap;
                 {
                     foreach (var successorId in successorIds.Select(x => x.id.ToString()))
                     {
-                        Id2Lane[laneId].afters.Add(Id2Lane[successorId]);
                         if (!visitedLaneIdsStart.Contains(successorId)) AdjustStartOrEndPoint(positions, successorId, false);
                         visitedLaneIdsStart.Add(successorId);
                     }
                 }
             }
+            // Update each lane's befores/afters manually since the imported map might miss some connections.
+            OpenDriveMapExporter.LinkSegments(new HashSet<MapLane>(Id2Lane.Values));
         }
 
         // Make current lane's start/end point same as predecessor/successor lane's end/start point
@@ -644,7 +646,7 @@ using apollo.hdmap;
                     continue;
                 }
 
-                string signalSignId = null, laneId = null;
+                string signalSignId = null, laneId = null, junctionId = null;
                 double startS = 0;
                 foreach (var obj in overlap.@object)
                 {
@@ -657,9 +659,21 @@ using apollo.hdmap;
                     {
                         if (obj.id != null) signalSignId = obj.id.id.ToString();
                     }
+                    else if (obj.junction_overlap_info != null)
+                    {
+                        if (obj.id != null) junctionId = obj.id.id.ToString();
+                    }
                 }
 
-                if (signalSignId != null && laneId != null) SignalSignId2LaneIdStartS[signalSignId] = Tuple.Create(laneId, startS);
+                if (signalSignId != null && laneId != null)
+                {
+                    SignalSignId2LaneIdStartS[signalSignId] = Tuple.Create(laneId, startS);
+                }
+
+                if (signalSignId != null && junctionId != null)
+                {
+                    SignalSignId2JunctionId[signalSignId] = junctionId;
+                }
             }
         }
 
@@ -673,12 +687,9 @@ using apollo.hdmap;
                     Debug.LogError($"StopSign {id} has no corresponding overlap, skipping importing it.");
                     continue;
                 }
-                
-                CreateStopLine(id, stopSign.stop_line, true);
+
                 var overlapLaneIdStartS = SignalSignId2LaneIdStartS[id];
-                SetStopLineRotation(id, overlapLaneIdStartS, out MapLine stopLine);
-                
-                var intersectionId = GetIntersectionId(overlapLaneIdStartS);
+                var intersectionId = GetIntersectionId(id, overlapLaneIdStartS);
                 if (intersectionId == null)
                 {
                     Debug.LogError($"No nearest intersection found for this stop sign {id}! Cannot assign it under an existing intersection.");
@@ -688,15 +699,30 @@ using apollo.hdmap;
                 }
                 Id2MapIntersection[intersectionId].isStopSignIntersection = true;
 
-                CreateStopSign(id, intersectionId);
-                MoveBackIfOnIntersectionLane(id, overlapLaneIdStartS);
+                CreateStopLine(id, stopSign.stop_line, true);
+                SetStopLineRotation(id, intersectionId, overlapLaneIdStartS, out MapLine stopLine);
+
+                var mapStopSign = CreateStopSign(id, intersectionId);
+                MoveBackIfOnIntersectionLane(id, intersectionId, overlapLaneIdStartS);
                 stopLine.transform.parent = Id2MapIntersection[intersectionId].transform;
                 UpdateLocalPositions(stopLine);
+
+                CheckSignLineDistance(mapStopSign, stopLine);
             }
 
             Debug.Log($"Imported {ApolloMap.stop_sign.Count} Stop Signs.");
         }
-        
+
+        void CheckSignLineDistance(MapSign stopSign, MapLine stopLine)
+        {
+            if ((stopLine.transform.position - stopSign.transform.position).magnitude > 10.0f)
+            {
+                var msg = $"Stop line {stopLine.name} is far away from sign ";
+                msg += $"{stopSign.name}, it might be on wrong location, please check!";
+                Debug.LogWarning(msg, stopLine.gameObject);
+            }
+        }
+
         void CreateStopLine(string id, List<Curve> curves, bool isStopSign)
         {
             GameObject mapLineObj = new GameObject("MapLineStop_" + id);
@@ -712,15 +738,16 @@ using apollo.hdmap;
             Id2StopLine[id] = mapLine;
         }
 
-        void SetStopLineRotation(string id, Tuple<string, double> overlapLaneIdStartS, out MapLine stopLine)
+        void SetStopLineRotation(string id, string intersectionId, Tuple<string, double> overlapLaneIdStartS, out MapLine stopLine)
         {
-            var overlapLaneDirection = GetDirection(overlapLaneIdStartS);
+            var overlapLaneDirection = GetDirection(intersectionId, overlapLaneIdStartS);
             stopLine = Id2StopLine[id];
             stopLine.transform.rotation = Quaternion.LookRotation(overlapLaneDirection);
         }
 
-        string GetIntersectionId(Tuple<string, double> laneIdStartS)
+        string GetIntersectionId(string signalSignId, Tuple<string, double> laneIdStartS)
         {
+            if (SignalSignId2JunctionId.ContainsKey(signalSignId)) return SignalSignId2JunctionId[signalSignId];
             var laneId = laneIdStartS.Item1;
             var startS = laneIdStartS.Item2;
             if (LaneId2JunctionId.ContainsKey(laneId)) return LaneId2JunctionId[laneId];
@@ -729,12 +756,13 @@ using apollo.hdmap;
             var sucJunctionId = GetJunctionId(Id2Lane[laneId].afters);
             if (preJunctionId != null && sucJunctionId != null)
             {
-                return GetNearestIntersectionId(laneId, startS, preJunctionId, sucJunctionId);
+                if (IsCloserToFirstPoint(laneIdStartS)) return preJunctionId;
+                else return sucJunctionId;
             }
 
             return preJunctionId != null ? preJunctionId : sucJunctionId;
         }
-        
+
         string GetJunctionId(List<MapLane> lanes)
         {
             foreach (var lane in lanes)
@@ -746,35 +774,47 @@ using apollo.hdmap;
             return null;
         }
 
-        string GetNearestIntersectionId(string laneId, double startS, string preJunctionId, string sucJunctionId)
-        {
-            var worldPositions = Id2Lane[laneId].mapWorldPositions;
-            var nearestIdx = GetNearestIdx(startS, worldPositions);
-            var nearestPos = worldPositions[nearestIdx];
-            // TODO: maybe other logics needed here.
-            // Check StartS is more close to the beginning of the lane or the end of the lane.
-            if ((nearestPos - worldPositions.First()).magnitude < (nearestPos - worldPositions.Last()).magnitude) return preJunctionId;
-            else return sucJunctionId;
-        }
-
         static int GetNearestIdx(double s, List<Vector3> lanePositions)
         {
             var curS = 0f;
             var nearestIdx = lanePositions.Count - 1;
+            var listOfS = new List<double>(){curS};
             for (int i = 1; i < lanePositions.Count; i++)
             {
                 curS += (lanePositions[i] - lanePositions[i - 1]).magnitude;
-                if (curS >= s)
+                listOfS.Add(curS);
+            }
+
+            return BinarySearch(listOfS, s);
+        }
+
+        static int BinarySearch(List<double> listOfS, double s)
+        {
+            int left = 0, right = listOfS.Count - 1;
+            while (left <= right)
+            {
+                var mid = left + (right - left) / 2;
+                if (listOfS[mid] == s)
                 {
-                    nearestIdx = i;
-                    break;
+                    return mid;
+                }
+                else if (listOfS[mid] < s)
+                {
+                    left = mid + 1;
+                }
+                else
+                {
+                    right = mid - 1;
                 }
             }
 
-            return nearestIdx;
+            // left == right + 1
+            if (right < 0) return left;
+            else if (left == listOfS.Count) return right;
+            return (listOfS[left] - s) < (s - listOfS[right]) ? left : right;
         }
 
-        void CreateStopSign(string id, string intersectionId)
+        MapSign CreateStopSign(string id, string intersectionId)
         {
             var intersection = Id2MapIntersection[intersectionId];
             var stopLine = Id2StopLine[id];
@@ -793,6 +833,8 @@ using apollo.hdmap;
 
             // Create stop sign mesh
             if (IsMeshNeeded) CreateStopSignMesh(id, intersection, mapSign);
+
+            return mapSign;
         }
 
         void CreateStopSignMesh(string id, MapIntersection intersection, MapSign mapSign)
@@ -814,25 +856,37 @@ using apollo.hdmap;
             return meshLocation;
         }
 
+        bool IsCloserToFirstPoint(Tuple<string, double> laneIdStartS)
+        {
+            var laneId = laneIdStartS.Item1;
+            var s = laneIdStartS.Item2;
+            var lanePositions = Id2Lane[laneId].mapWorldPositions;
+            var nearestIdx = GetNearestIdx(s, lanePositions);
+            var nearestPos = lanePositions[nearestIdx];
+
+            return (nearestPos - lanePositions.First()).magnitude < (nearestPos - lanePositions.Last()).magnitude;
+        }
+
         // Make sure stop line is intersecting with the correct lane, not an intersection lane.
-        void MoveBackIfOnIntersectionLane(string id, Tuple<string, double> overlapLaneIdStartS)
+        void MoveBackIfOnIntersectionLane(string id, string intersectionId, Tuple<string, double> overlapLaneIdStartS)
         {
             var laneId = overlapLaneIdStartS.Item1;
             var startS = overlapLaneIdStartS.Item2;
-            if (LaneId2JunctionId.ContainsKey(laneId))
+            if (JunctionId2LaneIds[intersectionId].Contains(laneId)) //check against each intersection group, not all intersection lanes
             {
                 var stopLine = Id2StopLine[id];
                 var dir = -stopLine.transform.forward;
-                
-                var befores = Id2Lane[laneId].befores;
-                // If multiple before lanes, hard to know where to move the stop line
-                if (befores.Count > 1)
-                    Debug.LogWarning($"stopLine {id} might not in correct position, please check and move back yourself if necessary.");
-                
+                var lane = Id2Lane[laneId];
+                var targetPosition = lane.mapWorldPositions[0];
+                if (!IsCloserToFirstPoint(overlapLaneIdStartS))
+                {
+                    targetPosition = lane.mapWorldPositions.Last();
+                }
+
                 // move 1 meter more over the last point of the predecessor lane
-                var sqrDist = Utility.SqrDistanceToSegment(stopLine.mapWorldPositions.First(), 
-                    stopLine.mapWorldPositions.Last(), befores[0].mapWorldPositions.Last());
-                var dist = math.sqrt(sqrDist) + 1; 
+                var sqrDist = Utility.SqrDistanceToSegment(stopLine.mapWorldPositions.First(),
+                    stopLine.mapWorldPositions.Last(), targetPosition);
+                var dist = math.sqrt(sqrDist) + 1;
                 stopLine.transform.position += dir * (float)dist;
                 stopLine.mapWorldPositions = stopLine.mapWorldPositions.Select(x => x + dir * (float)dist).ToList();
             }
@@ -863,20 +917,30 @@ using apollo.hdmap;
             return points;
         }
 
-        Vector3 GetDirection(Tuple<string, double> laneIdStartS)
+        Vector3 GetDirection(string intersectionId, Tuple<string, double> laneIdStartS)
         {
             var laneId = laneIdStartS.Item1;
-            if (LaneId2JunctionId.ContainsKey(laneId))
-            {
-                // current lane is an intersection lane, return predecessor lane direction
-                var predLanePositions = Id2Lane[laneId].befores[0].mapWorldPositions;
-                return (predLanePositions.Last() - predLanePositions[predLanePositions.Count - 2]).normalized;
-            }
-            
             var s = laneIdStartS.Item2;
-            var lanePositions = Id2Lane[laneId].mapWorldPositions;
+            var curLane = Id2Lane[laneId];
+            var lanePositions = curLane.mapWorldPositions;
             int nearestIdx = GetNearestIdx(s, lanePositions);
-            return (lanePositions[nearestIdx] - lanePositions[nearestIdx - 1]).normalized;
+
+            if (JunctionId2LaneIds[intersectionId].Contains(laneId))
+            {
+                if (IsCloserToFirstPoint(laneIdStartS))
+                {
+                    // current lane is an intersection lane and overlap is at the beginning of the lane,
+                    return (lanePositions[1] - lanePositions[0]).normalized;
+                }
+                else
+                {
+                    // current lane is an intersection lane and overlap is at the end of the lane,
+                    return (lanePositions[lanePositions.Count - 2] - lanePositions.Last()).normalized;
+                }
+            }
+
+            if (nearestIdx > 0) return (lanePositions[nearestIdx] - lanePositions[nearestIdx - 1]).normalized;
+            return (lanePositions[nearestIdx + 1] - lanePositions[nearestIdx]).normalized;
         }
 
         void ImportSignals()
@@ -890,11 +954,8 @@ using apollo.hdmap;
                     continue;
                 }
 
-                CreateStopLine(id, signal.stop_line, false);
                 var overlapLaneIdStartS = SignalSignId2LaneIdStartS[id];
-                SetStopLineRotation(id, overlapLaneIdStartS, out MapLine stopLine);
-
-                var intersectionId = GetIntersectionId(overlapLaneIdStartS);
+                var intersectionId = GetIntersectionId(id, overlapLaneIdStartS);
                 if (intersectionId == null)
                 {
                     Debug.LogError($"No nearest intersection found for this stop signal {id}! Cannot assign it under an existing intersection.");
@@ -903,8 +964,11 @@ using apollo.hdmap;
                     intersectionId = id;
                 }
 
+                CreateStopLine(id, signal.stop_line, false);
+                SetStopLineRotation(id, intersectionId, overlapLaneIdStartS, out MapLine stopLine);
+
                 CreateSignal(signal, intersectionId);
-                MoveBackIfOnIntersectionLane(id, overlapLaneIdStartS);
+                MoveBackIfOnIntersectionLane(id, intersectionId, overlapLaneIdStartS);
                 stopLine.transform.parent = Id2MapIntersection[intersectionId].transform;
                 UpdateLocalPositions(stopLine);
             }
@@ -970,7 +1034,7 @@ using apollo.hdmap;
                 var direction = FindADirection(mapIntersection); // find any straight line as the major direction of intersection
 
                 GetBoundsPoints(mapIntersection, direction, out Vector3 leftBottom, out Vector3 rightBottom, out Vector3 rightTop, out Vector3 leftTop);
-                
+
                 if (ShowDebugIntersectionArea)
                 {
                     var time = 60; // time showing debug rectangles
@@ -990,7 +1054,7 @@ using apollo.hdmap;
             var perpendicularDir = Vector3.Cross(direction, Vector3.up);
             ComputeProjectedMinMaxPoints(mapIntersection, direction, out Vector3 minPoint, out Vector3 maxPoint);
             ComputeProjectedMinMaxPoints(mapIntersection, perpendicularDir, out Vector3 minPerpendicularPoint, out Vector3 maxPerpendicularPoint);
-            
+
             leftBottom = GetIntersectingPoint(perpendicularDir, direction, minPoint, minPerpendicularPoint);
             leftBottom.y = minPoint.y;
             rightBottom = GetIntersectingPoint(perpendicularDir, direction, minPoint, maxPerpendicularPoint);
@@ -1030,7 +1094,7 @@ using apollo.hdmap;
                     var projectedLastPt = Vector3.Dot(direction, lastPt);
                     Vector3 tempMinPoint, tempMaxPoint;
                     float tempMin, tempMax;
-                    if (projectedFirstPt < projectedLastPt) 
+                    if (projectedFirstPt < projectedLastPt)
                     {
                         tempMinPoint = firstPt;
                         tempMin = projectedFirstPt;
@@ -1044,7 +1108,7 @@ using apollo.hdmap;
                         tempMaxPoint = firstPt;
                         tempMax = projectedFirstPt;
                     }
-                    
+
                     if (tempMin < min)
                     {
                         min = tempMin;
@@ -1080,7 +1144,7 @@ using apollo.hdmap;
                     }
                 }
             }
-            
+
             return direction;
         }
 
@@ -1096,8 +1160,7 @@ using apollo.hdmap;
                     continue;
                 }
                 var overlapLaneIdStartS = SignalSignId2LaneIdStartS[id];
-                SetStopLineRotation(id, overlapLaneIdStartS, out MapLine stopLine);
-                var intersectionId = GetIntersectionId(overlapLaneIdStartS);
+                var intersectionId = GetIntersectionId(id, overlapLaneIdStartS);
                 if (intersectionId == null)
                 {
                     Debug.LogError($"No nearest intersection found for this yield sign {id}! Cannot assign it under an existing intersection.");
@@ -1107,10 +1170,14 @@ using apollo.hdmap;
                 }
                 Id2MapIntersection[intersectionId].isStopSignIntersection = true;
 
-                CreateStopSign(id, intersectionId); // TODO: Create yield sign once we have yield sign for NPCs
-                MoveBackIfOnIntersectionLane(id, overlapLaneIdStartS);
+                SetStopLineRotation(id, intersectionId, overlapLaneIdStartS, out MapLine stopLine);
+
+                var mapStopSign = CreateStopSign(id, intersectionId); // TODO: Create yield sign once we have yield sign for NPCs
+                MoveBackIfOnIntersectionLane(id, intersectionId, overlapLaneIdStartS);
                 stopLine.transform.parent = Id2MapIntersection[intersectionId].transform;
                 UpdateLocalPositions(stopLine);
+
+                CheckSignLineDistance(mapStopSign, stopLine);
             }
 
             Debug.Log($"Imported {ApolloMap.yield.Count} yield signs.");
@@ -1135,7 +1202,7 @@ using apollo.hdmap;
                     var endPoint = endPoints[i];
                     var normalDir = Vector3.Cross(laneDir, Vector3.up).normalized;
                     var halfLaneWidth = 2;
-                    newStopLinePositions.Add(endPoint + normalDir * halfLaneWidth - laneDir * 0.5f); 
+                    newStopLinePositions.Add(endPoint + normalDir * halfLaneWidth - laneDir * 0.5f);
                     if (i == endPoints.Count - 1) newStopLinePositions.Add(endPoint - normalDir * halfLaneWidth - laneDir * 0.5f);
                 }
                 // Update stop line mapWorldPositions with new computed points
@@ -1156,7 +1223,7 @@ using apollo.hdmap;
                 // last two points of the lane
                 var p1 = positions[positions.Count - 2];
                 var p2 = positions.Last();
-                
+
                 // check with every segment of the stop line
                 for (var i = 0; i < stopLinePositions.Count - 1; i++)
                 {
@@ -1172,7 +1239,7 @@ using apollo.hdmap;
             }
             if (intersectingLanes.Count == 0)
             {
-                Debug.LogWarning($"stopLine {stopLine.name} have no intersecting lanes");
+                Debug.LogWarning($"stopLine {stopLine.name} have no intersecting lanes", stopLine.gameObject);
             }
             else if (intersectingLanes.Count == 1) return intersectingLanes;
             else
@@ -1185,7 +1252,7 @@ using apollo.hdmap;
 
         List<MapLane> OrderLanes(List<MapLane> intersectingLanes)
         {
-            // Pick any lane, compute normal direction, get distance to the lane and order lanes 
+            // Pick any lane, compute normal direction, get distance to the lane and order lanes
             var theLane = intersectingLanes[0];
             var p1 = ToVector2(theLane.mapWorldPositions[theLane.mapWorldPositions.Count - 2]);
             var p2 = ToVector2(theLane.mapWorldPositions.Last());

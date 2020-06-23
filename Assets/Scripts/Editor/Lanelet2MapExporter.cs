@@ -1210,7 +1210,7 @@ namespace Simulator.Editor
             var distThreshold = 0.5;
             if ((p2 - p1).magnitude < distThreshold)
             {
-                Debug.LogWarning($"Line {line.name} {line.GetInstanceID()} first two points are overlapping, remove second one.");
+                Debug.LogWarning($"Line {line.name} {line.GetInstanceID()} first two points are overlapping, remove second one.", line.gameObject);
                 CheckLinePositionsSize(line);
                 if (positions.Count > 2 && !isSameDirection3Points(p1, p2, positions[2]))
                 {
@@ -1221,7 +1221,7 @@ namespace Simulator.Editor
             Vector3 p3 = positions[positions.Count - 2], p4 = positions.Last();
             if ((p3 - p4).magnitude < distThreshold)
             {
-                Debug.LogWarning($"Line {line.name} {line.GetInstanceID()} last two points are overlapping, remove the one before last one.");
+                Debug.LogWarning($"Line {line.name} {line.GetInstanceID()} last two points are overlapping, remove the one before last one.", line.gameObject);
                 CheckLinePositionsSize(line);
                 if (positions.Count > 2 && !isSameDirection3Points(positions[positions.Count - 3], p3, p4))
                 {

@@ -2401,7 +2401,7 @@ namespace Simulator.Editor
             }
         }
 
-        public List<Vector3> ComputeCenterLine(List<Vector3> leftLinePoints, List<Vector3> rightLinePoints)
+        public static List<Vector3> ComputeCenterLine(List<Vector3> leftLinePoints, List<Vector3> rightLinePoints)
         {
             List<Vector3> centerLinePoints = new List<Vector3>();
             var leftFirstPoint = leftLinePoints[0];
@@ -2498,7 +2498,7 @@ namespace Simulator.Editor
             return normalDir;
         }
 
-        void SplitLine(List<Vector3> positions, ref List<Vector3> splittedLinePoints, float resolution, int partitions, bool reverse=false)
+        static void SplitLine(List<Vector3> positions, ref List<Vector3> splittedLinePoints, float resolution, int partitions, bool reverse=false)
         {
             splittedLinePoints = new List<Vector3>();
             splittedLinePoints.Add(positions[0]); // Add first point

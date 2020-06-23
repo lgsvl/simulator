@@ -15,16 +15,16 @@ public class MapImport : EditorWindow
 {
     [SerializeField] int Selected = 0;
     [SerializeField] string FileName;
-    [SerializeField] float DownSampleDistanceThreshold = 10.0f; // DownSample distance threshold for points to keep 
-    [SerializeField] float DownSampleDeltaThreshold = 0.5f; // For down sampling, delta threshold for curve points 
+    [SerializeField] float DownSampleDistanceThreshold = 10.0f; // DownSample distance threshold for points to keep
+    [SerializeField] float DownSampleDeltaThreshold = 0.35f; // For down sampling, delta threshold for curve points
     [SerializeField] bool IsMeshNeeded = true; // Boolean value for traffic light/sign mesh importing.
     [SerializeField] bool IsConnectLanes = true; // Boolean value for whether to connect lanes based on links in OpenDRIVE.
 
 
     string[] importFormats = new string[]
     {
-        "Apollo 5 HD Map", 
-        "Lanelet2 Map", 
+        "Apollo 5 HD Map",
+        "Lanelet2 Map",
         "OpenDRIVE Map",
     };
 
@@ -100,7 +100,7 @@ public class MapImport : EditorWindow
                 EditorUtility.DisplayDialog("Error", "Please specify input file/folder name!", "OK");
                 return;
             }
-           
+
             if (importFormats[Selected] == "Apollo 5 HD Map")
             {
                 ApolloMapImporter ApolloMapImporter = new ApolloMapImporter(
@@ -116,7 +116,7 @@ public class MapImport : EditorWindow
             if (importFormats[Selected] == "OpenDRIVE Map")
             {
                 OpenDriveMapImporter openDriveMapImporter = new OpenDriveMapImporter(
-                                        DownSampleDistanceThreshold, DownSampleDeltaThreshold, 
+                                        DownSampleDistanceThreshold, DownSampleDeltaThreshold,
                                         IsMeshNeeded, IsConnectLanes);
                 openDriveMapImporter.Import(FileName);
             }
@@ -137,5 +137,5 @@ public class MapImport : EditorWindow
             }
         }
         GUILayout.EndHorizontal();
-    } 
+    }
 }

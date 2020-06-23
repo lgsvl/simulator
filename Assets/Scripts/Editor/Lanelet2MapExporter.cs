@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using UnityEditor;
 using Simulator.Map;
 using OsmSharp;
 using OsmSharp.Streams;
@@ -36,6 +37,7 @@ namespace Simulator.Editor
             MapAnnotationData = new MapManagerData();
             MapAnnotationData.GetIntersections();
             MapAnnotationData.GetTrafficLanes();
+            RecordChanges(MapAnnotationData.MapHolder);
 
             MapOrigin = MapOrigin.Find();
 
@@ -168,7 +170,22 @@ namespace Simulator.Editor
                 map.Add(CreateMultiPolygonFromParkingSpace(parkingSpace));
             }
 
+            Undo.PerformUndo(); // Keep original Map unchanged.
+
             return true;
+        }
+
+        public static void RecordChanges(UnityEngine.Object mapHolder)
+        {
+            Undo.RecordObject(mapHolder, "Update map to export Lanelet2 map");
+            PrefabUtility.RecordPrefabInstancePropertyModifications(mapHolder);
+
+            var root = PrefabUtility.GetOutermostPrefabInstanceRoot(mapHolder);
+            var isPrefab = root != null;
+            if (isPrefab)
+            {
+                PrefabUtility.UnpackPrefabInstance(root, PrefabUnpackMode.OutermostRoot, InteractionMode.UserAction);
+            }
         }
 
         private void CreateLaneletsFromLanes(HashSet<MapLane> laneSegments)
@@ -1118,7 +1135,7 @@ namespace Simulator.Editor
             }
         }
 
-        void AlignLines(HashSet<int> visitedLaneIdsEnd, HashSet<int> visitedLaneIdsStart, 
+        void AlignLines(HashSet<int> visitedLaneIdsEnd, HashSet<int> visitedLaneIdsStart,
             MapLane mapLane, bool isStart)
         {
             var allConnectedLanes2InOut = new Dictionary<MapLane, InOut>();
@@ -1246,7 +1263,7 @@ namespace Simulator.Editor
             return inOut == InOut.In ? positions.Count - 1 : 0;
         }
 
-        void UpdateVisitedSets(Dictionary<MapLane, InOut> allConnectedLanes2InOut, 
+        void UpdateVisitedSets(Dictionary<MapLane, InOut> allConnectedLanes2InOut,
             HashSet<int> visitedLaneInstanceIdsStart, HashSet<int> visitedLaneInstanceIdsEnd)
         {
             foreach (var entry in allConnectedLanes2InOut)
@@ -1877,7 +1894,7 @@ namespace Simulator.Editor
                 Debug.LogWarning($"Lane {lane.name} left boundary type is Unknown.");
                 rightWay.Tags.Add(
                     new Tag("type", "unknown")
-                );            
+                );
             }
         }
 

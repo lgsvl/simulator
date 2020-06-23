@@ -271,7 +271,7 @@ namespace Simulator.Editor
                 }
             }
 
-            private IEnumerator PrepareSceneManifest(Entry sceneEntry, HashSet<Scene> currentScenes, string outputFolder, List<(string, string)> buildArtifacts, Manifest manifest)
+            private IEnumerator PrepareSceneManifest(Entry sceneEntry, string outputFolder, List<(string, string)> buildArtifacts, Manifest manifest)
             {
                 Scene scene = EditorSceneManager.OpenScene(sceneEntry.mainAssetFile, OpenSceneMode.Additive);
                 NodeTreeLoader[] loaders = GameObject.FindObjectsOfType<NodeTreeLoader>();
@@ -389,10 +389,7 @@ namespace Simulator.Editor
                 }
                 finally
                 {
-                    if (!currentScenes.Contains(scene))
-                    {
-                        EditorSceneManager.CloseScene(scene, true);
-                    }
+                    EditorSceneManager.CloseScene(scene, true);
                 }
             }
 
@@ -404,7 +401,8 @@ namespace Simulator.Editor
 
                 outputFolder = Path.Combine(outputFolder, bundlePath);
                 Directory.CreateDirectory(outputFolder);
-                var currentScenes = new HashSet<Scene>();
+                var openScenePaths = new List<string>();
+                var activeScenePath = string.Empty;
 
                 var selected = entries.Values.Where(e => e.selected && e.available).ToList();
                 if (selected.Count == 0) yield break;
@@ -416,259 +414,288 @@ namespace Simulator.Editor
                         Debug.LogWarning("Cancelling the build.");
                         yield break;
                     }
+
+                    activeScenePath = SceneManager.GetActiveScene().path;
                     for (int i = 0; i < EditorSceneManager.loadedSceneCount; i++)
                     {
-                        currentScenes.Add(EditorSceneManager.GetSceneAt(i));
+                        var scene = SceneManager.GetSceneAt(i);
+                        openScenePaths.Add(scene.path);
                     }
+
+                    EditorSceneManager.OpenScene("Assets/Scenes/LoaderScene.unity", OpenSceneMode.Single);
                 }
 
-                foreach (var entry in selected)
+                try
                 {
-                    Manifest manifest = new Manifest();
-                    var buildArtifacts = new List<(string source, string archiveName)>();
-                    bool mainAssetIsScript = entry.mainAssetFile.EndsWith("."+ScriptExtension);
-                    if (bundleType == BundleConfig.BundleTypes.Environment)
+                    foreach (var entry in selected)
                     {
-                        yield return EditorCoroutineUtility.StartCoroutineOwnerless(PrepareSceneManifest(entry, currentScenes, outputFolder, buildArtifacts, manifest));
-                        manifest.assetType = "map";
-                    }
-                    else
-                    {
-                        yield return EditorCoroutineUtility.StartCoroutineOwnerless(PreparePrefabManifest(entry, outputFolder, buildArtifacts, manifest));
-                        manifest.assetType = thing;
-                    }
-
-                    var asmDefPath = Path.Combine(BundleConfig.ExternalBase, Things, $"Simulator.{Things}.asmdef");
-                    AsmdefBody asmDef = null;
-                    if (File.Exists(asmDefPath))
-                        asmDef = JsonUtility.FromJson<AsmdefBody>(File.ReadAllText(asmDefPath));
-
-                    try
-                    {
-                        Debug.Log($"building asset:{entry.mainAssetFile} -> " + Path.Combine(outputFolder, $"{thing}_{entry.name}"));
-
-                        if (!File.Exists(Path.Combine(Application.dataPath, "..", entry.mainAssetFile)))
+                        Manifest manifest = new Manifest();
+                        var buildArtifacts = new List<(string source, string archiveName)>();
+                        bool mainAssetIsScript = entry.mainAssetFile.EndsWith("." + ScriptExtension);
+                        if (bundleType == BundleConfig.BundleTypes.Environment)
                         {
-                            Debug.LogError($"Building of {entry.name} failed: {entry.mainAssetFile} not found");
-                            break;
+                            yield return EditorCoroutineUtility.StartCoroutineOwnerless(PrepareSceneManifest(entry, outputFolder, buildArtifacts, manifest));
+                            manifest.assetType = "map";
+                        }
+                        else
+                        {
+                            yield return EditorCoroutineUtility.StartCoroutineOwnerless(PreparePrefabManifest(entry, outputFolder, buildArtifacts, manifest));
+                            manifest.assetType = thing;
                         }
 
-                        if (asmDef != null)
+                        var asmDefPath = Path.Combine(BundleConfig.ExternalBase, Things, $"Simulator.{Things}.asmdef");
+                        AsmdefBody asmDef = null;
+                        if (File.Exists(asmDefPath))
+                            asmDef = JsonUtility.FromJson<AsmdefBody>(File.ReadAllText(asmDefPath));
+
+                        try
                         {
-                            AsmdefBody asmdefContents = new AsmdefBody();
-                            asmdefContents.name = entry.name;
-                            asmdefContents.references = asmDef.references;
-                            var asmDefOut = Path.Combine(sourcePath, entry.name, $"{entry.name}.asmdef");
-                            File.WriteAllText(asmDefOut, JsonUtility.ToJson(asmdefContents));
-                            buildArtifacts.Add((asmDefOut, null));
-                        }
+                            Debug.Log($"building asset:{entry.mainAssetFile} -> " + Path.Combine(outputFolder, $"{thing}_{entry.name}"));
 
-                        AssetDatabase.Refresh();
-                        if (!mainAssetIsScript)
-                        {
-                            var textureBuild = new AssetBundleBuild()
+                            if (!File.Exists(Path.Combine(Application.dataPath, "..", entry.mainAssetFile)))
                             {
-                                assetBundleName = $"{manifest.assetGuid}_{thing}_textures",
-                                assetNames = AssetDatabase.GetDependencies(entry.mainAssetFile).Where(a => a.EndsWith(".png") || a.EndsWith(".jpg")).ToArray()
-                            };
+                                Debug.LogError($"Building of {entry.name} failed: {entry.mainAssetFile} not found");
+                                break;
+                            }
 
-                            bool buildTextureBundle = textureBuild.assetNames.Length > 0;
-
-                            var windowsBuild = new AssetBundleBuild()
+                            if (asmDef != null)
                             {
-                                assetBundleName = $"{manifest.assetGuid}_{thing}_main_windows",
-                                assetNames = new[] { entry.mainAssetFile },
-                            };
+                                AsmdefBody asmdefContents = new AsmdefBody();
+                                asmdefContents.name = entry.name;
+                                asmdefContents.references = asmDef.references;
+                                var asmDefOut = Path.Combine(sourcePath, entry.name, $"{entry.name}.asmdef");
+                                File.WriteAllText(asmDefOut, JsonUtility.ToJson(asmdefContents));
+                                buildArtifacts.Add((asmDefOut, null));
+                            }
 
-                            var linuxBuild = new AssetBundleBuild()
+                            AssetDatabase.Refresh();
+                            if (!mainAssetIsScript)
                             {
-                                assetBundleName = $"{manifest.assetGuid}_{thing}_main_linux",
-                                assetNames = new[] { entry.mainAssetFile },
-                            };
-
-                            var builds = new[] {
-                                (build: linuxBuild,     platform: UnityEditor.BuildTarget.StandaloneLinux64),
-                                (build: windowsBuild,   platform: UnityEditor.BuildTarget.StandaloneWindows64)
-                            };
-
-                            foreach (var buildConf in builds)
-                            {
-                                var taskItems = new List<AssetBundleBuild>() { buildConf.build };
-
-                                if (buildTextureBundle)
+                                var textureBuild = new AssetBundleBuild()
                                 {
-                                    taskItems.Add(textureBuild);
-                                }
+                                    assetBundleName = $"{manifest.assetGuid}_{thing}_textures",
+                                    assetNames = AssetDatabase.GetDependencies(entry.mainAssetFile).Where(a => a.EndsWith(".png") || a.EndsWith(".jpg")).ToArray()
+                                };
 
-                                BuildPipeline.BuildAssetBundles(
+                                bool buildTextureBundle = textureBuild.assetNames.Length > 0;
+
+                                var windowsBuild = new AssetBundleBuild()
+                                {
+                                    assetBundleName = $"{manifest.assetGuid}_{thing}_main_windows",
+                                    assetNames = new[] {entry.mainAssetFile},
+                                };
+
+                                var linuxBuild = new AssetBundleBuild()
+                                {
+                                    assetBundleName = $"{manifest.assetGuid}_{thing}_main_linux",
+                                    assetNames = new[] {entry.mainAssetFile},
+                                };
+
+                                var builds = new[]
+                                {
+                                    (build: linuxBuild, platform: UnityEditor.BuildTarget.StandaloneLinux64),
+                                    (build: windowsBuild, platform: UnityEditor.BuildTarget.StandaloneWindows64)
+                                };
+
+                                foreach (var buildConf in builds)
+                                {
+                                    var taskItems = new List<AssetBundleBuild>() {buildConf.build};
+
+                                    if (buildTextureBundle)
+                                    {
+                                        taskItems.Add(textureBuild);
+                                    }
+
+                                    BuildPipeline.BuildAssetBundles(
                                         outputFolder,
                                         taskItems.ToArray(),
                                         BuildAssetBundleOptions.ChunkBasedCompression | BuildAssetBundleOptions.StrictMode,
                                         buildConf.platform);
 
-                                buildArtifacts.Add((Path.Combine(outputFolder, buildConf.build.assetBundleName), buildConf.build.assetBundleName));
-                                buildArtifacts.Add((Path.Combine(outputFolder, buildConf.build.assetBundleName + ".manifest"), null));
-                                if (buildTextureBundle)
-                                {
-                                    buildArtifacts.Add((Path.Combine(outputFolder, textureBuild.assetBundleName), textureBuild.assetBundleName));
-                                    buildArtifacts.Add((Path.Combine(outputFolder, textureBuild.assetBundleName + ".manifest"), null));
-                                }
-                            }
-                        }
-
-                        DirectoryInfo prefabDir = new DirectoryInfo(Path.Combine(sourcePath, entry.name));
-                        var scripts = prefabDir.GetFiles("*.cs", SearchOption.AllDirectories).Select(script => script.FullName).ToArray();
-
-                        string outputAssembly = null;
-                        if (scripts.Length > 0)
-                        {
-                            outputAssembly = Path.Combine(outputFolder, $"{entry.name}.dll");
-                            var assemblyBuilder = new AssemblyBuilder(outputAssembly, scripts);
-                            assemblyBuilder.compilerOptions.AllowUnsafeCode = true;
-
-                            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-                            var modules = assemblies.Where(asm =>
-                                                            asm.GetName().Name == "UnityEngine" ||
-                                                            asm.GetName().Name == "UnityEngine.JSONSerializeModule" ||
-                                                            asm.GetName().Name == "UnityEngine.CoreModule" ||
-                                                            asm.GetName().Name == "UnityEngine.PhysicsModule").ToArray();
-
-                            assemblyBuilder.additionalReferences = modules.Select(a => a.Location).ToArray();
-
-                            assemblyBuilder.buildFinished += delegate (string assemblyPath, CompilerMessage[] compilerMessages)
-                            {
-                                var errorCount = compilerMessages.Count(m => m.type == CompilerMessageType.Error);
-                                var warningCount = compilerMessages.Count(m => m.type == CompilerMessageType.Warning);
-
-                                Debug.Log($"Assembly build finished for {assemblyPath}");
-                                if (errorCount != 0)
-                                {
-                                    Debug.Log($"Found {errorCount} errors");
-
-                                    foreach (CompilerMessage message in compilerMessages)
+                                    buildArtifacts.Add((Path.Combine(outputFolder, buildConf.build.assetBundleName), buildConf.build.assetBundleName));
+                                    buildArtifacts.Add((Path.Combine(outputFolder, buildConf.build.assetBundleName + ".manifest"), null));
+                                    if (buildTextureBundle)
                                     {
-                                        if (message.type == CompilerMessageType.Error)
-                                        {
-                                            Debug.LogError(message.message);
-                                            return;
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    buildArtifacts.Add((outputAssembly, $"{entry.name}.dll"));
-                                    buildArtifacts.Add((Path.Combine(outputFolder, $"{entry.name}.pdb"), null));
-                                }
-                            };
-
-                            // Start build of assembly
-                            if (!assemblyBuilder.Build())
-                            {
-                                Debug.LogErrorFormat("Failed to start build of assembly {0}!", assemblyBuilder.assemblyPath);
-                                yield break;
-                            }
-
-                            while (assemblyBuilder.status != AssemblyBuilderStatus.Finished) { }
-                        }
-
-                        if (manifest.fmuName != "")
-                        {
-                            var fmuPathWindows = Path.Combine(sourcePath, manifest.fmuName, "binaries", "win64", $"{manifest.fmuName}.dll");
-                            var fmuPathLinux = Path.Combine(sourcePath, manifest.fmuName, "binaries", "linux64", $"{manifest.fmuName}.so");
-                            if (File.Exists(fmuPathWindows))
-                            {
-                                buildArtifacts.Add((fmuPathWindows, $"{manifest.fmuName}_windows.dll"));
-                            }
-                            if (File.Exists(fmuPathLinux))
-                            {
-                                buildArtifacts.Add((fmuPathLinux, $"{manifest.fmuName}_linux.so"));
-                            }
-                        }
-                        if (manifest.attachments != null)
-                        {
-                            foreach (string key in manifest.attachments.Keys)
-                            {
-                                if (key.Contains("pointcloud"))
-                                {
-                                    foreach (FileInfo fi in new DirectoryInfo(manifest.attachments[key].ToString()).GetFiles())
-                                    {
-                                        if (fi.Extension == TreeUtility.IndexFileExtension || fi.Extension == TreeUtility.NodeFileExtension || fi.Extension == TreeUtility.MeshFileExtension)
-                                        {
-                                            buildArtifacts.Add((fi.FullName, Path.Combine(key, fi.Name)));
-                                        }
+                                        buildArtifacts.Add((Path.Combine(outputFolder, textureBuild.assetBundleName), textureBuild.assetBundleName));
+                                        buildArtifacts.Add((Path.Combine(outputFolder, textureBuild.assetBundleName + ".manifest"), null));
                                     }
                                 }
                             }
-                        }
 
-                        if (outputAssembly != null && !mainAssetIsScript)
-                        {
-                            Debug.Log("attempting to load "+outputAssembly+" exists: "+File.Exists(outputAssembly));
-                            string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
-                            var assembly = System.Reflection.Assembly.LoadFile(outputAssembly);
-                            AssetBundle pluginBundle = AssetBundle.LoadFromFile(Path.Combine(outputFolder, $"{manifest.assetGuid}_{thing}_main_{platform}"));
-                            var pluginAssets = pluginBundle.GetAllAssetNames();
-                            foreach (var asset in pluginAssets)
+                            DirectoryInfo prefabDir = new DirectoryInfo(Path.Combine(sourcePath, entry.name));
+                            var scripts = prefabDir.GetFiles("*.cs", SearchOption.AllDirectories).Select(script => script.FullName).ToArray();
+
+                            string outputAssembly = null;
+                            if (scripts.Length > 0)
                             {
-                                SensorBase sensor = pluginBundle.LoadAsset<GameObject>(pluginAssets[0]).GetComponent<SensorBase>();
-                                if (sensor == null)
-                                {
-                                    continue;
-                                }
+                                outputAssembly = Path.Combine(outputFolder, $"{entry.name}.dll");
+                                var assemblyBuilder = new AssemblyBuilder(outputAssembly, scripts);
+                                assemblyBuilder.compilerOptions.AllowUnsafeCode = true;
 
-                                manifest.sensorParams = new Dictionary<string, Param>();
-                                foreach (SensorParam param in SensorTypes.GetConfig(sensor).Parameters)
+                                var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+                                var modules = assemblies.Where(asm =>
+                                    asm.GetName().Name == "UnityEngine" ||
+                                    asm.GetName().Name == "UnityEngine.JSONSerializeModule" ||
+                                    asm.GetName().Name == "UnityEngine.CoreModule" ||
+                                    asm.GetName().Name == "UnityEngine.PhysicsModule").ToArray();
+
+                                assemblyBuilder.additionalReferences = modules.Select(a => a.Location).ToArray();
+
+                                assemblyBuilder.buildFinished += delegate(string assemblyPath, CompilerMessage[] compilerMessages)
                                 {
-                                    manifest.sensorParams.Add(param.Name, new Param()
+                                    var errorCount = compilerMessages.Count(m => m.type == CompilerMessageType.Error);
+                                    var warningCount = compilerMessages.Count(m => m.type == CompilerMessageType.Warning);
+
+                                    Debug.Log($"Assembly build finished for {assemblyPath}");
+                                    if (errorCount != 0)
                                     {
-                                        Type = param.Type,
-                                        DefaultValue = param.DefaultValue,
-                                        Min = param.Min,
-                                        Max = param.Max,
-                                        Values = param.Values,
-                                        Unit = param.Unit
-                                    });
+                                        Debug.Log($"Found {errorCount} errors");
+
+                                        foreach (CompilerMessage message in compilerMessages)
+                                        {
+                                            if (message.type == CompilerMessageType.Error)
+                                            {
+                                                Debug.LogError(message.message);
+                                                return;
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        buildArtifacts.Add((outputAssembly, $"{entry.name}.dll"));
+                                        buildArtifacts.Add((Path.Combine(outputFolder, $"{entry.name}.pdb"), null));
+                                    }
+                                };
+
+                                // Start build of assembly
+                                if (!assemblyBuilder.Build())
+                                {
+                                    Debug.LogErrorFormat("Failed to start build of assembly {0}!", assemblyBuilder.assemblyPath);
+                                    yield break;
                                 }
-                                // we only take the first found
-                                break;
+
+                                while (assemblyBuilder.status != AssemblyBuilderStatus.Finished)
+                                {
+                                }
                             }
-                            pluginBundle.Unload(true);
+
+                            if (manifest.fmuName != "")
+                            {
+                                var fmuPathWindows = Path.Combine(sourcePath, manifest.fmuName, "binaries", "win64", $"{manifest.fmuName}.dll");
+                                var fmuPathLinux = Path.Combine(sourcePath, manifest.fmuName, "binaries", "linux64", $"{manifest.fmuName}.so");
+                                if (File.Exists(fmuPathWindows))
+                                {
+                                    buildArtifacts.Add((fmuPathWindows, $"{manifest.fmuName}_windows.dll"));
+                                }
+
+                                if (File.Exists(fmuPathLinux))
+                                {
+                                    buildArtifacts.Add((fmuPathLinux, $"{manifest.fmuName}_linux.so"));
+                                }
+                            }
+
+                            if (manifest.attachments != null)
+                            {
+                                foreach (string key in manifest.attachments.Keys)
+                                {
+                                    if (key.Contains("pointcloud"))
+                                    {
+                                        foreach (FileInfo fi in new DirectoryInfo(manifest.attachments[key].ToString()).GetFiles())
+                                        {
+                                            if (fi.Extension == TreeUtility.IndexFileExtension || fi.Extension == TreeUtility.NodeFileExtension || fi.Extension == TreeUtility.MeshFileExtension)
+                                            {
+                                                buildArtifacts.Add((fi.FullName, Path.Combine(key, fi.Name)));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (outputAssembly != null && !mainAssetIsScript)
+                            {
+                                Debug.Log("attempting to load " + outputAssembly + " exists: " + File.Exists(outputAssembly));
+                                string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
+                                var assembly = System.Reflection.Assembly.LoadFile(outputAssembly);
+                                AssetBundle pluginBundle = AssetBundle.LoadFromFile(Path.Combine(outputFolder, $"{manifest.assetGuid}_{thing}_main_{platform}"));
+                                var pluginAssets = pluginBundle.GetAllAssetNames();
+                                foreach (var asset in pluginAssets)
+                                {
+                                    SensorBase sensor = pluginBundle.LoadAsset<GameObject>(pluginAssets[0]).GetComponent<SensorBase>();
+                                    if (sensor == null)
+                                    {
+                                        continue;
+                                    }
+
+                                    manifest.sensorParams = new Dictionary<string, Param>();
+                                    foreach (SensorParam param in SensorTypes.GetConfig(sensor).Parameters)
+                                    {
+                                        manifest.sensorParams.Add(param.Name, new Param()
+                                        {
+                                            Type = param.Type,
+                                            DefaultValue = param.DefaultValue,
+                                            Min = param.Min,
+                                            Max = param.Max,
+                                            Values = param.Values,
+                                            Unit = param.Unit
+                                        });
+                                    }
+
+                                    // we only take the first found
+                                    break;
+                                }
+
+                                pluginBundle.Unload(true);
+                            }
+
+                            var manifestOutput = Path.Combine(outputFolder, "manifest.json");
+                            File.WriteAllText(manifestOutput, JsonConvert.SerializeObject(manifest));
+                            buildArtifacts.Add((manifestOutput, "manifest.json"));
+
+                            ZipFile archive = ZipFile.Create(Path.Combine(outputFolder, $"{thing}_{entry.name}"));
+                            archive.BeginUpdate();
+                            foreach (var file in buildArtifacts.Where(e => e.archiveName != null))
+                            {
+                                archive.Add(new StaticDiskDataSource(file.source), file.archiveName, CompressionMethod.Stored, true);
+                            }
+
+                            archive.CommitUpdate();
+                            archive.Close();
                         }
-
-                        var manifestOutput = Path.Combine(outputFolder, "manifest.json");
-                        File.WriteAllText(manifestOutput, JsonConvert.SerializeObject(manifest));
-                        buildArtifacts.Add((manifestOutput, "manifest.json"));
-
-                        ZipFile archive = ZipFile.Create(Path.Combine(outputFolder, $"{thing}_{entry.name}"));
-                        archive.BeginUpdate();
-                        foreach (var file in buildArtifacts.Where(e => e.archiveName != null))
+                        catch (Exception e)
                         {
-                            archive.Add(new StaticDiskDataSource(file.source), file.archiveName, CompressionMethod.Stored, true);
-                        }
-                        archive.CommitUpdate();
-                        archive.Close();
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogError($"Failed to build archive, exception follows:");
-                        Debug.LogException(e);
+                            Debug.LogError($"Failed to build archive, exception follows:");
+                            Debug.LogException(e);
 
-                    }
-                    finally
-                    {
-                        foreach (var file in buildArtifacts) 
+                        }
+                        finally
                         {
-                            SilentDelete(file.source);
-                            SilentDelete(file.source + ".meta");
+                            foreach (var file in buildArtifacts)
+                            {
+                                SilentDelete(file.source);
+                                SilentDelete(file.source + ".meta");
+                            }
                         }
+
+                        Debug.Log("done");
+                        Resources.UnloadUnusedAssets();
                     }
 
-                    Debug.Log("done");
-                    Resources.UnloadUnusedAssets();
+                    // these are an artifact of the asset building pipeline and we don't use them
+                    SilentDelete(Path.Combine(outputFolder, Path.GetFileName(outputFolder)));
+                    SilentDelete(Path.Combine(outputFolder, Path.GetFileName(outputFolder)) + ".manifest");
                 }
-                // these are an artifact of the asset building pipeline and we don't use them
-                SilentDelete(Path.Combine(outputFolder, Path.GetFileName(outputFolder)));
-                SilentDelete(Path.Combine(outputFolder, Path.GetFileName(outputFolder))+".manifest");
+                finally
+                {
+                    // Load back previously opened scenes
+                    EditorSceneManager.OpenScene(activeScenePath, OpenSceneMode.Single);
+                    foreach (var scenePath in openScenePaths)
+                    {
+                        if (string.Equals(scenePath, activeScenePath))
+                            continue;
+
+                        EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+                    }
+                }
             }
         }
 

@@ -440,7 +440,7 @@ namespace Simulator.Bridge.Ros
                         {
                             x = 0.0,
                             y = 0.0,
-                            z = - data.AngularVelocity.y,
+                            z = -data.AngularVelocity.y,
                         }
                     },
                 }
@@ -534,6 +534,15 @@ namespace Simulator.Bridge.Ros
                     shiftDown = true;
             }
 
+
+            int indicator = 0;
+            if (data.lamp_cmd != null)
+            {
+                var lbrink = 0 < data.lamp_cmd.l ? 1 : 0;
+                var rbrink = 0 < data.lamp_cmd.r ? 1 : 0;
+                indicator = ((rbrink & 0x01) << 1) | (lbrink & 0x01);
+            }
+
             return new VehicleControlData()
             {
                 TimeStampSec = ConvertTime(data.header.stamp),
@@ -544,6 +553,7 @@ namespace Simulator.Bridge.Ros
                 SteerAngle = (float)data.ctrl_cmd.steering_angle,
                 ShiftGearUp = shiftUp,
                 ShiftGearDown = shiftDown,
+                Indicator = indicator
             };
         }
 
@@ -568,7 +578,7 @@ namespace Simulator.Bridge.Ros
                 wheelAngle = -MaxSteeringAngle;
 
             // ratio between -MaxSteeringAngle and MaxSteeringAngle
-            var k = (float)(wheelAngle + MaxSteeringAngle) / (MaxSteeringAngle*2);
+            var k = (float)(wheelAngle + MaxSteeringAngle) / (MaxSteeringAngle * 2);
 
             // target_wheel_angular_rate, target_gear are not supported on simulator side.
             return new VehicleControlData()
@@ -619,11 +629,11 @@ namespace Simulator.Bridge.Ros
                 },
 
                 orientation = Convert(data.Orientation),
-                orientation_covariance = new double[9]{0.0001, 0, 0, 0, 0.0001, 0, 0, 0, 0.0001},
+                orientation_covariance = new double[9] { 0.0001, 0, 0, 0, 0.0001, 0, 0, 0, 0.0001 },
                 angular_velocity = ConvertToVector(data.AngularVelocity),
-                angular_velocity_covariance = new double[9]{0.0001, 0, 0, 0, 0.0001, 0, 0, 0, 0.0001},
+                angular_velocity_covariance = new double[9] { 0.0001, 0, 0, 0, 0.0001, 0, 0, 0, 0.0001 },
                 linear_acceleration = ConvertToVector(data.Acceleration),
-                linear_acceleration_covariance = new double[9]{0.0001, 0, 0, 0, 0.0001, 0, 0, 0, 0.0001},
+                linear_acceleration_covariance = new double[9] { 0.0001, 0, 0, 0, 0.0001, 0, 0, 0, 0.0001 },
             };
         }
 

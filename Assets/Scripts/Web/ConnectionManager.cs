@@ -159,56 +159,64 @@ public class ConnectionManager : MonoBehaviour
                 JObject deserialized = JObject.Parse(s.Substring(5));
                 if (deserialized != null && deserialized.HasValues)
                 {
-                    switch (deserialized.GetValue("status").ToString())
-                    {
-                        case "Unrecognized":
-                            RunOnUnityThread(() =>
-                            {
-                                Status = ConnectionStatus.Connected;
-                                ConnectionUI.instance.UpdateStatus();
-                            });
-                            break;
-                        case "OK":
-                            RunOnUnityThread(() =>
-                            {
-                                Status = ConnectionStatus.Online;
-                                ConnectionUI.instance.UpdateStatus();
-                            });
-                            break;
-                        case "Config":
-                            RunOnUnityThread(() =>
-                            {
-                                Status = ConnectionStatus.Online;
-                                ConnectionUI.instance.UpdateStatus();
-                                ConnectionUI.instance.statusButton.interactable = false;
-                                SimulationData simData = Newtonsoft.Json.JsonConvert.DeserializeObject<SimulationData>(deserialized.GetValue("data").ToString());
-                                Loader.StartSimulation(simData);
-                                instance.UpdateStatus("Starting", simData.Id);
-                            });
-                            break;
-                        case "Disconnect":
-                            RunOnUnityThread(() =>
-                            {
-                                Disconnect();
-                            });
-                            break;
-                        case "Stop":
-                            Loader.StopAsync();
-                            break;
-                        default:
-                            Debug.LogError("Unknown Status! Disconnecting.");
-                            RunOnUnityThread(() =>
-                            {
-                                Disconnect();
-                            });
-                            break;
+                    if (deserialized.GetValue("status") != null) {
+                        switch (deserialized.GetValue("status").ToString())
+                        {
+                            case "Unrecognized":
+                                RunOnUnityThread(() =>
+                                {
+                                    Status = ConnectionStatus.Connected;
+                                    ConnectionUI.instance.UpdateStatus();
+                                });
+                                break;
+                            case "OK":
+                                RunOnUnityThread(() =>
+                                {
+                                    Status = ConnectionStatus.Online;
+                                    ConnectionUI.instance.UpdateStatus();
+                                });
+                                break;
+                            case "Config":
+                                RunOnUnityThread(() =>
+                                {
+                                    Status = ConnectionStatus.Online;
+                                    ConnectionUI.instance.UpdateStatus();
+                                    ConnectionUI.instance.statusButton.interactable = false;
+                                    SimulationData simData = Newtonsoft.Json.JsonConvert.DeserializeObject<SimulationData>(deserialized.GetValue("data").ToString());
+                                    Loader.StartSimulation(simData);
+                                    instance.UpdateStatus("Starting", simData.Id);
+                                });
+                                break;
+                            case "Disconnect":
+                                RunOnUnityThread(() =>
+                                {
+                                    Disconnect();
+                                });
+                                break;
+                            case "Stop":
+                                Loader.StopAsync();
+                                break;
+                            default:
+                                Debug.LogError("Unknown Status! Disconnecting.");
+                                RunOnUnityThread(() =>
+                                {
+                                    Disconnect();
+                                });
+                                break;
+                        }
                     }
+                    /* //nothing to do for now.
+                    if (deserialized.GetValue("ping") != null)
+                    {
+                        Debug.Log("got ping");
+                    }
+                    */
                 }
             }
         }
         catch (Exception ex)
         {
-            Debug.Log(ex);
+            Debug.LogException(ex);
         }
     }
 

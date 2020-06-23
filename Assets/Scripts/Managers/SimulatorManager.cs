@@ -503,7 +503,7 @@ public class SimulatorManager : MonoBehaviour
         CurrentTime += Time.fixedDeltaTime;
         CurrentFrame += 1;
 
-        if (!IsAPI)
+        if (!IsAPI && !Loader.Instance.Network.IsClient)
         {
             PhysicsUpdate();
         }

@@ -367,6 +367,7 @@ namespace Simulator.Network.Master
             BroadcastMessage(message);
             
             Loader.StartAsync(Loader.Instance.Network.CurrentSimulation);
+            State = SimulationState.Running;
         }
 
         /// <summary>

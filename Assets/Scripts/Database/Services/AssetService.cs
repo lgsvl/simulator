@@ -50,7 +50,7 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                var sql = Sql.Builder.Where("type = @0", type);
+                var sql = Sql.Builder.Where("type = @0", BundleConfig.singularOf(type));
                 return db.Query<AssetModel>(sql);
             }
         }

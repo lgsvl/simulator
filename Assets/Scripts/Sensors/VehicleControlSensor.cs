@@ -30,6 +30,8 @@ namespace Simulator.Sensors
         public float AccelInput { get; private set; } = 0f;
         public float BrakeInput { get; private set; } = 0f;
 
+        public int Indicator { get; private set; } = 0;
+
         float ADAccelInput = 0f;
         float ADSteerInput = 0f;
 
@@ -107,6 +109,11 @@ namespace Simulator.Sensors
                         ADAccelInput = ActualLinVel < data.Velocity.GetValueOrDefault() ? linMag : -linMag;
                         ADSteerInput = -Mathf.Clamp(data.SteerAngularVelocity.GetValueOrDefault() * 0.5f, -1f, 1f);
                     }
+
+                    if (data.Indicator.HasValue)
+                    {
+                        Indicator = data.Indicator.Value;
+                    }
                 }
                 else if (data.SteerRate.HasValue) // apollo
                 {
@@ -130,7 +137,7 @@ namespace Simulator.Sensors
                     var sgn = Mathf.Sign(steeringTarget - steeringAngle);
                     var steeringRate = data.SteerRate.GetValueOrDefault() * sgn;
                     steeringAngle += steeringRate * dt;
-                    
+
                     if (sgn != steeringTarget - steeringAngle) // to prevent oversteering
                         steeringAngle = steeringTarget;
 

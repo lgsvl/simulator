@@ -84,13 +84,34 @@ public class VehicleController : AgentController
         if (sticky) return;
 
         SteerInput = AccelInput = BrakeInput = 0f;
-        
+
         // get all inputs
         foreach (var input in inputs)
         {
             SteerInput += input.SteerInput;
             AccelInput += input.AccelInput;
             BrakeInput += input.BrakeInput;
+
+            var vcs = input as Simulator.Sensors.VehicleControlSensor;
+            if (vcs != null)
+            {
+                var hazard = vcs.Indicator == 3;
+                var rightTurn = vcs.Indicator == 2;
+                var leftTurn = vcs.Indicator == 1;
+                if (actions.HazardLights != hazard)
+                {
+                    actions.HazardLights = hazard;
+                }
+                else if (actions.LeftTurnSignal != leftTurn)
+                {
+                    actions.LeftTurnSignal = leftTurn;
+                }
+                else if (actions.RightTurnSignal != rightTurn)
+                {
+                    actions.RightTurnSignal = rightTurn;
+                }
+            }
+
         }
 
         // clamp if over
@@ -102,7 +123,7 @@ public class VehicleController : AgentController
     private void UpdateInputAPI()
     {
         if (!sticky) return;
-        
+
         SteerInput = stickySteering;
         AccelInput = stickAcceleraton;
     }
@@ -125,7 +146,7 @@ public class VehicleController : AgentController
             {
                 if (SteerInput > -turnSignalOffThreshold)
                     actions.LeftTurnSignal = resetTurnIndicator = false;
-                
+
             }
             else
             {

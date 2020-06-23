@@ -30,6 +30,7 @@ namespace Simulator.Bridge.Data
         public float? SteerAngle;
         public bool ShiftGearUp;
         public bool ShiftGearDown;
+        public int? Indicator;
 
         // apollo 
         public float? SteerRate;

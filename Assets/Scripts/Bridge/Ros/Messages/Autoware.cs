@@ -5,7 +5,7 @@
  *
  */
 
-﻿#pragma warning disable 0649
+#pragma warning disable 0649
 
 using System.Collections.Generic;
 
@@ -56,7 +56,7 @@ namespace Simulator.Bridge.Ros.Autoware
         public steer_cmd _steer_cmd;
         public accel_cmd _accel_cmd;
         public brake_cmd _brake_cmd;
-        public lamp_cmd _lamp_cmd;
+        public lamp_cmd lamp_cmd;
         public uint gear;
         public uint mode;
         public TwistStamped twist_cmd;
@@ -82,7 +82,7 @@ namespace Simulator.Bridge.Ros.Autoware
         public Twist acceleration;
 
         public PointCloud2 pointcloud;
-        
+
         // public PolygonStamped convex_hull;
         // public LaneArray candidate_trajectories;
 

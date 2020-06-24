@@ -846,11 +846,11 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
 
         foreach (var wheel in wheels)
         {
-            wheelMovement(wheel.transform, wheel.collider, wheel.origPos, theta, finalQ, wheel.steering);
+            MoveWheel(wheel.transform, wheel.collider, wheel.origPos, theta, finalQ, wheel.steering);
         }
     }
 
-    private void wheelMovement(Transform wheel, WheelCollider collider, Vector3 origPos, float theta, Quaternion Q, bool steering)
+    private void MoveWheel(Transform wheel, WheelCollider collider, Vector3 origPos, float theta, Quaternion Q, bool steering)
     {
         if (wheel.localPosition != origPos)
         {

@@ -321,6 +321,7 @@ public class CloudAPI
     Uri InstanceURL;
 
     CancellationTokenSource requestTokenSource = new CancellationTokenSource();
+    private const uint fetchLimit = 50;
 
     public CloudAPI(Uri instanceURL, string simId)
     {
@@ -351,7 +352,7 @@ public class CloudAPI
             }
             return await response.Content.ReadAsStreamAsync();
         }
-        catch
+        catch (Exception ex)
         {
             return await Task.FromResult<Stream>(null);
         }
@@ -365,39 +366,45 @@ public class CloudAPI
 
     public async Task<DetailData[]> GetLibrary<DetailData>() where DetailData: CloudAssetDetails
     {
-        var meta = (CloudData) Attribute.GetCustomAttribute(typeof(DetailData), typeof (CloudData));
-        var result = await GetApi<LibraryList<DetailData>>($"{meta.ApiPath}?display=fav");
-        return result.rows;
+        var meta = (CloudData)Attribute.GetCustomAttribute(typeof(DetailData), typeof(CloudData));
+        List<DetailData> result = new List<DetailData>();
+        LibraryList<DetailData> data;
+        do
+        {
+            data = await GetApi<LibraryList<DetailData>>($"{meta.ApiPath}?display=sim&limit={fetchLimit}&offset={result.Count}");
+            result.AddRange(data.rows);
+        } while (result.Count < data.Count && data.Count > 0);
+        return result.ToArray();
     }
 
     public async Task<DetailData> GetByIdOrName<DetailData>(string cloudIdOrName) where DetailData: CloudAssetDetails
-
     {
         var meta = (CloudData) Attribute.GetCustomAttribute(typeof(DetailData), typeof (CloudData));
         Guid guid;
-        if (Guid.TryParse(cloudIdOrName, out guid)) 
+        if (!Guid.TryParse(cloudIdOrName, out guid))
         {
-            try
-            {   
-                return await GetApi<DetailData>($"{meta.ApiPath}/{guid.ToString()}");
-            }
-            catch(Exception e)
-            {
-                throw new Exception($"Could not find asset with Id {guid} ({e.Message})");
-            }
-        }
-        var library = await GetLibrary<DetailData>();
+            var library = await GetLibrary<DetailData>();
 
-        var matches = library.Where(m => m.Name == cloudIdOrName).ToList();
-        if (matches.Count > 1)
-        {
-            throw new Exception($"multiple assets matching name '{cloudIdOrName}' in your library, please use Id");
+            var matches = library.Where(m => m.Name == cloudIdOrName).ToList();
+            if (matches.Count > 1)
+            {
+                throw new Exception($"multiple assets matching name '{cloudIdOrName}' in your library, please use Id");
+            }
+            if (matches.Count == 0)
+            {
+                throw new Exception($"no assets matching name '{cloudIdOrName}' in your library");
+            }
+            guid = Guid.Parse(matches[0].Id);
         }
-        if (matches.Count == 0)
+
+        try
         {
-            throw new Exception($"no assets matching name '{cloudIdOrName}' in your library");
+            return await GetApi<DetailData>($"{meta.ApiPath}/{guid.ToString()}");
         }
-        return matches[0];
+        catch (Exception e)
+        {
+            throw new Exception($"Could not find asset with Id {guid} ({e.Message})");
+        }
     }
 
     public async Task<ApiModelType> GetApi<ApiModelType>(string routeAndParams) 

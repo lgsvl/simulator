@@ -438,24 +438,6 @@ namespace Simulator
                             }
                         }
                     }
-                    catch (ZipException ex)
-                    {
-                        Debug.Log($"Failed to start '{simulation.Name}' simulation");
-                        Debug.LogException(ex);
-
-                        if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
-                        {
-                            Instance.Status = SimulatorStatus.Stopping;
-                            SceneManager.LoadScene(Instance.LoaderScene);
-                            Instance.Status = SimulatorStatus.Idle;
-                        }
-
-                        textureBundle?.Unload(false);
-                        mapBundle?.Unload(false);
-                        AssetBundle.UnloadAllAssetBundles(true);
-                        Instance.CurrentSimulation = null;
-                        Instance.Network.Deinitialize();
-                    }
                     catch (Exception ex)
                     {
                         Debug.Log($"Failed to start '{simulation.Name}' simulation");

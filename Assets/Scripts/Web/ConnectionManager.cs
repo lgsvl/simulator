@@ -341,7 +341,7 @@ public class CloudAPI
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(simInfo);
             HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, new Uri(InstanceURL, "/api/v1/clusters/connect"));
             message.Content = new StringContent(json, Encoding.UTF8, "application/json");
-            message.Headers.Add("SimID", Config.SimID);
+            message.Headers.Add("SimId", Config.SimID);
             message.Headers.Add("Accept", "application/json");
             message.Headers.Add("Connection", "Keep-Alive");
             message.Headers.Add("X-Accel-Buffering", "no");
@@ -410,7 +410,7 @@ public class CloudAPI
     public async Task<ApiModelType> GetApi<ApiModelType>(string routeAndParams) 
     {
         HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Get, new Uri(InstanceURL, routeAndParams));
-        message.Headers.Add("SimID", SimId);
+        message.Headers.Add("SimId", SimId);
         message.Headers.Add("Accept", "application/json");
         var response = await client.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, requestTokenSource.Token).ConfigureAwait(false);
         if (!response.IsSuccessStatusCode)
@@ -439,7 +439,7 @@ public class CloudAPI
     {
         HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, new Uri(InstanceURL, route));
         message.Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
-        message.Headers.Add("simid", Config.SimID);
+        message.Headers.Add("SimId", Config.SimID);
         message.Headers.Add("Accept", "application/json");
         var response = await client.SendAsync(message);
         if (response.IsSuccessStatusCode)

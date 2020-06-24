@@ -293,7 +293,14 @@ namespace Simulator.Network.Client
                 $"{GetType().Name} could not establish the connection to the master. This client ip addresses: '{localAddressesSb}', master ip addresses: '{masterAddressesSb}'.");
 
             var simulation = Loader.Instance.Network.CurrentSimulation;
-            ConnectionManager.instance.UpdateStatus("Stopping", simulation?.Id);
+            if (simulation != null)
+            {
+                ConnectionManager.instance.UpdateStatus("Stopping", simulation.Id);
+            }
+            else
+            {
+                Debug.Log("Cannot send stopping status without simulation");
+            }
         }
 
         /// <summary>

@@ -237,11 +237,11 @@ public class ConnectionManager : MonoBehaviour
         }
     }
 
-    public async void UpdateStatus(string status, string simGuid)
+    public async void UpdateStatus(string status, string simGuid, string message = "")
     {
         try
         {
-            await API.UpdateStatus(status, simGuid);
+            await API.UpdateStatus(status, simGuid, message);
         }
         catch (Exception ex)
         {
@@ -425,14 +425,14 @@ public class CloudAPI
         }
     }
 
-    public async Task UpdateStatus(string status, string simGuid)
+    public async Task UpdateStatus(string status, string simGuid, string message)
     {
-        var message = new StatusMessage
+        var statusMessage = new StatusMessage
         {
-            message = "",
+            message = message,
             status = status,
         };
-        await PostApi<StatusMessage>($"/api/v1/simulations/{simGuid}/status", message);
+        await PostApi<StatusMessage>($"/api/v1/simulations/{simGuid}/status", statusMessage);
     }
 
     public async Task PostApi<ApiData>(string route, ApiData data)

@@ -807,9 +807,8 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
 
         // ground collision
         groundCheckInfo = new RaycastHit();
-        if (!Physics.Raycast(transform.position + Vector3.up, Vector3.down, out groundCheckInfo, 5f, groundHitBitmask))
+        if (!Physics.Raycast(transform.position + transform.up, -transform.up, out groundCheckInfo, 5f, groundHitBitmask))
         {
-            //Debug.Log($"NPC Despawn: ground raycast failed");
             Despawn();
         }
 

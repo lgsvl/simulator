@@ -106,6 +106,11 @@ namespace Simulator.Web
             DatabaseManager.Init();
 
             ClientSettingsService csservice = new ClientSettingsService();
+            if (string.IsNullOrEmpty(SimID))
+            {
+                SimID = Guid.NewGuid().ToString();
+            }
+
             csservice.SetSimID(SimID);
         }
 

@@ -395,6 +395,7 @@ namespace Simulator.Editor
 
             public IEnumerator RunBuild(string outputFolder)
             {
+                const string loaderScenePath = "Assets/Scenes/LoaderScene.unity";
                 string Thing = BundleConfig.singularOf(bundleType);
                 string Things = BundleConfig.pluralOf(bundleType);
                 string thing = Thing.ToLower();
@@ -422,7 +423,7 @@ namespace Simulator.Editor
                         openScenePaths.Add(scene.path);
                     }
 
-                    EditorSceneManager.OpenScene("Assets/Scenes/LoaderScene.unity", OpenSceneMode.Single);
+                    EditorSceneManager.OpenScene(loaderScenePath, OpenSceneMode.Single);
                 }
 
                 try
@@ -687,10 +688,11 @@ namespace Simulator.Editor
                 finally
                 {
                     // Load back previously opened scenes
-                    EditorSceneManager.OpenScene(activeScenePath, OpenSceneMode.Single);
+                    var mainScenePath = string.IsNullOrEmpty(activeScenePath) ? loaderScenePath : activeScenePath;
+                    EditorSceneManager.OpenScene(mainScenePath, OpenSceneMode.Single);
                     foreach (var scenePath in openScenePaths)
                     {
-                        if (string.Equals(scenePath, activeScenePath))
+                        if (string.Equals(scenePath, activeScenePath) || string.IsNullOrEmpty(scenePath))
                             continue;
 
                         EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);

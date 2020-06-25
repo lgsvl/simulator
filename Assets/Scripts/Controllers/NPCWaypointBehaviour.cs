@@ -217,7 +217,10 @@ public class NPCWaypointBehaviour : NPCBehaviourBase
 
         if (CurrentIndex <= LaneData.Count - 1)
         {
-            ApiManager.Instance?.AddWaypointReached(gameObject, CurrentIndex);
+            //LaneData includes npc position at 0 index, waypoints starts from index 1
+            //Because of that index has to be lowered by 1 before passing to the API
+            if (ApiManager.Instance != null)
+                ApiManager.Instance.AddWaypointReached(gameObject, CurrentIndex-1);
 
             // trigger
             if (LaneTriggerDistance[CurrentIndex] > 0)

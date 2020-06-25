@@ -415,16 +415,16 @@ namespace Simulator.Editor
                         Debug.LogWarning("Cancelling the build.");
                         yield break;
                     }
-
-                    activeScenePath = SceneManager.GetActiveScene().path;
-                    for (int i = 0; i < EditorSceneManager.loadedSceneCount; i++)
-                    {
-                        var scene = SceneManager.GetSceneAt(i);
-                        openScenePaths.Add(scene.path);
-                    }
-
-                    EditorSceneManager.OpenScene(loaderScenePath, OpenSceneMode.Single);
                 }
+
+                activeScenePath = SceneManager.GetActiveScene().path;
+                for (int i = 0; i < EditorSceneManager.loadedSceneCount; i++)
+                {
+                    var scene = SceneManager.GetSceneAt(i);
+                    openScenePaths.Add(scene.path);
+                }
+
+                EditorSceneManager.OpenScene(loaderScenePath, OpenSceneMode.Single);
 
                 try
                 {

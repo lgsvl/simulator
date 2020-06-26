@@ -13,5 +13,6 @@ namespace Simulator.Database.Services
     {
         SimulationData Get(string simid);
         void Add(SimulationData data);
+        void AddOrUpdate(SimulationData data);
     }
 }

@@ -26,6 +26,7 @@ using ICSharpCode.SharpZipLib.Core;
 using Simulator.FMU;
 using Simulator.PointCloud.Trees;
 using System.Threading.Tasks;
+using Simulator.Database.Services;
 
 namespace Simulator
 {
@@ -241,16 +242,19 @@ namespace Simulator
             var downloads = new List<Task>();
             if(simData.ApiOnly == false)
             {
-                downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, simData.Map.AssetGuid));
+                downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, simData.Map.AssetGuid, simData.Map.Name));
 
                 foreach (var vehicle in simData.Vehicles)
                 {
-                    downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicle.AssetGuid));
+                    downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicle.AssetGuid, vehicle.Name));
                 }
             }
 
             ConnectionUI.instance.SetLinkingButtonActive(false);
             await Task.WhenAll(downloads);
+
+            SimulationService simService = new SimulationService();
+            simService.AddOrUpdate(simData);
 
             Debug.Log("All Downloads Complete");
 
@@ -438,12 +442,30 @@ namespace Simulator
                             }
                         }
                     }
-                    catch (Exception ex)
+                    catch (ZipException ex)
                     {
                         Debug.Log($"Failed to start '{simulation.Name}' simulation");
                         Debug.LogException(ex);
 
                         if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
+                        {
+                            Instance.Status = SimulatorStatus.Stopping;
+                            SceneManager.LoadScene(Instance.LoaderScene);
+                            Instance.Status = SimulatorStatus.Idle;
+                        }
+
+                        textureBundle?.Unload(false);
+                        mapBundle?.Unload(false);
+                        AssetBundle.UnloadAllAssetBundles(true);
+                        Instance.CurrentSimulation = null;
+                        Instance.Network.Deinitialize();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Log($"Failed to start '{simulation.Name}' simulation");
+                        Debug.LogException(ex);
+
+                        if (SceneManager.GetActiveScene().name != Instance.LoaderScene && ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline)
                         {
                             Instance.Status = SimulatorStatus.Stopping;
                             SceneManager.LoadScene(Instance.LoaderScene);
@@ -496,7 +518,11 @@ namespace Simulator
                 {
                     try
                     {
-                        Instance.Status = SimulatorStatus.Stopping;
+                        if (ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline)
+                        {
+                            Instance.Status = SimulatorStatus.Stopping;
+                        }
+
                         if (ApiManager.Instance != null)
                         {
                             SceneManager.MoveGameObjectToScene(ApiManager.Instance.gameObject, SceneManager.GetActiveScene());
@@ -659,8 +685,15 @@ namespace Simulator
                     else
                         sim.Init();
 
-                    if (Instance.CurrentSimulation != null)
+                    if (Instance.CurrentSimulation != null && ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline)
+                    {
                         Instance.Status = SimulatorStatus.Running;
+                    }
+
+                    Instance.CurrentSimulation = simulation;
+
+                    // Flash main window to let user know simulation is ready
+                    WindowFlasher.Flash();
                 }
                 catch (ZipException ex)
                 {
@@ -680,7 +713,7 @@ namespace Simulator
 
         public static void ResetLoaderScene(SimulationData simulation)
         {
-            if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
+            if (SceneManager.GetActiveScene().name != Instance.LoaderScene && ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline)
             {
                 Instance.Status = SimulatorStatus.Stopping;
                 SceneManager.LoadScene(Instance.LoaderScene);

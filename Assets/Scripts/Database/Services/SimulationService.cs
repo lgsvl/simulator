@@ -7,6 +7,8 @@
 
 using PetaPoco;
 using Simulator.Web;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Simulator.Database.Services
 {
@@ -16,14 +18,51 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-
+                var sql = Sql.Builder.Where("simid = @0", simid);
+                Simulation sim = db.SingleOrDefault<Simulation>(sql);
+                return Newtonsoft.Json.JsonConvert.DeserializeObject<SimulationData>(sim.simData);
             }
-                return null;
         }
 
         public void Add(SimulationData data)
         {
+            using (var db = DatabaseManager.Open())
+            {
+                db.Insert(data);
+            }
+        }
 
+        public void AddOrUpdate(SimulationData data)
+        {
+            using (var db = DatabaseManager.Open())
+            {
+                var sql = Sql.Builder.Where("simid = @0", data.Id);
+                Simulation sim = db.SingleOrDefault<Simulation>(sql);
+                string json = Newtonsoft.Json.JsonConvert.SerializeObject(data);
+                if (sim != null)
+                {
+                    sim.simData = json;
+                    db.Update(sim);
+                }
+                else
+                {
+                    sim = new Simulation();
+                    sim.simid = data.Id;
+                    sim.simData = json;
+                    db.Insert(sim);
+                }
+            }
+        }
+
+
+        public IEnumerable<SimulationData> List()
+        {
+            using (var db = DatabaseManager.Open())
+            {
+                var sql = Sql.Builder;
+                IEnumerable<Simulation> simulations = db.Query<Simulation>(sql);
+                return simulations.Select(s => Newtonsoft.Json.JsonConvert.DeserializeObject<SimulationData>(s.simData));
+            }
         }
     }
 }

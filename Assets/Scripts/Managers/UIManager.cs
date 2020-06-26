@@ -60,6 +60,10 @@ public class UIManager : MonoBehaviour
     public Button ResetButton;
     public Button DisableAllButton;
     public Button BridgeButton;
+    public Button StopSimButton;
+    public GameObject StopSimPanel;
+    public Button StopSimYesButton;
+    public Button StopSimNoButton;
     public Text PlayText;
     public Text PauseText;
     public Transform InfoContent;
@@ -146,6 +150,7 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
+        StopSimPanel.SetActive(false);
         PauseButton.gameObject.SetActive(false);
         EnvironmentButton.gameObject.SetActive(false);
         MenuHolder.SetActive(false);
@@ -212,7 +217,9 @@ public class UIManager : MonoBehaviour
         BridgeButton.onClick.AddListener(BridgeButtonOnClick);
         AgentDropdown.onValueChanged.AddListener(OnAgentSelected);
         CameraButton.onClick.AddListener(CameraButtonOnClick);
-
+        StopSimButton.onClick.AddListener(StopSimButtonOnClick);
+        StopSimYesButton.onClick.AddListener(StopSimYesButtonOnClick);
+        StopSimNoButton.onClick.AddListener(StopSimNoButtonOnClick);
         SetCameraButtonState();
     }
 
@@ -265,6 +272,10 @@ public class UIManager : MonoBehaviour
         AgentDropdown.onValueChanged.RemoveListener(OnAgentSelected);
         CameraButton.onClick.RemoveListener(CameraButtonOnClick);
         CloseButton.onClick.RemoveListener(CloseButtonOnClick);
+        StopSimButton.onClick.RemoveListener(StopSimButtonOnClick);
+        StopSimYesButton.onClick.RemoveListener(StopSimYesButtonOnClick);
+        StopSimNoButton.onClick.RemoveListener(StopSimNoButtonOnClick);
+
         if (Loader.Instance != null && Loader.Instance.SimConfig != null) // TODO fix for Editor needs SimConfig
         {
             if (Loader.Instance.SimConfig.Interactive)
@@ -551,6 +562,7 @@ public class UIManager : MonoBehaviour
 
     private void SetCurrentPanel()
     {
+        StopSimPanel.SetActive(false);
         InfoPanel.SetActive(InfoPanel.activeInHierarchy ? false : currentPanelType == PanelType.Info);
         ControlsPanel.SetActive(ControlsPanel.activeInHierarchy ? false : currentPanelType == PanelType.Controls);
         EnvironmentPanel.SetActive(EnvironmentPanel.activeInHierarchy ? false : currentPanelType == PanelType.Environment);
@@ -560,6 +572,7 @@ public class UIManager : MonoBehaviour
 
     public void MenuButtonOnClick()
     {
+        StopSimPanel.SetActive(false);
         MenuHolder.SetActive(!MenuHolder.activeInHierarchy);
     }
 
@@ -568,6 +581,23 @@ public class UIManager : MonoBehaviour
         currentPanelType = PanelType.None;
         SetCurrentPanel();
         MenuHolder.SetActive(false);
+        StopSimPanel.SetActive(false);
+    }
+
+    private void StopSimButtonOnClick()
+    {
+        StopSimPanel.SetActive(!StopSimPanel.activeInHierarchy);
+    }
+
+    private void StopSimYesButtonOnClick()
+    {
+        StopSimPanel.SetActive(false);
+        Loader.StopAsync();
+    }
+
+    private void StopSimNoButtonOnClick()
+    {
+        StopSimPanel.SetActive(false);
     }
 
     private void StopButtonOnClick()
@@ -577,6 +607,7 @@ public class UIManager : MonoBehaviour
 
     public void PauseButtonOnClick()
     {
+        StopSimPanel.SetActive(false);
         var interactive = Loader.Instance?.SimConfig?.Interactive;
         if (interactive == null || interactive == false)
         {
@@ -591,6 +622,7 @@ public class UIManager : MonoBehaviour
 
     private void PauseSimulation()
     {
+        StopSimPanel.SetActive(false);
         if (paused)
             return;
         var timeManager = SimulatorManager.Instance.TimeManager;
@@ -601,6 +633,7 @@ public class UIManager : MonoBehaviour
 
     private void ContinueSimulation()
     {
+        StopSimPanel.SetActive(false);
         if (!paused)
             return;
         var timeManager = SimulatorManager.Instance.TimeManager;

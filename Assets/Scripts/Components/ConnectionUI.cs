@@ -7,6 +7,9 @@
 
 using UnityEngine;
 using UnityEngine.UI;
+using Simulator.Database.Services;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace Simulator.Web
 {
@@ -21,6 +24,13 @@ namespace Simulator.Web
         public static ConnectionUI instance;
         public Color offlineColor;
         public Color onlineColor;
+        public Dropdown offlineDropdown;
+        public Button offlineStartButton;
+        public Text offlineModeText;
+
+        SimulationService simulationService = new SimulationService();
+        List<SimulationData> simulationData;
+        int selectedSim;
 
         public void Awake()
         {
@@ -36,6 +46,9 @@ namespace Simulator.Web
             instance = this;
             statusButton.onClick.AddListener(OnStatusButtonClicked);
             linkButton.onClick.AddListener(OnLinkButtonClicked);
+            offlineStartButton.onClick.AddListener(OnOfflineStartButtonClicked);
+            UpdateDropdown();
+            offlineDropdown.onValueChanged.AddListener(OnDropdownValueChanged);
             UpdateStatus();
         }
 
@@ -55,6 +68,9 @@ namespace Simulator.Web
                     statusText.text = $"Connecting to the cloud...";
                     linkButton.gameObject.SetActive(false);
                     statusButtonIcon.color = offlineColor;
+                    offlineDropdown.gameObject.SetActive(false);
+                    offlineStartButton.gameObject.SetActive(false);
+                    offlineModeText.gameObject.SetActive(false);
                     break;
                 case ConnectionManager.ConnectionStatus.Connected:
                     statusText.text = "";
@@ -63,13 +79,20 @@ namespace Simulator.Web
                     linkButtonText.text = "LINK TO CLOUD";
                     linkButton.gameObject.SetActive(true);
                     statusButton.interactable = true;
+                    offlineDropdown.gameObject.SetActive(false);
+                    offlineStartButton.gameObject.SetActive(false);
+                    offlineModeText.gameObject.SetActive(false);
                     break;
                 case ConnectionManager.ConnectionStatus.Offline:
                     statusButtonText.text = "Offline";
-                    statusText.text = "Go online to start using simulator.";
+                    statusText.text = "Go online to start using simulator or download a simulation to run in Offline Mode.";
                     statusButtonIcon.color = offlineColor;
                     linkButton.gameObject.SetActive(false);
                     statusButton.interactable = true;
+                    offlineDropdown.gameObject.SetActive(true);
+                    offlineStartButton.gameObject.SetActive(true);
+                    offlineModeText.gameObject.SetActive(true);
+                    UpdateDropdown();
                     break;
                 case ConnectionManager.ConnectionStatus.Online:
                     statusButtonText.text = "Online";
@@ -78,8 +101,36 @@ namespace Simulator.Web
                     linkButtonText.text = "OPEN BROWSER";
                     linkButton.gameObject.SetActive(true);
                     statusButton.interactable = true;
+                    offlineDropdown.gameObject.SetActive(false);
+                    offlineStartButton.gameObject.SetActive(false);
+                    offlineModeText.gameObject.SetActive(false);
                     break;
             }
+        }
+
+        public void UpdateDropdown()
+        {
+            simulationData = simulationService.List().ToList();
+            offlineDropdown.ClearOptions();
+            offlineDropdown.AddOptions(simulationData.Select(s => s.Name).ToList());
+            offlineDropdown.value = 0;
+            selectedSim = 0;
+            if(simulationData.Count == 0)
+            {
+                offlineDropdown.gameObject.SetActive(false);
+                offlineModeText.gameObject.SetActive(false);
+                offlineStartButton.gameObject.SetActive(false);
+            }
+        }
+
+        public void OnDropdownValueChanged(int value)
+        {
+            selectedSim = value;
+        }
+
+        public void OnOfflineStartButtonClicked()
+        {
+            Loader.StartSimulation(simulationData[selectedSim]);
         }
 
         public void SetLinkingButtonActive(bool active)

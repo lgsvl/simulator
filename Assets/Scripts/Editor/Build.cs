@@ -771,10 +771,10 @@ namespace Simulator.Editor
 
             if (GUILayout.Button("Build"))
             {
-                void OnCompltete()
+                void OnComplete()
                 {
                     Running = false;
-                    Application.OpenURL(Web.Config.CloudUrl);
+                    BuildCompletePopup.Init();
                 }
 
                 Running = true;
@@ -794,12 +794,12 @@ namespace Simulator.Editor
                     }
 
                     CoroutineRunning = true;
-                    EditorCoroutineUtility.StartCoroutineOwnerless(BuildBundles(assetBundlesLocation, OnCompltete));
+                    EditorCoroutineUtility.StartCoroutineOwnerless(BuildBundles(assetBundlesLocation, OnComplete));
                 }
                 finally
                 {
                     if (!CoroutineRunning)
-                        OnCompltete();
+                        OnComplete();
                 }
             }
         }
@@ -1217,6 +1217,32 @@ namespace Simulator.Editor
             else if (Directory.Exists(path)) 
             {
                 Directory.Delete(path);
+            }
+        }
+    }
+
+    public class BuildCompletePopup : EditorWindow
+    {
+        public static void Init()
+        {
+            BuildCompletePopup window = ScriptableObject.CreateInstance<BuildCompletePopup>();
+            window.position = new Rect(Screen.width / 2, Screen.height / 2, 250, 150);
+            window.ShowPopup();
+        }
+
+        void OnGUI()
+        {
+            EditorGUILayout.LabelField($"Would you like to go to {Web.Config.CloudUrl} to upload built asset?", EditorStyles.wordWrappedLabel);
+            GUILayout.Space(30);
+            if (GUILayout.Button("Yes"))
+            {
+                Application.OpenURL(Web.Config.CloudUrl);
+                this.Close();
+            }
+            GUILayout.Space(10);
+            if (GUILayout.Button("No"))
+            {
+                this.Close();
             }
         }
     }

@@ -116,6 +116,7 @@ namespace Simulator.Web
                     {
                         AssetGuid = assetGuid,
                         Type = typeString,
+                        Name = name,
                         LocalPath = localPath
                     };
                     assetService.Add(model);

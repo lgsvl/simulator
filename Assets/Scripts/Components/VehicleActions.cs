@@ -8,6 +8,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using Simulator;
 using Simulator.Network.Core;
@@ -15,6 +16,7 @@ using Simulator.Network.Core.Connection;
 using Simulator.Network.Core.Messaging;
 using Simulator.Network.Core.Messaging.Data;
 using UnityEngine;
+using UnityEngine.VFX;
 
 public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
 {
@@ -22,6 +24,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
     public Texture highCookie;
 
     private AgentController agentController;
+    private Rigidbody RB;
 
     [HideInInspector]
     public Bounds Bounds;
@@ -42,6 +45,16 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
     private List<Light> indicatorReverseLights = new List<Light>();
     private List<Light> fogLights = new List<Light>();
     private List<Light> interiorLights = new List<Light>();
+
+    public struct TireSprayData
+    {
+        public WheelCollider wheelCollider;
+        public VisualEffect visualEffect;
+    };
+    private List<TireSprayData> TireSprayDatas = new List<TireSprayData>();
+    private WheelHit WheelColliderHit;
+    private Quaternion WheelColliderRot;
+    private EnvironmentEffectsManager EnviroManager;
 
     //Network
     private MessagesManager messagesManager;
@@ -281,6 +294,49 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
     {
         messagesManager = Loader.Instance.Network.MessagesManager;
         messagesManager?.RegisterObject(this);
+        RB = GetComponent<Rigidbody>();
+        EnviroManager = SimulatorManager.Instance.EnvironmentEffectsManager;
+    }
+
+    private void Update()
+    {
+        foreach (var item in TireSprayDatas)
+        {
+            if (item.wheelCollider.GetGroundHit(out WheelColliderHit))
+            {
+                item.visualEffect.transform.position = WheelColliderHit.point;
+                item.wheelCollider.GetWorldPose(out var pos, out WheelColliderRot);
+                item.visualEffect.transform.rotation = WheelColliderRot;
+                if (EnviroManager != null)
+                {
+                    if (RB != null)
+                    {
+                        var localVel = transform.InverseTransformDirection(RB.velocity);
+                        var lerp = 0f;
+
+                        if (EnviroManager.Wet <= 0.25)
+                        {
+                            item.visualEffect.SetFloat("_SpawnRate", 0);
+                        }
+                        else if (EnviroManager.Wet > 0.25 && EnviroManager.Wet <= 0.5)
+                        {
+                            lerp = localVel.z > 0 ? Mathf.InverseLerp(0, 100, localVel.z) : 0f;
+                            item.visualEffect.SetFloat("_SpawnRate", lerp);
+                        }
+                        else if (EnviroManager.Wet > 0.5 && EnviroManager.Wet <= 0.75)
+                        {
+                            lerp = localVel.z > 0 ? Mathf.InverseLerp(0, 75, localVel.z) : 0f;
+                            item.visualEffect.SetFloat("_SpawnRate", lerp);
+                        }
+                        else if (EnviroManager.Wet > 0.75 && EnviroManager.Wet <= 1)
+                        {
+                            lerp = localVel.z > 0 ? Mathf.InverseLerp(0, 25, localVel.z) : 0f;
+                            item.visualEffect.SetFloat("_SpawnRate", lerp);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void OnDestroy()
@@ -291,6 +347,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
 
     private void SetNeededComponents()
     {
+        var dynamics = GetComponent<VehicleSMI>();
         agentController = GetComponent<AgentController>();
         var allRenderers = GetComponentsInChildren<Renderer>(true);
         var animators = GetComponentsInChildren<Animator>(true); // TODO wipers doors windows
@@ -385,6 +442,17 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         indicatorReverseLights?.ForEach(x => x.enabled = false);
         fogLights?.ForEach(x => x.enabled = false);
         interiorLights?.ForEach(x => x.enabled = false);
+
+        //get wheel colliders
+        var wheelColliders = transform.GetComponentsInChildren<WheelCollider>().ToList();
+        foreach (var col in wheelColliders)
+        {
+            var effect = Instantiate(SimulatorManager.Instance.EnvironmentEffectsManager.TireSprayPrefab,
+                                     col.transform.position + new Vector3(0f, -col.radius, 0f),
+                                     Quaternion.identity).GetComponent<VisualEffect>();
+            effect.transform.SetParent(transform);
+            TireSprayDatas.Add(new TireSprayData { wheelCollider = col, visualEffect = effect });
+        }
     }
 
     private void CreateCinematicTransforms()

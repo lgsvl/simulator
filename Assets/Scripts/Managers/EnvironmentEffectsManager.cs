@@ -53,6 +53,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
     public GameObject SunGO;
     public ParticleSystem RainPfx;
     public GameObject CloudPrefab;
+    public GameObject TireSprayPrefab;
 
     // Sun
     private Light Sun;

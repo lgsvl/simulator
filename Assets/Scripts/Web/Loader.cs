@@ -488,6 +488,9 @@ namespace Simulator
             var go = FindObjectsOfType<Renderer>();
             foreach (var renderer in go)
             {
+                if (string.Equals(renderer.GetType().Name, "VFXRenderer"))
+                    continue;
+
                 foreach (var m in renderer.sharedMaterials)
                 {
                     m.shader = Shader.Find(m.shader.name);

@@ -49,10 +49,12 @@ MonoBehaviour:
   CurrentTimeOfDayCycle: 0
   SunGO: {fileID: 5489468262300979065, guid: b06b1e4ae1fc6af418eb69d11ed9c664, type: 3}
   RainPfx: {fileID: 8043753324636774091, guid: a83827b2838f9b8439f8cc0622795953, type: 3}
+  CloudPrefab: {fileID: 7254588568927184557, guid: 043a03688fcd3a54a848a197092491db,
+    type: 3}
+  TireSprayPrefab: {fileID: 1588866602428135717, guid: 6ed2208efe1e41948899971498878610,
+    type: 3}
   Rain: 0
   Fog: 0
   Cloud: 0
-  CloudPrefab: {fileID: 7254588568927184557, guid: 043a03688fcd3a54a848a197092491db,
-    type: 3}
   Wet: 0
   Damage: 0

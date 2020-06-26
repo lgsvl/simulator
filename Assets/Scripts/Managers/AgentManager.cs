@@ -126,6 +126,9 @@ public class AgentManager : MonoBehaviour
         // TODO remove hack for editor opaque with alpha clipping 2019.3.3
         Array.ForEach(go.GetComponentsInChildren<Renderer>(), renderer =>
         {
+            if (string.Equals(renderer.GetType().Name, "VFXRenderer"))
+                return;
+
             foreach (var m in renderer.materials)
             {
                 m.shader = Shader.Find(m.shader.name);

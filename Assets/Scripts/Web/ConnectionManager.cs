@@ -87,15 +87,17 @@ public class ConnectionManager : MonoBehaviour
             {
                 try
                 {
-                    var stream = await API.Connect(simInfo);
-                    await ReadResponse(stream);
+                    var reader = await API.Connect(simInfo);
+                    await ReadResponse(reader);
                     break;
                 }
-                catch(CloudAPI.NoSuccessException)
+                catch(CloudAPI.NoSuccessException ex)
                 {
+                    Debug.Log(ex.Message+", reconnecting after "+timeOut+" seconds");
                     await Task.Delay(1000 * timeOut);
                 }
             }
+            Debug.Log("Giving up connecting.");
         }
         catch (TaskCanceledException)
         {
@@ -109,21 +111,19 @@ public class ConnectionManager : MonoBehaviour
         }
     }
 
-    async Task ReadResponse(Stream stream)
+    async Task ReadResponse(StreamReader reader)
     {
-        await Task.Run(() =>
+
+        await Task.Run(async () =>
         {
-            if (stream != null)
+            while (!reader.EndOfStream)
             {
-                using (var reader = new StreamReader(stream))
-                {
-                    while (!reader.EndOfStream)
-                    {
-                        //We are ready to read the stream
-                        Parse(reader.ReadLine());
-                    }
-                }
+                //We are ready to read the stream
+                var line = await reader.ReadLineAsync();
+                Parse(line);
             }
+            Debug.Log("WISE connection closed");
+            reader.Dispose();
         });
     }
 
@@ -138,13 +138,9 @@ public class ConnectionManager : MonoBehaviour
                 ConnectionUI.instance?.UpdateStatus();
             });
         }
-        catch(ObjectDisposedException ex)
-        {
-
-        }
         catch (Exception ex)
         {
-            Debug.LogError(ex);
+            Debug.LogException(ex);
         }
     }
 
@@ -245,7 +241,7 @@ public class ConnectionManager : MonoBehaviour
         }
         catch (Exception ex)
         {
-            Debug.LogError(ex);
+            Debug.LogException(ex);
         }
     }
 
@@ -322,6 +318,7 @@ public class CloudAPI
 
     CancellationTokenSource requestTokenSource = new CancellationTokenSource();
     private const uint fetchLimit = 50;
+    StreamReader onlineStream;
 
     public CloudAPI(Uri instanceURL, string simId)
     {
@@ -334,28 +331,29 @@ public class CloudAPI
         public NoSuccessException(string status) :base(status) { }
     }
 
-    public async Task<Stream> Connect(SimulatorInfo simInfo)
+    public async Task<StreamReader> Connect(SimulatorInfo simInfo)
     {
-        try
-        {
-            var json = Newtonsoft.Json.JsonConvert.SerializeObject(simInfo);
-            HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, new Uri(InstanceURL, "/api/v1/clusters/connect"));
-            message.Content = new StringContent(json, Encoding.UTF8, "application/json");
-            message.Headers.Add("SimId", Config.SimID);
-            message.Headers.Add("Accept", "application/json");
-            message.Headers.Add("Connection", "Keep-Alive");
-            message.Headers.Add("X-Accel-Buffering", "no");
-            var response = await client.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, requestTokenSource.Token).ConfigureAwait(false);
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new NoSuccessException(response.StatusCode.ToString());
-            }
-            return await response.Content.ReadAsStreamAsync();
+        if(onlineStream != null) {
+            onlineStream.Close();
+            onlineStream.Dispose();
+            onlineStream = null;
         }
-        catch (Exception ex)
+
+        var json = Newtonsoft.Json.JsonConvert.SerializeObject(simInfo);
+        HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, new Uri(InstanceURL, "/api/v1/clusters/connect"));
+        message.Content = new StringContent(json, Encoding.UTF8, "application/json");
+        message.Headers.Add("SimId", Config.SimID);
+        message.Headers.Add("Accept", "application/json");
+        message.Headers.Add("Connection", "Keep-Alive");
+        message.Headers.Add("X-Accel-Buffering", "no");
+        var response = await client.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, requestTokenSource.Token).ConfigureAwait(false);
+        if (!response.IsSuccessStatusCode)
         {
-            return await Task.FromResult<Stream>(null);
+            var content = await response.Content.ReadAsStringAsync();
+            throw new NoSuccessException(response.StatusCode.ToString() + " " + content);
         }
+        onlineStream = new StreamReader(await response.Content.ReadAsStreamAsync());
+        return onlineStream;
     }
 
     public Task<DetailData> Get<DetailData>(string cloudId) where DetailData: CloudAssetDetails
@@ -450,6 +448,8 @@ public class CloudAPI
 
     public void Disconnect()
     {
+        onlineStream?.Close();
+        onlineStream = null;
         requestTokenSource?.Cancel();
         requestTokenSource?.Dispose();
         requestTokenSource = new CancellationTokenSource();

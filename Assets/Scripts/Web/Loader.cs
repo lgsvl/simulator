@@ -45,6 +45,24 @@ namespace Simulator
         public string Sensors;
         public Vector3 Position;
         public Quaternion Rotation;
+        public AgentConfig(){}
+        public AgentConfig(VehicleData vehicleData)
+        {
+            Name = vehicleData.Name;
+            Connection = vehicleData.bridge != null ? vehicleData.bridge.connectionString : "";
+            AssetGuid = vehicleData.AssetGuid;
+            AssetBundle = Web.WebUtilities.GenerateLocalPath(vehicleData.AssetGuid, BundleConfig.BundleTypes.Vehicle);
+            Sensors = Newtonsoft.Json.JsonConvert.SerializeObject(vehicleData.Sensors);
+
+            if (vehicleData.bridge != null && !string.IsNullOrEmpty(vehicleData.bridge.type))
+            {
+                Bridge = BridgePlugins.Get(vehicleData.bridge.type);
+                if (Bridge == null)
+                {
+                    throw new Exception($"Bridge {vehicleData.bridge.type} not found");
+                }
+            }
+        }
     }
 
     public class SimulationConfig
@@ -67,6 +85,32 @@ namespace Simulator
         public bool UseTraffic;
         public bool UsePedestrians;
         public int? Seed;
+        public SimulationConfig(SimulationData simulation)
+        {
+            Name = simulation.Name;
+            Clusters = simulation.Cluster.Instances.Length > 1 ? simulation.Cluster.Instances.SelectMany(i => i.Ip).ToArray() : new string[] { };
+            ClusterName = simulation.Cluster.Name;
+            ApiOnly = simulation.ApiOnly;
+            Headless = simulation.Headless;
+            Interactive = simulation.Interactive;
+            TimeOfDay = simulation.TimeOfDay;
+            Rain = simulation.Rain;
+            Fog = simulation.Fog;
+            Wetness = simulation.Wetness;
+            Cloudiness = simulation.Cloudiness;
+            Damage = simulation.Damage;
+            UseTraffic = simulation.UseTraffic;
+            UsePedestrians = simulation.UsePedestrians;
+            Seed = simulation.Seed;
+            if (simulation.Vehicles == null || simulation.Vehicles.Length == 0 || simulation.ApiOnly)
+            {
+                Agents = Array.Empty<AgentConfig>();
+            }
+            else
+            {
+                Agents = simulation.Vehicles.Select(v => new AgentConfig(v)).ToArray();
+            }
+        }
     }
 
     public enum SimulatorStatus
@@ -281,58 +325,9 @@ namespace Simulator
                         {
                             throw new Exception("Simulator is configured to run in headless mode, only headless simulations are allowed");
                         }
-                        
+
                         Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.PROGRESS);
-                        Instance.SimConfig = new SimulationConfig()
-                        {
-                            Name = simulation.Name,
-                            Clusters = simulation.Cluster.Instances.Length > 1 ? simulation.Cluster.Instances.SelectMany(i => i.Ip).ToArray() : new string[] { },
-                            ClusterName = simulation.Cluster.Name,
-                            ApiOnly = simulation.ApiOnly,
-                            Headless = simulation.Headless,
-                            Interactive = simulation.Interactive,
-                            TimeOfDay = simulation.TimeOfDay,
-                            Rain = simulation.Rain,
-                            Fog = simulation.Fog,
-                            Wetness = simulation.Wetness,
-                            Cloudiness = simulation.Cloudiness,
-                            Damage = simulation.Damage,
-                            UseTraffic = simulation.UseTraffic,
-                            UsePedestrians = simulation.UsePedestrians,
-                            Seed = simulation.Seed,
-                        };
-
-                        if (simulation.Vehicles == null || simulation.Vehicles.Length == 0 || simulation.ApiOnly)
-                        {
-                            Instance.SimConfig.Agents = Array.Empty<AgentConfig>();
-                        }
-                        else
-                        {
-                            Instance.SimConfig.Agents = simulation.Vehicles.Select(v =>
-                            {
-                                var config = new AgentConfig()
-                                {
-                                    Name = v.Name,
-                                    Connection = v.bridge != null ? v.bridge.connectionString : "",
-                                    AssetGuid = v.AssetGuid,
-                                    AssetBundle = Web.WebUtilities.GenerateLocalPath(v.AssetGuid, BundleConfig.BundleTypes.Vehicle),
-                                    Sensors = Newtonsoft.Json.JsonConvert.SerializeObject(v.Sensors),
-                                };
-
-                                if (v.bridge != null && !string.IsNullOrEmpty(v.bridge.type))
-                                {
-                                    var plugin = BridgePlugins.Get(v.bridge.type);
-                                    if (plugin == null)
-                                    {
-                                        throw new Exception($"Bridge {v.bridge.type} not found");
-                                    }
-                                    config.Bridge = plugin;
-                                }
-
-                                return config;
-
-                            }).ToArray();
-                        }
+                        Instance.SimConfig = new SimulationConfig(simulation);
 
                         // load environment
                         if (Instance.SimConfig.ApiOnly)

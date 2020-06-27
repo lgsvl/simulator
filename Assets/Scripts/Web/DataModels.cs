@@ -84,6 +84,20 @@ namespace Simulator.Web
         public BridgeData bridge { get; set; }
         public string fmu { get; set; }
         public string BridgePluginId { get; set; }
+        public VehicleData ToVehicleData()
+        {
+            var ret = new VehicleData();
+            return new VehicleData {
+                Id = Id,
+                Name = Name,
+                CreatedAt = CreatedAt,
+                UpdatedAt = UpdatedAt,
+                OwnerId = OwnerId,
+                AssetGuid = AssetGuid,
+                bridge = bridge,
+                Sensors = Sensors,
+            };
+        }
     }
 
     [CloudData(ApiPath = "api/v1/plugins")]

@@ -4,6 +4,7 @@
  * This software contains code licensed as described in LICENSE.
  *
  */
+
 using Newtonsoft.Json.Linq;
 using Simulator;
 using Simulator.Database;
@@ -75,7 +76,7 @@ public class ConnectionManager : MonoBehaviour
     {
         try
         {
-            simInfo = GetInfo();
+            simInfo = CloudAPI.GetInfo();
             Status = ConnectionStatus.Connecting;
             RunOnUnityThread(() =>
             {
@@ -146,8 +147,9 @@ public class ConnectionManager : MonoBehaviour
 
     void Parse(string s)
     {
-        //Debug.Log(s);
-        if (string.IsNullOrEmpty(s)) return;
+        if (string.IsNullOrEmpty(s))
+            return;
+
         try
         {
             if (s.StartsWith("data:") && !string.IsNullOrEmpty(s.Substring(6)))
@@ -155,7 +157,8 @@ public class ConnectionManager : MonoBehaviour
                 JObject deserialized = JObject.Parse(s.Substring(5));
                 if (deserialized != null && deserialized.HasValues)
                 {
-                    if (deserialized.GetValue("status") != null) {
+                    if (deserialized.GetValue("status") != null)
+                    {
                         switch (deserialized.GetValue("status").ToString())
                         {
                             case "Unrecognized":
@@ -253,7 +256,9 @@ public class ConnectionManager : MonoBehaviour
             lock (runInUpdate)
             {
                 if (runInUpdate.Count > 0)
+                {
                     action = runInUpdate.Dequeue();
+                }
             }
             action?.Invoke();
         }
@@ -262,32 +267,6 @@ public class ConnectionManager : MonoBehaviour
     async void RunConnectTask()
     {
         await Connect();
-    }
-
-    public SimulatorInfo GetInfo()
-    {
-        List<string> ips = new List<string>();
-        var os = Environment.OSVersion;
-        NetworkInterface[] intf = NetworkInterface.GetAllNetworkInterfaces();
-        foreach (NetworkInterface device in intf)
-        {
-            foreach (UnicastIPAddressInformation info in device.GetIPProperties().UnicastAddresses)
-            {
-                string address = info.Address.ToString();
-                if (address.Contains(":")) continue;
-                if (address.StartsWith("127.")) continue;
-                ips.Add(address);
-            }
-        }
-        return new SimulatorInfo()
-        {
-            linkToken = Guid.NewGuid().ToString(),
-            hostName = Environment.MachineName,
-            platform = os.ToString(),
-            version = "2020.05",
-            ip = ips,
-            macAddress = "00:00:00:00:00:00"
-        };
     }
 
     public void ConnectionStatusEvent()
@@ -333,7 +312,8 @@ public class CloudAPI
 
     public async Task<StreamReader> Connect(SimulatorInfo simInfo)
     {
-        if(onlineStream != null) {
+        if (onlineStream != null)
+        {
             onlineStream.Close();
             onlineStream.Dispose();
             onlineStream = null;
@@ -378,8 +358,7 @@ public class CloudAPI
     public async Task<DetailData> GetByIdOrName<DetailData>(string cloudIdOrName) where DetailData: CloudAssetDetails
     {
         var meta = (CloudData) Attribute.GetCustomAttribute(typeof(DetailData), typeof (CloudData));
-        Guid guid;
-        if (!Guid.TryParse(cloudIdOrName, out guid))
+        if (!Guid.TryParse(cloudIdOrName, out Guid guid))
         {
             var library = await GetLibrary<DetailData>();
 
@@ -416,10 +395,12 @@ public class CloudAPI
             throw new NoSuccessException(response.StatusCode.ToString());
         }
         using (var stream = await response.Content.ReadAsStreamAsync())
-        using (var reader = new StreamReader(stream))
         {
-            var jsonString = await reader.ReadToEndAsync();
-            return Newtonsoft.Json.JsonConvert.DeserializeObject<ApiModelType>(jsonString);
+            using (var reader = new StreamReader(stream))
+            {
+                var jsonString = await reader.ReadToEndAsync();
+                return Newtonsoft.Json.JsonConvert.DeserializeObject<ApiModelType>(jsonString);
+            }
         }
     }
 
@@ -456,6 +437,32 @@ public class CloudAPI
         client?.CancelPendingRequests();
         client?.Dispose();
         client = new HttpClient();
+    }
+
+    public static SimulatorInfo GetInfo()
+    {
+        List<string> ips = new List<string>();
+        var os = Environment.OSVersion;
+        NetworkInterface[] intf = NetworkInterface.GetAllNetworkInterfaces();
+        foreach (NetworkInterface device in intf)
+        {
+            foreach (UnicastIPAddressInformation info in device.GetIPProperties().UnicastAddresses)
+            {
+                string address = info.Address.ToString();
+                if (address.Contains(":")) continue;
+                if (address.StartsWith("127.")) continue;
+                ips.Add(address);
+            }
+        }
+        return new SimulatorInfo()
+        {
+            linkToken = Guid.NewGuid().ToString(),
+            hostName = Environment.MachineName,
+            platform = os.ToString(),
+            version = "2020.05",
+            ip = ips,
+            macAddress = "00:00:00:00:00:00"
+        };
     }
 }
 

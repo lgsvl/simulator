@@ -48,7 +48,6 @@ namespace Simulator.Web
 
         public static List<SensorBase> SensorPrefabs;
         public static List<SensorConfig> Sensors;
-        public static List<IBridgeFactory> Bridges;
 
         public static Dictionary<string, IControllable> Controllables = new Dictionary<string, IControllable>();
         public static Dictionary<string, Type> NPCBehaviours = new Dictionary<string, Type>();
@@ -93,8 +92,7 @@ namespace Simulator.Web
             LoadBuiltinAssets();
             LoadExternalAssets();
             Sensors = SensorTypes.ListSensorFields(SensorPrefabs);
-            Bridges = BridgeTypes.GetBridgeTypes();
-            Bridges.Sort((a, b) => string.Compare(a.Name, b.Name));
+            BridgePlugins.Load();
 
             ParseConfigFile();
 
@@ -205,7 +203,8 @@ namespace Simulator.Web
                 });
             }
 
-            var behaviours = new[]{
+            var behaviours = new []
+            {
                 typeof(NPCLaneFollowBehaviour),
                 typeof(NPCWaypointBehaviour),
                 typeof(NPCManualBehaviour),
@@ -234,12 +233,14 @@ namespace Simulator.Web
 
             var dir = Path.Combine(Application.dataPath, "..", "AssetBundles");
             var vfs = VfsEntry.makeRoot(dir);
+
             // descend into each known dir looking for only specific asset types. todo: add asset type to manifest?
             CheckDir(vfs.GetChild(BundleConfig.pluralOf(BundleConfig.BundleTypes.Controllable)), LoadControllablePlugin);
+            CheckDir(vfs.GetChild(BundleConfig.pluralOf(BundleConfig.BundleTypes.Bridge)), LoadBridgePlugin); // NOTE: bridges must be loaded before sensor plugins
             CheckDir(vfs.GetChild(BundleConfig.pluralOf(BundleConfig.BundleTypes.Sensor)), LoadSensorPlugin);
             CheckDir(vfs.GetChild(BundleConfig.pluralOf(BundleConfig.BundleTypes.NPC)), LoadNPCAsset);
 
-            Debug.Log($"loaded {NPCBehaviours.Count} NPCs behaviours and {NPCVehicles.Count} NPC models in {sw.Elapsed}");
+            Debug.Log($"Loaded {NPCBehaviours.Count} NPCs behaviours and {NPCVehicles.Count} NPC models in {sw.Elapsed}");
         }
 
         private static Assembly LoadAssembly(VfsEntry dir, string name)
@@ -254,25 +255,41 @@ namespace Simulator.Web
             return Assembly.Load(buffer);
         }
 
+        public static void LoadBridgePlugin(Manifest manifest, VfsEntry dir)
+        {
+            if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Bridge])
+            {
+                throw new Exception($"Manifest version mismatch, expected {BundleConfig.Versions[BundleConfig.BundleTypes.Bridge]}, got {manifest.assetFormat}");
+            }
+
+            var pluginSource = LoadAssembly(dir, $"{manifest.assetName}.dll");
+            foreach (Type ty in pluginSource.GetTypes())
+            {
+                if (typeof(ISensorBridgePlugin).IsAssignableFrom(ty))
+                {
+                    var bridgeFactory = Activator.CreateInstance(ty) as IBridgeFactory;
+                    BridgePlugins.Add(bridgeFactory);
+                }
+            }
+        }
+
         public static void LoadSensorPlugin(Manifest manifest, VfsEntry dir) 
         {
             if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Sensor])
             {
-                throw new Exception($"manifest version mismatch, expected {BundleConfig.Versions[BundleConfig.BundleTypes.Sensor]}, got {manifest.assetFormat}");
+                throw new Exception($"Manifest version mismatch, expected {BundleConfig.Versions[BundleConfig.BundleTypes.Sensor]}, got {manifest.assetFormat}");
             }
 
             Assembly pluginSource = LoadAssembly(dir, $"{manifest.assetName}.dll");
 
             foreach (Type ty in pluginSource.GetTypes())
             {
-                Type interfaceType = ty.GetInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IDataConverter<>));
-                if (interfaceType != null)
+                if (typeof(ISensorBridgePlugin).IsAssignableFrom(ty))
                 {
-                    Type converterType = interfaceType.GetGenericArguments()[0];
-                    if (!BridgeConfig.bridgeConverters.ContainsKey(converterType))
+                    var sensorBridgePlugin = Activator.CreateInstance(ty) as ISensorBridgePlugin;
+                    foreach (var kv in BridgePlugins.All)
                     {
-                        var instance = Activator.CreateInstance(ty);
-                        BridgeConfig.bridgeConverters.Add(converterType, instance as IDataConverter);
+                        sensorBridgePlugin.Register(kv.Value);
                     }
                 }
             }

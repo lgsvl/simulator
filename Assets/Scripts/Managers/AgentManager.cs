@@ -27,6 +27,7 @@ using Simulator.Network.Core.Messaging;
 using Simulator.FMU;
 using Simulator.Network.Shared;
 using UnityEngine.Rendering.HighDefinition;
+using Simulator.Bridge;
 
 public class AgentManager : MonoBehaviour
 {
@@ -79,12 +80,7 @@ public class AgentManager : MonoBehaviour
 
             if (config.Connection != null)
             {
-                var split = config.Connection.Split(':');
-                if (split.Length != 2)
-                {
-                    throw new Exception("Incorrect bridge connection string, expected HOSTNAME:PORT");
-                }
-                bridgeClient.Connect(split[0], int.Parse(split[1]));
+                bridgeClient.Connect(config.Connection);
             }
         }
         SIM.LogSimulation(SIM.Simulation.BridgeTypeStart, config.Bridge != null ? config.Bridge.Name : "None");
@@ -179,8 +175,8 @@ public class AgentManager : MonoBehaviour
             var config = ActiveAgents[0];
 
             var bridgeClient = config.AgentGO.AddComponent<BridgeClient>();
-            bridgeClient.Init(new Simulator.Bridge.Ros.RosApolloBridgeFactory());
-            bridgeClient.Connect("localhost", 9090);
+            bridgeClient.Init(BridgePlugins.Get(BridgePlugins.GetNameFromFactory(typeof(Simulator.Bridge.Ros.RosApolloBridgeFactory))));
+            bridgeClient.Connect("localhost:9090");
 
             var sensorsController = config.AgentGO.GetComponent<SensorsController>();
             if (sensorsController == null)

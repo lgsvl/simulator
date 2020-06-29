@@ -24,8 +24,8 @@ namespace Simulator.Sensors
         uint SendSequence;
         float NextSend;
 
-        IBridge Bridge;
-        IWriter<VehicleOdometryData> Writer;
+        BridgeInstance Bridge;
+        Publisher<VehicleOdometryData> Publish;
 
         Rigidbody RigidBody;
         IVehicleDynamics Dynamics;
@@ -41,10 +41,10 @@ namespace Simulator.Sensors
             Dynamics = GetComponentInParent<IVehicleDynamics>();
         }
 
-        public override void OnBridgeSetup(IBridge bridge)
+        public override void OnBridgeSetup(BridgeInstance bridge)
         {
             Bridge = bridge;
-            Writer = bridge.AddWriter<VehicleOdometryData>(Topic);
+            Publish = bridge.AddPublisher<VehicleOdometryData>(Topic);
         }
 
         public void Start()
@@ -72,7 +72,7 @@ namespace Simulator.Sensors
 
             if (Bridge != null && Bridge.Status == Status.Connected)
             {
-                Writer.Write(msg, null);
+                Publish(msg);
             }
 
         }

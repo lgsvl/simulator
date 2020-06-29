@@ -25,6 +25,7 @@ namespace Simulator
         public string copyright;
         public Dictionary<string, object> attachments;
         public Dictionary<string, Param> sensorParams;
+        public string[] bridgeDataTypes;
     }
 
     public struct Images

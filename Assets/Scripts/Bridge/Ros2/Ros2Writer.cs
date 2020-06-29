@@ -6,58 +6,97 @@
  */
 
 using System;
+using System.Diagnostics;
+using System.Text;
 using Simulator.Bridge.Data;
 
 namespace Simulator.Bridge.Ros2
 {
-    class PointCloudWriter : IWriter<PointCloudData>
+    public class Ros2Writer<BridgeType>
     {
-        Writer<PointCloud2> OriginalWriter;
+        Ros2BridgeInstance Instance;
+        byte[] Topic;
+
+        public Ros2Writer(Ros2BridgeInstance instance, string topic)
+        {
+            Instance = instance;
+            Topic = Encoding.ASCII.GetBytes(topic);
+        }
+
+        public void Write(BridgeType message, Action completed)
+        {
+            int topicLength = Topic.Length;
+            int messageLength = Ros2Serialization.GetLength(message);
+
+            var bytes = new byte[1 + 4 + topicLength + 4 + messageLength];
+            bytes[0] = (byte)BridgeOp.Publish;
+
+            bytes[1] = (byte)(topicLength >> 0);
+            bytes[2] = (byte)(topicLength >> 8);
+            bytes[3] = (byte)(topicLength >> 16);
+            bytes[4] = (byte)(topicLength >> 24);
+            Buffer.BlockCopy(Topic, 0, bytes, 5, topicLength);
+
+            bytes[5 + topicLength] = (byte)(messageLength >> 0);
+            bytes[6 + topicLength] = (byte)(messageLength >> 8);
+            bytes[7 + topicLength] = (byte)(messageLength >> 16);
+            bytes[8 + topicLength] = (byte)(messageLength >> 24);
+            int written = Ros2Serialization.Serialize(message, bytes, 9 + topicLength);
+
+            Debug.Assert(written == messageLength, "Something is terribly wrong if this is not true");
+
+            Instance.SendAsync(bytes, completed);
+        }
+    }
+
+    class Ros2PointCloudWriter
+    {
+        Ros2Writer<Ros.PointCloud2> Writer;
 
         byte[] Buffer;
 
-        static PointField[] PointFields = new[]
+        static readonly Ros.PointField[] PointFields = new[]
         {
-            new PointField()
+            new Ros.PointField()
             {
                 name = "x",
                 offset = 0,
-                datatype = PointField.FLOAT32,
+                datatype = Ros.PointField.FLOAT32,
                 count = 1,
             },
-            new PointField()
+            new Ros.PointField()
             {
                 name = "y",
                 offset = 4,
-                datatype = PointField.FLOAT32,
+                datatype = Ros.PointField.FLOAT32,
                 count = 1,
             },
-            new PointField()
+            new Ros.PointField()
             {
                 name = "z",
                 offset = 8,
-                datatype = PointField.FLOAT32,
+                datatype = Ros.PointField.FLOAT32,
                 count = 1,
             },
-            new PointField()
+            new Ros.PointField()
             {
                 name = "intensity",
                 offset = 16,
-                datatype = PointField.UINT8,
+                datatype = Ros.PointField.UINT8,
                 count = 1,
             },
-            new PointField()
+            new Ros.PointField()
             {
                 name = "timestamp",
                 offset = 24,
-                datatype = PointField.FLOAT64,
+                datatype = Ros.PointField.FLOAT64,
                 count = 1,
             },
         };
 
-        public PointCloudWriter(Bridge bridge, string topic)
+        public Ros2PointCloudWriter(Ros2BridgeInstance instance, string topic)
         {
-            OriginalWriter = new Writer<PointCloud2>(bridge, topic);
+            Writer = new Ros2Writer<Ros.PointCloud2>(instance, topic);
         }
 
         public void Write(PointCloudData data, Action completed)
@@ -93,11 +132,11 @@ namespace Simulator.Bridge.Ros2
                 }
             }
 
-            var msg = new PointCloud2()
+            var msg = new Ros.PointCloud2()
             {
-                header = new Header()
+                header = new Ros.Header()
                 {
-                    stamp = Conversions.Convert(data.Time),
+                    stamp = Ros2Conversions.Convert(data.Time),
                     frame_id = data.Frame,
                 },
                 height = 1,
@@ -114,7 +153,8 @@ namespace Simulator.Bridge.Ros2
                 is_dense = true,
             };
 
-            OriginalWriter.Write(msg, completed);
+            Writer.Write(msg, completed);
         }
     }
 }
+

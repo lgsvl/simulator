@@ -76,9 +76,9 @@ namespace Simulator.Sensors
             SolidAABox.Camera = Camera;
         }
 
-        public override void OnBridgeSetup(IBridge bridge)
+        public override void OnBridgeSetup(BridgeInstance bridge)
         {
-            bridge.AddReader<Detected2DObjectArray>(Topic, data => Detected = data.Data);
+            bridge.AddSubscriber<Detected2DObjectArray>(Topic, data => Detected = data.Data);
         }
 
         void OnDestroy()

@@ -14,7 +14,7 @@ using Unity.Mathematics;
 
 namespace Simulator.Bridge.Cyber
 {
-    static class Conversions
+    static class CyberConversions
     {
         static byte[] ActualBytes(byte[] array, int length)
         {

@@ -212,7 +212,7 @@ namespace Simulator.Sensors
             controls.VehicleWheel.DPad.performed -= DPad;
         }
 
-        public override void OnBridgeSetup(IBridge bridge)
+        public override void OnBridgeSetup(BridgeInstance bridge)
         {
             //
         }

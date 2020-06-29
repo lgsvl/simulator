@@ -7,7 +7,6 @@
 
 using Simulator.Bridge;
 using Simulator.Bridge.Data;
-using Simulator.Map;
 using Simulator.Utilities;
 using UnityEngine;
 using Simulator.Sensors.UI;
@@ -81,9 +80,9 @@ namespace Simulator.Sensors
             }
         }
 
-        public override void OnBridgeSetup(IBridge bridge)
+        public override void OnBridgeSetup(BridgeInstance bridge)
         {
-            bridge.AddReader<VehicleControlData>(Topic, data =>
+            bridge.AddSubscriber<VehicleControlData>(Topic, data =>
             {
                 controlData = data;
                 LastControlUpdate = SimulatorManager.Instance.CurrentTime;

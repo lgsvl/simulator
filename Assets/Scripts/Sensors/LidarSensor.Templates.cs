@@ -6,6 +6,7 @@
  */
 
 using System.Collections.Generic;
+
 namespace Simulator.Sensors
 {
     public partial class LidarSensor

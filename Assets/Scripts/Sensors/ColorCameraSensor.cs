@@ -5,7 +5,6 @@
  *
  */
 
-using UnityEngine;
 using Simulator.Bridge.Data;
 using Simulator.Utilities;
 

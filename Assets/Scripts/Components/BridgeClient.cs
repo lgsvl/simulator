@@ -7,31 +7,27 @@
 
 using UnityEngine;
 using System.Diagnostics;
-
 using Simulator.Bridge;
 
 namespace Simulator.Components
 {
     public class BridgeClient : MonoBehaviour
     {
-        public string Address { get; private set; }
-        public int Port { get; private set; }
-
-        public string PrettyAddress => $"{Address}:{Port}";
+        public string Connection { get; private set; }
 
         public Status BridgeStatus => Bridge == null ? Status.Disconnected : Bridge.Status;
 
-        public IBridge Bridge { get; private set; }
+        public BridgeInstance Bridge { get; private set; }
 
         long ConnectTime;
         bool Disconnected = true;
 
-        public void Init(IBridgeFactory factory)
+        public void Init(BridgePlugin plugin)
         {
-            Bridge = factory.Create();
+            Bridge = new BridgeInstance(plugin);
         }
 
-        public void Connect(string address, int port)
+        public void Connect(string connection)
         {
             if (BridgeStatus != Status.Disconnected)
             {
@@ -39,9 +35,7 @@ namespace Simulator.Components
                 Disconnected = true;
             }
 
-            Address = address;
-            Port = port;
-
+            Connection = connection;
             ConnectTime = 0;
         }
 
@@ -65,7 +59,7 @@ namespace Simulator.Components
                 Disconnected = true;
             }
 
-            if (Address == null)
+            if (Connection == null)
             {
                 return;
             }
@@ -75,7 +69,7 @@ namespace Simulator.Components
                 if (Stopwatch.GetTimestamp() > ConnectTime || ConnectTime == 0 || Time.timeScale == 0f)
                 {
                     Disconnected = false;
-                    Bridge.Connect(Address, Port);
+                    Bridge.Connect(Connection);
                 }
                 else
                 {

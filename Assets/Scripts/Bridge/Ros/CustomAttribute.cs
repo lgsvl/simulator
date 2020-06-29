@@ -18,11 +18,6 @@ namespace Simulator.Bridge.Ros
         {
             Type = type;
         }
-
-        public MessageTypeAttribute(string type, string type2)
-        {
-            Type = type;
-        }
     }
 
     // TODO: this should go to VectorMap exporter

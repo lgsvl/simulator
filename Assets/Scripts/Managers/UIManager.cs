@@ -419,9 +419,9 @@ public class UIManager : MonoBehaviour
         {
             CreateBridgeInfo($"Vehicle: {agent.name}");
             CreateBridgeInfo($"Bridge Status: {BridgeClient.BridgeStatus}", true);
-            CreateBridgeInfo($"Address: {BridgeClient.PrettyAddress.ToString()}");
+            CreateBridgeInfo($"Address: {BridgeClient.Connection}");
 
-            foreach (var pub in BridgeClient.Bridge.TopicPublishers)
+            foreach (var pub in BridgeClient.Bridge.PublisherData)
             {
                 sb.Clear();
                 sb.AppendLine($"PUB:");
@@ -435,7 +435,7 @@ public class UIManager : MonoBehaviour
                 }
             }
 
-            foreach (var sub in BridgeClient.Bridge.TopicSubscriptions)
+            foreach (var sub in BridgeClient.Bridge.SubscriberData)
             {
                 sb.Clear();
                 sb.AppendLine($"SUB:");
@@ -485,54 +485,34 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        foreach (var pub in BridgeClient.Bridge.TopicPublishers)
+        foreach (var pub in BridgeClient.Bridge.PublisherData)
         {
             if (CurrentBridgePublisherInfo.ContainsKey(pub.Topic))
             {
-                Text ui = CurrentBridgePublisherInfo[pub.Topic];
-                if (pub.ElapsedTime >= 1 && pub.Count > pub.StartCount)
-                {
-                    pub.Frequency = (pub.Count - pub.StartCount) / pub.ElapsedTime;
-                    pub.StartCount = pub.Count;
-                    pub.ElapsedTime = 0f;
-                }
-                else
-                {
-                    pub.ElapsedTime += Time.unscaledDeltaTime;
-                }
-
                 sb.Clear();
                 sb.AppendLine($"PUB:");
                 sb.AppendLine($"Topic: {pub.Topic}");
                 sb.AppendLine($"Type: {pub.Type}");
                 sb.AppendLine($"Frequency: {pub.Frequency:F2} Hz");
                 sb.AppendLine($"Count: {pub.Count}");
+
+                var ui = CurrentBridgePublisherInfo[pub.Topic];
                 ui.text = sb.ToString();
             }
         }
 
-        foreach (var sub in BridgeClient.Bridge.TopicSubscriptions)
+        foreach (var sub in BridgeClient.Bridge.SubscriberData)
         {
             if (CurrentBridgeSubscriberInfo.ContainsKey(sub.Topic))
             {
-                Text ui = CurrentBridgeSubscriberInfo[sub.Topic];
-                if (sub.ElapsedTime >= 1 && sub.Count > sub.StartCount)
-                {
-                    sub.Frequency = (sub.Count - sub.StartCount) / sub.ElapsedTime;
-                    sub.StartCount = sub.Count;
-                    sub.ElapsedTime = 0f;
-                }
-                else
-                {
-                    sub.ElapsedTime += Time.unscaledDeltaTime;
-                }
-
                 sb.Clear();
                 sb.AppendLine($"SUB:");
                 sb.AppendLine($"Topic: {sub.Topic}");
                 sb.AppendLine($"Type: {sub.Type}");
                 sb.AppendLine($"Frequency: {sub.Frequency:F2} Hz");
                 sb.AppendLine($"Count: {sub.Count}");
+
+                var ui = CurrentBridgeSubscriberInfo[sub.Topic];
                 ui.text = sb.ToString();
             }
         }

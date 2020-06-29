@@ -24,8 +24,8 @@ namespace Simulator.Sensors
         Queue<Tuple<double, float, Action>> MessageQueue =
             new Queue<Tuple<double, float, Action>>();
 
-        IBridge Bridge;
-        IWriter<ClockData> Writer;
+        BridgeInstance Bridge;
+        Publisher<ClockData> Publish;
 
         bool Destroyed = false;
         bool IsFirstFixedUpdate = true;
@@ -36,10 +36,10 @@ namespace Simulator.Sensors
         
         public override SensorDistributionType DistributionType => SensorDistributionType.LowLoad;
 
-        public override void OnBridgeSetup(IBridge bridge)
+        public override void OnBridgeSetup(BridgeInstance bridge)
         {
             Bridge = bridge;
-            Writer = bridge.AddWriter<ClockData>(Topic);
+            Publish = bridge.AddPublisher<ClockData>(Topic);
         }
 
         public void Start()
@@ -124,7 +124,7 @@ namespace Simulator.Sensors
                 lock (MessageQueue)
                 {
                     MessageQueue.Enqueue(Tuple.Create(time, Time.fixedDeltaTime,
-                        (Action)(() => Writer.Write(data, () => { Sending = false; }))));
+                        (Action)(() => Publish(data, () => Sending = false))));
                 }
             }
         }

@@ -28,8 +28,8 @@ namespace Simulator.Sensors
         [Range(1f, 1000f)]
         public float MaxDistance = 100.0f;
 
-        private IBridge Bridge;
-        private IWriter<SignalDataArray> Writer;
+        private BridgeInstance Bridge;
+        private Publisher<SignalDataArray> Publish;
 
         private uint SeqId;
         private float NextSend;
@@ -58,7 +58,7 @@ namespace Simulator.Sensors
                 }
                 NextSend = Time.time + 1.0f / Frequency;
 
-                Writer.Write(new SignalDataArray()
+                Publish(new SignalDataArray()
                 {
                     Time = SimulatorManager.Instance.CurrentTime,
                     Sequence = SeqId++,
@@ -120,10 +120,10 @@ namespace Simulator.Sensors
             }
         }
 
-        public override void OnBridgeSetup(IBridge bridge)
+        public override void OnBridgeSetup(BridgeInstance bridge)
         {
             Bridge = bridge;
-            Writer = Bridge.AddWriter<SignalDataArray>(Topic);
+            Publish = Bridge.AddPublisher<SignalDataArray>(Topic);
         }
 
         public override void OnVisualize(Visualizer visualizer)

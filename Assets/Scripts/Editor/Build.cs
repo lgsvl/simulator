@@ -6,27 +6,29 @@
  */
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Globalization;
-using System.Collections.Generic;
+using System.Net;
+using System.Text.RegularExpressions;
+using Unity.EditorCoroutines.Editor;
 using UnityEditor;
+using UnityEditor.Compilation;
+using UnityEditor.Formats.Fbx.Exporter;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEditor.Formats.Fbx.Exporter;
 using ICSharpCode.SharpZipLib.Zip;
-using Simulator.Map;
-using System.Net;
-using UnityEditor.Compilation;
-using Simulator.FMU;
-using Simulator.PointCloud.Trees;
-using System.Text.RegularExpressions;
 using Newtonsoft.Json;
+using Simulator.Bridge;
+using Simulator.FMU;
+using Simulator.Map;
+using Simulator.PointCloud.Trees;
 using Simulator.Sensors;
 using Simulator.Utilities;
-using System.Collections;
-using Unity.EditorCoroutines.Editor;
+using System.Threading;
 
 namespace Simulator.Editor
 {
@@ -57,7 +59,7 @@ namespace Simulator.Editor
 
         public static string ZipPath(params string[] elements)
         {
-            return String.Join(Path.AltDirectorySeparatorChar.ToString(), elements);
+            return string.Join(Path.AltDirectorySeparatorChar.ToString(), elements);
         }
 
         public class BundleData
@@ -72,6 +74,7 @@ namespace Simulator.Editor
             public BundleConfig.BundleTypes bundleType;
             public string bundlePath;
             public string sourcePath => Path.Combine(BundleConfig.ExternalBase, bundlePath);
+
             public class Entry
             {
                 public string name;
@@ -86,7 +89,14 @@ namespace Simulator.Editor
             {
                 string header = bundlePath;
                 GUILayout.Label(header, EditorStyles.boldLabel);
+                if (entries.Count == 0)
+                {
+                    EditorGUILayout.HelpBox($"No {bundlePath} are available", UnityEditor.MessageType.None);
+                }
+                else
+                {
                 EditorGUILayout.HelpBox($"Following {bundlePath} were automatically detected:", UnityEditor.MessageType.None);
+                }
                 scroll = EditorGUILayout.BeginScrollView(scroll);
 
                 if (entries.Count != 0)
@@ -139,7 +149,7 @@ namespace Simulator.Editor
                     }
                     if (!entries.ContainsKey(name))
                     {
-                        var extension = bundleType == BundleConfig.BundleTypes.Environment ? SceneExtension : PrefabExtension;
+                        var extension = bundleType == BundleConfig.BundleTypes.Environment ? SceneExtension : bundleType == BundleConfig.BundleTypes.Bridge ? ScriptExtension : PrefabExtension;
                         var fullPath = Path.Combine(sourcePath, name, $"{name}.{extension}");
 
                         // NPC type can be both prefab and behaviour script
@@ -184,6 +194,7 @@ namespace Simulator.Editor
                 manifest.authorUrl = "";
                 manifest.fmuName = "";
                 manifest.copyright = "";
+                manifest.bridgeDataTypes = Array.Empty<string>();
 
                 if (bundleType == BundleConfig.BundleTypes.Vehicle)
                 {
@@ -447,11 +458,13 @@ namespace Simulator.Editor
                         var asmDefPath = Path.Combine(BundleConfig.ExternalBase, Things, $"Simulator.{Things}.asmdef");
                         AsmdefBody asmDef = null;
                         if (File.Exists(asmDefPath))
+                    {
                             asmDef = JsonUtility.FromJson<AsmdefBody>(File.ReadAllText(asmDefPath));
+                    }
 
                         try
                         {
-                            Debug.Log($"building asset:{entry.mainAssetFile} -> " + Path.Combine(outputFolder, $"{thing}_{entry.name}"));
+                        Debug.Log($"Building asset: {entry.mainAssetFile} -> " + Path.Combine(outputFolder, $"{thing}_{entry.name}"));
 
                             if (!File.Exists(Path.Combine(Application.dataPath, "..", entry.mainAssetFile)))
                             {
@@ -577,6 +590,7 @@ namespace Simulator.Editor
 
                                 while (assemblyBuilder.status != AssemblyBuilderStatus.Finished)
                                 {
+                                    Thread.Sleep(0);
                                 }
                             }
 
@@ -614,7 +628,7 @@ namespace Simulator.Editor
 
                             if (outputAssembly != null && !mainAssetIsScript)
                             {
-                                Debug.Log("attempting to load " + outputAssembly + " exists: " + File.Exists(outputAssembly));
+                                Debug.Log($"Attempting to load {outputAssembly} exists: {File.Exists(outputAssembly)}");
                                 string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
                                 var assembly = System.Reflection.Assembly.LoadFile(outputAssembly);
                                 AssetBundle pluginBundle = AssetBundle.LoadFromFile(Path.Combine(outputFolder, $"{manifest.assetGuid}_{thing}_main_{platform}"));
@@ -646,6 +660,28 @@ namespace Simulator.Editor
                                 }
 
                                 pluginBundle.Unload(true);
+                            }
+
+                            if (bundleType == BundleConfig.BundleTypes.Bridge)
+                            {
+                                // gather information about bridge plugin
+
+                                IBridgeFactory bridgeFactory = null;
+                                foreach (var factoryType in BridgePlugins.GetBridgeFactories())
+                                {
+                                    if (BridgePlugins.GetNameFromFactory(factoryType) == entry.name)
+                                    {
+                                        bridgeFactory = (IBridgeFactory)Activator.CreateInstance(factoryType);
+                                        break;
+                                    }
+                                }
+                                if (bridgeFactory == null)
+                                {
+                                    throw new Exception($"Cannot find IBridgeFactory for {entry.name} bridge plugin");
+                                }
+
+                                var plugin = new BridgePlugin(bridgeFactory);
+                                manifest.bridgeDataTypes = plugin.GetSupportedDataTypes();
                             }
 
                             var manifestOutput = Path.Combine(outputFolder, "manifest.json");
@@ -816,6 +852,8 @@ namespace Simulator.Editor
                 data = new BundleData(BundleConfig.BundleTypes.Sensor);
                 buildGroups.Add(data.bundlePath, data);
                 data = new BundleData(BundleConfig.BundleTypes.Controllable);
+                buildGroups.Add(data.bundlePath, data);
+                data = new BundleData(BundleConfig.BundleTypes.Bridge);
                 buildGroups.Add(data.bundlePath, data);
             }
 
@@ -1072,7 +1110,7 @@ namespace Simulator.Editor
             Build build = new Build();
             build.Refresh();
 
-            var buildBundleParam = new Regex("^-build(Environment|Vehicle|Sensor|Controllable|NPC)s$");
+            var buildBundleParam = new Regex("^-build(Environment|Vehicle|Sensor|Controllable|NPC|Bundle)s$");
             int bundleSum = 0;
 
             var args = Environment.GetCommandLineArgs();
@@ -1145,7 +1183,9 @@ namespace Simulator.Editor
                         var val = match.Groups[1].Captures[0].Value;
                         var bundleType = (BundleConfig.BundleTypes) Enum.Parse(typeof(BundleConfig.BundleTypes), val);
                         if (i == args.Length - 1)
+                        {
                             throw new Exception($"-build{val} expects comma seperated environment names!");
+                        }
 
                         var bundleGroups = build.buildGroups.Values.Where(g => g.bundleType == bundleType);
                         i++;
@@ -1179,7 +1219,7 @@ namespace Simulator.Editor
 
             if (buildBundles && bundleSum == 0)
             {
-                throw new Exception($"No environments, vehicles, sensors or controllables to build");
+                throw new Exception($"No environments, vehicles, sensors, controllables or bridges to build");
             }
 
             Running = true;

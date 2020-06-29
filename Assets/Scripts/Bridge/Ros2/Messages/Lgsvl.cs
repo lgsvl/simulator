@@ -6,6 +6,7 @@
  */
 
 using System.Collections.Generic;
+using Simulator.Bridge.Ros2.Ros;
 
 namespace Simulator.Bridge.Ros2.Lgsvl
 {
@@ -126,7 +127,7 @@ namespace Simulator.Bridge.Ros2.Lgsvl
     }
 
     [MessageType("lgsvl_msgs/CanBusData")]
-    public struct CanBusDataRos
+    public struct CanBusData
     {
         public Header header;
 
@@ -154,7 +155,7 @@ namespace Simulator.Bridge.Ros2.Lgsvl
     }
 
     [MessageType("lgsvl_msgs/VehicleControlData")]
-    public struct VehicleControlDataRos
+    public struct VehicleControlData
     {
         public Header header;
 
@@ -166,7 +167,7 @@ namespace Simulator.Bridge.Ros2.Lgsvl
     }
 
     [MessageType("lgsvl_msgs/VehicleStateData")]
-    public struct VehicleStateDataRos
+    public struct VehicleStateData
     {
         public Header header;
 
@@ -181,7 +182,7 @@ namespace Simulator.Bridge.Ros2.Lgsvl
     }
 
     [MessageType("lgsvl_msgs/DetectedRadarObject")]
-    public struct DetectedRadarObjectRos
+    public struct DetectedRadarObject
     {
         public int id;
 
@@ -205,6 +206,6 @@ namespace Simulator.Bridge.Ros2.Lgsvl
     {
         public Header header;
 
-        public List<DetectedRadarObjectRos> objects;
+        public List<DetectedRadarObject> objects;
     }
 }

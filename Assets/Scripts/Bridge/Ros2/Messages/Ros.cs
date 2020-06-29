@@ -5,7 +5,7 @@
  *
  */
 
-namespace Simulator.Bridge.Ros2
+namespace Simulator.Bridge.Ros2.Ros
 {
     [MessageType("builtin_interfaces/Time")]
     public struct Time
@@ -27,12 +27,6 @@ namespace Simulator.Bridge.Ros2
         public float g;
         public float b;
         public float a;
-    }
-
-    public struct PartialByteArray
-    {
-        public byte[] Array;
-        public int Length;
     }
 
     [MessageType("sensor_msgs/CompressedImage")]

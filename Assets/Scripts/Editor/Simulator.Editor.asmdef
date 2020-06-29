@@ -3,6 +3,7 @@
     "references": [
         "Simulator",
         "Simulator.Plugins",
+        "Simulator.Bridge",
         "Simulator.Bridge.Cyber",
         "Unity.Mathematics",
         "Simulator.Network.Core",

@@ -81,54 +81,54 @@ namespace Simulator.Bridge.Ros.Lgsvl
     [MessageType("lgsvl_msgs/BoundingBox3D")]
     public class BoundingBox3D
     {
-        public Pose position;
-        public Vector3 size;
+        public Ros.Pose position;
+        public Ros.Vector3 size;
     }
 
     [MessageType("lgsvl_msgs/Detection2D")]
     public class Detection2D
     {
-        public Header header;
+        public Ros.Header header;
 
         public uint id;
         public string label;
         public double score;
 
         public BoundingBox2D bbox;
-        public Twist velocity;
+        public Ros.Twist velocity;
     }
 
     [MessageType("lgsvl_msgs/Detection2DArray")]
     public class Detection2DArray
     {
-        public Header header;
+        public Ros.Header header;
         public List<Detection2D> detections;
     }
 
     [MessageType("lgsvl_msgs/Detection3D")]
     public class Detection3D
     {
-        public Header header;
+        public Ros.Header header;
 
         public uint id;
         public string label;
         public double score;
 
         public BoundingBox3D bbox;
-        public Twist velocity;
+        public Ros.Twist velocity;
     }
 
     [MessageType("lgsvl_msgs/Detection3DArray")]
     public class Detection3DArray
     {
-        public Header header;
+        public Ros.Header header;
         public List<Detection3D> detections;
     }
 
     [MessageType("lgsvl_msgs/Signal")]
     public class Signal
     {
-        public Header header;
+        public Ros.Header header;
         public uint id;
         public string label;
         public double score;
@@ -138,14 +138,14 @@ namespace Simulator.Bridge.Ros.Lgsvl
     [MessageType("lgsvl_msgs/SignalArray")]
     public class SignalArray
     {
-        public Header header;
+        public Ros.Header header;
         public List<Signal> signals;
     }
 
     [MessageType("lgsvl_msgs/CanBusData")]
     public class CanBusDataRos
     {
-        public Header header;
+        public Ros.Header header;
 
         public float speed_mps;
         public float throttle_pct;  // 0 to 1
@@ -166,14 +166,14 @@ namespace Simulator.Bridge.Ros.Lgsvl
         public double gps_latitude;
         public double gps_longitude;
         public double gps_altitude;
-        public Quaternion orientation;
-        public Vector3 linear_velocities;
+        public Ros.Quaternion orientation;
+        public Ros.Vector3 linear_velocities;
     }
 
     [MessageType("lgsvl_msgs/VehicleControlData")]
     public class VehicleControlDataRos
     {
-        public Header header;
+        public Ros.Header header;
 
         public float acceleration_pct;          // 0 to 1
         public float braking_pct;               // 0 to 1
@@ -185,7 +185,7 @@ namespace Simulator.Bridge.Ros.Lgsvl
     [MessageType("lgsvl_msgs/VehicleStateData")]
     public class VehicleStateDataRos
     {
-        public Header header;
+        public Ros.Header header;
 
         public BlinkerState blinker_state;
         public HeadlightState headlight_state;
@@ -202,17 +202,17 @@ namespace Simulator.Bridge.Ros.Lgsvl
     {
         public int id;
 
-        public Vector3 sensor_aim;
-        public Vector3 sensor_right;
-        public Point sensor_position;
-        public Vector3 sensor_velocity;
+        public Ros.Vector3 sensor_aim;
+        public Ros.Vector3 sensor_right;
+        public Ros.Point sensor_position;
+        public Ros.Vector3 sensor_velocity;
         public double sensor_angle;
 
-        public Point object_position;
-        public Vector3 object_velocity;
-        public Point object_relative_position;
-        public Vector3 object_relative_velocity;
-        public Vector3 object_collider_size;
+        public Ros.Point object_position;
+        public Ros.Vector3 object_velocity;
+        public Ros.Point object_relative_position;
+        public Ros.Vector3 object_relative_velocity;
+        public Ros.Vector3 object_collider_size;
         public byte object_state;
         public bool new_detection;
     }
@@ -220,7 +220,7 @@ namespace Simulator.Bridge.Ros.Lgsvl
     [MessageType("lgsvl_msgs/DetectedRadarObjectArray")]
     public class DetectedRadarObjectArray
     {
-        public Header header;
+        public Ros.Header header;
 
         public List<DetectedRadarObject> objects;
     }

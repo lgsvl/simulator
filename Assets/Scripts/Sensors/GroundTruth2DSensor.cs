@@ -62,8 +62,8 @@ namespace Simulator.Sensors
 
         private float degHFOV;  // Horizontal Field of View, in degree
 
-        private IBridge Bridge;
-        private IWriter<Detected2DObjectData> Writer;
+        private BridgeInstance Bridge;
+        private Publisher<Detected2DObjectData> Publish;
 
         private Camera Camera;
         
@@ -109,10 +109,10 @@ namespace Simulator.Sensors
             cameraRangeTrigger.SetCallbacks(OnCollider);
         }
 
-        public override void OnBridgeSetup(IBridge bridge)
+        public override void OnBridgeSetup(BridgeInstance bridge)
         {
             Bridge = bridge;
-            Writer = Bridge.AddWriter<Detected2DObjectData>(Topic);
+            Publish = Bridge.AddPublisher<Detected2DObjectData>(Topic);
         }
 
         void OnDestroy()
@@ -131,7 +131,7 @@ namespace Simulator.Sensors
                 }
                 nextSend = Time.time + 1.0f / Frequency;
 
-                Writer.Write(new Detected2DObjectData()
+                Publish(new Detected2DObjectData()
                 {
                     Frame = Frame,
                     Sequence = seqId++,

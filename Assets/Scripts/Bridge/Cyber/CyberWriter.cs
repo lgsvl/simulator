@@ -6,36 +6,27 @@
  */
 
 using System;
-using System.IO;
 using System.Text;
 using System.Collections.Generic;
-using ProtoBuf;
 
 namespace Simulator.Bridge.Cyber
 {
-    public class Writer<T> : IWriter<T> where T : class
+    class CyberWriter<BridgeType>
     {
-        Bridge Bridge;
-        string TopicString;
+        CyberBridgeInstance Instance;
         byte[] Topic;
 
-        public Writer(Bridge bridge, string topic)
+        public CyberWriter(CyberBridgeInstance instance, string topic)
         {
-            Bridge = bridge;
-            TopicString = topic;
+            Instance = instance;
             Topic = Encoding.ASCII.GetBytes(topic);
         }
 
-        public void Write(T message, Action completed = null)
+        public void Write(BridgeType message, Action completed)
         {
-            byte[] msg;
-            using (var stream = new MemoryStream(4096))
-            {
-                Serializer.Serialize(stream, message);
-                msg = stream.ToArray();
-            }
+            byte[] msg = CyberSerialization.Serialize(message);
 
-            var data = new List<byte>(1024);
+            var data = new List<byte>(1 + 4 + Topic.Length + 4 + msg.Length);
             data.Add((byte)BridgeOp.Publish);
             data.Add((byte)(Topic.Length >> 0));
             data.Add((byte)(Topic.Length >> 8));
@@ -48,27 +39,7 @@ namespace Simulator.Bridge.Cyber
             data.Add((byte)(msg.Length >> 24));
             data.AddRange(msg);
 
-            Bridge.SendAsync(data.ToArray(), completed, TopicString);
-        }
-    }
-
-    class Writer<From, To> : IWriter<From>
-        where From : class
-        where To : class
-    {
-        Writer<To> OriginalWriter;
-        Func<From, To> Convert;
-
-        public Writer(Bridge bridge, string topic, Func<From, To> convert)
-        {
-            OriginalWriter = new Writer<To>(bridge, topic);
-            Convert = convert;
-        }
-
-        public void Write(From message, Action completed)
-        {
-            To converted = Convert(message);
-            OriginalWriter.Write(converted, completed);
+            Instance.SendAsync(data.ToArray(), completed);
         }
     }
 }

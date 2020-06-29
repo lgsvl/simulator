@@ -1,0 +1,6 @@
+DROP TABLE IF EXISTS clientSettings;
+CREATE TABLE clientSettings (
+	id INTEGER PRIMARY KEY,
+	simid VARCHAR (512) NOT NULL,
+	onlineStatus BOOLEAN NOT NULL
+);

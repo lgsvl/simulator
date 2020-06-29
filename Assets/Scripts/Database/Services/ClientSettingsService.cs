@@ -46,6 +46,7 @@ namespace Simulator.Database.Services
                 {
                     settings.simid = simid;
                     db.Update(settings);
+                    settings = db.FirstOrDefault<ClientSettings>("");
                 }
             }
         }

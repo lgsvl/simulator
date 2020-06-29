@@ -21,9 +21,10 @@ namespace Simulator.Database
     }
 
     [TableName("clientSettings")]
-    [PrimaryKey("simid", AutoIncrement = false)]
+    [PrimaryKey("id")]
     public class ClientSettings
     {
+        public int id { get; set; }
         public string simid { get; set; }
         public bool onlineStatus { get; set; }
     }

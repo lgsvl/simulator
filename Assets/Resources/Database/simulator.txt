@@ -15,7 +15,8 @@ CREATE TABLE assets (
 
 DROP TABLE IF EXISTS clientSettings;
 CREATE TABLE clientSettings (
-	simid VARCHAR(512) NOT NULL PRIMARY KEY,
+	id INTEGER PRIMARY KEY,
+	simid VARCHAR (512) NOT NULL,
 	onlineStatus BOOLEAN NOT NULL
 );
 
@@ -25,7 +26,7 @@ CREATE TABLE simulations (
 	simData TEXT NOT NULL
 );
 
-PRAGMA user_version = 6;
+PRAGMA user_version = 7;
 PRAGMA table_info(assets);
 PRAGMA table_info(clientSettings);
 PRAGMA table_info(simulations);

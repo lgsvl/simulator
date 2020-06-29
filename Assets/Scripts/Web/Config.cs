@@ -106,7 +106,7 @@ namespace Simulator.Web
             ClientSettingsService csservice = new ClientSettingsService();
             if (string.IsNullOrEmpty(SimID))
             {
-                SimID = Guid.NewGuid().ToString();
+                SimID = csservice.GetOrMake().simid;
             }
 
             csservice.SetSimID(SimID);

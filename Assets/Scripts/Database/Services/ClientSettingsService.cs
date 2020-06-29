@@ -17,7 +17,8 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                ClientSettings settings = db.FirstOrDefault<ClientSettings>("");
+                var sql = Sql.Builder.Where("id = @0", 1);
+                ClientSettings settings = db.FirstOrDefault<ClientSettings>(sql);
                 if (settings == null)
                 {
                     settings = new ClientSettings();
@@ -34,7 +35,8 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                ClientSettings settings = db.FirstOrDefault<ClientSettings>("");
+                var sql = Sql.Builder.Where("id = @0", 1);
+                ClientSettings settings = db.FirstOrDefault<ClientSettings>(sql);
                 if (settings == null)
                 {
                     settings = new ClientSettings();
@@ -46,7 +48,6 @@ namespace Simulator.Database.Services
                 {
                     settings.simid = simid;
                     db.Update(settings);
-                    settings = db.FirstOrDefault<ClientSettings>("");
                 }
             }
         }
@@ -55,7 +56,8 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                ClientSettings settings = db.FirstOrDefault<ClientSettings>("");
+                var sql = Sql.Builder.Where("id = @0", 1);
+                ClientSettings settings = db.FirstOrDefault<ClientSettings>(sql);
                 settings.onlineStatus = online;
                 db.Update(settings);
             }

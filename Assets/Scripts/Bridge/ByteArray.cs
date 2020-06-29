@@ -19,7 +19,7 @@ namespace Simulator.Bridge
             Data = new byte[capacity];
         }
 
-        public void Apppend(byte[] bytes, int offset, int count)
+        public void Append(byte[] bytes, int offset, int count)
         {
             if (bytes == null)
             {

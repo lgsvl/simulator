@@ -11,6 +11,7 @@ using System.Text;
 using UnityEngine;
 using SimpleJSON;
 using System.Linq;
+using Simulator.Bridge;
 
 namespace Simulator.Web
 {
@@ -51,7 +52,7 @@ namespace Simulator.Web
 
         public static bool BeValidBridgeType(string bridgeType)
         {
-            return string.IsNullOrEmpty(bridgeType) || Config.Bridges.Find(b => b.Name == bridgeType) != null;
+            return string.IsNullOrEmpty(bridgeType) || BridgePlugins.Get(bridgeType) != null;
         }
 
         public static bool BeValidSensorConfig(string sensorConfig)

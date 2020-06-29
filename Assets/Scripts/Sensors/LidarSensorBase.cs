@@ -7,14 +7,12 @@
 
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Collections.Generic;
 using Unity.Jobs;
 using Unity.Profiling;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using Simulator.Bridge;
@@ -100,8 +98,8 @@ namespace Simulator.Sensors
         [SensorParameter]
         public Color PointColor = Color.red;
 
-        protected IBridge Bridge;
-        protected IWriter<PointCloudData> Writer;
+        protected BridgeInstance Bridge;
+        protected Publisher<PointCloudData> Publish;
         protected uint SendSequence;
 
         [NativeDisableContainerSafetyRestriction]
@@ -178,10 +176,10 @@ namespace Simulator.Sensors
 
         public override SensorDistributionType DistributionType => SensorDistributionType.UltraHighLoad;
 
-        public override void OnBridgeSetup(IBridge bridge)
+        public override void OnBridgeSetup(BridgeInstance bridge)
         {
             Bridge = bridge;
-            Writer = bridge.AddWriter<PointCloudData>(Topic);
+            Publish = bridge.AddPublisher<PointCloudData>(Topic);
         }
 
         public void CustomRender(ScriptableRenderContext context, HDCamera hd)

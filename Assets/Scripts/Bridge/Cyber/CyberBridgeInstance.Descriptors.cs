@@ -43,7 +43,7 @@ with open(os.path.join(apollo_path, "protobuf/data.txt"), "w+") as fout:
 
 namespace Simulator.Bridge.Cyber
 {
-    public partial class Bridge : IBridge
+    public partial class CyberBridgeInstance : IBridgeInstance
     {
         static Dictionary<string, string> NameByMsgType;
         static Dictionary<string, Tuple<byte[], FileDescriptorProto>> DescriptorByName;
@@ -67,7 +67,28 @@ namespace Simulator.Bridge.Cyber
             }
         }
 
-        static Bridge()
+        static List<byte[]> GetDescriptors<ProtobufType>()
+        {
+            var descriptorName = NameByMsgType[typeof(ProtobufType).ToString()];
+            var descriptor = DescriptorByName[descriptorName].Item2;
+
+            var descriptors = new List<byte[]>();
+            GetDescriptors(descriptors, descriptor);
+            return descriptors;
+        }
+
+        static void GetDescriptors(List<byte[]> descriptors, FileDescriptorProto descriptor)
+        {
+            foreach (var dependency in descriptor.Dependencies)
+            {
+                var desc = DescriptorByName[dependency].Item2;
+                GetDescriptors(descriptors, desc);
+            }
+            var bytes = DescriptorByName[descriptor.Name].Item1;
+            descriptors.Add(bytes);
+        }
+
+        static CyberBridgeInstance()
         {
             NameByMsgType = new Dictionary<string, string>();
             DescriptorByName = new Dictionary<string, Tuple<byte[], FileDescriptorProto>>();

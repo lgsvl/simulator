@@ -14,11 +14,16 @@ using System.Linq.Expressions;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEngine;
 
 namespace Simulator.Bridge.Ros2
 {
-    public static class Serialization
+    public struct PartialByteArray
+    {
+        public byte[] Array;
+        public int Length;
+    }
+
+    public static class Ros2Serialization
     {
         public static int GetLength<T>(T message)
         {
@@ -40,16 +45,16 @@ namespace Simulator.Bridge.Ros2
             }
         }
 
-        public static T Unserialize<T>(byte[] src, int offset, int length)
+        public static T Unserialize<T>(ArraySegment<byte> data)
         {
             unsafe
             {
-                fixed (byte* ptr = src)
+                fixed (byte* ptr = data.Array)
                 {
                     var reader = new Helper.Reader()
                     {
-                        Src = new IntPtr(ptr) + offset,
-                        Count = length,
+                        Src = new IntPtr(ptr) + data.Offset,
+                        Count = data.Count,
                     };
                     return Cache<T>.Unserialize(reader);
                 }

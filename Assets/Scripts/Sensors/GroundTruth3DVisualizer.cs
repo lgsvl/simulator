@@ -29,9 +29,9 @@ namespace Simulator.Sensors
             WireframeBoxes = SimulatorManager.Instance.WireframeBoxes;
         }
 
-        public override void OnBridgeSetup(IBridge bridge)
+        public override void OnBridgeSetup(BridgeInstance bridge)
         {
-            bridge.AddReader<Detected3DObjectArray>(Topic, data => Detected = data.Data);
+            bridge.AddSubscriber<Detected3DObjectArray>(Topic, data => Detected = data.Data);
         }
 
         public override void OnVisualize(Visualizer visualizer)

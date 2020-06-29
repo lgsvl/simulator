@@ -2,10 +2,11 @@
     "name": "Simulator.Sensors",
     "references": [
         "GUID:43bb230cc5d89654fb9c4da20660d5b4",
-        "GUID:8c14360cd7563c841b92a26bfe7df07f",
         "GUID:92f4f37f682345140b14f813aaae41eb",
+        "GUID:8c14360cd7563c841b92a26bfe7df07f",
         "GUID:6962439cf1facd845a3a82a66662bd5a",
         "GUID:8666e8f9f4b4ded41bc10cb58d7dc847",
+        "GUID:fb254b4137a280342aa5b17695020ac0",
         "GUID:2409dc9767581724ca39638857e3f2e7",
         "GUID:457756d89b35d2941b3e7b37b4ece6f1",
         "GUID:78bd2ddd6e276394a9615c203e574844",

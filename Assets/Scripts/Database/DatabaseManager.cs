@@ -16,6 +16,7 @@ using Simulator.Web;
 using Simulator.Sensors;
 using Simulator.Bridge.Ros;
 using Simulator.Bridge.Cyber;
+using Simulator.Bridge;
 
 namespace Simulator.Database
 {
@@ -220,22 +221,22 @@ namespace Simulator.Database
                         var localPath = WebUtilities.GenerateLocalPath("Vehicles");
                         if (v.Name == "Jaguar2015XE")
                         {
-                            AddVehicle(db, info, v, localPath, DefaultSensors.Autoware, " (Autoware)", new RosBridgeFactory().Name);
-                            AddVehicle(db, info, v, localPath, DefaultSensors.Apollo30, " (Apollo 3.0)", new RosApolloBridgeFactory().Name);
+                            AddVehicle(db, info, v, localPath, DefaultSensors.Autoware, " (Autoware)", BridgePlugins.GetNameFromFactory(typeof(RosBridgeFactory)));
+                            AddVehicle(db, info, v, localPath, DefaultSensors.Apollo30, " (Apollo 3.0)", BridgePlugins.GetNameFromFactory(typeof(RosApolloBridgeFactory)));
 
                             noBridgeVehicle = AddVehicle(db, info, v, localPath, DefaultSensors.DataCollection, " (No Bridge)");
                         }
                         else if (v.Name == "Lexus2016RXHybrid")
                         {
-                            autowareVehicle = AddVehicle(db, info, v, localPath, DefaultSensors.Autoware, " (Autoware)", new RosBridgeFactory().Name);
+                            autowareVehicle = AddVehicle(db, info, v, localPath, DefaultSensors.Autoware, " (Autoware)", BridgePlugins.GetNameFromFactory(typeof(RosBridgeFactory)));
                         }
                         else if (v.Name == "Lincoln2017MKZ")
                         {
-                            apolloVehicle = AddVehicle(db, info, v, localPath, DefaultSensors.Apollo50, " (Apollo 5.0)", new CyberBridgeFactory().Name);
+                            apolloVehicle = AddVehicle(db, info, v, localPath, DefaultSensors.Apollo50, " (Apollo 5.0)", BridgePlugins.GetNameFromFactory(typeof(CyberBridgeFactory)));
                         }
                         else
                         {
-                            apolloVehicle = AddVehicle(db, info, v, localPath, DefaultSensors.Apollo50, " (Apollo 5.0)", new CyberBridgeFactory().Name);
+                            apolloVehicle = AddVehicle(db, info, v, localPath, DefaultSensors.Apollo50, " (Apollo 5.0)", BridgePlugins.GetNameFromFactory(typeof(CyberBridgeFactory)));
                         }
                     }
                 }

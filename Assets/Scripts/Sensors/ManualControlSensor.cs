@@ -7,7 +7,6 @@
 
 using UnityEngine;
 using Simulator.Bridge;
-using Simulator.Bridge.Data;
 using Simulator.Utilities;
 using Simulator.Sensors.UI;
 using System.Collections.Generic;
@@ -186,7 +185,7 @@ namespace Simulator.Sensors
             }
         }
 
-        public override void OnBridgeSetup(IBridge bridge)
+        public override void OnBridgeSetup(BridgeInstance bridge)
         {
             // TODO new base class?
         }

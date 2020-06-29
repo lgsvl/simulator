@@ -67,8 +67,8 @@ namespace Simulator.Sensors
         [SensorParameter]
         public float Xi = 0.0f;
 
-        IBridge Bridge;
-        IWriter<ImageData> ImageWriter;
+        BridgeInstance Bridge;
+        Publisher<ImageData> Publish;
         uint Sequence;
 
         const int MaxJpegSize = 4 * 1024 * 1024; // 4MB
@@ -162,10 +162,10 @@ namespace Simulator.Sensors
             }
         }
 
-        public override void OnBridgeSetup(IBridge bridge)
+        public override void OnBridgeSetup(BridgeInstance bridge)
         {
             Bridge = bridge;
-            ImageWriter = bridge.AddWriter<ImageData>(Topic);
+            Publish = bridge.AddPublisher<ImageData>(Topic);
         }
 
         public void Update()
@@ -444,7 +444,7 @@ namespace Simulator.Sensors
                             if (imageData.Length > 0)
                             {
                                 imageData.Time = capture.CaptureTime;
-                                ImageWriter.Write(imageData);
+                                Publish(imageData);
                             }
                             else
                             {

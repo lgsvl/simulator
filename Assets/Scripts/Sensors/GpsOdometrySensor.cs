@@ -42,8 +42,8 @@ namespace Simulator.Sensors
         float NextSend;
         uint SendSequence;
 
-        IBridge Bridge;
-        IWriter<GpsOdometryData> Writer;
+        BridgeInstance Bridge;
+        Publisher<GpsOdometryData> Publish;
 
         Rigidbody RigidBody;
         IVehicleDynamics Dynamics;
@@ -68,10 +68,10 @@ namespace Simulator.Sensors
             Destroyed = true;
         }
 
-        public override void OnBridgeSetup(IBridge bridge)
+        public override void OnBridgeSetup(BridgeInstance bridge)
         {
             Bridge = bridge;
-            Writer = Bridge.AddWriter<GpsOdometryData>(Topic);
+            Publish = Bridge.AddPublisher<GpsOdometryData>(Topic);
         }
 
         void Publisher()
@@ -166,7 +166,13 @@ namespace Simulator.Sensors
             
             lock (MessageQueue)
             {
-                MessageQueue.Enqueue(Tuple.Create(time, (Action)(() => Writer.Write(data))));
+                MessageQueue.Enqueue(Tuple.Create(time, (Action)(() =>
+                {
+                    if (Bridge != null && Bridge.Status == Status.Connected)
+                    {
+                        Publish(data);
+                    }
+                })));
             }
         }
 

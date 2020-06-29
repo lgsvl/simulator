@@ -32,7 +32,7 @@ namespace Simulator.Api.Commands
                 }
                 else
                 {
-                    bridge.Connect(address, port);
+                    bridge.Connect($"{address}:{port}");
                     api.SendResult(this);
                     SIM.LogAPI(SIM.API.BridgeConnect);
                 }

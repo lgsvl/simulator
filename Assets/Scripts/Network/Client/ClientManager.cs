@@ -25,7 +25,7 @@ namespace Simulator.Network.Client
     using LiteNetLib.Utils;
     using PetaPoco;
     using Shared;
-
+    using Simulator.Bridge;
     using Simulator.Network.Core;
 
     using UnityEngine;
@@ -736,8 +736,7 @@ namespace Simulator.Network.Client
 
                                         if (!string.IsNullOrEmpty(agent.Bridge))
                                         {
-                                            config.Bridge =
-                                                Web.Config.Bridges.Find(bridge => bridge.Name == agent.Bridge);
+                                            config.Bridge = BridgePlugins.Get(agent.Bridge);
                                             if (config.Bridge == null)
                                             {
                                                 throw new Exception($"Bridge {agent.Bridge} not found");

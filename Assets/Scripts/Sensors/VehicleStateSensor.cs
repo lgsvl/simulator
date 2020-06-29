@@ -7,14 +7,10 @@
 
 using Simulator.Bridge;
 using Simulator.Bridge.Data;
-using Simulator.Bridge.Ros.Autoware;
 using Simulator.Sensors.UI;
 using Simulator.Utilities;
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
 
 namespace Simulator.Sensors
 {
@@ -36,9 +32,9 @@ namespace Simulator.Sensors
             StateData = new VehicleStateData();
         }
 
-        public override void OnBridgeSetup(IBridge bridge)
+        public override void OnBridgeSetup(BridgeInstance bridge)
         {
-            bridge.AddReader<VehicleStateData>(Topic, data =>
+            bridge.AddSubscriber<VehicleStateData>(Topic, data =>
             {
                 if (data != null)
                 {

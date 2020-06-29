@@ -52,11 +52,10 @@ namespace Simulator.Sensors
         WireframeBoxes WireframeBoxes;
 
         private uint seqId;
-        private uint objId;
         private double nextSend;
 
-        private IBridge Bridge;
-        private IWriter<Detected3DObjectData> Writer;
+        private BridgeInstance Bridge;
+        private Publisher<Detected3DObjectData> Publish;
 
         private Dictionary<uint, Detected3DObject> Detected = new Dictionary<uint, Detected3DObject>();
         private Dictionary<uint, Collider> GTID2Collider = new Dictionary<uint, Collider>();
@@ -95,7 +94,7 @@ namespace Simulator.Sensors
                 }
                 nextSend = SimulatorManager.Instance.CurrentTime + 1.0f / Frequency;
 
-                Writer.Write(new Detected3DObjectData()
+                Publish(new Detected3DObjectData()
                 {
                     Name = Name,
                     Frame = Frame,
@@ -117,10 +116,10 @@ namespace Simulator.Sensors
             GTID2Collider.Clear();
         }
 
-        public override void OnBridgeSetup(IBridge bridge)
+        public override void OnBridgeSetup(BridgeInstance bridge)
         {
             Bridge = bridge;
-            Writer = Bridge.AddWriter<Detected3DObjectData>(Topic);
+            Publish = Bridge.AddPublisher<Detected3DObjectData>(Topic);
         }
 
         void WhileInRange(Collider other)

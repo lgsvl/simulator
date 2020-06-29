@@ -39,8 +39,8 @@ namespace Simulator.Sensors
         float NextSend;
         uint SendSequence;
 
-        IBridge Bridge;
-        IWriter<GpsData> Writer;
+        BridgeInstance Bridge;
+        Publisher<GpsData> Publish;
 
         MapOrigin MapOrigin;
         
@@ -61,10 +61,10 @@ namespace Simulator.Sensors
             Destroyed = true;
         }
 
-        public override void OnBridgeSetup(IBridge bridge)
+        public override void OnBridgeSetup(BridgeInstance bridge)
         {
             Bridge = bridge;
-            Writer = Bridge.AddWriter<GpsData>(Topic);
+            Publish = Bridge.AddPublisher<GpsData>(Topic);
         }
 
         void Publisher()
@@ -144,10 +144,16 @@ namespace Simulator.Sensors
                 Easting = location.Easting,
                 Orientation = transform.rotation,
             };
-            
+
             lock (MessageQueue)
             {
-                MessageQueue.Enqueue(Tuple.Create(time, (Action)(() => Writer.Write(data))));
+                MessageQueue.Enqueue(Tuple.Create(time, (Action)(() =>
+                {
+                    if (Bridge != null && Bridge.Status == Status.Connected)
+                    {
+                        Publish(data);
+                    }
+                })));
             }
         }
 

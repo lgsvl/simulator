@@ -6,6 +6,8 @@
  */
 
 using Nancy;
+using System.Linq;
+using Simulator.Bridge;
 
 namespace Simulator.Web
 {
@@ -13,7 +15,7 @@ namespace Simulator.Web
     {
         public BridgeTypesModule()
         {
-            Get("/bridge-types", _ => Config.Bridges);
+            Get("/bridge-types", _ => BridgePlugins.All.Select(nameAndPlugin => new { Name = nameAndPlugin.Key } ).ToArray());
         }
     }
 }

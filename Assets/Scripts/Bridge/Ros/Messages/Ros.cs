@@ -5,9 +5,9 @@
  *
  */
 
-namespace Simulator.Bridge.Ros
+namespace Simulator.Bridge.Ros.Ros
 {
-    [MessageType("std_msgs/Time", "builtin_interfaces/Time")]
+    [MessageType("std_msgs/Time")]
     public class Time
     {
         public long secs;
@@ -27,15 +27,6 @@ namespace Simulator.Bridge.Ros
         public double g;
         public double b;
         public double a;
-    }
-
-    // fill either Array & Length, or (only for ROS1) set Base64 string
-    public class PartialByteArray
-    {
-        public byte[] Array;
-        public int Length;
-
-        public string Base64;
     }
 
     [MessageType("sensor_msgs/CompressedImage")]

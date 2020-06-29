@@ -15,28 +15,28 @@ namespace Simulator.Bridge.Ros.Autoware
     [MessageType("autoware_msgs/steer_cmd")]
     public class steer_cmd
     {
-        public Header header;
+        public Ros.Header header;
         public int steer;
     }
 
     [MessageType("autoware_msgs/accel_cmd")]
     public class accel_cmd
     {
-        public Header header;
+        public Ros.Header header;
         public int accel;
     }
 
     [MessageType("autoware_msgs/brake_cmd")]
     public class brake_cmd
     {
-        public Header header;
+        public Ros.Header header;
         public int brake;
     }
 
     [MessageType("autoware_msgs/lamp_cmd")]
     public class lamp_cmd
     {
-        public Header header;
+        public Ros.Header header;
         public int l;
         public int r;
     }
@@ -52,14 +52,14 @@ namespace Simulator.Bridge.Ros.Autoware
     [MessageType("autoware_msgs/VehicleCmd")]
     public class VehicleCmd
     {
-        public Header header;
+        public Ros.Header header;
         public steer_cmd _steer_cmd;
         public accel_cmd _accel_cmd;
         public brake_cmd _brake_cmd;
         public lamp_cmd _lamp_cmd;
         public uint gear;
         public uint mode;
-        public TwistStamped twist_cmd;
+        public Ros.TwistStamped twist_cmd;
         public ControlCommand ctrl_cmd;
         public uint emergency;
     }
@@ -67,21 +67,21 @@ namespace Simulator.Bridge.Ros.Autoware
     [MessageType("autoware_msgs/DetectedObject")]
     public class DetectedObject
     {
-        public Header header;
+        public Ros.Header header;
         public uint id;
         public string label;
         public double score;  // Score as defined by the detection, Optional
-        public ColorRGBA color;  // Define this object specific color
+        public Ros.ColorRGBA color;  // Define this object specific color
 
         // 3D Bounding Box
         public string space_frame;  // 3D Space coordinate frame of the object, required if pose and dimensions are defined
-        public Pose pose;
-        public Vector3 dimensions;
-        public Vector3 variance;
-        public Twist velocity;
-        public Twist acceleration;
+        public Ros.Pose pose;
+        public Ros.Vector3 dimensions;
+        public Ros.Vector3 variance;
+        public Ros.Twist velocity;
+        public Ros.Twist acceleration;
 
-        public PointCloud2 pointcloud;
+        public Ros.PointCloud2 pointcloud;
         
         // public PolygonStamped convex_hull;
         // public LaneArray candidate_trajectories;
@@ -98,7 +98,7 @@ namespace Simulator.Bridge.Ros.Autoware
         public int height;
         public double angle;
 
-        public Image roi_image;
+        public Ros.Image roi_image;
 
         // Indicator information
         public uint indicator_state;  // INDICATOR_LEFT = 0, INDICATOR_RIGHT = 1, INDICATOR_BOTH = 2, INDICATOR_NONE = 3
@@ -112,14 +112,14 @@ namespace Simulator.Bridge.Ros.Autoware
     [MessageType("autoware_msgs/DetectedObjectArray")]
     public class DetectedObjectArray
     {
-        public Header header;
+        public Ros.Header header;
         public DetectedObject[] objects;
     }
 
     [MessageType("autoware_auto_msgs/VehicleControlCommand")]
     public class VehicleControlCommand
     {
-        public Time stamp;
+        public Ros.Time stamp;
         public float long_accel_mps2;
         public float front_wheel_angle_rad;
         public double rear_wheel_angle_rad;
@@ -128,7 +128,7 @@ namespace Simulator.Bridge.Ros.Autoware
     [MessageType("autoware_auto_msgs/VehicleOdometry")]
     public class VehicleOdometry
     {
-        public Time stamp;
+        public Ros.Time stamp;
         public float velocity_mps;
         public float front_wheel_angle_rad;
         public float rear_wheel_angle_rad;

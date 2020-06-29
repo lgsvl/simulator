@@ -17,7 +17,8 @@ namespace Simulator
             Environment,
             Sensor,
             Controllable,
-            NPC
+            NPC,
+            Bridge,
         }
 
         public static Dictionary<BundleTypes, int> Versions = new Dictionary<BundleTypes, int>(){
@@ -26,6 +27,7 @@ namespace Simulator
             [BundleTypes.Sensor]      = 2,
             [BundleTypes.Controllable]= 0,
             [BundleTypes.NPC]         = 0,
+            [BundleTypes.Bridge]      = 0,
         };
 
         public static string pluralOf(BundleTypes type) => Enum.GetName(typeof(BundleConfig.BundleTypes), type) + "s";

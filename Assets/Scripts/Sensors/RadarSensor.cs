@@ -6,7 +6,6 @@
  */
 
 using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
 using Simulator.Bridge;
 using Simulator.Bridge.Data;
@@ -31,8 +30,8 @@ namespace Simulator.Sensors
         private uint seqId;
         private float nextPublish;
 
-        private IBridge Bridge;
-        private IWriter<DetectedRadarObjectData> Writer;
+        private BridgeInstance Bridge;
+        private Publisher<DetectedRadarObjectData> Publish;
         
         private Dictionary<Collider, DetectedRadarObject> Detected = new Dictionary<Collider, DetectedRadarObject>();
         private Dictionary<Collider, Box> Visualized = new Dictionary<Collider, Box>();
@@ -77,7 +76,7 @@ namespace Simulator.Sensors
             }
             nextPublish = Time.time + 1.0f / Frequency;
             
-            Writer.Write(new DetectedRadarObjectData()
+            Publish(new DetectedRadarObjectData()
             {
                 Name = Name,
                 Frame = Frame,
@@ -87,10 +86,10 @@ namespace Simulator.Sensors
             });
         }
 
-        public override void OnBridgeSetup(IBridge bridge)
+        public override void OnBridgeSetup(BridgeInstance bridge)
         {
             Bridge = bridge;
-            Writer = Bridge.AddWriter<DetectedRadarObjectData>(Topic);
+            Publish = Bridge.AddPublisher<DetectedRadarObjectData>(Topic);
         }
         
         void WhileInRange(Collider other, RadarMesh radar)

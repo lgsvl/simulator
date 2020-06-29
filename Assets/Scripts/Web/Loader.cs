@@ -49,7 +49,7 @@ namespace Simulator
         public GameObject Prefab;
         [NonSerialized]
         public GameObject AgentGO;
-        public IBridgeFactory Bridge;
+        public BridgePlugin Bridge;
         public string Connection;
         public string Sensors;
         public Vector3 Position;
@@ -475,7 +475,7 @@ namespace Simulator
 
                                 if (!string.IsNullOrEmpty(vehicle.BridgeType))
                                 {
-                                    config.Bridge = Config.Bridges.Find(bridge => bridge.Name == vehicle.BridgeType);
+                                    config.Bridge = BridgePlugins.Get(vehicle.BridgeType);
                                     if (config.Bridge == null)
                                     {
                                         throw new Exception($"Bridge {vehicle.BridgeType} not found");

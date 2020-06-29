@@ -36,5 +36,25 @@ namespace Simulator.Bridge.Ros
                 }
             }
         }
+
+        public static string GetMessageType<BridgeType>()
+        {
+            var type = typeof(BridgeType);
+
+            string name;
+            if (RosSerialization.BuiltinMessageTypes.TryGetValue(type, out name))
+            {
+                return name;
+            }
+
+            object[] attributes = type.GetCustomAttributes(typeof(MessageTypeAttribute), false);
+            if (attributes == null || attributes.Length == 0)
+            {
+                throw new Exception($"Type {type.Name} does not have {nameof(MessageTypeAttribute)} attribute");
+            }
+
+            var attribute = attributes[0] as MessageTypeAttribute;
+            return attribute.Type;
+        }
     }
 }

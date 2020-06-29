@@ -16,6 +16,7 @@ using ICSharpCode.SharpZipLib.Zip;
 using Simulator.Database;
 using UnityEngine.SceneManagement;
 using Simulator.Web;
+using Simulator.Bridge;
 
 namespace Simulator.Api.Commands
 {
@@ -100,7 +101,7 @@ namespace Simulator.Api.Commands
 
                         if (!string.IsNullOrEmpty(vehicle.BridgeType))
                         {
-                            config.Bridge = Web.Config.Bridges.Find(bridge => bridge.Name == vehicle.BridgeType);
+                            config.Bridge = BridgePlugins.Get(vehicle.BridgeType);
                             if (config.Bridge == null)
                             {
                                 api.SendError(this, $"Bridge '{vehicle.BridgeType}' not available");

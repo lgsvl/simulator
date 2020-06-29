@@ -371,7 +371,7 @@ namespace Simulator.Sensors
 
                 Task.Run(() =>
                 {
-                    Writer.Write(new PointCloudData()
+                    Publish(new PointCloudData()
                     {
                         Name = Name,
                         Frame = Frame,

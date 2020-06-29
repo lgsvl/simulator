@@ -23,5 +23,6 @@ namespace Simulator
         public double[] baseLink;
 
         public Dictionary<string, string> additionalFiles;
+        public string[] bridgeDataTypes;
     }
 }

@@ -31,9 +31,9 @@ namespace Simulator.Sensors
 
         uint Sequence;
 
-        IBridge Bridge;
-        IWriter<ImuData> Writer;
-        IWriter<CorrectedImuData> CorrectedWriter;
+        BridgeInstance Bridge;
+        Publisher<ImuData> Publish;
+        Publisher<CorrectedImuData> CorrectedWriter;
 
         Queue<Tuple<double, float, Action>> MessageQueue =
             new Queue<Tuple<double, float, Action>>();
@@ -48,13 +48,13 @@ namespace Simulator.Sensors
         
         public override SensorDistributionType DistributionType => SensorDistributionType.HighLoad;
 
-        public override void OnBridgeSetup(IBridge bridge)
+        public override void OnBridgeSetup(BridgeInstance bridge)
         {
             Bridge = bridge;
-            Writer = Bridge.AddWriter<ImuData>(Topic);
+            Publish = Bridge.AddPublisher<ImuData>(Topic);
             if (!string.IsNullOrEmpty(CorrectedTopic))
             {
-                CorrectedWriter = Bridge.AddWriter<CorrectedImuData>(CorrectedTopic);
+                CorrectedWriter = Bridge.AddPublisher<CorrectedImuData>(CorrectedTopic);
             }
         }
 
@@ -181,11 +181,12 @@ namespace Simulator.Sensors
 
             lock (MessageQueue)
             {
-                MessageQueue.Enqueue(Tuple.Create(time, Time.fixedDeltaTime, (Action)(() => {
-                    Writer.Write(data);
-                    if (CorrectedWriter != null)
+                MessageQueue.Enqueue(Tuple.Create(time, Time.fixedDeltaTime, (Action)(() =>
+                {
+                    if (Bridge != null && Bridge.Status == Status.Connected)
                     {
-                        CorrectedWriter.Write(correctedData);
+                        Publish(data);
+                        CorrectedWriter?.Invoke(correctedData);
                     }
                 })));
             }

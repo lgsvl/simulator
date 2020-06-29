@@ -24,15 +24,15 @@ namespace Simulator.Sensors
         double NextSend;
         uint SendSequence;
 
-        IBridge Bridge;
-        IWriter<GpsInsData> Writer;
+        BridgeInstance Bridge;
+        Publisher<GpsInsData> Publish;
         
         public override SensorDistributionType DistributionType => SensorDistributionType.LowLoad;
 
-        public override void OnBridgeSetup(IBridge bridge)
+        public override void OnBridgeSetup(BridgeInstance bridge)
         {
             Bridge = bridge;
-            Writer = Bridge.AddWriter<GpsInsData>(Topic);
+            Publish = Bridge.AddPublisher<GpsInsData>(Topic);
         }
 
         public void Start()
@@ -53,7 +53,7 @@ namespace Simulator.Sensors
             }
             NextSend = SimulatorManager.Instance.CurrentTime + 1.0f / Frequency;
             
-            Writer.Write(new GpsInsData()
+            Publish(new GpsInsData()
             {
                 Name = Name,
                 Frame = Frame,

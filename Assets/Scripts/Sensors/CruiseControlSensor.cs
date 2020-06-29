@@ -45,7 +45,7 @@ namespace Simulator.Sensors
             }
         }
         
-        public override void OnBridgeSetup(IBridge bridge)
+        public override void OnBridgeSetup(BridgeInstance bridge)
         {
             // TODO new base class?
         }

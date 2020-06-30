@@ -91,7 +91,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
                     }
                     if (headLightRenderer != null)
                     {
-                        headLightRenderer.material.SetFloat("_EmitIntensity", 2);
+                        headLightRenderer.material.SetFloat("_EmitIntensity", 4);
                     }
                     break;
                 case HeadLightState.HIGH:
@@ -103,7 +103,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
                     }
                     if (headLightRenderer != null)
                     {
-                        headLightRenderer.material.SetFloat("_EmitIntensity", 3);
+                        headLightRenderer.material.SetFloat("_EmitIntensity", 12);
                     }
                     break;
             }
@@ -211,14 +211,14 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
                 case HeadLightState.OFF:
                     if (brakeLightRenderer != null)
                     {
-                        brakeLightRenderer.material.SetFloat("_EmitIntensity", _brakeLights ? 3 : 0);
+                        brakeLightRenderer.material.SetFloat("_EmitIntensity", _brakeLights ? 4 : 0);
                     }
                     break;
                 case HeadLightState.LOW:
                 case HeadLightState.HIGH:
                     if (brakeLightRenderer != null)
                     {
-                        brakeLightRenderer.material.SetFloat("_EmitIntensity", _brakeLights ? 3 : 2);
+                        brakeLightRenderer.material.SetFloat("_EmitIntensity", _brakeLights ? 4 : 1.1f);
                     }
                     break;
             }

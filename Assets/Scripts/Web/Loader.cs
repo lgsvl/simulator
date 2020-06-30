@@ -563,124 +563,13 @@ namespace Simulator
                     foreach (var agentConfig in Instance.SimConfig.Agents)
                     {
                         var bundlePath = agentConfig.AssetBundle;
-                        AssetBundle textureBundle = null;
-                        AssetBundle vehicleBundle = null;
                         if (cachedVehicles.ContainsKey(agentConfig.Name))
                         {
                             agentConfig.Prefab = cachedVehicles[agentConfig.Name];
                             continue;
                         }
-
-                        using (ZipFile zip = new ZipFile(bundlePath))
-                        {
-                            Manifest manifest;
-                            ZipEntry entry = zip.GetEntry("manifest.json");
-                            using (var ms = zip.GetInputStream(entry))
-                            {
-                                int streamSize = (int)entry.Size;
-                                byte[] buffer = new byte[streamSize];
-                                streamSize = ms.Read(buffer, 0, streamSize);
-
-                                try
-                                {
-                                    manifest = Newtonsoft.Json.JsonConvert.DeserializeObject<Manifest>(Encoding.UTF8.GetString(buffer, 0, streamSize));
-                                }
-                                catch
-                                {
-                                    throw new Exception("Out of date AssetBundle, rebuild or download latest AssetBundle.");
-                                }
-                            }
-
-                            if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Vehicle])
-                            {
-                                zip.Close();
-
-                                // TODO: proper exception
-                                throw new ZipException("BundleFormat version mismatch");
-                            }
-
-                            var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_vehicle_textures"));
-                            textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
-
-                            string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
-                            var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_vehicle_main_{platform}"));
-
-                            vehicleBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
-
-                            if (vehicleBundle == null)
-                            {
-                                throw new Exception($"Failed to load '{agentConfig.Name}' vehicle asset bundle");
-                            }
-
-                            try
-                            {
-                                var vehicleAssets = vehicleBundle.GetAllAssetNames();
-                                if (vehicleAssets.Length != 1)
-                                {
-                                    throw new Exception($"Unsupported '{agentConfig.Name}' vehicle asset bundle, only 1 asset expected");
-                                }
-
-                                if (manifest.fmuName != "")
-                                {
-                                    var fmuDirectory = Path.Combine(Application.persistentDataPath, manifest.assetName);
-                                    if (platform == "windows")
-                                    {
-                                        var dll = zip.GetEntry($"{manifest.fmuName}_windows.dll");
-                                        if (dll == null)
-                                        {
-                                            throw new ArgumentException($"{manifest.fmuName}.dll not found in Zip {bundlePath}");
-                                        }
-
-                                        using (Stream s = zip.GetInputStream(dll))
-                                        {
-                                            byte[] buffer = new byte[4096];
-                                            Directory.CreateDirectory(fmuDirectory);
-                                            var path = Path.Combine(Application.persistentDataPath, manifest.assetName, $"{manifest.fmuName}.dll");
-                                            using (FileStream streamWriter = File.Create(path))
-                                            {
-                                                StreamUtils.Copy(s, streamWriter, buffer);
-                                            }
-                                            vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]).GetComponent<VehicleFMU>().FMUData.Path = path;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        var dll = zip.GetEntry($"{manifest.fmuName}_linux.so");
-                                        if (dll == null)
-                                        {
-                                            throw new ArgumentException($"{manifest.fmuName}.so not found in Zip {bundlePath}");
-                                        }
-
-                                        using (Stream s = zip.GetInputStream(dll))
-                                        {
-                                            byte[] buffer = new byte[4096];
-                                            Directory.CreateDirectory(fmuDirectory);
-                                            var path = Path.Combine(Application.persistentDataPath, manifest.assetName, $"{manifest.fmuName}.so");
-                                            using (FileStream streamWriter = File.Create(path))
-                                            {
-                                                StreamUtils.Copy(s, streamWriter, buffer);
-                                            }
-                                            vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]).GetComponent<VehicleFMU>().FMUData.Path = path;
-                                        }
-                                    }
-
-                                }
-
-                                // TODO: make this async
-                                if (!AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
-                                {
-                                    textureBundle?.LoadAllAssets();
-                                }
-
-                                agentConfig.Prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
-                                cachedVehicles.Add(agentConfig.Name, agentConfig.Prefab);
-                            }
-                            finally
-                            {
-                                textureBundle?.Unload(false);
-                                vehicleBundle.Unload(false);
-                            }
-                        }
+                        agentConfig.Prefab = LoadVehicleBundle(bundlePath);
+                        cachedVehicles.Add(agentConfig.Name, agentConfig.Prefab);
                     }
 
                     var sim = CreateSimulatorManager();
@@ -713,6 +602,126 @@ namespace Simulator
 
                     ResetLoaderScene(simulation);
                 }
+        }
+
+        public static GameObject LoadVehicleBundle(string bundlePath)
+        {
+            AssetBundle textureBundle = null;
+            AssetBundle vehicleBundle = null;
+            using (ZipFile zip = new ZipFile(bundlePath))
+            {
+                Manifest manifest;
+                ZipEntry entry = zip.GetEntry("manifest.json");
+                using (var ms = zip.GetInputStream(entry))
+                {
+                    int streamSize = (int)entry.Size;
+                    byte[] buffer = new byte[streamSize];
+                    streamSize = ms.Read(buffer, 0, streamSize);
+
+                    try
+                    {
+                        manifest = Newtonsoft.Json.JsonConvert.DeserializeObject<Manifest>(Encoding.UTF8.GetString(buffer, 0, streamSize));
+                    }
+                    catch
+                    {
+                        throw new Exception("Out of date AssetBundle, rebuild or download latest AssetBundle.");
+                    }
+                }
+
+                if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Vehicle])
+                {
+                    zip.Close();
+
+                    // TODO: proper exception
+                    throw new ZipException("BundleFormat version mismatch");
+                }
+
+                if (zip.FindEntry($"{manifest.assetGuid}_vehicle_textures", true) != -1)
+                {
+                    var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_vehicle_textures"));
+                    textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+                }
+
+                string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
+                var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_vehicle_main_{platform}"));
+
+                vehicleBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
+
+                if (vehicleBundle == null)
+                {
+                    throw new Exception($"Failed to load '{manifest.assetName}' vehicle asset bundle");
+                }
+
+                try
+                {
+                    var vehicleAssets = vehicleBundle.GetAllAssetNames();
+                    if (vehicleAssets.Length != 1)
+                    {
+                        throw new Exception($"Unsupported '{manifest.assetName}' vehicle asset bundle, only 1 asset expected");
+                    }
+
+                    if (manifest.fmuName != "")
+                    {
+                        var fmuDirectory = Path.Combine(Application.persistentDataPath, manifest.assetName);
+                        if (platform == "windows")
+                        {
+                            var dll = zip.GetEntry($"{manifest.fmuName}_windows.dll");
+                            if (dll == null)
+                            {
+                                throw new ArgumentException($"{manifest.fmuName}.dll not found in Zip {bundlePath}");
+                            }
+
+                            using (Stream s = zip.GetInputStream(dll))
+                            {
+                                byte[] buffer = new byte[4096];
+                                Directory.CreateDirectory(fmuDirectory);
+                                var path = Path.Combine(Application.persistentDataPath, manifest.assetName, $"{manifest.fmuName}.dll");
+                                using (FileStream streamWriter = File.Create(path))
+                                {
+                                    StreamUtils.Copy(s, streamWriter, buffer);
+                                }
+                                vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]).GetComponent<VehicleFMU>().FMUData.Path = path;
+                            }
+                        }
+                        else
+                        {
+                            var dll = zip.GetEntry($"{manifest.fmuName}_linux.so");
+                            if (dll == null)
+                            {
+                                throw new ArgumentException($"{manifest.fmuName}.so not found in Zip {bundlePath}");
+                            }
+
+                            using (Stream s = zip.GetInputStream(dll))
+                            {
+                                byte[] buffer = new byte[4096];
+                                Directory.CreateDirectory(fmuDirectory);
+                                var path = Path.Combine(Application.persistentDataPath, manifest.assetName, $"{manifest.fmuName}.so");
+                                using (FileStream streamWriter = File.Create(path))
+                                {
+                                    StreamUtils.Copy(s, streamWriter, buffer);
+                                }
+                                vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]).GetComponent<VehicleFMU>().FMUData.Path = path;
+                            }
+                        }
+
+                    }
+
+                    // TODO: make this async
+                    if (!AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
+                    {
+                        textureBundle?.LoadAllAssets();
+                    }
+
+                    return vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
+
+                }
+                finally
+                {
+                    textureBundle?.Unload(false);
+                    vehicleBundle.Unload(false);
+                }
+            }
+
         }
 
         public static void ResetLoaderScene(SimulationData simulation)
@@ -751,15 +760,6 @@ namespace Simulator
             Instance.Network.InitializeSimulationScene(sim.gameObject);
 
             return sim;
-        }
-
-        static byte[] GetFile(ZipFile zip, string entryName)
-        {
-            var entry = zip.GetEntry(entryName);
-            int streamSize = (int)entry.Size;
-            byte[] buffer = new byte[streamSize];
-            zip.GetInputStream(entry).Read(buffer, 0, streamSize);
-            return buffer;
         }
     }
 }

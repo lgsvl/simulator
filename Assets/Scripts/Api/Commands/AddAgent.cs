@@ -76,7 +76,7 @@ namespace Simulator.Api.Commands
 
                     var assetModel = await DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicleData.AssetGuid, vehicleData.Name);
 
-                    var prefab = AquirePrefab(vehicleData, assetModel);
+                    var prefab = Loader.LoadVehicleBundle(assetModel.LocalPath);
                     if (prefab == null)
                     {
                         throw new Exception($"failed to acquire ego prefab");
@@ -216,75 +216,6 @@ namespace Simulator.Api.Commands
             finally
             {
                 api.ActionsSemaphore.Unlock();
-            }
-        }
-
-        public GameObject AquirePrefab(VehicleDetailData vehicle, AssetModel asset)
-        {
-            if (ApiManager.Instance.CachedVehicles.ContainsKey(vehicle.Name))
-            {
-                return ApiManager.Instance.CachedVehicles[vehicle.Name];
-            }
-            else
-            {
-                var bundlePath = asset.LocalPath;
-                using (ZipFile zip = new ZipFile(bundlePath))
-                {
-                    Manifest manifest;
-                    ZipEntry entry = zip.GetEntry("manifest.json");
-                    using (var ms = zip.GetInputStream(entry))
-                    {
-                        int streamSize = (int)entry.Size;
-                        byte[] buffer = new byte[streamSize];
-                        streamSize = ms.Read(buffer, 0, streamSize);
-                        manifest = Newtonsoft.Json.JsonConvert.DeserializeObject<Manifest>(Encoding.UTF8.GetString(buffer));
-                    }
-
-                    if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Vehicle])
-                    {
-                        throw new Exception("Out of date Vehicle AssetBundle. Please check content website for updated bundle or rebuild the bundle.");
-                    }
-
-                    AssetBundle textureBundle = null;
-
-                    if (zip.FindEntry($"{manifest.assetGuid}_vehicle_textures", true) != -1)
-                    {
-                        var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_vehicle_textures"));
-                        textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
-                    }
-
-                    string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
-                    var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_vehicle_main_{platform}"));
-                    var vehicleBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
-
-                    if (vehicleBundle == null)
-                    {
-                        throw new Exception($"Failed to load vehicle {vehicle.Name} from '{bundlePath}' asset bundle");
-                    }
-
-                    try
-                    {
-                        var vehicleAssets = vehicleBundle.GetAllAssetNames();
-                        if (vehicleAssets.Length != 1)
-                        {
-                            throw new Exception($"Unsupported '{bundlePath}' vehicle asset bundle, only 1 asset expected");
-                        }
-
-                        if (!AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
-                        {
-                            textureBundle?.LoadAllAssets();
-                        }
-
-                        var prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
-                        ApiManager.Instance.CachedVehicles.Add(vehicle.Name, prefab);
-                        return prefab;
-                    }
-                    finally
-                    {
-                        textureBundle?.Unload(false);
-                        vehicleBundle.Unload(false);
-                    }
-                }
             }
         }
     }

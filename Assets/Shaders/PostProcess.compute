@@ -8,6 +8,7 @@
 #include "UnityCG.cginc"
 #pragma kernel PlumBobDistortion
 #pragma kernel UnifiedProjectionDistortion
+#pragma kernel LinearToGamma
 
 Texture2D<float4> _InputTexture;
 SamplerState sampler_InputTexture;
@@ -88,6 +89,22 @@ void UnifiedProjectionDistortion(uint3 id : SV_DispatchThreadID)
 	// Since _DistortedTexture is bound to RWTexture2D,
 	// the value written into it is always linear.
 	// But the texture is created as sRGB, so we need to do gamma correction here.
+	color = LinearToGammaSpace(color);
+	_DistortedTexture[id.xy] = float4(color, 1);
+}
+
+[numthreads(8, 8, 1)]
+void LinearToGamma(uint3 id : SV_DispatchThreadID)
+{
+	float distortedTextureWidth, distortedTextureHeight;
+	_DistortedTexture.GetDimensions(distortedTextureWidth, distortedTextureHeight);
+
+	if (id.x >= uint(distortedTextureWidth) || id.y >= uint(distortedTextureHeight)) {
+		return;
+	}
+
+	float2 normalizedUv = id.xy / float2(distortedTextureWidth, distortedTextureHeight);
+	float3 color = _InputTexture.SampleLevel(sampler_InputTexture, normalizedUv, 0).rgb;
 	color = LinearToGammaSpace(color);
 	_DistortedTexture[id.xy] = float4(color, 1);
 }

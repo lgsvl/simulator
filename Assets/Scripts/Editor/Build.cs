@@ -630,7 +630,8 @@ namespace Simulator.Editor
                             {
                                 Debug.Log($"Attempting to load {outputAssembly} exists: {File.Exists(outputAssembly)}");
                                 string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
-                                var assembly = System.Reflection.Assembly.LoadFile(outputAssembly);
+                                byte[] bytes = System.IO.File.ReadAllBytes(outputAssembly);
+                                var assembly = System.Reflection.Assembly.Load(bytes);
                                 AssetBundle pluginBundle = AssetBundle.LoadFromFile(Path.Combine(outputFolder, $"{manifest.assetGuid}_{thing}_main_{platform}"));
                                 var pluginAssets = pluginBundle.GetAllAssetNames();
                                 foreach (var asset in pluginAssets)

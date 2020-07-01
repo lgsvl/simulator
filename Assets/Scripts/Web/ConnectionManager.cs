@@ -55,8 +55,7 @@ public class ConnectionManager : MonoBehaviour
         unityThread = Thread.CurrentThread.ManagedThreadId;
         service = new ClientSettingsService();
         ClientSettings settings = service.GetOrMake();
-        Config.SimID = settings.simid;
-        API = new CloudAPI(new Uri(Config.CloudUrl), settings.simid);
+        API = new CloudAPI(new Uri(Config.CloudUrl), Config.SimID);
 
         if (settings.onlineStatus)
         {

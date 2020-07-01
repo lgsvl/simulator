@@ -109,6 +109,8 @@ public class VehicleController : AgentController
 
     private void UpdateLights()
     {
+        if (actions == null)
+            return;
         // brakes
         if (AccelInput < 0 || BrakeInput > 0)
             actions.BrakeLights = true;

@@ -264,33 +264,48 @@ namespace Simulator
                 Debug.LogWarning("Received start simulation command while Simulator is not idle.");
                 return;
             }
-            Instance.Status = SimulatorStatus.Loading;
-            Instance.Network.Initialize(Config.SimID, simData.Cluster, Instance.NetworkSettings);
-            var downloads = new List<Task>();
-            if(simData.ApiOnly == false)
+            try
             {
-                downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, simData.Map.AssetGuid, simData.Map.Name));
-
-                foreach (var vehicle in simData.Vehicles)
+                Instance.Status = SimulatorStatus.Loading;
+                Instance.Network.Initialize(Config.SimID, simData.Cluster, Instance.NetworkSettings);
+                var downloads = new List<Task>();
+                if (simData.ApiOnly == false)
                 {
-                    downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicle.AssetGuid, vehicle.Name));
+                    downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, simData.Map.AssetGuid, simData.Map.Name));
+
+                    foreach (var vehicle in simData.Vehicles)
+                    {
+                        downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicle.AssetGuid, vehicle.Name));
+                    }
+                }
+
+                ConnectionUI.instance.SetLinkingButtonActive(false);
+                await Task.WhenAll(downloads);
+
+                SimulationService simService = new SimulationService();
+                simService.AddOrUpdate(simData);
+
+                Debug.Log("All Downloads Complete");
+
+                Instance.CurrentSimulation = simData;
+                if (!Instance.Network.IsClusterSimulation)
+                    StartAsync(simData);
+                else
+                    Instance.Network.SetSimulationData(simData);
+            }
+            catch (Exception ex)
+            {
+                Debug.Log($"Failed to start '{simData.Name}' simulation");
+                Debug.LogException(ex);
+                ConnectionManager.instance.UpdateStatus("Error", simData.Id, ex.Message);
+
+                if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
+                {
+                    Instance.Status = SimulatorStatus.Stopping;
+                    SceneManager.LoadScene(Instance.LoaderScene);
+                    Instance.Status = SimulatorStatus.Idle;
                 }
             }
-
-            ConnectionUI.instance.SetLinkingButtonActive(false);
-            await Task.WhenAll(downloads);
-
-            SimulationService simService = new SimulationService();
-            simService.AddOrUpdate(simData);
-
-            Debug.Log("All Downloads Complete");
-
-
-            Instance.CurrentSimulation = simData;
-            if (!Instance.Network.IsClusterSimulation)
-                StartAsync(simData);
-            else
-                Instance.Network.SetSimulationData(simData);
         }
 
         public static void StartAsync(SimulationData simulation)
@@ -480,9 +495,6 @@ namespace Simulator
 
         public static void StopAsync()
         {
-            if (Instance.Status == SimulatorStatus.Idle || Instance.Status == SimulatorStatus.Stopping)
-                return;
-            
             //Check if simulation scene was initialized
             if (Instance.Status == SimulatorStatus.Loading)
             {
@@ -536,50 +548,50 @@ namespace Simulator
         static void SetupScene(SimulationData simulation)
         {
             Dictionary<string, GameObject> cachedVehicles = new Dictionary<string, GameObject>();
-                try
+            try
+            {
+                foreach (var agentConfig in Instance.SimConfig.Agents)
                 {
-                    foreach (var agentConfig in Instance.SimConfig.Agents)
+                    var bundlePath = agentConfig.AssetBundle;
+                    if (cachedVehicles.ContainsKey(agentConfig.Name))
                     {
-                        var bundlePath = agentConfig.AssetBundle;
-                        if (cachedVehicles.ContainsKey(agentConfig.Name))
-                        {
-                            agentConfig.Prefab = cachedVehicles[agentConfig.Name];
-                            continue;
-                        }
-                        agentConfig.Prefab = LoadVehicleBundle(bundlePath);
-                        cachedVehicles.Add(agentConfig.Name, agentConfig.Prefab);
+                        agentConfig.Prefab = cachedVehicles[agentConfig.Name];
+                        continue;
                     }
-
-                    var sim = CreateSimulatorManager();
-                    if (simulation.Seed != null)
-                        sim.Init(simulation.Seed);
-                    else
-                        sim.Init();
-
-                    if (Instance.CurrentSimulation != null && ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline)
-                    {
-                        Instance.Status = SimulatorStatus.Running;
-                    }
-
-                    Instance.CurrentSimulation = simulation;
-
-                    // Flash main window to let user know simulation is ready
-                    WindowFlasher.Flash();
+                    agentConfig.Prefab = LoadVehicleBundle(bundlePath);
+                    cachedVehicles.Add(agentConfig.Name, agentConfig.Prefab);
                 }
-                catch (ZipException ex)
+
+                var sim = CreateSimulatorManager();
+                if (simulation.Seed != null)
+                    sim.Init(simulation.Seed);
+                else
+                    sim.Init();
+
+                if (Instance.CurrentSimulation != null && ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline)
                 {
-                    Debug.Log($"Failed to start '{simulation.Name}' simulation - out of date asset bundles");
-                    Debug.LogException(ex);
-
-                    ResetLoaderScene(simulation);
+                    Instance.Status = SimulatorStatus.Running;
                 }
-                catch (Exception ex)
-                {
-                    Debug.Log($"Failed to start '{simulation.Name}' simulation");
-                    Debug.LogException(ex);
 
-                    ResetLoaderScene(simulation);
-                }
+                Instance.CurrentSimulation = simulation;
+
+                // Flash main window to let user know simulation is ready
+                WindowFlasher.Flash();
+            }
+            catch (ZipException ex)
+            {
+                Debug.Log($"Failed to start '{simulation.Name}' simulation - out of date asset bundles");
+                Debug.LogException(ex);
+
+                ResetLoaderScene(simulation);
+            }
+            catch (Exception ex)
+            {
+                Debug.Log($"Failed to start '{simulation.Name}' simulation");
+                Debug.LogException(ex);
+
+                ResetLoaderScene(simulation);
+            }
         }
 
         public static GameObject LoadVehicleBundle(string bundlePath)
@@ -746,7 +758,9 @@ namespace Simulator
         {
             StringBuilder hex = new StringBuilder(ba.Length * 2);
             foreach (byte b in ba)
+            {
                 hex.AppendFormat("{0:x2}", b);
+            }
             return hex.ToString();
         }
 
@@ -755,7 +769,9 @@ namespace Simulator
             int NumberChars = hex.Length;
             byte[] bytes = new byte[NumberChars / 2];
             for (int i = 0; i < NumberChars; i += 2)
+            {
                 bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+            }
             return bytes;
         }
 

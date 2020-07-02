@@ -97,30 +97,33 @@ public class ConnectionManager : MonoBehaviour
                     await Task.Delay(1000 * timeOut);
                 }
             }
-            Debug.Log("Giving up connecting.");
         }
         catch (TaskCanceledException)
         {
             Debug.Log("Linking task canceled.");
-            Disconnect();
+        }
+        catch(System.Net.Sockets.SocketException se)
+        {
+            Debug.Log($"Could not reach WISE SSE at {Config.CloudUrl}: {se.Message}");
         }
         catch (Exception ex)
         {
             Debug.LogException(ex);
-            Disconnect();
         }
+
+        Debug.Log("Giving up reconnecting.");
+        Disconnect();
     }
 
     async Task ReadResponse(StreamReader reader)
     {
-
         await Task.Run(async () =>
         {
             while (!reader.EndOfStream)
             {
                 //We are ready to read the stream
                 var line = await reader.ReadLineAsync();
-                Parse(line);
+                await Parse(line);
             }
             Debug.Log("WISE connection closed");
             reader.Dispose();
@@ -144,7 +147,7 @@ public class ConnectionManager : MonoBehaviour
         }
     }
 
-    void Parse(string s)
+    async Task Parse(string s)
     {
         if (string.IsNullOrEmpty(s))
             return;
@@ -156,9 +159,10 @@ public class ConnectionManager : MonoBehaviour
                 JObject deserialized = JObject.Parse(s.Substring(5));
                 if (deserialized != null && deserialized.HasValues)
                 {
-                    if (deserialized.GetValue("status") != null)
+                    var status = deserialized.GetValue("status");
+                    if (status != null)
                     {
-                        switch (deserialized.GetValue("status").ToString())
+                        switch (status.ToString())
                         {
                             case "Unrecognized":
                                 RunOnUnityThread(() =>
@@ -182,7 +186,6 @@ public class ConnectionManager : MonoBehaviour
                                     ConnectionUI.instance.statusButton.interactable = false;
                                     SimulationData simData = Newtonsoft.Json.JsonConvert.DeserializeObject<SimulationData>(deserialized.GetValue("data").ToString());
                                     Loader.StartSimulation(simData);
-                                    instance.UpdateStatus("Starting", simData.Id);
                                 });
                                 break;
                             case "Disconnect":
@@ -192,10 +195,18 @@ public class ConnectionManager : MonoBehaviour
                                 });
                                 break;
                             case "Stop":
+                                if (Loader.Instance.Status == SimulatorStatus.Idle || Loader.Instance.Status == SimulatorStatus.Stopping)
+                                {
+                                    SimulationData simData = Newtonsoft.Json.JsonConvert.DeserializeObject<SimulationData>(deserialized.GetValue("data").ToString());
+                                    Debug.Log("not running");
+                                    await API.UpdateStatus("Stopping", simData.Id, "stop requested but was not running simulation");
+                                    await API.UpdateStatus("Idle", simData.Id, "");
+                                    return;
+                                }
                                 Loader.StopAsync();
                                 break;
                             default:
-                                Debug.LogError("Unknown Status! Disconnecting.");
+                                Debug.LogError($"Unknown Status '{status.ToString()}'! Disconnecting.");
                                 RunOnUnityThread(() =>
                                 {
                                     Disconnect();
@@ -203,12 +214,6 @@ public class ConnectionManager : MonoBehaviour
                                 break;
                         }
                     }
-                    /* //nothing to do for now.
-                    if (deserialized.GetValue("ping") != null)
-                    {
-                        Debug.Log("got ping");
-                    }
-                    */
                 }
             }
         }
@@ -220,7 +225,6 @@ public class ConnectionManager : MonoBehaviour
 
     public static void RunOnUnityThread(Action action)
     {
-        // is this right?
         if (unityThread == Thread.CurrentThread.ManagedThreadId)
         {
             action();
@@ -273,6 +277,7 @@ public class ConnectionManager : MonoBehaviour
         switch (Status)
         {
             case ConnectionStatus.Offline:
+                Simulator.Web.Config.ParseConfigFile();
                 RunConnectTask();
                 service.UpdateOnlineStatus(true);
                 break;

@@ -8,6 +8,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/LoaderScene.unity
     guid: 2687100c1fc099a44a98fb6792516401
+  - enabled: 1
+    path: Assets/Scenes/ScenarioEditor.unity
+    guid: 5f89b6c8f8bb5ab4190e02c78fddf152
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: 4270dd94ce32ff9408cfe51e6cd1c831,
       type: 2}

@@ -123,6 +123,9 @@ namespace Simulator
 
     public class Loader : MonoBehaviour
     {
+        private static string ScenarioEditorSceneName = "ScenarioEditor";
+        private static bool IsInScenarioEditor;
+        
         public SimulationNetwork Network { get; } = new SimulationNetwork();
         public SimulatorManager SimulatorManagerPrefab;
         public ApiManager ApiManagerPrefab;
@@ -709,6 +712,34 @@ namespace Simulator
                 Instance.CurrentSimulation = null;
                 Instance.Status = SimulatorStatus.Idle;
             }
+        }
+	    
+        public static void EnterScenarioEditor()
+        {
+            if (SimulatorManager.InstanceAvailable || ApiManager.Instance)
+            {
+                Debug.LogError("Cannot enter Scenario Editor during a simulation.");
+                return;
+            }
+            
+            if (ConnectionManager.Status != ConnectionManager.ConnectionStatus.Online)
+            {
+                Debug.LogError("Cannot enter Scenario Editor when connection is not established.");
+                return;
+            }
+
+            if (!IsInScenarioEditor && !SceneManager.GetSceneByName(ScenarioEditorSceneName).isLoaded)
+            {
+                IsInScenarioEditor = true;
+                SceneManager.LoadScene(ScenarioEditorSceneName);
+            }
+        }
+
+        public static void ExitScenarioEditor()
+        {
+            IsInScenarioEditor = false;
+            if (SceneManager.GetSceneByName(ScenarioEditorSceneName).isLoaded)
+                SceneManager.LoadScene(Instance.LoaderScene);
         }
 
         static string ByteArrayToString(byte[] ba)

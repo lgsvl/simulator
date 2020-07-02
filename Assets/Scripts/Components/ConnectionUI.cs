@@ -55,9 +55,7 @@ namespace Simulator.Web
         public void UpdateDownloadProgress(string name, float percentage)
         {
             if (statusText != null)
-            {
                 statusText.text = $"Downloading {name}... {percentage}%";
-            }
         }
 
         public void UpdateStatus()

@@ -1,0 +1,17 @@
+{
+    "name": "Simulator.ScenarioEditor",
+    "references": [
+        "GUID:43bb230cc5d89654fb9c4da20660d5b4",
+        "GUID:76dd2468be63a2f4c92b1bfffe8c082f",
+        "GUID:2409dc9767581724ca39638857e3f2e7"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -21,6 +21,8 @@ public abstract class AgentController : MonoBehaviour
     public AgentConfig Config { get; set; }
     public virtual SensorsController AgentSensorsController { get; set; }
     public uint GTID { get; set; }
+    public abstract Vector3 Velocity { get; }
+    public abstract Vector3 Acceleration { get; }
 
     public List<SensorBase> AgentSensors = new List<SensorBase>();
 

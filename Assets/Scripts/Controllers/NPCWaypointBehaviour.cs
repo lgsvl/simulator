@@ -26,6 +26,7 @@ public class NPCWaypointBehaviour : NPCBehaviourBase
     public List<float> LaneTime;
     public List<bool> LaneDeactivate;
     public List<float> LaneTriggerDistance;
+    public List<WaypointTrigger> LaneTriggers;
     public bool WaypointLoop;
 
     // targeting
@@ -114,6 +115,7 @@ public class NPCWaypointBehaviour : NPCBehaviourBase
         LaneDeactivate = waypoints.Select(wp => wp.Deactivate).ToList();
         LaneTriggerDistance = waypoints.Select(wp => wp.TriggerDistance).ToList();
         LaneTime = waypoints.Select(wp => wp.TimeStamp).ToList();
+        LaneTriggers = waypoints.Select(wp => wp.Trigger).ToList();
 
         InitNPC();
 
@@ -222,11 +224,19 @@ public class NPCWaypointBehaviour : NPCBehaviourBase
             if (ApiManager.Instance != null)
                 ApiManager.Instance.AddWaypointReached(gameObject, CurrentIndex-1);
 
-            // trigger
+            // apply simple distance trigger
             if (LaneTriggerDistance[CurrentIndex] > 0)
             {
                 WaypointState = WaypointDriveState.Trigger;
                 yield return TriggerCoroutine = FixedUpdateManager.StartCoroutine(NPCTriggerIE());
+            }
+
+            // apply complex triggers
+            if (CurrentIndex < LaneTriggers.Count && LaneTriggers[CurrentIndex] != null)
+            {
+                WaypointState = WaypointDriveState.Trigger;
+                yield return TriggerCoroutine = FixedUpdateManager.StartCoroutine(LaneTriggers[CurrentIndex].Apply(controller));
+                TriggerCoroutine = null;
             }
 
             // deactivate

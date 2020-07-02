@@ -1040,7 +1040,7 @@ namespace Simulator.Editor
 
                 var build = new BuildPlayerOptions()
                 {
-                    scenes = new[] { "Assets/Scenes/LoaderScene.unity" },
+                    scenes = new[] { "Assets/Scenes/LoaderScene.unity", "Assets/Scenes/ScenarioEditor.unity" },
                     locationPathName = location,
                     targetGroup = BuildTargetGroup.Standalone,
                     target = buildTarget,

@@ -190,4 +190,9 @@ public class LoaderUI : MonoBehaviour
         QualityDropdown.value = QualitySettings.GetQualityLevel();
         QualityDropdown.RefreshShownValue();
     }
+
+    public void EnterScenarioEditor()
+    {
+        Loader.EnterScenarioEditor();
+    }
 }

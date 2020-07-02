@@ -9,6 +9,7 @@ using UnityEngine;
 
 namespace Simulator.Api
 {
+
     public struct DriveWaypoint
     {
         public Vector3 Position;
@@ -18,6 +19,7 @@ namespace Simulator.Api
         public bool Deactivate;
         public float TriggerDistance;
         public float TimeStamp;
+        public WaypointTrigger Trigger;
     }
 
     public struct WalkWaypoint
@@ -25,5 +27,6 @@ namespace Simulator.Api
         public Vector3 Position;
         public float Idle;
         public float TriggerDistance;
+        public WaypointTrigger Trigger;
     }
 }

@@ -5,14 +5,10 @@
  *
  */
 
-using System.Text;
-using System.Linq;
 using System;
 using SimpleJSON;
 using UnityEngine;
 using Simulator.Sensors;
-using ICSharpCode.SharpZipLib.Zip;
-using Simulator.Database;
 using UnityEngine.SceneManagement;
 using Simulator.Web;
 using Simulator.Bridge;
@@ -73,30 +69,21 @@ namespace Simulator.Api.Commands
                     GameObject agentGO = null;
 
                     VehicleDetailData vehicleData = await ConnectionManager.API.GetByIdOrName<VehicleDetailData>(name);
+                    var config = new AgentConfig(vehicleData.ToVehicleData());
 
-                    var assetModel = await DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicleData.AssetGuid, vehicleData.Name);
-
-                    var prefab = Loader.LoadVehicleBundle(assetModel.LocalPath);
-                    if (prefab == null)
+                    if (ApiManager.Instance.CachedVehicles.ContainsKey(vehicleData.Name))
                     {
-                        throw new Exception($"failed to acquire ego prefab");
+                        config.Prefab = ApiManager.Instance.CachedVehicles[vehicleData.Name];
+                    }
+                    else
+                    {
+                        var assetModel = await DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicleData.AssetGuid, vehicleData.Name);
+                        config.Prefab = Loader.LoadVehicleBundle(assetModel.LocalPath);
                     }
 
-                    var config = new AgentConfig()
+                    if (config.Prefab == null)
                     {
-                        AssetGuid = vehicleData.AssetGuid,
-                        Name = vehicleData.Name,
-                        Prefab = prefab,
-                        Sensors = Newtonsoft.Json.JsonConvert.SerializeObject(vehicleData.Sensors),
-                    };
-
-                    if (vehicleData.bridge != null)
-                    {
-                        config.Bridge = BridgePlugins.Get(vehicleData.bridge.type);
-                        if (config.Bridge == null)
-                        {
-                            throw new Exception($"Bridge '{vehicleData.bridge.type}' not available");
-                        }
+                        throw new Exception($"failed to acquire ego prefab");
                     }
 
                     agentGO = agents.SpawnAgent(config);

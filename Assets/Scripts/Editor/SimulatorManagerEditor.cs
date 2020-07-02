@@ -13,6 +13,7 @@ using SimpleJSON;
 using Simulator.Utilities;
 using Simulator.Map;
 using Simulator;
+using Simulator.Editor;
 
 [InitializeOnLoad]
 public static class SimulatorManagerEditor
@@ -62,11 +63,12 @@ public static class SimulatorManagerEditor
             Scene scene = SceneManager.GetActiveScene();
             if (scene.name == "LoaderScene")
             {
-                var data = EditorPrefs.GetString("Simulator/DevelopmentSettings");
-                if (data != null)
+                var devSettings = (DevelopmentSettingsAsset)AssetDatabase.LoadAssetAtPath("Assets/Resources/Editor/DeveloperSettings.asset", typeof(DevelopmentSettingsAsset));
+                var developerSimulation = Newtonsoft.Json.JsonConvert.DeserializeObject<Simulator.Web.SimulationData>(devSettings.developerSimulationJson);
+
+                if (devSettings != null && developerSimulation != null)
                 {
-                    var json = JSONNode.Parse(data);
-                    if (json["EnableAPI"] && json["EnableAPI"].AsBool)
+                    if (developerSimulation.ApiOnly)
                     {
                         var api = Object.Instantiate(Loader.Instance.ApiManagerPrefab);
                         api.name = "ApiManager";

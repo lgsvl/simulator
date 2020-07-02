@@ -154,6 +154,7 @@ namespace Simulator.Web
         public float roll;
     }
 
+    [System.Serializable] // required for developerSettings
     public class SimulationData: CloudIdData
     {
         public bool ApiOnly { get; set; }

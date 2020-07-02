@@ -6,25 +6,17 @@
  */
 
 using System;
-using System.IO;
-using System.Text;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using Simulator;
 using Simulator.Sensors;
 using Simulator.Utilities;
 using Simulator.Components;
-using Simulator.Database;
-using SimpleJSON;
-using PetaPoco;
-using YamlDotNet.Serialization;
-using ICSharpCode.SharpZipLib.Zip;
-using ICSharpCode.SharpZipLib.Core;
 using Simulator.Network.Core;
 using Simulator.Network.Core.Components;
 using Simulator.Network.Core.Messaging;
-using Simulator.FMU;
 using Simulator.Network.Shared;
 using UnityEngine.Rendering.HighDefinition;
 using Simulator.Bridge;
@@ -150,8 +142,9 @@ public class AgentManager : MonoBehaviour
         }
     }
 
-    public void SetupDevAgents()
+    public async void SetupDevAgents(Simulator.Editor.DevelopmentSettingsAsset devSettings)
     {
+#if UNITY_EDITOR
         var sceneAgents = GameObject.FindGameObjectsWithTag("Player");
         foreach (var agent in sceneAgents)
         {
@@ -160,14 +153,52 @@ public class AgentManager : MonoBehaviour
             ActiveAgents.Add(config);
         }
 
-        if (ActiveAgents.Count == 0)
+        var developerSimulation = Newtonsoft.Json.JsonConvert.DeserializeObject<Simulator.Web.SimulationData>(devSettings.developerSimulationJson);
+
+        if (ActiveAgents.Count == 0 && devSettings.localVehicle != null && !string.IsNullOrEmpty(devSettings.localVehicle.PrefabPath))
         {
-            string data = null;
-#if UNITY_EDITOR
-            data = UnityEditor.EditorPrefs.GetString("Simulator/DevelopmentSettings");
-#endif
-            if (data != null)
+            var config = new AgentConfig()
             {
+                Prefab = UnityEditor.AssetDatabase.LoadAssetAtPath(devSettings.localVehicle.PrefabPath, typeof(GameObject)) as GameObject,
+                Connection = devSettings.localVehicle.BridgeConnection,
+                Sensors = devSettings.localVehicle.SensorConfig,
+            };
+            if (!string.IsNullOrEmpty(devSettings.localVehicle.BridgeName))
+            {
+                config.Bridge = BridgePlugins.Get(devSettings.localVehicle.BridgeName);
+                if (config.Bridge == null)
+                {
+                    throw new Exception($"Bridge {devSettings.localVehicle.BridgeName} not found");
+                }
+            }
+
+            var spawn = FindObjectsOfType<SpawnInfo>().OrderBy(s => s.name).FirstOrDefault();
+            config.Position = spawn != null ? spawn.transform.position : Vector3.zero;
+            config.Rotation = spawn != null ? spawn.transform.rotation : Quaternion.identity;
+
+            SpawnAgent(config);
+
+        }
+        else if (ActiveAgents.Count == 0 && developerSimulation.Vehicles != null)
+        {
+            try
+            {
+                foreach (var vehicle in developerSimulation.Vehicles)
+                {
+                    var asset = await Simulator.Web.DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicle.AssetGuid);
+                    var config = new AgentConfig(vehicle);
+                    config.Prefab = Loader.LoadVehicleBundle(asset.LocalPath);
+
+                    var spawn = FindObjectsOfType<SpawnInfo>().OrderBy(s => s.name).FirstOrDefault();
+                    config.Position = spawn != null ? spawn.transform.position : Vector3.zero;
+                    config.Rotation = spawn != null ? spawn.transform.rotation : Quaternion.identity;
+
+                    SpawnAgent(config);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
             }
         }
         else
@@ -193,6 +224,7 @@ public class AgentManager : MonoBehaviour
         ActiveAgents.ForEach(agent => agent.AgentGO.GetComponent<AgentController>().Init());
 
         SetCurrentActiveAgent(0);
+#endif
     }
 
     public void SetCurrentActiveAgent(GameObject agent)
@@ -335,14 +367,5 @@ public class AgentManager : MonoBehaviour
 
             positions[current % count] += Vector3.up * bounds.size.y;
         }
-    }
-
-    static byte[] GetFile(ZipFile zip, string entryName)
-    {
-        var entry = zip.GetEntry(entryName);
-        int streamSize = (int)entry.Size;
-        byte[] buffer = new byte[streamSize];
-        zip.GetInputStream(entry).Read(buffer, 0, streamSize);
-        return buffer;
     }
 }

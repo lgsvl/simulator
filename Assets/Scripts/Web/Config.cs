@@ -4,7 +4,6 @@
  * This software contains code licensed as described in LICENSE.
  *
  */
-using ICSharpCode.SharpZipLib.Zip;
 using Simulator.Bridge;
 using Simulator.Controllable;
 using Simulator.Sensors;
@@ -15,7 +14,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using UnityEngine;
 using VirtualFileSystem;
 using YamlDotNet.Serialization;

@@ -19,7 +19,6 @@ using Simulator.Bridge;
 using System.Text;
 using System.Linq;
 using ICSharpCode.SharpZipLib.Zip;
-using SimpleJSON;
 using Simulator.Network.Shared;
 using Simulator.Network.Core.Configs;
 using ICSharpCode.SharpZipLib.Core;
@@ -226,37 +225,18 @@ namespace Simulator
 
             var sim = Instantiate(Instance.SimulatorManagerPrefab);
             sim.name = "SimulatorManager";
-            bool useSeed = false;
-            int? seed = null;
-            bool enableNPCs = false;
-            bool enablePEDs = false;
 
-            var data = UnityEditor.EditorPrefs.GetString("Simulator/DevelopmentSettings");
-            if (data != null)
-            {
-                try
-                {
-                    var json = JSONNode.Parse(data);
+            SimulationData devSim;
+            var devSettings = (Simulator.Editor.DevelopmentSettingsAsset)UnityEditor.AssetDatabase.LoadAssetAtPath("Assets/Resources/Editor/DeveloperSettings.asset", typeof(Simulator.Editor.DevelopmentSettingsAsset));
+            if(devSettings != null && devSettings.developerSimulationJson != null)
+                devSim = Newtonsoft.Json.JsonConvert.DeserializeObject<SimulationData>(devSettings.developerSimulationJson);
+            else
+                devSim = new SimulationData();
 
-                    useSeed = json["UseSeed"];
-                    if (useSeed)
-                    {
-                        seed = json["Seed"];
-                    }
-
-                    enableNPCs = json["EnableNPCs"];
-                    enablePEDs = json["EnablePEDs"];
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.LogException(ex);
-                }
-            }
-
-            sim.Init(seed);
-            sim.AgentManager.SetupDevAgents();
-            sim.NPCManager.NPCActive = enableNPCs;
-            sim.PedestrianManager.PedestriansActive = enablePEDs;
+            sim.Init(devSim.Seed);
+            sim.AgentManager.SetupDevAgents(devSettings);
+            sim.NPCManager.NPCActive = devSim.UseTraffic;
+            sim.PedestrianManager.PedestriansActive = devSim.UsePedestrians;
 #endif
         }
 

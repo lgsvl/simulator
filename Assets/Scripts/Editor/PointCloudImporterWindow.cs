@@ -281,28 +281,26 @@ namespace Simulator.Editor
                     if (!dropRect.Contains(evt.mousePosition))
                         break;
 
-                    var fullpathArray = DragAndDrop.paths.Where(x => AllowedExtensions.Contains(Path.GetExtension(x))).Select(p => Path.GetFullPath(p)).ToArray();
-                    {
-                        System.Text.StringBuilder sb = new System.Text.StringBuilder();
-                        foreach (var p in fullpathArray)
-                        {
-                            sb.AppendLine(p);
-                        }
-                        Debug.Log(sb.ToString());
-                    }
+                    var fullpathArray = DragAndDrop.paths.Where(x => allowedExtensionsList.Contains(Path.GetExtension(x))).Select(p => Path.GetFullPath(p)).ToArray();
                     if (0 < fullpathArray.Length)
                     {
                         DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
                     }
-                    if (dndCallback != null)
+
+
+                    if (evt.type == EventType.DragPerform)
                     {
-                        dndCallback(fullpathArray);
+                        DragAndDrop.AcceptDrag();
+
+                        if (dndCallback != null)
+                        {
+                            dndCallback(fullpathArray);
+                        }
+                        DragAndDrop.activeControlID = 0;
                     }
-                    DragAndDrop.activeControlID = 0;
                     Event.current.Use();
                     break;
             }
-
         }
 
         private void DrawInputFilesInspector()
@@ -414,8 +412,24 @@ namespace Simulator.Editor
             //
             var rect = CreateBox(4);
 
-            // TODO:dndをここに
-            ReceiveDragAndDropArea(rect, null);
+            ReceiveDragAndDropArea(rect, (list) =>
+            {
+                if (list == null || list.Length < 1)
+                {
+                    return;
+                }
+                foreach (var nf in list)
+                {
+                    var newFile = Utility.GetRelativePathIfApplies(nf);
+                    CacheArrayProperty(inputFiles, tmpList);
+                    if (!tmpList.Contains(newFile))
+                    {
+                        var index = inputFiles.arraySize;
+                        inputFiles.InsertArrayElementAtIndex(index);
+                        inputFiles.GetArrayElementAtIndex(index).stringValue = newFile;
+                    }
+                }
+            });
 
 
             // Refresh element count, to include additions/removals

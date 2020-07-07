@@ -1,0 +1,206 @@
+fileFormatVersion: 2
+guid: 708da56c094480f4d87eacf1a413cd06
+ModelImporter:
+  serializedVersion: 19300
+  internalIDToNameTable: []
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PreviewEnvironmentCeiling
+    second: {fileID: 2100000, guid: 052fb727ac5bb5942b45e9b9067f357f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PreviewEnvironmentColumns
+    second: {fileID: 2100000, guid: 2d2cacbdbd7d5354db67ab949aacbfbd, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PreviewEnvironmentConcrete
+    second: {fileID: 2100000, guid: 7ae330c9e8e004c4ba092160f14bf31a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PreviewEnvironmentDoor
+    second: {fileID: 2100000, guid: 736c8b6ddd5ece740b885f7834f8ad21, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PreviewEnvironmentDucts
+    second: {fileID: 2100000, guid: fd90123421589154790cfa941cb436a5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PreviewEnvironmentFloor
+    second: {fileID: 2100000, guid: 4a30706d96bbb934ba8f938e6a2ef7f1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PreviewEnvironmentGarageDoor
+    second: {fileID: 2100000, guid: 0b3e2b9262db1a54caedea2e990696c9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PreviewEnvironmentGlass
+    second: {fileID: 2100000, guid: 71b85029398bf9c4b8676f91415f2036, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PreviewEnvironmentLight
+    second: {fileID: 2100000, guid: 0c6e62bb0ef4b1d4e8af7c7824f90a3d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PreviewEnvironmentLightBlue
+    second: {fileID: 2100000, guid: 64497c66e03e0b342aa85c42cb802537, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PreviewEnvironmentLightRed
+    second: {fileID: 2100000, guid: 86b35301675bb7541a0f3b1d6459432f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PreviewEnvironmentMetalBlue
+    second: {fileID: 2100000, guid: 561282c372225ab40bea0e2295e4fadb, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PreviewEnvironmentMetalGrey
+    second: {fileID: 2100000, guid: bbfd6ce4bb4901a4c8c16090e942f589, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PreviewEnvironmentMetalGreyLight
+    second: {fileID: 2100000, guid: 5c723be36701244409127effff8a5b24, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PreviewEnvironmentStructure
+    second: {fileID: 2100000, guid: ac3bb316903bf1245a1c229023f7014f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PreviewEnvironmentTank
+    second: {fileID: 2100000, guid: 20ec3c42734314149aa9f58c0e75c11f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PreviewEnvironmentTrim
+    second: {fileID: 2100000, guid: 75f07dfad30288c40b61752e6758d3f4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PreviewEnvironmentTruss
+    second: {fileID: 2100000, guid: d300cedcf0b60014eb55a542a1dd5aee, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PreviewEnvironmentWalls
+    second: {fileID: 2100000, guid: 2ba899fc2475d1447bc300ac769bfcd9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PreviewEnvironmentWallsPattern
+    second: {fileID: 2100000, guid: 38a6920a181eaec46bd72388eda5b602, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PreviewEnvironmentYellow
+    second: {fileID: 2100000, guid: 3832eea828488c649b8fdcfc282e9566, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: lambert1
+    second: {fileID: 2100000, guid: d40509a4089ced04eaf92b250019bd7e, type: 2}
+  materials:
+    materialImportMode: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 1
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 2
+  humanoidOversampling: 1
+  avatarSetup: 0
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -184,6 +184,8 @@ namespace Simulator.Editor
 
             private IEnumerator PreparePrefabManifest(Entry prefabEntry, string outputFolder, List<(string, string)> buildArtifacts, Manifest manifest)
             {
+                const string vehiclePreviewScenePath = "Assets/PreviewEnvironmentAssets/PreviewEnvironmentScene.unity"; 
+
                 string assetGuid = Guid.NewGuid().ToString();
                 manifest.assetName = prefabEntry.name;
                 manifest.assetGuid = assetGuid;
@@ -196,89 +198,99 @@ namespace Simulator.Editor
                 manifest.copyright = "";
                 manifest.bridgeDataTypes = Array.Empty<string>();
 
-                if (bundleType == BundleConfig.BundleTypes.Vehicle)
+                Scene scene = EditorSceneManager.OpenScene(vehiclePreviewScenePath, OpenSceneMode.Additive);
+
+                try
                 {
-                    var info = AssetDatabase.LoadAssetAtPath<GameObject>(prefabEntry.mainAssetFile).GetComponent<VehicleInfo>();
-                    var fmu = AssetDatabase.LoadAssetAtPath<GameObject>(prefabEntry.mainAssetFile).GetComponent<VehicleFMU>();
-                    var baseLink = AssetDatabase.LoadAssetAtPath<GameObject>(prefabEntry.mainAssetFile).GetComponent<BaseLink>();
-
-                    if (info == null)
+                    if (bundleType == BundleConfig.BundleTypes.Vehicle)
                     {
-                        throw new Exception($"Build failed: Vehicle info on {prefabEntry.mainAssetFile} not found. Please add a VehicleInfo component and rebuild.");
-                    }
+                        var info = AssetDatabase.LoadAssetAtPath<GameObject>(prefabEntry.mainAssetFile).GetComponent<VehicleInfo>();
+                        var fmu = AssetDatabase.LoadAssetAtPath<GameObject>(prefabEntry.mainAssetFile).GetComponent<VehicleFMU>();
+                        var baseLink = AssetDatabase.LoadAssetAtPath<GameObject>(prefabEntry.mainAssetFile).GetComponent<BaseLink>();
 
-                    manifest.licenseName = info.LicenseName;
-                    manifest.description = info.Description;
-                    manifest.assetType = "vehicle";
-                    manifest.fmuName = fmu == null ? "" : fmu.FMUData.Name;
-
-                    manifest.baseLink = baseLink != null ?
-                        new double[] { baseLink.transform.position.x, baseLink.transform.position.y, baseLink.transform.position.z } : // rotation
-                        new double[] { 0, 0, 0 };
-
-                    Dictionary<string, object> files = new Dictionary<string, object>();
-                    manifest.attachments = files;
-
-                    UnityEngine.Object tempObj = AssetDatabase.LoadAssetAtPath(prefabEntry.mainAssetFile, typeof(GameObject));
-
-                    foreach (Collider col in ((GameObject) tempObj).transform.GetComponentsInChildren<Collider>())
-                    {
-                        MeshRenderer mr = col.transform.GetComponent<MeshRenderer>();
-                        if (mr != null)
+                        if (info == null)
                         {
-                            mr.enabled = false;
+                            throw new Exception($"Build failed: Vehicle info on {prefabEntry.mainAssetFile} not found. Please add a VehicleInfo component and rebuild.");
                         }
+
+                        manifest.licenseName = info.LicenseName;
+                        manifest.description = info.Description;
+                        manifest.assetType = "vehicle";
+                        manifest.fmuName = fmu == null ? "" : fmu.FMUData.Name;
+
+                        manifest.baseLink = baseLink != null
+                            ? new double[] {baseLink.transform.position.x, baseLink.transform.position.y, baseLink.transform.position.z}
+                            : // rotation
+                            new double[] {0, 0, 0};
+
+                        Dictionary<string, object> files = new Dictionary<string, object>();
+                        manifest.attachments = files;
+
+                        UnityEngine.Object tempObj = AssetDatabase.LoadAssetAtPath(prefabEntry.mainAssetFile, typeof(GameObject));
+
+                        foreach (Collider col in ((GameObject) tempObj).transform.GetComponentsInChildren<Collider>())
+                        {
+                            MeshRenderer mr = col.transform.GetComponent<MeshRenderer>();
+                            if (mr != null)
+                            {
+                                mr.enabled = false;
+                            }
+                        }
+
+                        string export = ModelExporter.ExportObject(Path.Combine("Assets", "External", "Vehicles", manifest.assetName, $"{manifest.assetName}.fbx"), tempObj);
+                        var glbOut = Path.Combine(outputFolder, $"{manifest.assetGuid}_vehicle_{manifest.assetName}.glb");
+                        System.Diagnostics.Process p = new System.Diagnostics.Process();
+                        p.EnableRaisingEvents = true;
+                        p.StartInfo.FileName = Path.Combine(Application.dataPath, "Plugins", "FBX2glTF",
+                            SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "FBX2glTF-windows-x64.exe" : "FBX2glTF-linux-x64");
+                        p.StartInfo.Arguments = $"--binary --input {export} --output {glbOut}";
+                        p.OutputDataReceived += new System.Diagnostics.DataReceivedEventHandler((o, e) => Debug.Log(e.Data));
+                        p.ErrorDataReceived += new System.Diagnostics.DataReceivedEventHandler((o, e) => Debug.Log(e.Data));
+                        p.Exited += new EventHandler((o, e) =>
+                        {
+                            Debug.Log("Successfully Exited");
+                            buildArtifacts.Add((glbOut, $"{manifest.assetGuid}_vehicle_{manifest.assetName}.glb"));
+                            File.Delete(export);
+                            File.Delete($"{export}.meta");
+                            files.Add("gltf", ZipPath("gltf", $"{assetGuid}_vehicle_{manifest.assetName}.glb"));
+                        });
+
+                        p.Start();
+
+                        while (!p.HasExited)
+                        {
+                            yield return new WaitForSeconds(1f);
+                        }
+
+                        var textures = new BundlePreviewRenderer.PreviewTextures();
+                        yield return EditorCoroutineUtility.StartCoroutineOwnerless(BundlePreviewRenderer.RenderVehiclePreview(prefabEntry.mainAssetFile, textures));
+                        var bytesLarge = textures.large.EncodeToPNG();
+                        var bytesMedium = textures.medium.EncodeToPNG();
+                        var bytesSmall = textures.small.EncodeToPNG();
+
+                        string tmpdir = Path.Combine(outputFolder, $"{manifest.assetName}_pictures");
+                        Directory.CreateDirectory(tmpdir);
+                        File.WriteAllBytes(Path.Combine(tmpdir, "small.jpg"), bytesSmall);
+                        File.WriteAllBytes(Path.Combine(tmpdir, "medium.jpg"), bytesMedium);
+                        File.WriteAllBytes(Path.Combine(tmpdir, "large.jpg"), bytesLarge);
+
+                        var images = new Images()
+                        {
+                            small = ZipPath("images", "small.jpg"),
+                            medium = ZipPath("images", "medium.jpg"),
+                            large = ZipPath("images", "large.jpg"),
+                        };
+                        manifest.attachments.Add("images", images);
+
+                        buildArtifacts.Add((Path.Combine(tmpdir, "small.jpg"), images.small));
+                        buildArtifacts.Add((Path.Combine(tmpdir, "medium.jpg"), images.medium));
+                        buildArtifacts.Add((Path.Combine(tmpdir, "large.jpg"), images.large));
+                        buildArtifacts.Add((tmpdir, null));
                     }
-
-                    string export = ModelExporter.ExportObject(Path.Combine("Assets", "External", "Vehicles", manifest.assetName, $"{manifest.assetName}.fbx"), tempObj);
-                    var glbOut = Path.Combine(outputFolder, $"{manifest.assetGuid}_vehicle_{manifest.assetName}.glb");
-                    System.Diagnostics.Process p = new System.Diagnostics.Process();
-                    p.EnableRaisingEvents = true;
-                    p.StartInfo.FileName = Path.Combine(Application.dataPath, "Plugins", "FBX2glTF",
-                        SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "FBX2glTF-windows-x64.exe" : "FBX2glTF-linux-x64");
-                    p.StartInfo.Arguments = $"--binary --input {export} --output {glbOut}";
-                    p.OutputDataReceived += new System.Diagnostics.DataReceivedEventHandler((o, e) => Debug.Log(e.Data));
-                    p.ErrorDataReceived += new System.Diagnostics.DataReceivedEventHandler((o, e) => Debug.Log(e.Data));
-                    p.Exited += new EventHandler((o, e) =>
-                    {
-                        Debug.Log("Successfully Exited");
-                        buildArtifacts.Add((glbOut, $"{manifest.assetGuid}_vehicle_{manifest.assetName}.glb"));
-                        File.Delete(export);
-                        File.Delete($"{export}.meta");
-                        files.Add("gltf", ZipPath("gltf",$"{assetGuid}_vehicle_{manifest.assetName}.glb"));
-                    });
-
-                    p.Start();
-
-                    while (!p.HasExited)
-                    {
-                        yield return new WaitForSeconds(1f);
-                    }
-
-                    var textures = new BundlePreviewRenderer.PreviewTextures();
-                    yield return EditorCoroutineUtility.StartCoroutineOwnerless(BundlePreviewRenderer.RenderVehiclePreview(prefabEntry.mainAssetFile, textures));
-                    var bytesLarge = textures.large.EncodeToPNG();
-                    var bytesMedium = textures.medium.EncodeToPNG();
-                    var bytesSmall = textures.small.EncodeToPNG();
-
-                    string tmpdir = Path.Combine(outputFolder, $"{manifest.assetName}_pictures");
-                    Directory.CreateDirectory(tmpdir);
-                    File.WriteAllBytes(Path.Combine(tmpdir, "small.jpg"), bytesSmall);
-                    File.WriteAllBytes(Path.Combine(tmpdir, "medium.jpg"), bytesMedium);
-                    File.WriteAllBytes(Path.Combine(tmpdir, "large.jpg"), bytesLarge);
-
-                    var images = new Images()
-                    {
-                        small = ZipPath("images", "small.jpg"),
-                        medium = ZipPath("images", "medium.jpg"),
-                        large = ZipPath("images", "large.jpg"),
-                    };
-                    manifest.attachments.Add("images", images);
-
-                    buildArtifacts.Add((Path.Combine(tmpdir, "small.jpg"), images.small));
-                    buildArtifacts.Add((Path.Combine(tmpdir, "medium.jpg"), images.medium));
-                    buildArtifacts.Add((Path.Combine(tmpdir, "large.jpg"), images.large));
-                    buildArtifacts.Add((tmpdir, null));
+                }
+                finally
+                {
+                    EditorSceneManager.CloseScene(scene, true);
                 }
             }
 

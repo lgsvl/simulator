@@ -81,11 +81,26 @@ namespace Simulator.Editor
         public static IEnumerator RenderVehiclePreview(string vehicleAssetFile, PreviewTextures textures)
         {
             ReinitializeRenderPipeline();
-            var previewRootPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/VehiclePreviewRoot.prefab");
+
+            var camera = Camera.main;
+            if (camera == null)
+            {
+                Debug.LogError("Camera for vehicle preview was not found. Preview won't be available.");
+                yield break;
+            }
+
+            var volume = Object.FindObjectOfType<Volume>();
+            if (volume == null)
+            {
+                Debug.LogError("Volume for vehicle preview was not found. Preview won't be available.");
+                yield break;
+            }
+
             var vehiclePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(vehicleAssetFile);
-            var previewRoot = Object.Instantiate(previewRootPrefab);
-            var vehicle = Object.Instantiate(vehiclePrefab);
-            var camera = previewRootPrefab.GetComponentInChildren<Camera>();
+            var vehicleParent = GameObject.Find("VehicleParent");
+            var vehicle = vehicleParent != null
+                ? Object.Instantiate(vehiclePrefab, vehicleParent.transform)
+                : Object.Instantiate(vehiclePrefab);
 
             // This will trigger HDCamera.Update, which must be done before calling HDCamera.GetOrCreate
             // Otherwise m_AdditionalCameraData will not be set and HDCamera will be discarded after first frame
@@ -95,11 +110,9 @@ namespace Simulator.Editor
             var hdSettings = camera.GetComponent<HDAdditionalCameraData>();
             hdSettings.hasPersistentHistory = true;
             var hd = HDCamera.GetOrCreate(camera);
-            var volume = previewRoot.GetComponentInChildren<Volume>();
 
             yield return EditorCoroutineUtility.StartCoroutineOwnerless(Render(hd, textures, volume));
 
-            Object.DestroyImmediate(previewRoot);
             Object.DestroyImmediate(vehicle);
 
             yield return null;
@@ -107,10 +120,13 @@ namespace Simulator.Editor
 
         private static bool SkyDone(Volume volume, HDCamera hd)
         {
-            var sky = volume.profile.components.FirstOrDefault(x => x is PhysicallyBasedSky) as PhysicallyBasedSky;
+            var pbrSky = volume.profile.components.FirstOrDefault(x => x is PhysicallyBasedSky) as PhysicallyBasedSky;
 
-            if (sky == null)
-                return false;
+            if (pbrSky == null)
+            {
+                var hdriSky = volume.profile.components.FirstOrDefault(x => x is HDRISky) as HDRISky;
+                return hdriSky != null;
+            }
 
             var skyUpdateContext = hd.GetType().GetProperty("visualSky", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(hd);
             var skyRenderer = skyUpdateContext?.GetType().GetProperty("skyRenderer", BindingFlags.Public | BindingFlags.Instance)?.GetValue(skyUpdateContext);
@@ -118,7 +134,7 @@ namespace Simulator.Editor
             if (currentBounces == null)
                 return false;
 
-            var targetBounces = sky.numberOfBounces.value;
+            var targetBounces = pbrSky.numberOfBounces.value;
             var bouncesVal = currentBounces is int bounces ? bounces : 0;
             return bouncesVal >= targetBounces;
         }
@@ -188,14 +204,14 @@ namespace Simulator.Editor
                     var maxTime = 5f;
                     var timeElapsed = 0f;
 
-                    while (timeElapsed < maxTime && !SkyDone(volume, hd))
+                    do
                     {
                         camera.Render();
                         rt.IncrementUpdateCount();
                         EditorApplication.QueuePlayerLoopUpdate();
                         timeElapsed = Time.realtimeSinceStartup - startTime;
                         yield return new WaitForEndOfFrame();
-                    }
+                    } while (timeElapsed < maxTime && !SkyDone(volume, hd));
 
                     if (!SkyDone(volume, hd))
                     {

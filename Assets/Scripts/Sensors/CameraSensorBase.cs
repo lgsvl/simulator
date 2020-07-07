@@ -20,7 +20,8 @@ using Simulator.Sensors.UI;
 using UnityEngine.Rendering.HighDefinition;
 using Unity.Collections;
 
-using PostProcess = Simulator.Utilities.PostProcess;
+using LensDistortion = Simulator.Utilities.LensDistortion;
+using UnityEngine.Experimental.Rendering;
 
 namespace Simulator.Sensors
 {
@@ -99,8 +100,8 @@ namespace Simulator.Sensors
 
         protected SensorRenderTarget renderTarget;
 
-        private PostProcess PostProcess;
-        private RenderTexture PostProcessTexture;
+        private LensDistortion LensDistortion;
+        private RenderTexture DistortedTexture;
         float FrustumWidth, FrustumHeight;
 
         [SensorParameter]
@@ -135,8 +136,6 @@ namespace Simulator.Sensors
             CurrentCubemapSize = CubemapSize;
             SizeChanged = false;
 
-            PostProcess = new PostProcess();
-
             var hd = SensorCamera.GetComponent<HDAdditionalCameraData>();
             hd.hasPersistentHistory = true;
         }
@@ -145,9 +144,9 @@ namespace Simulator.Sensors
         {
             renderTarget?.Release();
             
-            if (PostProcessTexture != null)
+            if (DistortedTexture != null)
             {
-                PostProcessTexture.Release();
+                DistortedTexture.Release();
             }
 
             foreach (var capture in CaptureList)
@@ -220,7 +219,7 @@ namespace Simulator.Sensors
                 throw new Exception("Distorted must be true for fisheye lens.");
             }
 
-            if (SizeChanged || 
+            if (LensDistortion == null || SizeChanged || 
                 CurrentFieldOfView != FieldOfView || CurrentDistorted != Distorted || 
                 !Enumerable.SequenceEqual(DistortionParameters, CurrentDistortionParameters) ||
                 (Fisheye && CurrentXi != Xi))
@@ -228,9 +227,13 @@ namespace Simulator.Sensors
                 // View frustum size at the focal plane.
                 FrustumHeight = 2 * Mathf.Tan(FieldOfView / 2 * Mathf.Deg2Rad);
                 FrustumWidth = FrustumHeight * Width / Height;
+                if (LensDistortion == null)
+                {
+                    LensDistortion = new LensDistortion();
+                }
 
-                PostProcess.InitDistortion(DistortionParameters, FrustumWidth, FrustumHeight, Fisheye ? Xi : 0);
-                PostProcess.CalculateRenderTextureSize(Width, Height, out RenderTextureWidth, out RenderTextureHeight);
+                LensDistortion.InitDistortion(DistortionParameters, FrustumWidth, FrustumHeight, Fisheye ? Xi : 0);
+                LensDistortion.CalculateRenderTextureSize(Width, Height, out RenderTextureWidth, out RenderTextureHeight);
                 if (RenderTextureWidth <= 0 || RenderTextureHeight <= 0)
                 {
                     throw new Exception("Distortion parameters cause texture size invalid (<= 0).");
@@ -272,7 +275,7 @@ namespace Simulator.Sensors
 
                 if (renderTarget == null)
                 {
-                    renderTarget = SensorRenderTarget.Create2D(RenderTextureWidth, RenderTextureHeight);
+                    renderTarget = SensorRenderTarget.Create2D(RenderTextureWidth, RenderTextureHeight, GraphicsFormat.R8G8B8A8_SRGB);
                     SensorCamera.targetTexture = renderTarget;
                 }
             }
@@ -281,35 +284,38 @@ namespace Simulator.Sensors
                 CheckCubemapTexture();
             }
 
-            // if this is not first time
-            if (PostProcessTexture != null)
+            if (Distorted)
             {
-                if (SizeChanged)
+                // if this is not first time
+                if (DistortedTexture != null)
                 {
-                    // if camera capture size has changed
-                    PostProcessTexture.Release();
-                    PostProcessTexture = null;
+                    if (SizeChanged)
+                    {
+                        // if camera capture size has changed
+                        DistortedTexture.Release();
+                        DistortedTexture = null;
+                    }
+                    else if (!DistortedTexture.IsCreated())
+                    {
+                        // if we have lost DistortedTexture due to Unity window resizing or otherwise
+                        DistortedTexture.Release();
+                        DistortedTexture = null;
+                    }
                 }
-                else if (!PostProcessTexture.IsCreated())
+                if (DistortedTexture == null)
                 {
-                    // if we have lost PostProcessTexture due to Unity window resizing or otherwise
-                    PostProcessTexture.Release();
-                    PostProcessTexture = null;
+                    DistortedTexture = new RenderTexture(Width, Height, 24, RenderTextureFormat.ARGB32, CameraTargetTextureReadWriteType)
+                    {
+                        dimension = TextureDimension.Tex2D,
+                        antiAliasing = 1,
+                        useMipMap = false,
+                        useDynamicScale = false,
+                        wrapMode = TextureWrapMode.Clamp,
+                        filterMode = FilterMode.Bilinear,
+                        enableRandomWrite = true,
+                    };
+                    DistortedTexture.Create();
                 }
-            }
-            if (PostProcessTexture == null)
-            {
-                PostProcessTexture = new RenderTexture(Width, Height, 24, RenderTextureFormat.ARGB32, CameraTargetTextureReadWriteType)
-                {
-                    dimension = TextureDimension.Tex2D,
-                    antiAliasing = 1,
-                    useMipMap = false,
-                    useDynamicScale = false,
-                    wrapMode = TextureWrapMode.Clamp,
-                    filterMode = FilterMode.Bilinear,
-                    enableRandomWrite = true,
-                };
-                PostProcessTexture.Create();
             }
         }
 
@@ -320,17 +326,13 @@ namespace Simulator.Sensors
                 SensorCamera.Render();
                 if (Distorted)
                 {
-                    PostProcess.PlumbBobDistort(renderTarget, PostProcessTexture);
-                }
-                else
-                {
-                    PostProcess.LinearToGamma(renderTarget, PostProcessTexture);
+                    LensDistortion.PlumbBobDistort(renderTarget, DistortedTexture);
                 }
             }
             else
             {
                 RenderToCubemap();
-                PostProcess.UnifiedProjectionDistort(renderTarget ?? CubemapTexture, PostProcessTexture);
+                LensDistortion.UnifiedProjectionDistort(renderTarget ?? CubemapTexture, DistortedTexture);
             }
         }
 
@@ -394,11 +396,11 @@ namespace Simulator.Sensors
                     GpuData = gpuData,
                     CaptureTime = SimulatorManager.Instance.CurrentTime,
                 };
-                capture.Request = AsyncGPUReadback.Request(PostProcessTexture, 0, TextureFormat.RGBA32);
+                capture.Request = AsyncGPUReadback.Request(Distorted ? DistortedTexture : renderTarget.ColorTexture, 0, TextureFormat.RGBA32);
                 // TODO: Replace above AsyncGPUReadback.Request with following AsyncGPUReadback.RequestIntoNativeArray when we upgrade to Unity 2020.1
                 // See https://issuetracker.unity3d.com/issues/asyncgpureadback-dot-requestintonativearray-crashes-unity-when-trying-to-request-a-copy-to-the-same-nativearray-multiple-times
                 // for the detaisl of the bug in Unity.
-                //capture.Request = AsyncGPUReadback.RequestIntoNativeArray(ref capture.GpuData, PostProcessTexture, 0, TextureFormat.RGBA32);
+                //capture.Request = AsyncGPUReadback.RequestIntoNativeArray(ref capture.GpuData, Distorted ? DistortedTexture : SensorCamera.targetTexture, 0, TextureFormat.RGBA32);
                 CaptureList.Add(capture);
 
                 NextCaptureTime = Time.time + (1.0f / Frequency);
@@ -468,7 +470,7 @@ namespace Simulator.Sensors
         {
             CheckTexture();
             RenderCamera();
-            var readback = AsyncGPUReadback.Request(PostProcessTexture, 0, TextureFormat.RGBA32);
+            var readback = AsyncGPUReadback.Request(Distorted ? DistortedTexture : renderTarget.ColorTexture, 0, TextureFormat.RGBA32);
             readback.WaitForCompletion();
 
             if (readback.hasError)
@@ -519,7 +521,7 @@ namespace Simulator.Sensors
         public override void OnVisualize(Visualizer visualizer)
         {
             Debug.Assert(visualizer != null);
-            visualizer.UpdateRenderTexture(PostProcessTexture, SensorCamera.aspect);
+            visualizer.UpdateRenderTexture(Distorted ? DistortedTexture : renderTarget.ColorTexture, SensorCamera.aspect);
         }
 
         public override void OnVisualizeToggle(bool state)

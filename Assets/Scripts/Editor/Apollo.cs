@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -27,7 +27,7 @@ namespace Simulator.Editor
             {
                 var pointENU = new ApolloCommon.PointENU()
                 {
-                    x = unityPos.x + originEasting, y = unityPos.z + originNorthing
+                    x = unityPos.z + originEasting, y = -unityPos.x + originNorthing
                 };
                 if (dim3D)
                     pointENU.z = unityPos.y + altitudeOffset;

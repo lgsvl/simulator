@@ -84,24 +84,29 @@ namespace Simulator.Editor
             {
                 var lastNode = (Node)DataSource["Node" + nodeIds[last]];
                 var curNode = (Node)DataSource["Node" + nodeIds[i]];
-                Vector3 lastPoint = GetVector3FromNode(lastNode); 
-                Vector3 curPoint = GetVector3FromNode(curNode); 
+                Vector3 lastPoint = GetVector3FromNode(lastNode);
+                Vector3 curPoint = GetVector3FromNode(curNode);
                 len += Vector3.Distance(lastPoint, curPoint);
                 last = i;
             }
-            
+
             return len;
         }
 
         public static Vector3 GetAverage(List<Vector3> vectors)
         {
-            float x = 0f, y = 0f, z = 0f;
+            if (vectors.Count == 0)
+            {
+                Debug.LogError("Given points has no elements. Returning (0, 0, 0) instead.");
+                return new Vector3(0, 0, 0);
+            }
 
+            float x = 0f, y = 0f, z = 0f;
             foreach(var vector in vectors)
             {
                 x += vector.x;
                 y += vector.y;
-                z += vector.z;                        
+                z += vector.z;
             }
             return new Vector3(x / vectors.Count, y / vectors.Count, z / vectors.Count);
         }

@@ -533,6 +533,10 @@ namespace Simulator.Editor
         {
             MapAnnotationData = new MapManagerData();
 
+            var allLanes = new HashSet<MapLane>(MapAnnotationData.GetData<MapLane>());
+            var areAllLanesWithBoundaries = Lanelet2MapExporter.AreAllLanesWithBoundaries(allLanes, true);
+            if (!areAllLanesWithBoundaries) return false;
+
             // Process lanes, intersections.
             MapAnnotationData.GetIntersections();
             MapAnnotationData.GetTrafficLanes();

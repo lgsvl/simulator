@@ -37,7 +37,7 @@ namespace Simulator.Editor
         List<OpenDRIVEJunction> Junctions = new List<OpenDRIVEJunction>();
         HashSet<uint> JunctionRoadIds = new HashSet<uint>();
 
-         public bool Calculate()
+        public bool Calculate()
         {
             MapOrigin = MapOrigin.Find();
             if (MapOrigin == null)
@@ -46,6 +46,10 @@ namespace Simulator.Editor
             }
 
             MapAnnotationData = new MapManagerData();
+            var allLanes = new HashSet<MapLane>(MapAnnotationData.GetData<MapLane>());
+            var areAllLanesWithBoundaries = Lanelet2MapExporter.AreAllLanesWithBoundaries(allLanes, true);
+            if (!areAllLanesWithBoundaries) return false;
+
             Intersections = MapAnnotationData.GetIntersections();
             MapAnnotationData.GetTrafficLanes();
 
@@ -109,17 +113,7 @@ namespace Simulator.Editor
                 }
             };
 
-            // Check boundary line for each lane, create fake ones if necessary
-            var lanelet2MapExporter = new Lanelet2MapExporter();
-            if (!Lanelet2MapExporter.ExistsLaneWithBoundaries(LaneSegments))
-            {
-                Debug.LogWarning("There are no boundaries. Creating fake boundaries.");
-
-                // Create fake boundary lines
-                lanelet2MapExporter.CreateFakeBoundariesFromLanes(LaneSegments);
-
-                lanelet2MapExporter.AlignPointsInLines(LaneSegments);
-            }
+            Lanelet2MapExporter.AlignPointsInLines(LaneSegments);
 
             ComputeRoads();
 

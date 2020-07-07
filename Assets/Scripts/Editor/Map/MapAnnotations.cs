@@ -388,11 +388,19 @@ public class MapAnnotations : EditorWindow
         if (GUILayout.Button(new GUIContent("Snap all", "Snap all annotated local positions to ground layer"), GUILayout.MaxWidth(100f)))
             SnapAllToLayer();
         GUILayout.EndHorizontal();
+
         GUILayout.BeginHorizontal();
         EditorGUILayout.LabelField("Remove extra boundary lines");
         if (GUILayout.Button(new GUIContent("Remove lines", "Remove extra boundary lines for parallel lanes"), GUILayout.MaxWidth(100f)))
             RemoveExtraLines();
         GUILayout.EndHorizontal();
+
+        GUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField("Create fake boundary lines");
+        if (GUILayout.Button(new GUIContent("Create lines", "Create fake boundary lines automatically for lanes without boundary lines"), GUILayout.MaxWidth(100f)))
+            CreateLines();
+        GUILayout.EndHorizontal();
+
         if (!EditorGUIUtility.isProSkin)
             GUI.backgroundColor = Color.white;
         GUILayout.Space(5);
@@ -489,7 +497,7 @@ public class MapAnnotations : EditorWindow
                 if (GUILayout.Button(new GUIContent("Delete All", waypointButtonImages[3], "Delete all temporary waypoints - SHIFT+Z")))
                     ClearAllTempWaypoints();
                 GUILayout.EndHorizontal();
-                
+
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = Color.white;
                 break;
@@ -2083,17 +2091,8 @@ public class MapAnnotations : EditorWindow
         if (mapAnnotationData.MapHolder == null)
             return;
 
-        Undo.RecordObject(mapAnnotationData.MapHolder, "Remove extra boundary lines");
-        PrefabUtility.RecordPrefabInstancePropertyModifications(mapAnnotationData.MapHolder);
-
-        var root = PrefabUtility.GetOutermostPrefabInstanceRoot(mapAnnotationData.MapHolder);
-        var assetPath = "";
-        var isPrefab = root != null;
-        if (isPrefab)
-        {
-            assetPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(root);
-            PrefabUtility.UnpackPrefabInstance(root, PrefabUnpackMode.OutermostRoot, InteractionMode.UserAction);
-        }
+        Record(mapAnnotationData, out UnityEngine.GameObject root,
+            out string assetPath, out bool isPrefab, "Remove extra boundary lines");
 
         var mapIntersections = mapAnnotationData.GetIntersections();
         var mapLaneSections = mapAnnotationData.GetLaneSections();
@@ -2120,6 +2119,27 @@ public class MapAnnotations : EditorWindow
         Debug.Log($"Removed {ExtraLinesCnt} extra boundary lines from MapIntersections.");
         changed = changed || ExtraLinesCnt > 0;
 
+        SaveOrUndo(root, assetPath, isPrefab, changed);
+    }
+
+    private static void Record(MapManagerData mapAnnotationData, out UnityEngine.GameObject root,
+        out string assetPath, out bool isPrefab, string recordName)
+    {
+        Undo.RecordObject(mapAnnotationData.MapHolder, recordName);
+        PrefabUtility.RecordPrefabInstancePropertyModifications(mapAnnotationData.MapHolder);
+
+        root = PrefabUtility.GetOutermostPrefabInstanceRoot(mapAnnotationData.MapHolder);
+        assetPath = "";
+        isPrefab = root != null;
+        if (isPrefab)
+        {
+            assetPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(root);
+            PrefabUtility.UnpackPrefabInstance(root, PrefabUnpackMode.OutermostRoot, InteractionMode.UserAction);
+        }
+    }
+
+    private static void SaveOrUndo(UnityEngine.GameObject root, string assetPath, bool isPrefab, bool changed)
+    {
         if (isPrefab)
         {
             if (changed)
@@ -2132,5 +2152,29 @@ public class MapAnnotations : EditorWindow
                 Undo.PerformUndo(); // Undo changes due to precision
             }
         }
+    }
+
+    private void CreateLines()
+    {
+        var mapAnnotationData = new MapManagerData();
+        if (mapAnnotationData.MapHolder == null)
+            return;
+        mapAnnotationData.GetTrafficLanes(); // Set lane relations
+
+        Record(mapAnnotationData, out UnityEngine.GameObject root,
+            out string assetPath, out bool isPrefab, "Create fake boundary lines");
+
+        var laneSegments = new HashSet<MapLane>(mapAnnotationData.GetData<MapLane>());
+        var fakeBoundaryLineList = new List<MapLine>();
+        var changed = false;
+        if (!Lanelet2MapExporter.AreAllLanesWithBoundaries(laneSegments))
+        {
+            fakeBoundaryLineList = Lanelet2MapExporter.CreateFakeBoundariesFromLanes(laneSegments);
+            changed = true;
+        }
+
+        Debug.Log($"Created {fakeBoundaryLineList.Count} fake boundary lines.");
+
+        SaveOrUndo(root, assetPath, isPrefab, changed);
     }
 }

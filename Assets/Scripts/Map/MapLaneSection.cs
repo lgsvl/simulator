@@ -43,6 +43,14 @@ namespace Simulator.Map
                 var laneIdx = lane.mapWorldPositions.Count - 1; // index to compute vector from lane to otherLane and distance between those two lanes
                 var laneDir = (lane.mapWorldPositions[1] - lane.mapWorldPositions[0]).normalized;
 
+                var minDistLeft = 50f;
+                var minDistRight = 50f;
+
+                lane.leftLaneForward = null;
+                lane.leftLaneReverse = null;
+                lane.rightLaneForward = null;
+                lane.rightLaneReverse = null;
+
                 for (var j = 0; j < lanes.Count; j++)
                 {
                     var otherLane = lanes[j];
@@ -58,8 +66,29 @@ namespace Simulator.Map
                         isSameDirection = false;
                     }
 
+                    var otherIdxCross = isSameDirection ? 1 : otherLane.mapWorldPositions.Count - 2;
+                    var cross = Vector3.Cross(laneDir, (otherLane.mapWorldPositions[otherIdxCross] - lane.mapWorldPositions[1]).normalized).y;
+                    var dist = Mathf.RoundToInt(FindDistanceToLine(otherLane.mapWorldPositions[otherIdxCross], lane.mapWorldPositions[0], lane.mapWorldPositions[1]));
+
                     if (isSameDirection) // same direction
                     {
+                        if (cross < 0) // otherLane is left of lane
+                        {
+                            if (dist < minDistLeft) // closest lane left of lane is otherLane
+                            {
+                                minDistLeft = dist;
+                                lane.leftLaneForward = otherLane;
+                            }
+                        }
+                        else if (cross > 0) // otherLane is right of lane
+                        {
+                            if (dist < minDistRight) // closest lane right of lane is otherLane
+                            {
+                                minDistRight = dist;
+                                lane.rightLaneForward = otherLane;
+                            }
+                        }
+
                         if (!lanesForward.Contains(lane) && !lanesReverse.Contains(lane))
                             lanesForward.Add(lane);
                         if (!lanesForward.Contains(otherLane) && !lanesReverse.Contains(otherLane))
@@ -69,18 +98,38 @@ namespace Simulator.Map
                     {
                         isOneWay = false;
 
+                        if (cross < 0) // otherLane is left of lane
+                        {
+                            if (dist < minDistLeft) // closest lane left of lane is otherLane
+                            {
+                                minDistLeft = dist;
+                                lane.leftLaneReverse = otherLane;
+                            }
+                        }
+                        else if (cross > 0) // otherLane is right of lane
+                        {
+                            if (dist < minDistRight) // closest lane right of lane is otherLane
+                            {
+                                minDistRight = dist;
+                                lane.rightLaneReverse = otherLane;
+                            }
+                        }
+
                         if (!lanesForward.Contains(lane) && !lanesReverse.Contains(lane))
                             lanesForward.Add(lane);
                         if (!lanesReverse.Contains(otherLane) && !lanesForward.Contains(otherLane))
                             lanesReverse.Add(otherLane);
                     }
+
+                    if (lane.leftLaneForward != null) lane.leftLaneReverse = null; // null lane left reverse if not inside lane TODO right side
                 }
             }
 
             if (isOneWay == null)
                 return;
 
-            setLaneRelations(lanes);
+            UpdateLaneRelationsByBoundaryLines(lanes);
+            VerifyLaneRelations(lanes);
 
             int wayCount = isOneWay.Value ? 1 : 2;
             for (int i = 0; i < wayCount; i++)
@@ -147,20 +196,56 @@ namespace Simulator.Map
             return Vector3.Cross(a, b).magnitude / c.magnitude;
         }
 
-        // TODO: we might need to make this a button in Map annotation window
-        public void setLaneRelations(List<MapLane> lanes)
+        void VerifyLaneRelations(List<MapLane> lanes)
+        {
+            foreach (var lane in lanes)
+            {
+                var leftLaneForward = lane.leftLaneForward;
+                if (leftLaneForward != null && leftLaneForward.rightLaneForward != lane)
+                {
+                    ShowMsg(lane, leftLaneForward);
+                    lane.leftLaneForward = null;
+                    leftLaneForward.rightLaneForward = null;
+                }
+                var leftLaneReverse = lane.leftLaneReverse;
+                if (leftLaneReverse != null && leftLaneReverse.leftLaneReverse != lane)
+                {
+                    ShowMsg(lane, leftLaneReverse);
+                    lane.leftLaneReverse = null;
+                    leftLaneReverse.leftLaneReverse = null;
+                }
+                var rightLaneForward = lane.rightLaneForward;
+                if (rightLaneForward != null && rightLaneForward.leftLaneForward != lane)
+                {
+                    ShowMsg(lane, rightLaneForward);
+                    lane.rightLaneForward = null;
+                    rightLaneForward.leftLaneForward = null;
+                }
+                var rightLaneReverse = lane.rightLaneReverse;
+                if (rightLaneReverse != null && rightLaneReverse.rightLaneReverse != lane)
+                {
+                    ShowMsg(lane, rightLaneReverse);
+                    lane.rightLaneReverse = null;
+                    rightLaneReverse.rightLaneReverse = null;
+                }
+            }
+        }
+
+        private static void ShowMsg(MapLane lane, MapLane otherLane)
+        {
+            Debug.LogWarning($"Can't determine lane relations between {lane.name} and {otherLane.name}");
+            Debug.Log("lane", lane.gameObject);
+            Debug.Log("otherLane", otherLane.gameObject);
+        }
+
+        public void UpdateLaneRelationsByBoundaryLines(List<MapLane> lanes)
         {
             var lineAsLeft2Lanes = new Dictionary<MapLine, List<MapLane>>();
             var lineAsRight2Lanes = new Dictionary<MapLine, List<MapLane>>();
             foreach (var lane in lanes)
             {
-                lane.leftLaneForward = null;
-                lane.leftLaneReverse = null;
-                lane.rightLaneForward = null;
-                lane.rightLaneReverse = null;
-
-                lineAsLeft2Lanes.CreateOrAdd(lane.leftLineBoundry, lane);
-                lineAsRight2Lanes.CreateOrAdd(lane.rightLineBoundry, lane);
+                if (lane.leftLineBoundry) lineAsLeft2Lanes.CreateOrAdd(lane.leftLineBoundry, lane);
+                if (lane.rightLineBoundry) lineAsRight2Lanes.CreateOrAdd(lane.rightLineBoundry, lane);
             }
 
             foreach (var entry in lineAsLeft2Lanes)

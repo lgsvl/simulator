@@ -35,6 +35,10 @@ namespace Simulator.Editor
         bool Calculate()
         {
             MapAnnotationData = new MapManagerData();
+            var allLanes = new HashSet<MapLane>(MapAnnotationData.GetData<MapLane>());
+            var areAllLanesWithBoundaries = Lanelet2MapExporter.AreAllLanesWithBoundaries(allLanes, true);
+            if (!areAllLanesWithBoundaries) return false;
+
             MapAnnotationData.GetIntersections();
             MapAnnotationData.GetTrafficLanes();
             RecordChanges(MapAnnotationData.MapHolder);
@@ -79,25 +83,9 @@ namespace Simulator.Editor
             // Link Points in each parking area
             AlignPointsInParkingSpace(parkingSpaceList);
 
-            // process lanes - create lanelet from lane and left/right boundary
-            if (ExistsLaneWithBoundaries(laneSegments))
-            {
-                // Link before and after segment for each line segment based on lane's predecessor/successor
-                AlignPointsInLines(laneSegments);
-                CreateLaneletsFromLanes(laneSegments);
-            }
-            else // If there are no lanes with left/right boundaries
-            {
-                Debug.LogWarning("There are no boundaries. Creating fake boundaries.");
-
-                // Create fake boundary lines
-                var fakeBoundaryLineList = CreateFakeBoundariesFromLanes(laneSegments);
-
-                var fakeBoundaryLineSegments = new HashSet<MapLine>(fakeBoundaryLineList);
-
-                AlignPointsInLines(laneSegments);
-                CreateLaneletsFromLanes(laneSegments);
-            }
+            // Link before and after segment for each line segment based on lane's predecessor/successor
+            AlignPointsInLines(laneSegments);
+            CreateLaneletsFromLanes(laneSegments);
 
             // process stop lines - create stop lines
             foreach (var lineSegment in lineSegments)
@@ -918,7 +906,7 @@ namespace Simulator.Editor
             }
         }
 
-        List<Vector3> ComputeBoundary(List<Vector3> leftLanePoints, List<Vector3> rightLanePoints)
+        static List<Vector3> ComputeBoundary(List<Vector3> leftLanePoints, List<Vector3> rightLanePoints)
         {
             // Check the directions of two boundry lines
             //    if they are not same, reverse one and get a temp centerline. Compare centerline with left line, determine direction of the centerlane
@@ -989,7 +977,7 @@ namespace Simulator.Editor
         }
 
 
-        List<Vector3> ComputeBoundary(List<Vector3> lanePoints, string side, double width, double pitch)
+        static List<Vector3> ComputeBoundary(List<Vector3> lanePoints, string side, double width, double pitch)
         {
             // Check the directions of two boundry lines
             //    if they are not same, reverse one and get a temp centerline. Compare centerline with left line, determine direction of the centerlane
@@ -1119,7 +1107,7 @@ namespace Simulator.Editor
         }
 
         // Connect all lines by adjusting starting/ending points
-        public void AlignPointsInLines(HashSet<MapLane> allLanes)
+        public static void AlignPointsInLines(HashSet<MapLane> allLanes)
         {
             var visitedLaneIdsEnd = new HashSet<int>(); // lanes whose end point has been visited
             var visitedLaneIdsStart = new HashSet<int>(); // lanes whose start point has been visited
@@ -1135,7 +1123,7 @@ namespace Simulator.Editor
             }
         }
 
-        void AlignLines(HashSet<int> visitedLaneIdsEnd, HashSet<int> visitedLaneIdsStart,
+        static void AlignLines(HashSet<int> visitedLaneIdsEnd, HashSet<int> visitedLaneIdsStart,
             MapLane mapLane, bool isStart)
         {
             var allConnectedLanes2InOut = new Dictionary<MapLane, InOut>();
@@ -1166,7 +1154,7 @@ namespace Simulator.Editor
             UpdateVisitedSets(allConnectedLanes2InOut, visitedLaneIdsStart, visitedLaneIdsEnd);
         }
 
-        private void SetEndPoints(Dictionary<MapLane, InOut> allConnectedLanes2InOut, Dictionary<MapLine, InOut> boundaryLine2InOut, Vector3 leftEndPoint, Vector3 rightEndPoint)
+        private static void SetEndPoints(Dictionary<MapLane, InOut> allConnectedLanes2InOut, Dictionary<MapLine, InOut> boundaryLine2InOut, Vector3 leftEndPoint, Vector3 rightEndPoint)
         {
             foreach (var entry in allConnectedLanes2InOut)
             {
@@ -1178,7 +1166,7 @@ namespace Simulator.Editor
             }
         }
 
-        private void UpdateMergingPoints(Dictionary<MapLane, InOut> allConnectedLanes2InOut, Dictionary<MapLine, InOut> boundaryLine2InOut, out List<Vector3> leftMergingPoints, out List<Vector3> rightMergingPoints)
+        static void UpdateMergingPoints(Dictionary<MapLane, InOut> allConnectedLanes2InOut, Dictionary<MapLine, InOut> boundaryLine2InOut, out List<Vector3> leftMergingPoints, out List<Vector3> rightMergingPoints)
         {
             leftMergingPoints = new List<Vector3>();
             rightMergingPoints = new List<Vector3>();
@@ -1194,7 +1182,7 @@ namespace Simulator.Editor
             }
         }
 
-        void SetEndPoint(MapLine line, Vector3 endPoint, InOut inOut)
+        static void SetEndPoint(MapLine line, Vector3 endPoint, InOut inOut)
         {
             RemoveOverlappingEndPoints(line, inOut);
             var index = GetEndPointIndex(inOut, line.mapWorldPositions);
@@ -1202,7 +1190,7 @@ namespace Simulator.Editor
             line.mapLocalPositions[index] = line.transform.InverseTransformPoint(endPoint);
         }
 
-        void RemoveOverlappingEndPoints(MapLine line, InOut inOut)
+        static void RemoveOverlappingEndPoints(MapLine line, InOut inOut)
         {
             var positions = line.mapWorldPositions;
             Vector3 p1 = positions.First(), p2 = positions[1];
@@ -1236,14 +1224,14 @@ namespace Simulator.Editor
             }
         }
 
-        bool isSameDirection3Points(Vector3 p1, Vector3 p2, Vector3 p3)
+        static bool isSameDirection3Points(Vector3 p1, Vector3 p2, Vector3 p3)
         {
             var vec12 = p2 - p1;
             var vec23 = p3 - p2;
             return Vector3.Dot(vec12, vec23) >= 0;
         }
 
-        void CheckLinePositionsSize(MapLine line)
+        static void CheckLinePositionsSize(MapLine line)
         {
             if (line.mapWorldPositions.Count == 2)
             {
@@ -1253,17 +1241,17 @@ namespace Simulator.Editor
             }
         }
 
-        Vector3 GetEndPoint(InOut inOut, List<Vector3> positions)
+        static Vector3 GetEndPoint(InOut inOut, List<Vector3> positions)
         {
             return inOut == InOut.In ? positions.Last() : positions.First();
         }
 
-        int GetEndPointIndex(InOut inOut, List<Vector3> positions)
+        static int GetEndPointIndex(InOut inOut, List<Vector3> positions)
         {
             return inOut == InOut.In ? positions.Count - 1 : 0;
         }
 
-        void UpdateVisitedSets(Dictionary<MapLane, InOut> allConnectedLanes2InOut,
+        static void UpdateVisitedSets(Dictionary<MapLane, InOut> allConnectedLanes2InOut,
             HashSet<int> visitedLaneInstanceIdsStart, HashSet<int> visitedLaneInstanceIdsEnd)
         {
             foreach (var entry in allConnectedLanes2InOut)
@@ -1275,7 +1263,7 @@ namespace Simulator.Editor
             }
         }
 
-        Dictionary<MapLine, InOut> GetBoundaryLine2InOut(Dictionary<MapLane, InOut> lane2InOut)
+        static Dictionary<MapLine, InOut> GetBoundaryLine2InOut(Dictionary<MapLane, InOut> lane2InOut)
         {
             var boundaryLine2InOut = new Dictionary<MapLine, InOut>();
             foreach (var entry in lane2InOut)
@@ -1291,13 +1279,13 @@ namespace Simulator.Editor
             return boundaryLine2InOut;
         }
 
-        void AddToLine2InOut(Dictionary<MapLine, InOut> boundaryLine2InOut, MapLine mapLine, MapLane mapLane, InOut laneInOut)
+        static void AddToLine2InOut(Dictionary<MapLine, InOut> boundaryLine2InOut, MapLine mapLine, MapLane mapLane, InOut laneInOut)
         {
             if (isSameDirection(mapLane, mapLine)) boundaryLine2InOut[mapLine] = laneInOut;
             else boundaryLine2InOut[mapLine] = ReverseInOut(laneInOut);
         }
 
-        InOut ReverseInOut(InOut inOut)
+        static InOut ReverseInOut(InOut inOut)
         {
             if (inOut == InOut.In) return InOut.Out;
             else return InOut.In;
@@ -1313,7 +1301,7 @@ namespace Simulator.Editor
 
         enum InOut {In, Out};
 
-        void AddInOutToDictionary(List<MapLane> lanes, Dictionary<MapLane, InOut> allConnectedLanes2InOut, InOut inOut)
+        static void AddInOutToDictionary(List<MapLane> lanes, Dictionary<MapLane, InOut> allConnectedLanes2InOut, InOut inOut)
         {
             foreach (var lane in lanes)
             {
@@ -1331,7 +1319,7 @@ namespace Simulator.Editor
             }
         }
 
-        bool isSameDirection(MapLane mapLane, MapLine mapLine)
+        static bool isSameDirection(MapLane mapLane, MapLine mapLine)
         {
             var lanePositions = mapLane.mapWorldPositions;
             var linePositions = mapLine.mapWorldPositions;
@@ -1445,19 +1433,31 @@ namespace Simulator.Editor
             return splittedLinePoints;
         }
 
-        public static bool ExistsLaneWithBoundaries(HashSet<MapLane> lanes)
+        public static bool AreAllLanesWithBoundaries(HashSet<MapLane> lanes, bool showError=false)
         {
+            var areAllLanesWithBoundaries = true;
             foreach (var lane in lanes)
             {
-                if (lane.leftLineBoundry != null && lane.rightLineBoundry != null)
+                if (lane.leftLineBoundry == null || lane.rightLineBoundry == null)
                 {
-                    return true;
+                    Debug.LogWarning($"Lane {lane.name} has null left and/or right lines.", lane.gameObject);
+                    areAllLanesWithBoundaries = false;
+                    break;
                 }
             }
-            return false;
+
+            if (!areAllLanesWithBoundaries && showError)
+            {
+                var msg = "There are no boundary lines for some lanes! ";
+                msg += "please annotate boundary lines for each lane OR ";
+                msg += "use \"Create lines\" button in HD Map Annotation window to generate boundary lines!";
+                Debug.LogError(msg);
+            }
+
+            return areAllLanesWithBoundaries;
         }
 
-        public List<MapLine> CreateFakeBoundariesFromLanes(HashSet<MapLane> laneSegments)
+        public static List<MapLine> CreateFakeBoundariesFromLanes(HashSet<MapLane> laneSegments)
         {
             List<MapLine> fakeBoundaryLineList = new List<MapLine>();
             GameObject fakeBoundariesObj = new GameObject("FakeBoundaries");
@@ -1593,6 +1593,8 @@ namespace Simulator.Editor
                     }
                 }
             }
+
+            if (fakeBoundaryLineList.Count == 0) GameObject.DestroyImmediate(fakeBoundariesObj);
             return fakeBoundaryLineList;
         }
 

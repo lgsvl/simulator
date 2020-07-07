@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -93,8 +93,8 @@ namespace Simulator.Map
 
         public void GetNorthingEasting(double3 position, out double northing, out double easting, bool ignoreMapOrigin = false)
         {
-            easting = position.x;
-            northing = position.z;
+            northing = -position.x;
+            easting = position.z;
 
             if (!ignoreMapOrigin)
             {
@@ -105,12 +105,12 @@ namespace Simulator.Map
 
         public Vector3 FromNorthingEasting(double northing, double easting, bool ignoreMapOrigin = false)
         {
-            double x = easting;
-            double z = northing;
+            double x = -northing;
+            double z = easting;
             if (!ignoreMapOrigin)
             {
-                x -= OriginEasting;
-                z -= OriginNorthing;
+                x -= -OriginNorthing;
+                z -= OriginEasting;
             }
 
             return new Vector3((float)x, 0, (float)z);

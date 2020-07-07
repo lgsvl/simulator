@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -431,13 +431,13 @@ namespace Simulator.Editor.Autoware
         // Convert coordinate to Autoware/Rviz coordinate
         public static Vector3 GetRvizCoordinates(Vector3 unityPos)
         {
-            return new Vector3(unityPos.x, unityPos.z, unityPos.y);
+            return new Vector3(unityPos.z, -unityPos.x, unityPos.y);
         }
 
-        // Convert coordinate to Autoware/Rviz coordinate
+        // Convert from Autoware/Rviz to Unity coordinates
         public static Vector3 GetUnityCoordinate(Vector3 rvizPos)
         {
-            return new Vector3(rvizPos.x, rvizPos.z, rvizPos.y);
+            return new Vector3(-rvizPos.y, rvizPos.z, rvizPos.x);
         }
 
         public static VectorMapPosition GetVectorMapPosition(Vector3 unityPos, float exportScale = 1)

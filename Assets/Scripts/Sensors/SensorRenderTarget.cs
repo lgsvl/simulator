@@ -66,7 +66,7 @@ namespace Simulator.Sensors
         /// </summary>
         public int CubeFaceMask { get; private set; }
 
-        private SensorRenderTarget(int width, int height, bool cube)
+        private SensorRenderTarget(int width, int height, bool cube, GraphicsFormat colorFormat = GraphicsFormat.R8G8B8A8_UNorm)
         {
             currentWidth = width;
             currentHeight = height;
@@ -75,7 +75,7 @@ namespace Simulator.Sensors
             if (cube)
                 AllocCube();
             else
-                Alloc2D();
+                Alloc2D(colorFormat);
         }
 
         public static implicit operator RenderTexture(SensorRenderTarget target) => target.ColorTexture;
@@ -88,6 +88,18 @@ namespace Simulator.Sensors
         public static SensorRenderTarget Create2D(int width, int height)
         {
             var instance = new SensorRenderTarget(width, height, false);
+            return instance;
+        }
+
+        /// <summary>
+        /// Creates new instance of <see cref="SensorRenderTarget"/> and allocates required resources. Uses 2D texture.
+        /// </summary>
+        /// <param name="width">Width (in pixels) of the texture.</param>
+        /// <param name="height">Height (in pixels) of the texture.</param>
+        /// /// <param name="colorFormat">GraphicsFormat of the color texture.</param>
+        public static SensorRenderTarget Create2D(int width, int height, GraphicsFormat colorFormat)
+        {
+            var instance = new SensorRenderTarget(width, height, false, colorFormat);
             return instance;
         }
 
@@ -123,14 +135,14 @@ namespace Simulator.Sensors
         /// <summary>
         /// Allocates color and depth textures for 2D render target.
         /// </summary>
-        private void Alloc2D()
+        private void Alloc2D(GraphicsFormat colorFormat)
         {
             colorRt = RTHandles.Alloc(
                 currentWidth,
                 currentHeight,
                 1,
                 DepthBits.None,
-                GraphicsFormat.R8G8B8A8_UNorm,
+                colorFormat,
                 dimension: TextureDimension.Tex2D,
                 useDynamicScale: true,
                 name: "SRT_Color",

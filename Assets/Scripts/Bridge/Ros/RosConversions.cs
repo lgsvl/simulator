@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -467,8 +467,9 @@ namespace Simulator.Bridge.Ros
 
         public static Apollo.Gps ApolloConvertFrom(GpsOdometryData data)
         {
-            var angles = data.Orientation.eulerAngles;
-            float yaw = -angles.y;
+            var orientation = ConvertToRfu(data.Orientation);
+            float yaw = orientation.eulerAngles.z;
+
             var dt = DateTimeOffset.FromUnixTimeMilliseconds((long)(data.Time * 1000.0)).UtcDateTime;
 
             return new Apollo.Gps()
@@ -492,7 +493,7 @@ namespace Simulator.Bridge.Ros
 
                     // A quaternion that represents the rotation from the IMU coordinate
                     // (Right/Forward/Up) to the world coordinate (East/North/Up).
-                    orientation = ConvertApolloQuaternion(data.Orientation),
+                    orientation = ConvertApolloQuaternion(orientation),
 
                     // Linear velocity of the VRP in the map reference frame.
                     // East/north/up in meters per second.
@@ -795,7 +796,12 @@ namespace Simulator.Bridge.Ros
             return new UnityEngine.Quaternion((float)q.x, (float)q.y, (float)q.z, (float)q.w);
         }
 
-        public static Time ConvertTime(double unixEpochSeconds)
+        static UnityEngine.Quaternion ConvertToRfu(UnityEngine.Quaternion q)
+        {
+            return q * new UnityEngine.Quaternion(0f, 0f, -0.7071068f, 0.7071068f);
+        }
+
+        public static Ros.Time ConvertTime(double unixEpochSeconds)
         {
             long nanosec = (long)(unixEpochSeconds * 1e9);
 

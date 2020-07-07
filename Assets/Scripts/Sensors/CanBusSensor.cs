@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -34,7 +34,7 @@ namespace Simulator.Sensors
         MapOrigin MapOrigin;
 
         CanBusData msg;
-        
+
         public override SensorDistributionType DistributionType => SensorDistributionType.LowLoad;
 
         private void Awake()
@@ -73,6 +73,9 @@ namespace Simulator.Sensors
 
             var gps = MapOrigin.GetGpsLocation(transform.position);
 
+            var orientation = transform.rotation;
+            orientation.Set(-orientation.z, orientation.x, -orientation.y, orientation.w); // converting to right handed xyz
+
             msg = new CanBusData()
             {
                 Name = Name,
@@ -107,7 +110,7 @@ namespace Simulator.Sensors
                 Longitude = gps.Longitude,
                 Altitude = gps.Altitude,
 
-                Orientation = transform.rotation,
+                Orientation = orientation,
                 Velocity = RigidBody.velocity,
             };
 

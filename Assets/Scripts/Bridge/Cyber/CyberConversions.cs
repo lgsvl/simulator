@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -227,11 +227,12 @@ namespace Simulator.Bridge.Cyber
 
         public static apollo.canbus.Chassis ConvertFrom(CanBusData data)
         {
-            var eul = data.Orientation.eulerAngles;
+            var orientation = ConvertToRfu(data.Orientation);
+            var eul = orientation.eulerAngles;
 
             float dir;
-            if (eul.y >= 0) dir = 45 * Mathf.Round((eul.y % 360) / 45.0f);
-            else dir = 45 * Mathf.Round((eul.y % 360 + 360) / 45.0f);
+            if (eul.z >= 0) dir = 45 * Mathf.Round((eul.z % 360) / 45.0f);
+            else dir = 45 * Mathf.Round((eul.z % 360 + 360) / 45.0f);
 
             var dt = DateTimeOffset.FromUnixTimeMilliseconds((long)(data.Time * 1000.0)).UtcDateTime;
             var measurement_time = GpsUtils.UtcToGpsSeconds(dt);
@@ -279,7 +280,7 @@ namespace Simulator.Bridge.Cyber
                     is_gps_fault = false,
                     is_inferred = false,
                     altitude = data.Altitude,
-                    heading = eul.y,
+                    heading = eul.z,
                     hdop = 0.1,
                     vdop = 0.1,
                     quality = apollo.canbus.GpsQuality.Fix3d,
@@ -332,8 +333,8 @@ namespace Simulator.Bridge.Cyber
 
         public static apollo.localization.Gps ConvertFrom(GpsOdometryData data)
         {
-            var angles = data.Orientation.eulerAngles;
-            float yaw = -angles.y;
+            var orientation = ConvertToRfu(data.Orientation);
+            float yaw = orientation.eulerAngles.z;
 
             return new apollo.localization.Gps()
             {
@@ -354,7 +355,7 @@ namespace Simulator.Bridge.Cyber
 
                     // A quaternion that represents the rotation from the IMU coordinate
                     // (Right/Forward/Up) to the world coordinate (East/North/Up).
-                    orientation = Convert(data.Orientation),
+                    orientation = Convert(orientation),
 
                     // Linear velocity of the VRP in the map reference frame.
                     // East/north/up in meters per second.
@@ -457,7 +458,8 @@ namespace Simulator.Bridge.Cyber
 
         public static apollo.localization.CorrectedImu ConvertFrom(CorrectedImuData data)
         {
-            var angles = data.Orientation.eulerAngles;
+            var orientation = ConvertToRfu(data.Orientation);
+            var angles = orientation.eulerAngles;
             float roll = angles.x;
             float pitch = angles.y;
             float yaw = angles.z;
@@ -536,6 +538,11 @@ namespace Simulator.Bridge.Cyber
         static Quaternion Convert(apollo.common.Quaternion q)
         {
             return new Quaternion((float)q.qx, (float)q.qy, (float)q.qz, (float)q.qw);
+        }
+
+        static Quaternion ConvertToRfu(Quaternion q)
+        {
+            return q * new Quaternion(0f, 0f, -0.7071068f, 0.7071068f);
         }
     }
 }

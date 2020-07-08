@@ -529,8 +529,20 @@ namespace Simulator.Editor
                     }
                 }
 
+                if (referenceLinePoints.Count == 0)
+                {
+                    var geometry = road.planView[0];
+                    Vector3 origin = new Vector3((float)geometry.x, 0f, (float)geometry.y);
+                    referenceLinePoints.Add(origin);
+
+                    double y = GetElevation(geometry.s + roadLength, elevationProfile);
+                    Vector3 pos = new Vector3((float)roadLength, (float)y, 0f);
+                    // rotate
+                    pos = Quaternion.Euler(0f, -(float)(geometry.hdg * 180f / Math.PI), 0f) * pos;
+                    referenceLinePoints.Add(origin + pos);
+                }
                 // if the length of the reference line is less than 1 meter
-                if (referenceLinePoints.Count == 1)
+                else if (referenceLinePoints.Count == 1)
                 {
                     var geometry = road.planView[0];
                     Vector3 origin = new Vector3((float)geometry.x, 0f, (float)geometry.y);
@@ -557,6 +569,8 @@ namespace Simulator.Editor
 
                     var sectionRefPointsOffset = new List<Vector3>(referenceLinePointsOffset.GetRange(startIdx, endIdx - startIdx + 1));
                     var sectionRefPoints = new List<Vector3>(referenceLinePoints.GetRange(startIdx, endIdx - startIdx + 1));
+                    Debug.Assert(referenceLinePoints.Count > 0,
+                        $"referenceLinePointsOffset has no elements, roadId {roadId} laneSectionId {i} s = {lanes.laneSection[i].s}");
                     CreateMapLanes(roadId, i, lanes.laneSection[i], sectionRefPointsOffset, sectionRefPoints);
                 }
 
@@ -1150,7 +1164,18 @@ namespace Simulator.Editor
                         foreach (var laneLink in connection.laneLink)
                         {
                             var incomingLaneId = laneLink.from;
+                            if (!incomingId2MapLane.ContainsKey(incomingLaneId))
+                            {
+                                Debug.LogWarning($"incoming lane not found: junction {junction.id} incoming {incomingRoadId} connecting {connectingRoadId} laneId {incomingLaneId}");
+                                continue;
+                            }
                             incomingLane = incomingId2MapLane[incomingLaneId];
+
+                            if (!connectingId2MapLane.ContainsKey(laneLink.to))
+                            {
+                                Debug.LogWarning($"connecting lane not found: junction {junction.id} incoming {incomingRoadId} connecting {connectingRoadId} laneId {laneLink.to}");
+                                continue;
+                            }
                             connectingLane = connectingId2MapLane[laneLink.to];
                             UpdateBeforesAfters(contactPoint, incomingLane, connectingLane);
                             if (incomingLaneId > 0 && Lane2LaneType[incomingLane] == laneType.driving) IncomingRoadId2leftLanes[incomingRoadId].Add(incomingLane);

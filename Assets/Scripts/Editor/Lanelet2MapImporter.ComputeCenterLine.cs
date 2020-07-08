@@ -51,7 +51,7 @@ namespace Simulator.Editor
                 }
 
                 Vector3 direction = (curPoint - lastPoint).normalized;
-                for (float length = resolution - residue; length < segmentLength; length += resolution)
+                for (float length = resolution - residue; length <= segmentLength; length += resolution)
                 {
                     Vector3 partitionPoint = lastPoint + direction * length;
                     splittedLinePoints.Add(partitionPoint);

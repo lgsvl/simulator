@@ -59,7 +59,9 @@ namespace Simulator.Sensors
                 // Check if instance segmentation has been set (either by Editor or by another SegmentationCamera).
                 if (SimulatorManager.Instance.CheckInstanceSegmentationSetting())
                 {
-                    throw new Exception("Instance segmentation has been set for some tags. Reset is not allowed!");
+                    // TODO: Change both semantic segmentation and instance segmentation from global to per camera.
+                    // so that this error can be removed.
+                    Debug.LogError("Instance segmentation has been set for some tags. Please only load SegmentationCamera once!");
                 }
 
                 foreach (InstanceCandidateTags tag in InstanceSegmentationTags)

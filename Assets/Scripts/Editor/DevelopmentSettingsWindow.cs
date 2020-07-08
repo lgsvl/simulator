@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -26,7 +26,7 @@ namespace Simulator.Editor
 
         DevelopmentSettingsAsset settings;
         SimulationData developerSimulation = new SimulationData();
-        
+
         CloudAPI API;
         string errorMessage;
         private static DevelopmentSettingsWindow _instance;
@@ -124,7 +124,7 @@ namespace Simulator.Editor
                 var simInfo = CloudAPI.GetInfo();
 
                 var reader = await API.Connect(simInfo);
-                await EnsureConnectSuccess(reader);
+                await API.EnsureConnectSuccess();
                 var ret = await API.GetLibrary<VehicleDetailData>();
                 CloudVehicles = ret.ToList();
 
@@ -164,27 +164,6 @@ namespace Simulator.Editor
 
             string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/External/Vehicles" });
             LocalVehicles = guids.Select(g => AssetDatabase.GUIDToAssetPath(g)).ToList();
-        }
-
-        async Task EnsureConnectSuccess(StreamReader reader)
-        {
-            while (!reader.EndOfStream)
-            {
-                var line = await reader.ReadLineAsync();
-                if (line.StartsWith("data:") && !string.IsNullOrEmpty(line.Substring(6)))
-                {
-                    JObject deserialized = JObject.Parse(line.Substring(5));
-                    if (deserialized != null && deserialized.HasValues)
-                    {
-                        switch (deserialized.GetValue("status").ToString())
-                        {
-                            case "OK": return;
-                            case "Unrecognized": throw new Exception("Simulator is not linked. Enter play mode to re-link.");
-                        }
-                    }
-                }
-            }
-            throw new Exception("Connection Closed");
         }
 
         void OnGUI()
@@ -251,8 +230,8 @@ namespace Simulator.Editor
                 else if (prop.PropertyType == typeof(VehicleData[]))
                 {
                     // a list of tuples (display:"name to show", data:string or VehicleDetailData )
-                    var vehicleChoices = LocalVehicles.Select(g => (data: (object)g, display: "local: "+Path.GetFileName(g))).Concat(
-                        CloudVehicles.Select(v => (data: (object)v, display: "cloud: "+v.Name))
+                    var vehicleChoices = LocalVehicles.Select(g => (data: (object)g, display: "local: " + Path.GetFileName(g))).Concat(
+                        CloudVehicles.Select(v => (data: (object)v, display: "cloud: " + v.Name))
                     ).ToList();
 
                     if (vehicleChoices.Count > 0)
@@ -278,7 +257,7 @@ namespace Simulator.Editor
                             EditorGUILayout.LabelField("json sensor config");
                             settings.localVehicle.SensorConfig = EditorGUILayout.TextArea(settings.localVehicle.SensorConfig, GUILayout.Height(200));
                         }
-                        else if(selection.GetType() == typeof(VehicleDetailData))
+                        else if (selection.GetType() == typeof(VehicleDetailData))
                         {
                             // want cloud vehicle, so clear local vehicle
                             settings.localVehicle = null;
@@ -296,11 +275,24 @@ namespace Simulator.Editor
 
             if (EditorGUI.EndChangeCheck())
             {
-                settings.developerSimulationJson = Newtonsoft.Json.JsonConvert.SerializeObject(developerSimulation);
-                EditorUtility.SetDirty(settings);
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
+                updateAsset();
             }
+        }
+
+        async void updateAsset()
+        {
+            if (developerSimulation.Vehicles != null)
+            {
+                // vehicle list does not give us sensor data, so we have to get it later.
+                // I do not want to query each vehicle individually and I can't block the UI, so
+                // we do it after a change was made to the settings in this fire and forget async function
+                var data = await API.Get<VehicleDetailData>(developerSimulation.Vehicles[0].Id);
+                developerSimulation.Vehicles = new VehicleData[] { data.ToVehicleData() };
+            }
+            settings.developerSimulationJson = Newtonsoft.Json.JsonConvert.SerializeObject(developerSimulation);
+            EditorUtility.SetDirty(settings);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
         }
     }
 }

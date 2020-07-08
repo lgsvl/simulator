@@ -149,6 +149,7 @@ public class ConnectionManager : MonoBehaviour
 
     async Task Parse(string s)
     {
+        // Debug.Log(s);
         if (string.IsNullOrEmpty(s))
             return;
 
@@ -338,6 +339,29 @@ public class CloudAPI
         }
         onlineStream = new StreamReader(await response.Content.ReadAsStreamAsync());
         return onlineStream;
+    }
+
+    // use this if you waqnt to make sure the connection succeeded but don't care about
+    // messages before the connection ok message
+    public async Task EnsureConnectSuccess()
+    {
+        while (!onlineStream.EndOfStream)
+        {
+            var line = await onlineStream.ReadLineAsync();
+            if (line.StartsWith("data:") && !string.IsNullOrEmpty(line.Substring(6)))
+            {
+                JObject deserialized = JObject.Parse(line.Substring(5));
+                if (deserialized != null && deserialized.HasValues)
+                {
+                    switch (deserialized.GetValue("status").ToString())
+                    {
+                        case "OK": return;
+                        case "Unrecognized": throw new Exception("Simulator is not linked. Enter play mode to re-link.");
+                    }
+                }
+            }
+        }
+        throw new Exception("Connection Closed");
     }
 
     public Task<DetailData> Get<DetailData>(string cloudId) where DetailData: CloudAssetDetails

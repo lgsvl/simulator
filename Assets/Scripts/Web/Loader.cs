@@ -26,6 +26,7 @@ using Simulator.FMU;
 using Simulator.PointCloud.Trees;
 using System.Threading.Tasks;
 using Simulator.Database.Services;
+using Newtonsoft.Json.Linq;
 
 namespace Simulator
 {
@@ -190,6 +191,7 @@ namespace Simulator
             }
             else
             {
+                // note: this is an async function that is not awaited on
                 EditorInit();
             }
         }
@@ -208,8 +210,6 @@ namespace Simulator
             var info = Resources.Load<BuildInfo>("BuildInfo");
             SIM.Init(info == null ? "Development" : info.Version);
 
-            DownloadManager.Init();
-
             LoaderScene = SceneManager.GetActiveScene().name;
             SIM.LogSimulation(SIM.Simulation.ApplicationStart);
 
@@ -217,7 +217,7 @@ namespace Simulator
             Instance = this;
         }
 
-        private void EditorInit()
+        private async void EditorInit()
         {
 #if UNITY_EDITOR
             stopWatch.Start();
@@ -237,7 +237,13 @@ namespace Simulator
                 devSim = new SimulationData();
 
             sim.Init(devSim.Seed);
-            sim.AgentManager.SetupDevAgents(devSettings);
+            var api = new CloudAPI(new Uri(Config.CloudUrl), Config.SimID);
+
+            var simInfo = CloudAPI.GetInfo();
+            var reader = await api.Connect(simInfo);
+            await api.EnsureConnectSuccess();
+            await sim.AgentManager.SetupDevAgents(devSettings);
+            reader.Close();
             sim.NPCManager.NPCActive = devSim.UseTraffic;
             sim.PedestrianManager.PedestriansActive = devSim.UsePedestrians;
 #endif

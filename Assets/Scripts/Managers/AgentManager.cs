@@ -142,7 +142,7 @@ public class AgentManager : MonoBehaviour
         }
     }
 
-    public async void SetupDevAgents(Simulator.Editor.DevelopmentSettingsAsset devSettings)
+    public async Task SetupDevAgents(Simulator.Editor.DevelopmentSettingsAsset devSettings)
     {
 #if UNITY_EDITOR
         var sceneAgents = GameObject.FindGameObjectsWithTag("Player");

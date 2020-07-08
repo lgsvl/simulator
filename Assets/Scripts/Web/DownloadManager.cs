@@ -74,9 +74,11 @@ namespace Simulator.Web
         static int currentProgress;
         static long nextUpdate;
         static bool cancelled;
+        static bool initialized = false;
 
-        public static void Init()
+        private static void Init()
         {
+            if(initialized) return;
             client = new WebClient();
             client.Headers.Add("SimId", Config.SimID);
             ManageDownloads();
@@ -84,11 +86,13 @@ namespace Simulator.Web
 
         public static void AddDownloadToQueue(Uri uri, string path, Action<int> update = null, Action<bool, Exception> completed = null)
         {
+            Init();
             downloads.Enqueue(new Download(uri, path, update, completed));
         }
 
         public static Task<AssetModel> GetAsset(BundleConfig.BundleTypes type, string assetGuid, string name = null)
         {
+            Init();
             var assetService = new AssetService();
             var found = assetService.Get(assetGuid);
             if(found != null) {
@@ -106,7 +110,7 @@ namespace Simulator.Web
             var t = new TaskCompletionSource<AssetModel>();
             downloads.Enqueue(new Download(uri, localPath,
             progress => {
-                ConnectionUI.instance.UpdateDownloadProgress(name, progress);
+                ConnectionUI.instance?.UpdateDownloadProgress(name, progress);
                 Debug.Log($"{name} Download at {progress}%");
             } ,
             (success, ex) => {
@@ -151,6 +155,7 @@ namespace Simulator.Web
 
         static async void ManageDownloads()
         {
+            initialized = true;
             while (true)
             {
                 Download download;

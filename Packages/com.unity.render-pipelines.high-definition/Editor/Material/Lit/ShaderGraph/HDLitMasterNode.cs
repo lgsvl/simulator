@@ -481,10 +481,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     return;
 
                 m_NormalDropOffSpace = value;
+                if (!IsSlotConnected(NormalSlotId))
+                    updateNormalSlot = true;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
             }
         }
+        bool updateNormalSlot;
 
 
         [SerializeField]
@@ -689,21 +692,6 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
-        bool m_DOTSInstancing = false;
-        public ToggleData dotsInstancing
-        {
-            get { return new ToggleData(m_DOTSInstancing); }
-            set
-            {
-                if (m_DOTSInstancing == value.isOn)
-                    return;
-
-                m_DOTSInstancing = value.isOn;
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
-        [SerializeField]
         bool m_ZWrite = false;
         public ToggleData zWrite
         {
@@ -829,22 +817,24 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             if (MaterialTypeUsesSlotMask(SlotMask.Normal))
             {
-                RemoveSlot(NormalSlotId);
-                
                 var coordSpace = CoordinateSpace.Tangent;
-                switch (m_NormalDropOffSpace)
+                if (updateNormalSlot)
                 {
-                    case NormalDropOffSpace.Tangent:
-                        coordSpace = CoordinateSpace.Tangent;
-                        break;
-                    case NormalDropOffSpace.World:
-                        coordSpace = CoordinateSpace.World;
-                        break;
-                    case NormalDropOffSpace.Object:
-                        coordSpace = CoordinateSpace.Object;
-                        break;
+                    RemoveSlot(NormalSlotId);
+                    switch (m_NormalDropOffSpace)
+                    {
+                        case NormalDropOffSpace.Tangent:
+                            coordSpace = CoordinateSpace.Tangent;
+                            break;
+                        case NormalDropOffSpace.World:
+                            coordSpace = CoordinateSpace.World;
+                            break;
+                        case NormalDropOffSpace.Object:
+                            coordSpace = CoordinateSpace.Object;
+                            break;
+                    }
+                    updateNormalSlot = false;
                 }
-
                 AddSlot(new NormalMaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, coordSpace, ShaderStageCapability.Fragment));
                 validSlots.Add(NormalSlotId);
             }

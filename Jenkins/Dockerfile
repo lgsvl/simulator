@@ -23,7 +23,7 @@ ENV NVIDIA_DRIVER_CAPABILITIES graphics,display,utility
 ADD "https://gitlab.com/nvidia/container-images/vulkan/raw/master/nvidia_icd.json" /etc/vulkan/icd.d/nvidia_icd.json
 RUN chmod 644 /etc/vulkan/icd.d/nvidia_icd.json
 
-RUN curl -fLo UnitySetup https://beta.unity3d.com/download/7ceaae5f7503/UnitySetup-2019.3.3f1 \
+RUN curl -fLo UnitySetup https://beta.unity3d.com/download/59ff3e03856d/UnitySetup-2019.3.15f1 \
     && chmod +x UnitySetup \
     && yes | ./UnitySetup --unattended --install-location=/opt/Unity --components=Unity,Windows-Mono,Mac-Mono \
     && rm UnitySetup

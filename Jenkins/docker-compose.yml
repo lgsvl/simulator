@@ -33,32 +33,6 @@ services:
     privileged: true
     entrypoint: "/mnt/Jenkins/build-simulator.sh"
 
-  save-bundle-links:
-    build: .
-    image: ${SIMULATOR_DOCKER_IMAGE}:2019.3.15f1
-    user: ${UID}
-    environment:
-      - SIM_ENVIRONMENTS
-      - SIM_VEHICLES
-      - S3_DOWNLOAD_HOST
-      - JENKINS_BUILD_ID
-      - GIT_COMMIT
-      - GIT_BRANCH
-      - GIT_TAG
-      - UNITY_USERNAME
-      - UNITY_PASSWORD
-      - UNITY_SERIAL
-      - DISPLAY
-      - XAUTHORITY=/tmp/.Xauthority
-    volumes:
-      - ..:/mnt
-      - /etc/localtime:/etc/localtime:ro
-      - /tmp/.X11-unix:/tmp/.X11-unix
-      - ${HOME}/.Xauthority:/tmp/.Xauthority
-    runtime: "nvidia"
-    privileged: true
-    entrypoint: "/mnt/Jenkins/save-bundle-links.sh"
-
   build-bundles:
     build: .
     image: ${SIMULATOR_DOCKER_IMAGE}:2019.3.15f1

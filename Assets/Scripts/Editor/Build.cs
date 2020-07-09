@@ -184,7 +184,7 @@ namespace Simulator.Editor
 
             private IEnumerator PreparePrefabManifest(Entry prefabEntry, string outputFolder, List<(string, string)> buildArtifacts, Manifest manifest)
             {
-                const string vehiclePreviewScenePath = "Assets/PreviewEnvironmentAssets/PreviewEnvironmentScene.unity"; 
+                const string vehiclePreviewScenePath = "Assets/PreviewEnvironmentAssets/PreviewEnvironmentScene.unity";
 
                 string assetGuid = Guid.NewGuid().ToString();
                 manifest.assetName = prefabEntry.name;
@@ -327,7 +327,7 @@ namespace Simulator.Editor
                             manifest.attachments = new Dictionary<string, object>();
 
                             string name = manifest.assetName;
-                            
+
                             var hdMaps = new HdMaps() {
                                 apollo30 = ZipPath("hdmaps", "apollo30",  "base_map.bin"),
                                 apollo50 = ZipPath("hdmaps", "apollo50",  "base_map.bin"),
@@ -791,7 +791,7 @@ namespace Simulator.Editor
         {
             foreach (var group in buildGroups.Values)
             {
-                group.OnGUI();   
+                group.OnGUI();
             }
 
             GUILayout.Label("Options", EditorStyles.boldLabel);
@@ -920,92 +920,6 @@ namespace Simulator.Editor
             return "unknown";
         }
 
-        static void SaveBundleLinks(string filename)
-        {
-            var gitCommit = Environment.GetEnvironmentVariable("GIT_COMMIT");
-            var gitBranch = Environment.GetEnvironmentVariable("GIT_BRANCH");
-            var gitTag = Environment.GetEnvironmentVariable("GIT_TAG");
-            var downloadHost = Environment.GetEnvironmentVariable("S3_DOWNLOAD_HOST");
-
-            if (string.IsNullOrEmpty(gitCommit))
-            {
-                Debug.LogError("Cannot save bundle links - GIT_COMMIT is not set");
-                return;
-            }
-
-            if (string.IsNullOrEmpty(downloadHost))
-            {
-                Debug.LogError("Cannot save bundle links - S3_DOWNLOAD_HOST is not set");
-                return;
-            }
-
-            using (var f = File.CreateText(filename))
-            {
-                f.WriteLine("<html><body>");
-
-                var dt = DateTime.Now.ToString("o", CultureInfo.InvariantCulture);
-
-                f.WriteLine("<h1>Info</h1>");
-                f.WriteLine("<ul>");
-                f.WriteLine($"<li>Build Date: {dt}</li>");
-                if (!string.IsNullOrEmpty(gitCommit))
-                {
-                    f.WriteLine($"<li>Git Commit: {gitCommit}</li>");
-                }
-                if (!string.IsNullOrEmpty(gitBranch))
-                {
-                    f.WriteLine($"<li>Git Branch: {gitBranch}</li>");
-                }
-                if (!string.IsNullOrEmpty(gitTag))
-                {
-                    f.WriteLine($"<li>Git Tag: {gitTag}</li>");
-                }
-                f.WriteLine("</ul>");
-
-                f.WriteLine("<h1>Environments</h1>");
-                f.WriteLine("<ul>");
-
-                var simEnvironments = Environment.GetEnvironmentVariable("SIM_ENVIRONMENTS");
-                if (!string.IsNullOrEmpty(simEnvironments))
-                {
-                    foreach (var line in simEnvironments.Split('\n'))
-                    {
-                        var items = line.Split(new[] { ' ' }, 2);
-                        var id = items[0];
-                        var name = items[1];
-
-                        var url = $"https://{downloadHost}/{id}/environment_{name}";
-                        var size = GetFileSizeAsString(url);
-                        f.WriteLine($"<li><a href='{url}'>{name}</a> ({size})</li>");
-                    }
-                }
-                f.WriteLine("</ul>");
-
-                f.WriteLine("<h1>Vehicles</h1>");
-                f.WriteLine("<ul>");
-
-                var simVehicles = Environment.GetEnvironmentVariable("SIM_VEHICLES");
-                if (!string.IsNullOrEmpty(simVehicles))
-                {
-                    foreach (var line in simVehicles.Split('\n'))
-                    {
-                        var items = line.Split(new[] { ' ' }, 2);
-                        var id = items[0];
-                        var name = items[1];
-
-                        var url = $"https://{downloadHost}/{id}/vehicle_{name}";
-                        var size = GetFileSizeAsString(url);
-                        f.WriteLine($"<li><a href='{url}'>{name}</a> ({size})</li>");
-                    }
-                }
-                f.WriteLine("</ul>");
-
-                // TODO api objects
-
-                f.WriteLine("</body></html>");
-            }
-        }
-
         static void RunPlayerBuild(BuildTarget target, string folder, bool development)
         {
             var oldGraphicsJobSetting = PlayerSettings.graphicsJobs;
@@ -1116,7 +1030,6 @@ namespace Simulator.Editor
 
             string buildPlayer = null;
             bool buildBundles = false;
-            string saveBundleLinks = null;
 
             bool developmentBuild = false;
 
@@ -1154,18 +1067,6 @@ namespace Simulator.Editor
                     else
                     {
                         throw new Exception("-buildTarget expects Win64 or Linux64 argument!");
-                    }
-                }
-                else if (args[i] == "-saveBundleLinks")
-                {
-                    if (i < args.Length - 1)
-                    {
-                        i++;
-                        saveBundleLinks = args[i];
-                    }
-                    else
-                    {
-                        throw new Exception("-saveBundleLinks expects output filename!");
                     }
                 }
                 else if (args[i] == "-buildPlayer")
@@ -1248,11 +1149,6 @@ namespace Simulator.Editor
                     var assetBundlesLocation = Path.Combine(Application.dataPath, "..", "AssetBundles");
                     yield return EditorCoroutineUtility.StartCoroutineOwnerless(build.BuildBundles(assetBundlesLocation));
                 }
-
-                if (saveBundleLinks != null)
-                {
-                    SaveBundleLinks(saveBundleLinks);
-                }
             }
             finally
             {
@@ -1267,7 +1163,7 @@ namespace Simulator.Editor
             {
                 File.Delete(path);
             }
-            else if (Directory.Exists(path)) 
+            else if (Directory.Exists(path))
             {
                 Directory.Delete(path);
             }

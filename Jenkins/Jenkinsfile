@@ -310,21 +310,6 @@ pipeline {
       }
 
     } // macOS
-
-    stage("Bundles") {
-      steps {
-        dir("Jenkins") {
-          sh "UID=`id -u` docker-compose run --rm save-bundle-links"
-        }
-      }
-
-      post {
-        success {
-          archiveArtifacts "*-bundles-${JENKINS_BUILD_ID}.html"
-        }
-      }
-    } // Bundles
-
   } // stages
 
   post {

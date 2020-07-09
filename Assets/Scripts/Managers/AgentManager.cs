@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -50,6 +50,8 @@ public class AgentManager : MonoBehaviour
         agentController.SensorsChanged += AgentControllerOnSensorsChanged;
         agentController.Config = config;
         agentController.Config.AgentGO = go;
+
+        var lane = go.AddComponent<VehicleLane>();
 
         var baseLink = go.GetComponentInChildren<BaseLink>();
         if (baseLink == null)

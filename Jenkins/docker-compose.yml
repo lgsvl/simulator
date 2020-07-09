@@ -19,7 +19,7 @@ services:
 
   build-simulator:
     build: .
-    image: ${SIMULATOR_DOCKER_IMAGE}
+    image: ${SIMULATOR_DOCKER_IMAGE}:2019.3.15f1
     user: ${UID}
     environment:
       - S3_DOWNLOAD_HOST
@@ -51,7 +51,7 @@ services:
 
   save-bundle-links:
     build: .
-    image: ${SIMULATOR_DOCKER_IMAGE}
+    image: ${SIMULATOR_DOCKER_IMAGE}:2019.3.15f1
     user: ${UID}
     environment:
       - SIM_ENVIRONMENTS
@@ -77,7 +77,7 @@ services:
 
   build-bundles:
     build: .
-    image: ${SIMULATOR_DOCKER_IMAGE}
+    image: ${SIMULATOR_DOCKER_IMAGE}:2019.3.15f1
     user: ${UID}
     environment:
       - SIM_ENVIRONMENTS

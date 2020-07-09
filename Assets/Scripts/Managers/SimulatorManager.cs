@@ -249,7 +249,6 @@ public class SimulatorManager : MonoBehaviour
         WireframeBoxes = gameObject.AddComponent<WireframeBoxes>();
         if (Loader.Instance != null) TimeManager.Initialize(Loader.Instance.Network.MessagesManager);
         Sensors.Initialize();
-        Loader.ResetMaterials(); // TODO remove Editor hack for 2019.3.3 bug once fixed
         IsInitialized = true;
     }
 

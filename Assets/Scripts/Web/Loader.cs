@@ -669,21 +669,6 @@ namespace Simulator
             });
         }
 
-        public static void ResetMaterials()
-        {
-            // TODO remove hack for editor opaque with alpha clipping 2019.3.3
-#if UNITY_EDITOR
-            var go = FindObjectsOfType<Renderer>();
-            foreach (var renderer in go)
-            {
-                foreach (var m in renderer.sharedMaterials)
-                {
-                    m.shader = Shader.Find(m.shader.name);
-                }
-            }
-#endif
-        }
-
         public static void StopAsync()
         {
             Debug.Assert(Instance.CurrentSimulation != null);

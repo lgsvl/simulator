@@ -1,0 +1,52 @@
+{
+    "version": "1.0",
+    "id": "067538a6-7d91-4624-8eb1-a24a32c2f91d",
+    "name": "demo2",
+    "ownerId": "4f162739-41d5-45a7-ab84-fafc75d9131d",
+    "interactive": true,
+    "headless": false,
+    "createdAt": "2020-06-08T21:50:08.000Z",
+    "updatedAt": "2020-06-08T21:50:08.000Z",
+    "template": {
+        "alias": "apiOnly",
+        "parameters": [
+            {
+                "alias": "api-only",
+                "parameterName": "Start Simulator API",
+                "parameterType": "bool",
+                "variableType": "internal",
+                "variableName": "SIMULATOR_API_ONLY",
+                "value": true
+            },
+            {
+                "alias": "foo-obj-test",
+                "parameterName": "Sample foo object",
+                "parameterType": "foo",
+                "variableType": "internal",
+                "variableName": "TEST_FOO",
+                "value": {
+                    "foo": "bar"
+                }
+            }
+        ]
+    },
+    "cluster": {
+        "id": "03abf17f-a8a5-433b-b75e-9c331dc6c1db",
+        "name": "demo2",
+        "ownerId": "4f162739-41d5-45a7-ab84-fafc75d9131d",
+        "createdAt": "2020-06-08T21:49:49.000Z",
+        "updatedAt": "2020-06-08T21:49:49.000Z",
+        "instances": [
+            {
+                "simId": "75e07d7e-9089-4e82-a5fa-d29dbb48fc63",
+                "ip": [
+                    "192.168.1.83",
+                    "192.168.122.1",
+                    "172.18.0.1",
+                    "172.17.0.1"
+            ],
+            "isMaster": true
+            }
+        ]
+    }
+}

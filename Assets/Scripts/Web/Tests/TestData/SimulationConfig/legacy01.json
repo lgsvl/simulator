@@ -1,0 +1,70 @@
+{
+    "id": "067538a6-7d91-4624-8eb1-a24a32c2f91d",
+    "name": "demo2",
+    "ownerId": "4f162739-41d5-45a7-ab84-fafc75d9131d",
+    "apiOnly": false,
+    "interactive": true,
+    "headless": false,
+    "timeOfDay": "2020-06-08T12:00:57.000Z",
+    "rain": 0,
+    "fog": 0,
+    "wetness": 0,
+    "cloudiness": 0,
+    "seed": 0,
+    "useTraffic": false,
+    "useBicyclists": false,
+    "usePedestrians": false,
+    "createdAt": "2020-06-08T21:50:08.000Z",
+    "updatedAt": "2020-06-08T21:50:08.000Z",
+    "map": {
+        "id": "841b956b-7848-4c04-a017-5bd4d8385bbd",
+        "name": "BorregasAve",
+        "assetGuid": "4c01a627-1ea9-4bf3-a52b-66debcabceaf",
+        "ownerId": "9f042740-290f-4232-b06b-2d466a51a98a",
+        "createdAt": "2020-05-28T23:32:57.000Z",
+        "updatedAt": "2020-05-28T23:35:00.000Z"
+    },
+    "vehicles": [
+        {
+            "id": "a65e1504-27d9-4338-8161-e59cef6de2bb",
+            "name": "Lexus2016RXHybrid (Apollo 5.0, Manual Drive)",
+            "assetGuid": "bba98638-04c7-4ea6-8c33-f5644bb340b2",
+            "ownerId": "4f162739-41d5-45a7-ab84-fafc75d9131d",
+            "createdAt": "2020-06-08T21:21:27.000Z",
+            "updatedAt": "2020-06-08T21:23:05.000Z",
+            "bridge": {
+                "name": "CyberRT",
+                "assetGuid": null,
+                "type": "CyberRT",
+                "connectionString": "127.0.0.101:9090"
+            },
+            "sensors": [
+                {
+                    "name": "Manual Car Control",
+                    "parent": null,
+                    "assetGuid": null,
+                    "type": "Manual Control"
+                }
+            ]
+        }
+    ],
+    "cluster": {
+        "id": "03abf17f-a8a5-433b-b75e-9c331dc6c1db",
+        "name": "demo2",
+        "ownerId": "4f162739-41d5-45a7-ab84-fafc75d9131d",
+        "createdAt": "2020-06-08T21:49:49.000Z",
+        "updatedAt": "2020-06-08T21:49:49.000Z",
+        "instances": [
+            {
+                "simId": "75e07d7e-9089-4e82-a5fa-d29dbb48fc63",
+                "ip": [
+                    "192.168.1.83",
+                    "192.168.122.1",
+                    "172.18.0.1",
+                    "172.17.0.1"
+                ],
+                "isMaster": true
+            }
+        ]
+    }
+}

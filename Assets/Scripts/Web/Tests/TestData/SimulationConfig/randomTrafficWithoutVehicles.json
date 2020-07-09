@@ -1,0 +1,49 @@
+{
+    "version": "1.0",
+    "id": "067538a6-7d91-4624-8eb1-a24a32c2f91d",
+    "name": "demo2",
+    "ownerId": "4f162739-41d5-45a7-ab84-fafc75d9131d",
+    "interactive": true,
+    "headless": false,
+    "createdAt": "2020-06-08T21:50:08.000Z",
+    "updatedAt": "2020-06-08T21:50:08.000Z",
+    "template": {
+    "alias": "randomTraffic",
+    "parameters": [
+        {
+            "alias": "the-maps",
+            "parameterName": "Some Map",
+            "parameterType": "map",
+            "variableType": "internal",
+            "variableName": "SIMULATOR_MAP",
+            "value": {
+                "id": "841b956b-7848-4c04-a017-5bd4d8385bbd",
+                "name": "BorregasAve",
+                "assetGuid": "4c01a627-1ea9-4bf3-a52b-66debcabceaf",
+                "ownerId": "9f042740-290f-4232-b06b-2d466a51a98a",
+                "createdAt": "2020-05-28T23:32:57.000Z",
+                "updatedAt": "2020-05-28T23:35:00.000Z"
+            }
+        }
+    ]
+    },
+    "cluster": {
+    "id": "03abf17f-a8a5-433b-b75e-9c331dc6c1db",
+    "name": "demo2",
+    "ownerId": "4f162739-41d5-45a7-ab84-fafc75d9131d",
+    "createdAt": "2020-06-08T21:49:49.000Z",
+    "updatedAt": "2020-06-08T21:49:49.000Z",
+    "instances": [
+        {
+        "simId": "75e07d7e-9089-4e82-a5fa-d29dbb48fc63",
+        "ip": [
+            "192.168.1.83",
+            "192.168.122.1",
+            "172.18.0.1",
+            "172.17.0.1"
+        ],
+        "isMaster": true
+        }
+    ]
+    }
+}

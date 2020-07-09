@@ -7,6 +7,9 @@
 
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using UnityEngine;
 
 namespace Simulator.Web
 {
@@ -141,7 +144,7 @@ namespace Simulator.Web
         public string type;
         public TransformData transform;
         public string assetGuid;
-        public Dictionary<string, object> @params; 
+        public Dictionary<string, object> @params;
     }
 
     public class TransformData
@@ -154,9 +157,49 @@ namespace Simulator.Web
         public float roll;
     }
 
+    public class TemplateParameter
+    {
+        public String Alias { get; set; }
+        public String ParameterName { get; set; }
+        public String ParameterType { get; set; }
+        public String VariableName { get; set; }
+        public String VariableType { get; set; }
+
+        [JsonProperty("value")]
+        public JToken RawValue { get; set; }
+
+        public T GetValue<T>()
+        {
+            try {
+                if (RawValue is JValue)
+                {
+                    // Cast plain value
+                    var value = RawValue as JValue;
+                    return value.Value<T>();
+                }
+                else
+                {
+                    // Cast generic JToken to object
+                    return RawValue.ToObject<T>();
+                }
+            }
+            catch (Exception e) {
+                Debug.Log($"Failed to cast {RawValue.GetType()} template parameter value '{RawValue}' to {typeof(T)}");
+                throw;
+            }
+        }
+    }
+
+    public class TemplateData
+    {
+        public string Alias { get; set; }
+        public TemplateParameter[] Parameters;
+    }
+
     [System.Serializable] // required for developerSettings
     public class SimulationData: CloudIdData
     {
+        public string Version { get; set; }
         public bool ApiOnly { get; set; }
         public bool Interactive { get; set; }
         public bool Headless { get; set; }
@@ -173,7 +216,9 @@ namespace Simulator.Web
         public MapData Map { get; set; }
         public VehicleData[] Vehicles { get; set; }
         public ClusterData Cluster { get; set; }
+        public TemplateData Template { get; set; }
     }
+
 
     public class LibraryList<DetailData>
     {

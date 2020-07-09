@@ -1,0 +1,52 @@
+{
+    "version": "1.0",
+    "template": {
+    "alias": "pythonApi",
+    "parameters": [
+        {
+            "alias": "apiOnly",
+            "value": true,
+            "parameterName": "API only",
+            "parameterType": "boolean",
+            "variableName": "SIMULATOR_API_ONLY",
+            "variableType": "env"
+        },
+        {
+            "alias": "script",
+            "value": "def python_api():\n\tprint(\"python_api\")",
+            "parameterName": "Python script",
+            "parameterType": "string",
+            "variableName": "scenario.py",
+            "variableType": "volume"
+        }
+    ]
+    },
+    "cluster": {
+    "id": "9115c89b-cdad-4ad0-bc9f-c6fce8c6d42c",
+    "name": "dev",
+    "ownerId": "9301f44d-1320-4382-97a2-4f5a0d797865",
+    "createdAt": "2020-07-09T07:41:46.000Z",
+    "updatedAt": "2020-07-09T07:41:46.000Z",
+    "instances": [
+        {
+        "simId": "c05d92ce-64d4-45a6-8677-56f8c444202b",
+        "ip": [
+            "192.168.1.83",
+            "192.168.122.1",
+            "172.19.0.1",
+            "172.18.0.1",
+            "172.17.0.1",
+            "192.168.39.1"
+        ],
+        "isMaster": true
+        }
+    ]
+    },
+    "id": "6f11d0f4-5858-43bb-99d2-f11e0d4acab0",
+    "name": "Python",
+    "ownerId": "9301f44d-1320-4382-97a2-4f5a0d797865",
+    "interactive": false,
+    "headless": false,
+    "createdAt": "2020-07-09T17:13:15.000Z",
+    "updatedAt": "2020-07-09T17:13:15.000Z"
+}

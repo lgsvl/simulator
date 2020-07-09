@@ -1,0 +1,268 @@
+{
+    "version": "1.0",
+    "template": {
+        "alias": "randomTraffic",
+        "parameters": [
+            {
+                "alias": "apiOnly",
+                "value": false,
+                "parameterName": "API only",
+                "parameterType": "boolean",
+                "variableName": "SIMULATOR_API_ONLY",
+                "variableType": "env"
+            },
+            {
+                "alias": "cloudiness",
+                "value": 0.4,
+                "parameterName": "Cloudiness",
+                "parameterType": "number",
+                "variableName": "SIMULATOR_CLOUDINESS",
+                "variableType": "env"
+            },
+            {
+                "alias": "fog",
+                "value": 0.1,
+                "parameterName": "Fog",
+                "parameterType": "number",
+                "variableName": "SIMULATOR_FOG",
+                "variableType": "env"
+            },
+            {
+                "alias": "map",
+                "value": {
+                    "id": "a7b32bdb-acc3-40e9-b893-29e4955a209f",
+                    "name": "Borregas Avenue",
+                    "assetGuid": "dec9dbbc-571c-463e-96a9-501d94e49613",
+                    "ownerId": "f7a90ae8-08c1-441c-b329-1e2fd9628d32",
+                    "createdAt": "2020-07-09T05:15:46.000Z",
+                    "updatedAt": "2020-07-09T05:15:46.000Z"
+                },
+                "parameterName": "Map",
+                "parameterType": "map",
+                "variableName": "SIMULATOR_MAP",
+                "variableType": "env"
+            },
+            {
+                "alias": "rain",
+                "value": 0.3,
+                "parameterName": "Rain",
+                "parameterType": "number",
+                "variableName": "SIMULATOR_RAIN",
+                "variableType": "env"
+            },
+            {
+                "alias": "seed",
+                "value": 42,
+                "parameterName": "Seed",
+                "parameterType": "integer",
+                "variableName": "SIMULATOR_SEED",
+                "variableType": "env"
+            },
+            {
+                "alias": "timeOfDay",
+                "value": "2020-07-31T12:00:00.000Z",
+                "parameterName": "Time of day",
+                "parameterType": "string",
+                "variableName": "SIMULATOR_TIME_OF_DAY",
+                "variableType": "env"
+            },
+            {
+                "alias": "useBicyclists",
+                "value": true,
+                "parameterName": "Use bicyclists",
+                "parameterType": "boolean",
+                "variableName": "SIMULATOR_USE_BICYCLISTS",
+                "variableType": "env"
+            },
+            {
+                "alias": "usePedestrians",
+                "value": true,
+                "parameterName": "Use pedestrians",
+                "parameterType": "boolean",
+                "variableName": "SIMULATOR_USE_PEDESTRIANS",
+                "variableType": "env"
+            },
+            {
+                "alias": "useTraffic",
+                "value": false,
+                "parameterName": "Use traffic",
+                "parameterType": "boolean",
+                "variableName": "SIMULATOR_USE_TRAFFIC",
+                "variableType": "env"
+            },
+            {
+                "alias": "vehicles",
+                "value": [
+                    {
+                        "id": "a88495aa-e4f9-4e1f-a790-cdbca41deeff",
+                        "name": "Jaguar XE (2015)",
+                        "assetGuid": "6bf6900b-b7d8-47c9-9b3d-78228924c011",
+                        "ownerId": "f7a90ae8-08c1-441c-b329-1e2fd9628d32",
+                        "createdAt": "2020-07-09T05:15:46.000Z",
+                        "updatedAt": "2020-07-09T05:15:46.000Z",
+                        "bridge": {
+                            "name": "ROS Apollo",
+                            "assetGuid": null,
+                            "type": "ROS Apollo",
+                            "connectionString": "localhost"
+                        },
+                        "sensors": [
+                            {
+                                "name": "Custom Control - 2",
+                                "parent": null,
+                                "transform": {
+                                    "x": -4.65,
+                                    "y": 0.11,
+                                    "z": -3.75,
+                                    "pitch": 0.52,
+                                    "yaw": 0.47,
+                                    "roll": -4.41
+                                },
+                                "assetGuid": null,
+                                "type": "Custom Control 2"
+                            },
+                            {
+                                "name": "Lidar",
+                                "parent": null,
+                                "transform": {
+                                    "x": -0.23,
+                                    "y": 1.03,
+                                    "z": -3.6,
+                                    "pitch": -1.23,
+                                    "yaw": -3.9,
+                                    "roll": -2.03
+                                },
+                                "assetGuid": null,
+                                "type": "Lidar"
+                            },
+                            {
+                                "name": "Transform Sensor",
+                                "parent": null,
+                                "transform": {
+                                    "x": 2.72,
+                                    "y": 1.43,
+                                    "z": -1.81,
+                                    "pitch": 2.59,
+                                    "yaw": -1.76,
+                                    "roll": 3.02
+                                },
+                                "assetGuid": null,
+                                "type": "Transform Sensor"
+                            },
+                            {
+                                "name": "Radar",
+                                "parent": null,
+                                "transform": {
+                                    "x": 2.95,
+                                    "y": -3.62,
+                                    "z": -1.49,
+                                    "pitch": -4,
+                                    "yaw": -2.9,
+                                    "roll": 4.25
+                                },
+                                "assetGuid": null,
+                                "type": "Radar"
+                            },
+                            {
+                                "name": "Color Camera",
+                                "parent": null,
+                                "transform": {
+                                    "x": -1.33,
+                                    "y": 4.36,
+                                    "z": 1.66,
+                                    "pitch": -1.3,
+                                    "yaw": -2.38,
+                                    "roll": 1.73
+                                },
+                                "assetGuid": null,
+                                "type": "Color Camera"
+                            },
+                            {
+                                "name": "Custom Sensor - 2",
+                                "parent": null,
+                                "transform": {
+                                    "x": 1.31,
+                                    "y": 0.13,
+                                    "z": -2.35,
+                                    "pitch": 0.75,
+                                    "yaw": -2.29,
+                                    "roll": 3.97
+                                },
+                                "assetGuid": null,
+                                "type": "Custom Sensor 2"
+                            },
+                            {
+                                "name": "Depth Camera",
+                                "parent": null,
+                                "transform": {
+                                    "x": 2.02,
+                                    "y": -3.35,
+                                    "z": 0.86,
+                                    "pitch": -0.25,
+                                    "yaw": 1.54,
+                                    "roll": -4.88
+                                },
+                                "assetGuid": null,
+                                "type": "Depth Camera"
+                            },
+                            {
+                                "name": "Cruise Control",
+                                "parent": null,
+                                "transform": {
+                                    "x": -3.8,
+                                    "y": -2.14,
+                                    "z": -2.41,
+                                    "pitch": -4.73,
+                                    "yaw": -4.76,
+                                    "roll": -4.62
+                                },
+                                "assetGuid": null,
+                                "type": "Cruise Control"
+                            }
+                        ]
+                    }
+                ],
+                "parameterName": "Vehicles",
+                "parameterType": "vehicles",
+                "variableName": "SIMULATOR_VEHICLES",
+                "variableType": "env"
+            },
+            {
+                "alias": "wetness",
+                "value": 0.2,
+                "parameterName": "Wetness",
+                "parameterType": "number",
+                "variableName": "SIMULATOR_WETNESS",
+                "variableType": "env"
+            }
+        ]
+    },
+    "cluster": {
+        "id": "537fd0aa-c626-4400-bba7-14c59582a25b",
+        "name": "dev",
+        "ownerId": "e9bbb1d7-1803-4258-8c6a-5d4f049e17c9",
+        "createdAt": "2020-07-09T05:16:47.000Z",
+        "updatedAt": "2020-07-09T05:16:47.000Z",
+        "instances": [
+            {
+                "simId": "c05d92ce-64d4-45a6-8677-56f8c444202b",
+                "ip": [
+                    "192.168.1.83",
+                    "192.168.122.1",
+                    "172.19.0.1",
+                    "172.18.0.1",
+                    "172.17.0.1",
+                    "192.168.39.1"
+                ],
+                "isMaster": true
+            }
+        ]
+    },
+    "id": "0cbb7777-cce5-45e2-97e1-117714ea807d",
+    "name": "BA",
+    "ownerId": "e9bbb1d7-1803-4258-8c6a-5d4f049e17c9",
+    "interactive": false,
+    "headless": false,
+    "createdAt": "2020-07-09T05:19:44.000Z",
+    "updatedAt": "2020-07-09T05:25:18.000Z"
+}

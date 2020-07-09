@@ -185,7 +185,20 @@ public class ConnectionManager : MonoBehaviour
                                     Status = ConnectionStatus.Online;
                                     ConnectionUI.instance.UpdateStatus();
                                     ConnectionUI.instance.statusButton.interactable = false;
-                                    SimulationData simData = Newtonsoft.Json.JsonConvert.DeserializeObject<SimulationData>(deserialized.GetValue("data").ToString());
+
+                                    SimulationData simData;
+                                    try 
+                                    {
+                                        simData = deserialized["data"].ToObject<SimulationData>();
+                                        SimulationConfigUtils.ProcessKnownTemplates(ref simData);
+                                    }
+                                    catch (Exception e) when (e is InvalidCastException 
+                                                              || e is NullReferenceException)
+                                    {
+                                        Debug.LogError($"[CONN] Failed to parse Config data: '{s}'");
+                                        Debug.LogException(e);
+                                        throw;
+                                    }
                                     Loader.StartSimulation(simData);
                                 });
                                 break;

@@ -1,0 +1,73 @@
+{
+    "version": "1.0",
+    "id": "067538a6-7d91-4624-8eb1-a24a32c2f91d",
+    "name": "demo2",
+    "ownerId": "4f162739-41d5-45a7-ab84-fafc75d9131d",
+    "interactive": true,
+    "headless": false,
+    "createdAt": "2020-06-08T21:50:08.000Z",
+    "updatedAt": "2020-06-08T21:50:08.000Z",
+    "template": {
+    "alias": "randomTraffic",
+    "parameters": [
+        {
+            "alias": "the-agents",
+            "parameterName": "Vehicles",
+            "parameterType": "vehicles",
+            "variableType": "internal",
+            "variableName": "SIMULATOR_VEHICLES",
+            "value": [
+                {
+                "id": "a65e1504-27d9-4338-8161-e59cef6de2bb",
+                "name": "Lexus2016RXHybrid (Apollo 5.0, Manual Drive)",
+                "assetGuid": "bba98638-04c7-4ea6-8c33-f5644bb340b2",
+                "ownerId": "4f162739-41d5-45a7-ab84-fafc75d9131d",
+                "createdAt": "2020-06-08T21:21:27.000Z",
+                "updatedAt": "2020-06-08T21:23:05.000Z",
+                "bridge": {
+                    "name": "CyberRT",
+                    "assetGuid": null,
+                    "type": "CyberRT",
+                    "connectionString": "127.0.0.101:9090"
+                },
+                "sensors": [
+                    {
+                    "name": "Manual Car Control",
+                    "parent": null,
+                    "assetGuid": null,
+                    "type": "Manual Control"
+                    }
+                ]
+                }
+            ]
+        },
+        {
+            "alias": "rain",
+            "parameterName": "Rain",
+            "parameterType": "float",
+            "variableName": "SIMULATOR_RAIN",
+            "variableType": "internal",
+            "value": 0.42
+        }
+    ]
+    },
+    "cluster": {
+    "id": "03abf17f-a8a5-433b-b75e-9c331dc6c1db",
+    "name": "demo2",
+    "ownerId": "4f162739-41d5-45a7-ab84-fafc75d9131d",
+    "createdAt": "2020-06-08T21:49:49.000Z",
+    "updatedAt": "2020-06-08T21:49:49.000Z",
+    "instances": [
+        {
+        "simId": "75e07d7e-9089-4e82-a5fa-d29dbb48fc63",
+        "ip": [
+            "192.168.1.83",
+            "192.168.122.1",
+            "172.18.0.1",
+            "172.17.0.1"
+        ],
+        "isMaster": true
+        }
+    ]
+    }
+}

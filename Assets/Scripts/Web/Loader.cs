@@ -26,7 +26,6 @@ using Simulator.FMU;
 using Simulator.PointCloud.Trees;
 using System.Threading.Tasks;
 using Simulator.Database.Services;
-using Newtonsoft.Json.Linq;
 
 namespace Simulator
 {
@@ -265,6 +264,7 @@ namespace Simulator
 
         public static async void StartSimulation(SimulationData simData)
         {
+            Instance.CurrentSimulation = simData;
             if (Instance.Status != SimulatorStatus.Idle)
             {
                 Debug.LogWarning("Received start simulation command while Simulator is not idle.");
@@ -293,7 +293,6 @@ namespace Simulator
 
                 Debug.Log("All Downloads Complete");
 
-                Instance.CurrentSimulation = simData;
                 if (!Instance.Network.IsClusterSimulation)
                     StartAsync(simData);
                 else
@@ -318,6 +317,7 @@ namespace Simulator
         {
             Debug.Assert(Instance.Status == SimulatorStatus.Loading);
             Instance.Status = SimulatorStatus.Starting;
+            Instance.CurrentSimulation = simulation;
 
             Instance.Actions.Enqueue(() =>
             {
@@ -560,8 +560,6 @@ namespace Simulator
                 {
                     Instance.Status = SimulatorStatus.Running;
                 }
-
-                Instance.CurrentSimulation = simulation;
 
                 // Flash main window to let user know simulation is ready
                 WindowFlasher.Flash();

@@ -167,6 +167,7 @@ namespace Simulator
                         break;
                     case SimulatorStatus.Starting:
                         //Start command received from the cloud
+                        ConnectionManager.instance.UpdateStatus("Starting", Instance.CurrentSimulation.Id);
                         break;
                     case SimulatorStatus.Running:
                         ConnectionManager.instance.UpdateStatus("Running", Instance.CurrentSimulation.Id);

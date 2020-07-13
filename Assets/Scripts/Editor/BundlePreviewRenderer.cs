@@ -29,11 +29,21 @@ namespace Simulator.Editor
             public Texture2D medium;
             public Texture2D small;
 
-            public void Alloc()
+            public PreviewTextures()
             {
                 large = new Texture2D(1920, 1080, TextureFormat.RGB24, false);
                 medium = new Texture2D(1280, 720, TextureFormat.RGB24, false);
                 small = new Texture2D(854, 480, TextureFormat.RGB24, false);
+
+                for (var i = 0; i < 3; ++i)
+                    this[i].hideFlags = HideFlags.HideAndDontSave;
+            }
+
+            public void Release()
+            {
+                CoreUtils.Destroy(large);
+                CoreUtils.Destroy(medium);
+                CoreUtils.Destroy(small);
             }
 
             public Texture2D this[int i]
@@ -198,7 +208,6 @@ namespace Simulator.Editor
 
         private static IEnumerator Render(HDCamera hd, PreviewTextures textures, Volume volume)
         {
-            textures.Alloc();
             var camera = hd.camera;
             var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             hdrp?.RequestSkyEnvironmentUpdate();

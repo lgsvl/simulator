@@ -267,6 +267,7 @@ namespace Simulator.Editor
                         var bytesLarge = textures.large.EncodeToPNG();
                         var bytesMedium = textures.medium.EncodeToPNG();
                         var bytesSmall = textures.small.EncodeToPNG();
+                        textures.Release();
 
                         string tmpdir = Path.Combine(outputFolder, $"{manifest.assetName}_pictures");
                         Directory.CreateDirectory(tmpdir);
@@ -378,6 +379,7 @@ namespace Simulator.Editor
                             var bytesLarge = textures.large.EncodeToPNG();
                             var bytesMedium = textures.medium.EncodeToPNG();
                             var bytesSmall = textures.small.EncodeToPNG();
+                            textures.Release();
 
                             tmpdir = Path.Combine(outputFolder, $"{name}_pictures");
                             Directory.CreateDirectory(tmpdir);

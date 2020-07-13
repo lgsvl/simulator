@@ -588,6 +588,13 @@ namespace Simulator.Bridge.Cyber
             };
         }
 
+        public static apollo.cyber.proto.Clock ConvertFrom(ClockData data)
+        {
+            return new apollo.cyber.proto.Clock()
+            {
+                clock = (ulong)(data.Clock * 1e9)
+            };
+        }
 
         public static Detected2DObjectArray ConvertTo(apollo.common.Detection2DArray data)
         {

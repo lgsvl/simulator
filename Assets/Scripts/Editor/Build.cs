@@ -640,41 +640,22 @@ namespace Simulator.Editor
                                 }
                             }
 
-                            if (outputAssembly != null && !mainAssetIsScript)
+                            if (outputAssembly != null && !mainAssetIsScript && entry.mainAssetFile.EndsWith(PrefabExtension))
                             {
-                                Debug.Log($"Attempting to load {outputAssembly} exists: {File.Exists(outputAssembly)}");
-                                string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
-                                byte[] bytes = System.IO.File.ReadAllBytes(outputAssembly);
-                                var assembly = System.Reflection.Assembly.Load(bytes);
-                                AssetBundle pluginBundle = AssetBundle.LoadFromFile(Path.Combine(outputFolder, $"{manifest.assetGuid}_{thing}_main_{platform}"));
-                                var pluginAssets = pluginBundle.GetAllAssetNames();
-                                foreach (var asset in pluginAssets)
+                                var asset = AssetDatabase.LoadAssetAtPath(entry.mainAssetFile, typeof(GameObject)) as GameObject;
+                                SensorBase sensor = asset.GetComponent<SensorBase>();
+                                if (sensor == null)
                                 {
-                                    SensorBase sensor = pluginBundle.LoadAsset<GameObject>(pluginAssets[0]).GetComponent<SensorBase>();
-                                    if (sensor == null)
-                                    {
-                                        continue;
-                                    }
-
-                                    manifest.sensorParams = new Dictionary<string, Param>();
-                                    foreach (SensorParam param in SensorTypes.GetConfig(sensor).Parameters)
-                                    {
-                                        manifest.sensorParams.Add(param.Name, new Param()
-                                        {
-                                            Type = param.Type,
-                                            DefaultValue = param.DefaultValue,
-                                            Min = param.Min,
-                                            Max = param.Max,
-                                            Values = param.Values,
-                                            Unit = param.Unit
-                                        });
-                                    }
-
-                                    // we only take the first found
-                                    break;
+                                    continue;
                                 }
 
-                                pluginBundle.Unload(true);
+                                manifest.sensorParams = new Dictionary<string, SensorParam>();
+                                foreach (SensorParam param in SensorTypes.GetConfig(sensor).Parameters)
+                                {
+                                    manifest.sensorParams.Add(param.Name, param);
+                                }
+                                asset = null;
+                                EditorUtility.UnloadUnusedAssetsImmediate();
                             }
 
                             if (bundleType == BundleConfig.BundleTypes.Bridge)

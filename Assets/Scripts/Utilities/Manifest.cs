@@ -24,7 +24,7 @@ namespace Simulator
         public string fmuName;
         public string copyright;
         public Dictionary<string, object> attachments;
-        public Dictionary<string, Param> sensorParams;
+        public Dictionary<string, Simulator.Utilities.SensorParam> sensorParams;
         public string[] bridgeDataTypes;
     }
 
@@ -42,15 +42,5 @@ namespace Simulator
         public string autoware;
         public string lanelet2;
         public string opendrive;
-    }
-
-    public struct Param
-    {
-        public string Type;
-        public object DefaultValue;
-        public string[] Values;
-        public float? Min;
-        public float? Max;
-        public string Unit;
     }
 }

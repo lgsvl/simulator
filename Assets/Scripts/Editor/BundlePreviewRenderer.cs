@@ -8,11 +8,10 @@
 namespace Simulator.Editor
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
-    using Unity.EditorCoroutines.Editor;
+    using System.Threading.Tasks;
     using UnityEditor;
     using UnityEditor.SceneManagement;
     using UnityEngine;
@@ -65,9 +64,9 @@ namespace Simulator.Editor
             }
         }
 
-        public static IEnumerator RenderScenePreview(Transform origin, PreviewTextures textures)
+        public static async Task RenderScenePreview(Transform origin, PreviewTextures textures)
         {
-            yield return EditorCoroutineUtility.StartCoroutineOwnerless(ReinitializeRenderPipeline(false));
+            await ReinitializeRenderPipeline(false);
 
             var previewRootPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/ScenePreviewRoot.prefab");
             var previewRoot = Object.Instantiate(previewRootPrefab, origin);
@@ -76,7 +75,7 @@ namespace Simulator.Editor
             // This will trigger HDCamera.Update, which must be done before calling HDCamera.GetOrCreate
             // Otherwise m_AdditionalCameraData will not be set and HDCamera will be discarded after first frame
             camera.Render();
-            yield return null;
+            await Task.Yield();
 
             var hdSettings = camera.GetComponent<HDAdditionalCameraData>();
             hdSettings.hasPersistentHistory = true;
@@ -92,30 +91,30 @@ namespace Simulator.Editor
             foreach (var building in timeOfDayBuildings)
                 building.Init(TimeOfDayStateTypes.Day);
 
-            yield return EditorCoroutineUtility.StartCoroutineOwnerless(Render(hd, textures, volume));
+            await Render(hd, textures, volume);
 
             Object.DestroyImmediate(previewRoot);
 
-            yield return null;
+            await Task.Yield();
         }
 
-        public static IEnumerator RenderVehiclePreview(string vehicleAssetFile, PreviewTextures textures)
+        public static async Task RenderVehiclePreview(string vehicleAssetFile, PreviewTextures textures)
         {
-            yield return EditorCoroutineUtility.StartCoroutineOwnerless(ReinitializeRenderPipeline(true));
+            await ReinitializeRenderPipeline(true);
 
             var cameraObj = GameObject.Find("PreviewCamera");
             var camera = cameraObj == null ? null : cameraObj.GetComponent<Camera>();
             if (camera == null)
             {
                 Debug.LogError("Camera for vehicle preview was not found. Preview won't be available.");
-                yield break;
+                return;
             }
 
             var volume = Object.FindObjectOfType<Volume>();
             if (volume == null)
             {
                 Debug.LogError("Volume for vehicle preview was not found. Preview won't be available.");
-                yield break;
+                return;
             }
 
             var vehiclePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(vehicleAssetFile);
@@ -127,17 +126,17 @@ namespace Simulator.Editor
             // This will trigger HDCamera.Update, which must be done before calling HDCamera.GetOrCreate
             // Otherwise m_AdditionalCameraData will not be set and HDCamera will be discarded after first frame
             camera.Render();
-            yield return null;
+            await Task.Yield();
 
             var hdSettings = camera.GetComponent<HDAdditionalCameraData>();
             hdSettings.hasPersistentHistory = true;
             var hd = HDCamera.GetOrCreate(camera);
 
-            yield return EditorCoroutineUtility.StartCoroutineOwnerless(Render(hd, textures, volume));
+            await Render(hd, textures, volume);
 
             Object.DestroyImmediate(vehicle);
 
-            yield return null;
+            await Task.Yield();
         }
 
         private static bool SkyDone(Volume volume, HDCamera hd)
@@ -206,7 +205,7 @@ namespace Simulator.Editor
             Debug.LogError($"Current bounces: {bouncesVal} expected: {targetBounces}");
         }
 
-        private static IEnumerator Render(HDCamera hd, PreviewTextures textures, Volume volume)
+        private static async Task Render(HDCamera hd, PreviewTextures textures, Volume volume)
         {
             var camera = hd.camera;
             var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
@@ -232,7 +231,7 @@ namespace Simulator.Editor
                         rt.IncrementUpdateCount();
                         EditorApplication.QueuePlayerLoopUpdate();
                         timeElapsed = Time.realtimeSinceStartup - startTime;
-                        yield return new WaitForEndOfFrame();
+                        await Task.Yield();
                     } while (timeElapsed < maxTime && !SkyDone(volume, hd));
 
                     if (!SkyDone(volume, hd))
@@ -250,11 +249,11 @@ namespace Simulator.Editor
                 RenderTexture.active = null;
                 RenderTexture.ReleaseTemporary(rt);
 
-                yield return null;
+                await Task.Yield();
             }
         }
 
-        private static IEnumerator ReinitializeRenderPipeline(bool shuffleScenes)
+        private static async Task ReinitializeRenderPipeline(bool shuffleScenes)
         {
             if (shuffleScenes)
             {
@@ -288,7 +287,7 @@ namespace Simulator.Editor
             if (assetField == null)
             {
                 Debug.LogError($"No asset field in {nameof(RenderPipelineManager)}. Did you update HDRP?");
-                yield break;
+                return;
             }
 
             var asset = assetField.GetValue(null);
@@ -296,7 +295,7 @@ namespace Simulator.Editor
             if (cleanupMethod == null)
             {
                 Debug.LogError($"No cleanup method in {nameof(RenderPipelineManager)}. Did you update HDRP?");
-                yield break;
+                return;
             }
 
             cleanupMethod.Invoke(null, null);
@@ -305,7 +304,7 @@ namespace Simulator.Editor
             if (prepareMethod == null)
             {
                 Debug.LogError($"No prepare method in {nameof(RenderPipelineManager)}. Did you update HDRP?");
-                yield break;
+                return;
             }
 
             prepareMethod.Invoke(null, new[] {asset});
@@ -314,14 +313,14 @@ namespace Simulator.Editor
             if (hdrp == null)
             {
                 Debug.LogError("HDRP not available for preview.");
-                yield break;
+                return;
             }
 
             var pipelineReadyField = typeof(HDRenderPipeline).GetField("m_ResourcesInitialized", BindingFlags.NonPublic | BindingFlags.Instance);
             if (pipelineReadyField == null)
             {
                 Debug.LogError($"No ready flag in {nameof(HDRenderPipeline)}. Did you update HDRP?");
-                yield break;
+                return;
             }
 
             const float maxTime = 10f;
@@ -331,7 +330,7 @@ namespace Simulator.Editor
             while (timeElapsed < maxTime && !(bool) pipelineReadyField.GetValue(hdrp))
             {
                 timeElapsed = Time.realtimeSinceStartup - startTime;
-                yield return new WaitForEndOfFrame();
+                await Task.Yield();
             }
 
             if (!(bool) pipelineReadyField.GetValue(hdrp))

@@ -13,7 +13,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
-using Unity.EditorCoroutines.Editor;
 using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEditor.Formats.Fbx.Exporter;
@@ -32,6 +31,8 @@ using System.Threading;
 
 namespace Simulator.Editor
 {
+    using System.Threading.Tasks;
+
     public class Build : EditorWindow
     {
         public static bool Running;
@@ -182,7 +183,7 @@ namespace Simulator.Editor
                 entries[name].selected = true;
             }
 
-            private IEnumerator PreparePrefabManifest(Entry prefabEntry, string outputFolder, List<(string, string)> buildArtifacts, Manifest manifest)
+            private async Task PreparePrefabManifest(Entry prefabEntry, string outputFolder, List<(string, string)> buildArtifacts, Manifest manifest)
             {
                 const string vehiclePreviewScenePath = "Assets/PreviewEnvironmentAssets/PreviewEnvironmentScene.unity";
 
@@ -259,11 +260,11 @@ namespace Simulator.Editor
 
                         while (!p.HasExited)
                         {
-                            yield return new WaitForSeconds(1f);
+                            await Task.Delay(TimeSpan.FromSeconds(1));
                         }
 
                         var textures = new BundlePreviewRenderer.PreviewTextures();
-                        yield return EditorCoroutineUtility.StartCoroutineOwnerless(BundlePreviewRenderer.RenderVehiclePreview(prefabEntry.mainAssetFile, textures));
+                        await BundlePreviewRenderer.RenderVehiclePreview(prefabEntry.mainAssetFile, textures);
                         var bytesLarge = textures.large.EncodeToPNG();
                         var bytesMedium = textures.medium.EncodeToPNG();
                         var bytesSmall = textures.small.EncodeToPNG();
@@ -295,7 +296,7 @@ namespace Simulator.Editor
                 }
             }
 
-            private IEnumerator PrepareSceneManifest(Entry sceneEntry, string outputFolder, List<(string, string)> buildArtifacts, Manifest manifest)
+            private async Task PrepareSceneManifest(Entry sceneEntry, string outputFolder, List<(string, string)> buildArtifacts, Manifest manifest)
             {
                 Scene scene = EditorSceneManager.OpenScene(sceneEntry.mainAssetFile, OpenSceneMode.Additive);
                 NodeTreeLoader[] loaders = GameObject.FindObjectsOfType<NodeTreeLoader>();
@@ -375,7 +376,7 @@ namespace Simulator.Editor
                             buildArtifacts.Add((tmpdir, null));
 
                             var textures = new BundlePreviewRenderer.PreviewTextures();
-                            yield return EditorCoroutineUtility.StartCoroutineOwnerless(BundlePreviewRenderer.RenderScenePreview(origin.transform, textures));
+                            await BundlePreviewRenderer.RenderScenePreview(origin.transform, textures);
                             var bytesLarge = textures.large.EncodeToPNG();
                             var bytesMedium = textures.medium.EncodeToPNG();
                             var bytesSmall = textures.small.EncodeToPNG();
@@ -407,7 +408,7 @@ namespace Simulator.Editor
                                 }
                             }
 
-                            yield break;
+                            return;
                         }
                     }
                     throw new Exception($"Build failed: MapOrigin on {sceneEntry.name} not found. Please add a MapOrigin component.");
@@ -418,7 +419,7 @@ namespace Simulator.Editor
                 }
             }
 
-            public IEnumerator RunBuild(string outputFolder)
+            public async Task RunBuild(string outputFolder)
             {
                 const string loaderScenePath = "Assets/Scenes/LoaderScene.unity";
                 string Thing = BundleConfig.singularOf(bundleType);
@@ -428,21 +429,20 @@ namespace Simulator.Editor
                 outputFolder = Path.Combine(outputFolder, bundlePath);
                 Directory.CreateDirectory(outputFolder);
                 var openScenePaths = new List<string>();
-                var activeScenePath = string.Empty;
 
                 var selected = entries.Values.Where(e => e.selected && e.available).ToList();
-                if (selected.Count == 0) yield break;
+                if (selected.Count == 0) return;
 
                 if (bundleType == BundleConfig.BundleTypes.Environment)
                 {
                     if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                     {
                         Debug.LogWarning("Cancelling the build.");
-                        yield break;
+                        return;
                     }
                 }
 
-                activeScenePath = SceneManager.GetActiveScene().path;
+                var activeScenePath = SceneManager.GetActiveScene().path;
                 for (int i = 0; i < EditorSceneManager.loadedSceneCount; i++)
                 {
                     var scene = SceneManager.GetSceneAt(i);
@@ -460,12 +460,12 @@ namespace Simulator.Editor
                         bool mainAssetIsScript = entry.mainAssetFile.EndsWith("." + ScriptExtension);
                         if (bundleType == BundleConfig.BundleTypes.Environment)
                         {
-                            yield return EditorCoroutineUtility.StartCoroutineOwnerless(PrepareSceneManifest(entry, outputFolder, buildArtifacts, manifest));
+                            await PrepareSceneManifest(entry, outputFolder, buildArtifacts, manifest);
                             manifest.assetType = "map";
                         }
                         else
                         {
-                            yield return EditorCoroutineUtility.StartCoroutineOwnerless(PreparePrefabManifest(entry, outputFolder, buildArtifacts, manifest));
+                            await PreparePrefabManifest(entry, outputFolder, buildArtifacts, manifest);
                             manifest.assetType = thing;
                         }
 
@@ -599,7 +599,7 @@ namespace Simulator.Editor
                                 if (!assemblyBuilder.Build())
                                 {
                                     Debug.LogErrorFormat("Failed to start build of assembly {0}!", assemblyBuilder.assemblyPath);
-                                    yield break;
+                                    return;
                                 }
 
                                 while (assemblyBuilder.status != AssemblyBuilderStatus.Finished)
@@ -770,7 +770,7 @@ namespace Simulator.Editor
             EditorPrefs.SetString("Simulator/Build", data);
         }
 
-        void OnGUI()
+        async void OnGUI()
         {
             foreach (var group in buildGroups.Values)
             {
@@ -826,7 +826,7 @@ namespace Simulator.Editor
                     }
 
                     CoroutineRunning = true;
-                    EditorCoroutineUtility.StartCoroutineOwnerless(BuildBundles(assetBundlesLocation, OnComplete));
+                    await BuildBundles(assetBundlesLocation, OnComplete);
                 }
                 finally
                 {
@@ -980,14 +980,14 @@ namespace Simulator.Editor
             }
         }
 
-        private IEnumerator BuildBundles(string outputFolder, Action onComplete = null)
+        private async Task BuildBundles(string outputFolder, Action onComplete = null)
         {
             try
             {
                 CoroutineRunning = true;
 
                 foreach (var group in buildGroups.Values)
-                    yield return EditorCoroutineUtility.StartCoroutineOwnerless(group.RunBuild(outputFolder));
+                    await group.RunBuild(outputFolder);
 
                 CoroutineRunning = false;
             }
@@ -998,16 +998,16 @@ namespace Simulator.Editor
         }
 
         // Called from command line
-        private static void Run()
+        private static async void Run()
         {
             var hasQuitArg = Environment.GetCommandLineArgs().Contains("-quit");
             if (hasQuitArg)
                 throw new Exception("Batch mode build utilizes coroutines - start it with no `-quit` flag.");
 
-            EditorCoroutineUtility.StartCoroutineOwnerless(RunImpl());
+            await RunImpl();
         }
 
-        private static IEnumerator RunImpl()
+        private static async Task RunImpl()
         {
             BuildTarget? buildTarget = null;
 
@@ -1120,6 +1120,7 @@ namespace Simulator.Editor
             }
 
             Running = true;
+
             try
             {
                 if (!string.IsNullOrEmpty(buildPlayer))
@@ -1130,7 +1131,7 @@ namespace Simulator.Editor
                 if (buildBundles)
                 {
                     var assetBundlesLocation = Path.Combine(Application.dataPath, "..", "AssetBundles");
-                    yield return EditorCoroutineUtility.StartCoroutineOwnerless(build.BuildBundles(assetBundlesLocation));
+                    await build.BuildBundles(assetBundlesLocation);
                 }
             }
             finally

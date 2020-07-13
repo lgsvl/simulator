@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-202 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -18,6 +18,7 @@ using System.Xml.Serialization;
 using Schemas;
 using Unity.Mathematics;
 using Utility = Simulator.Utilities.Utility;
+using UnityEditor.SceneManagement;
 
 namespace Simulator.Editor
 {
@@ -77,6 +78,7 @@ namespace Simulator.Editor
                 Debug.Log("Note we only imported lanes of \"driving\" type. If your map is incorrect, please check if you have set MapOrigin correctly.");
                 Debug.Log("We generated stop lines for every entering road for an intersection, please make sure they are correct.");
                 Debug.LogWarning("!!! You need to adjust the triggerBounds for each MapIntersection.");
+                EditorSceneManager.MarkAllScenesDirty();
             }
             else
             {

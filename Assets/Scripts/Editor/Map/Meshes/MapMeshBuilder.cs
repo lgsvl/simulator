@@ -13,6 +13,7 @@ namespace Simulator.Editor.MapMeshes
     using System.Linq;
     using Simulator.Map;
     using UnityEditor;
+    using UnityEditor.SceneManagement;
     using UnityEngine;
     using UnityEngine.Rendering;
 
@@ -272,6 +273,7 @@ namespace Simulator.Editor.MapMeshes
             finally
             {
                 EditorUtility.ClearProgressBar();
+                EditorSceneManager.MarkAllScenesDirty();
             }
         }
 

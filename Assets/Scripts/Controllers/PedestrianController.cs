@@ -48,6 +48,7 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
 
     private int CurrentTargetIndex = 0;
     private int NextTargetIndex = 0;
+    private int CurrentLoopIndex = 0;
     public float idleTime = 0f;
     public float targetRange = 1f;
 
@@ -150,6 +151,7 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
         CurrentTriggerDistance = triggerDistance[0];
         CurrentTargetIndex = 0;
         NextTargetIndex = 0;
+        CurrentLoopIndex = 0;
 
         Control = ControlType.Waypoints;
         waypointLoop = loop;
@@ -333,8 +335,10 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
                 CurrentWP++;
                 if (CurrentWP >= corners.Length)
                 {
+                    var api = ApiManager.Instance;
                     // When waypoint is reached, Ped waits for trigger (if any), then idles (if any), then moves on to next waypoint
-                    ApiManager.Instance?.AddWaypointReached(gameObject, NextTargetIndex);
+                    if (api != null)
+                        api.AddWaypointReached(gameObject, NextTargetIndex);
 
                     Path.ClearCorners();
                     CurrentIdle = idle[NextTargetIndex];
@@ -353,9 +357,20 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
                         Coroutines[(int)CoroutineID.IdleAnimation] = FixedUpdateManager.StartCoroutine(IdleAnimation(CurrentIdle));
                     }
 
-                    if (CurrentTargetIndex == targets.Count - 1 && !waypointLoop)
+                    if (CurrentTargetIndex == targets.Count - 1)
                     {
-                        WalkRandomly(false);
+                        if (!waypointLoop)
+                        {
+                            if (api != null)
+                                api.AgentTraversedWaypoints(gameObject);
+                            WalkRandomly(false);
+                        }
+                        else
+                        {
+                            if (CurrentLoopIndex == 0 && api != null)
+                                api.AgentTraversedWaypoints(gameObject);
+                            CurrentLoopIndex++;
+                        }
                     }
                 }
             }

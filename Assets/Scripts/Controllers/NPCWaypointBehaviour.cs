@@ -33,6 +33,7 @@ public class NPCWaypointBehaviour : NPCBehaviourBase
     public Vector3 CurrentTarget;
     public int CurrentIndex = 0;
     public bool CurrentDeactivate = false;
+    private int CurrentLoopIndex = 0;
 
     private Coroutine IdleCoroutine;
     private Coroutine MoveCoroutine;
@@ -93,6 +94,7 @@ public class NPCWaypointBehaviour : NPCBehaviourBase
         rb.angularVelocity = Vector3.zero;
         rb.velocity = Vector3.zero;
         CurrentIndex = 0;
+        CurrentLoopIndex = 0;
         CurrentDeactivate = LaneDeactivate[CurrentIndex];
         FixedUpdateManager.StopAllCoroutines();
         TriggerCoroutine = null;
@@ -165,14 +167,20 @@ public class NPCWaypointBehaviour : NPCBehaviourBase
 
         if (CurrentIndex == LaneData.Count)
         {
+            var api = ApiManager.Instance;
             if (WaypointLoop)
             {
+                if (CurrentLoopIndex == 0 && api != null)
+                    api.AgentTraversedWaypoints(gameObject);
+                CurrentLoopIndex++;
                 rb.MovePosition(InitPos);
                 rb.MoveRotation(InitRot);
                 InitNPC();
             }
             else
             {
+                if (api != null)
+                    api.AgentTraversedWaypoints(gameObject);
                 WaypointState = WaypointDriveState.Despawn;
                 FixedUpdateManager.StopAllCoroutines();
                 TriggerCoroutine = null;
@@ -252,6 +260,7 @@ public class NPCWaypointBehaviour : NPCBehaviourBase
             {
                 WaypointState = WaypointDriveState.Despawn;
                 gameObject.SetActive(false);
+                MoveCoroutine = null;
                 yield break;
             }
             else

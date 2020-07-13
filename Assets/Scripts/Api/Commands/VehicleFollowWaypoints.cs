@@ -59,6 +59,7 @@ namespace Simulator.Api.Commands
                 var loopValue = loop.IsBoolean ? loop.AsBool : false;
                 var waypointFollow = npc.SetBehaviour<NPCWaypointBehaviour>();
                 waypointFollow.SetFollowWaypoints(wp, loop); // TODO use NPCController to init waypoint data
+                api.RegisterAgentWithWaypoints(npc.gameObject);
                 api.SendResult(this);
                 SIM.LogAPI(SIM.API.FollowWaypoints, "NPC");
             }
@@ -79,7 +80,7 @@ namespace Simulator.Api.Commands
             {
                 var typeName = effectorsNode[i]["type_name"];
                 var newEffector = TriggersManager.GetEffectorOfType(typeName);
-                newEffector.Value = effectorsNode[i]["value"];
+                newEffector.Value = effectorsNode[i]["parameters"]["value"];
                 trigger.Effectors.Add(newEffector);
             }
 

@@ -61,6 +61,8 @@ namespace Simulator.Api
 
         public Dictionary<string, IControllable> Controllables = new Dictionary<string, IControllable>();
         public Dictionary<IControllable, string> ControllablesUID = new Dictionary<IControllable, string>();
+        
+        private List<GameObject> AgentFollowingWaypoints = new List<GameObject>();
 
         // events
         public HashSet<GameObject> Collisions = new HashSet<GameObject>();
@@ -283,6 +285,7 @@ namespace Simulator.Api
                 SimulatorManager.Instance.Sensors.ClearSensorsRegistry();
             Controllables.Clear();
             ControllablesUID.Clear();
+            AgentFollowingWaypoints.Clear();
 
             Collisions.Clear();
             Waypoints.Clear();
@@ -379,6 +382,27 @@ namespace Simulator.Api
                 j.Add("type", new JSONString("waypoint_reached"));
                 j.Add("agent", new JSONString(uid));
                 j.Add("index", new JSONNumber(index));
+
+                Events.Add(j);
+            }
+        }
+
+        public void RegisterAgentWithWaypoints(GameObject obj)
+        {
+            if (AgentFollowingWaypoints.Contains(obj))
+                return;
+            AgentFollowingWaypoints.Add(obj);
+        }
+
+        public void AgentTraversedWaypoints(GameObject obj)
+        {
+            if (!AgentFollowingWaypoints.Contains(obj))
+                return;
+            AgentFollowingWaypoints.Remove(obj);
+            if (AgentFollowingWaypoints.Count == 0)
+            {
+                var j = new JSONObject();
+                j.Add("type", new JSONString("agents_traversed_waypoints"));
 
                 Events.Add(j);
             }

@@ -15,18 +15,18 @@ public class WaitForDistanceEffector : TriggerEffector
     public override IEnumerator Apply(NPCController parentNPC)
     {
         //Make parent npc wait until any ego is closer than the distance "Value"
-        var lowestDistance = float.PositiveInfinity;
+        float lowestDistance;
         do
         {
+            yield return null;
+            lowestDistance = float.PositiveInfinity;
             var egos = SimulatorManager.Instance.AgentManager.ActiveAgents;
             foreach (var ego in egos)
             {
-                var distance = Vector3.Distance(parentNPC.transform.position, ego.Position);
+                var distance = Vector3.Distance(parentNPC.transform.position, ego.AgentGO.transform.position);
                 if (distance < lowestDistance)
                     lowestDistance = distance;
             }
-
-            yield return null;
         } while (lowestDistance > Value);
     }
 }

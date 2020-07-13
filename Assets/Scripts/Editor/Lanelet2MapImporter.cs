@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -13,6 +13,7 @@ using UnityEngine;
 using Simulator.Map;
 using OsmSharp;
 using Utility = Simulator.Utilities.Utility;
+using UnityEditor.SceneManagement;
 
 namespace Simulator.Editor
 {
@@ -47,6 +48,7 @@ namespace Simulator.Editor
                 var warning = "!!! Grouping objects into intersections is an experimental feature, ";
                     warning += "please check ungrouped objects under Intersections, you need to move them manually to corresponding MapIntersections.";
                 Debug.LogWarning(warning);
+                EditorSceneManager.MarkAllScenesDirty();
             }
             else
             {

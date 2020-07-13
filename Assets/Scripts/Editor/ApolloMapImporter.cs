@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -14,6 +14,7 @@ using UnityEngine;
 using Simulator.Map;
 using Unity.Mathematics;
 using Utility = Simulator.Utilities.Utility;
+using UnityEditor.SceneManagement;
 
 namespace Simulator.Editor
 {
@@ -59,6 +60,7 @@ using apollo.hdmap;
                 Debug.Log("Successfully imported Apollo HD Map!\nPlease check your imported intersections and adjust if they are wrongly grouped.");
                 Debug.Log("Currently yield signs are imported as stop signs for NPCs.");
                 Debug.LogWarning("!!! You need to adjust the triggerBounds for each MapIntersection.");
+                EditorSceneManager.MarkAllScenesDirty();
             }
             else
             {

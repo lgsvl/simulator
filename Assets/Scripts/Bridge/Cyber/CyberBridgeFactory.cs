@@ -29,6 +29,7 @@ namespace Simulator.Bridge.Cyber
             RegPublisher<ImuData, apollo.drivers.gnss.Imu>(plugin, CyberConversions.ConvertFrom);
             RegPublisher<CorrectedImuData, apollo.localization.CorrectedImu>(plugin, CyberConversions.ConvertFrom);
             RegPublisher<SignalDataArray, apollo.perception.TrafficLightDetection>(plugin, CyberConversions.ConvertFrom);
+            RegPublisher<ClockData, apollo.cyber.proto.Clock>(plugin, CyberConversions.ConvertFrom);
 
             RegSubscriber<VehicleControlData, apollo.control.ControlCommand>(plugin, CyberConversions.ConvertTo);
             RegSubscriber<Detected2DObjectArray, apollo.common.Detection2DArray>(plugin, CyberConversions.ConvertTo);

@@ -54,6 +54,7 @@ namespace Simulator.Bridge.Cyber
                 {
                     timestamp_sec = data.Time,
                     sequence_num = data.Sequence,
+                    lidar_timestamp = (ulong)(data.Time * 1e9),
                     version = 1,
                     status = new apollo.common.StatusPb()
                     {

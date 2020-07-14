@@ -71,7 +71,6 @@ namespace Simulator.Editor
                 bundlePath = path ?? BundleConfig.pluralOf(type);
             }
 
-            public Vector2 scroll;
             public BundleConfig.BundleTypes bundleType;
             public string bundlePath;
             public string sourcePath => Path.Combine(BundleConfig.ExternalBase, bundlePath);
@@ -96,9 +95,8 @@ namespace Simulator.Editor
                 }
                 else
                 {
-                EditorGUILayout.HelpBox($"Following {bundlePath} were automatically detected:", UnityEditor.MessageType.None);
+                    EditorGUILayout.HelpBox($"Following {bundlePath} were automatically detected:", UnityEditor.MessageType.None);
                 }
-                scroll = EditorGUILayout.BeginScrollView(scroll);
 
                 if (entries.Count != 0)
                 {
@@ -134,7 +132,6 @@ namespace Simulator.Editor
                     }
                 }
 
-                EditorGUILayout.EndScrollView();
             }
 
             public void Refresh()
@@ -739,6 +736,7 @@ namespace Simulator.Editor
         [SerializeField] bool BuildPlayer = false;
         [SerializeField] string PlayerFolder = string.Empty;
         [SerializeField] bool DevelopmentPlayer = false;
+        public Vector2 scroll;
 
         [MenuItem("Simulator/Build...", false, 30)]
         static void ShowWindow()
@@ -772,10 +770,12 @@ namespace Simulator.Editor
 
         async void OnGUI()
         {
+            scroll = EditorGUILayout.BeginScrollView(scroll);
             foreach (var group in buildGroups.Values)
             {
                 group.OnGUI();
             }
+            EditorGUILayout.EndScrollView();
 
             GUILayout.Label("Options", EditorStyles.boldLabel);
 

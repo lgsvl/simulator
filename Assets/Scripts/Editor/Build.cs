@@ -197,6 +197,7 @@ namespace Simulator.Editor
                 manifest.bridgeDataTypes = Array.Empty<string>();
 
                 Scene scene = EditorSceneManager.OpenScene(vehiclePreviewScenePath, OpenSceneMode.Additive);
+                var scenePath = scene.path;
 
                 try
                 {
@@ -289,13 +290,15 @@ namespace Simulator.Editor
                 }
                 finally
                 {
-                    EditorSceneManager.CloseScene(scene, true);
+                    var openedScene = SceneManager.GetSceneByPath(scenePath);
+                    EditorSceneManager.CloseScene(openedScene, true);
                 }
             }
 
             private async Task PrepareSceneManifest(Entry sceneEntry, string outputFolder, List<(string, string)> buildArtifacts, Manifest manifest)
             {
                 Scene scene = EditorSceneManager.OpenScene(sceneEntry.mainAssetFile, OpenSceneMode.Additive);
+                var scenePath = scene.path;
                 NodeTreeLoader[] loaders = GameObject.FindObjectsOfType<NodeTreeLoader>();
                 string dataPath = GameObject.FindObjectOfType<NodeTreeLoader>()?.GetFullDataPath();
                 List<Tuple<string, string>> loaderPaths = new List<Tuple<string, string>>();
@@ -412,7 +415,8 @@ namespace Simulator.Editor
                 }
                 finally
                 {
-                    EditorSceneManager.CloseScene(scene, true);
+                    var openedScene = SceneManager.GetSceneByPath(scenePath);
+                    EditorSceneManager.CloseScene(openedScene, true);
                 }
             }
 

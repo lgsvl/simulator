@@ -272,21 +272,21 @@ namespace Simulator.Editor
 
                         string tmpdir = Path.Combine(outputFolder, $"{manifest.assetName}_pictures");
                         Directory.CreateDirectory(tmpdir);
-                        File.WriteAllBytes(Path.Combine(tmpdir, "small.jpg"), bytesSmall);
-                        File.WriteAllBytes(Path.Combine(tmpdir, "medium.jpg"), bytesMedium);
-                        File.WriteAllBytes(Path.Combine(tmpdir, "large.jpg"), bytesLarge);
+                        File.WriteAllBytes(Path.Combine(tmpdir, "small.png"), bytesSmall);
+                        File.WriteAllBytes(Path.Combine(tmpdir, "medium.png"), bytesMedium);
+                        File.WriteAllBytes(Path.Combine(tmpdir, "large.png"), bytesLarge);
 
                         var images = new Images()
                         {
-                            small = ZipPath("images", "small.jpg"),
-                            medium = ZipPath("images", "medium.jpg"),
-                            large = ZipPath("images", "large.jpg"),
+                            small = ZipPath("images", "small.png"),
+                            medium = ZipPath("images", "medium.png"),
+                            large = ZipPath("images", "large.png"),
                         };
                         manifest.attachments.Add("images", images);
 
-                        buildArtifacts.Add((Path.Combine(tmpdir, "small.jpg"), images.small));
-                        buildArtifacts.Add((Path.Combine(tmpdir, "medium.jpg"), images.medium));
-                        buildArtifacts.Add((Path.Combine(tmpdir, "large.jpg"), images.large));
+                        buildArtifacts.Add((Path.Combine(tmpdir, "small.png"), images.small));
+                        buildArtifacts.Add((Path.Combine(tmpdir, "medium.png"), images.medium));
+                        buildArtifacts.Add((Path.Combine(tmpdir, "large.png"), images.large));
                         buildArtifacts.Add((tmpdir, null));
                     }
                 }
@@ -384,20 +384,20 @@ namespace Simulator.Editor
 
                             tmpdir = Path.Combine(outputFolder, $"{name}_pictures");
                             Directory.CreateDirectory(tmpdir);
-                            File.WriteAllBytes(Path.Combine(tmpdir, "small.jpg"), bytesSmall);
-                            File.WriteAllBytes(Path.Combine(tmpdir, "medium.jpg"), bytesMedium);
-                            File.WriteAllBytes(Path.Combine(tmpdir, "large.jpg"), bytesLarge);
+                            File.WriteAllBytes(Path.Combine(tmpdir, "small.png"), bytesSmall);
+                            File.WriteAllBytes(Path.Combine(tmpdir, "medium.png"), bytesMedium);
+                            File.WriteAllBytes(Path.Combine(tmpdir, "large.png"), bytesLarge);
 
                             var images = new Images()
                             {
-                                small =  ZipPath("images", "small.jpg"),
-                                medium = ZipPath("images", "medium.jpg"),
-                                large =  ZipPath("images", "large.jpg"),
+                                small =  ZipPath("images", "small.png"),
+                                medium = ZipPath("images", "medium.png"),
+                                large =  ZipPath("images", "large.png"),
                             };
                             manifest.attachments.Add("images", images);
-                            buildArtifacts.Add((Path.Combine(tmpdir, "small.jpg"), images.small));
-                            buildArtifacts.Add((Path.Combine(tmpdir, "medium.jpg"), images.medium));
-                            buildArtifacts.Add((Path.Combine(tmpdir, "large.jpg"), images.large));
+                            buildArtifacts.Add((Path.Combine(tmpdir, "small.png"), images.small));
+                            buildArtifacts.Add((Path.Combine(tmpdir, "medium.png"), images.medium));
+                            buildArtifacts.Add((Path.Combine(tmpdir, "large.png"), images.large));
                             buildArtifacts.Add((tmpdir, null));
 
                             foreach (Tuple<string, string> t in loaderPaths)

@@ -640,21 +640,21 @@ namespace Simulator.Editor
                                 }
                             }
 
-                            if (outputAssembly != null && !mainAssetIsScript && entry.mainAssetFile.EndsWith(PrefabExtension))
+                            if (bundleType == BundleConfig.BundleTypes.Sensor
+                                && outputAssembly != null
+                                && !mainAssetIsScript)
                             {
                                 var asset = AssetDatabase.LoadAssetAtPath(entry.mainAssetFile, typeof(GameObject)) as GameObject;
                                 SensorBase sensor = asset.GetComponent<SensorBase>();
-                                if (sensor == null)
+                                if (sensor != null)
                                 {
-                                    continue;
+                                    manifest.sensorParams = new Dictionary<string, SensorParam>();
+                                    foreach (SensorParam param in SensorTypes.GetConfig(sensor).Parameters)
+                                    {
+                                        manifest.sensorParams.Add(param.Name, param);
+                                    }
+                                    asset = null;
                                 }
-
-                                manifest.sensorParams = new Dictionary<string, SensorParam>();
-                                foreach (SensorParam param in SensorTypes.GetConfig(sensor).Parameters)
-                                {
-                                    manifest.sensorParams.Add(param.Name, param);
-                                }
-                                asset = null;
                                 EditorUtility.UnloadUnusedAssetsImmediate();
                             }
 

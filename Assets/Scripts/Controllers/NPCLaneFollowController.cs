@@ -141,7 +141,8 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     #region spawn
     protected void EvaluateDistanceFromFocus()
     {
-        if (!SimulatorManager.Instance.NPCManager.WithinSpawnArea(transform.position) && !SimulatorManager.Instance.NPCManager.IsVisible(gameObject))
+        if (!SimulatorManager.Instance.NPCManager.WithinSpawnArea(transform.position) && 
+            !SimulatorManager.Instance.NPCManager.IsVisible(gameObject))
         {
             Despawn();
         }
@@ -149,7 +150,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
 
     protected void Despawn()
     {
-        if (AutomaticMode)
+        if (AutomaticMode && !SimulatorManager.Instance.IsAPI)
         {
             ResetData();
             NPCManager.DespawnNPC(controller);

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -43,6 +43,7 @@ namespace Simulator.Api.Commands
                     wp.Add(new WalkWaypoint()
                     {
                         Position = waypoints[i]["position"].ReadVector3(),
+                        Speed = waypoints[i]["speed"].AsFloat,
                         Idle = waypoints[i]["idle"].AsFloat,
                         TriggerDistance = waypoints[i]["trigger_distance"].AsFloat,
                     });

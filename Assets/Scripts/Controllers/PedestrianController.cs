@@ -39,6 +39,7 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
     public ControlType Control = ControlType.Automatic;
 
     List<Vector3> targets;
+    List<float> speeds;
     List<float> idle;
     List<float> triggerDistance;
     private float CurrentTriggerDistance;
@@ -141,6 +142,7 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
         agent.avoidancePriority = 0;
 
         targets = waypoints.Select(wp => wp.Position).ToList();
+        speeds = waypoints.Select(wp => wp.Speed).ToList();
         idle = waypoints.Select(wp => wp.Idle).ToList();
         triggerDistance = waypoints.Select(wp => wp.TriggerDistance).ToList();
 
@@ -323,7 +325,7 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
             Vector3 direction = targetPos - rb.position;
 
             CurrentTurn = direction;
-            CurrentSpeed = LinearSpeed;
+            CurrentSpeed = speeds[NextTargetIndex];
             ThisPedState = PedestrianState.Walking;
 
             if (direction.magnitude < Accuracy)

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -25,6 +25,7 @@ namespace Simulator.Api
     public struct WalkWaypoint
     {
         public Vector3 Position;
+        public float Speed;
         public float Idle;
         public float TriggerDistance;
         public WaypointTrigger Trigger;

@@ -26,6 +26,7 @@ namespace Simulator.Web
         public Color onlineColor;
         public Dropdown offlineDropdown;
         public Button offlineStartButton;
+        public Button offlineStopButton;
         public Text offlineModeText;
 
         SimulationService simulationService = new SimulationService();
@@ -47,6 +48,7 @@ namespace Simulator.Web
             statusButton.onClick.AddListener(OnStatusButtonClicked);
             linkButton.onClick.AddListener(OnLinkButtonClicked);
             offlineStartButton.onClick.AddListener(OnOfflineStartButtonClicked);
+            offlineStopButton.onClick.AddListener(OnOfflineStopButtonClicked);
             UpdateDropdown();
             offlineDropdown.onValueChanged.AddListener(OnDropdownValueChanged);
             UpdateStatus();
@@ -132,6 +134,12 @@ namespace Simulator.Web
         public void OnOfflineStartButtonClicked()
         {
             Loader.StartSimulation(simulationData[selectedSim]);
+            if (simulationData[selectedSim].ApiOnly) offlineStopButton.gameObject.SetActive(true);
+        }
+
+        public void OnOfflineStopButtonClicked()
+        {
+            Loader.StopAsync();
         }
 
         public void SetLinkingButtonActive(bool active)

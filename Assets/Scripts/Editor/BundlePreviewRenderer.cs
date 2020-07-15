@@ -155,6 +155,13 @@ namespace Simulator.Editor
             if (currentBounces == null)
                 return false;
 
+            var frameField = skyRenderer.GetType().BaseType?.GetField("m_LastFrameUpdate", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (frameField != null)
+            {
+                var prev = (int) frameField.GetValue(skyRenderer);
+                frameField.SetValue(skyRenderer, prev - 1);
+            }
+
             var targetBounces = pbrSky.numberOfBounces.value;
             var bouncesVal = currentBounces is int bounces ? bounces : 0;
             return bouncesVal >= targetBounces;
@@ -193,6 +200,13 @@ namespace Simulator.Editor
                 return;
             }
 
+            var frameField = skyRenderer.GetType().BaseType?.GetField("m_LastFrameUpdate", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (frameField == null)
+            {
+                Debug.LogError("No frame count field available in sky renderer");
+                return;
+            }
+
             var currentBounces = skyRenderer.GetType().GetField("m_LastPrecomputedBounce", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(skyRenderer);
             if (currentBounces == null)
             {
@@ -221,23 +235,21 @@ namespace Simulator.Editor
                 {
                     // Physically based sky renderer builds up bounces over multiple frames, modifying indirect light
                     // Render some frames in advance here so that all lighting is fully calculated for previews
-                    var startTime = Time.realtimeSinceStartup;
-                    const float maxTime = 10f;
-                    float timeElapsed;
+                    const int maxCalls = 20;
+                    var calls = 0;
 
                     do
                     {
                         camera.Render();
                         rt.IncrementUpdateCount();
                         EditorApplication.QueuePlayerLoopUpdate();
-                        timeElapsed = Time.realtimeSinceStartup - startTime;
                         await Task.Yield();
-                    } while (timeElapsed < maxTime && !SkyDone(volume, hd));
+                    } while (calls++ < maxCalls && !SkyDone(volume, hd));
 
                     if (!SkyDone(volume, hd))
                     {
                         LogSkyData(volume, hd);
-                        Debug.LogError($"Preview rendering failed - sky not initialized {hd.GetHashCode()}");
+                        Debug.LogError($"Preview rendering failed - sky not initialized");
                     }
                 }
 

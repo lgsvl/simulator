@@ -75,7 +75,7 @@ public class SensorsManager : IMessageSender, IMessageReceiver
 		if (!instanceToMetaData.TryGetValue(sensorBase, out var metaData)) return;
 
 		instanceToMetaData.Remove(sensorBase);
-		var keyValuePairs = uidToMetaData.Where(keyValuePair => keyValuePair.Value == metaData);
+		var keyValuePairs = uidToMetaData.Where(keyValuePair => keyValuePair.Value == metaData).ToArray();
 		foreach (var keyValuePair in keyValuePairs) uidToMetaData.Remove(keyValuePair.Key);
 		sensors.Remove(metaData);
 	}

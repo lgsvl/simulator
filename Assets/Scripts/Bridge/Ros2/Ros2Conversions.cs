@@ -207,6 +207,19 @@ namespace Simulator.Bridge.Ros2
             return r;
         }
 
+        public static Lgsvl.Ultrasonic ConvertFrom(UltrasonicData data)
+        {
+            return new Lgsvl.Ultrasonic()
+            {
+                header = new Ros.Header()
+                {
+                    stamp = Convert(data.Time),
+                    frame_id = data.Frame,
+                },
+                minimum_distance = data.MinimumDistance,
+            };
+        }
+
         public static Ros.NavSatFix ConvertFrom(GpsData data)
         {
             return new Ros.NavSatFix()

@@ -36,6 +36,7 @@ namespace Simulator.Bridge.Ros2
             RegPublisher<Detected2DObjectData, Lgsvl.Detection2DArray>(plugin, Ros2Conversions.ConvertFrom);
             RegPublisher<SignalDataArray, Lgsvl.SignalArray>(plugin, Ros2Conversions.ConvertFrom);
             RegPublisher<CanBusData, Lgsvl.CanBusData>(plugin, Ros2Conversions.ConvertFrom);
+            RegPublisher<UltrasonicData, Lgsvl.Ultrasonic>(plugin, Ros2Conversions.ConvertFrom);
             RegPublisher<GpsData, Ros.NavSatFix>(plugin, Ros2Conversions.ConvertFrom);
             RegPublisher<GpsOdometryData, Ros.Odometry>(plugin, Ros2Conversions.ConvertFrom);
             RegPublisher<ImuData, Ros.Imu>(plugin, Ros2Conversions.ConvertFrom);

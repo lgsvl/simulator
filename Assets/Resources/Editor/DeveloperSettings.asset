@@ -12,9 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b368c1d0168421e793b72703b0eea85, type: 3}
   m_Name: DeveloperSettings
   m_EditorClassIdentifier: 
-  localVehicle:
-    PrefabPath: 
-    SensorConfig: 
-    BridgeName: 
-    BridgeConnection: 
-  developerSimulationJson: '{"ApiOnly":false,"Interactive":false,"Headless":false,"TimeOfDay":"0001-01-01T00:00:00","Rain":0.0,"Fog":0.0,"Wetness":0.0,"Cloudiness":0.0,"Damage":0.0,"Seed":null,"UseTraffic":false,"UseBicyclists":false,"UsePedestrians":false,"Map":null,"Vehicles":[{"AssetGuid":"e9f090b5-4853-4eec-823b-b698a4ad3f44","Sensors":null,"bridge":null,"Id":"771213c4-0b1e-42b1-bf41-5dd0c0d01ef7","Name":"Jaguar2015XE","OwnerId":"60efbc6c-6de3-4f87-989d-d607867df3ce","CreatedAt":"2020-06-26T21:27:26Z","UpdatedAt":"2020-06-26T21:28:03Z"}],"Cluster":null,"Id":null,"Name":"","OwnerId":"","CreatedAt":"0001-01-01T00:00:00","UpdatedAt":"0001-01-01T00:00:00"}'
+  developerSimulationJson: '{"Version":null,"ApiOnly":false,"Interactive":false,"Headless":false,"TimeOfDay":"2020-07-15T12:00:00","Rain":0.0,"Fog":0.0,"Wetness":0.0,"Cloudiness":0.0,"Damage":0.0,"Seed":null,"UseTraffic":false,"UseBicyclists":false,"UsePedestrians":false,"Map":null,"Vehicles":[{"AssetGuid":"e9f090b5-4853-4eec-823b-b698a4ad3f44","Sensors":null,"Bridge":{"Name":null,"AssetGuid":null,"Type":null,"ConnectionString":null},"Id":"Assets/External/Vehicles/AWFLexus2016RXHybrid/AWFLexus2016RXHybrid.prefab","Name":"Jaguar2015XE","OwnerId":"60efbc6c-6de3-4f87-989d-d607867df3ce","CreatedAt":"2020-06-26T21:27:26Z","UpdatedAt":"2020-06-26T21:28:03Z"}],"Cluster":{"Instances":[{"Id":null,"HostName":"dummy.developer.settings","SimId":null,"MacAddress":"00:00:00:00:00:00","Platform":null,"Ip":["127.0.0.1"],"Version":null,"IsMaster":false,"CreatedAt":"0001-01-01T00:00:00","Status":null}],"Id":null,"Name":"dummyCLuster","OwnerId":null,"CreatedAt":"0001-01-01T00:00:00","UpdatedAt":"0001-01-01T00:00:00"},"Template":null,"Id":null,"Name":"DeveloperSettings","OwnerId":"","CreatedAt":"0001-01-01T00:00:00","UpdatedAt":"0001-01-01T00:00:00"}'

@@ -16,15 +16,6 @@ namespace Simulator.Editor
     [CreateAssetMenu(fileName = "DevelopmentSettings", menuName = "Simulator/Development Settings")]
     public class DevelopmentSettingsAsset: ScriptableObject
     {
-        [System.Serializable]
-        public class LocalVehicle
-        {
-            public string PrefabPath;
-            public string SensorConfig;
-            public string BridgeName;
-            public string BridgeConnection;
-        }
-        public LocalVehicle localVehicle = null;
         public string developerSimulationJson;
     }
 }

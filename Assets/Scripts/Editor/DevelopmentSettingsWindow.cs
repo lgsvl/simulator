@@ -31,6 +31,7 @@ namespace Simulator.Editor
         string errorMessage;
         private static DevelopmentSettingsWindow _instance;
         int currentVehicleIndex = 0;
+        string sensorScratchPad = "";
 
         Vector2 ScrollPos;
 
@@ -62,7 +63,23 @@ namespace Simulator.Editor
 
             if (developerSimulation == null)
             {
-                developerSimulation = new SimulationData();
+                developerSimulation = new SimulationData()
+                {
+                    Name = "DeveloperSettings",
+                    Cluster = new ClusterData()
+                    {
+                        Name = "DeveloperSettingsDummy",
+                        Instances = new[]
+                        {
+                            new InstanceData
+                            {
+                                HostName="dummy.developer.settings",
+                                Ip = new []{ "127.0.0.1" },
+                                MacAddress="00:00:00:00:00:00"
+                            }
+                        }
+                    }
+                };
             }
 
             Refresh();
@@ -131,11 +148,8 @@ namespace Simulator.Editor
                 string idOrPath = null;
                 if (developerSimulation.Vehicles != null) // get previously selected thing
                 {
+                    // we abuse VehicleData.Id to store the prefab path
                     idOrPath = developerSimulation.Vehicles[0].Id;
-                }
-                else if (settings.localVehicle != null && !string.IsNullOrEmpty(settings.localVehicle.PrefabPath))
-                {
-                    idOrPath = settings.localVehicle.PrefabPath;
                 }
 
                 if (idOrPath != null)
@@ -196,7 +210,7 @@ namespace Simulator.Editor
             ScrollPos = EditorGUILayout.BeginScrollView(ScrollPos);
             foreach (PropertyInfo prop in typeof(SimulationData).GetProperties())
             {
-                if (prop.Name == "Id" || prop.Name == "UpdatedAt" || prop.Name == "CreatedAt")
+                if (prop.Name == "Id" || prop.Name == "UpdatedAt" || prop.Name == "CreatedAt" || prop.Name == "OwnerId")
                     continue;
 
                 object value = prop.GetValue(developerSimulation);
@@ -246,21 +260,39 @@ namespace Simulator.Editor
 
                         if (selection.GetType() == typeof(string))
                         {
-                            // want local vehicle, so clear cloud vehicle
-                            developerSimulation.Vehicles = null;
-                            if (settings.localVehicle == null)
-                                settings.localVehicle = new DevelopmentSettingsAsset.LocalVehicle();
-                            settings.localVehicle.PrefabPath = (string)selection;
-                            settings.localVehicle.BridgeName = EditorGUILayout.TextField("Bridge Name", settings.localVehicle.BridgeName);
-                            settings.localVehicle.BridgeConnection = EditorGUILayout.TextField("Bridge Connection", settings.localVehicle.BridgeConnection);
+                            if (developerSimulation.Vehicles == null)
+                            {
+                                developerSimulation.Vehicles = new VehicleData[]
+                                {
+                                    new VehicleData()
+                                };
+                            }
+
+                            var vehicle = developerSimulation.Vehicles[0];
+                            vehicle.Id = (string)selection;
+                            if (vehicle.Bridge == null)
+                            {
+                                vehicle.Bridge = new BridgeData();
+                            }
+
+                            vehicle.Bridge.Type = EditorGUILayout.TextField("Bridge Type", vehicle.Bridge.Type);
+                            vehicle.Bridge.ConnectionString = EditorGUILayout.TextField("Bridge Connection", vehicle.Bridge.ConnectionString);
 
                             EditorGUILayout.LabelField("json sensor config");
-                            settings.localVehicle.SensorConfig = EditorGUILayout.TextArea(settings.localVehicle.SensorConfig, GUILayout.Height(200));
+                            sensorScratchPad = EditorGUILayout.TextArea(sensorScratchPad, GUILayout.Height(200));
+
+                            try
+                            {
+                                vehicle.Sensors = Newtonsoft.Json.JsonConvert.DeserializeObject<SensorData[]>(sensorScratchPad);
+                            }
+                            catch (Exception e)
+                            {
+                                EditorGUILayout.HelpBox(e.Message, MessageType.Error);
+                            }
                         }
                         else if (selection.GetType() == typeof(VehicleDetailData))
                         {
                             // want cloud vehicle, so clear local vehicle
-                            settings.localVehicle = null;
                             developerSimulation.Vehicles = new VehicleData[] { ((VehicleDetailData)selection).ToVehicleData() };
                         }
                         EditorGUI.indentLevel--;
@@ -281,7 +313,7 @@ namespace Simulator.Editor
 
         async void updateAsset()
         {
-            if (developerSimulation.Vehicles != null)
+            if (developerSimulation.Vehicles != null && !developerSimulation.Vehicles[0].Id.EndsWith(".prefab"))
             {
                 // vehicle list does not give us sensor data, so we have to get it later.
                 // I do not want to query each vehicle individually and I can't block the UI, so

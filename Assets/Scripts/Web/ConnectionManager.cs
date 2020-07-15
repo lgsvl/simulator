@@ -391,7 +391,7 @@ public class CloudAPI
         do
         {
             data = await GetApi<LibraryList<DetailData>>($"{meta.ApiPath}?display=sim&limit={fetchLimit}&offset={result.Count}");
-            result.AddRange(data.rows);
+            result.AddRange(data.Rows);
         } while (result.Count < data.Count && data.Count > 0);
         return result.ToArray();
     }

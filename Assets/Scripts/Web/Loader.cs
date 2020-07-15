@@ -48,17 +48,27 @@ namespace Simulator
         public AgentConfig(VehicleData vehicleData)
         {
             Name = vehicleData.Name;
-            Connection = vehicleData.bridge != null ? vehicleData.bridge.connectionString : "";
+            Connection = vehicleData.Bridge != null ? vehicleData.Bridge.ConnectionString : "";
             AssetGuid = vehicleData.AssetGuid;
-            AssetBundle = Web.WebUtilities.GenerateLocalPath(vehicleData.AssetGuid, BundleConfig.BundleTypes.Vehicle);
+#if UNITY_EDITOR
+            if (vehicleData.Id.EndsWith(".prefab"))
+            {
+                AssetBundle = vehicleData.Id;
+                AssetGuid = vehicleData.Id;
+            }
+            else
+#endif
+            {
+                AssetBundle = Web.WebUtilities.GenerateLocalPath(vehicleData.AssetGuid, BundleConfig.BundleTypes.Vehicle);
+            }
             Sensors = Newtonsoft.Json.JsonConvert.SerializeObject(vehicleData.Sensors);
 
-            if (vehicleData.bridge != null && !string.IsNullOrEmpty(vehicleData.bridge.type))
+            if (vehicleData.Bridge != null && !string.IsNullOrEmpty(vehicleData.Bridge.Type))
             {
-                Bridge = BridgePlugins.Get(vehicleData.bridge.type);
+                Bridge = BridgePlugins.Get(vehicleData.Bridge.Type);
                 if (Bridge == null)
                 {
-                    throw new Exception($"Bridge {vehicleData.bridge.type} not found");
+                    throw new Exception($"Bridge {vehicleData.Bridge.Type} not found");
                 }
             }
         }
@@ -87,7 +97,7 @@ namespace Simulator
         public SimulationConfig(SimulationData simulation)
         {
             Name = simulation.Name;
-            Clusters = simulation.Cluster.Instances.Length > 1 ? simulation.Cluster.Instances.SelectMany(i => i.Ip).ToArray() : new string[] { };
+            Clusters = simulation.Cluster != null && simulation.Cluster.Instances.Length > 1 ? simulation.Cluster.Instances.SelectMany(i => i.Ip).ToArray() : new string[] { };
             ClusterName = simulation.Cluster.Name;
             ApiOnly = simulation.ApiOnly;
             Headless = simulation.Headless;
@@ -157,6 +167,8 @@ namespace Simulator
                 if (status == value)
                     return;
                 status = value;
+                if(ConnectionManager.instance == null)
+                    return;
                 switch (status)
                 {
                     case SimulatorStatus.Idle:
@@ -185,68 +197,37 @@ namespace Simulator
 
         private void Start()
         {
-            if (!EditorLoader)
-            {
-                Init();
-            }
-            else
-            {
-                // note: this is an async function that is not awaited on
-                EditorInit();
-            }
-        }
+            stopWatch.Start();
+            var info = Resources.Load<BuildInfo>("BuildInfo");
+            SIM.Init(info == null ? "Development" : info.Version);
+            SIM.LogSimulation(SIM.Simulation.ApplicationStart);
 
-        private void Init()
-        {
-            RenderLimiter.RenderLimitEnabled();
             if (Instance != null)
             {
                 Destroy(gameObject);
                 return;
             }
-
-            stopWatch.Start();
-
-            var info = Resources.Load<BuildInfo>("BuildInfo");
-            SIM.Init(info == null ? "Development" : info.Version);
-
-            LoaderScene = SceneManager.GetActiveScene().name;
-            SIM.LogSimulation(SIM.Simulation.ApplicationStart);
-
-            DontDestroyOnLoad(this);
-            Instance = this;
-        }
-
-        private async void EditorInit()
-        {
-#if UNITY_EDITOR
-            stopWatch.Start();
-            var info = Resources.Load<BuildInfo>("BuildInfo");
-            SIM.Init(info == null ? "Development" : info.Version);
-            SIM.LogSimulation(SIM.Simulation.ApplicationStart);
             Instance = this;
 
-            var sim = Instantiate(Instance.SimulatorManagerPrefab);
-            sim.name = "SimulatorManager";
-
-            SimulationData devSim;
-            var devSettings = (Simulator.Editor.DevelopmentSettingsAsset)UnityEditor.AssetDatabase.LoadAssetAtPath("Assets/Resources/Editor/DeveloperSettings.asset", typeof(Simulator.Editor.DevelopmentSettingsAsset));
-            if(devSettings != null && devSettings.developerSimulationJson != null)
-                devSim = Newtonsoft.Json.JsonConvert.DeserializeObject<SimulationData>(devSettings.developerSimulationJson);
+            if (!EditorLoader)
+            {
+                RenderLimiter.RenderLimitEnabled();
+                LoaderScene = SceneManager.GetActiveScene().name;
+                DontDestroyOnLoad(this);
+            }
             else
-                devSim = new SimulationData();
+            {
+#if UNITY_EDITOR
+                SimulationData devSim;
+                var devSettings = (Simulator.Editor.DevelopmentSettingsAsset)UnityEditor.AssetDatabase.LoadAssetAtPath("Assets/Resources/Editor/DeveloperSettings.asset", typeof(Simulator.Editor.DevelopmentSettingsAsset));
+                if (devSettings != null && devSettings.developerSimulationJson != null)
+                    devSim = Newtonsoft.Json.JsonConvert.DeserializeObject<SimulationData>(devSettings.developerSimulationJson);
+                else
+                    devSim = new SimulationData();
 
-            sim.Init(devSim.Seed);
-            var api = new CloudAPI(new Uri(Config.CloudUrl), Config.SimID);
-
-            var simInfo = CloudAPI.GetInfo();
-            var reader = await api.Connect(simInfo);
-            await api.EnsureConnectSuccess();
-            await sim.AgentManager.SetupDevAgents(devSettings);
-            reader.Close();
-            sim.NPCManager.NPCActive = devSim.UseTraffic;
-            sim.PedestrianManager.PedestriansActive = devSim.UsePedestrians;
+                StartSimulation(devSim);
 #endif
+            }
         }
 
         void OnApplicationQuit()
@@ -278,19 +259,28 @@ namespace Simulator
                 var downloads = new List<Task>();
                 if (simData.ApiOnly == false)
                 {
-                    downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, simData.Map.AssetGuid, simData.Map.Name));
+                    if (simData.Map != null)
+                    {
+                        downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, simData.Map.AssetGuid, simData.Map.Name));
+                    }
 
-                    foreach (var vehicle in simData.Vehicles)
+                    foreach (var vehicle in simData.Vehicles.Where(v => !v.Id.EndsWith(".prefab")))
                     {
                         downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicle.AssetGuid, vehicle.Name));
                     }
                 }
 
-                ConnectionUI.instance.SetLinkingButtonActive(false);
+                if (ConnectionUI.instance != null)
+                {
+                    ConnectionUI.instance.SetLinkingButtonActive(false);
+                }
                 await Task.WhenAll(downloads);
 
-                SimulationService simService = new SimulationService();
-                simService.AddOrUpdate(simData);
+                if (!string.IsNullOrEmpty(simData.Id))
+                {
+                    SimulationService simService = new SimulationService();
+                    simService.AddOrUpdate(simData);
+                }
 
                 Debug.Log("All Downloads Complete");
 
@@ -303,7 +293,10 @@ namespace Simulator
             {
                 Debug.Log($"Failed to start '{simData.Name}' simulation");
                 Debug.LogException(ex);
-                ConnectionManager.instance.UpdateStatus("Error", simData.Id, ex.Message);
+                if (ConnectionManager.instance != null)
+                {
+                    ConnectionManager.instance?.UpdateStatus("Error", simData.Id, ex.Message);
+                }
 
                 if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
                 {
@@ -331,7 +324,11 @@ namespace Simulator
                             throw new Exception("Simulator is configured to run in headless mode, only headless simulations are allowed");
                         }
 
-                        Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.PROGRESS);
+                        if (Instance.LoaderUI != null)
+                        {
+                            Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.PROGRESS);
+                        }
+
                         Instance.SimConfig = new SimulationConfig(simulation);
 
                         // load environment
@@ -342,7 +339,7 @@ namespace Simulator
 
                             Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.READY);
                         }
-                        else
+                        else if (simulation.Map != null)
                         {
                             var mapData = simulation.Map;
                             var mapBundlePath = WebUtilities.GenerateLocalPath(mapData.AssetGuid, BundleConfig.BundleTypes.Environment);
@@ -441,6 +438,10 @@ namespace Simulator
                                     }
                                 };
                             }
+                        }
+                        else
+                        {
+                            SetupScene(simulation);
                         }
                     }
                     catch (ZipException ex)
@@ -542,20 +543,26 @@ namespace Simulator
                 foreach (var agentConfig in Instance.SimConfig.Agents)
                 {
                     var bundlePath = agentConfig.AssetBundle;
-                    if (cachedVehicles.ContainsKey(agentConfig.Name))
+                    if (cachedVehicles.ContainsKey(agentConfig.AssetGuid))
                     {
-                        agentConfig.Prefab = cachedVehicles[agentConfig.Name];
+                        agentConfig.Prefab = cachedVehicles[agentConfig.AssetGuid];
                         continue;
                     }
-                    agentConfig.Prefab = LoadVehicleBundle(bundlePath);
-                    cachedVehicles.Add(agentConfig.Name, agentConfig.Prefab);
+#if UNITY_EDITOR
+                    if(bundlePath.EndsWith(".prefab"))
+                    {
+                        agentConfig.Prefab = (GameObject) UnityEditor.AssetDatabase.LoadAssetAtPath(bundlePath, typeof(GameObject));
+                    }
+                    else
+#endif
+                    {
+                        agentConfig.Prefab = LoadVehicleBundle(bundlePath);
+                    }
+                    cachedVehicles.Add(agentConfig.AssetGuid, agentConfig.Prefab);
                 }
 
                 var sim = CreateSimulatorManager();
-                if (simulation.Seed != null)
-                    sim.Init(simulation.Seed);
-                else
-                    sim.Init();
+                sim.Init(simulation.Seed);
 
                 if (Instance.CurrentSimulation != null && ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline)
                 {

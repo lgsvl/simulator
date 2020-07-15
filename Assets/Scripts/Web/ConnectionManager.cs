@@ -321,6 +321,7 @@ public class CloudAPI
     {
         InstanceURL = instanceURL;
         SimId = simId;
+        Console.WriteLine("[CONN] Instance URL {0}", InstanceURL.AbsoluteUri);
     }
 
     public class NoSuccessException: Exception
@@ -344,12 +345,18 @@ public class CloudAPI
         message.Headers.Add("Accept", "application/json");
         message.Headers.Add("Connection", "Keep-Alive");
         message.Headers.Add("X-Accel-Buffering", "no");
+
+        Console.WriteLine("[CONN] Connecting to WISE");
+
         var response = await client.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, requestTokenSource.Token).ConfigureAwait(false);
+
         if (!response.IsSuccessStatusCode)
         {
+            Console.WriteLine("[CONN] Failed to connect to WISE");
             var content = await response.Content.ReadAsStringAsync();
             throw new NoSuccessException(response.StatusCode.ToString() + " " + content);
         }
+        Console.WriteLine("[CONN] Connected to WISE.");
         onlineStream = new StreamReader(await response.Content.ReadAsStreamAsync());
         return onlineStream;
     }
@@ -430,7 +437,11 @@ public class CloudAPI
         HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Get, new Uri(InstanceURL, routeAndParams));
         message.Headers.Add("SimId", SimId);
         message.Headers.Add("Accept", "application/json");
+
+        Console.WriteLine($"[CONN] GET {routeAndParams}");
         var response = await client.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, requestTokenSource.Token).ConfigureAwait(false);
+        Console.WriteLine($"[CONN] HTTP {(int)response.StatusCode} {response.StatusCode}");
+
         if (!response.IsSuccessStatusCode)
         {
             throw new NoSuccessException(response.StatusCode.ToString());
@@ -447,6 +458,8 @@ public class CloudAPI
 
     public async Task UpdateStatus(string status, string simGuid, string message)
     {
+        Console.WriteLine($"[CONN] Updated simulation {simGuid} with status:{status} msg:{message}");
+
         var statusMessage = new StatusMessage
         {
             message = message,
@@ -461,7 +474,13 @@ public class CloudAPI
         message.Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
         message.Headers.Add("SimId", Config.SimID);
         message.Headers.Add("Accept", "application/json");
+
+        Console.WriteLine($"[CONN] POST {route}");
+
         var response = await client.SendAsync(message);
+
+        Console.WriteLine($"[CONN] HTTP {(int)response.StatusCode} {response.StatusCode}");
+
         if (response.IsSuccessStatusCode)
         {
             Debug.Log("Receiving response of " + response.StatusCode + " " + response.Content);
@@ -470,6 +489,7 @@ public class CloudAPI
 
     public void Disconnect()
     {
+        Console.WriteLine("[CONN] Disconnecting");
         onlineStream?.Close();
         onlineStream = null;
         requestTokenSource?.Cancel();

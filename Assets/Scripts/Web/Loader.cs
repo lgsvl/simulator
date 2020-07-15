@@ -164,6 +164,8 @@ namespace Simulator
             get => status;
             private set
             {
+                Console.WriteLine($"[LOADER] Update simulation status {status} -> {value}");
+
                 if (status == value)
                     return;
                 status = value;

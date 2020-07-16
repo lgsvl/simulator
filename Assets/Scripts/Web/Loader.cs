@@ -177,6 +177,7 @@ namespace Simulator
                         ConnectionManager.instance.UpdateStatus("Idle", CurrentSimulation.Id);
                         break;
                     case SimulatorStatus.Loading:
+                        ConnectionManager.instance.UpdateStatus("Starting", Instance.CurrentSimulation.Id);
                         //Start command received from the cloud
                         break;
                     case SimulatorStatus.Starting:
@@ -276,6 +277,7 @@ namespace Simulator
                 {
                     ConnectionUI.instance.SetLinkingButtonActive(false);
                 }
+
                 await Task.WhenAll(downloads);
 
                 if (!string.IsNullOrEmpty(simData.Id))

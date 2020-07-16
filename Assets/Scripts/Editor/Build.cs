@@ -236,8 +236,9 @@ namespace Simulator.Editor
                             }
                         }
 
+                        string glbFilename = $"{manifest.assetGuid}_vehicle_{manifest.assetName}.glb";
                         string export = ModelExporter.ExportObject(Path.Combine("Assets", "External", "Vehicles", manifest.assetName, $"{manifest.assetName}.fbx"), tempObj);
-                        var glbOut = Path.Combine(outputFolder, $"{manifest.assetGuid}_vehicle_{manifest.assetName}.glb");
+                        var glbOut = Path.Combine(outputFolder, glbFilename);
                         System.Diagnostics.Process p = new System.Diagnostics.Process();
                         p.EnableRaisingEvents = true;
                         p.StartInfo.FileName = Path.Combine(Application.dataPath, "Plugins", "FBX2glTF",
@@ -248,10 +249,10 @@ namespace Simulator.Editor
                         p.Exited += new EventHandler((o, e) =>
                         {
                             Debug.Log("Successfully Exited");
-                            buildArtifacts.Add((glbOut, $"{manifest.assetGuid}_vehicle_{manifest.assetName}.glb"));
+                            buildArtifacts.Add((glbOut, Path.Combine("gltf", glbFilename)));
                             File.Delete(export);
                             File.Delete($"{export}.meta");
-                            files.Add("gltf", ZipPath("gltf", $"{assetGuid}_vehicle_{manifest.assetName}.glb"));
+                            files.Add("gltf", ZipPath("gltf", glbFilename));
                         });
 
                         p.Start();

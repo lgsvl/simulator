@@ -48,7 +48,7 @@ namespace Simulator
         public AgentConfig(VehicleData vehicleData)
         {
             Name = vehicleData.Name;
-            Connection = vehicleData.Bridge != null ? vehicleData.Bridge.ConnectionString : "";
+            Connection = vehicleData.bridge != null ? vehicleData.bridge.connectionString : "";
             AssetGuid = vehicleData.AssetGuid;
 #if UNITY_EDITOR
             if (vehicleData.Id.EndsWith(".prefab"))
@@ -63,12 +63,12 @@ namespace Simulator
             }
             Sensors = Newtonsoft.Json.JsonConvert.SerializeObject(vehicleData.Sensors);
 
-            if (vehicleData.Bridge != null && !string.IsNullOrEmpty(vehicleData.Bridge.Type))
+            if (vehicleData.bridge != null && !string.IsNullOrEmpty(vehicleData.bridge.type))
             {
-                Bridge = BridgePlugins.Get(vehicleData.Bridge.Type);
+                Bridge = BridgePlugins.Get(vehicleData.bridge.type);
                 if (Bridge == null)
                 {
-                    throw new Exception($"Bridge {vehicleData.Bridge.Type} not found");
+                    throw new Exception($"Bridge {vehicleData.bridge.type} not found");
                 }
             }
         }

@@ -270,13 +270,13 @@ namespace Simulator.Editor
 
                             var vehicle = developerSimulation.Vehicles[0];
                             vehicle.Id = (string)selection;
-                            if (vehicle.Bridge == null)
+                            if (vehicle.bridge == null)
                             {
-                                vehicle.Bridge = new BridgeData();
+                                vehicle.bridge = new BridgeData();
                             }
 
-                            vehicle.Bridge.Type = EditorGUILayout.TextField("Bridge Type", vehicle.Bridge.Type);
-                            vehicle.Bridge.ConnectionString = EditorGUILayout.TextField("Bridge Connection", vehicle.Bridge.ConnectionString);
+                            vehicle.bridge.type = EditorGUILayout.TextField("Bridge Type", vehicle.bridge.type);
+                            vehicle.bridge.connectionString = EditorGUILayout.TextField("Bridge Connection", vehicle.bridge.connectionString);
 
                             EditorGUILayout.LabelField("json sensor config");
                             sensorScratchPad = EditorGUILayout.TextArea(sensorScratchPad, GUILayout.Height(200));

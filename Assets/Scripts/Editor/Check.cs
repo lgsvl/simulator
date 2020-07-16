@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -66,6 +66,7 @@ namespace Simulator.Editor
                 "obj",
                 "Temp",
                 "Web",
+                "Logs",
             };
 
             var rootFoldersReq = new[]
@@ -109,6 +110,7 @@ namespace Simulator.Editor
                 "Physics",
                 "Plugins",
                 "Prefabs",
+                "PreviewEnvironmentAssets",
                 "Resources",
                 "ScriptableObjects",
                 "Scenes",
@@ -409,6 +411,10 @@ namespace Simulator.Editor
                 {
                     continue;
                 }
+                if (folderName == "/Assets/Scripts/Web/Tests/TestData/SimulationConfig")
+                {
+                    continue;
+                }
 
                 if (extension != ".cs" && extension != ".asmdef" && extension != ".inputactions")
                 {
@@ -441,6 +447,7 @@ namespace Simulator.Editor
                                 "/Assets/Scripts/Editor/OpenDRIVE_1.4H.cs",
                                 "/Assets/Scripts/Dynamics/FMU/FMU.cs",
                                 "/Assets/Scripts/Editor/FMUEditor/FMUImporter.cs",
+                                "/Assets/Scripts/Editor/Map/Meshes/clipper.cs",
                             };
 
                             if (!exceptions.Contains($"{folderName}/{name}"))

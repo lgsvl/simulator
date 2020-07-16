@@ -343,10 +343,6 @@ namespace Simulator.Sensors
 
                 AAWireBoxes.Draw(min, max, color);
             }
-            var test_min = new Vector2(Width / 2 - 10, Height / 2 - 10);
-            var test_max = new Vector2(Width / 2 + 10, Height / 2 + 10);
-
-            AAWireBoxes.Draw(test_min, test_max, Color.red);
             visualizer.UpdateRenderTexture(Camera.activeTexture, Camera.aspect);
         }
 

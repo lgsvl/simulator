@@ -36,7 +36,7 @@ namespace Simulator.Editor
     public class Build : EditorWindow
     {
         public static bool Running;
-        private static bool CoroutineRunning;
+        private static bool BuildQueued;
 
         enum BuildTarget
         {
@@ -180,7 +180,7 @@ namespace Simulator.Editor
                 entries[name].selected = true;
             }
 
-            private async Task PreparePrefabManifest(Entry prefabEntry, string outputFolder, List<(string, string)> buildArtifacts, Manifest manifest)
+            private void PreparePrefabManifest(Entry prefabEntry, string outputFolder, List<(string, string)> buildArtifacts, Manifest manifest)
             {
                 const string vehiclePreviewScenePath = "Assets/PreviewEnvironmentAssets/PreviewEnvironmentScene.unity";
 
@@ -257,13 +257,8 @@ namespace Simulator.Editor
 
                         p.Start();
 
-                        while (!p.HasExited)
-                        {
-                            await Task.Delay(TimeSpan.FromSeconds(1));
-                        }
-
                         var textures = new BundlePreviewRenderer.PreviewTextures();
-                        await BundlePreviewRenderer.RenderVehiclePreview(prefabEntry.mainAssetFile, textures);
+                        BundlePreviewRenderer.RenderVehiclePreview(prefabEntry.mainAssetFile, textures);
                         var bytesLarge = textures.large.EncodeToPNG();
                         var bytesMedium = textures.medium.EncodeToPNG();
                         var bytesSmall = textures.small.EncodeToPNG();
@@ -296,7 +291,7 @@ namespace Simulator.Editor
                 }
             }
 
-            private async Task PrepareSceneManifest(Entry sceneEntry, string outputFolder, List<(string, string)> buildArtifacts, Manifest manifest)
+            private void PrepareSceneManifest(Entry sceneEntry, string outputFolder, List<(string, string)> buildArtifacts, Manifest manifest)
             {
                 Scene scene = EditorSceneManager.OpenScene(sceneEntry.mainAssetFile, OpenSceneMode.Additive);
                 var scenePath = scene.path;
@@ -377,7 +372,7 @@ namespace Simulator.Editor
                             buildArtifacts.Add((tmpdir, null));
 
                             var textures = new BundlePreviewRenderer.PreviewTextures();
-                            await BundlePreviewRenderer.RenderScenePreview(origin.transform, textures);
+                            BundlePreviewRenderer.RenderScenePreview(origin.transform, textures);
                             var bytesLarge = textures.large.EncodeToPNG();
                             var bytesMedium = textures.medium.EncodeToPNG();
                             var bytesSmall = textures.small.EncodeToPNG();
@@ -421,7 +416,7 @@ namespace Simulator.Editor
                 }
             }
 
-            public async Task RunBuild(string outputFolder)
+            public void RunBuild(string outputFolder)
             {
                 const string loaderScenePath = "Assets/Scenes/LoaderScene.unity";
                 string Thing = BundleConfig.singularOf(bundleType);
@@ -462,12 +457,12 @@ namespace Simulator.Editor
                         bool mainAssetIsScript = entry.mainAssetFile.EndsWith("." + ScriptExtension);
                         if (bundleType == BundleConfig.BundleTypes.Environment)
                         {
-                            await PrepareSceneManifest(entry, outputFolder, buildArtifacts, manifest);
+                            PrepareSceneManifest(entry, outputFolder, buildArtifacts, manifest);
                             manifest.assetType = "map";
                         }
                         else
                         {
-                            await PreparePrefabManifest(entry, outputFolder, buildArtifacts, manifest);
+                            PreparePrefabManifest(entry, outputFolder, buildArtifacts, manifest);
                             manifest.assetType = thing;
                         }
 
@@ -773,7 +768,7 @@ namespace Simulator.Editor
             EditorPrefs.SetString("Simulator/Build", data);
         }
 
-        async void OnGUI()
+        void OnGUI()
         {
             scroll = EditorGUILayout.BeginScrollView(scroll);
             foreach (var group in buildGroups.Values)
@@ -830,12 +825,12 @@ namespace Simulator.Editor
                         assetBundlesLocation = Path.Combine(PlayerFolder, "AssetBundles");
                     }
 
-                    CoroutineRunning = true;
-                    await BuildBundles(assetBundlesLocation, OnComplete);
+                    BuildQueued = true;
+                    EditorApplication.delayCall += () => BuildBundles(assetBundlesLocation, OnComplete);
                 }
                 finally
                 {
-                    if (!CoroutineRunning)
+                    if (!BuildQueued)
                         OnComplete();
                 }
             }
@@ -985,34 +980,28 @@ namespace Simulator.Editor
             }
         }
 
-        private async Task BuildBundles(string outputFolder, Action onComplete = null)
+        private void BuildBundles(string outputFolder, Action onComplete = null)
         {
             try
             {
-                CoroutineRunning = true;
-
                 foreach (var group in buildGroups.Values)
-                    await group.RunBuild(outputFolder);
-
-                CoroutineRunning = false;
+                    group.RunBuild(outputFolder);
             }
             finally
             {
+                BuildQueued = false;
                 onComplete?.Invoke();
             }
         }
 
         // Called from command line
-        private static async void Run()
+        private static void Run()
         {
             var hasQuitArg = Environment.GetCommandLineArgs().Contains("-quit");
-            if (hasQuitArg)
-                throw new Exception("Batch mode build utilizes coroutines - start it with no `-quit` flag.");
-
-            await RunImpl();
+            RunImpl(!hasQuitArg);
         }
 
-        private static async Task RunImpl()
+        private static void RunImpl(bool forceExit = false)
         {
             BuildTarget? buildTarget = null;
 
@@ -1136,13 +1125,14 @@ namespace Simulator.Editor
                 if (buildBundles)
                 {
                     var assetBundlesLocation = Path.Combine(Application.dataPath, "..", "AssetBundles");
-                    await build.BuildBundles(assetBundlesLocation);
+                    build.BuildBundles(assetBundlesLocation);
                 }
             }
             finally
             {
                 Running = false;
-                EditorApplication.Exit(0);
+                if (forceExit)
+                    EditorApplication.Exit(0);
             }
         }
 

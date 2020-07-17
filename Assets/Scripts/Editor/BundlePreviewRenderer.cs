@@ -64,9 +64,9 @@ namespace Simulator.Editor
             }
         }
 
-        public static async Task RenderScenePreview(Transform origin, PreviewTextures textures)
+        public static void RenderScenePreview(Transform origin, PreviewTextures textures)
         {
-            await ReinitializeRenderPipeline();
+            ReinitializeRenderPipeline();
 
             var previewRootPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/ScenePreviewRoot.prefab");
             var previewRoot = Object.Instantiate(previewRootPrefab, origin);
@@ -75,7 +75,6 @@ namespace Simulator.Editor
             // This will trigger HDCamera.Update, which must be done before calling HDCamera.GetOrCreate
             // Otherwise m_AdditionalCameraData will not be set and HDCamera will be discarded after first frame
             camera.Render();
-            await Task.Yield();
 
             var hdSettings = camera.GetComponent<HDAdditionalCameraData>();
             hdSettings.hasPersistentHistory = true;
@@ -91,16 +90,14 @@ namespace Simulator.Editor
             foreach (var building in timeOfDayBuildings)
                 building.Init(TimeOfDayStateTypes.Day);
 
-            await Render(hd, textures, volume);
+            Render(hd, textures, volume);
 
             Object.DestroyImmediate(previewRoot);
-
-            await Task.Yield();
         }
 
-        public static async Task RenderVehiclePreview(string vehicleAssetFile, PreviewTextures textures)
+        public static void RenderVehiclePreview(string vehicleAssetFile, PreviewTextures textures)
         {
-            await ReinitializeRenderPipeline();
+            ReinitializeRenderPipeline();
 
             var cameraObj = GameObject.Find("PreviewCamera");
             var camera = cameraObj == null ? null : cameraObj.GetComponent<Camera>();
@@ -126,17 +123,14 @@ namespace Simulator.Editor
             // This will trigger HDCamera.Update, which must be done before calling HDCamera.GetOrCreate
             // Otherwise m_AdditionalCameraData will not be set and HDCamera will be discarded after first frame
             camera.Render();
-            await Task.Yield();
 
             var hdSettings = camera.GetComponent<HDAdditionalCameraData>();
             hdSettings.hasPersistentHistory = true;
             var hd = HDCamera.GetOrCreate(camera);
 
-            await Render(hd, textures, volume);
+            Render(hd, textures, volume);
 
             Object.DestroyImmediate(vehicle);
-
-            await Task.Yield();
         }
 
         private static bool SkyDone(Volume volume, HDCamera hd)
@@ -219,7 +213,7 @@ namespace Simulator.Editor
             Debug.LogError($"Current bounces: {bouncesVal} expected: {targetBounces}");
         }
 
-        private static async Task Render(HDCamera hd, PreviewTextures textures, Volume volume)
+        private static void Render(HDCamera hd, PreviewTextures textures, Volume volume)
         {
             var camera = hd.camera;
             var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
@@ -242,8 +236,6 @@ namespace Simulator.Editor
                     {
                         camera.Render();
                         rt.IncrementUpdateCount();
-                        EditorApplication.QueuePlayerLoopUpdate();
-                        await Task.Yield();
                     } while (calls++ < maxCalls && !SkyDone(volume, hd));
 
                     if (!SkyDone(volume, hd))
@@ -260,12 +252,10 @@ namespace Simulator.Editor
                 camera.targetTexture = null;
                 RenderTexture.active = null;
                 RenderTexture.ReleaseTemporary(rt);
-
-                await Task.Yield();
             }
         }
 
-        private static async Task ReinitializeRenderPipeline()
+        private static void ReinitializeRenderPipeline()
         {
             // NOTE: This is a workaround for Vulkan. Even if HDRP is reinitialized, lighting data and depth buffers
             //       on render targets (even ones created afterwards) will be corrupted. Reloading scene before
@@ -333,16 +323,6 @@ namespace Simulator.Editor
             {
                 Debug.LogError($"No ready flag in {nameof(HDRenderPipeline)}. Did you update HDRP?");
                 return;
-            }
-
-            const float maxTime = 10f;
-            var timeElapsed = 0f;
-            var startTime = Time.realtimeSinceStartup;
-
-            while (timeElapsed < maxTime && !(bool) pipelineReadyField.GetValue(hdrp))
-            {
-                timeElapsed = Time.realtimeSinceStartup - startTime;
-                await Task.Yield();
             }
 
             if (!(bool) pipelineReadyField.GetValue(hdrp))

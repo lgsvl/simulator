@@ -159,6 +159,21 @@ namespace Simulator
 
         public bool EditorLoader { get; set; } = false;
 
+        string reportedStatus(SimulatorStatus status)
+        {
+            switch(status)
+            {
+                case SimulatorStatus.Idle: return "Idle";
+                // WISE does not care about Loading, just Starting
+                case SimulatorStatus.Loading: 
+                case SimulatorStatus.Starting: return "Starting";
+                case SimulatorStatus.Running: return "Running";
+                case SimulatorStatus.Stopping: return "Stopping";
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
         public SimulatorStatus Status
         {
             get => status;
@@ -166,35 +181,19 @@ namespace Simulator
             {
                 Console.WriteLine($"[LOADER] Update simulation status {status} -> {value}");
 
-                if (status == value)
-                    return;
+                var previous = reportedStatus(status);
+                var newStatus = reportedStatus(value);
+
                 status = value;
-                if(ConnectionManager.instance == null)
+
+                if (previous == newStatus)
                     return;
-                switch (status)
-                {
-                    case SimulatorStatus.Idle:
-                        ConnectionManager.instance.UpdateStatus("Idle", CurrentSimulation.Id);
-                        break;
-                    case SimulatorStatus.Loading:
-                        ConnectionManager.instance.UpdateStatus("Starting", Instance.CurrentSimulation.Id);
-                        //Start command received from the cloud
-                        break;
-                    case SimulatorStatus.Starting:
-                        //Start command received from the cloud
-                        ConnectionManager.instance.UpdateStatus("Starting", Instance.CurrentSimulation.Id);
-                        break;
-                    case SimulatorStatus.Running:
-                        ConnectionManager.instance.UpdateStatus("Running", Instance.CurrentSimulation.Id);
-                        // Flash main window to let user know simulation is ready
-                        WindowFlasher.Flash();
-                        break;
-                    case SimulatorStatus.Stopping:
-                        ConnectionManager.instance.UpdateStatus("Stopping", CurrentSimulation.Id);
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+
+                if(ConnectionManager.instance != null)
+                    ConnectionManager.instance.UpdateStatus(newStatus, CurrentSimulation.Id);
+
+                if(status == SimulatorStatus.Running)
+                    WindowFlasher.Flash();
             }
         }
 

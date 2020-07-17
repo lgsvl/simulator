@@ -339,37 +339,67 @@ namespace Simulator.Editor
                             Lanelet2MapExporter lanelet2MapExporter = new Lanelet2MapExporter();
                             tmpdir = Path.Combine(outputFolder, $"{name}_lanelet2");
                             Directory.CreateDirectory(tmpdir);
-                            lanelet2MapExporter.Export(Path.Combine(tmpdir, $"{name}.osm"));
-                            buildArtifacts.Add((Path.Combine(tmpdir, $"{name}.osm"), hdMaps.lanelet2));
-                            buildArtifacts.Add((tmpdir, null));
+                            if (lanelet2MapExporter.Export(Path.Combine(tmpdir, $"{name}.osm")))
+                            {
+                                buildArtifacts.Add((Path.Combine(tmpdir, $"{name}.osm"), hdMaps.lanelet2));
+                                buildArtifacts.Add((tmpdir, null));
+                            }
+                            else
+                            {
+                                Directory.Delete(tmpdir);
+                            }
 
                             OpenDriveMapExporter openDriveMapExporter = new OpenDriveMapExporter();
                             tmpdir = Path.Combine(outputFolder, $"{name}_opendrive");
                             Directory.CreateDirectory(tmpdir);
-                            openDriveMapExporter.Export(Path.Combine(tmpdir, $"{manifest.assetName}.xodr"));
-                            buildArtifacts.Add((Path.Combine(tmpdir, $"{manifest.assetName}.xodr"), hdMaps.opendrive));
-                            buildArtifacts.Add((tmpdir, null));
+                            if (openDriveMapExporter.Export(Path.Combine(tmpdir, $"{manifest.assetName}.xodr")))
+                            {
+                                buildArtifacts.Add((Path.Combine(tmpdir, $"{manifest.assetName}.xodr"), hdMaps.opendrive));
+                                buildArtifacts.Add((tmpdir, null));
+                            }
+                            else
+                            {
+                                Directory.Delete(tmpdir);
+                            }
 
                             ApolloMapTool apolloMapTool = new ApolloMapTool(ApolloMapTool.ApolloVersion.Apollo_5_0);
                             tmpdir = Path.Combine(outputFolder, $"{name}_apollomap_5_0");
                             Directory.CreateDirectory(tmpdir);
-                            apolloMapTool.Export(Path.Combine(tmpdir, "base_map.bin"));
-                            buildArtifacts.Add((Path.Combine(tmpdir, "base_map.bin"), hdMaps.apollo50));
-                            buildArtifacts.Add((tmpdir, null));
+                            if (apolloMapTool.Export(Path.Combine(tmpdir, "base_map.bin")))
+                            {
+                                buildArtifacts.Add((Path.Combine(tmpdir, "base_map.bin"), hdMaps.apollo50));
+                                buildArtifacts.Add((tmpdir, null));
+                            }
+                            else
+                            {
+                                Directory.Delete(tmpdir);
+                            }
 
                             apolloMapTool = new ApolloMapTool(ApolloMapTool.ApolloVersion.Apollo_3_0);
                             tmpdir = Path.Combine(outputFolder, $"{name}_apollomap_3_0");
                             Directory.CreateDirectory(tmpdir);
-                            apolloMapTool.Export(Path.Combine(tmpdir, "base_map.bin"));
-                            buildArtifacts.Add((Path.Combine(tmpdir, "base_map.bin"), hdMaps.apollo30));
-                            buildArtifacts.Add((tmpdir, null));
+                            if (apolloMapTool.Export(Path.Combine(tmpdir, "base_map.bin")))
+                            {
+                                buildArtifacts.Add((Path.Combine(tmpdir, "base_map.bin"), hdMaps.apollo30));
+                                buildArtifacts.Add((tmpdir, null));
+                            }
+                            else
+                            {
+                                Directory.Delete(tmpdir);
+                            }
 
                             AutowareMapTool autowareMapTool = new AutowareMapTool();
                             tmpdir = Path.Combine(outputFolder, $"{name}_autoware");
                             Directory.CreateDirectory(tmpdir);
-                            apolloMapTool.Export(Path.Combine(tmpdir, "AutowareVectorMap.zip"));
-                            buildArtifacts.Add((Path.Combine(tmpdir, "AutowareVectorMap.zip"), hdMaps.autoware));
-                            buildArtifacts.Add((tmpdir, null));
+                            if (apolloMapTool.Export(Path.Combine(tmpdir, "AutowareVectorMap.zip")))
+                            {
+                                buildArtifacts.Add((Path.Combine(tmpdir, "AutowareVectorMap.zip"), hdMaps.autoware));
+                                buildArtifacts.Add((tmpdir, null));
+                            }
+                            else
+                            {
+                                Directory.Delete(tmpdir);
+                            }
 
                             var textures = new BundlePreviewRenderer.PreviewTextures();
                             BundlePreviewRenderer.RenderScenePreview(origin.transform, textures);

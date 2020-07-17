@@ -2819,8 +2819,9 @@ namespace Simulator.Editor
             return false;
         }
 
-        public void Export(string filePath)
+        public bool Export(string filePath)
         {
+            bool success = false;
             mapOrigin = MapOrigin.Find();
 
             OriginEasting = mapOrigin.OriginEasting;
@@ -2836,7 +2837,9 @@ namespace Simulator.Editor
                 }
 
                 Debug.Log("Successfully generated and exported Apollo HD Map!");
+                success = true;
             }
+            return success;
         }
 
         static HD.Id HdId(string id) => new HD.Id() { id = id };

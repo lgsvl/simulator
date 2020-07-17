@@ -1684,8 +1684,9 @@ namespace Simulator.Editor
             return null;
         }
 
-        public void Export(string filePath)
+        public bool Export(string filePath)
         {
+            bool success = false;
             if (Calculate())
             {
                 using (var file = File.Create(filePath))
@@ -1721,11 +1722,13 @@ namespace Simulator.Editor
                     target.Close();
                 }
                 Debug.Log("Successfully generated and exported Lanelet2 Map!");
+                success = true;
             }
             else
             {
                 Debug.LogError("Failed to export Lanelet2 Map!");
             }
+            return success;
         }
 
         public void AddBoundaryTagToWay(MapLane lane, Way leftWay, Way rightWay)

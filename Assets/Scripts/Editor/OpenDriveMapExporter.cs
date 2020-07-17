@@ -1831,8 +1831,9 @@ namespace Simulator.Editor
             return startingLanes;
         }
 
-        public void Export(string filePath)
+        public bool Export(string filePath)
         {
+            bool success = false;
             if (Calculate())
             {
                 var serializer = new XmlSerializer(typeof(OpenDRIVE));
@@ -1844,11 +1845,13 @@ namespace Simulator.Editor
                 }
 
                 Debug.Log("Successfully generated and exported OpenDRIVE Map! If your map looks weird at some roads, you might have wrong boundary lines for some lanes.");
+                success = true;
             }
             else
             {
                 Debug.LogError("Failed to export OpenDRIVE Map!");
             }
+            return success;
         }
 
         static Vector2 ToVector2(Vector3 pt)

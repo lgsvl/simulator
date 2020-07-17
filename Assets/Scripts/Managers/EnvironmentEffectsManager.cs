@@ -185,7 +185,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
             obj.GetComponentsInChildren(renderers);
             renderers.ForEach(r =>
             {
-                r.GetSharedMaterials(materials);
+                r.GetMaterials(materials);
                 materials.ForEach(m =>
                 {
                     if (r.GetComponent<ParticleSystem>() != null || r.GetComponent<ReflectionProbe>() != null)
@@ -215,7 +215,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
             obj.GetComponentsInChildren(renderers);
             renderers.ForEach(r =>
             {
-                r.GetSharedMaterials(materials);
+                r.GetMaterials(materials);
                 materials.ForEach(m =>
                 {
                     if (r.GetComponent<ParticleSystem>() != null || r.GetComponent<ReflectionProbe>() != null)

@@ -217,6 +217,7 @@ namespace Simulator.Web
         public VehicleData[] Vehicles { get; set; }
         public ClusterData Cluster { get; set; }
         public TemplateData Template { get; set; }
+        public bool CreateTestReport { get; set; }
     }
 
 

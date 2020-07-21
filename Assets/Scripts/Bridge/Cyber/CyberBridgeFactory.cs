@@ -19,7 +19,7 @@ namespace Simulator.Bridge.Cyber
         {
             RegPublisher<ImageData, apollo.drivers.CompressedImage>(plugin, CyberConversions.ConvertFrom);
             RegPublisher<PointCloudData, apollo.drivers.PointCloud>(plugin, CyberConversions.ConvertFrom);
-            RegPublisher<Detected3DObjectData, apollo.common.Detection3DArray>(plugin, CyberConversions.ConvertFrom);
+            RegPublisher<Detected3DObjectData, apollo.perception.PerceptionObstacles>(plugin, CyberConversions.ConvertFrom);
             RegPublisher<Detected2DObjectData, apollo.common.Detection2DArray>(plugin, CyberConversions.ConvertFrom);
             RegPublisher<DetectedRadarObjectData, apollo.drivers.ContiRadar>(plugin, CyberConversions.ConvertFrom);
             RegPublisher<CanBusData, apollo.canbus.Chassis>(plugin, CyberConversions.ConvertFrom);
@@ -28,6 +28,7 @@ namespace Simulator.Bridge.Cyber
             RegPublisher<GpsInsData, apollo.drivers.gnss.InsStat>(plugin, CyberConversions.ConvertFrom);
             RegPublisher<ImuData, apollo.drivers.gnss.Imu>(plugin, CyberConversions.ConvertFrom);
             RegPublisher<CorrectedImuData, apollo.localization.CorrectedImu>(plugin, CyberConversions.ConvertFrom);
+            RegPublisher<SignalDataArray, apollo.perception.TrafficLightDetection>(plugin, CyberConversions.ConvertFrom);
 
             RegSubscriber<VehicleControlData, apollo.control.ControlCommand>(plugin, CyberConversions.ConvertTo);
             RegSubscriber<Detected2DObjectArray, apollo.common.Detection2DArray>(plugin, CyberConversions.ConvertTo);

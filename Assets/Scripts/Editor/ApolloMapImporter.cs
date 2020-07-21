@@ -992,6 +992,7 @@ using apollo.hdmap;
             mapSignalObj.transform.parent = intersection.transform;
 
             var mapSignal = mapSignalObj.AddComponent<MapSignal>();
+            mapSignal.id = id;
             mapSignal.signalData = new List<MapData.SignalData> {
                 new MapData.SignalData() { localPosition = Vector3.up * 0.4f, signalColor = MapData.SignalColorType.Red },
                 new MapData.SignalData() { localPosition = Vector3.zero, signalColor = MapData.SignalColorType.Yellow },

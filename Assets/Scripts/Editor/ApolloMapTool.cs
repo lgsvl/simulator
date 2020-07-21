@@ -2852,8 +2852,17 @@ namespace Simulator.Editor
             int count = 0;
             foreach (var item in MapAnnotationData.GetData<MapType>())
             {
-                string id = $"{name}_{count++}";
-                item.id = id;
+                string id;
+                if (string.IsNullOrEmpty(item.id))
+                {
+                    id = $"{name}_{count++}";
+                    item.id = id;
+                }
+                else
+                {
+                    id = item.id;
+                }
+
                 ad.Add(create(item));
                 overlaps.GetOrCreate(id).id = HdId(id);
             }

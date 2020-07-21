@@ -11,7 +11,8 @@ namespace Simulator.Bridge.Data
 {
     public class SignalData
     {
-        public uint Id;
+        public uint SeqId;
+        public string Id;
         public string Label;
         public double Score;
         public Vector3 Position;

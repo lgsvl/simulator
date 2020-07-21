@@ -95,6 +95,151 @@ namespace Simulator.Bridge.Cyber
             return msg;
         }
 
+        public static apollo.perception.TrafficLightDetection ConvertFrom(SignalDataArray data)
+        {
+            bool contain_lights = false;
+            if (data.Data.Length > 0)
+            {
+                contain_lights = true;
+            }
+
+            var signals = new apollo.perception.TrafficLightDetection()
+            {
+                header = new apollo.common.Header()
+                {
+                    timestamp_sec = data.Time,
+                    sequence_num = data.Sequence,
+                    camera_timestamp = (ulong)(data.Time * 1e9),
+                },
+                contain_lights = contain_lights,
+            };
+
+            foreach (SignalData d in data.Data)
+            {
+                var color = apollo.perception.TrafficLight.Color.Black;
+                if (d.Label == "green")
+                {
+                    color = apollo.perception.TrafficLight.Color.Green;
+                }
+                else if (d.Label == "yellow")
+                {
+                    color = apollo.perception.TrafficLight.Color.Yellow;
+                }
+                else if (d.Label == "red")
+                {
+                    color = apollo.perception.TrafficLight.Color.Red;
+                }
+
+                signals.traffic_light.Add
+                (
+                    new apollo.perception.TrafficLight()
+                    {
+                        color = color,
+                        id = d.Id,
+                        confidence = 1.0,
+                        blink = false,
+                    }
+                );
+            }
+
+            return signals;
+        }
+
+        public static apollo.perception.PerceptionObstacles ConvertFrom(Detected3DObjectData data)
+        {
+            var obstacles = new apollo.perception.PerceptionObstacles()
+            {
+                header = new apollo.common.Header()
+                {
+                    timestamp_sec = data.Time,
+                    module_name = "perception_obstacle",
+                    sequence_num = data.Sequence,
+                    lidar_timestamp = (ulong)(data.Time * 1e9),
+                },
+                error_code = apollo.common.ErrorCode.Ok,
+            };
+
+            foreach (var d in data.Data)
+            {
+                // Transform from (Right/Up/Forward) to (Right/Forward/Up)
+                var velocity = d.Velocity;
+                velocity.Set(velocity.x, velocity.z, velocity.y);
+
+                var acceleration = d.Acceleration;
+                acceleration.Set(acceleration.x, acceleration.z, acceleration.y);
+
+                var size = d.Scale;
+                size.Set(size.x, size.z, size.y);
+
+                apollo.perception.PerceptionObstacle.Type type = apollo.perception.PerceptionObstacle.Type.Unknown;
+                apollo.perception.PerceptionObstacle.SubType subType = apollo.perception.PerceptionObstacle.SubType.StUnknown;
+                if (d.Label == "Pedestrian")
+                {
+                    type = apollo.perception.PerceptionObstacle.Type.Pedestrian;
+                    subType = apollo.perception.PerceptionObstacle.SubType.StPedestrian;
+                }
+                else
+                {
+                    type = apollo.perception.PerceptionObstacle.Type.Vehicle;
+                    subType = apollo.perception.PerceptionObstacle.SubType.StCar;
+                }
+
+                var po = new apollo.perception.PerceptionObstacle()
+                {
+                    id = (int)d.Id,
+                    position = ConvertToPoint(d.Gps),
+                    theta = (90 - d.Heading) * Mathf.Deg2Rad,
+                    velocity = ConvertToPoint(velocity),
+                    width = size.x,
+                    length = size.y,
+                    height = size.z,
+                    tracking_time = d.TrackingTime,
+                    type = type,
+                    timestamp = data.Time,
+                    acceleration = ConvertToPoint(acceleration),
+                    anchor_point = ConvertToPoint(d.Gps),
+                    sub_type = subType,
+                };
+
+                // polygon points := obstacle corner points
+                var cx = d.Gps.Easting;
+                var cy = d.Gps.Northing;
+                var cz = d.Gps.Altitude;
+                var px = 0.5f * size.x;
+                var py = 0.5f * size.y;
+                var c = Mathf.Cos((float)-d.Heading * Mathf.Deg2Rad);
+                var s = Mathf.Sin((float)-d.Heading * Mathf.Deg2Rad);
+
+                var p1 = new apollo.common.Point3D(){ x = -px * c + py * s + cx, y = -px * s - py * c + cy, z = cz };
+                var p2 = new apollo.common.Point3D(){ x = px * c + py * s + cx, y = px * s - py * c + cy, z = cz };
+                var p3 = new apollo.common.Point3D(){ x = px * c - py * s + cx, y = px * s + py * c + cy, z = cz };
+                var p4 = new apollo.common.Point3D(){ x = -px * c - py * s + cx, y = -px * s + py * c + cy, z = cz };
+                po.polygon_point.Add(p1);
+                po.polygon_point.Add(p2);
+                po.polygon_point.Add(p3);
+                po.polygon_point.Add(p4);
+
+                po.measurements.Add(new apollo.perception.SensorMeasurement()
+                {
+                    sensor_id = "velodyne128",
+                    id = (int)d.Id,
+                    position = ConvertToPoint(d.Gps),
+                    theta = (90 - d.Heading) * Mathf.Deg2Rad,
+                    width = size.x,
+                    length = size.y,
+                    height = size.z,
+                    velocity = ConvertToPoint(velocity),
+                    type = type,
+                    sub_type = subType,
+                    timestamp = data.Time,
+                });
+
+                obstacles.perception_obstacle.Add(po);
+            }
+
+            return obstacles;
+        }
+
         public static apollo.common.Detection2DArray ConvertFrom(Detected2DObjectData data)
         {
             var r = new apollo.common.Detection2DArray()
@@ -121,46 +266,6 @@ namespace Simulator.Bridge.Cyber
                         y = obj.Position.y,
                         width = obj.Scale.x,
                         height = obj.Scale.y
-                    },
-                    velocity = new apollo.common.Twist()
-                    {
-                        linear = ConvertToVector(obj.LinearVelocity),
-                        angular = ConvertToVector(obj.LinearVelocity),
-                    },
-                });
-            }
-
-            return r;
-        }
-
-        public static apollo.common.Detection3DArray ConvertFrom(Detected3DObjectData data)
-        {
-            var r = new apollo.common.Detection3DArray()
-            {
-                header = new apollo.common.Header()
-                {
-                    sequence_num = data.Sequence,
-                    frame_id = data.Frame,
-                    timestamp_sec = data.Time,
-                },
-            };
-
-            foreach (var obj in data.Data)
-            {
-                r.detections.Add(new apollo.common.Detection3D()
-                {
-                    header = r.header,
-                    id = obj.Id,
-                    label = obj.Label,
-                    score = obj.Score,
-                    bbox = new apollo.common.BoundingBox3D()
-                    {
-                        position = new apollo.common.Pose()
-                        {
-                            position = ConvertToPoint(obj.Position),
-                            orientation = Convert(obj.Rotation),
-                        },
-                        size = ConvertToVector(obj.Scale),
                     },
                     velocity = new apollo.common.Twist()
                     {
@@ -516,6 +621,11 @@ namespace Simulator.Bridge.Cyber
             return new apollo.common.Point3D() { x = v.x, y = v.y, z = v.z };
         }
 
+        static apollo.common.Point3D ConvertToPoint(GpsData g)
+        {
+            return new apollo.common.Point3D() { x = g.Easting, y = g.Northing, z = g.Altitude };
+        }
+
         static apollo.common.Vector3 ConvertToVector(Vector3 v)
         {
             return new apollo.common.Vector3() { x = v.x, y = v.y, z = v.z };
@@ -526,9 +636,9 @@ namespace Simulator.Bridge.Cyber
             return new apollo.common.Quaternion() { qx = q.x, qy = q.y, qz = q.z, qw = q.w };
         }
 
-        static double3 Convert(apollo.common.Point3D p)
+        static Vector3 Convert(apollo.common.Point3D p)
         {
-            return new double3(p.x, p.y, p.z);
+            return new Vector3((float)p.x, (float)p.y, (float)p.z);
         }
 
         static Vector3 Convert(apollo.common.Vector3 v)

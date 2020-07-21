@@ -778,6 +778,69 @@ namespace Simulator.Bridge.Ros.Apollo
         }
     }
 
+    namespace Perception
+    {
+        [MessageType("pb_msgs/PerceptionObstacles")]
+        public class PerceptionObstacles
+        {
+            public Header header;
+            public Common.ErrorCode error_code;
+            public List<PerceptionObstacle> perception_obstacle;
+        }
+
+        [MessageType("pb_msgs/PerceptionObstacle")]
+        public class PerceptionObstacle
+        {
+            public int id;
+            public Point3D position;
+            public double? theta;
+            public Point3D velocity;
+            public double? length;
+            public double? width;
+            public double? height;
+            public List<Point3D> polygon_point;
+            public double? tracking_time;
+            public Type type;
+            public double? timestamp;
+        }
+
+        public enum Type
+        {
+            UNKNOWN = 0,
+            UNKNOWN_MOVABLE = 1,
+            UNKNOWN_UNMOVABLE = 2,
+            PEDESTRIAN = 3,
+            BICYCLE = 4,
+            VEHICLE = 5,
+        }
+
+        [MessageType("pb_msgs/TrafficLightDetection")]
+        public class TrafficLightDetection
+        {
+            public Header header;
+            public List<TrafficLight> traffic_light;
+            public bool? contain_lights;
+        }
+
+        [MessageType("pb_msgs/TrafficLight")]
+        public class TrafficLight
+        {
+            public Color color;
+            public string id;
+            public double? confidence;
+            public double? tracking_time;
+        }
+
+        public enum Color
+        {
+            UNKNOWN = 0,
+            RED = 1,
+            YELLOW = 2,
+            GREEN = 3,
+            BLACK = 4,
+        }
+    }
+
     namespace Planning
     {
         public class Debug

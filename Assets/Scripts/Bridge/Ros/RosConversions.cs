@@ -87,7 +87,7 @@ namespace Simulator.Bridge.Ros
 
         public static Lgsvl.Detection3DArray ConvertFrom(Detected3DObjectData data)
         {
-            return new Lgsvl.Detection3DArray()
+            var arr = new Lgsvl.Detection3DArray()
             {
                 header = new Ros.Header()
                 {
@@ -95,7 +95,24 @@ namespace Simulator.Bridge.Ros
                     stamp = Conversions.ConvertTime(data.Time),
                     frame_id = data.Frame,
                 },
-                detections = data.Data.Select(d => new Lgsvl.Detection3D()
+                detections = new List<Lgsvl.Detection3D>(),
+            };
+
+            foreach (var d in data.Data)
+            {
+                // Transform from (Right/Up/Forward) to (Forward/Left/Up)
+                var position = d.Position;
+                position.Set(position.z, -position.x, position.y);
+
+                var orientation = d.Rotation;
+                orientation.Set(-orientation.z, orientation.x, -orientation.y, orientation.w);
+
+                var size = d.Scale;
+                size.Set(size.z, size.x, size.y);
+
+                d.AngularVelocity.z = -d.AngularVelocity.z;
+
+                var det = new Lgsvl.Detection3D()
                 {
                     id = d.Id,
                     label = d.Label,
@@ -104,18 +121,98 @@ namespace Simulator.Bridge.Ros
                     {
                         position = new Ros.Pose()
                         {
-                            position = ConvertToPoint(d.Position),
-                            orientation = Convert(d.Rotation),
+                            position = ConvertToPoint(position),
+                            orientation = Convert(orientation),
                         },
-                        size = ConvertToVector(d.Scale),
+                        size = ConvertToVector(size),
                     },
                     velocity = new Ros.Twist()
                     {
                         linear = ConvertToVector(d.LinearVelocity),
                         angular = ConvertToVector(d.AngularVelocity),
-                    }
-                }).ToList(),
+                    },
+                };
+
+                arr.detections.Add(det);
+            }
+
+            return arr;
+        }
+
+        public static Apollo.Perception.PerceptionObstacles ApolloConvertFrom(Detected3DObjectData data)
+        {
+            var obstacles = new Apollo.Perception.PerceptionObstacles()
+            {
+                header = new Apollo.Header()
+                {
+                    timestamp_sec = data.Time,
+                    module_name = "perception_obstacle",
+                    sequence_num = data.Sequence,
+                    lidar_timestamp = (ulong)(data.Time * 1e9),
+                },
+                error_code = Apollo.Common.ErrorCode.OK,
+                perception_obstacle = new List<Apollo.Perception.PerceptionObstacle>(),
             };
+
+            foreach (var d in data.Data)
+            {
+                // Transform from (Right/Up/Forward) to (Right/Forward/Up)
+                var velocity = d.Velocity;
+                velocity.Set(velocity.x, velocity.z, velocity.y);
+
+                var acceleration = d.Acceleration;
+                acceleration.Set(acceleration.x, acceleration.z, acceleration.y);
+
+                var size = d.Scale;
+                size.Set(size.x, size.z, size.y);
+
+                Apollo.Perception.Type type = Apollo.Perception.Type.UNKNOWN;
+                if (d.Label == "Pedestrian")
+                {
+                    type = Apollo.Perception.Type.PEDESTRIAN;
+                }
+                else
+                {
+                    type = Apollo.Perception.Type.VEHICLE;
+                }
+
+                var po = new Apollo.Perception.PerceptionObstacle()
+                {
+                    id = (int)d.Id,
+                    position = ConvertToApolloPoint(d.Gps),
+                    theta = (90 - d.Heading) * UnityEngine.Mathf.Deg2Rad,
+                    velocity = ConvertToApolloPoint(velocity),
+                    width = size.x,
+                    length = size.y,
+                    height = size.z,
+                    polygon_point = new List<Apollo.Point3D>(),
+                    tracking_time = d.TrackingTime,
+                    type = type,
+                    timestamp = data.Time,
+                };
+
+                // polygon points := obstacle corner points
+                var cx = d.Gps.Easting;
+                var cy = d.Gps.Northing;
+                var cz = d.Gps.Altitude;
+                var px = 0.5f * size.x;
+                var py = 0.5f * size.y;
+                var c = UnityEngine.Mathf.Cos((float)-d.Heading * UnityEngine.Mathf.Deg2Rad);
+                var s = UnityEngine.Mathf.Sin((float)-d.Heading * UnityEngine.Mathf.Deg2Rad);
+
+                var p1 = new Apollo.Point3D(){ x = -px * c + py * s + cx, y = -px * s - py * c + cy, z = cz };
+                var p2 = new Apollo.Point3D(){ x = px * c + py * s + cx, y = px * s - py * c + cy, z = cz };
+                var p3 = new Apollo.Point3D(){ x = px * c - py * s + cx, y = px * s + py * c + cy, z = cz };
+                var p4 = new Apollo.Point3D(){ x = -px * c - py * s + cx, y = -px * s + py * c + cy, z = cz };
+                po.polygon_point.Add(p1);
+                po.polygon_point.Add(p2);
+                po.polygon_point.Add(p3);
+                po.polygon_point.Add(p4);
+
+                obstacles.perception_obstacle.Add(po);
+            }
+
+            return obstacles;
         }
 
         public static Lgsvl.SignalArray ConvertFrom(SignalDataArray data)
@@ -130,7 +227,7 @@ namespace Simulator.Bridge.Ros
                 },
                 signals = data.Data.Select(d => new Lgsvl.Signal()
                 {
-                    id = d.Id,
+                    id = d.SeqId,
                     label = d.Label,
                     score = d.Score,
                     bbox = new Lgsvl.BoundingBox3D()
@@ -144,6 +241,56 @@ namespace Simulator.Bridge.Ros
                     }
                 }).ToList(),
             };
+        }
+
+        public static Apollo.Perception.TrafficLightDetection ApolloConvertFrom(SignalDataArray data)
+        {
+            bool contain_lights = false;
+            if (data.Data.Length > 0)
+            {
+                contain_lights = true;
+            }
+
+            var signals = new Apollo.Perception.TrafficLightDetection()
+            {
+                header = new Apollo.Header()
+                {
+                    timestamp_sec = data.Time,
+                    sequence_num = data.Sequence,
+                    camera_timestamp = (ulong)(data.Time * 1e9),
+                },
+                contain_lights = contain_lights,
+                traffic_light = new List<Apollo.Perception.TrafficLight>(),
+            };
+
+            foreach (SignalData d in data.Data)
+            {
+                var color = Apollo.Perception.Color.BLACK;
+                if (d.Label == "green")
+                {
+                    color = Apollo.Perception.Color.GREEN;
+                }
+                else if (d.Label == "yellow")
+                {
+                    color = Apollo.Perception.Color.YELLOW;
+                }
+                else if (d.Label == "red")
+                {
+                    color = Apollo.Perception.Color.RED;
+                }
+
+                signals.traffic_light.Add
+                (
+                    new Apollo.Perception.TrafficLight()
+                    {
+                        color = color,
+                        id = d.Id,
+                        confidence = 1.0,
+                    }
+                );
+            }
+
+            return signals;
         }
 
         public static Apollo.Drivers.ContiRadar ConvertFrom(DetectedRadarObjectData data)
@@ -681,6 +828,16 @@ namespace Simulator.Bridge.Ros
             return new Ros.Point() { x = d.x, y = d.y, z = d.z };
         }
 
+        static Apollo.Point3D ConvertToApolloPoint(UnityEngine.Vector3 v)
+        {
+            return new Apollo.Point3D() { x = v.x, y = v.y, z = v.z };
+        }
+
+        static Apollo.Point3D ConvertToApolloPoint(GpsData g)
+        {
+            return new Apollo.Point3D() { x = g.Easting, y = g.Northing, z = g.Altitude };
+        }
+
         static Ros.Vector3 ConvertToVector(UnityEngine.Vector3 v)
         {
             return new Ros.Vector3() { x = v.x, y = v.y, z = v.z };
@@ -706,9 +863,9 @@ namespace Simulator.Bridge.Ros
             return new Apollo.Quaternion() { qx = q.x, qy = q.y, qz = q.z, qw = q.w };
         }
 
-        static double3 Convert(Ros.Point p)
+        static UnityEngine.Vector3 Convert(Ros.Point p)
         {
-            return new double3(p.x, p.y, p.z);
+            return new UnityEngine.Vector3((float)p.x, (float)p.y, (float)p.z);
         }
 
         static UnityEngine.Vector3 Convert(Ros.Vector3 v)

@@ -139,12 +139,13 @@ namespace Simulator.Map
             gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
 
             // set init signal state
+            SimulatorManager.Instance.SignalIDs = 0;
             foreach (var signal in facingGroup)
             {
                 var controlPolicy = "green=15;yellow=3;red=22;loop";
                 signal.DefaultControlPolicy = controlPolicy;
                 signal.SetSignalState("green");
-                signal.ID = ++SimulatorManager.Instance.SignalIDs;
+                signal.SeqId = SimulatorManager.Instance.SignalIDs++;
             }
 
             foreach (var signal in oppFacingGroup)
@@ -152,7 +153,7 @@ namespace Simulator.Map
                 var controlPolicy = "red=20;green=15;yellow=3;red=2;loop";
                 signal.DefaultControlPolicy = controlPolicy;
                 signal.SetSignalState("red");
-                signal.ID = ++SimulatorManager.Instance.SignalIDs;
+                signal.SeqId = SimulatorManager.Instance.SignalIDs++;
             }
         }
 

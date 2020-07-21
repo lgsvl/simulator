@@ -31,9 +31,7 @@ namespace Simulator.Bridge.Ros
             );
 
             RegPublisher<ImageData, Ros.CompressedImage>(plugin, Conversions.ConvertFrom);
-            RegPublisher<Detected3DObjectData, Lgsvl.Detection3DArray>(plugin, Conversions.ConvertFrom);
             RegPublisher<Detected2DObjectData, Lgsvl.Detection2DArray>(plugin, Conversions.ConvertFrom);
-            RegPublisher<SignalDataArray, Lgsvl.SignalArray>(plugin, Conversions.ConvertFrom);
             RegPublisher<ClockData, Ros.Clock>(plugin, Conversions.ConvertFrom);
 
             RegSubscriber<VehicleStateData, Lgsvl.VehicleStateDataRos>(plugin, Conversions.ConvertTo);
@@ -121,6 +119,8 @@ namespace Simulator.Bridge.Ros
             RegPublisher<DetectedRadarObjectData, Lgsvl.DetectedRadarObjectArray>(plugin, Conversions.ROS2ConvertFrom);
             RegPublisher<GpsOdometryData, Ros.Odometry>(plugin, Conversions.ConvertFrom);
             RegPublisher<ImuData, Ros.Imu>(plugin, Conversions.ConvertFrom);
+            RegPublisher<Detected3DObjectData, Lgsvl.Detection3DArray>(plugin, Conversions.ConvertFrom);
+            RegPublisher<SignalDataArray, Lgsvl.SignalArray>(plugin, Conversions.ConvertFrom);
 
             RegSubscriber<VehicleControlData, Autoware.VehicleCmd>(plugin, Conversions.ConvertTo);
         }
@@ -139,6 +139,8 @@ namespace Simulator.Bridge.Ros
             RegPublisher<GpsOdometryData, Apollo.Gps>(plugin, Conversions.ApolloConvertFrom);
             RegPublisher<ImuData, Apollo.Imu>(plugin, Conversions.ApolloConvertFrom);
             RegPublisher<CorrectedImuData, Apollo.CorrectedImu>(plugin, Conversions.ApolloConvertFrom);
+            RegPublisher<Detected3DObjectData, Apollo.Perception.PerceptionObstacles>(plugin, Conversions.ApolloConvertFrom);
+            RegPublisher<SignalDataArray, Apollo.Perception.TrafficLightDetection>(plugin, Conversions.ApolloConvertFrom);
 
             RegSubscriber<VehicleControlData, Apollo.control_command>(plugin, Conversions.ConvertTo);
         }

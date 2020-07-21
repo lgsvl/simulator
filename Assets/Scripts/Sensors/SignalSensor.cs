@@ -17,7 +17,7 @@ using Simulator.Map;
 
 namespace Simulator.Sensors
 {
-    [SensorType("Signal", new[] { typeof(SignalData) })]
+    [SensorType("Signal", new[] { typeof(SignalDataArray) })]
     public class SignalSensor : SensorBase
     {
         [SensorParameter]
@@ -38,7 +38,7 @@ namespace Simulator.Sensors
         private MapSignal[] Visualized = Array.Empty<MapSignal>();
         private MapManager MapManager;
         private WireframeBoxes WireframeBoxes;
-        
+
         public override SensorDistributionType DistributionType => SensorDistributionType.LowLoad;
 
         void Start()
@@ -100,11 +100,18 @@ namespace Simulator.Sensors
                             Vector3 size = signal.signalLightMesh.bounds.size;
                             size.Set(size.z, size.x, size.y);
 
+                            string id = signal.id;
+                            if (string.IsNullOrEmpty(id))
+                            {
+                                id = "signal_" + signal.SeqId.ToString();
+                            }
+
                             if (!DetectedSignals.ContainsKey(signal))
                             {
                                 var signalData = new SignalData()
                                 {
-                                    Id = signal.ID,
+                                    SeqId = signal.SeqId,
+                                    Id = id,
                                     Label = signal.CurrentState,
                                     Score = 1.0f,
                                     Position = relPos,

@@ -6,6 +6,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Simulator.Bridge.Data;
 using Unity.Mathematics;
@@ -84,14 +85,31 @@ namespace Simulator.Bridge.Ros2
 
         public static Lgsvl.Detection3DArray ConvertFrom(Detected3DObjectData data)
         {
-            return new Lgsvl.Detection3DArray()
+            var arr = new Lgsvl.Detection3DArray()
             {
                 header = new Ros.Header()
                 {
                     stamp = Convert(data.Time),
                     frame_id = data.Frame,
                 },
-                detections = data.Data.Select(d => new Lgsvl.Detection3D()
+                detections = new List<Lgsvl.Detection3D>(),
+            };
+
+            foreach (var d in data.Data)
+            {
+                // Transform from (Right/Up/Forward) to (Forward/Left/Up)
+                var position = d.Position;
+                position.Set(position.z, -position.x, position.y);
+
+                var orientation = d.Rotation;
+                orientation.Set(-orientation.z, orientation.x, -orientation.y, orientation.w);
+
+                var size = d.Scale;
+                size.Set(size.z, size.x, size.y);
+
+                d.AngularVelocity.z = -d.AngularVelocity.z;
+
+                var det = new Lgsvl.Detection3D()
                 {
                     id = d.Id,
                     label = d.Label,
@@ -100,18 +118,22 @@ namespace Simulator.Bridge.Ros2
                     {
                         position = new Ros.Pose()
                         {
-                            position = ConvertToPoint(d.Position),
-                            orientation = Convert(d.Rotation),
+                            position = ConvertToPoint(position),
+                            orientation = Convert(orientation),
                         },
-                        size = ConvertToVector(d.Scale),
+                        size = ConvertToVector(size),
                     },
                     velocity = new Ros.Twist()
                     {
                         linear = ConvertToVector(d.LinearVelocity),
                         angular = ConvertToVector(d.AngularVelocity),
-                    }
-                }).ToList(),
-            };
+                    },
+                };
+
+                arr.detections.Add(det);
+            }
+
+            return arr;
         }
 
         public static Lgsvl.SignalArray ConvertFrom(SignalDataArray data)
@@ -125,7 +147,7 @@ namespace Simulator.Bridge.Ros2
                 },
                 signals = data.Data.Select(d => new Lgsvl.Signal()
                 {
-                    id = d.Id,
+                    id = d.SeqId,
                     label = d.Label,
                     score = (float)d.Score,
                     bbox = new Lgsvl.BoundingBox3D()
@@ -434,9 +456,9 @@ namespace Simulator.Bridge.Ros2
             return new Ros.Quaternion() { x = q.x, y = q.y, z = q.z, w = q.w };
         }
 
-        static double3 Convert(Ros.Point p)
+        static UnityEngine.Vector3 Convert(Ros.Point p)
         {
-            return new double3(p.x, p.y, p.z);
+            return new UnityEngine.Vector3((float)p.x, (float)p.y, (float)p.z);
         }
 
         static UnityEngine.Vector3 Convert(Ros.Vector3 v)

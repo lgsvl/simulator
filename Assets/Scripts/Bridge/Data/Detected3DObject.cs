@@ -6,7 +6,6 @@
  */
 
 using UnityEngine;
-using Unity.Mathematics;
 
 namespace Simulator.Bridge.Data
 {
@@ -16,12 +15,20 @@ namespace Simulator.Bridge.Data
         public string Label;
         public double Score;
 
-        public double3 Position;
+        public Vector3 Position;
         public Quaternion Rotation;
         public Vector3 Scale;
 
         public Vector3 LinearVelocity;
         public Vector3 AngularVelocity;
+
+        public Vector3 Velocity;
+        public Vector3 Acceleration;
+
+        public GpsData Gps;
+        public double Heading;
+
+        public double TrackingTime;
     }
 
     public class Detected3DObjectData

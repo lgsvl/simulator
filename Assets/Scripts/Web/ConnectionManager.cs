@@ -291,7 +291,6 @@ public class ConnectionManager : MonoBehaviour
         switch (Status)
         {
             case ConnectionStatus.Offline:
-                Simulator.Web.Config.ParseConfigFile();
                 RunConnectTask();
                 service.UpdateOnlineStatus(true);
                 break;

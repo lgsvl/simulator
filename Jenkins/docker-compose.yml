@@ -72,3 +72,18 @@ services:
       - ..:/mnt
       - /etc/localtime:/etc/localtime:ro
     entrypoint: "/mnt/Jenkins/upload-bundles.sh"
+
+  upload-bundles-wise:
+    image: auto-gitlab.lgsvl.net:4567/hdrp/wise-cli
+    user: ${UID}
+    environment:
+      - SIM_ENVIRONMENTS
+      - SIM_VEHICLES
+      - WISE_USERNAME
+      - WISE_PASSWORD
+      - WISE_URL
+      - HOME=/tmp
+    volumes:
+      - ..:/mnt
+      - /etc/localtime:/etc/localtime:ro
+    entrypoint: "/mnt/Jenkins/upload-bundles-wise.sh"

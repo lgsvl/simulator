@@ -26,6 +26,9 @@ pipeline {
     booleanParam(name: "UPLOAD", defaultValue: true, description: "Upload bundles to S3")
     string(name: "BUILD_SIMULATOR_ENVIRONMENTS", defaultValue: "${SIMULATOR_ENVIRONMENTS}", description: "Environments to build")
     string(name: "BUILD_SIMULATOR_VEHICLES", defaultValue: "${SIMULATOR_VEHICLES}", description: "Vehicles to build")
+    string(name: "WISE_USERNAME", defaultValue: "5@example.com", description: "Username to use with wise-cli for uploading assets")
+    string(name: "WISE_PASSWORD", defaultValue: "5", description: "Password to use with wise-cli for uploading assets")
+    string(name: "WISE_URL", defaultValue: "${SIMULATOR_WISE_DEV_URL}", description: "Url to use with wise-cli for uploading assets, CLOUD_URL should be used later, not it's separate to test against dev instead of staging")
   }
 
   environment {
@@ -193,6 +196,31 @@ pipeline {
         }
       }
     } // Upload
+
+    stage("Upload-Wise") {
+      when {
+        environment name: "UPLOAD", value: "true"
+        anyOf {
+          not {
+            environment name: "SIM_ENVIRONMENTS", value: ""
+          }
+          not {
+            environment name: "SIM_VEHICLES", value: ""
+          }
+        }
+      }
+      steps {
+        dir("Jenkins") {
+          sh """
+            docker-compose pull upload-bundles-wise
+            UID=`id -u` docker-compose run --rm upload-bundles-wise | tee ../upload-bundles-wise.log
+            # exit PIPESTATUS[0] cannot be used because of:
+            # groovy.lang.MissingPropertyException: No such property: PIPESTATUS for class: groovy.lang.Binding
+            exit `grep ^ERROR: ../upload-bundles-wise.log | wc -l`
+          """
+        }
+      }
+    } // Upload-Wise
 
   } // stages
 

@@ -9,10 +9,11 @@ using System.Collections;
 using SimpleJSON;
 using UnityEngine;
 
-public class WaitForDistanceEffector : TriggerEffector
+public class WaitingPointEffector : TriggerEffector
 {
-    public override string TypeName { get; } = "WaitForDistance";
-    public float MaxDistance = 5.0f;
+    public override string TypeName { get; } = "WaitingPoint";
+    public Vector3 ActivatorPoint;
+    public float PointRadius = 2.0f;
     
     public override IEnumerator Apply(NPCController parentNPC)
     {
@@ -20,27 +21,28 @@ public class WaitForDistanceEffector : TriggerEffector
         var lowestDistance = float.PositiveInfinity;
         do
         {
-            yield return null;
-            lowestDistance = float.PositiveInfinity;
             var egos = SimulatorManager.Instance.AgentManager.ActiveAgents;
             foreach (var ego in egos)
             {
-                var distance = Vector3.Distance(parentNPC.transform.position, ego.AgentGO.transform.position);
+                var distance = Vector3.Distance(ActivatorPoint, ego.AgentGO.transform.position);
                 if (distance < lowestDistance)
                     lowestDistance = distance;
             }
 
             yield return null;
-        } while (lowestDistance > MaxDistance);
+        } while (lowestDistance > PointRadius);
     }
 
     public override void DeserializeProperties(JSONNode jsonData)
     {
-        MaxDistance = jsonData["max_distance"];
+        ActivatorPoint = jsonData["activator_point"].ReadVector3();
+        PointRadius = jsonData["point_radius"];
     }
 
     public override void SerializeProperties(JSONNode jsonData)
     {
-        jsonData.Add("max_distance", new JSONNumber(MaxDistance));
+        var activatorNode = new JSONObject().WriteVector3(ActivatorPoint);
+        jsonData.Add("activator_point", activatorNode);
+        jsonData.Add("point_radius", new JSONNumber(PointRadius));
     }
 }

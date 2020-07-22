@@ -80,7 +80,7 @@ namespace Simulator.Api.Commands
             {
                 var typeName = effectorsNode[i]["type_name"];
                 var newEffector = TriggersManager.GetEffectorOfType(typeName);
-                newEffector.Value = effectorsNode[i]["parameters"]["value"];
+                newEffector.DeserializeProperties(effectorsNode[i]["parameters"]);
                 trigger.Effectors.Add(newEffector);
             }
 

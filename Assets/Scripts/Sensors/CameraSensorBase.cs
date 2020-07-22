@@ -169,7 +169,7 @@ namespace Simulator.Sensors
             Publish = bridge.AddPublisher<ImageData>(Topic);
         }
 
-        public void Update()
+        protected virtual void Update()
         {
             SensorCamera.fieldOfView = FieldOfView;
             SensorCamera.nearClipPlane = MinDistance;
@@ -319,7 +319,7 @@ namespace Simulator.Sensors
             }
         }
 
-        void RenderCamera()
+        protected void RenderCamera()
         {
             if (!Distorted || !Fisheye)
             {

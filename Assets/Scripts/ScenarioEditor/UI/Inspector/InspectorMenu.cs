@@ -51,6 +51,7 @@ namespace Simulator.ScenarioEditor.UI.Inspector
             {
                 var availablePanel = availablePanels[i];
                 panels.Add(availablePanel);
+                availablePanel.Initialize();
                 if (i == 0) availablePanel.Show();
                 else availablePanel.Hide();
                 var panelMenuItem = Instantiate(buttonSample, buttonSample.transform.parent);
@@ -61,6 +62,13 @@ namespace Simulator.ScenarioEditor.UI.Inspector
             buttonSample.gameObject.SetActive(false);
 
             activePanel = availablePanels.Length > 0 ? availablePanels[0] : null;
+        }
+
+        public void OnDestroy()
+        {
+            for (var i = 0; i < panels.Count; i++)
+                panels[i].Deinitialize();
+            panels.Clear();
         }
 
         /// <summary>

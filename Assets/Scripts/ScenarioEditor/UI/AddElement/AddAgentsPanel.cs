@@ -28,10 +28,8 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         /// <inheritdoc/>
         public string MenuItemTitle => "Add";
 
-        /// <summary>
-        /// Unity Start method
-        /// </summary>
-        private void Start()
+        /// <inheritdoc/>
+        void IInspectorContentPanel.Initialize()
         {
             var sources = ScenarioManager.Instance.agentsManager.Sources;
             for (var i = 0; i < sources.Count; i++)
@@ -39,6 +37,12 @@ namespace Simulator.ScenarioEditor.UI.AddElement
                 var newPanel = Instantiate(agentSourcePanelPrefab, transform);
                 newPanel.Initialize(sources[i]);
             }
+        }
+        
+        /// <inheritdoc/>
+        void IInspectorContentPanel.Deinitialize()
+        {
+            
         }
 
         /// <inheritdoc/>

@@ -8,9 +8,7 @@
 namespace Simulator.ScenarioEditor.UI.MapSelecting
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
-    using System.Threading;
     using System.Threading.Tasks;
     using Inspector;
     using Managers;
@@ -43,12 +41,28 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
         /// <inheritdoc/>
         public string MenuItemTitle => "Map";
 
+        /// <inheritdoc/>
+        void IInspectorContentPanel.Initialize()
+        {
+            var nonBlockingTask = SetupButtons();
+        }
+        
+        /// <inheritdoc/>
+        void IInspectorContentPanel.Deinitialize()
+        {
+            if (ScenarioManager.Instance != null)
+                ScenarioManager.Instance.MapManager.MapChanged -= OnMapLoaded;
+        }
+
         /// <summary>
-        /// Unity Start method
+        /// Setups maps buttons while waiting until map manager is initialized
         /// </summary>
-        public void Start()
+        /// <returns>Task</returns>
+        private async Task SetupButtons()
         {
             var mapManager = ScenarioManager.Instance.MapManager;
+            while (!mapManager.IsInitialized)
+                await Task.Delay(25);
             mapManager.MapChanged += OnMapLoaded;
             var availableMaps = ScenarioManager.Instance.MapManager.AvailableMaps;
             var currentMapName = ScenarioManager.Instance.MapManager.CurrentMapName;
@@ -70,18 +84,10 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
             //Dynamic height
             var rectTransform = (RectTransform) transform;
             var buttonHeight = ((RectTransform) buttonSample.transform).sizeDelta.y;
-            rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, buttonHeight*availableMaps.Count);
+            var firstButtonY = ((RectTransform) buttons[0].transform).anchoredPosition.y;
+            rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, (buttonHeight+4)*availableMaps.Count-firstButtonY);
 
             buttonSample.gameObject.SetActive(false);
-        }
-
-        /// <summary>
-        /// Unity OnDestroy method
-        /// </summary>
-        public void OnDestroy()
-        {
-            if (ScenarioManager.Instance != null)
-                ScenarioManager.Instance.MapManager.MapChanged -= OnMapLoaded;
         }
 
         /// <summary>

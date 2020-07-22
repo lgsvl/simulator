@@ -8,24 +8,44 @@
 namespace Simulator.ScenarioEditor.Elements
 {
     using Agents;
+    using Input;
     using Managers;
     using UnityEngine;
 
-    /// <inheritdoc/>
+    /// <inheritdoc cref="Simulator.ScenarioEditor.Elements.ScenarioElement" />
     /// <remarks>
     /// Scenario waypoint representation
     /// </remarks>
-    public class ScenarioWaypoint : ScenarioElement
+    public class ScenarioWaypoint : ScenarioElement, IRemoveHandler
     {
+        /// <summary>
+        /// Trigger that is linked to this waypoint
+        /// </summary>
+        private ScenarioTrigger linkedTrigger;
+        
         /// <summary>
         /// Parent agent which includes this waypoint
         /// </summary>
         public ScenarioAgent ParentAgent { get; set; }
-        
+
         /// <summary>
         /// Trigger that is linked to this waypoint
         /// </summary>
-        public ScenarioTrigger LinkedTrigger { get; set; }
+        public ScenarioTrigger LinkedTrigger
+        {
+            get
+            {
+                if (linkedTrigger != null) return linkedTrigger;
+                var go = new GameObject("Trigger");
+                go.transform.SetParent(transform);
+                go.transform.localPosition = Vector3.zero;
+                go.transform.localRotation = Quaternion.Euler(Vector3.zero);
+                linkedTrigger = go.AddComponent<ScenarioTrigger>();
+                linkedTrigger.LinkedWaypoint = this;
+                linkedTrigger.Initialize();
+                return linkedTrigger;
+            }
+        }
 
         /// <summary>
         /// Speed that will be applied when agent reach this waypoint
@@ -40,8 +60,9 @@ namespace Simulator.ScenarioEditor.Elements
         /// <summary>
         /// Unity OnEnable method
         /// </summary>
-        private void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
             ScenarioManager.Instance.waypointsManager.RegisterWaypoint(this);
         }
 
@@ -62,16 +83,14 @@ namespace Simulator.ScenarioEditor.Elements
         }
 
         /// <inheritdoc/>
-        public override void Selected()
-        {
-        }
-
-        /// <inheritdoc/>
-        public override void Destroy()
+        public void Remove()
         {
             if (ParentAgent!=null)
                 ParentAgent.RemoveWaypoint(this);
             ParentAgent = null;
+            if (linkedTrigger != null)
+                linkedTrigger.Deinitalize();
+
             ScenarioManager.Instance.prefabsPools.ReturnInstance(gameObject);
         }
 

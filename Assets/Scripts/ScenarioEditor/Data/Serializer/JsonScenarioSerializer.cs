@@ -119,7 +119,9 @@ namespace Simulator.ScenarioEditor.Data.Serializer
             {
                 var effectorNode = new JSONObject();
                 effectorNode.Add("typeName", new JSONString(effector.TypeName));
-                effectorNode.Add("value", new JSONNumber(effector.Value));
+                var parameters = new JSONObject();
+                effectorNode.Add("parameters", parameters);
+                effector.SerializeProperties(parameters);
                 effectorsArray.Add(effectorNode);
             }
             data.Add("trigger", triggerNode);

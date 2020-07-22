@@ -82,11 +82,6 @@ namespace Simulator.ScenarioEditor.Managers
         private Vector3 cameraInitialPosition;
 
         /// <summary>
-        /// Initial rotation of the camera, applied when the map changes
-        /// </summary>
-        private Quaternion cameraInitialRotation;
-
-        /// <summary>
         /// Currently selected scenario element
         /// </summary>
         private ScenarioElement selectedElement;
@@ -167,6 +162,11 @@ namespace Simulator.ScenarioEditor.Managers
         public bool IsScenarioDirty { get; set; }
 
         /// <summary>
+        /// Event invoked when the new scenario element is created and activated in scenario
+        /// </summary>
+        public event Action<ScenarioElement> NewScenarioElement;
+
+        /// <summary>
         /// Event invoked when the selected scenario element changes
         /// </summary>
         public event Action<ScenarioElement> SelectedOtherElement;
@@ -181,7 +181,6 @@ namespace Simulator.ScenarioEditor.Managers
                 throw new ArgumentException("Scenario camera reference is required in the ScenarioManager.");
             var cameraTransform = scenarioCamera.transform;
             cameraInitialPosition = cameraTransform.position;
-            cameraInitialRotation = cameraTransform.rotation;
             if (Instance == null || Instance == this)
             {
                 var nonBlockingTask = Initialize();
@@ -213,12 +212,28 @@ namespace Simulator.ScenarioEditor.Managers
                 return;
             ShowLoadingPanel();
             MapManager.MapChanged += OnMapLoaded;
-            var nonBlockingTask = MapManager.LoadMapAsync();
-            await agentsManager.Initialize();
+            var mapLoading = MapManager.LoadMapAsync();
+            var agentsLoading = agentsManager.Initialize();
             waypointsManager.Initialize();
+            await Task.WhenAll(mapLoading, agentsLoading);
             Time.timeScale = 0.0f;
+            await FixLights();
             isInitialized = true;
             HideLoadingPanel();
+        }
+
+        /// <summary>
+        /// Fixes lights on the map scene
+        /// </summary>
+        /// <returns></returns>
+        private async Task FixLights()
+        {
+            //Enabling camera three times with those delays forces Unity to recalculate lights
+            objectsShotCapture.ShotObject(gameObject);
+            await Task.Delay(100);
+            objectsShotCapture.ShotObject(gameObject);
+            await Task.Delay(100);
+            objectsShotCapture.ShotObject(gameObject);
         }
 
         /// <summary>
@@ -274,14 +289,14 @@ namespace Simulator.ScenarioEditor.Managers
             for (var i = agents.Count - 1; i >= 0; i--)
             {
                 var agent = agents[i];
-                agent.Destroy();
+                agent.Remove();
             }
 
-            var waypoints = agentsManager.Agents;
+            var waypoints = waypointsManager.Waypoints;
             for (var i = waypoints.Count - 1; i >= 0; i--)
             {
                 var waypoint = waypoints[i];
-                waypoint.Destroy();
+                waypoint.Remove();
             }
             Instance.IsScenarioDirty = false;
         }
@@ -313,8 +328,15 @@ namespace Simulator.ScenarioEditor.Managers
         {
             var cameraTransform = ScenarioCamera.transform;
             cameraTransform.position = cameraInitialPosition;
-            cameraTransform.rotation = cameraInitialRotation;
-            inputManager.RecacheCameraRotation();
+        }
+
+        /// <summary>
+        /// Invoked by <see cref="ScenarioElement"/> Start method notifying scenario about new element
+        /// </summary>
+        /// <param name="scenarioElement">Scenario element that was just activated</param>
+        public void NewElementActivated(ScenarioElement scenarioElement)
+        {
+            NewScenarioElement?.Invoke(scenarioElement);
         }
     }
 }

@@ -20,6 +20,11 @@ namespace Simulator.ScenarioEditor.Managers
         /// Shared material that will be used for all the waypoints line renderers
         /// </summary>
         public Material waypointPathMaterial;
+        
+        /// <summary>
+        /// Shared material that will be used for all the triggers line renderers
+        /// </summary>
+        public Material triggerPathMaterial;
 
         /// <summary>
         /// Prefab for the waypoint graphic representation on the map

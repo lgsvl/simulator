@@ -9,6 +9,7 @@ namespace Simulator.ScenarioEditor.UI.MapEdit
 {
     using System;
     using Elements;
+    using Input;
     using Managers;
 
     /// <summary>
@@ -20,7 +21,7 @@ namespace Simulator.ScenarioEditor.UI.MapEdit
         public string Title { get; } = "Remove";
         
         /// <inheritdoc/>
-        public Type[] TargetTypes { get; } = {typeof(ScenarioElement)};
+        public Type[] TargetTypes { get; } = {typeof(IRemoveHandler)};
         
         /// <inheritdoc/>
         public ScenarioElement CurrentElement { get; set; }
@@ -29,7 +30,8 @@ namespace Simulator.ScenarioEditor.UI.MapEdit
         public void Edit()
         {
             ScenarioManager.Instance.SelectedElement = null;
-            CurrentElement.Destroy();
+            ScenarioManager.Instance.IsScenarioDirty = true;
+            (CurrentElement as IRemoveHandler)?.Remove();
         }
     }
 }

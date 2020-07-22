@@ -20,10 +20,36 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
     public class LogPanel : MonoBehaviour
     {
         /// <summary>
+        /// Type of the viewed log
+        /// </summary>
+        public enum LogType
+        {
+            /// <summary>
+            /// Just information for the user
+            /// </summary>
+            Info,
+            
+            /// <summary>
+            /// Warning that was handled automatically
+            /// </summary>
+            Warning,
+            
+            /// <summary>
+            /// Error that cannot be handled by the code
+            /// </summary>
+            Error
+        }
+        
+        /// <summary>
         /// Single log data that will be displayed in the panel
         /// </summary>
         public class LogData
         {
+            /// <summary>
+            /// Type of the log
+            /// </summary>
+            public LogType Type { get; set; }
+            
             /// <summary>
             /// Log text that will be displayed
             /// </summary>
@@ -75,23 +101,59 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
         }
 
         /// <summary>
-        /// Enqueues log text to be displayed on the panel
-        /// </summary>
-        /// <param name="text">Text of the log that will be displayed</param>
-        public void EnqueueLog(string text)
-        {
-            EnqueueLog(new LogData()
-            {
-                Text = text
-            });
-        }
-
-        /// <summary>
         /// Enqueues log data to be displayed on the panel
         /// </summary>
         /// <param name="logData">Log with settings that will be displayed</param>
         public void EnqueueLog(LogData logData)
         {
+            logsQueue.Enqueue(logData);
+            Show();
+        }
+
+        /// <summary>
+        /// Enqueues log error to be displayed on the panel
+        /// </summary>
+        /// <param name="text">Error text that will be displayed</param>
+        public void EnqueueInfo(string text)
+        {
+            var logData = new LogData()
+            {
+                Type = LogType.Info,
+                Text = text,
+                TextColor = Color.black
+            };
+            logsQueue.Enqueue(logData);
+            Show();
+        }
+        
+        /// <summary>
+        /// Enqueues log error to be displayed on the panel
+        /// </summary>
+        /// <param name="text">Error text that will be displayed</param>
+        public void EnqueueWarning(string text)
+        {
+            var logData = new LogData()
+            {
+                Type = LogType.Warning,
+                Text = text,
+                TextColor = Color.yellow
+            };
+            logsQueue.Enqueue(logData);
+            Show();
+        }
+        
+        /// <summary>
+        /// Enqueues log error to be displayed on the panel
+        /// </summary>
+        /// <param name="text">Error text that will be displayed</param>
+        public void EnqueueError(string text)
+        {
+            var logData = new LogData()
+            {
+                Type = LogType.Error,
+                Text = text,
+                TextColor = Color.red
+            };
             logsQueue.Enqueue(logData);
             Show();
         }
@@ -145,6 +207,20 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
                 var displayDuration = log.CustomDisplayDuration > 0.0f
                     ? log.CustomDisplayDuration
                     : CalculateTextDuration(uiText.text);
+                switch (log.Type)
+                {
+                    case LogType.Info:
+                        Debug.Log(log.Text);
+                        break;
+                    case LogType.Warning:
+                        Debug.LogWarning(log.Text);
+                        break;
+                    case LogType.Error:
+                        Debug.LogError(log.Text);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
                 yield return new WaitForSecondsRealtime(displayDuration);
                 log = logsQueue.Count == 0 ? null : logsQueue.Dequeue();
             }

@@ -9,14 +9,15 @@ namespace Simulator.ScenarioEditor.Agents
 {
     using System.Collections.Generic;
     using Elements;
+    using Input;
     using Managers;
     using UnityEngine;
 
-    /// <inheritdoc/>
+    /// <inheritdoc cref="Simulator.ScenarioEditor.Elements.ScenarioElement" />
     /// <remarks>
     /// Scenario agent representation
     /// </remarks>
-    public class ScenarioAgent : ScenarioElement
+    public class ScenarioAgent : ScenarioElement, IRemoveHandler
     {
         /// <summary>
         /// The position offset that will be applied to the line renderer of waypoints
@@ -142,16 +143,11 @@ namespace Simulator.ScenarioEditor.Agents
         }
 
         /// <inheritdoc/>
-        public override void Selected()
-        {
-        }
-
-        /// <inheritdoc/>
-        public override void Destroy()
+        public void Remove()
         {
             if (modelInstance != null)
                 source.ReturnModelInstance(modelInstance);
-            for (var i = waypoints.Count - 1; i >= 0; i--) waypoints[i].Destroy();
+            for (var i = waypoints.Count - 1; i >= 0; i--) waypoints[i].Remove();
 
             ScenarioManager.Instance.agentsManager.UnregisterAgent(this);
             Destroy(gameObject);
@@ -179,8 +175,6 @@ namespace Simulator.ScenarioEditor.Agents
                 index = waypoints.Count;
             if (index < 0)
                 index = 0;
-            if (waypoint.LinkedTrigger == null)
-                waypoint.LinkedTrigger = new ScenarioTrigger {LinkedWaypoint = waypoint};
             AddTrigger(waypoint.LinkedTrigger);
             waypoints.Insert(index, waypoint);
             waypoint.ParentAgent = this;

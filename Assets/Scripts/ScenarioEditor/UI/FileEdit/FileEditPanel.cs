@@ -7,11 +7,13 @@
 
 namespace Simulator.ScenarioEditor.UI.FileEdit
 {
+    using System;
     using System.Collections;
     using System.IO;
     using System.Threading.Tasks;
     using Data.Deserializer;
     using Data.Serializer;
+    using Input;
     using Inspector;
     using Managers;
     using MapSelecting;
@@ -19,6 +21,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
     using UnityEngine;
     using UnityEngine.UI;
     using Utilities;
+    using Toggle = UnityEngine.UI.Toggle;
 
     /// <summary>
     /// UI panel for options, loading and saving scenario, managing scenario editor
@@ -48,6 +51,12 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
 #pragma warning disable 0649
         /// <summary>
+        /// Label for displaying current camera mode
+        /// </summary>
+        [SerializeField]
+        private Text cameraModeLabel;
+
+        /// <summary>
         /// Toggle for switching X rotation inversion
         /// </summary>
         [SerializeField]
@@ -63,14 +72,19 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         /// <inheritdoc/>
         public string MenuItemTitle => "File";
 
-        /// <summary>
-        /// Unity Start method
-        /// </summary>
-        private void Start()
+        /// <inheritdoc/>
+        void IInspectorContentPanel.Initialize()
         {
             var inputManager = ScenarioManager.Instance.inputManager;
+            UpdateCameraModeText();
             invertedXRotationToggle.SetIsOnWithoutNotify(inputManager.InvertedXRotation);
             invertedYRotationToggle.SetIsOnWithoutNotify(inputManager.InvertedYRotation);
+        }
+        
+        /// <inheritdoc/>
+        void IInspectorContentPanel.Deinitialize()
+        {
+            
         }
 
         /// <summary>
@@ -122,12 +136,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
             var scenario = JsonScenarioSerializer.SerializeScenario();
             File.WriteAllText(path, scenario.ScenarioData.ToString());
             ScenarioManager.Instance.IsScenarioDirty = false;
-            var log = new LogPanel.LogData()
-            {
-                Text = $"Scenario has been saved to the file: '{path}'.",
-            };
-            Debug.Log(log.Text);
-            ScenarioManager.Instance.logPanel.EnqueueLog(log);
+            ScenarioManager.Instance.logPanel.EnqueueInfo($"Scenario has been saved to the file: '{path}'.");
         }
 
         /// <summary>
@@ -207,6 +216,41 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         void IInspectorContentPanel.Hide()
         {
             gameObject.SetActive(false);
+        }
+
+
+        /// <summary>
+        /// Updates the camera mode change button's label according to current camera mode
+        /// </summary>
+        private void UpdateCameraModeText()
+        {
+            var inputManager = ScenarioManager.Instance.inputManager;
+            switch (inputManager.CameraMode)
+            {
+                case InputManager.CameraModeType.TopDown:
+                    cameraModeLabel.text = "Top-down camera";
+                    break;
+                case InputManager.CameraModeType.Leaned45:
+                    cameraModeLabel.text = "Leaned 45° camera";
+                    break;
+                case InputManager.CameraModeType.Free:
+                    cameraModeLabel.text = "Free camera";
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        /// <summary>
+        /// Switches current camera mode to the next one
+        /// </summary>
+        public void ChangeCameraMode()
+        {
+            var inputManager = ScenarioManager.Instance.inputManager;
+            inputManager.CameraMode =
+                (InputManager.CameraModeType) (((int) inputManager.CameraMode + 1) %
+                    ((int) InputManager.CameraModeType.Free + 1));
+            UpdateCameraModeText();
         }
 
         /// <summary>

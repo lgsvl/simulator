@@ -58,20 +58,12 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                     await mapManager.LoadMapAsync(mapName);
                     return true;
                 }
-                else
-                {
-                    var log = new LogPanel.LogData()
-                    {
-                        Text = $"Loaded scenario requires map {mapName} which is not available in the database.",
-                        TextColor = Color.red
-                    };
-                    Debug.LogError(log.Text);
-                    ScenarioManager.Instance.logPanel.EnqueueLog(log);
-                }
 
+                ScenarioManager.Instance.logPanel.EnqueueError(
+                    $"Loaded scenario requires map {mapName} which is not available in the database.");
                 return false;
             }
-            
+
             await ScenarioManager.Instance.MapManager.LoadMapAsync(mapName);
             return true;
         }
@@ -92,14 +84,8 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                     ScenarioManager.Instance.agentsManager.Sources.Find(source => source.AgentTypeId == agentType);
                 if (agentSource == null)
                 {
-                    var log = new LogPanel.LogData()
-                    {
-                        Text =
-                            $"Error while deserializing Scenario. Agent type '{agentType}' could not be found in Simulator.",
-                        TextColor = Color.red
-                    };
-                    Debug.LogError(log.Text);
-                    ScenarioManager.Instance.logPanel.EnqueueLog(log);
+                    ScenarioManager.Instance.logPanel.EnqueueError(
+                        $"Error while deserializing Scenario. Agent type '{agentType}' could not be found in Simulator.");
                     continue;
                 }
 
@@ -107,14 +93,8 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                 var variant = agentSource.AgentVariants.Find(sourceVariant => sourceVariant.name == variantName);
                 if (variant == null)
                 {
-                    var log = new LogPanel.LogData()
-                    {
-                        Text =
-                            $"Error while deserializing Scenario. Agent variant '{variantName}' could not be found in Simulator.",
-                        TextColor = Color.red
-                    };
-                    Debug.LogError(log.Text);
-                    ScenarioManager.Instance.logPanel.EnqueueLog(log);
+                    ScenarioManager.Instance.logPanel.EnqueueError(
+                        $"Error while deserializing Scenario. Agent variant '{variantName}' could not be found in Simulator.");
                     continue;
                 }
 
@@ -150,8 +130,7 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                 waypointInstance.Speed = waypointNode["speed"];
                 int index = waypointNode["ordinal_number"];
                 var trigger = DeserializeTrigger(waypointNode["trigger"]);
-                waypointInstance.LinkedTrigger = trigger;
-                trigger.LinkedWaypoint = waypointInstance;
+                waypointInstance.LinkedTrigger.Trigger = trigger;
                 //TODO sort waypoints
                 scenarioAgent.AddWaypoint(waypointInstance, index);
             }
@@ -161,15 +140,15 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
         /// Deserializes a trigger from the json data
         /// </summary>
         /// <param name="triggerNode">Json data with a trigger</param>
-        private static ScenarioTrigger DeserializeTrigger(JSONNode triggerNode)
+        private static WaypointTrigger DeserializeTrigger(JSONNode triggerNode)
         {
             if (triggerNode == null)
                 return null;
             var effectorsNode = triggerNode["effectors"];
 
-            var scenarioTrigger = new ScenarioTrigger();
+            var trigger = new WaypointTrigger();
             if (effectorsNode == null)
-                return scenarioTrigger;
+                return trigger;
 
             foreach (var effectorNode in effectorsNode.Children)
             {
@@ -177,22 +156,16 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                 var effector = TriggersManager.GetEffectorOfType(typeName);
                 if (effector == null)
                 {
-                    var log = new LogPanel.LogData()
-                    {
-                        Text =
-                            $"Could not deserialize trigger effector as the type '{typeName}' does not implement '{nameof(TriggerEffector)}' interface.",
-                        TextColor = Color.red
-                    };
-                    Debug.LogError(log.Text);
-                    ScenarioManager.Instance.logPanel.EnqueueLog(log);
+                    ScenarioManager.Instance.logPanel.EnqueueError(
+                        $"Could not deserialize trigger effector as the type '{typeName}' does not implement '{nameof(TriggerEffector)}' interface.");
                     continue;
                 }
 
-                effector.Value = float.Parse(effectorNode["value"]);
-                scenarioTrigger.Trigger.Effectors.Add(effector);
+                effector.DeserializeProperties(effectorNode["parameters"]);
+                trigger.Effectors.Add(effector);
             }
 
-            return scenarioTrigger;
+            return trigger;
         }
     }
 }

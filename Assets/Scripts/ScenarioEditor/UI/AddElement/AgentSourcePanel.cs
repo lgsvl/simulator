@@ -7,6 +7,7 @@
 
 namespace Simulator.ScenarioEditor.UI.AddElement
 {
+    using System.Threading.Tasks;
     using Agents;
     using UnityEngine;
     using UnityEngine.UI;
@@ -44,11 +45,22 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         {
             agentSource = source;
             title.text = source?.AgentTypeName;
-            Texture texture = null;
-            
-            if (source != null)
-                texture = source.DefaultVariant.IconTexture;
-            image.texture = texture;
+
+            if (agentSource != null)
+            {
+                var nonBlockingTask = SetupTexture();
+            }
+        }
+
+        /// <summary>
+        /// Setups the texture of this panel asynchronously waiting until the texture is ready
+        /// </summary>
+        /// <returns>Task</returns>
+        private async Task SetupTexture()
+        {
+            while (agentSource.DefaultVariant == null)
+                await Task.Delay(25);
+            image.texture = agentSource.DefaultVariant.IconTexture;
         }
 
         /// <summary>

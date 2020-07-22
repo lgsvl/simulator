@@ -18,6 +18,16 @@ namespace Simulator.ScenarioEditor.UI.Inspector
         string MenuItemTitle { get; }
 
         /// <summary>
+        /// Initializes content panel without showing it
+        /// </summary>
+        void Initialize();
+        
+        /// <summary>
+        /// Deinitializes content panel
+        /// </summary>
+        void Deinitialize();
+
+        /// <summary>
         /// Method that shows inspector content panel when it is requested
         /// </summary>
         void Show();

@@ -36,14 +36,16 @@ namespace Simulator.ScenarioEditor.Managers
         {
             var interfaceType = typeof(ScenarioAgentSource);
             var types = ReflectionCache.FindTypes((type) => !type.IsAbstract && interfaceType.IsAssignableFrom(type));
+            var tasks = new Task[types.Count];
             for (var i = 0; i < types.Count; i++)
             {
                 var agentSource = Activator.CreateInstance(types[i]) as ScenarioAgentSource;
                 if (agentSource == null) continue;
-                await agentSource.Initialize();
+                tasks[i] = agentSource.Initialize();
 
                 Sources.Add(agentSource);
             }
+            await Task.WhenAll(tasks);
         }
 
         /// <summary>

@@ -8,6 +8,7 @@
 namespace Simulator.ScenarioEditor.Elements
 {
     using Input;
+    using Managers;
     using UnityEngine;
 
     /// <summary>
@@ -60,14 +61,20 @@ namespace Simulator.ScenarioEditor.Elements
         public virtual Transform TransformToRotate => transform;
 
         /// <summary>
-        /// Method called when the element is selected by the user
+        /// Unity OnEnable method
         /// </summary>
-        public abstract void Selected();
+        protected virtual void OnEnable()
+        {
+            ScenarioManager.Instance.NewElementActivated(this);
+        }
 
         /// <summary>
-        /// Method called to entirely remove element from the scenario
+        /// Method called when the element is selected by the user
         /// </summary>
-        public abstract void Destroy();
+        public virtual void Selected()
+        {
+            
+        }
 
         /// <summary>
         /// Repositions the scenario element on the map including the element's restrictions

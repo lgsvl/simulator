@@ -12,6 +12,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement
     using System.Threading.Tasks;
     using Agents;
     using Elements;
+    using Input;
     using Managers;
     using UnityEngine;
     using UnityEngine.UI;
@@ -20,7 +21,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement
     /// <summary>
     /// UI panel which allows editing a scenario agent parameters
     /// </summary>
-    public class AgentEditPanel : MonoBehaviour, IAddElementsHandler
+    public class AgentEditPanel : MonoBehaviour, IParameterEditPanel, IAddElementsHandler
     {
         /// <summary>
         /// Type of the element that is currently being added to the agent
@@ -78,34 +79,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         /// </summary>
         private ScenarioAgent selectedAgent;
 
-        /// <summary>
-        /// Unity Start method
-        /// </summary>
-        private void Start()
-        {
-            Initialize();
-        }
-
-        /// <summary>
-        /// Unity OnDestroy method
-        /// </summary>
-        private void OnDestroy()
-        {
-            Deinitialize();
-        }
-
-        /// <summary>
-        /// Unity OnEnable method
-        /// </summary>
-        private void OnEnable()
-        {
-            Initialize();
-        }
-
-        /// <summary>
-        /// Initialization method
-        /// </summary>
-        private void Initialize()
+        /// <inheritdoc/>
+        void IParameterEditPanel.Initialize()
         {
             if (isInitialized)
                 return;
@@ -113,11 +88,9 @@ namespace Simulator.ScenarioEditor.UI.EditElement
             isInitialized = true;
             OnSelectedOtherElement(ScenarioManager.Instance.SelectedElement);
         }
-
-        /// <summary>
-        /// Deinitialization method
-        /// </summary>
-        private void Deinitialize()
+        
+        /// <inheritdoc/>
+        void IParameterEditPanel.Deinitialize()
         {
             if (!isInitialized)
                 return;
@@ -256,11 +229,9 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         /// <inheritdoc/>
         void IAddElementsHandler.AddingCancelled(Vector3 addPosition)
         {
-            if (newElementInstance != null)
-            {
-                newElementInstance.Destroy();
-                newElementInstance = null;
-            }
+            var removable = newElementInstance as IRemoveHandler;
+            removable?.Remove();
+            newElementInstance = null;
 
             addedElementType = AgentElementType.None;
         }

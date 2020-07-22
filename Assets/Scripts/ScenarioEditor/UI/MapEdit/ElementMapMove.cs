@@ -31,7 +31,7 @@ namespace Simulator.ScenarioEditor.UI.MapEdit
         {
             if (CurrentElement == null)
                 throw new ArgumentException("Current agent has to be set by external script before editing.");
-            ScenarioManager.Instance.inputManager.StartDraggingElement(CurrentElement as IDragHandler);
+            ScenarioManager.Instance.inputManager.StartDraggingElement(CurrentElement);
         }
     }
 }

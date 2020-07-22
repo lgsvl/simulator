@@ -6,11 +6,14 @@
  */
 
 using System.Collections;
+using SimpleJSON;
 using UnityEngine;
 
 public class TimeToCollisionEffector : TriggerEffector
 {
     public override string TypeName { get; } = "TimeToCollision";
+
+    public override AgentType[] UnsupportedAgentTypes { get; } = { AgentType.Unknown, AgentType.Ego, AgentType.Pedestrian};
 
     public override IEnumerator Apply(NPCController parentNPC)
     {
@@ -23,12 +26,22 @@ public class TimeToCollisionEffector : TriggerEffector
                 lowestTTC = ttc;
         }
 
-        //If there is no collision detected, wait for default value
+        //If there is no collision detected don't wait
         if (float.IsPositiveInfinity(lowestTTC))
-            lowestTTC = Value;
+            lowestTTC = 0.0f;
         
         //Make parent npc wait for "lowestTTC" time
         yield return new WaitForSeconds(lowestTTC);
+    }
+
+    public override void DeserializeProperties(JSONNode jsonData)
+    {
+        
+    }
+
+    public override void SerializeProperties(JSONNode jsonData)
+    {
+        
     }
 
     private float CalculateTTC(AgentController ego, NPCController npc)

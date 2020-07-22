@@ -99,6 +99,11 @@ namespace Simulator.ScenarioEditor.Managers
         public List<MapMetaData> AvailableMaps { get; } = new List<MapMetaData>();
 
         /// <summary>
+        /// Is this map manager initialized
+        /// </summary>
+        public bool IsInitialized => isInitialized;
+
+        /// <summary>
         /// Event invoked when the currently loaded map changes
         /// </summary>
         public event Action<string> MapChanged;
@@ -108,7 +113,7 @@ namespace Simulator.ScenarioEditor.Managers
         /// </summary>
         private async Task Initialize()
         {
-            if (isInitialized)
+            if (IsInitialized)
                 return;
             var library = await ConnectionManager.API.GetLibrary<MapDetailData>();
             
@@ -150,6 +155,8 @@ namespace Simulator.ScenarioEditor.Managers
         /// <param name="mapName">Map name to be loaded, can be null to load last map</param>
         public async Task LoadMapAsync(string mapName = null)
         {
+            if (!string.IsNullOrEmpty(CurrentMapName) && CurrentMapName == mapName)
+                return;
             ScenarioManager.Instance.ShowLoadingPanel();
             if (!string.IsNullOrEmpty(loadedSceneName))
             {

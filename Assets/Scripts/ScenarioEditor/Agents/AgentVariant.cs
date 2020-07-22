@@ -88,7 +88,7 @@ namespace Simulator.ScenarioEditor.Agents
         #pragma warning disable 1998
         public virtual async Task Prepare()
         {
-            
+            ShotTexture();
         }
         #pragma warning restore 1998
     }

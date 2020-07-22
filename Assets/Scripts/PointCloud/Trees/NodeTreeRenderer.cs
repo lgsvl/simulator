@@ -132,6 +132,20 @@ namespace Simulator.PointCloud.Trees
 
         private void Update()
         {
+            UpdateNodes(false);
+        }
+
+        /// <summary>
+        /// Performs immediate update of buffers, ignoring all multi-frame and multi-thread settings.
+        /// </summary>
+        /// <param name="overrideCamera">Camera to use for culling instead of default one (optional).</param>
+        public void UpdateImmediate(Camera overrideCamera = null)
+        {
+            UpdateNodes(true, overrideCamera);
+        }
+
+        private void UpdateNodes(bool immediate, Camera overrideCamera = null)
+        {
             if (CullCamera == null && Application.isPlaying)
             {
                 // Don't use '.?' operator here - it ignores Unity's lifetime check for UnityEngine.Object
@@ -163,9 +177,11 @@ namespace Simulator.PointCloud.Trees
             usedNodes.Clear();
             usedNodesPointCount = 0;
 
-            if (CullCamera != null)
+            var usedCamera = overrideCamera == null ? CullCamera : overrideCamera;
+
+            if (usedCamera != null)
             {
-                Cull(tree, CullCamera);
+                Cull(tree, usedCamera);
 
                 if (usedNodesPointCount == 0)
                 {
@@ -174,8 +190,19 @@ namespace Simulator.PointCloud.Trees
                 }
                 else
                 {
-                    tree.NodeLoader.RequestLoad(usedNodes);
-                    var buffer = bufferBuilder.GetPopulatedBuffer(usedNodes, out var validPointCount);
+                    ComputeBuffer buffer;
+                    int validPointCount;
+                    if (immediate)
+                    {
+                        tree.NodeLoader.LoadImmediate(usedNodes);
+                        buffer = bufferBuilder.GetPopulatedBufferImmediate(usedNodes, out validPointCount);
+                    }
+                    else
+                    {
+                        tree.NodeLoader.RequestLoad(usedNodes);
+                        buffer = bufferBuilder.GetPopulatedBuffer(usedNodes, out validPointCount);
+                    }
+
                     if (buffer != null)
                     {
                         Buffer = buffer;
@@ -201,8 +228,19 @@ namespace Simulator.PointCloud.Trees
                 }
                 else
                 {
-                    tree.NodeLoader.RequestLoad(usedNodes);
-                    var buffer = sceneViewBufferBuilder.GetPopulatedBuffer(usedNodes, out var validPointCount);
+                    ComputeBuffer buffer;
+                    int validPointCount;
+                    if (immediate)
+                    {
+                        tree.NodeLoader.LoadImmediate(usedNodes);
+                        buffer = bufferBuilder.GetPopulatedBufferImmediate(usedNodes, out validPointCount);
+                    }
+                    else
+                    {
+                        tree.NodeLoader.RequestLoad(usedNodes);
+                        buffer = sceneViewBufferBuilder.GetPopulatedBuffer(usedNodes, out validPointCount);
+                    }
+                    
                     if (buffer != null)
                     {
                         sceneViewBuffer = buffer;
@@ -212,7 +250,7 @@ namespace Simulator.PointCloud.Trees
             }
 #endif
         }
-
+        
         private void OnValidate()
         {
             if (bufferBuilder != null && (bufferBuilder.MaxBufferElements != pointLimit ||
@@ -280,7 +318,9 @@ namespace Simulator.PointCloud.Trees
 
             if (visibleNodes.Count == 0)
             {
-                ClearBuffer();
+                if (usedCamera.cameraType != CameraType.SceneView)
+                    ClearBuffer();
+
                 return;
             }
 

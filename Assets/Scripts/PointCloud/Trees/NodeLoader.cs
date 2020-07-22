@@ -148,6 +148,29 @@ namespace Simulator.PointCloud.Trees
         }
 
         /// <summary>
+        /// Requests load of specified nodes. Locks main thread until operation is completed.
+        /// </summary>
+        /// <param name="requestedNodes">Nodes that should be loaded.</param>
+        public void LoadImmediate(List<string> requestedNodes)
+        {
+            RequestLoad(requestedNodes);
+
+            var safety = 3000;
+            var current = 0;
+
+            // Wait for loader thread to finish current request
+            while (loadQueue.Count > 0 || nodeInProgress != null)
+            {
+                Thread.Sleep(10);
+                if (current++ > safety)
+                {
+                    Debug.LogError("Point cloud loader is taking too long, unlocking main thread.");
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
         /// Returns data for node with specified identifier if it's currently loaded.
         /// </summary>
         /// <param name="identifier">Unique identifier of the node.</param>

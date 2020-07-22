@@ -11,7 +11,7 @@ namespace Simulator.Editor
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
-    using System.Threading.Tasks;
+    using Simulator.PointCloud.Trees;
     using UnityEditor;
     using UnityEditor.SceneManagement;
     using UnityEngine;
@@ -83,12 +83,16 @@ namespace Simulator.Editor
 
             var timeOfDayLights = Object.FindObjectsOfType<TimeOfDayLight>();
             var timeOfDayBuildings = Object.FindObjectsOfType<TimeOfDayBuilding>();
+            var pointCloudRenderers = Object.FindObjectsOfType<NodeTreeRenderer>();
 
             foreach (var light in timeOfDayLights)
                 light.Init(TimeOfDayStateTypes.Day);
 
             foreach (var building in timeOfDayBuildings)
                 building.Init(TimeOfDayStateTypes.Day);
+
+            foreach (var pointCloudRenderer in pointCloudRenderers)
+                pointCloudRenderer.UpdateImmediate(camera);
 
             Render(hd, textures, volume);
 

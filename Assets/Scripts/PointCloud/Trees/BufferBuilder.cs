@@ -86,6 +86,41 @@ namespace Simulator.PointCloud.Trees
 
             var constructedBuffer = ConstructedBuffer;
 
+            PopulateBuffer(constructedBuffer, targetPointCount);
+
+            // This was the last step - reset progress, swap ready and under-construction buffers
+            if (lastProcessedNodeIndex == queuedNodes.Count)
+            {
+                lastProcessedNodeIndex = 0;
+                readyBufferItemsCount = constructedBufferItemsCount;
+                constructedBufferItemsCount = 0;
+                currentStepCount = 0;
+                
+                bufferSwapFlag = !bufferSwapFlag;
+                busy = false;
+            }
+        }
+
+        private void PerformFullBuild()
+        {
+            // Calculate amount of points that should be reached during this step
+            currentStepCount++;
+            var targetPointCount = maxBufferElements;
+            var constructedBuffer = ConstructedBuffer;
+
+            PopulateBuffer(constructedBuffer, targetPointCount);
+
+            lastProcessedNodeIndex = 0;
+            readyBufferItemsCount = constructedBufferItemsCount;
+            constructedBufferItemsCount = 0;
+            currentStepCount = 0;
+                
+            bufferSwapFlag = !bufferSwapFlag;
+            busy = false;
+        }
+
+        private void PopulateBuffer(ComputeBuffer constructedBuffer, int targetPointCount)
+        {
             // Copy data from nodes until either all nodes are processed or quota for this step is reached
             while (lastProcessedNodeIndex < queuedNodes.Count && constructedBufferItemsCount < targetPointCount)
             {
@@ -105,18 +140,6 @@ namespace Simulator.PointCloud.Trees
                 constructedBuffer.SetData(node.Points, 0, constructedBufferItemsCount, count);
 
                 constructedBufferItemsCount += count;
-            }
-
-            // This was the last step - reset progress, swap ready and under-construction buffers
-            if (lastProcessedNodeIndex == queuedNodes.Count)
-            {
-                lastProcessedNodeIndex = 0;
-                readyBufferItemsCount = constructedBufferItemsCount;
-                constructedBufferItemsCount = 0;
-                currentStepCount = 0;
-                
-                bufferSwapFlag = !bufferSwapFlag;
-                busy = false;
             }
         }
 
@@ -138,6 +161,23 @@ namespace Simulator.PointCloud.Trees
             
             PerformBuildStep();
             
+            validPointCount = readyBufferItemsCount;
+            return ReadyBuffer;
+        }
+
+        /// <summary>
+        /// Performs a complete, immediate rebuild of the buffer from given nodes and returns it. Ignores multi-frame settings.
+        /// </summary>
+        /// <param name="requiredNodes">Nodes that should be visible.</param>
+        /// <param name="validPointCount">Amount of valid points in returned buffer.</param>
+        public ComputeBuffer GetPopulatedBufferImmediate(List<string> requiredNodes, out int validPointCount)
+        {
+            queuedNodes.Clear();
+            queuedNodes.AddRange(requiredNodes);
+            busy = false;
+
+            PerformFullBuild();
+
             validPointCount = readyBufferItemsCount;
             return ReadyBuffer;
         }

@@ -24,8 +24,8 @@ using apollo.hdmap;
         EditorSettings Settings;
 
         bool IsMeshNeeded; // Boolean value for traffic light/sign mesh importing.
-        static float DownSampleDistanceThreshold; // DownSample distance threshold for points to keep 
-        static float DownSampleDeltaThreshold; // For down sampling, delta threshold for curve points 
+        static float DownSampleDistanceThreshold; // DownSample distance threshold for points to keep
+        static float DownSampleDeltaThreshold; // For down sampling, delta threshold for curve points
         bool ShowDebugIntersectionArea = false; // Show debug area for intersection area to find left_turn lanes
         GameObject TrafficLanes;
         GameObject SingleLaneRoads;
@@ -617,7 +617,61 @@ using apollo.hdmap;
                 }
             }
             // Update each lane's befores/afters manually since the imported map might miss some connections.
-            OpenDriveMapExporter.LinkSegments(new HashSet<MapLane>(Id2Lane.Values));
+            LinkSegments(new HashSet<MapLane>(Id2Lane.Values));
+        }
+
+        // Link before and after lanes/lines
+        public static bool LinkSegments<T>(HashSet<T> segments) where T : MapDataPoints, IMapLaneLineCommon<T>
+        {
+            foreach (var segment in segments)
+            {
+                // clear
+                segment.befores.Clear();
+                segment.afters.Clear();
+
+                if (typeof(T) == typeof(MapLine))
+                    if ((segment as MapLine).lineType == MapData.LineType.STOP) continue;
+
+                // Each segment must have at least 2 waypoints for calculation, otherwise exit
+                while (segment.mapLocalPositions.Count < 2)
+                {
+                    Debug.LogError("Some segment has less than 2 waypoints. Cancelling map generation.");
+                    return false;
+                }
+
+                // Link lanes/lines
+                var firstPt = segment.transform.TransformPoint(segment.mapLocalPositions[0]);
+                var lastPt = segment.transform.TransformPoint(segment.mapLocalPositions[segment.mapLocalPositions.Count - 1]);
+
+                foreach (var segmentCmp in segments)
+                {
+                    if (segment == segmentCmp)
+                    {
+                        continue;
+                    }
+                    if (typeof(T) == typeof(MapLine))
+                        if ((segmentCmp as MapLine).lineType == MapData.LineType.STOP) continue;
+
+                    var firstPt_cmp = segmentCmp.transform.TransformPoint(segmentCmp.mapLocalPositions[0]);
+                    var lastPt_cmp = segmentCmp.transform.TransformPoint(segmentCmp.mapLocalPositions[segmentCmp.mapLocalPositions.Count - 1]);
+
+                    if ((firstPt - lastPt_cmp).magnitude < MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
+                    {
+                        segmentCmp.mapLocalPositions[segmentCmp.mapLocalPositions.Count - 1] = segmentCmp.transform.InverseTransformPoint(firstPt);
+                        segmentCmp.mapWorldPositions[segmentCmp.mapWorldPositions.Count - 1] = firstPt;
+                        segment.befores.Add(segmentCmp);
+                    }
+
+                    if ((lastPt - firstPt_cmp).magnitude < MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
+                    {
+                        segmentCmp.mapLocalPositions[0] = segmentCmp.transform.InverseTransformPoint(lastPt);
+                        segmentCmp.mapWorldPositions[0] = lastPt;
+                        segment.afters.Add(segmentCmp);
+                    }
+                }
+            }
+
+            return true;
         }
 
         // Make current lane's start/end point same as predecessor/successor lane's end/start point

@@ -46,6 +46,7 @@ namespace Simulator.Editor
         Dictionary<MapLane, laneType> Lane2LaneType = new Dictionary<MapLane, laneType>();
         Dictionary<string, MapIntersection> Id2MapIntersection = new Dictionary<string, MapIntersection>();
         Dictionary<string, string> RoadId2IntersectionId = new Dictionary<string, string>();
+        Dictionary<string, List<int>> RoadId2laneSections = new Dictionary<string, List<int>>(); // Store laneSections to remove
         Dictionary<GameObject, string> UngroupedObject2RoadId = new Dictionary<GameObject, string>();
         Dictionary<string, HashSet<MapLane>> IncomingRoadId2leftLanes = new Dictionary<string, HashSet<MapLane>>();
         Dictionary<string, HashSet<MapLane>> IncomingRoadId2rightLanes = new Dictionary<string, HashSet<MapLane>>();
@@ -86,10 +87,12 @@ namespace Simulator.Editor
             }
         }
 
-        string ReplaceNaN(string filePath)
+        string ReplaceStrs(string filePath)
         {
+            string folderPath = Path.GetDirectoryName(filePath);
             string fileName = Path.GetFileNameWithoutExtension(filePath);
-            string tempFilePath = filePath.Replace(fileName, fileName + "-temp");
+            fileName = fileName + "-temp.xodr";
+            string tempFilePath = Path.Combine(folderPath, fileName);
             using (StreamReader reader = new StreamReader(filePath))
             {
                 using (StreamWriter writer = new StreamWriter(tempFilePath))
@@ -98,6 +101,7 @@ namespace Simulator.Editor
                     {
                         string line = reader.ReadLine();
                         line = Regex.Replace(line, "-?nan", "0", RegexOptions.IgnoreCase);
+                        line = Regex.Replace(line, "type=\"bus\"", "type=\"driving\"", RegexOptions.IgnoreCase);
                         writer.WriteLine(line);
                     }
                 }
@@ -111,44 +115,49 @@ namespace Simulator.Editor
             var fileName = Path.GetFileName(filePath).Split('.')[0];
             string mapName = "Map" + char.ToUpper(fileName[0]) + fileName.Substring(1);
 
-            filePath = ReplaceNaN(filePath);
-            var serializer = new XmlSerializer(typeof(OpenDRIVE));
-            using (XmlTextReader reader = new XmlTextReader(filePath))
+            filePath = ReplaceStrs(filePath);
+            try
             {
-                reader.Namespaces = false;
+                var serializer = new XmlSerializer(typeof(OpenDRIVE));
+                using (XmlTextReader reader = new XmlTextReader(filePath))
+                {
+                    reader.Namespaces = false;
 
-                try
-                {
-                    OpenDRIVEMap = (OpenDRIVE)serializer.Deserialize(reader);
+                    try
+                    {
+                        OpenDRIVEMap = (OpenDRIVE)serializer.Deserialize(reader);
+                    }
+                    catch
+                    {
+                        Debug.LogError("Sorry, currently we only support version 1.4, please check your map version.");
+                        DeleteTempFile(filePath);
+                        return false;
+                    }
                 }
-                catch
+
+                // Create Map object
+                if (!CreateMapHolder(filePath, mapName)) return false;
+
+                MapOrigin = MapOrigin.Find(); // get or create a map origin
+                if (!CreateOrUpdateMapOrigin(OpenDRIVEMap, MapOrigin))
                 {
-                    Debug.LogError("Sorry, currently we only support version 1.4, please check your map version.");
-                    DeleteTempFile(filePath);
-                    return false;
+                    Debug.LogWarning("Could not find valid latitude or/and longitude in map header Or not supported projection, mapOrigin is not updated, you need manually update it.");
                 }
+
+                ImportRoads();
+                ImportJunctions();
+                UpdateAllLanesBeforesAfters();
+
+                if (IsConnectLanes) ConnectLanes();
+                CleanUp();
+                LinkSignalsWithStopLines();
+
+                UpdateMapIntersectionPositions();
             }
-
-            // Create Map object
-            if (!CreateMapHolder(filePath, mapName)) return false;
-
-            MapOrigin = MapOrigin.Find(); // get or create a map origin
-            if (!CreateOrUpdateMapOrigin(OpenDRIVEMap, MapOrigin))
+            finally
             {
-                Debug.LogWarning("Could not find valid latitude or/and longitude in map header Or not supported projection, mapOrigin is not updated, you need manually update it.");
+                DeleteTempFile(filePath);
             }
-
-            ImportRoads();
-            ImportJunctions();
-            UpdateAllLanesBeforesAfters();
-
-            if (IsConnectLanes) ConnectLanes();
-            CleanUp();
-            LinkSignalsWithStopLines();
-
-            UpdateMapIntersectionPositions();
-
-            DeleteTempFile(filePath);
 
             return true;
         }
@@ -561,8 +570,17 @@ namespace Simulator.Editor
 
                 var referenceLinePointsOffset = new List<Vector3>(referenceLinePoints);
                 if (lanes.laneOffset != null) referenceLinePointsOffset = UpdateReferencePoints(lanes, referenceLinePoints);
+
+                var laneSectionsLength = ComputeSectionLength(lanes.laneSection, roadLength);
                 for (int i = 0; i < lanes.laneSection.Length; i++)
                 {
+                    if (laneSectionsLength[i] < 0.5)
+                    {
+                        Debug.LogWarning($"Road {roadId} laneSection {i} is too short, skipped importing");
+                        if (RoadId2laneSections.ContainsKey(roadId)) RoadId2laneSections[roadId].Add(i);
+                        else RoadId2laneSections[roadId] = new List<int> {i};
+                    }
+
                     Roads[roadId].Add(new Dictionary<int, MapLane>());
                     var startIdx = (int)lanes.laneSection[i].s;
                     int endIdx;
@@ -578,6 +596,24 @@ namespace Simulator.Editor
 
                 if (road.signals != null) ImportSignals(road, road.signals, referenceLinePointsOffset);
             }
+        }
+
+        List<double> ComputeSectionLength(OpenDRIVERoadLanesLaneSection[] laneSections, double roadLength)
+        {
+            var sectionLengths = new List<double>();
+            for (int i = 0; i < laneSections.Length; i++)
+            {
+                if (i < laneSections.Length - 1)
+                {
+                    sectionLengths.Add(laneSections[i+1].s - laneSections[i].s);
+                }
+                else
+                {
+                    sectionLengths.Add(roadLength - laneSections[i].s);
+                }
+            }
+
+            return sectionLengths;
         }
 
         List<Vector3> UpdateReferencePoints(OpenDRIVERoadLanes lanes, List<Vector3> referencePoints)
@@ -648,7 +684,14 @@ namespace Simulator.Editor
                 {
                     if (predecessor != null && successor != null)
                     {
-                        intersectionId = s < referenceLinePoints.Count / 2 ? predecessor.elementId : successor.elementId;
+                        if (predecessor.elementType == elementType.junction && successor.elementType == elementType.junction)
+                        {
+                            intersectionId = s < referenceLinePoints.Count / 2 ? predecessor.elementId : successor.elementId;
+                        }
+                        else
+                        {
+                            intersectionId = predecessor.elementType == elementType.junction ? predecessor.elementId : successor.elementId;
+                        }
                     }
                     else
                     {
@@ -1040,7 +1083,8 @@ namespace Simulator.Editor
             leftBoundaryPoints = Lanelet2MapExporter.SplitLine(leftBoundaryPoints, leftResolution, partitions);
             rightBoundaryPoints = Lanelet2MapExporter.SplitLine(rightBoundaryPoints, rightResolution, partitions);
 
-            if (leftBoundaryPoints.Count != partitions + 1 || rightBoundaryPoints.Count != partitions + 1)
+            if (leftBoundaryPoints.Count != rightBoundaryPoints.Count ||
+                (longerDistance > 1 && leftBoundaryPoints.Count != partitions + 1)) // neglect too short lines
             {
                 Debug.LogError("Something wrong with number of points. (left, right, partitions): (" +
                     leftBoundaryPoints.Count + ", " + rightBoundaryPoints.Count + ", " + partitions + ")");
@@ -1048,7 +1092,7 @@ namespace Simulator.Editor
             }
 
             List<Vector3> lanePoints = new List<Vector3>();
-            for (int i = 0; i < partitions + 1; i++)
+            for (int i = 0; i < leftBoundaryPoints.Count; i++)
             {
                 Vector3 centerPoint = (leftBoundaryPoints[i] + rightBoundaryPoints[i]) / 2;
                 lanePoints.Add(centerPoint);
@@ -1674,13 +1718,7 @@ namespace Simulator.Editor
 
         void CleanUp()
         {
-            if (SingleLaneRoads.transform.childCount == 0) UnityEngine.Object.DestroyImmediate(SingleLaneRoads);
             MapAnnotationData = new MapManagerData();
-            var mapLaneSections = new List<MapLaneSection>(MapAnnotationData.GetData<MapLaneSection>());
-            foreach (var mapLaneSection in mapLaneSections)
-            {
-                if (mapLaneSection.transform.childCount == 0) UnityEngine.Object.DestroyImmediate(mapLaneSection.gameObject);
-            }
 
             // Destroy nondrivable lanes
             var linesToRemove = new HashSet<MapLine>();
@@ -1691,6 +1729,7 @@ namespace Simulator.Editor
                 {
                     linesToRemove.Add(entry.Key.leftLineBoundry);
                     linesToRemove.Add(entry.Key.rightLineBoundry);
+                    UpdateLaneBeforeAfterLanes(entry.Key);
                     UnityEngine.Object.DestroyImmediate(entry.Key.gameObject);
                     Lane2BeforesAfters.Remove(entry.Key);
                 }
@@ -1698,6 +1737,34 @@ namespace Simulator.Editor
                 {
                     lanesToKeep.Add(entry.Key);
                 }
+            }
+
+            foreach (var entry in RoadId2laneSections)
+            {
+                var roadId = entry.Key;
+                var laneSections = entry.Value;
+                foreach (var laneSectionId in laneSections)
+                {
+                    foreach (var laneEntry in Roads[roadId][laneSectionId])
+                    {
+                        var lane = laneEntry.Value;
+                        if (Lane2LaneType[lane] != laneType.driving) continue; // already removed.
+
+                        linesToRemove.Add(lane.leftLineBoundry);
+                        linesToRemove.Add(lane.rightLineBoundry);
+                        UpdateLaneBeforeAfterLanes(lane, true);
+                        UnityEngine.Object.DestroyImmediate(lane.gameObject);
+                        Lane2BeforesAfters.Remove(lane);
+                        lanesToKeep.Remove(lane);
+                    }
+                }
+            }
+
+            if (IsConnectLanes)
+            {
+                var lanesDataToKeep = GetLanesData(lanesToKeep);
+                Lanelet2MapExporter.AlignPointsInLines(lanesDataToKeep);
+                CopyLinesData(lanesDataToKeep);
             }
 
             foreach (var lane in lanesToKeep)
@@ -1710,6 +1777,9 @@ namespace Simulator.Editor
             {
                 UnityEngine.Object.DestroyImmediate(line.gameObject);
             }
+
+            if (SingleLaneRoads.transform.childCount == 0) UnityEngine.Object.DestroyImmediate(SingleLaneRoads);
+            RemoveEmptyLaneSections();
 
             // Move ungrouped objects to correct intersection
             foreach (var entry in UngroupedObject2RoadId)
@@ -1739,6 +1809,103 @@ namespace Simulator.Editor
                 else
                 {
                     Debug.LogWarning($"Cannot find associated intersection for {obj.name}.");
+                }
+            }
+        }
+
+        private void RemoveEmptyLaneSections()
+        {
+            var mapLaneSections = new List<MapLaneSection>(MapAnnotationData.GetData<MapLaneSection>());
+            foreach (var mapLaneSection in mapLaneSections)
+            {
+                if (mapLaneSection.transform.childCount == 0) UnityEngine.Object.DestroyImmediate(mapLaneSection.gameObject);
+            }
+        }
+
+        void UpdateLaneBeforeAfterLanes(MapLane lane, bool updateBeforeAfter=false)
+        {
+            if (lane.befores.Count > 0)
+            {
+                var afters = lane.afters;
+                foreach (var before in lane.befores)
+                {
+                    if (before.afters.Contains(lane)) before.afters.Remove(lane);
+                    if (updateBeforeAfter && afters.Count > 0) before.afters.AddRange(afters);
+                }
+            }
+
+            if (lane.afters.Count > 0)
+            {
+                var befores = lane.befores;
+                foreach (var after in lane.afters)
+                {
+                    if (after.befores.Contains(lane)) after.befores.Remove(lane);
+                    if (updateBeforeAfter && befores.Count > 0) after.befores.AddRange(befores);
+                }
+            }
+        }
+
+        void CopyLinesData(HashSet<LaneData> lanesData)
+        {
+            foreach (var laneData in lanesData)
+            {
+                var leftLine = laneData.mapLane.leftLineBoundry;
+                CopyLineData(leftLine);
+                var rightLine = laneData.mapLane.rightLineBoundry;
+                CopyLineData(rightLine);
+            }
+        }
+
+        void CopyLineData(MapLine line)
+        {
+            var lineData = LineData.Line2LineData[line];
+            line.mapWorldPositions = lineData.mapWorldPositions;
+            line.mapLocalPositions = lineData.mapLocalPositions;
+        }
+
+        HashSet<LaneData> GetLanesData(List<MapLane> laneSegments)
+        {
+            LaneData.Lane2LaneData.Clear();
+            LineData.Line2LineData.Clear();
+            var lanesData = new HashSet<LaneData>();
+            foreach (var lane in laneSegments)
+            {
+                var laneData = new LaneData(lane);
+                lanesData.Add(laneData);
+                LaneData.Lane2LaneData[lane] = laneData;
+                var leftLineData = new LineData(lane.leftLineBoundry);
+                LineData.Line2LineData[lane.leftLineBoundry] = leftLineData;
+                var rightLineData = new LineData(lane.rightLineBoundry);
+                LineData.Line2LineData[lane.rightLineBoundry] = rightLineData;
+            }
+
+            CopyLaneBeforeAfters(lanesData);
+
+            return lanesData;
+        }
+
+        void CopyLaneBeforeAfters(HashSet<LaneData> lanesData)
+        {
+            foreach (var laneData in lanesData)
+            {
+                var befores = laneData.mapLane.befores;
+                foreach (var before in befores)
+                {
+                    if (LaneData.Lane2LaneData.ContainsKey(before))
+                    {
+                        var beforeLaneData = LaneData.Lane2LaneData[before];
+                        laneData.befores.Add(beforeLaneData);
+                    }
+                }
+
+                var afters = laneData.mapLane.afters;
+                foreach (var after in afters)
+                {
+                    if (LaneData.Lane2LaneData.ContainsKey(after))
+                    {
+                        var afterLaneData = LaneData.Lane2LaneData[after];
+                        laneData.afters.Add(afterLaneData);
+                    }
                 }
             }
         }

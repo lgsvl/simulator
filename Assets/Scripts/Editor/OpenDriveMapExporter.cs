@@ -19,18 +19,64 @@ using System.Collections.Generic;
 
 namespace Simulator.Editor
 {
+    public interface ILaneLineDataCommon<T> where T : ILaneLineDataCommon<T>
+    {
+        List<T> befores { get; set; }
+        List<T> afters { get; set; }
+    }
+
+    public class PositionsData
+    {
+        public List<Vector3> mapLocalPositions = new List<Vector3>();
+        public List<Vector3> mapWorldPositions = new List<Vector3>();
+        public GameObject go;
+
+        public PositionsData(MapDataPoints mapDataPoints)
+        {
+            mapLocalPositions = mapDataPoints.mapLocalPositions;
+            mapWorldPositions = mapDataPoints.mapWorldPositions;
+            go = mapDataPoints.gameObject;
+        }
+    }
+
+    public class LineData: PositionsData, ILaneLineDataCommon<LineData>
+    {
+        public MapLine mapLine;
+        public static Dictionary<MapLine, LineData> Line2LineData = new Dictionary<MapLine, LineData>();
+        public List<LineData> befores { get; set; } = new List<LineData>();
+        public List<LineData> afters { get; set; } = new List<LineData>();
+        public LineData(MapLine line) : base(line)
+        {
+            mapLine = line;
+            Line2LineData[line] = this;
+        }
+    }
+
+    public class LaneData : PositionsData, ILaneLineDataCommon<LaneData>
+    {
+        public MapLane mapLane;
+        public static Dictionary<MapLane, LaneData> Lane2LaneData = new Dictionary<MapLane, LaneData>();
+        public List<LaneData> befores { get; set; } = new List<LaneData>();
+        public List<LaneData> afters { get; set; } = new List<LaneData>();
+        public LaneData(MapLane lane) : base(lane)
+        {
+            mapLane = lane;
+            Lane2LaneData[lane] = this;
+        }
+    }
+
     public class OpenDriveMapExporter
     {
         MapOrigin MapOrigin;
         MapManagerData MapAnnotationData;
         OpenDRIVE Map;
-        HashSet<MapLane> LaneSegments;
-        HashSet<MapLine> LineSegments;
+        HashSet<LaneData> LanesData;
+        HashSet<LineData> LinesData;
         List<MapIntersection> Intersections;
-        Dictionary<MapLane, uint> Lane2RoadId = new Dictionary<MapLane, uint>();
-        Dictionary<uint, List<MapLane>> RoadId2Lanes = new Dictionary<uint, List<MapLane>>();
-        Dictionary<MapLane, int> Lane2LaneId = new Dictionary<MapLane, int>(); // lane to its laneId inside OpenDRIVE road
-        Dictionary<MapLane, uint> Lane2JunctionId = new Dictionary<MapLane, uint>();
+        Dictionary<LaneData, uint> LaneData2RoadId = new Dictionary<LaneData, uint>();
+        Dictionary<uint, List<LaneData>> RoadId2LanesData = new Dictionary<uint, List<LaneData>>();
+        Dictionary<LaneData, int> LaneData2LaneId = new Dictionary<LaneData, int>(); // lane to its laneId inside OpenDRIVE road
+        Dictionary<LaneData, uint> LaneData2JunctionId = new Dictionary<LaneData, uint>();
         Dictionary<uint, List<Vector3>> RoadId2RefLinePositions = new Dictionary<uint, List<Vector3>>(); // roadId to corresponding reference MapLine positions with correct order
         uint UniqueId;
         OpenDRIVERoad[] Roads;
@@ -53,15 +99,12 @@ namespace Simulator.Editor
             Intersections = MapAnnotationData.GetIntersections();
             MapAnnotationData.GetTrafficLanes();
 
-            Lanelet2MapExporter.RecordChanges(MapAnnotationData.MapHolder);
-
             // Initial collection
-            LaneSegments = new HashSet<MapLane>(MapAnnotationData.GetData<MapLane>());
-            LineSegments = new HashSet<MapLine>(MapAnnotationData.GetData<MapLine>());
+            var laneSegments= new HashSet<MapLane>(MapAnnotationData.GetData<MapLane>());
+            var lineSegments = new HashSet<MapLine>(MapAnnotationData.GetData<MapLine>());
             var signalLights = new List<MapSignal>(MapAnnotationData.GetData<MapSignal>());
             var crossWalkList = new List<MapCrossWalk>(MapAnnotationData.GetData<MapCrossWalk>());
             var mapSignList = new List<MapSign>(MapAnnotationData.GetData<MapSign>());
-            var stopLineLanes = new Dictionary<MapLine, List<MapLane>>();
 
             foreach (var mapSign in mapSignList)
             {
@@ -71,19 +114,13 @@ namespace Simulator.Editor
                 }
             }
 
-            foreach (var laneSegment in LaneSegments)
-            {
-                if (laneSegment.stopLine != null)
-                {
-                    stopLineLanes.GetOrCreate(laneSegment.stopLine).Add(laneSegment);
-                }
-            }
+            LanesData = GetLanesData(laneSegments);
+            LinesData = GetLinesData(lineSegments);
 
-            LinkSegments(LaneSegments);
-            LinkSegments(LineSegments);
+            if (!LinkSegments(LanesData)) return false;
+            if (!LinkSegments(LinesData)) return false;
 
-            CheckNeighborLanes(LaneSegments);
-            CheckBoundaries(LaneSegments);
+            if (!CheckNeighborLanes(laneSegments)) return false;
 
             var location = MapOrigin.GetGpsLocation(MapOrigin.transform.position);
             var geoReference = " +proj=tmerc +lat_0="+ location.Latitude + " +lon_0=" + location.Longitude;
@@ -113,32 +150,41 @@ namespace Simulator.Editor
                 }
             };
 
-            Lanelet2MapExporter.AlignPointsInLines(LaneSegments);
+            Lanelet2MapExporter.AlignPointsInLines(LanesData);
 
             ComputeRoads();
-
-            Undo.PerformUndo(); // Keep original Map unchanged.
 
             return true;
         }
 
-        void CheckBoundaries(HashSet<MapLane> lanes)
+        public static HashSet<LaneData> GetLanesData(HashSet<MapLane> laneSegments)
         {
-            foreach (var lane in lanes)
+            LaneData.Lane2LaneData.Clear();
+            var lanesData = new HashSet<LaneData>();
+            foreach (var lane in laneSegments)
             {
-                if (lane.leftLineBoundry == null || lane.rightLineBoundry == null)
-                {
-                    Debug.LogWarning($"Lane {lane.name} instance id: {lane.gameObject.GetInstanceID()} is missing boundary lines, please check.");
-#if UNITY_EDITOR
-                    UnityEditor.Selection.activeObject = lane.gameObject;
-                    Debug.Log("Please fix the selected lane.");
-#endif
-                }
+                var laneData = new LaneData(lane);
+                lanesData.Add(laneData);
+                LaneData.Lane2LaneData[lane] = laneData;
             }
+            return lanesData;
+        }
+
+        public static HashSet<LineData> GetLinesData(HashSet<MapLine> lines)
+        {
+            LineData.Line2LineData.Clear();
+            var linesData = new HashSet<LineData>();
+            foreach (var line in lines)
+            {
+                var lineData = new LineData(line);
+                linesData.Add(lineData);
+                LineData.Line2LineData[line] = lineData;
+            }
+            return linesData;
         }
 
         // Link before and after lanes/lines
-        public static bool LinkSegments<T>(HashSet<T> segments) where T : MapDataPoints, IMapLaneLineCommon<T>
+        public static bool LinkSegments<T>(HashSet<T> segments) where T : PositionsData, ILaneLineDataCommon<T>
         {
             foreach (var segment in segments)
             {
@@ -146,8 +192,8 @@ namespace Simulator.Editor
                 segment.befores.Clear();
                 segment.afters.Clear();
 
-                if (typeof(T) == typeof(MapLine))
-                    if ((segment as MapLine).lineType == MapData.LineType.STOP) continue;
+                if (typeof(T) == typeof(LineData))
+                    if ((segment as LineData).mapLine.lineType == MapData.LineType.STOP) continue;
 
                 // Each segment must have at least 2 waypoints for calculation, otherwise exit
                 while (segment.mapLocalPositions.Count < 2)
@@ -157,8 +203,8 @@ namespace Simulator.Editor
                 }
 
                 // Link lanes/lines
-                var firstPt = segment.transform.TransformPoint(segment.mapLocalPositions[0]);
-                var lastPt = segment.transform.TransformPoint(segment.mapLocalPositions[segment.mapLocalPositions.Count - 1]);
+                var firstPt = segment.go.transform.TransformPoint(segment.mapLocalPositions[0]);
+                var lastPt = segment.go.transform.TransformPoint(segment.mapLocalPositions[segment.mapLocalPositions.Count - 1]);
 
                 foreach (var segmentCmp in segments)
                 {
@@ -166,22 +212,22 @@ namespace Simulator.Editor
                     {
                         continue;
                     }
-                    if (typeof(T) == typeof(MapLine))
-                        if ((segmentCmp as MapLine).lineType == MapData.LineType.STOP) continue;
+                    if (typeof(T) == typeof(LineData))
+                        if ((segmentCmp as LineData).mapLine.lineType == MapData.LineType.STOP) continue;
 
-                    var firstPt_cmp = segmentCmp.transform.TransformPoint(segmentCmp.mapLocalPositions[0]);
-                    var lastPt_cmp = segmentCmp.transform.TransformPoint(segmentCmp.mapLocalPositions[segmentCmp.mapLocalPositions.Count - 1]);
+                    var firstPt_cmp = segmentCmp.go.transform.TransformPoint(segmentCmp.mapLocalPositions[0]);
+                    var lastPt_cmp = segmentCmp.go.transform.TransformPoint(segmentCmp.mapLocalPositions[segmentCmp.mapLocalPositions.Count - 1]);
 
                     if ((firstPt - lastPt_cmp).magnitude < MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
                     {
-                        segmentCmp.mapLocalPositions[segmentCmp.mapLocalPositions.Count - 1] = segmentCmp.transform.InverseTransformPoint(firstPt);
+                        segmentCmp.mapLocalPositions[segmentCmp.mapLocalPositions.Count - 1] = segmentCmp.go.transform.InverseTransformPoint(firstPt);
                         segmentCmp.mapWorldPositions[segmentCmp.mapWorldPositions.Count - 1] = firstPt;
                         segment.befores.Add(segmentCmp);
                     }
 
                     if ((lastPt - firstPt_cmp).magnitude < MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
                     {
-                        segmentCmp.mapLocalPositions[0] = segmentCmp.transform.InverseTransformPoint(lastPt);
+                        segmentCmp.mapLocalPositions[0] = segmentCmp.go.transform.InverseTransformPoint(lastPt);
                         segmentCmp.mapWorldPositions[0] = lastPt;
                         segment.afters.Add(segmentCmp);
                     }
@@ -191,7 +237,7 @@ namespace Simulator.Editor
             return true;
         }
 
-        bool CheckNeighborLanes(HashSet<MapLane> LaneSegments)
+        public static bool CheckNeighborLanes(HashSet<MapLane> LaneSegments)
         {
             // Check validity of lane segment builder relationship but it won't warn you if have A's right lane to be null or B's left lane to be null
             foreach (var laneSegment in LaneSegments)
@@ -211,61 +257,63 @@ namespace Simulator.Editor
             return true;
         }
 
-        // Return MapLine from neighborLaneSectionLanes and return correct order of positions for reference line
-        MapLine GetRefLineAndPositions(List<MapLane> neighborLaneSectionLanes, out List<Vector3> positions)
+        // Return MapLine data from neighborLaneSectionLanes and return correct order of positions for reference line
+        LineData GetRefLineAndPositions(List<LaneData> neighborLaneSectionLanesData, out List<Vector3> positions)
         {
             // Lanes are stored from left most to right most
             // Reference line is the left boundary line of the left most lane
-            var refLine = neighborLaneSectionLanes[0].leftLineBoundry;
+            var refLine = neighborLaneSectionLanesData[0].mapLane.leftLineBoundry;
             if (refLine == null)
             {
-                Debug.LogError($"Lane: {neighborLaneSectionLanes[0].gameObject.name} has no left boundary line, its object instance ID is {neighborLaneSectionLanes[0].gameObject.GetInstanceID()}");
+                Debug.LogError($"Lane: {neighborLaneSectionLanesData[0].go.name} has no left boundary line, its object instance ID is {neighborLaneSectionLanesData[0].go.GetInstanceID()}");
             }
+            var refLineData = LineData.Line2LineData[refLine];
 
-            positions = refLine.mapWorldPositions;
+            positions = refLineData.mapWorldPositions;
             // Make sure refLine positions has same direction as the road lanes
-            var leftLanePositions = neighborLaneSectionLanes[0].mapWorldPositions; // pick any lane
+            var leftLanePositions = neighborLaneSectionLanesData[0].mapWorldPositions; // pick any lane
             if (Vector3.Dot((positions.Last() - positions.First()), (leftLanePositions.Last() - leftLanePositions.First())) < 0)
             {
                 positions.Reverse();
             }
 
-            return refLine;
+            return refLineData;
         }
 
         // Function to get neighbor lanes in the same road
-        List<MapLane> GetNeighborForwardLaneSectionLanes(MapLane self, bool fromLeft)
+        List<LaneData> GetNeighborForwardLaneSectionLanesData(LaneData self, bool fromLeft)
         {
             if (self == null)
             {
-                return new List<MapLane>();
+                return new List<LaneData>();
             }
 
+            var lane = self.mapLane;
             if (fromLeft)
             {
-                if (self.leftLaneForward == null)
+                if (lane.leftLaneForward == null)
                 {
-                    return new List<MapLane>();
+                    return new List<LaneData>();
                 }
                 else
                 {
-                    var ret = new List<MapLane>();
-                    ret.AddRange(GetNeighborForwardLaneSectionLanes(self.leftLaneForward, true));
-                    ret.Add(self.leftLaneForward);
+                    var ret = new List<LaneData>();
+                    ret.AddRange(GetNeighborForwardLaneSectionLanesData(LaneData.Lane2LaneData[lane.leftLaneForward], true));
+                    ret.Add(LaneData.Lane2LaneData[lane.leftLaneForward]);
                     return ret;
                 }
             }
             else
             {
-                if (self.rightLaneForward == null)
+                if (lane.rightLaneForward == null)
                 {
-                    return new List<MapLane>();
+                    return new List<LaneData>();
                 }
                 else
                 {
-                    var ret = new List<MapLane>();
-                    ret.Add(self.rightLaneForward);
-                    ret.AddRange(GetNeighborForwardLaneSectionLanes(self.rightLaneForward, false));
+                    var ret = new List<LaneData>();
+                    ret.Add(LaneData.Lane2LaneData[lane.rightLaneForward]);
+                    ret.AddRange(GetNeighborForwardLaneSectionLanesData(LaneData.Lane2LaneData[lane.rightLaneForward], false));
                     return ret;
                 }
             }
@@ -274,78 +322,78 @@ namespace Simulator.Editor
 
         void ComputeRoads()
         {
-            var visitedLanes = new HashSet<MapLane>();
-            var neighborForwardLaneSectionLanes = new List<List<MapLane>>();
-            foreach (var laneSegment in LaneSegments)
+            var visitedLanesData = new HashSet<LaneData>();
+            var neighborForwardLaneSectionLanesData = new List<List<LaneData>>();
+            foreach (var laneSegment in LanesData)
             {
-                if (visitedLanes.Contains(laneSegment))
+                if (visitedLanesData.Contains(laneSegment))
                 {
                     continue;
                 }
 
-                var lefts = GetNeighborForwardLaneSectionLanes(laneSegment, true);  // Left forward lanes from furthest to nearest
-                var rights = GetNeighborForwardLaneSectionLanes(laneSegment, false);  // Right forward lanes from nearest to furthest
+                var lefts = GetNeighborForwardLaneSectionLanesData(laneSegment, true);  // Left forward lanes from furthest to nearest
+                var rights = GetNeighborForwardLaneSectionLanesData(laneSegment, false);  // Right forward lanes from nearest to furthest
 
-                var laneSectionLanes = new List<MapLane>();
-                laneSectionLanes.AddRange(lefts);
-                laneSectionLanes.Add(laneSegment);
-                laneSectionLanes.AddRange(rights);
+                var laneSectionLanesData = new List<LaneData>();
+                laneSectionLanesData.AddRange(lefts);
+                laneSectionLanesData.Add(laneSegment);
+                laneSectionLanesData.AddRange(rights);
 
-                foreach (var l in laneSectionLanes)
+                foreach (var l in laneSectionLanesData)
                 {
-                    if (!visitedLanes.Contains(l))
+                    if (!visitedLanesData.Contains(l))
                     {
-                        visitedLanes.Add(l);
+                        visitedLanesData.Add(l);
                     }
                 }
-                neighborForwardLaneSectionLanes.Add(laneSectionLanes);
+                neighborForwardLaneSectionLanesData.Add(laneSectionLanesData);
             }
             // Debug.Log($"We got {neighborForwardLaneSectionLanes.Count} laneSections, {LaneSegments.Count} lanes");
 
             var neighborLaneSectionLanesIdx = new List<List<int>>(); // Final laneSections idx after grouping
-            visitedLanes.Clear();
-            var lane2LaneSectionIdx = new Dictionary<MapLane, int>(); // MapLane to the index of laneSection in neighborLaneSectionLanes
+            visitedLanesData.Clear();
+            var laneData2LaneSectionIdx = new Dictionary<LaneData, int>(); // LaneData to the index of laneSection in neighborLaneSectionLanes
 
-            void AddToLane2Index(List<MapLane> laneSectionLanes, int index)
+            void AddToLaneData2Index(List<LaneData> laneSectionLanesData, int index)
             {
-                foreach (var lane in laneSectionLanes)
+                foreach (var lane in laneSectionLanesData)
                 {
-                    lane2LaneSectionIdx[lane] = index;
+                    laneData2LaneSectionIdx[lane] = index;
                 }
             }
 
-            for (var i = 0; i < neighborForwardLaneSectionLanes.Count; i ++)
+            for (var i = 0; i < neighborForwardLaneSectionLanesData.Count; i ++)
             {
-                var laneSectionLanes1 = neighborForwardLaneSectionLanes[i];
-                var leftMostLane1 = laneSectionLanes1.First();
-                var rightMostLane1 = laneSectionLanes1.Last();
+                var laneSectionLanesData1 = neighborForwardLaneSectionLanesData[i];
+                var leftMostLaneData1 = laneSectionLanesData1.First();
+                var rightMostLaneData1 = laneSectionLanesData1.Last();
 
-                if (visitedLanes.Contains(leftMostLane1) || visitedLanes.Contains(rightMostLane1)) continue;
+                if (visitedLanesData.Contains(leftMostLaneData1) || visitedLanesData.Contains(rightMostLaneData1)) continue;
 
-                visitedLanes.Add(leftMostLane1);
-                visitedLanes.Add(rightMostLane1);
+                visitedLanesData.Add(leftMostLaneData1);
+                visitedLanesData.Add(rightMostLaneData1);
                 var found = false;
                 // Find the neighbor laneSectionLanes
-                for (var j = i+1; j < neighborForwardLaneSectionLanes.Count; j ++)
+                for (var j = i+1; j < neighborForwardLaneSectionLanesData.Count; j ++)
                 {
-                    var laneSectionLanes2 = neighborForwardLaneSectionLanes[j];
-                    var leftMostLane2 = laneSectionLanes2.First();
-                    var rightMostLane2 = laneSectionLanes2.Last();
+                    var laneSectionLanesData2 = neighborForwardLaneSectionLanesData[j];
+                    var leftMostLaneData2 = laneSectionLanesData2.First();
+                    var rightMostLaneData2 = laneSectionLanesData2.Last();
 
-                    if (leftMostLane1 == leftMostLane2 && rightMostLane1 == rightMostLane2) continue;
-                    if (visitedLanes.Contains(leftMostLane2) || visitedLanes.Contains(rightMostLane2)) continue;
+                    if (leftMostLaneData1 == leftMostLaneData2 && rightMostLaneData1 == rightMostLaneData2) continue;
+                    if (visitedLanesData.Contains(leftMostLaneData2) || visitedLanesData.Contains(rightMostLaneData2)) continue;
 
                     // Consider both left-hand/right-hand traffic
-                    var leftHandTraffic = (leftMostLane1.leftLineBoundry == leftMostLane2.leftLineBoundry);
-                    var rightHandTraffic = (rightMostLane1.rightLineBoundry == rightMostLane2.rightLineBoundry); 
+                    var leftHandTraffic = (leftMostLaneData1.mapLane.leftLineBoundry == leftMostLaneData2.mapLane.leftLineBoundry);
+                    var rightHandTraffic = (rightMostLaneData1.mapLane.rightLineBoundry == rightMostLaneData2.mapLane.rightLineBoundry);
                     if (leftHandTraffic || rightHandTraffic)
                     {
-                        visitedLanes.Add(leftMostLane2);
-                        visitedLanes.Add(rightMostLane2);
+                        visitedLanesData.Add(leftMostLaneData2);
+                        visitedLanesData.Add(rightMostLaneData2);
                         neighborLaneSectionLanesIdx.Add(new List<int>() {i, j});
 
-                        AddToLane2Index(laneSectionLanes1, neighborLaneSectionLanesIdx.Count-1);
-                        AddToLane2Index(laneSectionLanes2, neighborLaneSectionLanesIdx.Count-1);
+                        AddToLaneData2Index(laneSectionLanesData1, neighborLaneSectionLanesIdx.Count-1);
+                        AddToLaneData2Index(laneSectionLanesData2, neighborLaneSectionLanesIdx.Count-1);
 
                         found = true;
                     }
@@ -355,17 +403,17 @@ namespace Simulator.Editor
                 {
                     // If the neighbor laneSectionLane not found, it is a one way road
                     neighborLaneSectionLanesIdx.Add(new List<int>() {i});
-                    AddToLane2Index(laneSectionLanes1, neighborLaneSectionLanesIdx.Count-1);
+                    AddToLaneData2Index(laneSectionLanesData1, neighborLaneSectionLanesIdx.Count-1);
                 }
             }
 
             // Debug.Log($"We got {neighborLaneSectionLanesIdx.Count} laneSections");
 
             // Find out starting lanes and start from them and go through all laneSections
-            var startingLanes = FindStartingLanes();
+            var startingLanesData = FindStartingLanesData();
             var visitedNLSLIdx = new HashSet<int>(); // visited indices of NLSL(neighborLaneSectionLanesIdx) list
 
-            Vector3 GetDirection(MapLane mapLane)
+            Vector3 GetDirection(LaneData mapLane)
             {
                 var positions = mapLane.mapWorldPositions;
                 return positions.Last() - positions.First();
@@ -373,19 +421,19 @@ namespace Simulator.Editor
 
             Roads = new OpenDRIVERoad[neighborLaneSectionLanesIdx.Count];
             uint roadId = 0;
-            foreach (var startingLane in startingLanes)
+            foreach (var startingLaneData in startingLanesData)
             {
                 // BFS until the lane has 0 afters
-                var startingLaneNLSLIdx = lane2LaneSectionIdx[startingLane];
+                var startingLaneNLSLIdx = laneData2LaneSectionIdx[startingLaneData];
                 if (visitedNLSLIdx.Contains(startingLaneNLSLIdx)) continue;
 
-                var queue = new Queue<MapLane>();
-                queue.Enqueue(startingLane);
+                var queue = new Queue<LaneData>();
+                queue.Enqueue(startingLaneData);
 
                 while (queue.Any())
                 {
-                    var curLane = queue.Dequeue();
-                    var curNLSLIdx = lane2LaneSectionIdx[curLane];
+                    var curLaneData = queue.Dequeue();
+                    var curNLSLIdx = laneData2LaneSectionIdx[curLaneData];
                     if (visitedNLSLIdx.Contains(curNLSLIdx)) continue;
                     // Make a road for the laneSection curLane is in
                     // Reference line should have the same direction with curLane
@@ -395,60 +443,60 @@ namespace Simulator.Editor
                         id = roadId.ToString(),
                     };
 
-                    List<MapLane> consideredLanes = new List<MapLane>();
-                    MapLine refLine;
+                    List<LaneData> consideredLanesData = new List<LaneData>();
+                    LineData refLineData;
                     List<Vector3> refLinePositions;
                     // One Way lane section
                     if (neighborLaneSectionLanesIdx[curNLSLIdx].Count == 1)
                     {
-                        var neighborLaneSectionLanes = neighborForwardLaneSectionLanes[neighborLaneSectionLanesIdx[curNLSLIdx][0]];
+                        var neighborLaneSectionLanesData = neighborForwardLaneSectionLanesData[neighborLaneSectionLanesIdx[curNLSLIdx][0]];
 
-                        refLine = GetRefLineAndPositions(neighborLaneSectionLanes, out refLinePositions);
+                        refLineData = GetRefLineAndPositions(neighborLaneSectionLanesData, out refLinePositions);
 
                         AddPlanViewElevationLateral(refLinePositions, road);
-                        AddLanes(road, refLine, neighborLaneSectionLanes, neighborLaneSectionLanes);
+                        AddLanes(road, refLineData, neighborLaneSectionLanesData, neighborLaneSectionLanesData);
 
                         visitedNLSLIdx.Add(curNLSLIdx);
-                        consideredLanes = neighborLaneSectionLanes;
+                        consideredLanesData = neighborLaneSectionLanesData;
                     }
                     // Two Way lane section
                     else
                     {
-                        var neighborLaneSectionLanes1 = neighborForwardLaneSectionLanes[neighborLaneSectionLanesIdx[curNLSLIdx][0]];
-                        var neighborLaneSectionLanes2 = neighborForwardLaneSectionLanes[neighborLaneSectionLanesIdx[curNLSLIdx][1]];
+                        var neighborLaneSectionLanes1 = neighborForwardLaneSectionLanesData[neighborLaneSectionLanesIdx[curNLSLIdx][0]];
+                        var neighborLaneSectionLanes2 = neighborForwardLaneSectionLanesData[neighborLaneSectionLanesIdx[curNLSLIdx][1]];
 
                         // Check curLane direction, reference line should have same direction with it
                         var direction1 = GetDirection(neighborLaneSectionLanes1[0]);
-                        var curDirection = GetDirection(curLane);
+                        var curDirection = GetDirection(curLaneData);
 
-                        List<MapLane> leftNeighborLaneSectionLanes, rightNeighborLaneSectionLanes;
+                        List<LaneData> leftNeighborLaneSectionLanes, rightNeighborLaneSectionLanes;
                         if (Vector3.Dot(direction1, curDirection) > 0)
                         {
-                            refLine = GetRefLineAndPositions(neighborLaneSectionLanes1, out refLinePositions);
+                            refLineData = GetRefLineAndPositions(neighborLaneSectionLanes1, out refLinePositions);
                             rightNeighborLaneSectionLanes = neighborLaneSectionLanes1;
                             leftNeighborLaneSectionLanes = neighborLaneSectionLanes2;
                         }
                         else
                         {
-                            refLine = GetRefLineAndPositions(neighborLaneSectionLanes2, out refLinePositions);
+                            refLineData = GetRefLineAndPositions(neighborLaneSectionLanes2, out refLinePositions);
                             rightNeighborLaneSectionLanes = neighborLaneSectionLanes2;
                             leftNeighborLaneSectionLanes = neighborLaneSectionLanes1;
                         }
 
                         AddPlanViewElevationLateral(refLinePositions, road);
-                        AddLanes(road, refLine, leftNeighborLaneSectionLanes, rightNeighborLaneSectionLanes, false);
+                        AddLanes(road, refLineData, leftNeighborLaneSectionLanes, rightNeighborLaneSectionLanes, false);
 
-                        visitedNLSLIdx.Add(lane2LaneSectionIdx[neighborLaneSectionLanes1[0]]);
-                        visitedNLSLIdx.Add(lane2LaneSectionIdx[neighborLaneSectionLanes2[0]]);
-                        consideredLanes.AddRange(neighborLaneSectionLanes1);
-                        consideredLanes.AddRange(neighborLaneSectionLanes2);
+                        visitedNLSLIdx.Add(laneData2LaneSectionIdx[neighborLaneSectionLanes1[0]]);
+                        visitedNLSLIdx.Add(laneData2LaneSectionIdx[neighborLaneSectionLanes2[0]]);
+                        consideredLanesData.AddRange(neighborLaneSectionLanes1);
+                        consideredLanesData.AddRange(neighborLaneSectionLanes2);
                     }
 
-                    GetLaneSectionLanesAfterLanes(queue, consideredLanes, visitedNLSLIdx, lane2LaneSectionIdx);
-                    Add2Lane2RoadId(roadId, consideredLanes);
+                    GetLaneSectionLanesAfterLanes(queue, consideredLanesData, visitedNLSLIdx, laneData2LaneSectionIdx);
+                    Add2Lane2RoadId(roadId, consideredLanesData);
 
                     // Add speed limit
-                    var maxSpeedMPH = consideredLanes[0].speedLimit * 2.23694;
+                    var maxSpeedMPH = consideredLanesData[0].mapLane.speedLimit * 2.23694;
                     road.type = new OpenDRIVERoadType[1]{
                         new OpenDRIVERoadType(){
                             speed = new OpenDRIVERoadTypeSpeed(){
@@ -480,23 +528,23 @@ namespace Simulator.Editor
 
             foreach (var NLSLIdxList in neighborLaneSectionLanesIdx)
             {
-                var roadBeforeLanes = new HashSet<MapLane>(); // lanes before current road
-                var roadAfterLanes = new HashSet<MapLane>();
+                var roadBeforeLanesData = new HashSet<LaneData>(); // lanes before current road
+                var roadAfterLanesData = new HashSet<LaneData>();
 
                 // One way road
                 if (NLSLIdxList.Count == 1)
                 {
-                    UpdateLaneLink(roadBeforeLanes, roadAfterLanes, neighborForwardLaneSectionLanes[NLSLIdxList[0]]);
+                    UpdateLaneLink(roadBeforeLanesData, roadAfterLanesData, neighborForwardLaneSectionLanesData[NLSLIdxList[0]]);
                 }
                 // Two way Roads
                 else
                 {
-                    UpdateLaneLink(roadBeforeLanes, roadAfterLanes, neighborForwardLaneSectionLanes[NLSLIdxList[0]]);
-                    UpdateLaneLink(roadBeforeLanes, roadAfterLanes, neighborForwardLaneSectionLanes[NLSLIdxList[1]]);
+                    UpdateLaneLink(roadBeforeLanesData, roadAfterLanesData, neighborForwardLaneSectionLanesData[NLSLIdxList[0]]);
+                    UpdateLaneLink(roadBeforeLanesData, roadAfterLanesData, neighborForwardLaneSectionLanesData[NLSLIdxList[1]]);
                 }
 
-                var curRoadId = Lane2RoadId[neighborForwardLaneSectionLanes[NLSLIdxList[0]][0]];
-                UpdateRoadLink(roadBeforeLanes, roadAfterLanes, curRoadId);
+                var curRoadId = LaneData2RoadId[neighborForwardLaneSectionLanesData[NLSLIdxList[0]][0]];
+                UpdateRoadLink(roadBeforeLanesData, roadAfterLanesData, curRoadId);
             }
 
             Map.road = Roads;
@@ -523,20 +571,21 @@ namespace Simulator.Editor
 
                 // Tuple: (incomingRoadId, connectingRoadId, contactPoint)
                 var connections2LaneLink = new Dictionary<Tuple<uint, uint, contactPoint>, List<OpenDRIVEJunctionConnectionLaneLink>>();
-                var allBeforeAndAfterLanes = new List<MapLane>();
+                var allBeforeAfterLanesData = new List<LaneData>();
                 foreach (var lane in intersectionLanes)
                 {
-                    Lane2JunctionId[lane] = junctionId;
+                    var laneData = LaneData.Lane2LaneData[lane];
+                    LaneData2JunctionId[laneData] = junctionId;
 
-                    var incomingLanes = lane.befores;
-                    var beforeAfterLanes = new List<MapLane>(incomingLanes);
-                    beforeAfterLanes.AddRange(lane.afters);
-                    allBeforeAndAfterLanes.AddRange(beforeAfterLanes);
+                    var incomingLanesData = laneData.befores;
+                    var beforeAfterLanes = new List<LaneData>(incomingLanesData);
+                    beforeAfterLanes.AddRange(laneData.afters);
+                    allBeforeAfterLanesData.AddRange(beforeAfterLanes);
 
-                    UpdateConnections2LaneLink(connections2LaneLink, lane, incomingLanes);
+                    UpdateConnections2LaneLink(connections2LaneLink, laneData, incomingLanesData);
 
                     // Update corresponding road header's junctionId
-                    roadId = Lane2RoadId[lane];
+                    roadId = LaneData2RoadId[laneData];
                     JunctionRoadIds.Add(roadId);
                     if (updatedRoadIds.Contains(roadId)) continue;
                     Roads[roadId].junction = junctionId.ToString();
@@ -553,10 +602,10 @@ namespace Simulator.Editor
 
                 // Create dictionary from stop line to roadId
                 var stopLine2RoadId = new Dictionary<MapLine, uint>();
-                foreach (var lane in allBeforeAndAfterLanes)
+                foreach (var laneData in allBeforeAfterLanesData)
                 {
-                    var roadIdOfLane = Lane2RoadId[lane];
-                    var stopLine = lane.stopLine;
+                    var roadIdOfLane = LaneData2RoadId[laneData];
+                    var stopLine = laneData.mapLane.stopLine;
                     if (stopLine == null || stopLine2RoadId.ContainsKey(stopLine)) continue;
                     stopLine2RoadId[stopLine] = roadIdOfLane;
                 }
@@ -666,26 +715,28 @@ namespace Simulator.Editor
             }
         }
 
-        void UpdateConnections2LaneLink(Dictionary<Tuple<uint, uint, contactPoint>, List<OpenDRIVEJunctionConnectionLaneLink>> connections2LaneLink, MapLane lane, List<MapLane> incomingLanes)
+        void UpdateConnections2LaneLink(
+            Dictionary<Tuple<uint, uint, contactPoint>, List<OpenDRIVEJunctionConnectionLaneLink>> connections2LaneLink,
+            LaneData laneData, List<LaneData> incomingLanesData)
         {
-            var connectingRoadId = Lane2RoadId[lane];
-            var connectingLaneId = Lane2LaneId[lane];
+            var connectingRoadId = LaneData2RoadId[laneData];
+            var connectingLaneId = LaneData2LaneId[laneData];
             // Check whether lane has same direction with its road
             if (connectingLaneId > 0)
             {
-                incomingLanes = lane.afters;
+                incomingLanesData = laneData.afters;
             }
 
-            foreach (var incomingLane in incomingLanes)
+            foreach (var incomingLaneData in incomingLanesData)
             {
-                var incomingRoadId = Lane2RoadId[incomingLane];
-                var key = Tuple.Create(incomingRoadId, connectingRoadId, GetContactPoint(incomingRoadId, lane));
+                var incomingRoadId = LaneData2RoadId[incomingLaneData];
+                var key = Tuple.Create(incomingRoadId, connectingRoadId, GetContactPoint(incomingRoadId, laneData));
                 if (connections2LaneLink.ContainsKey(key))
                 {
                     connections2LaneLink[key].Add(
                         new OpenDRIVEJunctionConnectionLaneLink()
                         {
-                            from = Lane2LaneId[incomingLane],
+                            from = LaneData2LaneId[incomingLaneData],
                             to = connectingLaneId,
                             fromSpecified = true,
                             toSpecified = true,
@@ -698,7 +749,7 @@ namespace Simulator.Editor
                         {
                             new OpenDRIVEJunctionConnectionLaneLink()
                             {
-                                from = Lane2LaneId[incomingLane],
+                                from = LaneData2LaneId[incomingLaneData],
                                 to = connectingLaneId,
                                 fromSpecified = true,
                                 toSpecified = true,
@@ -963,21 +1014,21 @@ namespace Simulator.Editor
             return signal;
         }
 
-        void UpdateRoadLink(HashSet<MapLane> roadBeforeLanes, HashSet<MapLane> roadAfterLanes, uint curRoadId)
+        void UpdateRoadLink(HashSet<LaneData> roadBeforeLanesData, HashSet<LaneData> roadAfterLanesData, uint curRoadId)
         {
             // note: before == predecessor, after == successor
             var preRoadIds = new HashSet<uint>();
-            MapLane curBeforeLane = null, curAfterLane = null;
-            foreach (var beforeLane in roadBeforeLanes)
+            LaneData curBeforeLaneData = null, curAfterLaneData = null;
+            foreach (var beforeLane in roadBeforeLanesData)
             {
-                curBeforeLane = beforeLane;
-                preRoadIds.Add(Lane2RoadId[beforeLane]);
+                curBeforeLaneData = beforeLane;
+                preRoadIds.Add(LaneData2RoadId[beforeLane]);
             }
             var sucRoadIds = new HashSet<uint>();
-            foreach (var afterLane in roadAfterLanes)
+            foreach (var afterLane in roadAfterLanesData)
             {
-                curAfterLane = afterLane;
-                sucRoadIds.Add(Lane2RoadId[afterLane]);
+                curAfterLaneData = afterLane;
+                sucRoadIds.Add(LaneData2RoadId[afterLane]);
             }
 
             uint? preRoadId = null;
@@ -1002,13 +1053,13 @@ namespace Simulator.Editor
                 }
                 else
                 {
-                    preRoadId = Lane2RoadId[curBeforeLane];
+                    preRoadId = LaneData2RoadId[curBeforeLaneData];
 
                     roadPredecessor = new OpenDRIVERoadLinkPredecessor()
                     {
                         elementType = elementType.road,
                         elementId = preRoadId.ToString(),
-                        contactPoint = GetContactPoint(curRoadId, curBeforeLane),
+                        contactPoint = GetContactPoint(curRoadId, curBeforeLaneData),
                         elementTypeSpecified = true,
                         contactPointSpecified = true,
                     };
@@ -1035,13 +1086,13 @@ namespace Simulator.Editor
                 }
                 else
                 {
-                    sucRoadId = Lane2RoadId[curAfterLane];
+                    sucRoadId = LaneData2RoadId[curAfterLaneData];
 
                     roadSuccessor = new OpenDRIVERoadLinkSuccessor()
                     {
                         elementType = elementType.road,
                         elementId = sucRoadId.ToString(),
-                        contactPoint = GetContactPoint(curRoadId, curAfterLane),
+                        contactPoint = GetContactPoint(curRoadId, curAfterLaneData),
                         elementTypeSpecified = true,
                         contactPointSpecified = true,
                     };
@@ -1083,11 +1134,11 @@ namespace Simulator.Editor
 
             bool hasMoreThanOneLinkedLanes = false;
 
-            foreach (var mapLane in RoadId2Lanes[roadId])
+            foreach (var mapLane in RoadId2LanesData[roadId])
             {
                 if (isPredecessor)
                 {
-                    if ((Lane2LaneId[mapLane] < 0 && mapLane.befores.Count > 1) || (Lane2LaneId[mapLane] > 0 && mapLane.afters.Count > 1))
+                    if ((LaneData2LaneId[mapLane] < 0 && mapLane.befores.Count > 1) || (LaneData2LaneId[mapLane] > 0 && mapLane.afters.Count > 1))
                     {
                         hasMoreThanOneLinkedLanes = true;
                         break;
@@ -1095,7 +1146,7 @@ namespace Simulator.Editor
                 }
                 else
                 {
-                    if ((Lane2LaneId[mapLane] < 0 && mapLane.afters.Count > 1) || (Lane2LaneId[mapLane] > 0 && mapLane.befores.Count > 1))
+                    if ((LaneData2LaneId[mapLane] < 0 && mapLane.afters.Count > 1) || (LaneData2LaneId[mapLane] > 0 && mapLane.befores.Count > 1))
                     {
                         hasMoreThanOneLinkedLanes = true;
                         break;
@@ -1125,14 +1176,14 @@ namespace Simulator.Editor
         }
 
         // Given current road and any lane of predecessor/successor road, get contactPoint of the predecessor/successor road
-        contactPoint GetContactPoint(uint curRoadId, MapLane linkRoadLane)
+        contactPoint GetContactPoint(uint curRoadId, LaneData linkRoadLaneData)
         {
             var roadStartPoint = new Vector3((float)Roads[curRoadId].planView[0].x, (float)Roads[curRoadId].elevationProfile.elevation[0].a, (float)Roads[curRoadId].planView[0].y);
             var roadLastPoint = new Vector3((float)Roads[curRoadId].planView.Last().x, (float)Roads[curRoadId].elevationProfile.elevation.Last().a, (float)Roads[curRoadId].planView.Last().y);
-            var positions = linkRoadLane.mapWorldPositions;
+            var positions = linkRoadLaneData.mapWorldPositions;
             var linkedRoadLaneStartPoint = positions.First();
             var linkedRoadLaneEndPoint = positions.Last();
-            if (Lane2LaneId[linkRoadLane] > 0)
+            if (LaneData2LaneId[linkRoadLaneData] > 0)
             {
                 // if the lane is a left lane in the road, reference line is opposite with the lane
                 linkedRoadLaneStartPoint = positions.Last();
@@ -1167,7 +1218,7 @@ namespace Simulator.Editor
                 if (junctionId == null)
                 {
                     var msg = $"Road: {roadId} junction id is null, please double check the corresponding lane.";
-                    Debug.LogWarning(msg, RoadId2Lanes[roadId][0].gameObject);
+                    Debug.LogWarning(msg, RoadId2LanesData[roadId][0].go);
                     msg = "\tIf this lane belongs to a laneSection, please make sure all adjacent lanes are sharing correct boundary lines!";
                     msg += "Otherwise, you can ignore this message.";
                     Debug.LogWarning(msg);
@@ -1189,21 +1240,21 @@ namespace Simulator.Editor
                 name = "",
             };
 
-            var junctionLanes = new List<MapLane>();
+            var junctionLanesData = new List<LaneData>();
             foreach (var roadId in roadIds)
             {
-                junctionLanes.AddRange(RoadId2Lanes[roadId]);
+                junctionLanesData.AddRange(RoadId2LanesData[roadId]);
             }
 
             var connections2LaneLink = new Dictionary<Tuple<uint, uint, contactPoint>, List<OpenDRIVEJunctionConnectionLaneLink>>();
-            foreach (var lane in junctionLanes)
+            foreach (var laneData in junctionLanesData)
             {
-                Lane2JunctionId[lane] = junctionId;
-                var incomingLanes = lane.befores;
-                UpdateConnections2LaneLink(connections2LaneLink, lane, incomingLanes);
+                LaneData2JunctionId[laneData] = junctionId;
+                var incomingLanesData = laneData.befores;
+                UpdateConnections2LaneLink(connections2LaneLink, laneData, incomingLanesData);
 
                 // Update corresponding road header's junctionId
-                uint roadId = Lane2RoadId[lane];
+                uint roadId = LaneData2RoadId[laneData];
                 Roads[roadId].junction = junctionId.ToString();
             }
 
@@ -1212,12 +1263,12 @@ namespace Simulator.Editor
             return junctionId.ToString();
         }
 
-        void UpdateLaneLink(HashSet<MapLane> roadBeforeLanes, HashSet<MapLane> roadAfterLanes, List<MapLane> lanes)
+        void UpdateLaneLink(HashSet<LaneData> roadBeforeLanesData, HashSet<LaneData> roadAfterLanesData, List<LaneData> lanesData)
         {
             var isLeft = false;
-            if (Lane2LaneId[lanes[0]] > 0) isLeft = true; // left lanes always have positive Ids
+            if (LaneData2LaneId[lanesData[0]] > 0) isLeft = true; // left lanes always have positive Ids
 
-            foreach (var lane in lanes)
+            foreach (var lane in lanesData)
             {
                 var befores = lane.befores;
                 var afters = lane.afters;
@@ -1236,7 +1287,7 @@ namespace Simulator.Editor
                 laneLink laneLink = new laneLink();
                 if (befores.Count == 1)
                 {
-                    preLaneId = Lane2LaneId[befores[0]];
+                    preLaneId = LaneData2LaneId[befores[0]];
                     lanePredecessor = new laneLinkPredecessor()
                     {
                         id = preLaneId.Value,
@@ -1251,7 +1302,7 @@ namespace Simulator.Editor
 
                 if (afters.Count == 1)
                 {
-                    sucLaneId = Lane2LaneId[afters[0]];
+                    sucLaneId = LaneData2LaneId[afters[0]];
                     laneSuccessor = new laneLinkSuccessor()
                     {
                         id = sucLaneId.Value,
@@ -1274,12 +1325,12 @@ namespace Simulator.Editor
                             successor = laneSuccessor,
                         };
                     }
-                    var roadId = Lane2RoadId[lane];
-                    var laneId = Lane2LaneId[lane];
+                    var roadId = LaneData2RoadId[lane];
+                    var laneId = LaneData2LaneId[lane];
                     var laneIdx = Mathf.Abs(laneId) - 1; // right lanes Id: -1, -2, -3, ...
                     if (isLeft)
                     {
-                        laneIdx = lanes.Count - laneId; // left lanes Id: ..., 4, 3, 2, 1
+                        laneIdx = lanesData.Count - laneId; // left lanes Id: ..., 4, 3, 2, 1
                         Roads[roadId].lanes.laneSection[0].left.lane[laneIdx].link = laneLink;
                     }
                     else
@@ -1287,36 +1338,38 @@ namespace Simulator.Editor
                         Roads[roadId].lanes.laneSection[0].right.lane[laneIdx].link = laneLink;
                     }
                 }
-                roadBeforeLanes.UnionWith(befores);
-                roadAfterLanes.UnionWith(afters);
+                roadBeforeLanesData.UnionWith(befores);
+                roadAfterLanesData.UnionWith(afters);
             }
         }
 
-        void Add2Lane2RoadId(uint roadId, List<MapLane> consideredLanes)
+        void Add2Lane2RoadId(uint roadId, List<LaneData> consideredLanesData)
         {
-            foreach (var lane in consideredLanes)
+            foreach (var laneData in consideredLanesData)
             {
-               Lane2RoadId[lane] = roadId;
-               if (RoadId2Lanes.ContainsKey(roadId)) RoadId2Lanes[roadId].Add(lane);
-               else RoadId2Lanes[roadId] = new List<MapLane>(){lane};
+               LaneData2RoadId[laneData] = roadId;
+               if (RoadId2LanesData.ContainsKey(roadId)) RoadId2LanesData[roadId].Add(laneData);
+               else RoadId2LanesData[roadId] = new List<LaneData>(){laneData};
             }
         }
 
-        void GetLaneSectionLanesAfterLanes(Queue<MapLane> queue, List<MapLane> lanes, HashSet<int> visitedNLSLIdx, Dictionary<MapLane, int> lane2LaneSectionIdx)
+        void GetLaneSectionLanesAfterLanes(Queue<LaneData> queue, List<LaneData> lanesData, HashSet<int> visitedNLSLIdx, Dictionary<LaneData, int> laneData2LaneSectionIdx)
         {
-            foreach (var curLane in lanes)
+            foreach (var curLaneData in lanesData)
             {
-                foreach (var lane in curLane.afters)
+                foreach (var lanedata in curLaneData.afters)
                 {
-                    if (!visitedNLSLIdx.Contains(lane2LaneSectionIdx[lane]))
+                    if (!visitedNLSLIdx.Contains(laneData2LaneSectionIdx[lanedata]))
                     {
-                        queue.Enqueue(lane);
+                        queue.Enqueue(lanedata);
                     }
                 }
             }
         }
 
-        void AddLanes(OpenDRIVERoad road, MapLine refLine, List<MapLane> leftNeighborLaneSectionLanes, List<MapLane> rightNeighborLaneSectionLanes, bool isOneWay=true)
+        void AddLanes(OpenDRIVERoad road, LineData refLineData,
+            List<LaneData> leftNeighborLaneSectionLanesData,
+            List<LaneData> rightNeighborLaneSectionLanesData, bool isOneWay=true)
         {
             var lanes = new OpenDRIVERoadLanes();
 
@@ -1324,7 +1377,7 @@ namespace Simulator.Editor
             // Add laneSection
 
             var center = CreateCenterLane(true);
-            var right = CreateRightLanes(refLine, rightNeighborLaneSectionLanes);
+            var right = CreateRightLanes(refLineData, rightNeighborLaneSectionLanesData);
             var laneSectionArray = new OpenDRIVERoadLanesLaneSection[1];
 
             laneSectionArray[0] = new OpenDRIVERoadLanesLaneSection()
@@ -1337,7 +1390,7 @@ namespace Simulator.Editor
 
             if (!isOneWay)
             {
-                var left = CreateLeftLanes(refLine, leftNeighborLaneSectionLanes);
+                var left = CreateLeftLanes(refLineData, leftNeighborLaneSectionLanesData);
                 laneSectionArray[0] = new OpenDRIVERoadLanesLaneSection()
                 {
                     s = 0,
@@ -1454,24 +1507,25 @@ namespace Simulator.Editor
             return center;
         }
 
-        OpenDRIVERoadLanesLaneSectionRight CreateRightLanes(MapLine refLine, List<MapLane> neighborLaneSectionLanes)
+        OpenDRIVERoadLanesLaneSectionRight CreateRightLanes(LineData refLineData, List<LaneData> neighborLaneSectionLanesData)
         {
             var right = new OpenDRIVERoadLanesLaneSectionRight();
-            right.lane = new lane[neighborLaneSectionLanes.Count];
+            right.lane = new lane[neighborLaneSectionLanesData.Count];
             var rightId = -1;
-            var curLeftBoundaryLine = refLine;
+            var curLeftBoundaryLineData = refLineData;
 
-            var positions = refLine.mapWorldPositions;
+            var positions = refLineData.mapWorldPositions;
             var refLineDirection = (positions.Last() - positions.First()).normalized;
-            for (int i = 0; i < neighborLaneSectionLanes.Count; i ++)
+            for (int i = 0; i < neighborLaneSectionLanesData.Count; i ++)
             {
-                var rightLane = neighborLaneSectionLanes[i];
-                Lane2LaneId[rightLane] = rightId;
-                var curRightBoundaryLine = rightLane.rightLineBoundry;
+                var rightLaneData = neighborLaneSectionLanesData[i];
+                LaneData2LaneId[rightLaneData] = rightId;
+                var curRightBoundaryLine = rightLaneData.mapLane.rightLineBoundry;
+                var curRightBoundaryLineData = LineData.Line2LineData[curRightBoundaryLine];
 
                 var laneChangeType = laneChange.both;
                 var roadMarkType = roadmarkType.broken;
-                if (i == neighborLaneSectionLanes.Count - 1)
+                if (i == neighborLaneSectionLanesData.Count - 1)
                 {
                     laneChangeType = laneChange.none;
                     roadMarkType = roadmarkType.solid;
@@ -1492,7 +1546,7 @@ namespace Simulator.Editor
                     laneChangeSpecified = true,
                 };
 
-                var widths = CreateLaneWidths(curLeftBoundaryLine, curRightBoundaryLine, refLineDirection, rightLane);
+                var widths = CreateLaneWidths(curLeftBoundaryLineData, curRightBoundaryLineData, refLineDirection, rightLaneData);
                 var lane = new lane()
                 {
                     id = rightId--,
@@ -1509,30 +1563,31 @@ namespace Simulator.Editor
                 };
 
                 right.lane[i] = lane;
-                curLeftBoundaryLine = curRightBoundaryLine;
+                curLeftBoundaryLineData = curRightBoundaryLineData;
             }
 
             return right;
         }
 
-        OpenDRIVERoadLanesLaneSectionLeft CreateLeftLanes(MapLine refLine, List<MapLane> neighborLaneSectionLanes)
+        OpenDRIVERoadLanesLaneSectionLeft CreateLeftLanes(LineData refLineData, List<LaneData> neighborLaneSectionLanesData)
         {
             var left = new OpenDRIVERoadLanesLaneSectionLeft();
-            left.lane = new lane[neighborLaneSectionLanes.Count];
+            left.lane = new lane[neighborLaneSectionLanesData.Count];
             var leftId = 1;
-            var curLeftBoundaryLine = refLine;
+            var curLeftBoundaryLineData = refLineData;
 
-            var positions = refLine.mapWorldPositions;
+            var positions = refLineData.mapWorldPositions;
             var refLineDirection = (positions.Last() - positions.First()).normalized;
-            for (int i = 0; i < neighborLaneSectionLanes.Count; i ++)
+            for (int i = 0; i < neighborLaneSectionLanesData.Count; i ++)
             {
-                var leftLane = neighborLaneSectionLanes[i];
-                Lane2LaneId[leftLane] = leftId;
-                var curRightBoundaryLine = leftLane.rightLineBoundry;
+                var leftLaneData = neighborLaneSectionLanesData[i];
+                LaneData2LaneId[leftLaneData] = leftId;
+                var curRightBoundaryLine = leftLaneData.mapLane.rightLineBoundry;
+                var curRightBoundaryLineData = LineData.Line2LineData[curRightBoundaryLine];
 
                 var laneChangeType = laneChange.both;
                 var roadMarkType = roadmarkType.broken;
-                if (i == neighborLaneSectionLanes.Count - 1)
+                if (i == neighborLaneSectionLanesData.Count - 1)
                 {
                     laneChangeType = laneChange.none;
                     roadMarkType = roadmarkType.solid;
@@ -1553,7 +1608,7 @@ namespace Simulator.Editor
                     laneChangeSpecified = true,
                 };
 
-                var widths = CreateLaneWidths(curLeftBoundaryLine, curRightBoundaryLine, refLineDirection, leftLane);
+                var widths = CreateLaneWidths(curLeftBoundaryLineData, curRightBoundaryLineData, refLineDirection, leftLaneData);
                 var lane = new lane()
                 {
                     id = leftId++,
@@ -1569,8 +1624,8 @@ namespace Simulator.Editor
                     levelSpecified = true,
                 };
 
-                left.lane[neighborLaneSectionLanes.Count - 1 - i] = lane;
-                curLeftBoundaryLine = curRightBoundaryLine;
+                left.lane[neighborLaneSectionLanesData.Count - 1 - i] = lane;
+                curLeftBoundaryLineData = curRightBoundaryLineData;
             }
 
             return left;
@@ -1585,20 +1640,20 @@ namespace Simulator.Editor
         }
 
         // Create width array for boundaryLine based on refLine
-        laneWidth[] CreateLaneWidths(MapLine refLine, MapLine boundaryLine, Vector3 refLineDirection, MapLane lane)
+        laneWidth[] CreateLaneWidths(LineData refLineData, LineData boundaryLineData, Vector3 refLineDirection, LaneData laneData)
         {
-            var leftPositions = refLine.mapWorldPositions;
+            var leftPositions = refLineData.mapWorldPositions;
             ReverseIfOpposite(leftPositions, refLineDirection);
-            var rightPositions = boundaryLine.mapWorldPositions;
+            var rightPositions = boundaryLineData.mapWorldPositions;
             ReverseIfOpposite(rightPositions, refLineDirection);
 
             List<Vector3> splittedLeftPoints = new List<Vector3>(), splittedRightPoints = new List<Vector3>();
             SplitLeftRightLines(leftPositions, rightPositions, ref splittedLeftPoints, ref splittedRightPoints);
             if (splittedLeftPoints.Count != splittedRightPoints.Count)
             {
-                var logString = $"The boundary lines of lane {lane.name} might have wrong length.";
-                Debug.Log(logString, lane.gameObject);
-                Debug.Log($"Please check boundary line {boundaryLine.name}", boundaryLine.gameObject);
+                var logString = $"The boundary lines of lane {laneData.go.name} might have wrong length.";
+                Debug.Log(logString, laneData.go);
+                Debug.Log($"Please check boundary line {boundaryLineData.go.name}", boundaryLineData.go);
                 throw new Exception("Aborting exporter.");
             }
 
@@ -1779,13 +1834,13 @@ namespace Simulator.Editor
             splittedLinePoints.Add(positions[positions.Count - 1]);
         }
 
-        HashSet<MapLane> FindStartingLanes()
+        HashSet<LaneData> FindStartingLanesData()
         {
-            var allLanes = new HashSet<MapLane>();
-            var visitedLanes = new HashSet<MapLane>();
-            var startingLanes = new HashSet<MapLane>();
-            var stack = new Stack<MapLane>(); // lanes to start dfs
-            foreach (var laneSegment in LaneSegments)
+            var allLanes = new HashSet<LaneData>();
+            var visitedLanes = new HashSet<LaneData>();
+            var startingLanes = new HashSet<LaneData>();
+            var stack = new Stack<LaneData>(); // lanes to start dfs
+            foreach (var laneSegment in LanesData)
             {
                 if (laneSegment.befores.Count == 0)
                 {

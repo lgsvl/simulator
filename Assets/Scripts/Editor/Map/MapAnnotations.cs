@@ -2100,7 +2100,7 @@ public class MapAnnotations : EditorWindow
         ExtraLinesCnt = 0;
         var allLanes = new HashSet<MapLane>(mapAnnotationData.GetData<MapLane>());
         AddWorldPositions(allLanes.ToList());
-        OpenDriveMapExporter.LinkSegments(allLanes);
+        ApolloMapImporter.LinkSegments(allLanes);
         foreach (var mapLaneSection in mapLaneSections)
         {
             var mapLanes = new List<MapLane>(mapLaneSection.GetComponentsInChildren<MapLane>());

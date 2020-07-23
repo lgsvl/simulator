@@ -223,37 +223,43 @@ namespace Simulator.Editor
             var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             hdrp?.RequestSkyEnvironmentUpdate();
 
-            for (var i = 0; i < 3; ++i)
+            var largeRes = new Vector2Int(textures[0].width, textures[0].height);
+            var largeRt = RenderTexture.GetTemporary(largeRes.x, largeRes.y, 24);
+            camera.targetTexture = largeRt;
+
+            // Physically based sky renderer builds up bounces over multiple frames, modifying indirect light
+            // Render some frames in advance here so that all lighting is fully calculated for previews
+            const int maxCalls = 20;
+            var calls = 0;
+
+            do
+            {
+                camera.Render();
+                largeRt.IncrementUpdateCount();
+            } while (calls++ < maxCalls && !SkyDone(volume, hd));
+
+            if (!SkyDone(volume, hd))
+            {
+                LogSkyData(volume, hd);
+                Debug.LogError($"Preview rendering failed - sky not initialized");
+            }
+
+            camera.Render();
+            largeRt.IncrementUpdateCount();
+
+            for (var i = 2; i >= 0; i--)
             {
                 var res = new Vector2Int(textures[i].width, textures[i].height);
-                var rt = RenderTexture.GetTemporary(res.x, res.y, 24);
-                camera.targetTexture = rt;
+                var rt = i == 0 ? largeRt : RenderTexture.GetTemporary(res.x, res.y, 24);
 
-                if (i == 0)
+                if (i != 0)
                 {
-                    // Physically based sky renderer builds up bounces over multiple frames, modifying indirect light
-                    // Render some frames in advance here so that all lighting is fully calculated for previews
-                    const int maxCalls = 20;
-                    var calls = 0;
-
-                    do
-                    {
-                        camera.Render();
-                        rt.IncrementUpdateCount();
-                    } while (calls++ < maxCalls && !SkyDone(volume, hd));
-
-                    if (!SkyDone(volume, hd))
-                    {
-                        LogSkyData(volume, hd);
-                        Debug.LogError($"Preview rendering failed - sky not initialized");
-                    }
+                    Graphics.Blit(largeRt, rt);
+                    rt.IncrementUpdateCount();
                 }
 
-                camera.Render();
-                rt.IncrementUpdateCount();
                 RenderTexture.active = rt;
                 textures[i].ReadPixels(new Rect(0, 0, res.x, res.y), 0, 0);
-                camera.targetTexture = null;
                 RenderTexture.active = null;
                 RenderTexture.ReleaseTemporary(rt);
             }

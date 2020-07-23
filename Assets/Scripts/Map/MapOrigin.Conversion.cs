@@ -52,7 +52,7 @@ namespace Simulator.Map
         //Expects Easting values where the central meridian is 500000
         public void GetLatitudeLongitude(double northing, double easting, out double latitude, out double longitude, bool ignoreMapOrigin = false)
         {
-            double x = easting - 500000d;
+            double x = ignoreMapOrigin ? easting : easting - 500000d;
             double y = northing;
 
             double m = y / K0;
@@ -140,7 +140,7 @@ namespace Simulator.Map
             easting = K0 * n * (a +
                 a3 / 6 * (1 - lat_tan2 + c) +
                 a5 / 120 * (5 - 18 * lat_tan2 + lat_tan4 + 72 * c - 58 * E_P2));
-            easting += 500000;
+            easting = ignoreMapOrigin ? easting : easting + 500000;
 
             northing = K0 * (m + n * lat_tan * (a2 / 2 +
                 a4 / 24 * (5 - lat_tan2 + 9 * c + 4 * c * c) +

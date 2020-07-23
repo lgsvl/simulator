@@ -388,8 +388,7 @@ namespace Simulator.Bridge.Ros
             if (eul.y >= 0) dir = 45 * UnityEngine.Mathf.Round((eul.y % 360) / 45.0f);
             else dir = 45 * UnityEngine.Mathf.Round((eul.y % 360 + 360) / 45.0f);
 
-            var dt = DateTimeOffset.FromUnixTimeMilliseconds((long)(data.Time * 1000.0)).UtcDateTime;
-            var measurement_time = GpsUtils.UtcToGpsSeconds(dt);
+            var measurement_time = GpsUtils.UtcSecondsToGpsSeconds(data.Time);
             var gpsTime = DateTimeOffset.FromUnixTimeSeconds((long)measurement_time).DateTime.ToLocalTime();
 
             return new Apollo.ChassisMsg()
@@ -449,8 +448,7 @@ namespace Simulator.Bridge.Ros
             float Accuracy = 0.01f; // just a number to report
             double Height = 0; // sea level to WGS84 ellipsoid
 
-            var dt = DateTimeOffset.FromUnixTimeMilliseconds((long)(data.Time * 1000.0)).UtcDateTime;
-            var measurement_time = GpsUtils.UtcToGpsSeconds(dt);
+            var measurement_time = GpsUtils.UtcSecondsToGpsSeconds(data.Time);
 
             return new Apollo.GnssBestPose()
             {
@@ -553,13 +551,11 @@ namespace Simulator.Bridge.Ros
             var orientation = ConvertToRfu(data.Orientation);
             float yaw = orientation.eulerAngles.z;
 
-            var dt = DateTimeOffset.FromUnixTimeMilliseconds((long)(data.Time * 1000.0)).UtcDateTime;
-
             return new Apollo.Gps()
             {
                 header = new Apollo.Header()
                 {
-                    timestamp_sec = GpsUtils.UtcToGpsSeconds(dt),
+                    timestamp_sec = GpsUtils.UtcSecondsToGpsSeconds(data.Time),
                     sequence_num = data.Sequence,
                 },
 

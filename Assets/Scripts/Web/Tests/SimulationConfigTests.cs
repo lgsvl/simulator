@@ -14,6 +14,7 @@ namespace Simulator.Web.Tests
     using System;
     using System.IO;
     using System.Reflection;
+    using System.Collections.Generic;
 
     [TestFixture]
     class ParseSimulationConfig
@@ -131,7 +132,7 @@ namespace Simulator.Web.Tests
 
             Assert.That(simData.Template != null, Is.True);
             Assert.That(simData.Template.Alias, Is.EqualTo("pythonApi"));
-            Assert.That(simData.Template.Parameters.Length, Is.EqualTo(2));
+            Assert.That(simData.Template.Parameters.Length, Is.EqualTo(3));
 
             Assert.That(simData.ApiOnly, Is.True);
 
@@ -140,6 +141,12 @@ namespace Simulator.Web.Tests
 
             Assert.That(simData.Map == null, Is.True);
             Assert.That(simData.Vehicles == null, Is.True);
+
+            var environment = new Dictionary<string, string>();
+            SimulationConfigUtils.UpdateTestCaseEnvironment(simData.Template, environment);
+
+            Assert.That(environment["SIMULATOR_API_ONLY"], Is.EqualTo("1"));
+            Assert.That(environment["SIMULATOR_TC_FILENAME"], Is.EqualTo("scenario.py"));
         }
 
         [Test]

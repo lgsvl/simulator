@@ -5,17 +5,25 @@
     "parameters": [
         {
             "alias": "apiOnly",
-            "value": true,
             "parameterName": "API only",
             "parameterType": "boolean",
+            "value": true,
             "variableName": "SIMULATOR_API_ONLY",
             "variableType": "env"
         },
         {
+            "alias": "pythonScriptFilename",
+            "parameterName": "TestCase scenario filename",
+            "parameterType": "string",
+            "value": "scenario.py",
+            "variableName": "SIMULATOR_TC_FILENAME",
+            "variableType": "env"
+        },
+        {
             "alias": "script",
-            "value": "def python_api():\n\tprint(\"python_api\")",
             "parameterName": "Python script",
             "parameterType": "string",
+            "value": "def python_api():\n\tprint(\"python_api\")",
             "variableName": "scenario.py",
             "variableType": "volume"
         }

@@ -183,8 +183,9 @@ namespace Simulator.Web
                     return RawValue.ToObject<T>();
                 }
             }
-            catch (Exception e) {
-                Debug.Log($"Failed to cast {RawValue.GetType()} template parameter value '{RawValue}' to {typeof(T)}");
+            catch (Exception e)
+            {
+                Debug.Log($"Failed to cast {RawValue.GetType()} template parameter value '{RawValue}' to {typeof(T)}: {e}");
                 throw;
             }
         }

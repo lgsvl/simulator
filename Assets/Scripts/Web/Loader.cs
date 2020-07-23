@@ -135,10 +135,11 @@ namespace Simulator
     {
         private static string ScenarioEditorSceneName = "ScenarioEditor";
         private static bool IsInScenarioEditor;
-        
+
         public SimulationNetwork Network { get; } = new SimulationNetwork();
         public SimulatorManager SimulatorManagerPrefab;
         public ApiManager ApiManagerPrefab;
+        public TestCaseProcessManager TestCaseProcessManagerPrefab;
 
         public NetworkSettings NetworkSettings;
 
@@ -151,6 +152,8 @@ namespace Simulator
         public string LoaderScene { get; private set; }
 
         public SimulationConfig SimConfig;
+
+        private TestCaseProcessManager TCManager;
 
         // Loader object is never destroyed, even between scene reloads
         public static Loader Instance { get; private set; }
@@ -165,7 +168,7 @@ namespace Simulator
             {
                 case SimulatorStatus.Idle: return "Idle";
                 // WISE does not care about Loading, just Starting
-                case SimulatorStatus.Loading: 
+                case SimulatorStatus.Loading:
                 case SimulatorStatus.Starting: return "Starting";
                 case SimulatorStatus.Running: return "Running";
                 case SimulatorStatus.Stopping: return "Stopping";
@@ -341,6 +344,9 @@ namespace Simulator
                             api.name = "ApiManager";
 
                             Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.READY);
+
+                            // Spawn external test case process
+                            RunTestCase(simulation.Template);
                         }
                         else if (simulation.Map != null)
                         {
@@ -501,6 +507,15 @@ namespace Simulator
             Instance.Actions.Enqueue(() =>
             {
                 Instance.Network.Deinitialize();
+
+                if (Instance.TCManager)
+                {
+                    Debug.Log("[LOADER] StopAsync: Terminating process");
+                    // Don't bother to stop simulation on process exit
+                    Instance.TCManager.OnFinished -= Instance.StopSimulationOnTestCaseExit;
+                    Instance.TCManager.Terminate();
+                }
+
                 using (var db = DatabaseManager.Open())
                 {
                     try
@@ -722,7 +737,7 @@ namespace Simulator
                 Instance.Status = SimulatorStatus.Idle;
             }
         }
-	    
+
         public static void EnterScenarioEditor()
         {
             if (SimulatorManager.InstanceAvailable || ApiManager.Instance)
@@ -730,7 +745,7 @@ namespace Simulator
                 Debug.LogError("Cannot enter Scenario Editor during a simulation.");
                 return;
             }
-            
+
             if (ConnectionManager.Status != ConnectionManager.ConnectionStatus.Online)
             {
                 Debug.LogError("Cannot enter Scenario Editor when connection is not established.");
@@ -779,6 +794,86 @@ namespace Simulator
             Instance.Network.InitializeSimulationScene(sim.gameObject);
 
             return sim;
+        }
+
+        public static TestCaseProcessManager CreateTestCaseProcessManager()
+        {
+            var manager = Instantiate(Instance.TestCaseProcessManagerPrefab);
+
+            if (manager == null)
+            {
+                Debug.LogError($"[LOADER] Can't Instantiate TestCaseProcessManager");
+            }
+            else
+            {
+                manager.name = "TestCaseProcessManager";
+            }
+
+            return manager;
+        }
+
+        static void RunTestCase(TemplateData template)
+        {
+            if (template == null)
+            {
+                // legacy simulation request -> nothing to do
+                Debug.LogWarning("[LOADER] Got legacy Simulation Config request");
+                return;
+            }
+
+            if (SimulationConfigUtils.IsInternalTemplate(template))
+            {
+                // No external process is needed
+                return;
+            }
+
+            if (Instance.TCManager == null)
+            {
+                Instance.TCManager = CreateTestCaseProcessManager();
+                DontDestroyOnLoad(Instance.TCManager);
+            }
+
+            Instance.TCManager.OnFinished += Instance.StopSimulationOnTestCaseExit;
+            Instance.TCManager.OnFinished += Instance.RemoveVolumesOnTestCaseExit;
+
+            var environment = new Dictionary<string, string>();
+
+            SimulationConfigUtils.UpdateTestCaseEnvironment(template, environment);
+            var volumesPath = SimulationConfigUtils.SaveVolumes(Instance.CurrentSimulation.Id, template);
+
+            if (!Instance.TCManager.StartProcess(template.Alias, environment, volumesPath))
+            {
+                // TODO Report testcase error result to the cloud
+                // Stop simulation (by raising an excepton)
+                throw new Exception("Failed to launch TestCase runtime");
+            }
+        }
+
+        void StopSimulationOnTestCaseExit(TestCaseFinishedArgs e)
+        {
+            Console.WriteLine($"[LOADER] TestCase process exits: {e.ToString()}");
+            // Schedule real action to stop simulation
+            Instance.Actions.Enqueue(() =>
+            {
+                
+                if (e.Failed)
+                {
+                    // TODO TC: Report failed testcase to the cloud
+                }
+
+                Console.WriteLine($"[LOADER] Stopping simulation on TestCase process exit");
+                Loader.StopAsync();
+            });
+        }
+
+        void RemoveVolumesOnTestCaseExit(TestCaseFinishedArgs e)
+        {
+            Instance.Actions.Enqueue(() =>
+            {
+                Console.WriteLine($"[LOADER] Cleanup volumes on TestCase process exit");
+                Instance.TCManager.OnFinished -= Instance.RemoveVolumesOnTestCaseExit;
+                SimulationConfigUtils.CleanupVolumes(Instance.CurrentSimulation.Id);
+            });
         }
     }
 }

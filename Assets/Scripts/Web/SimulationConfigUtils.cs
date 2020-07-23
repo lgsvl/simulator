@@ -5,15 +5,17 @@
  *
  */
 
-namespace Simulator.Web 
+namespace Simulator.Web
 {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System;
+    using System.IO;
+    using System.Text;
     using UnityEngine;
     using System.Collections.Generic;
 
-    public class MissedTemplateParameterError: Exception 
+    public class MissedTemplateParameterError: Exception
     {
         public MissedTemplateParameterError(string parameterName): base(parameterName) { }
     }
@@ -24,10 +26,11 @@ namespace Simulator.Web
             public const String API_ONLY = "apiOnly";
             public const String RANDOM_TRAFFIC = "randomTraffic";
         }
-        
+
         public static SimulationData ProcessKnownTemplates(ref SimulationData simData)
         {
-            if (simData.Version == null) {
+            if (simData.Version == null)
+            {
                 Debug.Log("Got legacy Simulation Config request");
                 return simData;
             }
@@ -56,13 +59,13 @@ namespace Simulator.Web
                 if (namedParameters.TryGetValue("SIMULATOR_MAP", out parameter))
                 {
                     simData.Map = parameter.GetValue<MapData>();
-                } 
+                }
                 else
                 {
                     throw new MissedTemplateParameterError("SIMULATOR_MAP");
                 }
 
-                if (namedParameters.TryGetValue("SIMULATOR_VEHICLES", out parameter)) 
+                if (namedParameters.TryGetValue("SIMULATOR_VEHICLES", out parameter))
                 {
                     simData.Vehicles = parameter.GetValue<VehicleData[]>();
                 }
@@ -135,6 +138,119 @@ namespace Simulator.Web
             }
 
             return simData;
+        }
+        public static void ExtractEnvironmentVariables(
+            TemplateData template,
+            IDictionary<string, string> environment)
+        {
+            foreach (var parameter in template.Parameters)
+            {
+                if (parameter.VariableType == "env")
+                {
+                    if (parameter.ParameterType == "boolean")
+                    {
+                        // Special case for bool -> 1/0
+                        environment.Add(parameter.VariableName, parameter.GetValue<bool>() ? "1" : "0");
+                    } else {
+                        environment.Add(parameter.VariableName, parameter.GetValue<string>());
+                    }
+                }
+            }
+        }
+
+        public static string SaveVolumes(string simulationId, TemplateData template)
+        {
+            Console.WriteLine($"[TC] Saving volumes for simulationId:{simulationId}");
+
+            var volumePath = GetSimulationVolumesPath(simulationId);
+
+            if (!Directory.Exists(volumePath))
+            {
+                Directory.CreateDirectory(volumePath);
+            }
+
+            foreach (var parameter in template.Parameters)
+            {
+                if (parameter.VariableType == "volume")
+                {
+                    Console.WriteLine($"[TC] Saving volume {parameter.Alias} '{parameter.ParameterName}' as '{parameter.VariableName}'");
+                    var targetFilePath = Path.Combine(volumePath, parameter.VariableName);
+
+                    using (FileStream fs = File.Create(targetFilePath))
+                    {
+                        byte[] content = new UTF8Encoding(true).GetBytes(parameter.GetValue<string>());
+                        fs.Write(content, 0, content.Length);
+                    }
+                }
+            }
+
+            return volumePath;
+        }
+
+        public static void CleanupVolumes(string simulationId)
+        {
+            Console.WriteLine($"[TC] Removing volumes for simulationId:{simulationId}");
+
+            var volumePath = GetSimulationVolumesPath(simulationId);
+            try
+            {
+                Directory.Delete(volumePath, true);
+            }
+            catch (IOException e)
+            {
+                Debug.LogWarning($"[TC] Failed to remove folder {volumePath}: {e}");
+            }
+        }
+
+        public static void UpdateTestCaseEnvironment(TemplateData template, IDictionary<string,string> environment)
+        {
+            // Important note: Variable names are subject of further updates.
+            ExtractEnvironmentVariables(template, environment);
+
+            environment.Add("SIMULATOR_TC_RUNTIME", template.Alias);
+
+            String bridgeConnectionString;
+
+            // Explode bridge connection string if provided
+            if (environment.TryGetValue("BRIDGE_CONNECTION_STRING", out bridgeConnectionString))
+            {
+                string[] bridge = bridgeConnectionString.Split(':');
+
+                if (bridge.Length == 2)
+                {
+                    environment.Add("BRIDGE_HOST", bridge[0]);
+                    environment.Add("BRIDGE_PORT", bridge[1]);
+                } else if (bridge.Length == 1)
+                {
+                    environment.Add("BRIDGE_HOST", bridge[1]);
+                }
+            }
+
+            if (!environment.ContainsKey("SIMULATOR_HOST"))
+            {
+                environment.Add("SIMULATOR_HOST", Config.ApiHost);
+            }
+
+            if (!environment.ContainsKey("SIMULATOR_PORT"))
+            {
+                environment.Add("SIMULATOR_PORT", Config.ApiPort.ToString());
+            }
+        }
+
+        static public bool IsInternalTemplate(TemplateData template)
+        {
+            return template.Alias == InternalTemplateAliases.API_ONLY || template.Alias == InternalTemplateAliases.RANDOM_TRAFFIC;
+        }
+
+        private static string GetSimulationVolumesPath(string simulationId)
+        {
+            // TODO: Application.temporaryCachePath is a better
+            // but runtime wrapper script can't handle spaces in paths
+            return Path.Combine(
+                Path.GetTempPath(),
+                "LGSVLSimulator",
+                "TestCaseRuntimeVolumes",
+                simulationId);
         }
     }
 }

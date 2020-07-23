@@ -18,6 +18,12 @@ namespace Simulator.Bridge
         // We keep a single copy of this value here for easy update later.
         public const float GpsLeapSeconds = 18.0f;
 
+        public static double UtcSecondsToGpsSeconds(double utsSeconds)
+        {
+            var utc = DateTimeOffset.FromUnixTimeMilliseconds((long)(utsSeconds * 1000.0)).UtcDateTime;
+            return UtcToGpsSeconds(utc);
+        }
+
         public static double UtcToGpsSeconds(DateTime utc)
         {
             return (utc - GpsEpoch).TotalSeconds + GpsLeapSeconds;

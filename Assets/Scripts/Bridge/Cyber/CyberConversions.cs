@@ -340,15 +340,14 @@ namespace Simulator.Bridge.Cyber
             if (eul.z >= 0) dir = 45 * Mathf.Round((eul.z % 360) / 45.0f);
             else dir = 45 * Mathf.Round((eul.z % 360 + 360) / 45.0f);
 
-            var dt = DateTimeOffset.FromUnixTimeMilliseconds((long)(data.Time * 1000.0)).UtcDateTime;
-            var measurement_time = GpsUtils.UtcToGpsSeconds(dt);
+            var measurement_time = GpsUtils.UtcSecondsToGpsSeconds(data.Time);
             var gpsTime = DateTimeOffset.FromUnixTimeSeconds((long)measurement_time).DateTime.ToLocalTime();
 
             return new apollo.canbus.Chassis()
             {
                 header = new apollo.common.Header()
                 {
-                    timestamp_sec = measurement_time,
+                    timestamp_sec = data.Time,
                     module_name = "chassis",
                     sequence_num = data.Sequence,
                 },
@@ -401,9 +400,6 @@ namespace Simulator.Bridge.Cyber
             float Accuracy = 0.01f; // just a number to report
             double Height = 0; // sea level to WGS84 ellipsoid
 
-            var dt = DateTimeOffset.FromUnixTimeMilliseconds((long)(data.Time * 1000.0)).UtcDateTime;
-            var measurement_time = GpsUtils.UtcToGpsSeconds(dt);
-
             return new apollo.drivers.gnss.GnssBestPose()
             {
                 header = new apollo.common.Header()
@@ -412,7 +408,7 @@ namespace Simulator.Bridge.Cyber
                     frame_id = data.Frame,
                     timestamp_sec = data.Time,
                 },
-                measurement_time = measurement_time,
+                measurement_time = GpsUtils.UtcSecondsToGpsSeconds(data.Time),
                 sol_status = apollo.drivers.gnss.SolutionStatus.SolComputed,
                 sol_type = apollo.drivers.gnss.SolutionType.NarrowInt,
 
@@ -555,7 +551,7 @@ namespace Simulator.Bridge.Cyber
                     sequence_num = data.Sequence,
                 },
 
-                measurement_time = data.Time,
+                measurement_time = GpsUtils.UtcSecondsToGpsSeconds(data.Time),
                 measurement_span = (float)data.MeasurementSpan,
                 linear_acceleration = ConvertToPoint(new Vector3(data.Acceleration.x, data.Acceleration.y, data.Acceleration.z)),
                 angular_velocity = ConvertToPoint(new Vector3(data.AngularVelocity.x, data.AngularVelocity.y, data.AngularVelocity.z)),

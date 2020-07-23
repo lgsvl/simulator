@@ -71,13 +71,20 @@ namespace Simulator.Editor.MapMeshes
                 }
 
                 var index = -1;
+                var minDist = float.MaxValue;
                 for (var i = 0; i < ears.Count; ++i)
                 {
                     var point = ears[i];
-                    if (MeshUtils.IsAnyPolyPointInsideTriangle(point, point.previous, point.next, volatileVertices))
-                        continue;
-
-                    index = i;
+                    var d01 = Vector3.Distance(point.Position, point.previous.Position);
+                    var d02 = Vector3.Distance(point.Position, point.next.Position);
+                    var d12 = Vector3.Distance(point.previous.Position, point.next.Position);
+                    var localMax = Mathf.Max(d01, Mathf.Max(d02, d12));
+                    
+                    if (localMax < minDist)
+                    {
+                        minDist = localMax;
+                        index = i;
+                    }
                 }
 
                 if (ears.Count == 0 || index == -1)

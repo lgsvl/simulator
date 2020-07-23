@@ -554,7 +554,7 @@ namespace Simulator.Editor
             intersections = new List<MapIntersection>();
             laneSections = new List<MapLaneSection>();
             lineSegments = new List<MapLine>();
-            
+
             overlapIdToGameObjects = new Dictionary<string, List<GameObject>>();
             gameObjectToOverlapInfo = new Dictionary<GameObject, HD.ObjectOverlapInfo>();
             gameObjectToOverlapId = new Dictionary<GameObject, HD.Id>();

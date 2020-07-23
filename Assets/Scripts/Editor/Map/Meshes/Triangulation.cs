@@ -24,13 +24,13 @@ namespace Simulator.Editor.MapMeshes
 
                 var triangles = TriangulateDelaunay(poly, debugName);
                 if (triangles == null)
-                {
-                    Debug.LogError("Invalid mesh, skipping");
                     continue;
-                }
 
                 tris.AddRange(triangles);
             }
+
+            if (tris.Count == 0)
+                return null;
 
             var mesh = MeshUtils.TrisToMesh(tris);
             MeshUtils.WeldVertices(mesh);
@@ -106,7 +106,7 @@ namespace Simulator.Editor.MapMeshes
 
                     // Poly is invalid - create convex hull and return it instead
                     var hull = MeshUtils.GetConvexHull(vertices);
-                    return TriangulateEarClipping(hull, debugName, true);
+                    return hull == null ? null : TriangulateEarClipping(hull, debugName, true);
                 }
 
                 var current = ears[index];
@@ -191,6 +191,9 @@ namespace Simulator.Editor.MapMeshes
         public static List<Triangle> TriangulateDelaunay(List<Vertex> vertices, string debugName = null)
         {
             var tris = TriangulateEarClipping(vertices, debugName);
+            if (tris == null)
+                return null;
+            
             var halfEdges = CreateHalfEdgeStructure(tris);
             var iteration = 0;
 

@@ -277,12 +277,21 @@ namespace Simulator.Editor.MapMeshes
             }
         }
 
+        public static List<Vector3> debugList = new List<Vector3>();
+
         private void CreateLaneMesh(MapLane lane, GameObject parentObject, MapMeshMaterials materials)
         {
             var name = lane.gameObject.name;
             var poly = BuildLanePoly(lane, true);
             var optimized = MeshUtils.OptimizePoly(poly, name);
-            var mesh = Triangulation.TiangulateMultiPolygon(optimized, name);
+            var mesh = optimized == null ? null : Triangulation.TiangulateMultiPolygon(optimized, name);
+
+            if (mesh == null)
+            {
+                Debug.LogWarning($"Zero surface mesh detected, skipping. ({name})");
+                return;
+            }
+            
             AddUv(mesh);
             var laneTransform = lane.transform;
             MoveMeshVericesToLocalSpace(mesh, laneTransform);
@@ -313,9 +322,27 @@ namespace Simulator.Editor.MapMeshes
         {
             var name = intersection.gameObject.name;
             var intersectionLanes = intersection.GetComponentsInChildren<MapLane>();
-            var merged = MeshUtils.ClipVatti(intersectionLanes.Select(x => BuildLanePoly(x, true)).ToList());
+
+            var optimizedLanePolys = new List<List<Vertex>>();
+
+            foreach (var lane in intersectionLanes)
+            {
+                var lanePoly = BuildLanePoly(lane, true);
+                var optimizedLanePoly = MeshUtils.OptimizePoly(lanePoly, $"{lane.gameObject.name}, part of {name}");
+                if (optimizedLanePoly != null)
+                    optimizedLanePolys.AddRange(optimizedLanePoly);
+            }
+
+            var merged = MeshUtils.ClipVatti(optimizedLanePolys);
             var optimized = MeshUtils.OptimizePoly(merged, name);
-            var mesh = Triangulation.TiangulateMultiPolygon(optimized, name);
+            var mesh = optimized == null ? null : Triangulation.TiangulateMultiPolygon(optimized, name);
+
+            if (mesh == null)
+            {
+                Debug.LogWarning($"Zero surface mesh detected, skipping. ({name})");
+                return;
+            }
+            
             AddUv(mesh);
             var intersectionTransform = intersection.transform;
             MoveMeshVericesToLocalSpace(mesh, intersectionTransform);

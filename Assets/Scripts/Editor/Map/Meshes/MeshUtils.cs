@@ -60,13 +60,19 @@ namespace Simulator.Editor.MapMeshes
                     continue;
 
                 var triangles = Triangulation.TriangulateDelaunay(poly, debugName);
+                if (triangles == null)
+                    continue;
+
                 tris.AddRange(triangles);
             }
+
+            if (tris.Count == 0)
+                return null;
 
             var mesh = TrisToMesh(tris);
 
             WeldVertices(mesh);
-            return GetEdgeVerticesIgnoreHoles(mesh);
+            return GetEdgeVerticesIgnoreHoles(mesh, debugName);
         }
 
         public static List<List<Vertex>> OptimizePoly(List<Vertex> poly, string debugName = null)
@@ -74,14 +80,14 @@ namespace Simulator.Editor.MapMeshes
             var tris = Triangulation.TriangulateDelaunay(poly, debugName);
             if (tris == null)
             {
-                Debug.LogWarning("Triangulation failed, using convex hull");
-                return new List<List<Vertex>> {GetConvexHull(poly)};
+                var hull = GetConvexHull(poly);
+                return hull == null ? null : new List<List<Vertex>> {hull};
             }
 
             var mesh = TrisToMesh(tris);
 
             WeldVertices(mesh);
-            return GetEdgeVerticesIgnoreHoles(mesh);
+            return GetEdgeVerticesIgnoreHoles(mesh, debugName);
         }
 
         public static void AddToListIfEar(Vertex v, List<Vertex> vertices, List<Vertex> earVertices)
@@ -190,7 +196,7 @@ namespace Simulator.Editor.MapMeshes
             mesh.Optimize();
         }
 
-        public static List<List<Vertex>> GetEdgeVerticesIgnoreHoles(Mesh mesh)
+        public static List<List<Vertex>> GetEdgeVerticesIgnoreHoles(Mesh mesh, string debugName = null)
         {
             var edgeDict = new Dictionary<Tuple<int, int>, bool>();
             var verts = mesh.vertices;
@@ -282,7 +288,11 @@ namespace Simulator.Editor.MapMeshes
                     if (nextItem.Equals(def))
                     {
                         // TODO: zero-surface vertices welded together break this, review
-                        Debug.LogWarning("Unsupported mesh shape found, falling back to convex hull.");
+                        var warningMsg = "Unsupported mesh shape found, falling back to convex hull.";
+                        if (!string.IsNullOrEmpty(debugName))
+                            warningMsg += $" ({debugName})";
+                        Debug.LogWarning(warningMsg);
+                        
                         result.Clear();
                         var allVerts = verts.Select(x => new Vertex(x)).ToList();
                         result.Add(MeshUtils.GetConvexHull(allVerts));
@@ -458,6 +468,9 @@ namespace Simulator.Editor.MapMeshes
             {
                 if (iteration == 2)
                     pointsVolatile.Add(convexHullPoly[0]);
+
+                if (pointsVolatile.Count == 0)
+                    return null;
 
                 var nextPoint = pointsVolatile[0];
 

@@ -877,7 +877,7 @@ namespace Simulator.Bridge.Ros
         static UnityEngine.Quaternion ConvertToRfu(UnityEngine.Quaternion q)
         {
             // In Righthanded xyz, rotate by -90 deg around z axis.
-            return q * UnityEngine.Quaternion.AngleAxis(-90, new UnityEngine.Vector3.forward);
+            return q * UnityEngine.Quaternion.AngleAxis(-90, UnityEngine.Vector3.forward);
         }
 
         public static Ros.Time ConvertTime(double unixEpochSeconds)

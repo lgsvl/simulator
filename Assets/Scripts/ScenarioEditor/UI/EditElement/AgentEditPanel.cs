@@ -12,7 +12,6 @@ namespace Simulator.ScenarioEditor.UI.EditElement
     using System.Threading.Tasks;
     using Agents;
     using Elements;
-    using Input;
     using Managers;
     using UnityEngine;
     using UnityEngine.UI;
@@ -229,8 +228,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         /// <inheritdoc/>
         void IAddElementsHandler.AddingCancelled(Vector3 addPosition)
         {
-            var removable = newElementInstance as IRemoveHandler;
-            removable?.Remove();
+            if (newElementInstance.CanBeRemoved)
+                newElementInstance.Remove();
             newElementInstance = null;
 
             addedElementType = AgentElementType.None;

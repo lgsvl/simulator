@@ -124,8 +124,11 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         {
             ScenarioManager.Instance.IsScenarioDirty = true;
             editedEffector.PointRadius = radius;
-            var zone = editedTrigger.GetOrAddEffectorObject(ZoneObjectName, zoneVisualization);
-            zone.transform.localScale = Vector3.one * editedEffector.PointRadius;
+            var zoneGameObject = editedTrigger.GetOrAddEffectorObject(ZoneObjectName, zoneVisualization);
+            zoneGameObject.transform.localScale = Vector3.one * editedEffector.PointRadius;
+            var zone = zoneGameObject.GetComponent<WaitingPointZone>();
+            if (zone!=null)
+                zone.Refresh();
         }
     }
 }

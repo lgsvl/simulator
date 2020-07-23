@@ -129,7 +129,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement
             {
                 selectedTrigger = selectedWaypoint.LinkedTrigger;
                 var effectors = selectedTrigger.Trigger.Effectors;
-                var agentType = (AgentType)selectedTrigger.ParentAgent.Source.AgentTypeId;
+                var agentType = selectedTrigger.ParentAgent.Source.AgentType;
                 //Get available effectors that supports this agent and their instance is not added to the trigger yet
                 availableEffectorTypes = 
                     allEffector.Where(newEffector => effectors.All(addedEffector => addedEffector.GetType() != newEffector.GetType()) &&

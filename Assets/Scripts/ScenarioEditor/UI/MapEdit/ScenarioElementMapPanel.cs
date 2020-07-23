@@ -153,17 +153,16 @@ namespace Simulator.ScenarioEditor.UI.MapEdit
             var buttonId = 0;
             foreach (var agentEdit in agentEdits)
             {
-                if (agentEdit.TargetTypes.Any(targetType => targetType.IsInstanceOfType(element)))
+                if (!agentEdit.CanEditElement(element)) continue;
+                if (buttonId >= buttons.Count)
                 {
-                    if (buttonId >= buttons.Count)
-                    {
-                        var newButton = Instantiate(agentEditButtonPrefab, transform);
-                        buttons.Add(newButton.GetComponent<ElementEditButton>());
-                    }
-
-                    buttons[buttonId++].Initialize(agentEdit);
-                    agentEdit.CurrentElement = element;
+                    var newButton = Instantiate(agentEditButtonPrefab, transform);
+                    buttons.Add(newButton.GetComponent<ElementEditButton>());
                 }
+
+                buttons[buttonId].gameObject.SetActive(true);
+                buttons[buttonId++].Initialize(agentEdit);
+                agentEdit.CurrentElement = element;
             }
 
             //Disable unused buttons

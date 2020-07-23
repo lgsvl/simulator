@@ -8,7 +8,6 @@
 namespace Simulator.ScenarioEditor.Elements
 {
     using Agents;
-    using Input;
     using Managers;
     using UnityEngine;
 
@@ -16,12 +15,15 @@ namespace Simulator.ScenarioEditor.Elements
     /// <remarks>
     /// Scenario waypoint representation
     /// </remarks>
-    public class ScenarioWaypoint : ScenarioElement, IRemoveHandler
+    public class ScenarioWaypoint : ScenarioElement
     {
         /// <summary>
         /// Trigger that is linked to this waypoint
         /// </summary>
         private ScenarioTrigger linkedTrigger;
+
+        /// <inheritdoc/>
+        public override bool CanBeRotated => false;
         
         /// <summary>
         /// Parent agent which includes this waypoint
@@ -78,12 +80,24 @@ namespace Simulator.ScenarioEditor.Elements
         public override void Reposition(Vector3 requestedPosition)
         {
             transform.position = requestedPosition;
-            if (ParentAgent!=null)
+            if (ParentAgent != null)
+            {
+                switch (ParentAgent.Type)
+                {
+                    case AgentType.Ego:
+                    case AgentType.Npc:
+                        ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic, transform);
+                        break;
+                    case AgentType.Pedestrian:
+                        ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian, transform);
+                        break;
+                }
                 ParentAgent.WaypointPositionChanged(this);
+            }
         }
 
         /// <inheritdoc/>
-        public void Remove()
+        public override void Remove()
         {
             if (ParentAgent!=null)
                 ParentAgent.RemoveWaypoint(this);
@@ -95,9 +109,9 @@ namespace Simulator.ScenarioEditor.Elements
         }
 
         /// <inheritdoc/>
-        protected override void OnDragged()
+        protected override void OnMoved()
         {
-            base.OnDragged();
+            base.OnMoved();
             ParentAgent.WaypointPositionChanged(this);
         }
     }

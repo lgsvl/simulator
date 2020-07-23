@@ -11,12 +11,10 @@ namespace Simulator.ScenarioEditor.Input
     using Agents;
     using Elements;
     using Managers;
-    using Network.Core;
     using Network.Core.Threading;
     using UnityEngine;
     using UnityEngine.EventSystems;
     using UnityEngine.InputSystem;
-    using Utilities;
 
     /// <summary>
     /// Input manager that handles all the keyboard and mouse inputs in the Scenario Editor
@@ -42,11 +40,6 @@ namespace Simulator.ScenarioEditor.Input
             /// Input allows dragging element and limited camera movement
             /// </summary>
             DraggingElement,
-
-            /// <summary>
-            /// Input allows rotating element and limited camera movement
-            /// </summary>
-            RotatingElement,
 
             /// <summary>
             /// Input allows adding element and limited camera movement
@@ -217,6 +210,11 @@ namespace Simulator.ScenarioEditor.Input
         private InputState inputState;
 
         /// <summary>
+        /// Can the drag event finish over UI elements, cancel is called if it's not allowed
+        /// </summary>
+        private bool canDragFinishOverUI;
+
+        /// <summary>
         /// Current cancel mode selected for the operation
         /// </summary>
         private CancelMode cancelMode;
@@ -242,11 +240,6 @@ namespace Simulator.ScenarioEditor.Input
         private IDragHandler dragHandler;
 
         /// <summary>
-        /// Cached currently managed rotate handler
-        /// </summary>
-        private IRotateHandler rotateHandler;
-
-        /// <summary>
         /// Cached currently managed add elements handler
         /// </summary>
         private IAddElementsHandler addElementsHandler;
@@ -255,6 +248,16 @@ namespace Simulator.ScenarioEditor.Input
         /// Inputs semaphore that allows disabling all the keyboard and mouse processing
         /// </summary>
         public LockingSemaphore InputSemaphore { get; } = new LockingSemaphore();
+
+        /// <summary>
+        /// World position of the raycast casted from the mouse pointer
+        /// </summary>
+        public Vector3 MouseRaycastPosition { get; private set; }
+
+        /// <summary>
+        /// Viewport position of the mouse pointer
+        /// </summary>
+        public Vector2 MouseViewportPosition { get; private set; }
 
         /// <summary>
         /// Is the rotation locked
@@ -347,7 +350,7 @@ namespace Simulator.ScenarioEditor.Input
             controls = new SimulatorControls();
             InitControls();
             raycastDistance = scenarioCamera.farClipPlane - scenarioCamera.nearClipPlane;
-            
+
             //Revert camera rotation from prefs
             var cameraTransform = scenarioCamera.transform;
             var cameraRotation = cameraTransform.rotation.eulerAngles;
@@ -397,6 +400,7 @@ namespace Simulator.ScenarioEditor.Input
         }
 
         #region Events
+
         /// <summary>
         /// Callback on camera mouse scroll
         /// </summary>
@@ -425,6 +429,7 @@ namespace Simulator.ScenarioEditor.Input
                     if (leftMouseButtonPressed &&
                         !EventSystem.current.IsPointerOverGameObject())
                     {
+                        ScenarioManager.Instance.SelectedElement = null;
                         furthestHit = GetFurthestHit();
                         if (furthestHit == null)
                             return;
@@ -435,7 +440,6 @@ namespace Simulator.ScenarioEditor.Input
                             element = raycastHits[i].collider.gameObject.GetComponentInParent<ScenarioElement>();
                             if (element == null) continue;
 
-                            element.Selected();
                             ScenarioManager.Instance.SelectedElement = element;
                             //Override furthest hit with selected element hit
                             furthestHit = raycastHits[i];
@@ -456,32 +460,19 @@ namespace Simulator.ScenarioEditor.Input
                             break;
                         }
 
-                        if (EventSystem.current.IsPointerOverGameObject())
-                            dragHandler.DragCancelled(lastHitPosition);
+                        MouseRaycastPosition = lastHitPosition;
+                        MouseViewportPosition = scenarioCamera.ScreenToViewportPoint(Input.mousePosition);
+                        if (!canDragFinishOverUI && EventSystem.current.IsPointerOverGameObject())
+                        {
+                            dragHandler.DragCancelled();
+                        }
                         else
                         {
                             ScenarioManager.Instance.IsScenarioDirty = true;
-                            dragHandler.DragFinished(lastHitPosition);
+                            dragHandler.DragFinished();
                         }
 
                         dragHandler = null;
-                        inputState = InputState.Idle;
-                    }
-
-                    break;
-
-                case InputState.RotatingElement:
-                    if (!leftMouseButtonPressed)
-                    {
-                        if (cancelMode == CancelMode.CancelOnClick)
-                        {
-                            cancelMode = CancelMode.CancelOnRelease;
-                            break;
-                        }
-
-                        ScenarioManager.Instance.IsScenarioDirty = true;
-                        rotateHandler.RotationFinished(scenarioCamera.ScreenToViewportPoint(Input.mousePosition));
-                        rotateHandler = null;
                         inputState = InputState.Idle;
                     }
 
@@ -519,14 +510,10 @@ namespace Simulator.ScenarioEditor.Input
                     break;
                 case InputState.DraggingElement:
                     //Right mouse button cancels action
-                    dragHandler.DragCancelled(lastHitPosition);
+                    MouseRaycastPosition = lastHitPosition;
+                    MouseViewportPosition = scenarioCamera.ScreenToViewportPoint(Input.mousePosition);
+                    dragHandler.DragCancelled();
                     dragHandler = null;
-                    inputState = InputState.Idle;
-                    break;
-                case InputState.RotatingElement:
-                    //Right mouse button cancels action
-                    rotateHandler.RotationCancelled(scenarioCamera.ScreenToViewportPoint(Input.mousePosition));
-                    rotateHandler = null;
                     inputState = InputState.Idle;
                     break;
                 case InputState.AddingElement:
@@ -566,6 +553,7 @@ namespace Simulator.ScenarioEditor.Input
                     break;
             }
         }
+
         #endregion
 
         /// <summary>
@@ -642,14 +630,10 @@ namespace Simulator.ScenarioEditor.Input
                         break;
                     furthestPoint = furthestHit.Value.point;
                     lastHitPosition = furthestPoint;
-
+                    MouseRaycastPosition = lastHitPosition;
+                    MouseViewportPosition = scenarioCamera.ScreenToViewportPoint(Input.mousePosition);
                     if (mouseMoved)
-                        dragHandler.DragMoved(furthestPoint);
-                    break;
-
-                case InputState.RotatingElement:
-                    if (mouseMoved)
-                        rotateHandler.RotationChanged(scenarioCamera.ScreenToViewportPoint(Input.mousePosition));
+                        dragHandler.DragMoved();
                     break;
 
                 case InputState.AddingElement:
@@ -669,7 +653,8 @@ namespace Simulator.ScenarioEditor.Input
                          cameraTransform.forward * (KeyMoveFactor * Time.unscaledDeltaTime * directionInput.y) +
                          cameraTransform.right * (KeyMoveFactor * Time.unscaledDeltaTime * directionInput.x));
 
-            if (CameraMode == CameraModeType.Free && !EventSystem.current.IsPointerOverGameObject() && IsMouseOverGameWindow)
+            if (CameraMode == CameraModeType.Free && !EventSystem.current.IsPointerOverGameObject() &&
+                IsMouseOverGameWindow)
             {
                 if (rightMouseButtonPressed)
                 {
@@ -705,15 +690,21 @@ namespace Simulator.ScenarioEditor.Input
         /// Requests dragging the element, can be ignored if <see cref="InputManager"/> is not idle
         /// </summary>
         /// <param name="dragHandler">Drag handler that will be dragged</param>
-        public void StartDraggingElement(IDragHandler dragHandler, CancelMode cancelMode = CancelMode.CancelOnRelease)
+        /// <param name="canFinishOverUI">Can the drag event finish over UI elements, cancel is called if it's not allowed</param>
+        /// <param name="cancelMode">Current cancel mode selected for the operation</param>
+        public void StartDraggingElement(IDragHandler dragHandler, bool canFinishOverUI = false,
+            CancelMode cancelMode = CancelMode.CancelOnRelease)
         {
             if (inputState != InputState.Idle) return;
+            canDragFinishOverUI = canFinishOverUI;
             this.cancelMode = cancelMode;
             inputState = InputState.DraggingElement;
             this.dragHandler = dragHandler;
             RaycastAll();
             var furthestHit = GetFurthestHit();
-            this.dragHandler.DragStarted(furthestHit?.point ?? Vector3.zero);
+            MouseRaycastPosition = furthestHit?.point ?? Vector3.zero;
+            MouseViewportPosition = scenarioCamera.ScreenToViewportPoint(Input.mousePosition);
+            this.dragHandler.DragStarted();
         }
 
         /// <summary>
@@ -730,39 +721,9 @@ namespace Simulator.ScenarioEditor.Input
 
             RaycastAll();
             var furthestHit = GetFurthestHit();
-            this.dragHandler.DragCancelled(furthestHit?.point ?? Vector3.zero);
+            MouseRaycastPosition = furthestHit?.point ?? Vector3.zero;
+            this.dragHandler.DragCancelled();
             this.dragHandler = null;
-            inputState = InputState.Idle;
-        }
-
-        /// <summary>
-        /// Requests rotating the element, can be ignored if <see cref="InputManager"/> is not idle
-        /// </summary>
-        /// <param name="rotateHandler">Rotate handler that will be rotated</param>
-        public void StartRotatingElement(IRotateHandler rotateHandler,
-            CancelMode cancelMode = CancelMode.CancelOnRelease)
-        {
-            if (inputState != InputState.Idle) return;
-            this.cancelMode = cancelMode;
-            inputState = InputState.RotatingElement;
-            this.rotateHandler = rotateHandler;
-            this.rotateHandler.RotationStarted(scenarioCamera.ScreenToViewportPoint(Input.mousePosition));
-        }
-
-        /// <summary>
-        /// Requests to cancel rotate the element, ignored if requested element is not rotated
-        /// </summary>
-        /// <param name="rotateHandler">Rotate handler which rotation will be canceled</param>
-        public void CancelRotatingElement(IRotateHandler rotateHandler)
-        {
-            if (this.rotateHandler != rotateHandler)
-            {
-                Debug.LogWarning("Cannot cancel rotating as passed element is currently not handled.");
-                return;
-            }
-
-            this.rotateHandler.RotationCancelled(scenarioCamera.ScreenToViewportPoint(Input.mousePosition));
-            this.rotateHandler = null;
             inputState = InputState.Idle;
         }
 

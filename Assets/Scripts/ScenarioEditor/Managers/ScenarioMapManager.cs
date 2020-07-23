@@ -8,7 +8,6 @@
 namespace Simulator.ScenarioEditor.Managers
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -16,8 +15,7 @@ namespace Simulator.ScenarioEditor.Managers
     using System.Threading.Tasks;
     using Database;
     using ICSharpCode.SharpZipLib.Zip;
-    using PetaPoco;
-    using Simulator.Database.Services;
+    using Database.Services;
     using UnityEngine;
     using UnityEngine.SceneManagement;
     using Web;
@@ -97,6 +95,8 @@ namespace Simulator.ScenarioEditor.Managers
         /// List of meta data with available maps
         /// </summary>
         public List<MapMetaData> AvailableMaps { get; } = new List<MapMetaData>();
+        
+        public LaneSnappingHandler LaneSnapping { get; } = new LaneSnappingHandler();
 
         /// <summary>
         /// Is this map manager initialized
@@ -215,6 +215,7 @@ namespace Simulator.ScenarioEditor.Managers
         {
             if (string.IsNullOrEmpty(loadedSceneName))
                 return;
+            LaneSnapping.Deinitialize();
             SceneManager.UnloadSceneAsync(loadedSceneName);
             loadedSceneName = null;
         }
@@ -284,19 +285,16 @@ namespace Simulator.ScenarioEditor.Managers
                 while (!loader.isDone)
                     await Task.Delay(100);
                 var scene = SceneManager.GetSceneByName(sceneName);
-                FixShaders(scene);
                 SceneManager.SetActiveScene(scene);
                 SIM.LogAPI(SIM.API.SimulationLoad, sceneName);
 
                 if (Loader.Instance.SimConfig != null)
-                {
                     Loader.Instance.SimConfig.MapName = name;
-                    //Loader.Instance.SimConfig.MapUrl = map.Url;
-                }
 
                 CurrentMapName = name;
                 CurrentMapBounds = CalculateMapBounds(scene);
-                // FixShaders(scene);
+                FixShaders(scene);
+                LaneSnapping.Initialize();
                 PlayerPrefs.SetString(MapPersistenceKey, name);
                 MapChanged?.Invoke(name);
             }
@@ -331,6 +329,10 @@ namespace Simulator.ScenarioEditor.Managers
             return b;
         }
 
+        /// <summary>
+        /// Reapplies shaders in all the renderers, it fixes an uncommon Unity graphics bug
+        /// </summary>
+        /// <param name="scene">Loaded scene</param>
         private void FixShaders(Scene scene)
         {
         	var gameObjectsOnScene = scene.GetRootGameObjects();

@@ -98,7 +98,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         /// Reference to currently selected waypoint
         /// </summary>
         private ScenarioWaypoint selectedWaypoint;
-        
+
         /// <inheritdoc/>
         void IParameterEditPanel.Initialize()
         {
@@ -115,7 +115,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement
             isInitialized = true;
             OnSelectedOtherElement(ScenarioManager.Instance.SelectedElement);
         }
-        
+
         /// <inheritdoc/>
         void IParameterEditPanel.Deinitialize()
         {
@@ -203,6 +203,19 @@ namespace Simulator.ScenarioEditor.UI.EditElement
             }
 
             waypointInstance.transform.position = addPosition;
+            switch (selectedAgent.Type)
+            {
+                case AgentType.Ego:
+                case AgentType.Npc:
+                    ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic,
+                        waypointInstance.transform);
+                    break;
+                case AgentType.Pedestrian:
+                    ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian,
+                        waypointInstance.transform);
+                    break;
+            }
+
             selectedAgent.AddWaypoint(waypointInstance, selectedWaypoint);
         }
 
@@ -210,6 +223,19 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         void IAddElementsHandler.AddingMoved(Vector3 addPosition)
         {
             waypointInstance.transform.position = addPosition;
+            switch (selectedAgent.Type)
+            {
+                case AgentType.Ego:
+                case AgentType.Npc:
+                    ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic,
+                        waypointInstance.transform);
+                    break;
+                case AgentType.Pedestrian:
+                    ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian,
+                        waypointInstance.transform);
+                    break;
+            }
+            
             selectedAgent.WaypointPositionChanged(waypointInstance);
         }
 
@@ -221,6 +247,18 @@ namespace Simulator.ScenarioEditor.UI.EditElement
             waypointInstance = ScenarioManager.Instance.prefabsPools.GetInstance(mapWaypointPrefab)
                 .GetComponent<ScenarioWaypoint>();
             waypointInstance.transform.position = addPosition;
+            switch (selectedAgent.Type)
+            {
+                case AgentType.Ego:
+                case AgentType.Npc:
+                    ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic,
+                        waypointInstance.transform);
+                    break;
+                case AgentType.Pedestrian:
+                    ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian,
+                        waypointInstance.transform);
+                    break;
+            }
             selectedAgent.AddWaypoint(waypointInstance, previousWaypoint);
         }
 

@@ -737,8 +737,8 @@ namespace Simulator
                 Instance.Status = SimulatorStatus.Idle;
             }
         }
-
-        public static void EnterScenarioEditor()
+	    
+        public static async Task EnterScenarioEditor()
         {
             if (SimulatorManager.InstanceAvailable || ApiManager.Instance)
             {
@@ -749,6 +749,20 @@ namespace Simulator
             if (ConnectionManager.Status != ConnectionManager.ConnectionStatus.Online)
             {
                 Debug.LogError("Cannot enter Scenario Editor when connection is not established.");
+                return;
+            }
+            
+            var maps = await ConnectionManager.API.GetLibrary<MapDetailData>();
+            if (maps.Length == 0)
+            {
+                Debug.LogError("Scenario Editor requires at least one map added to the library.");
+                return;
+            }
+            
+            var egos = await ConnectionManager.API.GetLibrary<VehicleDetailData>();
+            if (egos.Length == 0)
+            {
+                Debug.LogError("Scenario Editor requires at least one ego vehicle added to the library.");
                 return;
             }
 

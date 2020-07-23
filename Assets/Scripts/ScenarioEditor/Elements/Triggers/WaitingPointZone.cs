@@ -19,7 +19,7 @@ namespace Simulator.ScenarioEditor.Agents.Triggers
         /// <summary>
         /// The position offset that will be applied to the line renderer of waypoints
         /// </summary>
-        private static Vector3 lineRendererPositionOffset = new Vector3(0.0f, 0.5f, 0.0f);
+        private static Vector3 lineRendererPositionOffset = new Vector3(0.0f, 0.2f, 0.0f);
 
         /// <summary>
         /// Line renderer for displaying the connection between waypoint and activation zone
@@ -30,6 +30,21 @@ namespace Simulator.ScenarioEditor.Agents.Triggers
         /// Parent effector of this zone
         /// </summary>
         private WaitingPointEffector parentEffector;
+
+        /// <inheritdoc/>
+        public override bool CanBeRemoved => false;
+
+        /// <inheritdoc/>
+        public override bool CanBeRotated => false;
+
+        /// <inheritdoc/>
+        public override bool CanBeResized => true;
+
+        /// <inheritdoc/>
+        public override void Remove()
+        {
+            throw new System.NotImplementedException();
+        }
 
         /// <summary>
         /// Setups the zone object with the data
@@ -45,25 +60,46 @@ namespace Simulator.ScenarioEditor.Agents.Triggers
             lineRenderer.useWorldSpace = false;
             lineRenderer.positionCount = 2;
             lineRenderer.textureMode = LineTextureMode.Tile;
-            lineRenderer.SetPosition(0, Vector3.zero);
+            lineRenderer.SetPosition(0, lineRendererPositionOffset);
             var thisTransform = transform;
             var localPos = thisTransform.localPosition;
             var localScale = thisTransform.localScale;
-            var position = new Vector3(-localPos.x/localScale.x, -localPos.y/localScale.y, -localPos.z/localScale.z);
+            var position = localPos;
+            position.x /= -localScale.x;
+            position.y = lineRendererPositionOffset.y/localScale.y;
+            position.z /= -localScale.z;
             lineRenderer.SetPosition(1, position);
             lineRenderer.sortingLayerName = "Ignore Raycast";
             lineRenderer.widthMultiplier = 0.4f;
         }
 
         /// <inheritdoc/>
-        protected override void OnDragged()
+        protected override void OnMoved()
         {
-            base.OnDragged();
+            base.OnMoved();
+            parentEffector.ActivatorPoint = transform.position;
+            Refresh();
+        }
+
+        protected override void OnResized()
+        {
+            base.OnResized();
+            parentEffector.PointRadius = transform.localScale.x;
+            Refresh();
+        }
+
+        /// <summary>
+        /// Refresh the zone visualization with current state
+        /// </summary>
+        public void Refresh()
+        {
             var thisTransform = transform;
-            parentEffector.ActivatorPoint = thisTransform.position;
             var localPos = thisTransform.localPosition;
             var localScale = thisTransform.localScale;
-            var position = new Vector3(-localPos.x/localScale.x, -localPos.y/localScale.y, -localPos.z/localScale.z);
+            var position = localPos;
+            position.x /= -localScale.x;
+            position.y = lineRendererPositionOffset.y/localScale.y;
+            position.z /= -localScale.z;
             lineRenderer.SetPosition(1, position);
         }
     }

@@ -147,6 +147,8 @@ namespace Simulator.ScenarioEditor.Managers
                 if (selectedElement == value)
                     return;
                 selectedElement = value;
+                if (selectedElement!=null)
+                    selectedElement.Selected();
                 SelectedOtherElement?.Invoke(selectedElement);
             }
         }

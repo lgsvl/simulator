@@ -11,12 +11,12 @@ namespace Simulator.ScenarioEditor.UI.MapEdit
     using Elements;
 
     /// <summary>
-    /// Feature allowing to move a map element
+    /// Feature allowing to resize a map element
     /// </summary>
-    public class ElementMapMove : IElementMapEdit
+    public class ElementMapResize : IElementMapEdit
     {
         /// <inheritdoc/>
-        public string Title { get; } = "Move";
+        public string Title { get; } = "Resize";
         
         /// <inheritdoc/>
         public ScenarioElement CurrentElement { get; set; }
@@ -24,7 +24,7 @@ namespace Simulator.ScenarioEditor.UI.MapEdit
         /// <inheritdoc/>
         public bool CanEditElement(ScenarioElement element)
         {
-            return element.CanBeMoved;
+            return element.CanBeResized;
         }
         
         /// <inheritdoc/>
@@ -32,7 +32,7 @@ namespace Simulator.ScenarioEditor.UI.MapEdit
         {
             if (CurrentElement == null)
                 throw new ArgumentException("Current agent has to be set by external script before editing.");
-            CurrentElement.StartDragMovement();
+            CurrentElement.StartDragResize();
         }
     }
 }

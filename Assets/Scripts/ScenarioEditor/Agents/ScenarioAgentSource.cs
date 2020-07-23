@@ -28,6 +28,11 @@ namespace Simulator.ScenarioEditor.Agents
         public abstract int AgentTypeId { get; }
 
         /// <summary>
+        /// Agent type this source handles
+        /// </summary>
+        public AgentType AgentType => (AgentType) AgentTypeId;
+
+        /// <summary>
         /// List of available agent variants in this agent type
         /// </summary>
         public abstract List<AgentVariant> AgentVariants { get; }
@@ -73,15 +78,15 @@ namespace Simulator.ScenarioEditor.Agents
         public abstract void DragNewAgent();
 
         /// <inheritdoc/>
-        public abstract void DragStarted(Vector3 dragPosition);
+        public abstract void DragStarted();
 
         /// <inheritdoc/>
-        public abstract void DragMoved(Vector3 dragPosition);
+        public abstract void DragMoved();
 
         /// <inheritdoc/>
-        public abstract void DragFinished(Vector3 dragPosition);
+        public abstract void DragFinished();
 
         /// <inheritdoc/>
-        public abstract void DragCancelled(Vector3 dragPosition);
+        public abstract void DragCancelled();
     }
 }

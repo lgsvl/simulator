@@ -9,6 +9,7 @@ namespace Simulator.ScenarioEditor.Agents
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Input;
     using Managers;
     using UnityEngine;
 
@@ -18,6 +19,16 @@ namespace Simulator.ScenarioEditor.Agents
     /// </remarks>
     public class ScenarioPedestrianAgentSource : ScenarioAgentSource
     {
+        /// <summary>
+        /// Cached reference to the scenario editor input manager
+        /// </summary>
+        private InputManager inputManager;
+
+        /// <summary>
+        /// Currently dragged agent instance
+        /// </summary>
+        private GameObject draggedInstance;
+
         /// <inheritdoc/>
         public override string AgentTypeName => "PedestrianAgent";
 
@@ -26,19 +37,15 @@ namespace Simulator.ScenarioEditor.Agents
 
         /// <inheritdoc/>
         public override List<AgentVariant> AgentVariants { get; } = new List<AgentVariant>();
-        
+
         /// <inheritdoc/>
         public override AgentVariant DefaultVariant { get; set; }
 
-        /// <summary>
-        /// Currently dragged agent instance
-        /// </summary>
-        private GameObject draggedInstance;
-
         /// <inheritdoc/>
-        #pragma warning disable 1998
-        public async override Task Initialize()
+#pragma warning disable 1998
+        public override async Task Initialize()
         {
+            inputManager = ScenarioManager.Instance.inputManager;
             var pedestrianManager = Loader.Instance.SimulatorManagerPrefab.pedestrianManagerPrefab;
             var pedestriansInSimulation = pedestrianManager.pedModels;
             for (var i = 0; i < pedestriansInSimulation.Count; i++)
@@ -55,7 +62,7 @@ namespace Simulator.ScenarioEditor.Agents
 
             DefaultVariant = AgentVariants[0];
         }
-        #pragma warning restore 1998
+#pragma warning restore 1998
 
         /// <inheritdoc/>
         public override void Deinitialize()
@@ -77,7 +84,7 @@ namespace Simulator.ScenarioEditor.Agents
                 b.size = new Vector3(Mathf.Clamp(b.size.x, 0.1f, 0.5f), b.size.y, Mathf.Clamp(b.size.z, 0.1f, 0.5f));
                 collider.size = b.size;
             }
-            
+
             if (instance.GetComponent<Rigidbody>() == null)
             {
                 var rigidbody = instance.AddComponent<Rigidbody>();
@@ -111,31 +118,38 @@ namespace Simulator.ScenarioEditor.Agents
         }
 
         /// <inheritdoc/>
-        public override void DragStarted(Vector3 dragPosition)
+        public override void DragStarted()
         {
             draggedInstance = ScenarioManager.Instance.prefabsPools.GetInstance(AgentVariants[0].prefab);
             draggedInstance.transform.SetParent(ScenarioManager.Instance.transform);
-            draggedInstance.transform.SetPositionAndRotation(dragPosition, Quaternion.Euler(0.0f, 0.0f, 0.0f));
+            draggedInstance.transform.SetPositionAndRotation(inputManager.MouseRaycastPosition,
+                Quaternion.Euler(0.0f, 0.0f, 0.0f));
+            ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian,
+                draggedInstance.transform,
+                draggedInstance.transform);
         }
 
         /// <inheritdoc/>
-        public override void DragMoved(Vector3 dragPosition)
+        public override void DragMoved()
         {
-            draggedInstance.transform.position = dragPosition;
+            draggedInstance.transform.position = inputManager.MouseRaycastPosition;
+            ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian,
+                draggedInstance.transform,
+                draggedInstance.transform);
         }
 
         /// <inheritdoc/>
-        public override void DragFinished(Vector3 dragPosition)
+        public override void DragFinished()
         {
             var agent = GetAgentInstance(AgentVariants[0]);
-            agent.transform.SetPositionAndRotation(draggedInstance.transform.position,
-                draggedInstance.transform.rotation);
+            agent.TransformToRotate.rotation = draggedInstance.transform.rotation;
+            agent.Reposition(draggedInstance.transform.position);
             ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
             draggedInstance = null;
         }
 
         /// <inheritdoc/>
-        public override void DragCancelled(Vector3 dragPosition)
+        public override void DragCancelled()
         {
             ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
             draggedInstance = null;

@@ -7,7 +7,6 @@
 
 namespace Simulator.ScenarioEditor.UI.MapEdit
 {
-    using System;
     using Elements;
 
     /// <summary>
@@ -19,16 +18,16 @@ namespace Simulator.ScenarioEditor.UI.MapEdit
         /// Title of this feature
         /// </summary>
         string Title { get; }
-        
-        /// <summary>
-        /// Target scenario elements that can be edited with this feature
-        /// </summary>
-        Type[] TargetTypes { get; }
 
         /// <summary>
         /// Currently edited element reference
         /// </summary>
         ScenarioElement CurrentElement { get; set; }
+
+        /// <summary>
+        /// Checks if this map edit panel can edit selected scenario element
+        /// </summary>
+        bool CanEditElement(ScenarioElement element);
 
         /// <summary>
         /// Method that starts editing current element with this feature

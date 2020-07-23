@@ -52,6 +52,7 @@ namespace Simulator.ScenarioEditor.Elements
         {
             foreach (var effectorObject in effectorObjects)
                 ScenarioManager.Instance.prefabsPools.ReturnInstance(effectorObject.Value);
+            Trigger.Effectors.Clear();
             effectorObjects.Clear();
         }
 

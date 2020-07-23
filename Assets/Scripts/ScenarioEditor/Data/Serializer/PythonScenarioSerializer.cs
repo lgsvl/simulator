@@ -127,7 +127,7 @@ namespace Simulator.ScenarioEditor.Data.Serializer
         /// <param name="agentType">Agent type name</param>
         private static void AppendScenarioAddAgent(StringBuilder stringBuilder, ScenarioAgent agent, string agentType)
         {
-            var position = agent.TransformToDrag.position;
+            var position = agent.TransformToMove.position;
             var rotation = agent.TransformToRotate.rotation.eulerAngles;
             AppendLine(stringBuilder, "state = lgsvl.AgentState()");
             AppendLine(stringBuilder, $"state.transform.position = lgsvl.Vector{position}");

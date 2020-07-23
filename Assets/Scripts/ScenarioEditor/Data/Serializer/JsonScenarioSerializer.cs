@@ -67,7 +67,7 @@ namespace Simulator.ScenarioEditor.Data.Serializer
             agent.Add("type", new JSONNumber(scenarioAgent.Source.AgentTypeId));
             var transform = new JSONObject();
             agent.Add("transform", transform);
-            var position = new JSONObject().WriteVector3(scenarioAgent.TransformToDrag.position);
+            var position = new JSONObject().WriteVector3(scenarioAgent.TransformToMove.position);
             transform.Add("position", position);
             var rotation = new JSONObject().WriteVector3(scenarioAgent.TransformToRotate.rotation.eulerAngles);
             transform.Add("rotation", rotation);

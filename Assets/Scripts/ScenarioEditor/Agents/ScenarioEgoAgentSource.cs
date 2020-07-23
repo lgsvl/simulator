@@ -12,6 +12,7 @@ namespace Simulator.ScenarioEditor.Agents
     using System.Threading.Tasks;
     using Database;
     using Database.Services;
+    using Input;
     using Managers;
     using UnityEngine;
     using Web;
@@ -22,6 +23,16 @@ namespace Simulator.ScenarioEditor.Agents
     /// </remarks>
     public class ScenarioEgoAgentSource : ScenarioAgentSource
     {
+        /// <summary>
+        /// Cached reference to the scenario editor input manager
+        /// </summary>
+        private InputManager inputManager;
+
+        /// <summary>
+        /// Currently dragged agent instance
+        /// </summary>
+        private GameObject draggedInstance;
+
         /// <inheritdoc/>
         public override string AgentTypeName => "EgoAgent";
 
@@ -30,18 +41,14 @@ namespace Simulator.ScenarioEditor.Agents
 
         /// <inheritdoc/>
         public override List<AgentVariant> AgentVariants { get; } = new List<AgentVariant>();
-        
+
         /// <inheritdoc/>
         public override AgentVariant DefaultVariant { get; set; }
 
-        /// <summary>
-        /// Currently dragged agent instance
-        /// </summary>
-        private GameObject draggedInstance;
-
         /// <inheritdoc/>
-        public async override Task Initialize()
+        public override async Task Initialize()
         {
+            inputManager = ScenarioManager.Instance.inputManager;
             var library = await ConnectionManager.API.GetLibrary<VehicleDetailData>();
 
             var assetService = new AssetService();
@@ -51,7 +58,8 @@ namespace Simulator.ScenarioEditor.Agents
             var isAnyPrefabAvailable = false;
             foreach (var vehicleDetailData in library)
             {
-                var newVehicle = new CloudAgentVariant(vehicleDetailData.Id, vehicleDetailData.Name, vehicleDetailData.AssetGuid)
+                var newVehicle = new CloudAgentVariant(vehicleDetailData.Id, vehicleDetailData.Name,
+                    vehicleDetailData.AssetGuid)
                 {
                     source = this,
                     assetModel =
@@ -89,6 +97,7 @@ namespace Simulator.ScenarioEditor.Agents
                 Debug.LogError("Variant has to be prepared before getting it's model.");
                 return null;
             }
+
             var instance = ScenarioManager.Instance.prefabsPools.GetInstance(variant.prefab);
             instance.GetComponent<VehicleController>().enabled = false;
             Object.DestroyImmediate(instance.GetComponent<VehicleActions>());
@@ -103,6 +112,7 @@ namespace Simulator.ScenarioEditor.Agents
                 Debug.LogError("Variant has to be prepared before getting it's instance.");
                 return null;
             }
+
             var newGameObject = new GameObject(AgentTypeName);
             newGameObject.transform.SetParent(ScenarioManager.Instance.transform);
             var scenarioAgent = newGameObject.AddComponent<ScenarioAgent>();
@@ -123,31 +133,38 @@ namespace Simulator.ScenarioEditor.Agents
         }
 
         /// <inheritdoc/>
-        public override void DragStarted(Vector3 dragPosition)
+        public override void DragStarted()
         {
             draggedInstance = GetModelInstance(DefaultVariant);
             draggedInstance.transform.SetParent(ScenarioManager.Instance.transform);
-            draggedInstance.transform.SetPositionAndRotation(dragPosition, Quaternion.Euler(0.0f, 0.0f, 0.0f));
+            draggedInstance.transform.SetPositionAndRotation(inputManager.MouseRaycastPosition,
+                Quaternion.Euler(0.0f, 0.0f, 0.0f));
+            ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic,
+                draggedInstance.transform,
+                draggedInstance.transform);
         }
 
         /// <inheritdoc/>
-        public override void DragMoved(Vector3 dragPosition)
+        public override void DragMoved()
         {
-            draggedInstance.transform.position = dragPosition;
+            draggedInstance.transform.position = inputManager.MouseRaycastPosition;
+            ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic,
+                draggedInstance.transform,
+                draggedInstance.transform);
         }
 
         /// <inheritdoc/>
-        public override void DragFinished(Vector3 dragPosition)
+        public override void DragFinished()
         {
             var agent = GetAgentInstance(DefaultVariant);
-            agent.transform.SetPositionAndRotation(draggedInstance.transform.position,
-                draggedInstance.transform.rotation);
+            agent.TransformToRotate.rotation = draggedInstance.transform.rotation;
+            agent.Reposition(draggedInstance.transform.position);
             ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
             draggedInstance = null;
         }
 
         /// <inheritdoc/>
-        public override void DragCancelled(Vector3 dragPosition)
+        public override void DragCancelled()
         {
             ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
             draggedInstance = null;

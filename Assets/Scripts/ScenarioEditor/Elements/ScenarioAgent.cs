@@ -9,7 +9,6 @@ namespace Simulator.ScenarioEditor.Agents
 {
     using System.Collections.Generic;
     using Elements;
-    using Input;
     using Managers;
     using UnityEngine;
 
@@ -17,7 +16,7 @@ namespace Simulator.ScenarioEditor.Agents
     /// <remarks>
     /// Scenario agent representation
     /// </remarks>
-    public class ScenarioAgent : ScenarioElement, IRemoveHandler
+    public class ScenarioAgent : ScenarioElement
     {
         /// <summary>
         /// The position offset that will be applied to the line renderer of waypoints
@@ -109,6 +108,11 @@ namespace Simulator.ScenarioEditor.Agents
         public List<ScenarioTrigger> Triggers => triggers;
 
         /// <summary>
+        /// Type of this agent
+        /// </summary>
+        public AgentType Type => source.AgentType;
+
+        /// <summary>
         /// Setup method for initializing the required agent data
         /// </summary>
         /// <param name="agentSource">Source of this agent</param>
@@ -143,7 +147,7 @@ namespace Simulator.ScenarioEditor.Agents
         }
 
         /// <inheritdoc/>
-        public void Remove()
+        public override void Remove()
         {
             if (modelInstance != null)
                 source.ReturnModelInstance(modelInstance);
@@ -151,6 +155,22 @@ namespace Simulator.ScenarioEditor.Agents
 
             ScenarioManager.Instance.agentsManager.UnregisterAgent(this);
             Destroy(gameObject);
+        }
+
+        /// <inheritdoc/>
+        public override void Reposition(Vector3 requestedPosition)
+        {
+            base.Reposition(requestedPosition);
+            switch (Type)
+            {
+                case AgentType.Ego:
+                case AgentType.Npc:
+                    ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic, TransformToMove, TransformToRotate);
+                    break;
+                case AgentType.Pedestrian:
+                    ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian, TransformToMove, TransformToRotate);
+                    break;
+            }
         }
 
         /// <summary>

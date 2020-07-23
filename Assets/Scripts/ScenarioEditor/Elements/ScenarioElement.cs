@@ -7,6 +7,7 @@
 
 namespace Simulator.ScenarioEditor.Elements
 {
+    using System;
     using Input;
     using Managers;
     using UnityEngine;
@@ -14,12 +15,48 @@ namespace Simulator.ScenarioEditor.Elements
     /// <summary>
     /// Scenario element that can be placed on map and edited
     /// </summary>
-    public abstract class ScenarioElement : MonoBehaviour, IDragHandler, IRotateHandler
+    public abstract class ScenarioElement : MonoBehaviour, IDragHandler
     {
+        /// <summary>
+        /// Type of current drag effect
+        /// </summary>
+        protected enum DragType
+        {
+            /// <summary>
+            /// Element is not dragged
+            /// </summary>
+            None = 0,
+            
+            /// <summary>
+            /// Element is dragged to be moved
+            /// </summary>
+            Movement = 1,
+            
+            /// <summary>
+            /// Element is dragged to be rotated
+            /// </summary>
+            Rotation = 2,
+            
+            /// <summary>
+            /// Element is dragged to be resized
+            /// </summary>
+            Resize = 3
+        }
+        
         /// <summary>
         /// Rotation value in degrees that will be applied when swiping whole screen
         /// </summary>
         private const float ScreenWidthRotation = 360 * 2;
+        
+        /// <summary>
+        /// How many times element will be scaled when swiping whole screen
+        /// </summary>
+        private const float ScreenWidthResizeMultiplier = 10;
+
+        /// <summary>
+        /// Cached reference to the scenario editor input manager
+        /// </summary>
+        protected InputManager inputManager;
 
         /// <summary>
         /// Cached position before drag started, applied back when drag is cancelled
@@ -32,9 +69,19 @@ namespace Simulator.ScenarioEditor.Elements
         private Quaternion rotationBeforeRotating;
 
         /// <summary>
-        /// Viewport position that was passed in rotation start method
+        /// Cached local scale before resizing started, applied back when resizing is cancelled
         /// </summary>
-        private Vector2 rotationStartViewportPosition;
+        private Vector3 scaleBeforeResizing;
+
+        /// <summary>
+        /// Viewport position value when the drag start method was called
+        /// </summary>
+        private Vector2 startViewportPosition;
+
+        /// <summary>
+        /// Currently handled drag type
+        /// </summary>
+        protected DragType currentDragType;
 
         /// <summary>
         /// Uid of this scenario element
@@ -51,14 +98,47 @@ namespace Simulator.ScenarioEditor.Elements
         }
 
         /// <summary>
-        /// Transform that will be dragged
+        /// Can this scenario element be removed
         /// </summary>
-        public virtual Transform TransformToDrag => transform;
+        public virtual bool CanBeRemoved => true;
+
+        /// <summary>
+        /// Can this scenario element be moved
+        /// </summary>
+        public virtual bool CanBeMoved => true;
+
+        /// <summary>
+        /// Can this scenario element be rotated
+        /// </summary>
+        public virtual bool CanBeRotated => true;
+
+        /// <summary>
+        /// Can this scenario element be resized
+        /// </summary>
+        public virtual bool CanBeResized => false;
+
+        /// <summary>
+        /// Transform that will be moved
+        /// </summary>
+        public virtual Transform TransformToMove => transform;
 
         /// <summary>
         /// Transform that will be rotated
         /// </summary>
         public virtual Transform TransformToRotate => transform;
+
+        /// <summary>
+        /// Transform that will be resized
+        /// </summary>
+        public virtual Transform TransformToResize => transform;
+
+        /// <summary>
+        /// Unity Start method
+        /// </summary>
+        protected virtual void Start()
+        {
+            inputManager = ScenarioManager.Instance.inputManager;
+        }
 
         /// <summary>
         /// Unity OnEnable method
@@ -75,6 +155,11 @@ namespace Simulator.ScenarioEditor.Elements
         {
             
         }
+        
+        /// <summary>
+        /// Method called to entirely remove element from the scenario
+        /// </summary>
+        public abstract void Remove();
 
         /// <summary>
         /// Repositions the scenario element on the map including the element's restrictions
@@ -85,67 +170,138 @@ namespace Simulator.ScenarioEditor.Elements
             transform.position = requestedPosition;
         }
 
-        /// <inheritdoc/>
-        void IDragHandler.DragStarted(Vector3 dragPosition)
+        /// <summary>
+        /// Starts moving the element with drag motion
+        /// </summary>
+        /// <exception cref="ArgumentException">Drag movement called for ScenarioElement which does not support moving.</exception>
+        public void StartDragMovement()
         {
-            positionBeforeDrag = TransformToDrag.position;
+            if (!CanBeMoved)
+                throw new ArgumentException("Drag movement called for ScenarioElement which does not support moving.");
+            currentDragType = DragType.Movement;
+            ScenarioManager.Instance.inputManager.StartDraggingElement(this, true);
+        }
+
+        /// <summary>
+        /// Starts rotating the element with drag motion
+        /// </summary>
+        /// <exception cref="ArgumentException">Drag rotation called for ScenarioElement which does not support rotating.</exception>
+        public void StartDragRotation()
+        {
+            if (!CanBeMoved)
+                throw new ArgumentException("Drag rotation called for ScenarioElement which does not support rotating.");
+            currentDragType = DragType.Rotation;
+            ScenarioManager.Instance.inputManager.StartDraggingElement(this, true);
+        }
+
+        /// <summary>
+        /// Starts resizing the element with drag motion
+        /// </summary>
+        /// <exception cref="ArgumentException">Drag resize called for ScenarioElement which does not support resizing.</exception>
+        public void StartDragResize()
+        {
+            if (!CanBeMoved)
+                throw new ArgumentException("Drag resize called for ScenarioElement which does not support resizing.");
+            currentDragType = DragType.Resize;
+            ScenarioManager.Instance.inputManager.StartDraggingElement(this, true);
         }
 
         /// <inheritdoc/>
-        void IDragHandler.DragMoved(Vector3 dragPosition)
+        void IDragHandler.DragStarted()
         {
-            TransformToDrag.position = dragPosition;
-            OnDragged();
+            switch (currentDragType)
+            {
+                case DragType.None:
+                    break;
+                case DragType.Movement:
+                    positionBeforeDrag = TransformToMove.position;
+                    break;
+                case DragType.Rotation:
+                    startViewportPosition = inputManager.MouseViewportPosition;
+                    rotationBeforeRotating = TransformToRotate.localRotation;
+                    break;
+                case DragType.Resize:
+                    startViewportPosition = inputManager.MouseViewportPosition;
+                    scaleBeforeResizing = TransformToResize.localScale;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         /// <inheritdoc/>
-        void IDragHandler.DragFinished(Vector3 dragPosition)
+        void IDragHandler.DragMoved()
         {
-            TransformToDrag.position = dragPosition;
-            OnDragged();
+            switch (currentDragType)
+            {
+                case DragType.None:
+                    break;
+                case DragType.Movement:
+                    Reposition(inputManager.MouseRaycastPosition);
+                    OnMoved();
+                    break;
+                case DragType.Rotation:
+                    var rotationValue = (inputManager.MouseViewportPosition.x - startViewportPosition.x) * ScreenWidthRotation;
+                    TransformToRotate.localRotation = rotationBeforeRotating * Quaternion.Euler(0.0f, rotationValue, 0.0f);
+                    OnRotated();
+                    break;
+                case DragType.Resize:
+                    float scaleValue;
+                    if (inputManager.MouseViewportPosition.x >= startViewportPosition.x)
+                        scaleValue = 1.0f + (inputManager.MouseViewportPosition.x - startViewportPosition.x) *
+                            ScreenWidthResizeMultiplier;
+                    else
+                        scaleValue = (1.0f - (startViewportPosition.x - inputManager.MouseViewportPosition.x)/startViewportPosition.x);
+                    var minimalScaleFraction = 0.01f;
+                    if (scaleValue >= 0.0f && scaleValue < minimalScaleFraction)
+                        scaleValue = minimalScaleFraction;
+                    TransformToResize.localScale = scaleBeforeResizing * scaleValue;
+                    OnResized();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         /// <inheritdoc/>
-        void IDragHandler.DragCancelled(Vector3 dragPosition)
+        void IDragHandler.DragFinished()
         {
-            TransformToDrag.position = positionBeforeDrag;
-            OnDragged();
+            //Apply current mouse position
+            (this as IDragHandler).DragMoved();
+
+            currentDragType = DragType.None;
         }
 
         /// <inheritdoc/>
-        void IRotateHandler.RotationStarted(Vector2 viewportPosition)
+        void IDragHandler.DragCancelled()
         {
-            rotationStartViewportPosition = viewportPosition;
-            rotationBeforeRotating = TransformToRotate.localRotation;
-        }
-
-        /// <inheritdoc/>
-        void IRotateHandler.RotationChanged(Vector2 viewportPosition)
-        {
-            var rotationValue = (viewportPosition.x - rotationStartViewportPosition.x) * ScreenWidthRotation;
-            TransformToRotate.localRotation = rotationBeforeRotating * Quaternion.Euler(0.0f, rotationValue, 0.0f);
-            OnRotated();
-        }
-
-        /// <inheritdoc/>
-        void IRotateHandler.RotationFinished(Vector2 viewportPosition)
-        {
-            var rotationValue = (viewportPosition.x - rotationStartViewportPosition.x) * ScreenWidthRotation;
-            TransformToRotate.localRotation = rotationBeforeRotating * Quaternion.Euler(0.0f, rotationValue, 0.0f);
-            OnRotated();
-        }
-
-        /// <inheritdoc/>
-        void IRotateHandler.RotationCancelled(Vector2 viewportPosition)
-        {
-            TransformToRotate.localRotation = rotationBeforeRotating;
-            OnRotated();
+            switch (currentDragType)
+            {
+                case DragType.None:
+                    break;
+                case DragType.Movement:
+                    TransformToMove.position = positionBeforeDrag;
+                    OnMoved();
+                    break;
+                case DragType.Rotation:
+                    TransformToRotate.localRotation = rotationBeforeRotating;
+                    OnRotated();
+                    break;
+                case DragType.Resize:
+                    TransformToResize.localScale = scaleBeforeResizing;
+                    OnResized();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+            
+            currentDragType = DragType.None;
         }
 
         /// <summary>
         /// Method called every time position is updated while dragging
         /// </summary>
-        protected virtual void OnDragged()
+        protected virtual void OnMoved()
         {
         }
 
@@ -153,6 +309,13 @@ namespace Simulator.ScenarioEditor.Elements
         /// Method called every time rotation is updated while rotating
         /// </summary>
         protected virtual void OnRotated()
+        {
+        }
+
+        /// <summary>
+        /// Method called every time scale is updated while resizing
+        /// </summary>
+        protected virtual void OnResized()
         {
         }
     }

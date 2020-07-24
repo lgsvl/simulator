@@ -9,19 +9,19 @@ namespace Simulator.Network.Core.Connection
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
     using System.Net;
     using System.Net.Sockets;
     using LiteNetLib;
     using Messaging.Data;
-
     using Simulator.Network.Core.Messaging;
 
     /// <summary>
     /// The server's connection manager using LiteNetLib
     /// </summary>
     public class LiteNetLibServer : IConnectionManager, INetEventListener, INetLogger
-    {       
+    {
         /// <summary>
         /// Connection application key
         /// </summary>
@@ -40,7 +40,7 @@ namespace Simulator.Network.Core.Connection
 
         /// <inheritdoc/>
         public bool IsServer => true;
-        
+
         /// <inheritdoc/>
         public int Port { get; private set; }
 
@@ -49,7 +49,7 @@ namespace Simulator.Network.Core.Connection
 
         /// <inheritdoc/>
         public int ConnectedPeersCount => peers.Count;
-        
+
         /// <inheritdoc/>
         public List<string> AcceptableIdentifiers { get; } = new List<string>();
 
@@ -73,7 +73,7 @@ namespace Simulator.Network.Core.Connection
             var result = netServer.Start(port);
             if (result)
                 Log.Info($"{GetType().Name} started using the port '{port}'.");
-            else 
+            else
                 Log.Error($"{GetType().Name} failed to start using the port '{port}'.");
             return result;
         }
@@ -192,15 +192,33 @@ namespace Simulator.Network.Core.Connection
         {
             var key = request.Data.GetString();
             if (ApplicationKey != key)
+            {
+                request.Reject();
+                Log.Warning(
+                    $"{GetType().Name} received and rejected a connection request from address '{request.RemoteEndPoint.Address}', invalid key was passed: {key}, current UTC time: {DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)}.");
                 return;
+            }
+
             var identifier = request.Data.GetString();
             var peerConnected = peers.Any(peer => peer.Value.Identifier == identifier);
             if (peerConnected)
+            {
+                //Connection to same peer is already established, probably request send from other sub-network
+                request.Reject();
                 return;
+            }
+
             var acceptIdentifier = AcceptableIdentifiers.Contains(identifier);
             if (!acceptIdentifier)
+            {
+                request.Reject();
+                Log.Warning(
+                    $"{GetType().Name} received and rejected a connection request from address '{request.RemoteEndPoint.Address}', unacceptable identifier was passed: {identifier}, current UTC time: {DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)}.");
                 return;
-            Log.Info($"{GetType().Name} received and accepted an connection request from address '{request.RemoteEndPoint.Address}'.");
+            }
+
+            Log.Info(
+                $"{GetType().Name} received and accepted a connection request from address '{request.RemoteEndPoint.Address}', current UTC time: {DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)}.");
             request.Accept();
         }
 
@@ -217,7 +235,7 @@ namespace Simulator.Network.Core.Connection
         /// <returns>Corresponding MessageType to the given LiteNetLib DeliveryMethod</returns>
         public static DistributedMessageType GetDeliveryMethod(DeliveryMethod deliveryMethod)
         {
-            return (DistributedMessageType)deliveryMethod;
+            return (DistributedMessageType) deliveryMethod;
         }
     }
 }

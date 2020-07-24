@@ -9,6 +9,7 @@ namespace Simulator.Network.Core.Connection
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Net;
     using System.Net.Sockets;
     using LiteNetLib;
@@ -114,12 +115,14 @@ namespace Simulator.Network.Core.Connection
                 Log.Warning($"{GetType().Name} already got a connection active to the endpoint '{endPoint}'.");
                 return null;
             }
+
             var writer = new NetDataWriter();
             writer.Put(ApplicationKey);
             writer.Put(peerIdentifier);
             var peer = new LiteNetLibPeerManager(NetClient.Connect(endPoint, writer));
             activeConnections.Add(endPoint, peer);
-            Log.Info($"{GetType().Name} tries to connect with a peer at address '{endPoint}.");
+            Log.Info(
+                $"{GetType().Name} tries to connect with a peer at address '{endPoint}, current UTC time: {DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)}.");
             return peer;
         }
 
@@ -220,6 +223,7 @@ namespace Simulator.Network.Core.Connection
         {
             Log.Error(
                 $"{GetType().Name} received an connection request from address '{request.RemoteEndPoint.Address}' but client simulation cannot accept requests.");
+            request.Reject();
         }
 
         /// <summary>

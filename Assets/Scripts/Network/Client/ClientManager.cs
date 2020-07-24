@@ -121,6 +121,10 @@ namespace Simulator.Network.Client
             StopConnection();
         }
 
+        /// <summary>
+        /// Sets collisions between simulation objects
+        /// </summary>
+        /// <param name="collision">Should the collision be enabled</param>
         private void SetCollisionBetweenSimulationObjects(bool collision)
         {
             Log.Info($"{GetType().Name} overrides the collision matrix between layers.");

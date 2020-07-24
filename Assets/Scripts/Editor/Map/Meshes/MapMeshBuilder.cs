@@ -24,9 +24,23 @@ namespace Simulator.Editor.MapMeshes
             private Dictionary<MapLine, LineData> linesData;
             private int cIndex;
             private MapLane cLane;
-            private LineVert current;
 
-            public bool CurrentIsLeft => cIndex == 0 || cIndex == 1;
+            public CornerMask CurrentMask
+            {
+                get
+                {
+                    var isLeft = cIndex == 0 || cIndex == 1;
+                    var current = Current;
+                    if (current == null)
+                        throw new Exception("Invalid lane corner enumeration.");
+
+                    var laneStart = cLane.transform.TransformPoint(cLane.mapLocalPositions[0]);
+                    var laneEnd = cLane.transform.TransformPoint(cLane.mapLocalPositions[cLane.mapLocalPositions.Count - 1]);
+
+                    var isStart = Vector3.Distance(current.position, laneStart) < Vector3.Distance(current.position, laneEnd);
+                    return new CornerMask(!isLeft, isStart);
+                }
+            }
 
             public LaneBoundEnumerator(Dictionary<MapLine, LineData> linesData)
             {
@@ -94,6 +108,33 @@ namespace Simulator.Editor.MapMeshes
 
             public void Dispose()
             {
+            }
+        }
+
+        private readonly struct CornerMask
+        {
+            private readonly bool isRight;
+            private readonly bool isStart;
+
+            public CornerMask(bool right, bool start)
+            {
+                isRight = right;
+                isStart = start;
+            }
+
+            public bool Connects(CornerMask cm, bool direct)
+            {
+                return direct ? ConnectsDirect(cm) : ConnectsParallel(cm);
+            }
+            
+            private bool ConnectsDirect(CornerMask cm)
+            {
+                return isRight == cm.isRight && isStart != cm.isStart;
+            }
+
+            private bool ConnectsParallel(CornerMask cm)
+            {
+                return isRight == cm.isRight && isStart == cm.isStart;
             }
         }
 
@@ -606,39 +647,49 @@ namespace Simulator.Editor.MapMeshes
             var linkedPoints = new List<LineVert>();
             var connectedLanes = new List<MapLane>();
             var pointsToProcess = new List<LineVert>();
-            var ptpIsLeft = new List<bool>();
+            var ptpMasks = new List<CornerMask>();
+            var directConnections = new List<bool>();
             var e = new LaneBoundEnumerator(linesData);
 
             foreach (var lane in lanes)
             {
                 pointsToProcess.Clear();
-                ptpIsLeft.Clear();
+                ptpMasks.Clear();
 
                 foreach (var vert in e.Enumerate(lane))
                 {
                     pointsToProcess.Add(vert);
-                    ptpIsLeft.Add(e.CurrentIsLeft);
+                    ptpMasks.Add(e.CurrentMask);
                 }
 
                 connectedLanes.Clear();
-                connectedLanes.Add(lane);
+                directConnections.Clear();
+
                 foreach (var prevLane in lane.prevConnectedLanes)
                 {
                     connectedLanes.Add(prevLane);
+                    directConnections.Add(true);
                     foreach (var nestedLane in prevLane.nextConnectedLanes)
                     {
                         if (!connectedLanes.Contains(nestedLane))
+                        {
+                            directConnections.Add(false);
                             connectedLanes.Add(nestedLane);
+                        }
                     }
                 }
 
                 foreach (var nextLane in lane.nextConnectedLanes)
                 {
                     connectedLanes.Add(nextLane);
+                    directConnections.Add(true);
                     foreach (var nestedLane in nextLane.prevConnectedLanes)
                     {
                         if (!connectedLanes.Contains(nestedLane))
+                        {
+                            directConnections.Add(false);
                             connectedLanes.Add(nestedLane);
+                        }
                     }
                 }
 
@@ -650,14 +701,14 @@ namespace Simulator.Editor.MapMeshes
                     validPoints.Clear();
                     validPoints.Add(point);
 
-                    foreach (var cLane in connectedLanes)
+                    for (var j = 0; j < connectedLanes.Count; ++j)
                     {
                         var bestVert = (LineVert) null;
                         var bestDistance = float.MaxValue;
 
-                        foreach (var cPoint in e.Enumerate(cLane))
+                        foreach (var cPoint in e.Enumerate(connectedLanes[j]))
                         {
-                            if (e.CurrentIsLeft ^ ptpIsLeft[i])
+                            if (!ptpMasks[i].Connects(e.CurrentMask, directConnections[j]))
                                 continue;
 
                             var dist = Vector3.Distance(point.position, cPoint.position);

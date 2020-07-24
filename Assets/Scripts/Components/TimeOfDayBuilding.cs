@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -23,16 +23,20 @@ public class TimeOfDayBuilding : MonoBehaviour
 
         Array.ForEach(allRenderers, renderer =>
         {
-            renderer.GetSharedMaterials(materials);
+            renderer.GetMaterials(materials);
             foreach (var material in materials)
             {
                 if (!allBuildingMaterials.Contains(material))
+                {
                     allBuildingMaterials.Add(material);
+                }
             }
         });
 
         if (SimulatorManager.InstanceAvailable)
+        {
             SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged += OnTimeOfDayChange;
+        }
 
         OnTimeOfDayChange(state);
     }
@@ -58,32 +62,11 @@ public class TimeOfDayBuilding : MonoBehaviour
 
     private void UpdateBuildingMats(Color color)
     {
-#if UNITY_EDITOR
-        if (!Application.isPlaying)
+        foreach (var material in allBuildingMaterials)
         {
-            foreach (var r in allRenderers)
-            {
-                var sharedMats = r.sharedMaterials;
-                var tmpMats = new Material[sharedMats.Length];
-
-                for (var i = 0; i < sharedMats.Length; ++i)
-                {
-                    tmpMats[i] = new Material(sharedMats[i]);
-                    tmpMats[i].SetVector(EmissiveColorId, color);
-                }
-
-                r.sharedMaterials = tmpMats;
-            }
-        }
-        else
-#endif
-        {
-            foreach (var material in allBuildingMaterials)
-            {
-                if (material == null)
-                    continue;
-                material.SetVector(EmissiveColorId, color);
-            }
+            if (material == null)
+                continue;
+            material.SetVector(EmissiveColorId, color);
         }
     }
 }

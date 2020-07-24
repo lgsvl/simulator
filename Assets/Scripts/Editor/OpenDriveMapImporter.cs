@@ -1811,6 +1811,9 @@ namespace Simulator.Editor
                     Debug.LogWarning($"Cannot find associated intersection for {obj.name}.");
                 }
             }
+
+            var mapAnnotations = new MapAnnotations();
+            mapAnnotations.RemoveExtraLines(false);
         }
 
         private void RemoveEmptyLaneSections()

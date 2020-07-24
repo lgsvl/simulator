@@ -33,8 +33,8 @@ namespace Simulator.Editor
 
         public PositionsData(MapDataPoints mapDataPoints)
         {
-            mapLocalPositions = mapDataPoints.mapLocalPositions;
-            mapWorldPositions = mapDataPoints.mapWorldPositions;
+            mapLocalPositions = new List<Vector3>(mapDataPoints.mapLocalPositions);
+            mapWorldPositions = new List<Vector3>(mapDataPoints.mapWorldPositions);
             go = mapDataPoints.gameObject;
         }
     }

@@ -2085,7 +2085,7 @@ public class MapAnnotations : EditorWindow
         ApolloMapImporter.UpdateLocalPositions(line);
     }
 
-    private void RemoveExtraLines()
+    public void RemoveExtraLines(bool showMsg=true)
     {
         var mapAnnotationData = new MapManagerData();
         if (mapAnnotationData.MapHolder == null)
@@ -2106,7 +2106,7 @@ public class MapAnnotations : EditorWindow
             var mapLanes = new List<MapLane>(mapLaneSection.GetComponentsInChildren<MapLane>());
             FindAndRemoveExtraLines(mapLanes);
         }
-        Debug.Log($"Removed {ExtraLinesCnt} extra boundary lines from MapLaneSections.");
+        if (showMsg) Debug.Log($"Removed {ExtraLinesCnt} extra boundary lines from MapLaneSections.");
         var changed = ExtraLinesCnt > 0;
 
         ExtraLinesCnt = 0;
@@ -2116,7 +2116,7 @@ public class MapAnnotations : EditorWindow
             AlignLineEndPoints(mapLanes);
             FindAndRemoveExtraLines(mapLanes);
         }
-        Debug.Log($"Removed {ExtraLinesCnt} extra boundary lines from MapIntersections.");
+        if (showMsg) Debug.Log($"Removed {ExtraLinesCnt} extra boundary lines from MapIntersections.");
         changed = changed || ExtraLinesCnt > 0;
 
         SaveOrUndo(root, assetPath, isPrefab, changed);

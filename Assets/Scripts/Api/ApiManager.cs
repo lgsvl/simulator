@@ -255,6 +255,7 @@ namespace Simulator.Api
 
             Server = new WebSocketServer(address, Config.ApiPort);
             Server.AddWebSocketService<SimulatorClient>("/");
+            Server.KeepClean = false;
             Server.Start();
             SIM.LogAPI(SIM.API.SimulationCreate);
             Loader.Instance.Network.MessagesManager?.RegisterObject(this);

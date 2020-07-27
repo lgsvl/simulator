@@ -252,6 +252,7 @@ namespace Simulator
         public static async void StartSimulation(SimulationData simData)
         {
             Instance.CurrentSimulation = simData;
+            CloudAPI api = null;
             if (Instance.Status != SimulatorStatus.Idle)
             {
                 Debug.LogWarning("Received start simulation command while Simulator is not idle.");
@@ -259,6 +260,16 @@ namespace Simulator
             }
             try
             {
+#if UNITY_EDITOR
+                // downloads still need simulator to be online, but in developer mode we don't have ConnectionManager
+                if (ConnectionManager.instance == null)
+                {
+                    api = new CloudAPI(new Uri(Config.CloudUrl), Config.SimID);
+                    var simInfo = CloudAPI.GetInfo();
+                    var reader = await api.Connect(simInfo);
+                    await api.EnsureConnectSuccess();
+                }
+#endif
                 Instance.Status = SimulatorStatus.Loading;
                 Instance.Network.Initialize(Config.SimID, simData.Cluster, Instance.NetworkSettings);
                 var downloads = new List<Task>();
@@ -301,7 +312,7 @@ namespace Simulator
                 Debug.LogException(ex);
                 if (ConnectionManager.instance != null)
                 {
-                    ConnectionManager.instance?.UpdateStatus("Error", simData.Id, ex.Message);
+                    ConnectionManager.instance.UpdateStatus("Error", simData.Id, ex.Message);
                 }
 
                 if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
@@ -311,6 +322,15 @@ namespace Simulator
                     Instance.Status = SimulatorStatus.Idle;
                 }
             }
+#if UNITY_EDITOR
+            finally
+            {
+                if (api != null)
+                {
+                    api.Disconnect();
+                }
+            }
+#endif
         }
 
         public static void StartAsync(SimulationData simulation)

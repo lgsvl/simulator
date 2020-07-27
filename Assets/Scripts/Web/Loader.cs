@@ -180,7 +180,7 @@ namespace Simulator
         public SimulatorStatus Status
         {
             get => status;
-            private set
+            set
             {
                 Console.WriteLine($"[LOADER] Update simulation status {status} -> {value}");
 

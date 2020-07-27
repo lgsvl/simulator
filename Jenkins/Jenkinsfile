@@ -40,7 +40,7 @@ pipeline {
     GIT_BRANCH = "${BRANCH_NAME}"
     CODE_SIGNING_FILE = "/dev/urandom"
     SIMULATOR_ENVIRONMENTS = "${SIMULATOR_ENVIRONMENTS_RELEASE}"
-    SIMULATOR_SENSORS = "${SIMULATOR_SENSORS_RELEASE}"
+    SIMULATOR_SENSORS="VelodyneLidarSensor:2020.05,CheckControlSensor:2020.05,LaneFollowingSensor:2020.05,ComfortSensor:2020.05"
   }
 
   stages {

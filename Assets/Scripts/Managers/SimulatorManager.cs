@@ -543,6 +543,9 @@ public class SimulatorManager : MonoBehaviour
 
     public void PhysicsUpdate()
     {
+        //Client applications does not perform physics updates
+        if (Loader.Instance.Network.IsClient)
+            return;
         NPCManager.PhysicsUpdate();
         PedestrianManager.PhysicsUpdate();
     }

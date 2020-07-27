@@ -563,7 +563,6 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             Rotation = message.Content.PopDecompressedRotation()
         };
         var npc = SpawnNPC(data);
-        npc.enabled = false;
         Destroy(npc.ActiveBehaviour);
         var rb = npc.GetComponentInChildren<Rigidbody>();
         rb.interpolation = RigidbodyInterpolation.Interpolate;

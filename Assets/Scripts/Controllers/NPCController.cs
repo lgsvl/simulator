@@ -907,18 +907,8 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
     /// <param name="transformToDistribute">Transform that will be distributed</param>
     private void DistributeTransform(Transform transformToDistribute)
     {
-        var network = Loader.Instance.Network;
-        if (transformToDistribute.gameObject.GetComponent<DistributedTransform>() != null)
-            return;
-
-        if (network.IsMaster)
-        {
+        if (transformToDistribute.gameObject.GetComponent<DistributedTransform>() == null)
             transformToDistribute.gameObject.AddComponent<DistributedTransform>();
-        }
-        else if (network.IsClient)
-        {
-            transformToDistribute.gameObject.AddComponent<DistributedTransform>();
-        }
     }
 
     /// <inheritdoc/>

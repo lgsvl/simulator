@@ -46,6 +46,8 @@ public class AgentManager : MonoBehaviour
     {
         var go = Instantiate(config.Prefab, transform);
         go.name = config.Name;
+        // set it inactive until we can be sure setting up sensors etc worked without exceptions and it AgentController was initialized
+        go.SetActive(false);
         var agentController = go.GetComponent<AgentController>();
         agentController.SensorsChanged += AgentControllerOnSensorsChanged;
         agentController.Config = config;
@@ -112,6 +114,7 @@ public class AgentManager : MonoBehaviour
         go.transform.rotation = config.Rotation;
         agentController.Init();
 
+        go.SetActive(true);
         return go;
     }
 

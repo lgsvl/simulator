@@ -478,6 +478,11 @@ namespace Simulator
                         Debug.Log($"Failed to start '{simulation.Name}' simulation");
                         Debug.LogException(ex);
 
+                        if (ConnectionManager.instance != null)
+                        {
+                            ConnectionManager.instance.UpdateStatus("Error", simulation.Id, ex.Message);
+                        }
+
                         if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
                         {
                             Instance.Status = SimulatorStatus.Stopping;
@@ -495,6 +500,11 @@ namespace Simulator
                     {
                         Debug.Log($"Failed to start '{simulation.Name}' simulation");
                         Debug.LogException(ex);
+
+                        if (ConnectionManager.instance != null)
+                        {
+                            ConnectionManager.instance.UpdateStatus("Error", simulation.Id, ex.Message);
+                        }
 
                         if (SceneManager.GetActiveScene().name != Instance.LoaderScene && ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline)
                         {
@@ -614,6 +624,10 @@ namespace Simulator
             {
                 Debug.Log($"Failed to start '{simulation.Name}' simulation - out of date asset bundles");
                 Debug.LogException(ex);
+                if (ConnectionManager.instance != null)
+                {
+                    ConnectionManager.instance.UpdateStatus("Error", simulation.Id, ex.Message);
+                }
 
                 ResetLoaderScene(simulation);
             }
@@ -621,6 +635,10 @@ namespace Simulator
             {
                 Debug.Log($"Failed to start '{simulation.Name}' simulation");
                 Debug.LogException(ex);
+                if (ConnectionManager.instance != null)
+                {
+                    ConnectionManager.instance.UpdateStatus("Error", simulation.Id, ex.Message);
+                }
 
                 ResetLoaderScene(simulation);
             }
@@ -753,8 +771,9 @@ namespace Simulator
                 Instance.Status = SimulatorStatus.Stopping;
                 SceneManager.LoadScene(Instance.LoaderScene);
                 AssetBundle.UnloadAllAssetBundles(true);
-                Instance.CurrentSimulation = null;
+                // changing Status requires CurrentSimulation to be valid
                 Instance.Status = SimulatorStatus.Idle;
+                Instance.CurrentSimulation = null;
             }
         }
 	    

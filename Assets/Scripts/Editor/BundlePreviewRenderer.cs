@@ -80,16 +80,7 @@ namespace Simulator.Editor
             hdSettings.hasPersistentHistory = true;
             var hd = HDCamera.GetOrCreate(camera);
             var volume = previewRoot.GetComponentInChildren<Volume>();
-
-            var timeOfDayLights = Object.FindObjectsOfType<TimeOfDayLight>();
-            var timeOfDayBuildings = Object.FindObjectsOfType<TimeOfDayBuilding>();
             var pointCloudRenderers = Object.FindObjectsOfType<NodeTreeRenderer>();
-
-            foreach (var light in timeOfDayLights)
-                light.Init(TimeOfDayStateTypes.Day);
-
-            foreach (var building in timeOfDayBuildings)
-                building.Init(TimeOfDayStateTypes.Day);
 
             foreach (var pointCloudRenderer in pointCloudRenderers)
                 pointCloudRenderer.UpdateImmediate(camera);

@@ -592,6 +592,7 @@ namespace Simulator.Editor
                                     asm.GetName().Name == "UnityEngine" ||
                                     asm.GetName().Name == "UnityEngine.JSONSerializeModule" ||
                                     asm.GetName().Name == "UnityEngine.CoreModule" ||
+                                    asm.GetName().Name == "UnityEngine.VehiclesModule" ||
                                     asm.GetName().Name == "UnityEngine.PhysicsModule").ToArray();
 
                                 assemblyBuilder.additionalReferences = modules.Select(a => a.Location).ToArray();

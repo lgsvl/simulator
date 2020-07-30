@@ -13,8 +13,6 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
     using Elements;
     using Managers;
     using SimpleJSON;
-    using Simulator.Utilities;
-    using UI.MapSelecting;
     using UnityEngine;
 
     /// <summary>
@@ -33,7 +31,22 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
             if (!mapDeserialized)
                 return;
             await DeserializeAgents(json);
+            DeserializeMetadata(json);
             callback?.Invoke();
+        }
+        
+        /// <summary>
+        /// Deserializes scenario meta data from the json data
+        /// </summary>
+        /// <param name="data">Json object with the metadata</param>
+        private static void DeserializeMetadata(JSONNode data)
+        {
+            var vseMetadata = data["vse_metadata"];
+            var cameraSettings = vseMetadata["camera_settings"];
+            if (cameraSettings == null)
+                return;
+            var position = cameraSettings["position"];
+            ScenarioManager.Instance.inputManager.ForceCameraReposition(position);
         }
 
         /// <summary>

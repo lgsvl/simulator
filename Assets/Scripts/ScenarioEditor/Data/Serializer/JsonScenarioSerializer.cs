@@ -28,6 +28,9 @@ namespace Simulator.ScenarioEditor.Data.Serializer
             var scenarioData = new JSONObject();
             var scenarioManager = ScenarioManager.Instance;
             scenarioData.Add("version", new JSONString("0.01"));
+            var vseMetadata = new JSONObject();
+            scenarioData.Add("vse_metadata", vseMetadata);
+            SerializeMetadata(vseMetadata);
             AddMapNode(scenarioData, scenarioManager.MapManager.CurrentMapName);
             var agents = scenarioManager.GetComponentsInChildren<ScenarioAgent>();
             foreach (var agent in agents)
@@ -36,6 +39,19 @@ namespace Simulator.ScenarioEditor.Data.Serializer
             }
 
             return new JsonScenario(scenarioData);
+        }
+
+        /// <summary>
+        /// Adds visual scenario editor metadata to the json scenario
+        /// </summary>
+        /// <param name="data">Json object where data will be added</param>
+        private static void SerializeMetadata(JSONObject data)
+        {
+            var cameraSettings = new JSONObject();
+            data.Add("camera_settings", cameraSettings);
+            var camera = ScenarioManager.Instance.ScenarioCamera;
+            var position = new JSONObject().WriteVector3(camera.transform.position);
+            cameraSettings.Add("position", position);
         }
 
         /// <summary>

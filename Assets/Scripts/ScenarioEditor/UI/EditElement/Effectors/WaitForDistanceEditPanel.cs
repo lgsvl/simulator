@@ -47,12 +47,6 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             editedEffector = (WaitForDistanceEffector) effector;
             maxDistanceInputField.text = editedEffector.MaxDistance.ToString("F");
         }
-        
-        /// <inheritdoc/>
-        public override void FinishEditing()
-        {
-            
-        }
 
         /// <summary>
         /// Removes linked effector from the trigger and returns it to the pool
@@ -61,7 +55,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         {
             parentPanel.RemoveEffector(editedEffector);
         }
-
+        
         /// <summary>
         /// Sets the trigger effector max distance
         /// </summary>
@@ -71,6 +65,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             if (float.TryParse(maxDistanceString, out var maxDistance))
                 SetMaxDistance(maxDistance);
         }
+
 
         /// <summary>
         /// Sets the trigger effector max distance

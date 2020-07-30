@@ -214,6 +214,11 @@ namespace Simulator.ScenarioEditor.Managers
         }
 
         /// <summary>
+        /// Persistence data key for snapping lock value
+        /// </summary>
+        private static string SnappingLockKey = "Simulator/ScenarioEditor/LaneSnappingHandler/SnappingLock";
+
+        /// <summary>
         /// Available traffic lane lines on the current map
         /// </summary>
         private readonly List<LaneLineData> trafficLines = new List<LaneLineData>();
@@ -222,6 +227,33 @@ namespace Simulator.ScenarioEditor.Managers
         /// Available pedestrian lane lines on the current map
         /// </summary>
         private readonly List<LaneLineData> pedestrianLines = new List<LaneLineData>();
+
+        /// <summary>
+        /// Snapping lock value. 0 - snapping enabled, 1 - snapping locked
+        /// </summary>
+        private int snappingLock = -1;
+
+        /// <summary>
+        /// Is the snapping enabled
+        /// </summary>
+        public bool SnappingEnabled
+        {
+            get
+            {
+                // 0 - snapping enabled, 1 - snapping locked
+                if (snappingLock == -1)
+                    snappingLock = PlayerPrefs.GetInt(SnappingLockKey, 0);
+                return snappingLock == 0;
+            }
+            set
+            {
+                // 0 - snapping enabled, 1 - snapping locked
+                var intValue = value ? 0 : 1;
+                if (intValue == snappingLock) return;
+                snappingLock = intValue;
+                PlayerPrefs.SetInt(SnappingLockKey, intValue);
+            }
+        }
 
         /// <summary>
         /// Initialization method, has to be called every time map is loaded
@@ -277,6 +309,10 @@ namespace Simulator.ScenarioEditor.Managers
         /// <param name="maxDistance">Max distance from the line for snapping to be valid</param>
         public void SnapToLane(LaneType laneType, Transform transformToMove, Transform transformToRotate = null, float maxDistance = 5.0f)
         {
+            //Check if snapping is allowed
+            if (!SnappingEnabled)
+                return;
+            
             //Select lane lines for this agent type
             List<LaneLineData> lines;
             switch (laneType)

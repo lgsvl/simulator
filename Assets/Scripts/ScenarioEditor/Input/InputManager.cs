@@ -763,5 +763,14 @@ namespace Simulator.ScenarioEditor.Input
             inputState = InputState.Idle;
             return true;
         }
+
+        /// <summary>
+        /// Forces new position and rotation for the scenario camera, and saves the changes
+        /// </summary>
+        /// <param name="position">New camera position</param>
+        public void ForceCameraReposition(Vector3 position)
+        {
+            MoveCameraTo(position);
+        }
     }
 }

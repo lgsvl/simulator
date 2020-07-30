@@ -70,11 +70,16 @@ namespace Simulator.ScenarioEditor.Managers
         /// Is the manager initialized
         /// </summary>
         private bool isInitialized;
-        
+
         /// <summary>
         /// Semaphore that holds the loading screen
         /// </summary>
         private LockingSemaphore loadingSemaphore = new LockingSemaphore();
+
+        /// <summary>
+        /// Is there a single popup visible in the scenario editor
+        /// </summary>
+        private bool viewsPopup;
 
         /// <summary>
         /// Initial position of the camera, applied when the map changes
@@ -147,17 +152,30 @@ namespace Simulator.ScenarioEditor.Managers
                 if (selectedElement == value)
                     return;
                 selectedElement = value;
-                if (selectedElement!=null)
+                if (selectedElement != null)
                     selectedElement.Selected();
                 SelectedOtherElement?.Invoke(selectedElement);
             }
         }
-        
+
         /// <summary>
         /// Is there a single popup visible in the scenario editor
         /// </summary>
-        public bool ViewsPopup { get; set; }
-        
+        public bool ViewsPopup
+        {
+            get => viewsPopup;
+            set
+            {
+                if (viewsPopup == value)
+                    return;
+                viewsPopup = true;
+                if (viewsPopup)
+                    inputManager.InputSemaphore.Lock();
+                else
+                    inputManager.InputSemaphore.Unlock();
+            }
+        }
+
         /// <summary>
         /// Is scenario dirty, true if there are some unsaved changes
         /// </summary>
@@ -266,7 +284,7 @@ namespace Simulator.ScenarioEditor.Managers
                 successCallback?.Invoke();
                 return;
             }
-            
+
             var popupData = new ConfirmationPopup.PopupData()
             {
                 Text = "There are unsaved changes in the scenario, do you wish to discard them?"
@@ -277,7 +295,7 @@ namespace Simulator.ScenarioEditor.Managers
                 successCallback?.Invoke();
             };
             popupData.CancelCallback += failCallback;
-            
+
             confirmationPopup.Show(popupData);
         }
 
@@ -300,6 +318,7 @@ namespace Simulator.ScenarioEditor.Managers
                 var waypoint = waypoints[i];
                 waypoint.Remove();
             }
+
             Instance.IsScenarioDirty = false;
         }
 

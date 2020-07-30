@@ -30,7 +30,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// </summary>
         public override Type EditedEffectorType => typeof(TimeToCollisionEffector);
 
-        /// <inheritdoc>
+        /// <inheritdoc/>
         public override void StartEditing(TriggerEditPanel triggerPanel, ScenarioTrigger trigger, TriggerEffector effector)
         {
             parentPanel = triggerPanel;

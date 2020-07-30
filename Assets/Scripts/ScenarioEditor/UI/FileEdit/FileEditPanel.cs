@@ -57,6 +57,12 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         private Text cameraModeLabel;
 
         /// <summary>
+        /// Toggle for switching snapping elements to lanes
+        /// </summary>
+        [SerializeField]
+        private Toggle snapToLanesToggle;
+
+        /// <summary>
         /// Toggle for switching X rotation inversion
         /// </summary>
         [SerializeField]
@@ -77,6 +83,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         {
             var inputManager = ScenarioManager.Instance.inputManager;
             UpdateCameraModeText();
+            snapToLanesToggle.SetIsOnWithoutNotify(ScenarioManager.Instance.MapManager.LaneSnapping.SnappingEnabled);
             invertedXRotationToggle.SetIsOnWithoutNotify(inputManager.InvertedXRotation);
             invertedYRotationToggle.SetIsOnWithoutNotify(inputManager.InvertedYRotation);
         }
@@ -251,6 +258,15 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
                 (InputManager.CameraModeType) (((int) inputManager.CameraMode + 1) %
                     ((int) InputManager.CameraModeType.Free + 1));
             UpdateCameraModeText();
+        }
+
+        /// <summary>
+        /// Changes the snapping to lane setting
+        /// </summary>
+        /// <param name="value">Current value for the snapping to lane setting</param>
+        public void ChangeSnappingToLane(bool value)
+        {
+            ScenarioManager.Instance.MapManager.LaneSnapping.SnappingEnabled = value;
         }
 
         /// <summary>

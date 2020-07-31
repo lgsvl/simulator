@@ -1,6 +1,8 @@
 {
     "name": "Simulator.Plugins",
-    "references": [],
+    "references": [
+        "Unity.RenderPipelines.HighDefinition.Runtime"
+    ],
     "optionalUnityReferences": [],
     "includePlatforms": [],
     "excludePlatforms": [],

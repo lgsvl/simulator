@@ -112,6 +112,15 @@ namespace Simulator.Api.Commands
                         j.Add("name", canbus.Name);
                         j.Add("frequency", new JSONNumber(canbus.Frequency));
                     }
+                    else if (sensor is VideoRecordingSensor recorder)
+                    {
+                        j = new JSONObject();
+                        j.Add("type", "recorder");
+                        j.Add("name", recorder.Name);
+                        j.Add("width", recorder.Width);
+                        j.Add("height", recorder.Height);
+                        j.Add("framerate", recorder.Framerate);
+                    }
 
                     if (j != null)
                     {

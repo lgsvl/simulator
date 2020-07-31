@@ -232,6 +232,8 @@ public class SimulatorManager : MonoBehaviour
             {
                 controls.Disable();
             }
+
+            AnalysisManager.TestReportId = config.TestReportId;
         }
         SIM.APIOnly = apiMode;
         SIM.LogSimulation(SIM.Simulation.SimulationStart, simulationName);
@@ -273,6 +275,11 @@ public class SimulatorManager : MonoBehaviour
     public long GetSessionElapsedTime()
     {
         return (long)(CurrentTime - SessionStartTime);
+    }
+
+    public TimeSpan GetSessionElapsedTimeSpan()
+    {
+        return TimeSpan.FromSeconds(CurrentTime - SessionStartTime);
     }
 
     public long GetElapsedTime(double startTime)

@@ -94,6 +94,9 @@ namespace Simulator
         public bool UseTraffic;
         public bool UsePedestrians;
         public int? Seed;
+
+        public string TestReportId;
+
         public SimulationConfig(SimulationData simulation)
         {
             Name = simulation.Name;
@@ -119,6 +122,8 @@ namespace Simulator
             {
                 Agents = simulation.Vehicles.Select(v => new AgentConfig(v)).ToArray();
             }
+
+            TestReportId = simulation.TestReportId;
         }
     }
 
@@ -536,6 +541,11 @@ namespace Simulator
 
             Instance.Actions.Enqueue(() =>
             {
+                if (SimulatorManager.InstanceAvailable)
+                {
+                    SimulatorManager.Instance.AnalysisManager.AnalysisSave();
+                }
+
                 Instance.Network.Deinitialize();
 
                 if (Instance.TCManager)

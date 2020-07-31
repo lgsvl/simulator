@@ -278,8 +278,9 @@ namespace Simulator.Api
 
         public void Reset()
         {
-            Events.Clear();
+            SimulatorManager.Instance.AnalysisManager.AnalysisSave();
 
+            Events.Clear();
             Agents.Clear();
             AgentUID.Clear();
             if (SimulatorManager.InstanceAvailable)

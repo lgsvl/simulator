@@ -7,12 +7,13 @@
 
 using System.Collections.Generic;
 using UnityEngine;
-using System.IO;
 using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Simulator.Sensors;
 using System.Collections;
+using Simulator.Database.Services;
+using System.IO;
 
 namespace Simulator.Analysis
 {
@@ -28,12 +29,12 @@ namespace Simulator.Analysis
         private AnalysisStatusType Status = AnalysisStatusType.Error;
 
         private JsonSerializerSettings SerializerSettings;
-        private string PersistantPath;
-        private string AnalysisPath;
-        private string SimulationPath;
         private SimulationConfig SimConfig;
         private List<SensorBase> Sensors = new List<SensorBase>();
         private List<Hashtable> AnalysisEvents = new List<Hashtable>();
+        private JArray Results = new JArray();
+
+        private bool Init = false;
 
         public struct CollisionTotalData
         {
@@ -43,9 +44,16 @@ namespace Simulator.Analysis
         }
         private CollisionTotalData CollisionTotals;
         private DateTime AnalysisStart;
-/*
+
+        private string PersistantPath;
+        private string AnalysisPath;
+        private string SimulationPath;
+        public string TestReportId;
+
         private void Awake()
         {
+            // TODO create from loader, remove from simulationmanager
+
             SerializerSettings = new JsonSerializerSettings
             {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
@@ -69,11 +77,12 @@ namespace Simulator.Analysis
         private void OnDestroy()
         {
             AnalysisSave();
+            AnalysisSend();
         }
 
         private void FixedUpdate()
         {
-            if (SimConfig == null)// || SimConfig.CurrentTestId == null)
+            if (SimConfig == null)// || !SimConfig.CurrentTestId.HasValue) // This will need to taken from WISE or sent to simconfig, then read
             {
                 return; // Development mode or generate report false
             }
@@ -83,9 +92,16 @@ namespace Simulator.Analysis
                 sensor.OnAnalyze();
             }
         }
-*/
+
         public void AnalysisInit()
         {
+            if (Init)
+            {
+                return;
+            }
+
+            Console.WriteLine("[ANMGR] Initializing with TestReportId:{0}", (TestReportId is null) ? "<null>" : TestReportId);
+
             Sensors.Clear();
             AnalysisEvents.Clear();
             CollisionTotals.Ego = 0;
@@ -95,7 +111,7 @@ namespace Simulator.Analysis
             AnalysisStart = DateTime.Now;
 
             SimConfig = Loader.Instance?.SimConfig;
-            if (SimConfig == null)// || SimConfig.CurrentTestId == null)
+            if (SimConfig == null)// || !SimConfig.CurrentTestId.HasValue) // This will need to taken from WISE or sent to simconfig, then read
             {
                 return; // Development mode or generate report false
             }
@@ -110,26 +126,43 @@ namespace Simulator.Analysis
                 Array.ForEach(agent.AgentGO.GetComponentsInChildren<SensorBase>(), sensorBase =>
                 {
                     Sensors.Add(sensorBase);
+
+                    if (sensorBase is VideoRecordingSensor recorder)
+                    {
+                        recorder.StartRecording();
+                    }
                 });
             }
+            Init = true;
         }
 
         public void AnalysisSave()
         {
+            if (!Init)
+            {
+                return;
+            }
+
             SimConfig = Loader.Instance?.SimConfig;
-            if (SimConfig == null)// || SimConfig.CurrentTestId == null)
+            if (SimConfig == null)// || !SimConfig.CurrentTestId.HasValue) // This will need to taken from WISE or sent to simconfig, then read
             {
                 return; // Development mode or generate report false
             }
 
-            CheckStatus();
+            if (Status != AnalysisStatusType.InProgress)
+            {
+                return;
+            }
 
             var dt = string.Format("Analysis_{0:yyyy-MM-dd_hh-mm-sstt}", DateTime.Now);
             SimulationPath = Path.Combine(AnalysisPath, SimConfig.Name, dt);
             if (!Directory.Exists(SimulationPath))
                 Directory.CreateDirectory(SimulationPath);
 
+            SetStatus();
+
             var simulationConfigJS = JsonConvert.SerializeObject(SimConfig, SerializerSettings);
+            var resultRoot = new JObject();
             var configJO = JObject.Parse(simulationConfigJS);
             var agents = (JArray)configJO["Agents"];
             foreach (var agent in agents)
@@ -139,12 +172,13 @@ namespace Simulator.Analysis
                 agentObj["Sensors"] = token;
             }
 
-            JObject resultsJO = new JObject();
+            //JObject resultsJO = new JObject();
             JArray agentsJA = new JArray();
             foreach (var agent in SimConfig.Agents)
             {
                 JObject agentJO = new JObject();
                 agentJO.Add("Name", agent.Name);
+                agentJO.Add("id", agent.GTID);
                 JObject sensorsJO = new JObject();
                 Array.ForEach(agent.AgentGO.GetComponentsInChildren<SensorBase>(), sensorBase =>
                 {
@@ -155,10 +189,17 @@ namespace Simulator.Analysis
                         JToken token = JToken.Parse(sData);
                         sensorsJO.Add(sensorBase.GetType().ToString(), token);
                     }
+
+                    if (sensorBase is VideoRecordingSensor recorder)
+                    {
+                        if (recorder.StopRecording())
+                        {
+                            agentJO.Add("VideoCapture", recorder.GetFileName());
+                        }
+                    }
                 });
                 agentJO.Add("Sensors", sensorsJO);
 
-                // events
                 JArray eventsJA = new JArray();
                 foreach (var hashtable in AnalysisEvents)
                 {
@@ -175,20 +216,37 @@ namespace Simulator.Analysis
                 agentJO.Add("Events", eventsJA);
                 agentsJA.Add(agentJO);
             }
+            
+            resultRoot.Add("Agents", agentsJA);
+            resultRoot.Add("simulationConfig", configJO);
+            Results.Add(resultRoot);
+            Init = false;
+        }
 
-            resultsJO.Add("Status", Status.ToString());
-            resultsJO.Add("StartTime", AnalysisStart);
-            resultsJO.Add("StopTime", DateTime.Now);
-            resultsJO.Add("Duration", SimulatorManager.Instance.GetSessionElapsedTime());
-            resultsJO.Add("Agents", agentsJA);
-            resultsJO.Add("EgoTotal", SimConfig.Agents.Length);
-            resultsJO.Add("CollisionTotals", JToken.Parse(JsonConvert.SerializeObject(CollisionTotals, SerializerSettings)));
-            resultsJO.Add("VideoCapture", Path.Combine(Application.dataPath, Application.isEditor ? "WebUI\\dist" : "Web", "capture.mov"));
-            configJO.Add("Results", resultsJO);
 
-            File.WriteAllText(Path.Combine(SimulationPath, "SimulationConfiguration.json"), configJO.ToString(Formatting.Indented));
-            // TODO return json to webui
-            // TODO api callbacks
+        private void AnalysisSend()
+        {
+            if (SimConfig == null)// || !SimConfig.CurrentTestId.HasValue) // This will need to taken from WISE or sent to simconfig, then read
+            {
+                return; // Development mode or generate report false
+            }
+
+            if (Status == AnalysisStatusType.InProgress)
+            {
+                return;
+            }
+
+            File.WriteAllText(Path.Combine(SimulationPath, "SimulationConfiguration.json"), Results.ToString(Formatting.Indented));
+
+            if (TestReportId != null)
+            {
+                Console.WriteLine("[ANMGR] Sending test report data id:{0}", TestReportId);
+                ConnectionManager.API.SendAnalysis<JArray>(TestReportId, Results);
+            }
+            else
+            {
+                Console.WriteLine("[ANMGR] Skip sending report: TestReportId is null");
+            }
         }
 
         public void AddEvent(Hashtable data)
@@ -203,7 +261,7 @@ namespace Simulator.Analysis
             {
                 { "Id", id },
                 { "Type", "EgoCollision" },
-                { "Time", SimulatorManager.Instance.GetSessionElapsedTime() },
+                { "Time", SimulatorManager.Instance.GetSessionElapsedTimeSpan().ToString() },
                 { "Location", location },
                 { "OtherType", otherType },
                 { "EgoVelocity", egoVelocity },
@@ -224,7 +282,17 @@ namespace Simulator.Analysis
             CollisionTotals.Ped++;
         }
 
-        private void CheckStatus()
+        public void AddErrorEvent(string error)
+        {
+            var data = new Hashtable
+            {
+                { "Error", error},
+                { "Status", AnalysisStatusType.Error },
+            };
+            AddEvent(data);
+        }
+
+        private void SetStatus()
         {
             Status = AnalysisStatusType.Success;
             foreach (var hashtable in AnalysisEvents)
@@ -233,10 +301,18 @@ namespace Simulator.Analysis
                 {
                     Status = AnalysisStatusType.Failed;
                 }
+
+                // Error always overwrites test case fail
                 if (hashtable.ContainsValue(AnalysisStatusType.Error))
                 {
-                    Status = AnalysisStatusType.Error; // Error always overwrites test case fail
+                    Status = AnalysisStatusType.Error;
+                    break;
                 }
+            }
+
+            // cycle every status to convert to string for json
+            foreach (var hashtable in AnalysisEvents)
+            {
                 if (hashtable.ContainsKey("Status"))
                 {
                     hashtable["Status"] = hashtable["Status"].ToString();

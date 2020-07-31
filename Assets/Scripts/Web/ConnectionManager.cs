@@ -455,6 +455,11 @@ public class CloudAPI
         }
     }
 
+    public async Task SendAnalysis<DataType>(string testId, DataType result)
+    {
+        await PostApi<DataType>($"/api/v1/test-results/{testId}", result);
+    }
+
     public async Task UpdateStatus(string status, string simGuid, string message)
     {
         Console.WriteLine($"[CONN] Updated simulation {simGuid} with status:{status} msg:{message}");
@@ -534,6 +539,13 @@ public struct SimulatorInfo
     public string version;
     public List<string> ip;
     public string macAddress;
+}
+
+public struct ResultMessage
+{
+    public bool success;
+    public int resultCount;
+    public string results;
 }
 
 public struct StatusMessage

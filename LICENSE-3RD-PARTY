@@ -7,6 +7,8 @@ THIRD PARTY LICENSES
         applies to:
         - LASzip, Copyright (C) 1991, 1999 Free Software Foundation, Inc. 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA. 
         The original source code for this software can be found at https://github.com/LASzip/LASzip. 
+        - FFmpeg, Copyright (C) 1991, 1999 Free Software Foundation, Inc. 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA.
+        The original source code for this software can be found at https://github.com/FFmpeg/FFmpeg
 -----------------------------------------------------------------------------
 
  Everyone is permitted to copy and distribute verbatim copies

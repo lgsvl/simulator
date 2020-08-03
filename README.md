@@ -42,6 +42,20 @@ For Chinese-speaking users, you can also view our latest videos [here](https://s
 [![](Docs/docs/images/readme-frontal.png)](Docs/docs/images/full_size_images/readme-frontal.png)
 
 
+## Paper
+If you are using LGSVL Simulator for your research paper, please cite our ITSC 2020 paper:
+[LGSVL Simulator: A High Fidelity Simulator for Autonomous Driving](https://arxiv.org/pdf/2005.03778)
+
+```
+@article{rong2020lgsvl,
+  title={LGSVL Simulator: A High Fidelity Simulator for Autonomous Driving},
+  author={Rong, Guodong and Shin, Byung Hyun and Tabatabaee, Hadi and Lu, Qiang and Lemke, Steve and Mo{\v{z}}eiko, M{\=a}rti{\c{n}}{\v{s}} and Boise, Eric and Uhm, Geehoon and Gerow, Mark and Mehta, Shalin and others},
+  journal={arXiv preprint arXiv:2005.03778},
+  year={2020}
+}
+```
+
+
 ## Getting Started
 
 You can find complete and the most up-to-date guides on our [documentation website](https://www.lgsvlsimulator.com/docs).

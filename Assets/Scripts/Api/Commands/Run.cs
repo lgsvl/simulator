@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Simulator.Api.Commands
 {
-    class Run : ICommand
+    class Run : IDistributedCommand
     {
         public string Name => "simulator/run";
 

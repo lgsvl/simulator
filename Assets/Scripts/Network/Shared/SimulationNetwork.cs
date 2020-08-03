@@ -11,6 +11,7 @@ namespace Simulator.Network.Shared
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
+    using System.Threading.Tasks;
     using Client;
     using Core;
     using Core.Configs;
@@ -76,6 +77,11 @@ namespace Simulator.Network.Shared
         /// Raw cluster configuration data from the cloud
         /// </summary>
         public ClusterData ClusterData { get; private set; }
+
+        /// <summary>
+        /// Count of clients in this distributed simulation
+        /// </summary>
+        public int ClientsCount => ClusterData.Instances.Length - 1;
 
         /// <summary>
         /// Identifier of this machine in the simulation
@@ -172,12 +178,18 @@ namespace Simulator.Network.Shared
             }
 
             //Initialize network objects
+            var mainThreadDispatcher = Object.FindObjectOfType<MainThreadDispatcher>();
+            if (mainThreadDispatcher == null)
+            {
+                var dispatcher = new GameObject("MainThreadDispatcher");
+                Object.DontDestroyOnLoad(dispatcher);
+                dispatcher.AddComponent<MainThreadDispatcher>();
+            }
             if (Type == ClusterNodeType.Master)
             {
                 var masterGameObject = new GameObject("MasterManager");
                 Object.DontDestroyOnLoad(masterGameObject);
                 Master = masterGameObject.AddComponent<MasterManager>();
-                masterGameObject.AddComponent<MainThreadDispatcher>();
                 Master.SetSettings(Settings);
                 var clientsIdentifiers = ClusterData.Instances.Where(instanceData => !instanceData.IsMaster)
                     .Select(instanceData => instanceData.SimId).ToList();
@@ -199,8 +211,14 @@ namespace Simulator.Network.Shared
         /// <summary>
         /// Deinitialization method cleaning all the created objects
         /// </summary>
-        public void Deinitialize()
+        public async Task Deinitialize()
         {
+            //Client should wait for master to break the connection
+            if (IsClient)
+            {
+                while (Client.Connection.ConnectedPeersCount > 0)
+                    await Task.Delay(20);
+            }
             StopConnection();
 
             ThreadingUtilities.DispatchToMainThread(ClearNetworkObjects);

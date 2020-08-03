@@ -11,13 +11,18 @@ using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Simulator.Sensors;
-using System.Collections;
-using Simulator.Database.Services;
 using System.IO;
+using System.Net;
+using System.Collections;
+using System.Threading.Tasks;
+using Simulator.Network.Core.Connection;
+using Simulator.Network.Core.Messaging;
+using Simulator.Network.Core.Messaging.Data;
 
 namespace Simulator.Analysis
 {
-    public class AnalysisManager : MonoBehaviour
+
+    public class AnalysisManager : MonoBehaviour, IMessageSender, IMessageReceiver
     {
         public enum AnalysisStatusType
         {
@@ -50,6 +55,14 @@ namespace Simulator.Analysis
         private string SimulationPath;
         public string TestReportId;
 
+        #region network
+        public string Key { get; } = "AnalysisManager";
+
+        private int ReceivedClientsSensors = 0;
+        
+        private Dictionary<uint, JObject> ClientsSensorsData = new Dictionary<uint, JObject>();
+        #endregion
+
         private void Awake()
         {
             // TODO create from loader, remove from simulationmanager
@@ -72,12 +85,19 @@ namespace Simulator.Analysis
             {
                 AnalysisInit();
             }
+            Loader.Instance.Network.MessagesManager?.RegisterObject(this);
         }
 
         private void OnDestroy()
         {
-            AnalysisSave();
+            var nonBlockingTask = Deinitialize();
+        }
+
+        private async Task Deinitialize()
+        {
+            await AnalysisSave();
             AnalysisSend();
+            Loader.Instance.Network.MessagesManager?.UnregisterObject(this);
         }
 
         private void FixedUpdate()
@@ -107,6 +127,8 @@ namespace Simulator.Analysis
             CollisionTotals.Ego = 0;
             CollisionTotals.Npc = 0;
             CollisionTotals.Ped = 0;
+            ReceivedClientsSensors = 0;
+            ClientsSensorsData.Clear();
             Status = AnalysisStatusType.InProgress;
             AnalysisStart = DateTime.Now;
 
@@ -136,7 +158,7 @@ namespace Simulator.Analysis
             Init = true;
         }
 
-        public void AnalysisSave()
+        public async Task AnalysisSave()
         {
             if (!Init)
             {
@@ -152,6 +174,40 @@ namespace Simulator.Analysis
             if (Status != AnalysisStatusType.InProgress)
             {
                 return;
+            }
+
+            JArray agentsJA = new JArray();
+            if (Loader.Instance != null)
+            {
+                if (Loader.Instance.Network.IsMaster)
+                {
+                    var clientsCount = Loader.Instance.Network.ClientsCount;
+                    while (ReceivedClientsSensors<clientsCount)
+                        await Task.Delay(100);
+                }
+                else if (Loader.Instance.Network.IsClient)
+                {
+                    //Gather all the sensors data of all the agents
+                    foreach (var agent in SimConfig.Agents)
+                    {
+                        JObject agentJO = new JObject();
+                        agentJO.Add("Name", agent.Name);
+                        agentJO.Add("id", agent.GTID);
+                        JObject sensorsJO = GetSensorsData(agent, agentJO);
+                        agentJO.Add("Sensors", sensorsJO);
+                        agentsJA.Add(agentJO);
+                    }
+
+                    var dataString = agentsJA.ToString();
+                    var message = MessagesPool.Instance.GetMessage(BytesStack.GetMaxByteCount(dataString));
+                    message.AddressKey = Key;
+                    message.Content.PushString(dataString);
+                    message.Type = DistributedMessageType.ReliableOrdered;
+                    //Send all collected data to the master
+                    BroadcastMessage(message);
+                    Init = false;
+                    return;
+                }
             }
 
             var dt = string.Format("Analysis_{0:yyyy-MM-dd_hh-mm-sstt}", DateTime.Now);
@@ -173,32 +229,20 @@ namespace Simulator.Analysis
             }
 
             //JObject resultsJO = new JObject();
-            JArray agentsJA = new JArray();
             foreach (var agent in SimConfig.Agents)
             {
                 JObject agentJO = new JObject();
                 agentJO.Add("Name", agent.Name);
                 agentJO.Add("id", agent.GTID);
-                JObject sensorsJO = new JObject();
-                Array.ForEach(agent.AgentGO.GetComponentsInChildren<SensorBase>(), sensorBase =>
+                JObject sensorsJO = GetSensorsData(agent, agentJO);
+                
+                //Add sensors data from clients
+                if (Loader.Instance != null && Loader.Instance.Network.IsMaster)
                 {
-                    sensorBase.SetAnalysisData();
-                    if (sensorBase.SensorAnalysisData != null)
-                    {
-                        var sData = JsonConvert.SerializeObject(sensorBase.SensorAnalysisData, SerializerSettings);
-                        JToken token = JToken.Parse(sData);
-                        sensorsJO.Add(sensorBase.GetType().ToString(), token);
-                    }
-
-                    if (sensorBase is VideoRecordingSensor recorder)
-                    {
-                        if (recorder.StopRecording())
-                        {
-                            agentJO.Add("VideoCapture",
-                                        Path.Combine(recorder.GetOutdir(), recorder.GetFileName()));
-                        }
-                    }
-                });
+                    if (ClientsSensorsData.TryGetValue(agent.GTID, out var agentSensors))
+                        foreach (var clientSensorData in agentSensors.Properties())
+                            sensorsJO.Add(clientSensorData.Name, clientSensorData.Value);
+                }
                 agentJO.Add("Sensors", sensorsJO);
 
                 JArray eventsJA = new JArray();
@@ -230,6 +274,34 @@ namespace Simulator.Analysis
 
             Results.Add(resultRoot);
             Init = false;
+        }
+
+        private JObject GetSensorsData(AgentConfig agent, JObject agentJO)
+        {
+            var sensorsJO = new JObject();
+            Array.ForEach(agent.AgentGO.GetComponentsInChildren<SensorBase>(), sensorBase =>
+            {
+                sensorBase.SetAnalysisData();
+                if (sensorBase.SensorAnalysisData != null)
+                {
+                    var sData = JsonConvert.SerializeObject(sensorBase.SensorAnalysisData, SerializerSettings);
+                    JToken token = JToken.Parse(sData);
+                    sensorsJO.Add(sensorBase.GetType().ToString(), token);
+                }
+
+                if (sensorBase is VideoRecordingSensor recorder)
+                {
+                    if (Loader.Instance.Network.IsClient)
+                        Debug.LogError("Saving captured video on clients simulation is currently unsupported. The data will be lost.");
+                    else if (recorder.StopRecording())
+                    {
+                        agentJO.Add("VideoCapture",
+                                    Path.Combine(recorder.GetOutdir(), recorder.GetFileName()));
+                    }
+                }
+            });
+
+            return sensorsJO;
         }
 
 
@@ -328,5 +400,39 @@ namespace Simulator.Analysis
                 }
             }
         }
+
+#region network
+        void IMessageReceiver.ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
+        {
+            var network = Loader.Instance.Network;
+            if (!network.IsMaster)
+                throw new ArgumentException("Client application cannot receive analysis data.");
+            var agentsString = distributedMessage.Content.PopString();
+            var agentsData = JArray.Parse(agentsString);
+            foreach (var agentDataToken in agentsData.Children())
+            {
+                var agentData = agentDataToken as JObject;
+                if (agentData==null)
+                    continue;
+                ClientsSensorsData.Add(agentData["id"].Value<uint>(), agentData["Sensors"] as JObject);
+            }
+            ReceivedClientsSensors++;
+        }
+
+        public void UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage)
+        {
+            Loader.Instance.Network.MessagesManager?.UnicastMessage(endPoint, distributedMessage);
+        }
+
+        public void BroadcastMessage(DistributedMessage distributedMessage)
+        {
+            Loader.Instance.Network.MessagesManager?.BroadcastMessage(distributedMessage);
+        }
+
+        void IMessageSender.UnicastInitialMessages(IPEndPoint endPoint)
+        {
+            //Nothing to send
+        }
+#endregion
     }
 }

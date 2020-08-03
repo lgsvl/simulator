@@ -161,7 +161,7 @@ namespace Simulator.Network.Core.Connection
         /// <inheritdoc/>
         public IPeerManager GetConnectedPeerManager(IPEndPoint endPoint)
         {
-            return Equals(masterPeer.PeerEndPoint, endPoint) ? masterPeer : null;
+            return (masterPeer!=null && Equals(masterPeer.PeerEndPoint, endPoint)) ? masterPeer : null;
         }
 
         /// <inheritdoc/>

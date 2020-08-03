@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
+using System.Threading.Tasks;
 using UnityEngine;
 using WebSocketSharp;
 using WebSocketSharp.Server;
@@ -19,13 +20,12 @@ using System.Net;
 using System.Collections.Concurrent;
 using Simulator.Controllable;
 using Simulator.Network.Core.Connection;
-using Simulator.Network.Core.Identification;
 using Simulator.Network.Core.Messaging;
 using Simulator.Network.Core.Messaging.Data;
+using Simulator.Network.Core.Threading;
 
 namespace Simulator.Api
 {
-    using Network.Core.Threading;
 
     public class ApiManager : MonoBehaviour, IMessageSender, IMessageReceiver
     {
@@ -279,9 +279,9 @@ namespace Simulator.Api
             Loader.Instance.Network.MessagesManager?.UnregisterObject(this);
         }
 
-        public void Reset()
+        public async Task Reset()
         {
-            SimulatorManager.Instance.AnalysisManager.AnalysisSave();
+            await SimulatorManager.Instance.AnalysisManager.AnalysisSave();
 
             Events.Clear();
             Agents.Clear();

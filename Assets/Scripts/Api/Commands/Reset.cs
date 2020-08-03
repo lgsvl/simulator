@@ -6,8 +6,7 @@
  */
 
 using SimpleJSON;
-using Simulator.Sensors;
-using Simulator.Network.Core.Identification;
+using System.Threading.Tasks;
 
 namespace Simulator.Api.Commands
 {
@@ -15,18 +14,17 @@ namespace Simulator.Api.Commands
     {
         public string Name => "simulator/reset";
 
-        public static void Run()
+        private static async Task ResetAsync(Reset sourceCommand)
         {
             var api = ApiManager.Instance;
-            var sim = SimulatorManager.Instance;
-            api.Reset();
+            await api.Reset();
             SIM.LogAPI(SIM.API.SimulationReset);
+            ApiManager.Instance.SendResult(sourceCommand);
         }
 
         public void Execute(JSONNode args)
         {
-            Run();
-            ApiManager.Instance.SendResult(this);
+            var nonBlockingTask = ResetAsync(this);
         }
     }
 }

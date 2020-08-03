@@ -14,12 +14,10 @@ using UnityEngine.SceneManagement;
 using SimpleJSON;
 using ICSharpCode.SharpZipLib.Zip;
 using System.Threading.Tasks;
+using Simulator.Web;
 
 namespace Simulator.Api.Commands
 {
-    using Database;
-    using Web;
-
     class LoadScene : IDistributedCommand
     {
         public string Name => "simulator/load_scene";
@@ -120,7 +118,9 @@ namespace Simulator.Api.Commands
                 zip.Close();
             }
 
-            api.Reset();
+            var resetTask = api.Reset();
+            while (!resetTask.IsCompleted)
+                yield return null;
             api.CurrentScene = map.Name;
             api.ActionsSemaphore.Unlock();
             api.SendResult(sourceCommand);

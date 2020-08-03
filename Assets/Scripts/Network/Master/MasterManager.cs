@@ -254,7 +254,7 @@ namespace Simulator.Network.Master
         /// <param name="clientPeerManager">Connected client peer manager</param>
         private void OnClientConnected(IPeerManager clientPeerManager)
         {
-            Log.Info($"Client connected: {clientPeerManager.PeerEndPoint.ToString()}");
+            Log.Info($"Client connected: {clientPeerManager.PeerEndPoint}");
             var client = new ClientConnection
             {
                 Peer = clientPeerManager,
@@ -264,7 +264,7 @@ namespace Simulator.Network.Master
 
             if (State == SimulationState.Connecting)
             {
-                var requiredClients = Loader.Instance.Network.ClusterData.Instances.Length - 1;
+                var requiredClients = Loader.Instance.Network.ClientsCount;
                 if (Clients.Count == requiredClients)
                     State = SimulationState.Connected;
             }

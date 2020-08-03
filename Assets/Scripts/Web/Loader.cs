@@ -341,10 +341,10 @@ namespace Simulator
         public static void StartAsync(SimulationData simulation)
         {
             Debug.Assert(Instance.Status == SimulatorStatus.Loading);
-            Instance.Status = SimulatorStatus.Starting;
             Instance.CurrentSimulation = simulation;
+            Instance.Status = SimulatorStatus.Starting;
 
-            Instance.Actions.Enqueue(() =>
+            Instance.Actions.Enqueue(async () =>
             {
                     AssetBundle textureBundle = null;
                     AssetBundle mapBundle = null;
@@ -499,7 +499,7 @@ namespace Simulator
                         mapBundle?.Unload(false);
                         AssetBundle.UnloadAllAssetBundles(true);
                         Instance.CurrentSimulation = null;
-                        Instance.Network.Deinitialize();
+                        await Instance.Network.Deinitialize();
                     }
                     catch (Exception ex)
                     {
@@ -522,31 +522,32 @@ namespace Simulator
                         mapBundle?.Unload(false);
                         AssetBundle.UnloadAllAssetBundles(true);
                         Instance.CurrentSimulation = null;
-                        Instance.Network.Deinitialize();
+                        await Instance.Network.Deinitialize();
                     }
             });
         }
 
         public static void StopAsync()
         {
-            //Check if simulation scene was initialized
-            if (Instance.Status == SimulatorStatus.Loading)
+            Instance.Actions.Enqueue(async () =>
             {
-                Instance.Status = SimulatorStatus.Stopping;
-                Instance.Network.Deinitialize();
-                Instance.Status = SimulatorStatus.Idle;
-                Instance.CurrentSimulation = null;
-                return;
-            }
-
-            Instance.Actions.Enqueue(() =>
-            {
-                if (SimulatorManager.InstanceAvailable)
+                //Check if simulation scene was initialized
+                if (Instance.Status == SimulatorStatus.Loading)
                 {
-                    SimulatorManager.Instance.AnalysisManager.AnalysisSave();
+                    Instance.Status = SimulatorStatus.Stopping;
+                    await Instance.Network.Deinitialize();
+                    Instance.Status = SimulatorStatus.Idle;
+                    Instance.CurrentSimulation = null;
+                    return;
                 }
+                
+                if (ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline)
+                    Instance.Status = SimulatorStatus.Stopping;
+                
+                if (SimulatorManager.InstanceAvailable)
+                    await SimulatorManager.Instance.AnalysisManager.AnalysisSave();
 
-                Instance.Network.Deinitialize();
+                await Instance.Network.Deinitialize();
 
                 if (Instance.TCManager)
                 {
@@ -560,11 +561,6 @@ namespace Simulator
                 {
                     try
                     {
-                        if (ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline)
-                        {
-                            Instance.Status = SimulatorStatus.Stopping;
-                        }
-
                         if (ApiManager.Instance != null)
                         {
                             SceneManager.MoveGameObjectToScene(ApiManager.Instance.gameObject, SceneManager.GetActiveScene());

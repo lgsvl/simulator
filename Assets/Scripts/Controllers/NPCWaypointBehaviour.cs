@@ -147,8 +147,12 @@ public class NPCWaypointBehaviour : NPCBehaviourBase
         LaneTriggerDistance.Insert(0, 0f);
         LaneTime.Insert(0, 0f);
 
-        float initialMoveDuration = (LaneData[1] - LaneData[0]).magnitude / LaneSpeed[1];
-
+        float initialMoveDuration = 0;
+        if (LaneSpeed[1] != 0)
+        {
+            initialMoveDuration = (LaneData[1] - LaneData[0]).magnitude / LaneSpeed[1];
+        }
+        
         for (int i = 1; i < LaneTime.Count; i++)
         {
             LaneTime[i] += initialMoveDuration;

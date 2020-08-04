@@ -47,6 +47,7 @@ namespace Simulator.Editor
         Dictionary<string, MapIntersection> Id2MapIntersection = new Dictionary<string, MapIntersection>();
         Dictionary<string, string> RoadId2IntersectionId = new Dictionary<string, string>();
         Dictionary<string, List<int>> RoadId2laneSections = new Dictionary<string, List<int>>(); // Store laneSections to remove
+        Dictionary<string, float> RoadId2Speed = new Dictionary<string, float>();
         Dictionary<GameObject, string> UngroupedObject2RoadId = new Dictionary<GameObject, string>();
         Dictionary<string, HashSet<MapLane>> IncomingRoadId2leftLanes = new Dictionary<string, HashSet<MapLane>>();
         Dictionary<string, HashSet<MapLane>> IncomingRoadId2rightLanes = new Dictionary<string, HashSet<MapLane>>();
@@ -466,6 +467,7 @@ namespace Simulator.Editor
                 var link = road.link;
                 var elevationProfile = road.elevationProfile;
                 var lanes = road.lanes;
+                ImportRoadSpeed(road);
 
                 List<Vector3> referenceLinePoints = new List<Vector3>();
 
@@ -596,6 +598,36 @@ namespace Simulator.Editor
 
                 if (road.signals != null) ImportSignals(road, road.signals, referenceLinePointsOffset);
             }
+        }
+
+        void ImportRoadSpeed(OpenDRIVERoad road)
+        {
+            if (road.type != null && road.type[0].speed != null)
+            {
+                var speed = road.type[0].speed; // only use 1st type's speed if road has multiple types
+                if (speed.max == "no limit" || speed.max == "undefined") return;
+                if (!float.TryParse(speed.max, out float speedLimit) || speedLimit < 0) return;
+                var speedUnit = speed.unit;
+                if (!ConvertSpeed(speedUnit, ref speedLimit)) return;
+                RoadId2Speed[road.id] = speedLimit;
+            }
+        }
+
+        bool ConvertSpeed(unit speedUnit, ref float speedLimit)
+        {
+            if (speedUnit == null || speedUnit == unit.ms) return true;
+            if (speedUnit == unit.kmh)
+            {
+                speedLimit *= 0.277778f;
+                return true;
+            }
+            if (speedUnit == unit.mph)
+            {
+                speedLimit *= 0.44704f;
+                return true;
+            }
+
+            return false;
         }
 
         List<double> ComputeSectionLength(OpenDRIVERoadLanesLaneSection[] laneSections, double roadLength)
@@ -1113,6 +1145,18 @@ namespace Simulator.Editor
             mapLane.transform.parent = parentObj.transform;
             ApolloMapImporter.UpdateLocalPositions(mapLane);
 
+            float? laneSpeed = null;
+            if (curLane.speed != null && ParseLaneSpeed(curLane, out float speedLimit))
+            {
+                laneSpeed = speedLimit;
+            }
+            else if (RoadId2Speed.ContainsKey(roadId))
+            {
+                laneSpeed = RoadId2Speed[roadId];
+            }
+
+            if (laneSpeed != null) mapLane.speedLimit = laneSpeed.Value;
+
             var mapLine = Id2MapLine[$"MapLine_{roadIdLaneSectionId}_{laneId}"];
             mapLane.rightLineBoundry = mapLine;
             // Left lanes
@@ -1130,6 +1174,15 @@ namespace Simulator.Editor
             Id2MapLane[laneId] = mapLane;
 
             Lane2LaneType[mapLane] = curLane.type;
+        }
+
+        bool ParseLaneSpeed(lane curLane, out float speedLimit)
+        {
+            var speed = curLane.speed[0]; // currently we don't support multiple speed limit for same lane
+            speedLimit = (float)speed.max;
+            if (speedLimit < 0) return false;
+            if (ConvertSpeed(speed.unit, ref speedLimit)) return true;
+            return false;
         }
 
         MapData.LineType GetLineType(roadmarkType roadMarkType, color roadMarkColor)

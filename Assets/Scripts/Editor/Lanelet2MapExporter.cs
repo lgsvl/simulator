@@ -159,6 +159,13 @@ namespace Simulator.Editor
                         }
 
                         // create way for stop sign
+                        if (lineData.mapLine.stopSign == null)
+                        {
+                            var msg = $"Stop line {lineData.go.name} should be associated with a stop sign, please check and fix!";
+                            Debug.LogError(msg, lineData.go);
+                            continue;
+                        }
+
                         Way wayStopSign = CreateWayFromStopSign(lineData.mapLine.stopSign);
                         Relation relationRegulatoryElement = CreateRegulatoryElementFromStopLineStopSign(wayStopLine, wayStopSign);
                         map.Add(relationRegulatoryElement);
@@ -1285,11 +1292,11 @@ namespace Simulator.Editor
                 if (allConnectedLanesData2InOut.ContainsKey(laneData))
                 {
                     if (allConnectedLanesData2InOut[laneData] != inOut)
-                        {
-                            var message = $"Lane {laneData.go.name} {laneData.go.GetInstanceID()} is added ";
-                            message += $"already and with {allConnectedLanesData2InOut[laneData]} not {inOut}";
-                            throw new Exception(message);
-                        }
+                    {
+                        var message = $"Lane {laneData.go.name} {laneData.go.GetInstanceID()} is added ";
+                        message += $"already and with {allConnectedLanesData2InOut[laneData]} not {inOut}";
+                        Debug.LogError(message, laneData.go);
+                    }
                     continue;
                 }
                 allConnectedLanesData2InOut[laneData] = inOut;

@@ -53,7 +53,6 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
     public float targetRange = 1f;
 
     private Vector3 NextTargetPos;
-    private Transform NextTargetT;
     private NavMeshAgent agent;
     private Animator anim;
     private PedestrianState thisPedState = PedestrianState.None;
@@ -181,7 +180,18 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
 
     public void SetSpeed(float speed)
     {
-        LinearSpeed = speed;
+        switch (Control)
+        {
+            case ControlType.Automatic:
+                LinearSpeed = speed;
+                break;
+            case ControlType.Waypoints:
+                speeds[NextTargetIndex] = speed;
+                break;
+            case ControlType.Manual:
+                // TODO
+                break;
+        }
     }
     #endregion
 
@@ -198,7 +208,9 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
         Name = transform.GetChild(0).name;
 
         if (RandomGenerator.Next(2) == 0)
+        {
             targets.Reverse();
+        }
 
         agent.avoidancePriority = RandomGenerator.Next(1, 100); // set to 0 for no avoidance
 
@@ -336,9 +348,10 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
                 if (CurrentWP >= corners.Length)
                 {
                     var api = ApiManager.Instance;
-                    // When waypoint is reached, Ped waits for trigger (if any), then idles (if any), then moves on to next waypoint
-                    if (api != null)
+                    if (api != null) // When waypoint is reached, Ped waits for trigger (if any), then idles (if any), then moves on to next waypoint
+                    {
                         api.AddWaypointReached(gameObject, NextTargetIndex);
+                    }
 
                     Path.ClearCorners();
                     CurrentIdle = idle[NextTargetIndex];
@@ -478,10 +491,25 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
     {
         if (agent == null || anim == null) return;
 
-        if (ThisPedState == PedestrianState.Walking || ThisPedState == PedestrianState.Crossing) 
-            anim.SetFloat("speed", LinearSpeed);
-        else 
+        if (ThisPedState == PedestrianState.Walking || ThisPedState == PedestrianState.Crossing)
+        {
+            switch (Control)
+            {
+                case ControlType.Automatic:
+                    anim.SetFloat("speed", LinearSpeed);
+                    break;
+                case ControlType.Waypoints:
+                    anim.SetFloat("speed", speeds[NextTargetIndex]);
+                    break;
+                case ControlType.Manual: // TODO
+                    break;
+            }
+            
+        }
+        else
+        {
             anim.SetFloat("speed", 0.0f);
+        }
     }
 
     private int GetNextTargetIndex(int index)
@@ -566,8 +594,10 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
     {
         ThisPedState = distributedMessage.Content.PopEnum<PedestrianState>();
         //Validate animator, as snapshot can be received before it is initialized
-        if (anim != null && anim.isActiveAndEnabled && anim.runtimeAnimatorController!=null)
+        if (anim != null && anim.isActiveAndEnabled && anim.runtimeAnimatorController != null)
+        {
             SetAnimationControllerParameters();
+        }
     }
     #endregion
 }

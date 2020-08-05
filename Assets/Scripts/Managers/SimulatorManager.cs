@@ -382,11 +382,7 @@ public class SimulatorManager : MonoBehaviour
                 obj.GetComponentsInChildren(true, renderers);
                 renderers.ForEach(renderer =>
                 {
-                    if (item.IsInstanceSegmenation)
-                        renderer.GetMaterials(materials);
-                    else
-                        renderer.GetSharedMaterials(materials);
-
+                    renderer.GetMaterials(materials);
                     materials.ForEach(material =>
                     {
                         if (material != null)

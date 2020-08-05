@@ -37,8 +37,16 @@ function uploadAssets()
   local ASSET_NAMES=`echo "$1" | awk '{print $2}'`
   for ASSET_NAME in $ASSET_NAMES; do
     ASSETS=`expr $ASSETS + 1`
-    echo "INFO: Check if '$ASSET_NAME' asset is already uploaded"
-    local ASSET_UID=`$WISE_CLI list -t $ASSET_TYPE | grep -i $ASSET_NAME | awk '{print $1}'`
+    # We need to get the name from description.json, because e.g. asset_name SanFrancisco
+    # when uploaded with current description.json will have a name shown by wise-cli list
+    # as "San Francisco" and because the extra space, the grep doesn't catch it and
+    # it's not deleted before upload
+    ASSET_REAL_NAME=`jq .name ${BUNDLES_SOURCES}/${ASSET_FOLDER}/${ASSET_NAME}/description.json`
+    echo "INFO: Check if '$ASSET_NAME' asset is already uploaded with the name from description.json: '$ASSET_REAL_NAME'"
+    # There are already quotes around the asset name from jq output, which is good, because then
+    # this grep won't so easily match with some other asset which contains ASSET_REAL_NAME as substring
+    # just add spaces around as well
+    local ASSET_UID=`$WISE_CLI list -t $ASSET_TYPE | grep " ${ASSET_REAL_NAME} " | awk '{print $1}'`
 
     if [ -n "$ASSET_UID" ]; then
       echo "INFO: $ASSET_NAME: Asset already uploaded"

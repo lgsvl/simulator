@@ -15,6 +15,10 @@ pipeline {
     timestamps()
   }
 
+  parameters {
+    string(name: "CLOUD_URL", defaultValue: "${SIMULATOR_WISE_BETA_URL}", description: "")
+  }
+
   environment {
     UNITY_USERNAME = credentials("UNITY_USERNAME")
     UNITY_PASSWORD = credentials("UNITY_PASSWORD")

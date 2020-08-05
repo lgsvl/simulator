@@ -5,7 +5,7 @@ pipeline {
   agent {
     node {
       label "unity3d-2019.3-vulkan"
-      customWorkspace "/home/jenkins/workspace/simulator-cloud-bundles-2019.3.15f1"
+      customWorkspace "/home/jenkins/workspace/simulator-cloud-bundles-release-2019.3.15f1"
     }
   }
 
@@ -25,8 +25,8 @@ pipeline {
     booleanParam(name: "UPLOAD", defaultValue: true, description: "Upload bundles to S3")
     string(name: "BUILD_SIMULATOR_ENVIRONMENTS", defaultValue: "${SIMULATOR_ENVIRONMENTS}", description: "Environments to build")
     string(name: "BUILD_SIMULATOR_VEHICLES", defaultValue: "${SIMULATOR_VEHICLES}", description: "Vehicles to build")
-    string(name: "WISE_URL", defaultValue: "${SIMULATOR_WISE_DEV_URL}", description: "Url to use with wise-cli for uploading assets, CLOUD_URL should be used later, not it's separate to test against dev instead of staging")
-    credentials(name: "WISE_CONTENT_UPLOAD_CREDENTIALS_ID", required: true, defaultValue: "WISE_CONTENT_UPLOAD_DEV", description: 'The credentials to be used for uploading asset bundles', credentialType: 'com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl')
+    string(name: "WISE_URL", defaultValue: "${SIMULATOR_WISE_BETA_URL}", description: "Url to use with wise-cli for uploading assets, CLOUD_URL should be used later, not it's separate to test against dev instead of staging")
+    credentials(name: "WISE_CONTENT_UPLOAD_CREDENTIALS_ID", required: true, defaultValue: "WISE_CONTENT_UPLOAD_BETA", description: 'The credentials to be used for uploading asset bundles', credentialType: 'com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl')
   }
 
   environment {
@@ -36,7 +36,11 @@ pipeline {
     PYTHONUNBUFFERED = "1"
     DISPLAY = ":0"
     JENKINS_BUILD_ID = "${BUILD_ID}"
-    S3_DOWNLOAD_HOST = "${S3_DOWNLOAD_HOST}/v2"
+    GIT_TAG = "${GIT_TAG}"
+    S3_DOWNLOAD_HOST = "${S3_RELEASE_DOWNLOAD_HOST}"
+    S3_BUCKET_NAME = "${S3_RELEASE_BUCKET_NAME}"
+    AWS_ACCESS_KEY_ID = "${AWS_RELEASE_ACCESS_KEY_ID}"
+    AWS_SECRET_ACCESS_KEY = "${AWS_RELEASE_SECRET_ACCESS_KEY}"
   }
 
   stages {

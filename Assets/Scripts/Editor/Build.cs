@@ -6,9 +6,7 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -18,6 +16,7 @@ using UnityEditor.Compilation;
 using UnityEditor.Formats.Fbx.Exporter;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
@@ -31,8 +30,6 @@ using System.Threading;
 
 namespace Simulator.Editor
 {
-    using System.Threading.Tasks;
-
     public class Build : EditorWindow
     {
         public static bool Running;
@@ -225,15 +222,31 @@ namespace Simulator.Editor
                         Dictionary<string, object> files = new Dictionary<string, object>();
                         manifest.attachments = files;
 
-                        UnityEngine.Object tempObj = AssetDatabase.LoadAssetAtPath(prefabEntry.mainAssetFile, typeof(GameObject));
+                        var prefab = AssetDatabase.LoadAssetAtPath(prefabEntry.mainAssetFile, typeof(GameObject));
+                        var tempObj = Instantiate(prefab) as GameObject;
 
-                        foreach (Collider col in ((GameObject) tempObj).transform.GetComponentsInChildren<Collider>())
+                        if (tempObj == null)
+                            throw new Exception("Cannot instantiate vehicle prefab.");
+
+                        foreach (var col in tempObj.transform.GetComponentsInChildren<Collider>(true))
                         {
-                            MeshRenderer mr = col.transform.GetComponent<MeshRenderer>();
+                            var mr = col.transform.GetComponent<MeshRenderer>();
                             if (mr != null)
+                                CoreUtils.Destroy(col.gameObject);
+                        }
+
+                        var emissionProp = Shader.PropertyToID("_EmissionColor");
+
+                        foreach (var rnd in tempObj.transform.GetComponentsInChildren<Renderer>())
+                        {
+                            var mats = rnd.sharedMaterials;
+                            for (var i = 0; i < mats.Length; ++i)
                             {
-                                mr.enabled = false;
+                                mats[i] = new Material(mats[i]);
+                                mats[i].SetColor(emissionProp, Color.clear);
                             }
+
+                            rnd.sharedMaterials = mats;
                         }
 
                         string glbFilename = $"{manifest.assetGuid}_vehicle_{manifest.assetName}.glb";
@@ -256,6 +269,7 @@ namespace Simulator.Editor
                         });
 
                         p.Start();
+                        CoreUtils.Destroy(tempObj);
 
                         var textures = new BundlePreviewRenderer.PreviewTextures();
                         BundlePreviewRenderer.RenderVehiclePreview(prefabEntry.mainAssetFile, textures);

@@ -194,7 +194,8 @@ namespace Simulator.Analysis
                     {
                         if (recorder.StopRecording())
                         {
-                            agentJO.Add("VideoCapture", recorder.GetFileName());
+                            agentJO.Add("VideoCapture",
+                                        Path.Combine(recorder.GetOutdir(), recorder.GetFileName()));
                         }
                     }
                 });
@@ -216,9 +217,17 @@ namespace Simulator.Analysis
                 agentJO.Add("Events", eventsJA);
                 agentsJA.Add(agentJO);
             }
-            
+
+            JObject iterationInfo = new JObject();
+            iterationInfo.Add("Duration", SimulatorManager.Instance.GetSessionElapsedTimeSpan().ToString());
+            iterationInfo.Add("StartTime", AnalysisStart);
+            iterationInfo.Add("StopTime", DateTime.Now);
+            iterationInfo.Add("Version", "0.1");
+
             resultRoot.Add("Agents", agentsJA);
             resultRoot.Add("simulationConfig", configJO);
+            resultRoot.Add("IterationInfo", iterationInfo);
+
             Results.Add(resultRoot);
             Init = false;
         }

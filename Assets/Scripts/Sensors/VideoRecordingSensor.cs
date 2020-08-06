@@ -230,6 +230,11 @@ namespace Simulator.Sensors
             return Outfile;
         }
 
+        public string GetOutdir()
+        {
+            return Outdir;
+        }
+
         public override void OnBridgeSetup(BridgeInstance bridge)
         {
             //

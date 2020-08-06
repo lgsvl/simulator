@@ -61,22 +61,8 @@ public static class SimulatorManagerEditor
         if (state == PlayModeStateChange.EnteredPlayMode)
         {
             Scene scene = SceneManager.GetActiveScene();
-            if (scene.name == "LoaderScene")
-            {
-                var devSettings = (DevelopmentSettingsAsset)AssetDatabase.LoadAssetAtPath("Assets/Resources/Editor/DeveloperSettings.asset", typeof(DevelopmentSettingsAsset));
-                var developerSimulation = Newtonsoft.Json.JsonConvert.DeserializeObject<Simulator.Web.SimulationData>(devSettings.developerSimulationJson);
 
-                if (devSettings != null && developerSimulation != null)
-                {
-                    if (developerSimulation.ApiOnly)
-                    {
-                        var api = Object.Instantiate(Loader.Instance.ApiManagerPrefab);
-                        api.name = "ApiManager";
-                        Loader.Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.READY);
-                    }
-                }
-            }
-            else
+            if (scene.name != "LoaderScene")
             {
                 var loader = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Managers/Loader.prefab");
                 if (loader == null)

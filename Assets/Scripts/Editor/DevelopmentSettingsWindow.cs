@@ -25,7 +25,7 @@ namespace Simulator.Editor
         List<string> LocalVehicles = new List<string>();
 
         DevelopmentSettingsAsset settings;
-        SimulationData developerSimulation = new SimulationData();
+        SimulationData developerSimulation = null;
 
         CloudAPI API;
         string errorMessage;

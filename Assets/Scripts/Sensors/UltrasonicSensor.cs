@@ -78,6 +78,7 @@ namespace Simulator.Sensors
         private float CurrentFieldOfView;
 
         protected SensorRenderTarget renderTarget;
+        private RenderTexture visualizationTexture;
 
         bool SizeChanged;
         ConcurrentBag<NativeArray<byte>> AvailableGpuDataArrays = new ConcurrentBag<NativeArray<byte>>();
@@ -111,6 +112,8 @@ namespace Simulator.Sensors
 
             passId = new ShaderTagId("SimulatorLidarPass");
             SensorCamera.GetComponent<HDAdditionalCameraData>().customRender += CustomRender;
+            // Create a RenderTexture without alpha channel, so that we can only visualize RGB channels.
+            visualizationTexture = new RenderTexture(Width, Height, 24, RenderTextureFormat.RGB565);
         }
 
         void CustomRender(ScriptableRenderContext context, HDCamera hd)
@@ -313,7 +316,8 @@ namespace Simulator.Sensors
             };
             visualizer.UpdateGraphValues(graphData);
             // TODO: Add visualization of the closest point (with color changes according to distance).
-            visualizer.UpdateRenderTexture(renderTarget.ColorTexture, SensorCamera.aspect);
+            Graphics.Blit(renderTarget.ColorTexture, visualizationTexture);
+            visualizer.UpdateRenderTexture(visualizationTexture, SensorCamera.aspect);
         }
 
         public override void OnVisualizeToggle(bool state)

@@ -401,8 +401,15 @@ namespace Simulator.Editor
                                 Directory.Delete(tmpdir);
                             }
 
+                            var previewOrigin = origin.transform;
+                            var spawns = FindObjectsOfType<SpawnInfo>().OrderBy(spawn => spawn.name).ToList();
+                            if (spawns.Count > 0)
+                                previewOrigin = spawns[0].transform;
+                            else
+                                Debug.LogError("No spawns found, preview will be rendered from origin.");
+
                             var textures = new BundlePreviewRenderer.PreviewTextures();
-                            BundlePreviewRenderer.RenderScenePreview(origin.transform, textures);
+                            BundlePreviewRenderer.RenderScenePreview(previewOrigin, textures);
                             var bytesLarge = textures.large.EncodeToPNG();
                             var bytesMedium = textures.medium.EncodeToPNG();
                             var bytesSmall = textures.small.EncodeToPNG();

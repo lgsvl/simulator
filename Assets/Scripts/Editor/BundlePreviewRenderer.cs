@@ -66,10 +66,15 @@ namespace Simulator.Editor
 
         public static void RenderScenePreview(Transform origin, PreviewTextures textures)
         {
+            var pos = origin.position;
+            var rot = origin.rotation;
+
             ReinitializeRenderPipeline();
 
             var previewRootPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/ScenePreviewRoot.prefab");
-            var previewRoot = Object.Instantiate(previewRootPrefab, origin);
+            var previewRoot = Object.Instantiate(previewRootPrefab);
+            previewRoot.transform.rotation = rot;
+            previewRoot.transform.position = pos;
             var camera = previewRoot.GetComponentInChildren<Camera>();
 
             // This will trigger HDCamera.Update, which must be done before calling HDCamera.GetOrCreate

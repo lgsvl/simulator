@@ -117,9 +117,21 @@ namespace Simulator.Api.Commands
                         j = new JSONObject();
                         j.Add("type", "recorder");
                         j.Add("name", recorder.Name);
-                        j.Add("width", recorder.Width);
-                        j.Add("height", recorder.Height);
-                        j.Add("framerate", recorder.Framerate);
+                        j.Add("width", new JSONNumber(recorder.Width));
+                        j.Add("height", new JSONNumber(recorder.Height));
+                        j.Add("framerate", new JSONNumber(recorder.Framerate));
+                    }
+                    else if (sensor is AnalysisSensor analysis)
+                    {
+                        j = new JSONObject();
+                        j.Add("type", "analysis");
+                        j.Add("name", analysis.Name);
+                        j.Add("suddenbrakemax", new JSONNumber(analysis.SuddenBrakeMax));
+                        j.Add("suddensteermax", new JSONNumber(analysis.SuddenSteerMax));
+                        j.Add("stucktravelthreshold", new JSONNumber(analysis.StuckTravelThreshold));
+                        j.Add("stucktimethreshold", new JSONNumber(analysis.StuckTimeThreshold));
+                        j.Add("minfps", new JSONNumber(analysis.MinFPS));
+                        j.Add("minfpstime", new JSONNumber(analysis.MinFPSTime));
                     }
 
                     if (j != null)

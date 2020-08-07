@@ -248,6 +248,11 @@ namespace Simulator.ScenarioEditor.Input
         /// Inputs semaphore that allows disabling all the keyboard and mouse processing
         /// </summary>
         public LockingSemaphore InputSemaphore { get; } = new LockingSemaphore();
+        
+        /// <summary>
+        /// Semaphore that allows disabling selecting scenario elements
+        /// </summary>
+        public LockingSemaphore ElementSelectingSemaphore { get; } = new LockingSemaphore();
 
         /// <summary>
         /// World position of the raycast casted from the mouse pointer
@@ -426,7 +431,7 @@ namespace Simulator.ScenarioEditor.Input
             switch (inputState)
             {
                 case InputState.Idle:
-                    if (leftMouseButtonPressed &&
+                    if (leftMouseButtonPressed && ElementSelectingSemaphore.IsUnlocked &&
                         !EventSystem.current.IsPointerOverGameObject())
                     {
                         ScenarioManager.Instance.SelectedElement = null;

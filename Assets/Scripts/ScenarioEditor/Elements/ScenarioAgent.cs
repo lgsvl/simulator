@@ -87,6 +87,9 @@ namespace Simulator.ScenarioEditor.Agents
         /// <inheritdoc/>
         public override Transform TransformToRotate => modelInstance.transform;
 
+        /// <inheritdoc/>
+        public override Transform TransformForPlayback => modelInstance.transform;
+
         /// <summary>
         /// Parent source of this scenario agent
         /// </summary>

@@ -133,6 +133,11 @@ namespace Simulator.ScenarioEditor.Elements
         public virtual Transform TransformToResize => transform;
 
         /// <summary>
+        /// Transform that will be animated in the playback
+        /// </summary>
+        public virtual Transform TransformForPlayback => transform;
+
+        /// <summary>
         /// Unity Start method
         /// </summary>
         protected virtual void Start()

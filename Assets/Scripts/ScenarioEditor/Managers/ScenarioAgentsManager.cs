@@ -30,6 +30,16 @@ namespace Simulator.ScenarioEditor.Managers
         public List<ScenarioAgent> Agents { get; } = new List<ScenarioAgent>();
 
         /// <summary>
+        /// Event invoked when a new agent is registered
+        /// </summary>
+        public event Action<ScenarioAgent> AgentRegistered;
+        
+        /// <summary>
+        /// Event invoked when agent is unregistered
+        /// </summary>
+        public event Action<ScenarioAgent> AgentUnregistered;
+
+        /// <summary>
         /// Initialization method
         /// </summary>
         public async Task Initialize()
@@ -64,6 +74,7 @@ namespace Simulator.ScenarioEditor.Managers
         public void RegisterAgent(ScenarioAgent agent)
         {
             Agents.Add(agent);
+            AgentRegistered?.Invoke(agent);
         }
 
         /// <summary>
@@ -73,6 +84,7 @@ namespace Simulator.ScenarioEditor.Managers
         public void UnregisterAgent(ScenarioAgent agent)
         {
             Agents.Remove(agent);
+            AgentUnregistered?.Invoke(agent);
         }
     }
 }

@@ -22,17 +22,19 @@ namespace Simulator.Sensors
     {
         /*
          * {
-             "type": "Analysis",
-             "name": "Analysis Sensor",
-             "params": {
-               "SuddenBrakeMax": 10.0,
-               "SuddenSteerMax": 10.0,
-               "StuckTravelThreshold": 0.1,
-               "StuckTimeThreshold": 10.0,
-               "MinFPS": 10.0,
-               "MinFPSTime": 5f,
-             },
-           }
+            "type": "Analysis",
+            "parent": null,
+            "name": "Analysis Sensor",
+            "params":
+            {
+              "SuddenBrakeMax": 10.0,
+              "SuddenSteerMax": 10.0,
+              "StuckTravelThreshold": 0.1,
+              "StuckTimeThreshold": 10.0,
+              "MinFPS": 10.0,
+              "MinFPSTime": 5.0
+            }
+          }
          */
         private AgentController AgentController;
         private Rigidbody RB;
@@ -44,7 +46,7 @@ namespace Simulator.Sensors
         private Vector3 PrevPos = new Vector3(0f, 0f, 0f);
 
         [SensorParameter]
-        private float SuddenBrakeMax = 10f;
+        public float SuddenBrakeMax = 10f;
         private float SpeedMin = float.MaxValue;
         private float SpeedMax = 0f;
         private float SpeedAvg = 0f;
@@ -73,7 +75,7 @@ namespace Simulator.Sensors
         private float JerkLatMax = 0f;
 
         [SensorParameter]
-        private float SuddenSteerMax = 10f;
+        public float SuddenSteerMax = 10f;
         private float SteerAngleMax = 0f;
         private float SteerAngle = 0f;
         private float PrevSteerAngle = 0f;
@@ -81,9 +83,9 @@ namespace Simulator.Sensors
         private bool FellOffAdded = false;
 
         [SensorParameter]
-        private float StuckTravelThreshold = 0.1f;
+        public float StuckTravelThreshold = 0.1f;
         [SensorParameter]
-        private float StuckTimeThreshold = 10.0f;
+        public float StuckTimeThreshold = 10.0f;
         private float ThrottleCommand = 0f;
         private float ThrottleCuttoff = 0.05f;
         private Vector3 StuckStartPosition;
@@ -91,9 +93,9 @@ namespace Simulator.Sensors
         private bool EgoIsStuck = false;
 
         [SensorParameter]
-        private float MinFPS = 10f;
+        public float MinFPS = 10f;
         [SensorParameter]
-        private float MinFPSTime = 5f;
+        public float MinFPSTime = 5f;
         private float LowFPSCalculatedTime = 0f;
         private float DeltaTime = 0.0f;
         private float MS = 0f;

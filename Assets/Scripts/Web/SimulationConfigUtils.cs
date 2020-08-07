@@ -124,7 +124,12 @@ namespace Simulator.Web
 
                 if (namedParameters.TryGetValue("SIMULATOR_SEED", out parameter))
                 {
-                    simData.Seed = (int)parameter.GetValue<long>();
+                    var seed = (int)parameter.GetValue<long>();
+
+                    if (seed != 0)
+                    {
+                        simData.Seed = seed;
+                    }
                 }
             }
             else

@@ -168,7 +168,7 @@ namespace Simulator.ScenarioEditor.Managers
             {
                 if (viewsPopup == value)
                     return;
-                viewsPopup = true;
+                viewsPopup = value;
                 if (viewsPopup)
                     inputManager.InputSemaphore.Lock();
                 else

@@ -35,6 +35,9 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         /// </summary>
         [SerializeField]
         private DefaultEffectorEditPanel defaultEffectorEditPanelPanel;
+
+        [SerializeField]
+        private List<EffectorEditPanel> buildInCustomEffectorEditPanels;
 #pragma warning restore 0649
 
         /// <summary>
@@ -74,9 +77,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement
             if (isInitialized)
                 return;
 
-            var customEffectorEditPanels = Resources.LoadAll<EffectorEditPanel>("");
             var customEffectorPanels = new Dictionary<Type, EffectorEditPanel>();
-            foreach (var customEffectorEditPanel in customEffectorEditPanels)
+            foreach (var customEffectorEditPanel in buildInCustomEffectorEditPanels)
                 customEffectorPanels.Add(customEffectorEditPanel.EditedEffectorType, customEffectorEditPanel);
             var allEffectorTypes = TriggersManager.GetAllEffectorsTypes();
             for (int i = 0; i < allEffectorTypes.Count; i++)

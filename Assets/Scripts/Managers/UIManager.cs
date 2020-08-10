@@ -122,7 +122,7 @@ public class UIManager : MonoBehaviour
     public Text CameraStateText;
 
     private StringBuilder sb = new StringBuilder();
-
+    private GameObject CurrentAgent;
     ConcurrentQueue<Action> MainThreadActions = new ConcurrentQueue<Action>();
 
     private bool _uiActive = false;
@@ -394,6 +394,7 @@ public class UIManager : MonoBehaviour
         CurrentBridgeSubscriberInfo.Clear();
         BridgeClient = null;
         BridgeClientStatusText = null;
+
         var temp = BridgeContent.GetComponentsInChildren<InfoTextOnClick>();
         for (int i = 0; i < temp.Length; i++)
         {
@@ -506,6 +507,22 @@ public class UIManager : MonoBehaviour
 
     private void OnAgentChange(GameObject agent)
     {
+        if (CurrentAgent == null)
+        {
+            CurrentAgent = agent;
+        }
+        else
+        {
+            if (CurrentAgent == agent)
+            {
+                return;
+            }
+            else
+            {
+                CurrentAgent = agent;
+            }
+        }
+
         for (int i = 0; i < visualizerToggles.Count; i++)
         {
             Destroy(visualizerToggles[i].gameObject);

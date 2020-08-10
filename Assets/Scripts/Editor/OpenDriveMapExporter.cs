@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -515,7 +515,13 @@ namespace Simulator.Editor
                     road.signals = new OpenDRIVERoadSignals();
                     Roads[roadId] = road;
                     RoadId2RefLinePositions[roadId] = refLinePositions;
-                    // Debug.Log(consideredLanes[0].gameObject.GetInstanceID() + "    road Id " + roadId + "   lane Id " + Lane2LaneId[consideredLanes[0]], consideredLanes[0].gameObject);
+
+                    // for (int i = 0; i < consideredLanesData.Count; i++)
+                    // {
+                    //     var msg = $"Instance ID: {consideredLanesData[i].go.GetInstanceID()} original name {consideredLanesData[i].go.name}";
+                    //     msg += $" road Id {roadId} lane Id {LaneData2LaneId[consideredLanesData[i]]} ";
+                    //     Debug.Log(msg, consideredLanesData[i].go);
+                    // }
                     roadId += 1;
                 }
             }
@@ -627,7 +633,7 @@ namespace Simulator.Editor
                     // Create signal reference on the intended road if signal is not created on the intended road
                     if (pairedRoadId != roadIdStopLine)
                     {
-                        var orien = GetOrientation(RoadId2RefLinePositions[roadIdStopLine], mapSignal.transform.forward);
+                        var orien = GetOrientation(RoadId2RefLinePositions[roadIdStopLine], mapSignal.transform.position, mapSignal.transform.forward);
                         var s = GetSAndT(mapSignal.transform.position, orien, roadIdStopLine, true, out double t);
 
                         // Not very clear about how t is computed for road referencing a signal
@@ -721,16 +727,14 @@ namespace Simulator.Editor
         {
             var connectingRoadId = LaneData2RoadId[laneData];
             var connectingLaneId = LaneData2LaneId[laneData];
-            // Check whether lane has same direction with its road
-            if (connectingLaneId > 0)
-            {
-                incomingLanesData = laneData.afters;
-            }
 
             foreach (var incomingLaneData in incomingLanesData)
             {
                 var incomingRoadId = LaneData2RoadId[incomingLaneData];
-                var key = Tuple.Create(incomingRoadId, connectingRoadId, GetContactPoint(incomingRoadId, laneData));
+                var refPoints = RoadId2RefLinePositions[incomingRoadId];
+                var incomingLaneId = LaneData2LaneId[incomingLaneData];
+                var closetRoadPoint = incomingLaneId < 0 ? refPoints.Last() : refPoints.First();
+                var key = Tuple.Create(incomingRoadId, connectingRoadId, GetContactPoint(incomingRoadId, closetRoadPoint, laneData));
                 if (connections2LaneLink.ContainsKey(key))
                 {
                     connections2LaneLink[key].Add(
@@ -914,11 +918,31 @@ namespace Simulator.Editor
             return controller;
         }
 
-        orientation GetOrientation(List<Vector3> refLinePositions, Vector3 SignalSignDir)
+        int GetClosestPointIdx(List<Vector3> refLinePositions, Vector3 signalSignPos)
         {
-            var refLineDir = (refLinePositions.Last() - refLinePositions.First());
+            int closestIdx = 0;
+            float minDistance = float.MaxValue;
+            for (int i = 0; i < refLinePositions.Count - 1; ++i)
+            {
+                var dist = (signalSignPos - refLinePositions[i]).magnitude;
+                if (dist < minDistance)
+                {
+                    minDistance = dist;
+                    closestIdx = i;
+                }
+            }
+
+            return closestIdx;
+        }
+
+        orientation GetOrientation(List<Vector3> refLinePositions, Vector3 signalSignPos, Vector3 signalSignDir)
+        {
+            var closestIdx = GetClosestPointIdx(refLinePositions, signalSignPos);
+            Vector3 refLineDir;
+            if (closestIdx == 0) refLineDir = refLinePositions[1] - refLinePositions[0];
+            else refLineDir = refLinePositions[closestIdx] - refLinePositions[closestIdx - 1];
             var orien = orientation.Item;
-            if (Vector3.Dot(SignalSignDir, refLineDir) < 0)
+            if (Vector3.Dot(signalSignDir, refLineDir) < 0)
             {
                 orien = orientation.Item1;
             }
@@ -942,7 +966,7 @@ namespace Simulator.Editor
             }
 
             // Compute orientation
-            var orien = GetOrientation(positions, mapSignal.transform.forward);
+            var orien = GetOrientation(positions, signalPosition, mapSignal.transform.forward);
             var s = GetSAndT(signalPosition, orien, nearestRoadId, isOnRoad, out double t);
             var height = mapSignal.boundScale.y;
             var width = mapSignal.boundScale.x;
@@ -979,7 +1003,7 @@ namespace Simulator.Editor
         {
             var signPosition = mapSign.transform.position; // note sign is on the ground
             var positions = RoadId2RefLinePositions[nearestRoadId];
-            var orien = GetOrientation(positions, mapSign.transform.forward);
+            var orien = GetOrientation(positions, signPosition, mapSign.transform.forward);
             var s = GetSAndT(signPosition, orien, nearestRoadId, true, out double t);
 
             var zOffset = mapSign.boundOffsets.y;
@@ -1036,6 +1060,7 @@ namespace Simulator.Editor
             var roadPredecessor = new OpenDRIVERoadLinkPredecessor();
             var roadSuccessor = new OpenDRIVERoadLinkSuccessor();
 
+            var curRefLinePoints = RoadId2RefLinePositions[curRoadId];
             var roadLink = new OpenDRIVERoadLink();
             if (preRoadIds.Count > 0)
             {
@@ -1059,7 +1084,7 @@ namespace Simulator.Editor
                     {
                         elementType = elementType.road,
                         elementId = preRoadId.ToString(),
-                        contactPoint = GetContactPoint(curRoadId, curBeforeLaneData),
+                        contactPoint = GetContactPoint(curRoadId, curRefLinePoints.First(), curBeforeLaneData),
                         elementTypeSpecified = true,
                         contactPointSpecified = true,
                     };
@@ -1092,7 +1117,7 @@ namespace Simulator.Editor
                     {
                         elementType = elementType.road,
                         elementId = sucRoadId.ToString(),
-                        contactPoint = GetContactPoint(curRoadId, curAfterLaneData),
+                        contactPoint = GetContactPoint(curRoadId, curRefLinePoints.Last(), curAfterLaneData),
                         elementTypeSpecified = true,
                         contactPointSpecified = true,
                     };
@@ -1175,11 +1200,10 @@ namespace Simulator.Editor
             return roadId;
         }
 
-        // Given current road and any lane of predecessor/successor road, get contactPoint of the predecessor/successor road
-        contactPoint GetContactPoint(uint curRoadId, LaneData linkRoadLaneData)
+        // Given current road, its closet reference line point to predecessor/successor road
+        // and any lane of predecessor/successor road, get contactPoint of the predecessor/successor road
+        contactPoint GetContactPoint(uint curRoadId, Vector3 closestRoadPoint, LaneData linkRoadLaneData)
         {
-            var roadStartPoint = new Vector3((float)Roads[curRoadId].planView[0].x, (float)Roads[curRoadId].elevationProfile.elevation[0].a, (float)Roads[curRoadId].planView[0].y);
-            var roadLastPoint = new Vector3((float)Roads[curRoadId].planView.Last().x, (float)Roads[curRoadId].elevationProfile.elevation.Last().a, (float)Roads[curRoadId].planView.Last().y);
             var positions = linkRoadLaneData.mapWorldPositions;
             var linkedRoadLaneStartPoint = positions.First();
             var linkedRoadLaneEndPoint = positions.Last();
@@ -1189,8 +1213,7 @@ namespace Simulator.Editor
                 linkedRoadLaneStartPoint = positions.Last();
                 linkedRoadLaneEndPoint = positions.First();
             }
-            if ((roadStartPoint - linkedRoadLaneStartPoint).magnitude > (roadStartPoint - linkedRoadLaneEndPoint).magnitude
-                && (roadLastPoint - linkedRoadLaneStartPoint).magnitude > (roadLastPoint - linkedRoadLaneEndPoint).magnitude)
+            if ((closestRoadPoint - linkedRoadLaneStartPoint).magnitude > (closestRoadPoint - linkedRoadLaneEndPoint).magnitude)
             {
                 return contactPoint.end;
             }

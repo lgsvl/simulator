@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -1958,7 +1958,7 @@ public class MapAnnotations : EditorWindow
                         break;
                     }
 
-                    GameObject.DestroyImmediate(otherLeftLine.gameObject);
+                    if (otherLane.leftLineBoundry != null) GameObject.DestroyImmediate(otherLeftLine.gameObject);
                     ExtraLinesCnt += 1;
                     otherLane.leftLineBoundry = leftLine;
                     leftLine.name = RenameLine(lane, otherLane);
@@ -1983,7 +1983,7 @@ public class MapAnnotations : EditorWindow
                         break;
                     }
 
-                    GameObject.DestroyImmediate(otherRightLine.gameObject);
+                    if (otherLane.rightLineBoundry != null) GameObject.DestroyImmediate(otherRightLine.gameObject);
                     ExtraLinesCnt += 1;
                     otherLane.rightLineBoundry = leftLine;
                     leftLine.name = RenameLine(lane, otherLane);
@@ -2019,7 +2019,7 @@ public class MapAnnotations : EditorWindow
                         break;
                     }
 
-                    GameObject.DestroyImmediate(otherLeftLine.gameObject);
+                    if (otherLane.leftLineBoundry != null) GameObject.DestroyImmediate(otherLeftLine.gameObject);
                     ExtraLinesCnt += 1;
                     otherLane.leftLineBoundry = rightLine;
                     rightLine.name = RenameLine(lane, otherLane);
@@ -2044,7 +2044,7 @@ public class MapAnnotations : EditorWindow
                         break;
                     }
 
-                    GameObject.DestroyImmediate(otherRightLine.gameObject);
+                    if (otherLane.rightLineBoundry != null) GameObject.DestroyImmediate(otherRightLine.gameObject);
                     ExtraLinesCnt += 1;
                     otherLane.rightLineBoundry = rightLine;
                     rightLine.name = RenameLine(lane, otherLane);
@@ -2085,11 +2085,13 @@ public class MapAnnotations : EditorWindow
         ApolloMapImporter.UpdateLocalPositions(line);
     }
 
-    public void RemoveExtraLines(bool showMsg=true)
+    public void RemoveExtraLines(bool showMsg=true, MapHolder mapHolder=null)
     {
         var mapAnnotationData = new MapManagerData();
         if (mapAnnotationData.MapHolder == null)
             return;
+
+        if (mapHolder != null) mapAnnotationData.MapHolder = mapHolder;
 
         Record(mapAnnotationData, out UnityEngine.GameObject root,
             out string assetPath, out bool isPrefab, "Remove extra boundary lines");

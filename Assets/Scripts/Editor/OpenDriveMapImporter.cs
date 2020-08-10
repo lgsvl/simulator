@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-202 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -25,11 +25,13 @@ namespace Simulator.Editor
     public class OpenDriveMapImporter
     {
         EditorSettings Settings;
+        double GeometrySkipLength = 0.01;
+        double LaneSectionSkipLength = 0.5; // skip importing such lane sections
         bool IsCreateStopLines = true;
         bool IsMeshNeeded; // Boolean value for traffic light/sign mesh importing.
         bool IsConnectLanes; // Boolean value for whether to connect lanes based on links in OpenDRIVE.
-        static float DownSampleDistanceThreshold; // DownSample distance threshold for points to keep 
-        static float DownSampleDeltaThreshold; // For down sampling, delta threshold for curve points 
+        static float DownSampleDistanceThreshold; // DownSample distance threshold for points to keep
+        static float DownSampleDeltaThreshold; // For down sampling, delta threshold for curve points
         float SignalHeight = 7; // Height for imported signals.
         GameObject TrafficLanes;
         GameObject SingleLaneRoads;
@@ -37,6 +39,7 @@ namespace Simulator.Editor
         MapOrigin MapOrigin;
         OpenDRIVE OpenDRIVEMap;
         GameObject Map;
+        MapHolder MapHolder;
         MapManagerData MapAnnotationData;
         Dictionary<string, MapLine> Id2MapLine = new Dictionary<string, MapLine>();
         Dictionary<string, List<string>> Id2PredecessorIds = new Dictionary<string, List<string>>();
@@ -54,6 +57,8 @@ namespace Simulator.Editor
         Dictionary<string, List<MapLine>> IntersectionId2StopLines = new Dictionary<string, List<MapLine>>();
         Dictionary<string, List<MapSignal>> IntersectionId2MapSignals = new Dictionary<string, List<MapSignal>>();
         Dictionary<string, List<MapSign>> IntersectionId2MapSigns = new Dictionary<string, List<MapSign>>();
+        List<double> SectionRefPointSValue = new List<double>();
+        List<double> ReferenceLinePointSValue = new List<double>();
 
         class BeforesAfters
         {
@@ -205,7 +210,7 @@ namespace Simulator.Editor
             }
 
             Map = new GameObject(mapName);
-            var mapHolder = Map.AddComponent<MapHolder>();
+            MapHolder = Map.AddComponent<MapHolder>();
 
             // Create TrafficLanes and Intersections under Map
             TrafficLanes = new GameObject("TrafficLanes");
@@ -215,8 +220,8 @@ namespace Simulator.Editor
             Intersections.transform.parent = Map.transform;
             SingleLaneRoads.transform.parent = TrafficLanes.transform;
 
-            mapHolder.trafficLanesHolder = TrafficLanes.transform;
-            mapHolder.intersectionsHolder = Intersections.transform;
+            MapHolder.trafficLanesHolder = TrafficLanes.transform;
+            MapHolder.intersectionsHolder = Intersections.transform;
 
             return true;
         }
@@ -305,112 +310,147 @@ namespace Simulator.Editor
             return 0;
         }
 
-        public List<Vector3> CalculateLinePoints(OpenDRIVERoadGeometry geometry, OpenDRIVERoadElevationProfile elevationProfile)
+        Vector3 GetPos(OpenDRIVERoadElevationProfile elevationProfile,
+            double s, double x, double z, double hdg)
+        {
+            double y = GetElevation(s, elevationProfile);
+            Vector3 pos = new Vector3((float)x, (float)y, (float)z);
+            // rotate
+            pos = Quaternion.Euler(0f, -(float)(hdg * 180f / Math.PI), 0f) * pos;
+
+            return pos;
+        }
+
+        public List<Tuple<Vector3, double>> CalculateLinePoints(OpenDRIVERoadGeometry geometry,
+            OpenDRIVERoadElevationProfile elevationProfile, List<double> dists)
         {
             OpenDRIVERoadGeometryLine line = geometry.Items[0] as OpenDRIVERoadGeometryLine;
 
             Vector3 origin = new Vector3((float)geometry.x, 0f, (float)geometry.y);
-            List<Vector3> points = new List<Vector3>();
+            List<Tuple<Vector3, double>> pointsAndS = new List<Tuple<Vector3, double>>();
 
-            for (int i = 0; i < geometry.length; i++)
+            double hdg = geometry.hdg;
+            double s = geometry.s;
+            for (int i = 0; i < dists.Count; i++)
             {
-                double y = GetElevation(geometry.s + i, elevationProfile);
-                Vector3 pos = new Vector3(i, (float)y, 0f);
-                // rotate
-                pos = Quaternion.Euler(0f, -(float)(geometry.hdg * 180f / Math.PI), 0f) * pos;
-                points.Add(origin + pos);
+                var dist = dists[i];
+                var x = dist;
+                var curS = s + dist;
+                var pos = GetPos(elevationProfile, curS, x, 0, hdg);
+                pointsAndS.Add(new Tuple<Vector3, double>(origin + pos, curS));
             }
 
-            return points;
+            return pointsAndS;
         }
 
-        public List<Vector3> CalculateSpiralPoints(Vector3 origin, double hdg, double length, double curvStart, double curvEnd)
+        public List<Tuple<Vector3, double>> CalculateSpiralPoints(OpenDRIVERoadGeometry geometry,
+            OpenDRIVERoadElevationProfile elevationProfile, Vector3 origin, double hdg,
+            List<double> dists)
         {
-            List<Vector3> points = new List<Vector3>();
+            OpenDRIVERoadGeometrySpiral spi = geometry.Items[0] as OpenDRIVERoadGeometrySpiral;
+
+            List<Tuple<Vector3, double>> pointsAndS = new List<Tuple<Vector3, double>>();
             OdrSpiral.Spiral spiral = new OdrSpiral.Spiral();
 
             double x_ = new double();
-            double y_ = new double();
+            double z_ = new double();
             double t_ = new double();
 
-            spiral.odrSpiral(length, (curvEnd - curvStart) / length, ref x_, ref y_, ref t_);
+            var curvStart = spi.curvStart;
+            var curvEnd = spi.curvEnd;
+            var length = geometry.length;
+            spiral.odrSpiral(length, (curvEnd - curvStart) / length, ref x_, ref z_, ref t_);
 
-            for (int i = 0; i < length; i++)
+            var s = geometry.s;
+            for (int i = 0; i < dists.Count; i++)
             {
+                var dist = dists[i];
                 double x = new double();
-                double y = new double();
+                double z = new double();
                 double t = new double();
+                spiral.odrSpiral(dist, (curvEnd - curvStart) / length, ref x, ref z, ref t);
 
+                var curS = s + dist;
+                double y = GetElevation(curS, elevationProfile);
+                Vector3 pos;
                 if (curvStart == 0)
                 {
-                    spiral.odrSpiral(i, (curvEnd - curvStart) / length, ref x, ref y, ref t);
-                    Vector3 pos = new Vector3((float)x, 0f, (float)y);
-                    // rotate
-                    pos = Quaternion.Euler(0f, -(float)(hdg * 180f / Math.PI), 0f) * pos;
-                    points.Add(origin + pos);
+                    pos = new Vector3((float)x, (float)y, (float)z);
                 }
-
                 else
                 {
-                    spiral.odrSpiral(i, (curvEnd - curvStart) / length, ref x, ref y, ref t);
-                    Vector3 pos = new Vector3(-(float)x, 0f, -(float)y);
-                    // rotate
-                    pos = Quaternion.Euler(0f, -(float)(hdg * 180f / Math.PI), 0f) * pos;
-                    points.Add(origin + pos);
+                    pos = new Vector3(-(float)x, (float)y, -(float)z);
                 }
+                // rotate
+                pos = Quaternion.Euler(0f, -(float)(hdg * 180f / Math.PI), 0f) * pos;
+                pointsAndS.Add(new Tuple<Vector3, double>(origin + pos, curS));
             }
 
-            return points;
+            return pointsAndS;
         }
 
-        public List<Vector3> CalculateArcPoints(OpenDRIVERoadGeometry geometry, OpenDRIVERoadElevationProfile elevationProfile)
+        public List<Tuple<Vector3, double>> CalculateArcPoints(OpenDRIVERoadGeometry geometry,
+            OpenDRIVERoadElevationProfile elevationProfile, List<double> dists)
         {
             OpenDRIVERoadGeometryArc arc = geometry.Items[0] as OpenDRIVERoadGeometryArc;
 
             Vector3 origin = new Vector3((float)geometry.x, 0f, (float)geometry.y);
-            List<Vector3> points = new List<Vector3>();
+            List<Tuple<Vector3, double>> pointsAndS = new List<Tuple<Vector3, double>>();
             OdrSpiral.Spiral a = new OdrSpiral.Spiral();
 
-            for (int i = 0; i < geometry.length; i++)
+            double s = geometry.s;
+            var hdg = geometry.hdg;
+            for (int i = 0; i < dists.Count; i++)
             {
+                var dist = dists[i];
                 double x = new double();
                 double z = new double();
-                a.odrArc(i, arc.curvature, ref x, ref z);
-                double y = GetElevation(geometry.s + i, elevationProfile);
+                a.odrArc(dist, arc.curvature, ref x, ref z);
 
-                Vector3 pos = new Vector3((float)x, (float)y, (float)z);
-                pos = Quaternion.Euler(0f, -(float)(geometry.hdg * 180f / Math.PI), 0f) * pos;
-                points.Add(origin + pos);
+                var curS = s + dist;
+                var pos = GetPos(elevationProfile, curS, x, z, hdg);
+                pointsAndS.Add(new Tuple<Vector3, double>(origin + pos, curS));
             }
-            return points;
+
+            return pointsAndS;
         }
 
-        public List<Vector3> CalculatePoly3Points(Vector3 origin, double hdg, double length, OpenDRIVERoadGeometryPoly3 poly3)
+        public List<Tuple<Vector3, double>> CalculatePoly3Points(OpenDRIVERoadGeometry geometry,
+            OpenDRIVERoadElevationProfile elevationProfile, List<double> dists)
         {
-            List<Vector3> points = new List<Vector3>();
+            OpenDRIVERoadGeometryPoly3 poly3 = geometry.Items[0] as OpenDRIVERoadGeometryPoly3;
+
+            Vector3 origin = new Vector3((float)geometry.x, 0f, (float)geometry.y);
+            var hdg = geometry.hdg;
+
+            List<Tuple<Vector3, double>> pointsAndS = new List<Tuple<Vector3, double>>();
             double a = poly3.a;
             double b = poly3.b;
             double c = poly3.c;
             double d = poly3.d;
 
-            for (int i = 0; i < length; i++)
+            double s = geometry.s;
+            for (int i = 0; i < dists.Count; i++)
             {
-                double x = i;
-                double y = a + b * i + c * i * i + d * i * i * i;
+                var dist = dists[i];
+                double x = dist;
+                double z = a + b * x + c * x * x + d * x * x * x;
 
-                Vector3 pos = new Vector3((float)x, 0f, (float)y);
-                pos = Quaternion.Euler(0f, -(float)(hdg * 180f / Math.PI), 0f) * pos;
-                points.Add(origin + pos);
+                var curS = s + dist;
+                var pos = GetPos(elevationProfile, curS, x, z, hdg);
+                pointsAndS.Add(new Tuple<Vector3, double>(origin + pos, curS));
             }
-            return points;
+
+            return pointsAndS;
         }
 
-        public List<Vector3> CalculateParamPoly3Points(OpenDRIVERoadGeometry geometry, OpenDRIVERoadElevationProfile elevationProfile)
+        public List<Tuple<Vector3, double>> CalculateParamPoly3Points(OpenDRIVERoadGeometry geometry,
+            OpenDRIVERoadElevationProfile elevationProfile, List<double> dists)
         {
             OpenDRIVERoadGeometryParamPoly3 pPoly3 = geometry.Items[0] as OpenDRIVERoadGeometryParamPoly3;
             Vector3 origin = new Vector3((float)geometry.x, 0f, (float)geometry.y);
 
-            List<Vector3> points = new List<Vector3>();
+            List<Tuple<Vector3, double>> pointsAndS = new List<Tuple<Vector3, double>>();
             double aU = pPoly3.aU;
             double bU = pPoly3.bU;
             double cU = pPoly3.cU;
@@ -420,30 +460,31 @@ namespace Simulator.Editor
             double cV = pPoly3.cV;
             double dV = pPoly3.dV;
 
-            double p = 0;
-            double step = 1 / geometry.length;
-            double pMax = 1;
             bool useArcLength = false;
+            double pMax = 1;
+            var pPoly3Length = geometry.length;
             if (pPoly3.pRangeSpecified == true && pPoly3.pRange == pRange.arcLength)
             {
-                step = 1;
-                pMax = geometry.length;
                 useArcLength = true;
+                pMax = pPoly3Length;
             }
 
-            while (p <= pMax)
+            double s = geometry.s;
+            var hdg = geometry.hdg;
+            for (int i = 0; i < dists.Count; i++)
             {
+                var dist = dists[i];
+                var p = useArcLength ? dist : dist / pPoly3Length;
+
                 double x = aU + bU * p + cU * p * p + dU * p * p * p;
-                double curS = geometry.s + (useArcLength ? p : p * geometry.length);
-                double y = GetElevation(curS, elevationProfile);
                 double z = aV + bV * p + cV * p * p + dV * p * p * p;
 
-                Vector3 pos = new Vector3((float)x, (float)y, (float)z);
-                pos = Quaternion.Euler(0f, -(float)(geometry.hdg * 180f / Math.PI), 0f) * pos;
-                points.Add(origin + pos);
-                p += step;
+                var curS = s + dist;
+                var pos = GetPos(elevationProfile, curS, x, z, hdg);
+                pointsAndS.Add(new Tuple<Vector3, double>(origin + pos, curS));
             }
-            return points;
+
+            return pointsAndS;
         }
 
         OpenDRIVERoad GetRoadById(OpenDRIVE map, int id)
@@ -468,77 +509,91 @@ namespace Simulator.Editor
                 var elevationProfile = road.elevationProfile;
                 var lanes = road.lanes;
                 ImportRoadSpeed(road);
+                var laneSections = lanes.laneSection;
+                var junctionId = road.junction;
+                if (junctionId != "-1") RoadId2IntersectionId[roadId] = junctionId;
 
                 List<Vector3> referenceLinePoints = new List<Vector3>();
+                ReferenceLinePointSValue.Clear();
+                var sectionsS = laneSections.Select(laneSection => laneSection.s).ToList();
+                var sectionsPointsIdx = new List<int>();
+                var sectionIdx = 0;
 
                 for (int i = 0; i < road.planView.Length; i++)
                 {
                     var geometry = road.planView[i];
-                    if (geometry.length < 0.01) continue; // skip if it is too short
+                    if (geometry.length < GeometrySkipLength) continue; // skip if it is too short
 
+                    var affectedIdxStart = sectionsPointsIdx.Count;
+                    var dists = GetDists(ref sectionsS, ref sectionIdx, geometry, sectionsPointsIdx, referenceLinePoints);
+                    var affectedIdxEnd = sectionsPointsIdx.Count;
                     // Line
                     if (geometry.Items[0] is OpenDRIVERoadGeometryLine)
                     {
-                        List<Vector3> points = CalculateLinePoints(geometry, elevationProfile);
-                        referenceLinePoints.AddRange(points);
+                        List<Tuple<Vector3, double>> pointsAndS = CalculateLinePoints(geometry, elevationProfile, dists);
+                        UpdateReferenceLinePoint2s(referenceLinePoints.Count, pointsAndS, ReferenceLinePointSValue);
+                        referenceLinePoints.AddRange(pointsAndS.Select(entry => entry.Item1).ToList());
                     }
                     else
                     // Spiral
                     if (geometry.Items[0] is OpenDRIVERoadGeometrySpiral)
                     {
                         OpenDRIVERoadGeometrySpiral spi = geometry.Items[0] as OpenDRIVERoadGeometrySpiral;
-
                         if (spi.curvStart == 0)
                         {
                             Vector3 geo = new Vector3((float)geometry.x, 0f, (float)geometry.y);
-                            List<Vector3> points = CalculateSpiralPoints(geo, geometry.hdg, geometry.length, spi.curvStart, spi.curvEnd);
-                            referenceLinePoints.AddRange(points);
+                            List<Tuple<Vector3, double>> pointsAndS = CalculateSpiralPoints(geometry,
+                                elevationProfile, geo, geometry.hdg, dists);
+                            UpdateReferenceLinePoint2s(referenceLinePoints.Count, pointsAndS, ReferenceLinePointSValue);
+                            referenceLinePoints.AddRange(pointsAndS.Select(entry => entry.Item1).ToList());
                         }
                         else
                         {
+                            // Update index if points get reversed
+                            UpdateSectionsPointsIdx(sectionsPointsIdx, affectedIdxStart,
+                                affectedIdxEnd, referenceLinePoints.Count, dists.Count);
+                            List<Tuple<Vector3, double>> pointsAndS;
                             if (i != road.planView.Length - 1)
                             {
                                 var geometryNext = road.planView[i + 1];
                                 Vector3 geo = new Vector3((float)geometryNext.x, 0f, (float)geometryNext.y);
-                                List<Vector3> points = CalculateSpiralPoints(geo, geometryNext.hdg, geometry.length, spi.curvStart, spi.curvEnd);
-                                points.Reverse();
-                                referenceLinePoints.AddRange(points);
+                                pointsAndS = CalculateSpiralPoints(geometry, elevationProfile, geo, geometryNext.hdg, dists);
                             }
                             else
                             {
                                 var tmp = GetRoadById(OpenDRIVEMap, Int32.Parse(link.successor.elementId));
                                 var geometryNext = tmp.planView[tmp.planView.Length - 1];
                                 Vector3 geo = new Vector3((float)geometryNext.x, 0f, (float)geometryNext.y);
-                                List<Vector3> points = CalculateSpiralPoints(geo, -geometryNext.hdg, geometry.length, spi.curvStart, spi.curvEnd);
-                                points.Reverse();
-                                referenceLinePoints.AddRange(points);
+                                pointsAndS = CalculateSpiralPoints(geometry, elevationProfile, geo, -geometryNext.hdg, dists);
                             }
+                            UpdateReferenceLinePoint2s(referenceLinePoints.Count, pointsAndS, ReferenceLinePointSValue); // sequence of s doesn't need to be reversed
+                            pointsAndS.Reverse();
+                            referenceLinePoints.AddRange(pointsAndS.Select(entry => entry.Item1).ToList());
                         }
                     }
                     else
                     // Arc
                     if (geometry.Items[0] is OpenDRIVERoadGeometryArc)
                     {
-                        List<Vector3> points = CalculateArcPoints(geometry, elevationProfile);
-                        referenceLinePoints.AddRange(points);
+                        List<Tuple<Vector3, double>> pointsAndS = CalculateArcPoints(geometry, elevationProfile, dists);
+                        UpdateReferenceLinePoint2s(referenceLinePoints.Count, pointsAndS, ReferenceLinePointSValue);
+                        referenceLinePoints.AddRange(pointsAndS.Select(entry => entry.Item1).ToList());
                     }
                     else
                     // Poly3
                     if (geometry.Items[0] is OpenDRIVERoadGeometryPoly3)
                     {
-                        OpenDRIVERoadGeometryPoly3 poly3 = geometry.Items[0] as OpenDRIVERoadGeometryPoly3;
-
-                        Vector3 geo = new Vector3((float)geometry.x, 0f, (float)geometry.y);
-                        List<Vector3> points = CalculatePoly3Points(geo, geometry.hdg, geometry.length, poly3);
-
-                        referenceLinePoints.AddRange(points);
+                        List<Tuple<Vector3, double>> pointsAndS = CalculatePoly3Points(geometry, elevationProfile, dists);
+                        UpdateReferenceLinePoint2s(referenceLinePoints.Count, pointsAndS, ReferenceLinePointSValue);
+                        referenceLinePoints.AddRange(pointsAndS.Select(entry => entry.Item1).ToList());
                     }
                     else
                     // ParamPoly3
                     if (geometry.Items[0] is OpenDRIVERoadGeometryParamPoly3)
                     {
-                        List<Vector3> points = CalculateParamPoly3Points(geometry, elevationProfile);
-                        referenceLinePoints.AddRange(points);
+                        List<Tuple<Vector3, double>> pointsAndS = CalculateParamPoly3Points(geometry, elevationProfile, dists);
+                        UpdateReferenceLinePoint2s(referenceLinePoints.Count, pointsAndS, ReferenceLinePointSValue);
+                        referenceLinePoints.AddRange(pointsAndS.Select(entry => entry.Item1).ToList());
                     }
                 }
 
@@ -547,12 +602,14 @@ namespace Simulator.Editor
                     var geometry = road.planView[0];
                     Vector3 origin = new Vector3((float)geometry.x, 0f, (float)geometry.y);
                     referenceLinePoints.Add(origin);
+                    ReferenceLinePointSValue.Add(geometry.s);
 
                     double y = GetElevation(geometry.s + roadLength, elevationProfile);
                     Vector3 pos = new Vector3((float)roadLength, (float)y, 0f);
                     // rotate
                     pos = Quaternion.Euler(0f, -(float)(geometry.hdg * 180f / Math.PI), 0f) * pos;
                     referenceLinePoints.Add(origin + pos);
+                    ReferenceLinePointSValue.Add(geometry.s + roadLength);
                 }
                 // if the length of the reference line is less than 1 meter
                 else if (referenceLinePoints.Count == 1)
@@ -565,35 +622,49 @@ namespace Simulator.Editor
                     // rotate
                     pos = Quaternion.Euler(0f, -(float)(geometry.hdg * 180f / Math.PI), 0f) * pos;
                     referenceLinePoints.Add(origin + pos);
+                    ReferenceLinePointSValue.Add(geometry.s + geometry.length);
                 }
 
-                // We get reference points with 1 meter resolution and the last point is lost.
                 Roads[roadId] = new List<Dictionary<int, MapLane>>();
 
                 var referenceLinePointsOffset = new List<Vector3>(referenceLinePoints);
-                if (lanes.laneOffset != null) referenceLinePointsOffset = UpdateReferencePoints(lanes, referenceLinePoints);
-
-                var laneSectionsLength = ComputeSectionLength(lanes.laneSection, roadLength);
-                for (int i = 0; i < lanes.laneSection.Length; i++)
+                if (lanes.laneOffset != null)
                 {
-                    if (laneSectionsLength[i] < 0.5)
+                    referenceLinePointsOffset = UpdateReferencePoints(lanes,
+                       referenceLinePoints, ReferenceLinePointSValue);
+                }
+
+                var laneSectionsLength = ComputeSectionLength(laneSections, roadLength);
+                for (int i = 0; i < laneSections.Length; i++)
+                {
+                    Roads[roadId].Add(new Dictionary<int, MapLane>());
+
+                    if (laneSectionsLength[i] < LaneSectionSkipLength)
                     {
                         Debug.LogWarning($"Road {roadId} laneSection {i} is too short, skipped importing");
                         if (RoadId2laneSections.ContainsKey(roadId)) RoadId2laneSections[roadId].Add(i);
                         else RoadId2laneSections[roadId] = new List<int> {i};
+                        continue;
                     }
 
-                    Roads[roadId].Add(new Dictionary<int, MapLane>());
-                    var startIdx = (int)lanes.laneSection[i].s;
+                    var startIdx = sectionsPointsIdx[i];
                     int endIdx;
-                    if (i == lanes.laneSection.Length - 1) endIdx = referenceLinePointsOffset.Count - 1;
-                    else  endIdx = (int)lanes.laneSection[i + 1].s;
+                    if (i == laneSections.Length - 1) endIdx = referenceLinePointsOffset.Count;
+                    else  endIdx = sectionsPointsIdx[i+1];
 
-                    var sectionRefPointsOffset = new List<Vector3>(referenceLinePointsOffset.GetRange(startIdx, endIdx - startIdx + 1));
-                    var sectionRefPoints = new List<Vector3>(referenceLinePoints.GetRange(startIdx, endIdx - startIdx + 1));
+                    if (endIdx == startIdx) continue;
+
+                    var sectionRefPointsOffset = new List<Vector3>(referenceLinePointsOffset.GetRange(startIdx, endIdx - startIdx));
+                    var sectionRefPoints = new List<Vector3>(referenceLinePoints.GetRange(startIdx, endIdx - startIdx));
+                    SectionRefPointSValue = new List<double>(ReferenceLinePointSValue.GetRange(startIdx, endIdx - startIdx));
+                    for (int j = endIdx - startIdx - 1; j >= 0; --j)
+                    {
+                        SectionRefPointSValue[j] -= SectionRefPointSValue[0];
+                    }
+
                     Debug.Assert(referenceLinePoints.Count > 0,
-                        $"referenceLinePointsOffset has no elements, roadId {roadId} laneSectionId {i} s = {lanes.laneSection[i].s}");
-                    CreateMapLanes(roadId, i, lanes.laneSection[i], sectionRefPointsOffset, sectionRefPoints);
+                        $"referenceLinePointsOffset has no elements, roadId {roadId} laneSectionId {i} s = {laneSections[i].s}");
+                    CreateMapLanes(roadId, i, laneSections[i], sectionRefPointsOffset, sectionRefPoints);
                 }
 
                 if (road.signals != null) ImportSignals(road, road.signals, referenceLinePointsOffset);
@@ -608,14 +679,14 @@ namespace Simulator.Editor
                 if (speed.max == "no limit" || speed.max == "undefined") return;
                 if (!float.TryParse(speed.max, out float speedLimit) || speedLimit < 0) return;
                 var speedUnit = speed.unit;
-                if (!ConvertSpeed(speedUnit, ref speedLimit)) return;
+                if (!speed.unitSpecified || !ConvertSpeed(speedUnit, ref speedLimit)) return;
                 RoadId2Speed[road.id] = speedLimit;
             }
         }
 
         bool ConvertSpeed(unit speedUnit, ref float speedLimit)
         {
-            if (speedUnit == null || speedUnit == unit.ms) return true;
+            if (speedUnit == unit.ms) return true;
             if (speedUnit == unit.kmh)
             {
                 speedLimit *= 0.277778f;
@@ -628,6 +699,82 @@ namespace Simulator.Editor
             }
 
             return false;
+        }
+
+        void UpdateReferenceLinePoint2s(int refPointsCount, List<Tuple<Vector3, double>> pointsAndS,
+            List<double> referenceLinePointSValue)
+        {
+            for (int i = 0; i < pointsAndS.Count; i++)
+            {
+                var s = pointsAndS[i].Item2;
+                var index = refPointsCount + i;
+                referenceLinePointSValue.Add(s);
+            }
+        }
+
+        void UpdateSectionsPointsIdx(List<int> sectionsPointsIdx, int affectedIdxStart,
+            int affectedIdxEnd, int refPointsCount, int distsCount)
+        {
+            for (int idx = affectedIdxStart; idx < affectedIdxEnd; idx++)
+            {
+                var offset = sectionsPointsIdx[idx] - refPointsCount;
+                offset = distsCount - offset;
+                sectionsPointsIdx[idx] = refPointsCount + offset;
+            }
+        }
+
+        List<double> GetDists(ref List<double> sectionsS, ref int sectionIdx,
+            OpenDRIVERoadGeometry geometry, List<int> sectionPointsIdx, List<Vector3> refPoints)
+        {
+            // Add two closest dists for nonzero laneSections, s - 0.1 and s to get correct laneOffsets
+            // previous lane section points until the point of s - 0.1, next lane section start the point of s
+            if (sectionIdx < sectionsS.Count && sectionsS[sectionIdx] < 0)
+            {
+                sectionPointsIdx.Add(refPoints.Count);
+                sectionIdx++;
+            }
+
+            var dists = new List<double>(); // distances from geometry.s
+            var resolution = 1;
+            for (var i = 0; i < geometry.length - 0.1; i += resolution)
+            {
+                dists.Add(i);
+            }
+            dists.Add(geometry.length - 0.1);
+
+            if (sectionIdx < sectionsS.Count && Math.Abs(geometry.s - sectionsS[sectionIdx]) < 0.001)
+            {
+                sectionPointsIdx.Add(refPoints.Count);
+                sectionIdx++;
+            }
+
+            int idx = 1;
+            while (sectionIdx < sectionsS.Count && sectionsS[sectionIdx] < geometry.s + geometry.length - 0.1)
+            {
+                var sectionS = sectionsS[sectionIdx];
+                while (idx < dists.Count && geometry.s + dists[idx] < sectionS) idx++;
+
+                double diff = geometry.s + dists[idx] - sectionS;
+                if (diff < 0.001)
+                {
+                    dists.Insert(idx, dists[idx++] - 0.1);
+                    sectionPointsIdx.Add(refPoints.Count + idx);
+                    sectionIdx++;
+                }
+                else
+                {
+                    var dist = sectionsS[sectionIdx] - geometry.s;
+                    if (dist - 0.1 < dists[idx-1]) dists.Insert(idx - 1, dist - 0.1);
+                    else dists.Insert(idx, dist - 0.1);
+                    idx++;
+                    dists.Insert(idx, dist);
+                    sectionPointsIdx.Add(refPoints.Count + idx);
+                    sectionIdx++;
+                }
+            }
+
+            Debug.Assert(IsIncreasingMontonically<double>(dists));
+            return dists;
         }
 
         List<double> ComputeSectionLength(OpenDRIVERoadLanesLaneSection[] laneSections, double roadLength)
@@ -648,12 +795,12 @@ namespace Simulator.Editor
             return sectionLengths;
         }
 
-        List<Vector3> UpdateReferencePoints(OpenDRIVERoadLanes lanes, List<Vector3> referencePoints)
+        List<Vector3> UpdateReferencePoints(OpenDRIVERoadLanes lanes,
+            List<Vector3> referencePoints, List<double> referenceLinePointSValue)
         {
             var updatedReferencePoints = new List<Vector3>();
             var laneOffsets = lanes.laneOffset;
             int curLaneOffsetIdx = 0;
-            float curS = 0;
             Debug.Assert(laneOffsets.Length > 0);
 
             var laneOffset = laneOffsets[0];
@@ -661,11 +808,10 @@ namespace Simulator.Editor
             for (int idx = 0; idx < referencePoints.Count; idx++)
             {
                 Vector3 point = referencePoints[idx];
-                if (idx == 0) curS = 0;
-                else curS += (point - referencePoints[idx - 1]).magnitude;
-                if (curS > laneOffsetS)
+                var curS = referenceLinePointSValue[idx];
+                if (curS >= laneOffsetS)
                 {
-                    while (curLaneOffsetIdx < laneOffsets.Length - 1 && curS > (laneOffsets[curLaneOffsetIdx + 1]).s)
+                    while (curLaneOffsetIdx < laneOffsets.Length - 1 && curS >= (laneOffsets[curLaneOffsetIdx + 1]).s)
                     {
                         laneOffset = laneOffsets[++curLaneOffsetIdx];
                         laneOffsetS = laneOffset.s;
@@ -674,6 +820,7 @@ namespace Simulator.Editor
 
                 var ds = curS - laneOffsetS;
                 var offsetValue = laneOffset.a + laneOffset.b * ds + laneOffset.c * ds * ds + laneOffset.d * ds * ds * ds;
+                // Debug.Log($"idx {idx} s: {curS} offset: {offsetValue} curLaneOffsetIdx {curLaneOffsetIdx}");
                 var normalDir = GetNormalDir(referencePoints, idx, true);
                 updatedReferencePoints.Add(point + (float)offsetValue * normalDir);
             }
@@ -817,20 +964,29 @@ namespace Simulator.Editor
             stopSignObj.name = "MapStopSignMesh_" + id;
         }
 
+        int GetClosestPointIdx(double s)
+        {
+            for (int i = 0; i < ReferenceLinePointSValue.Count; i++)
+            {
+                if ((s - ReferenceLinePointSValue[i]) < 0.5) return i;
+            }
+            return ReferenceLinePointSValue.Count - 1;
+        }
+
         Vector3 GetSignalPositionRotation(OpenDRIVERoadSignalsSignal roadSignal, List<Vector3> referenceLinePoints, out Quaternion rotation)
         {
-            var s = (int)roadSignal.s;
-            var signalPosition = referenceLinePoints[math.min(s, referenceLinePoints.Count - 1)];
+            var sIdx = GetClosestPointIdx(roadSignal.s);
+            var signalPosition = referenceLinePoints[sIdx];
             Vector3 p1, p2;
-            if (s == 0)
+            if (sIdx == 0)
             {
                 p1 = referenceLinePoints[0];
                 p2 = referenceLinePoints[1];
             }
             else
             {
-                p1 = referenceLinePoints[s - 1];
-                p2 = referenceLinePoints[s];
+                p1 = referenceLinePoints[sIdx - 1];
+                p2 = referenceLinePoints[sIdx];
             }
             var tDirection = Vector3.Cross((p2 - p1), Vector3.up).normalized;
             signalPosition += tDirection * (float)roadSignal.t;
@@ -985,7 +1141,6 @@ namespace Simulator.Editor
             foreach (var curLane in it)
             {
                 var id = curLane.id.ToString();
-
                 List<Vector3> curRightBoundaryPoints = CalculateRightBoundaryPoints(sectionRefPoints, curLeftBoundaryPoints, curLane, isLeft);
 
                 var mapLineId = $"MapLine_road{roadId}_section{laneSectionId}_{id}";
@@ -1026,7 +1181,6 @@ namespace Simulator.Editor
         {
             var curRightBoundaryPoints = new List<Vector3>();
             int curWidthIdx = 0;
-            float s = 0;
             Debug.Assert(curLane.Items.Length > 0);
 
             var width = curLane.Items[0] as laneWidth;
@@ -1034,11 +1188,10 @@ namespace Simulator.Editor
             for (int idx = 0; idx < curLeftBoundaryPoints.Count; idx++)
             {
                 Vector3 point = curLeftBoundaryPoints[idx];
-                if (idx == 0) s = 0;
-                else s += (sectionRefPoints[idx] - sectionRefPoints[idx - 1]).magnitude;
-                if (s > sOffset)
+                var s = SectionRefPointSValue[idx];
+                if (s >= sOffset)
                 {
-                    while (curWidthIdx < curLane.Items.Length - 1 && s > ((laneWidth)curLane.Items[curWidthIdx + 1]).sOffset)
+                    while (curWidthIdx < curLane.Items.Length - 1 && s >= ((laneWidth)curLane.Items[curWidthIdx + 1]).sOffset)
                     {
                         width = curLane.Items[++curWidthIdx] as laneWidth;
                         sOffset = width.sOffset;
@@ -1537,6 +1690,8 @@ namespace Simulator.Editor
                 for (int i = 0; i < lanes.laneSection.Length; i++)
                 {
                     var Id2MapLane = Roads[road.id][i];
+                    if (Id2MapLane.Count == 0) continue; // Skip empty laneSection
+
                     // Default values if not on the first or last laneSection
                     var preLaneSectionId = i - 1;
                     var sucLaneSectionId = i + 1;
@@ -1617,7 +1772,7 @@ namespace Simulator.Editor
                     }
                     var preLaneId = lanePredecessor.id;
                     var preLane = GetLaneFromRoads(preRoadId, preLaneSectionId, preLaneId);
-                    UpdateBeforesAfters(preContactPoint, curLane, preLane);
+                    if (preLane != null) UpdateBeforesAfters(preContactPoint, curLane, preLane);
                 }
 
                 var laneSuccessor = link.successor;
@@ -1630,7 +1785,7 @@ namespace Simulator.Editor
                     }
                     var sucLaneId = laneSuccessor.id;
                     var sucLane = GetLaneFromRoads(sucRoadId, sucLaneSectionId, sucLaneId);
-                    UpdateBeforesAfters(sucContactPoint, curLane, sucLane);
+                    if (sucLane != null) UpdateBeforesAfters(sucContactPoint, curLane, sucLane);
                 }
             }
         }
@@ -1639,7 +1794,8 @@ namespace Simulator.Editor
         {
             var laneSections = Roads[roadId];
             Dictionary<int, MapLane> Id2MapLane = laneSections[laneSectionId];
-            return Id2MapLane[laneId];
+            if (Id2MapLane.ContainsKey(laneId)) return Id2MapLane[laneId];
+            else return null; // in case too short lanes are not created
         }
 
         // Connect lanes by adjusting starting/ending points
@@ -1831,8 +1987,9 @@ namespace Simulator.Editor
                 UnityEngine.Object.DestroyImmediate(line.gameObject);
             }
 
-            if (SingleLaneRoads.transform.childCount == 0) UnityEngine.Object.DestroyImmediate(SingleLaneRoads);
+            MoveSingleLaneSections();
             RemoveEmptyLaneSections();
+            if (SingleLaneRoads.transform.childCount == 0) UnityEngine.Object.DestroyImmediate(SingleLaneRoads);
 
             // Move ungrouped objects to correct intersection
             foreach (var entry in UngroupedObject2RoadId)
@@ -1865,8 +2022,23 @@ namespace Simulator.Editor
                 }
             }
 
-            var mapAnnotations = new MapAnnotations();
-            mapAnnotations.RemoveExtraLines(false);
+            var mapAnnotations = ScriptableObject.CreateInstance<MapAnnotations>();
+            mapAnnotations.RemoveExtraLines(false, MapHolder);
+        }
+
+        private void MoveSingleLaneSections()
+        {
+            var mapLaneSections = new List<MapLaneSection>(MapAnnotationData.GetData<MapLaneSection>());
+            foreach (var mapLaneSection in mapLaneSections)
+            {
+                var lanes = new List<MapLane>(mapLaneSection.GetComponentsInChildren<MapLane>());
+                if (lanes.Count == 1)
+                {
+                    lanes[0].transform.parent = SingleLaneRoads.transform;
+                    var lines = new List<MapLine>(mapLaneSection.GetComponentsInChildren<MapLine>());
+                    foreach (var line in lines) line.transform.parent = SingleLaneRoads.transform;
+                }
+            }
         }
 
         private void RemoveEmptyLaneSections()
@@ -1978,9 +2150,18 @@ namespace Simulator.Editor
         {
             return new Vector2(pt.x, pt.z);
         }
+
         static Vector3 ToVector3(Vector2 p)
         {
             return new Vector3(p.x, 0f, p.y);
         }
+
+        public static bool IsIncreasingMontonically<T>(List<T> list) where T : IComparable
+        {
+            return list.Zip(list.Skip(1), (a, b) => a.CompareTo(b) <= 0)
+                .All(b => b);
+        }
     }
+
+
 }

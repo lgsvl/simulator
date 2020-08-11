@@ -146,6 +146,7 @@ public class NPCWaypointBehaviour : NPCBehaviourBase
         LaneDeactivate.Insert(0, false);
         LaneTriggerDistance.Insert(0, 0f);
         LaneTime.Insert(0, 0f);
+        LaneTriggers.Insert(0, null);
 
         float initialMoveDuration = 0;
         if (LaneSpeed[1] != 0)

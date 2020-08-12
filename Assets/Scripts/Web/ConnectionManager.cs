@@ -91,18 +91,29 @@ public class ConnectionManager : MonoBehaviour
                     await ReadResponse(reader);
                     break;
                 }
-                catch(CloudAPI.NoSuccessException ex)
+                catch (HttpRequestException ex)
                 {
+                    // temporary network issue, we'll retry
                     Debug.Log(ex.Message+", reconnecting after "+timeOut+" seconds");
                     await Task.Delay(1000 * timeOut);
                 }
+                if (Status == ConnectionStatus.Offline)
+                {
+                    Debug.Log("User cancelled connection.");
+                    break;
+                }
             }
+        }
+        catch (CloudAPI.NoSuccessException ex)
+        {
+            // WISE told us it does not like us, so stop reconnecting
+            Debug.Log($"WISE backend reported error: {ex.Message}, will not reconnect");
         }
         catch (TaskCanceledException)
         {
             Debug.Log("Linking task canceled.");
         }
-        catch(System.Net.Sockets.SocketException se)
+        catch (System.Net.Sockets.SocketException se)
         {
             Debug.Log($"Could not reach WISE SSE at {Config.CloudUrl}: {se.Message}");
         }

@@ -127,6 +127,13 @@ public class UIManager : MonoBehaviour
     public Text CinematicText;
     public Text CameraStateText;
 
+    [Space(5, order = 0)]
+    [Header("Sim", order = 1)]
+    public Text SimTimeText;
+    public Text FPSText;
+    private TimeSpan CurrentTimeSpan;
+    private float AveFPS = 0f;
+
     private StringBuilder sb = new StringBuilder();
     private GameObject CurrentAgent;
     ConcurrentQueue<Action> MainThreadActions = new ConcurrentQueue<Action>();
@@ -225,6 +232,9 @@ public class UIManager : MonoBehaviour
 
     private void Update()
     {
+        UpdateSimTime();
+        UpdateFPS();
+
         if (BridgePanel.activeInHierarchy)
         {
             UpdateBridgeInfo();
@@ -849,5 +859,35 @@ public class UIManager : MonoBehaviour
     public void ResetCinematicAlpha()
     {
         cinematicFadeImage.color = Color.clear;
+    }
+
+    private void UpdateFPS()
+    {
+        if (FPSText == null)
+            return;
+
+        AveFPS = Time.frameCount / Time.time;
+        if (AveFPS < 15)
+        {
+            FPSText.color = Color.red;
+        }
+        else if (AveFPS < 30)
+        {
+            FPSText.color = Color.yellow;
+        }
+        else
+        {
+            FPSText.color = Color.green;
+        }
+        FPSText.text = AveFPS.ToString("F2");
+    }
+
+    private void UpdateSimTime()
+    {
+        if (SimTimeText == null)
+            return;
+
+        CurrentTimeSpan = SimulatorManager.Instance.GetSessionElapsedTimeSpan();
+        SimTimeText.text = string.Format("{0:00}:{1:00}:{2:00}:{3:00}", CurrentTimeSpan.Hours, CurrentTimeSpan.Minutes, CurrentTimeSpan.Seconds, CurrentTimeSpan.Milliseconds/10);
     }
 }

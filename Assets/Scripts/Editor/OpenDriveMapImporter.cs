@@ -1218,7 +1218,7 @@ namespace Simulator.Editor
             return curRightBoundaryPoints;
         }
 
-        static Vector3 GetNormalDir(List<Vector3> points, int index, bool isLeft)
+        public static Vector3 GetNormalDir(List<Vector3> points, int index, bool isLeft)
         {
             Vector3 normalDir = Vector3.zero;
 

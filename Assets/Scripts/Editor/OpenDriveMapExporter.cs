@@ -30,7 +30,7 @@ namespace Simulator.Editor
         public List<Vector3> mapLocalPositions = new List<Vector3>();
         public List<Vector3> mapWorldPositions = new List<Vector3>();
         public GameObject go;
-
+        public PositionsData() {}
         public PositionsData(MapDataPoints mapDataPoints)
         {
             mapLocalPositions = new List<Vector3>(mapDataPoints.mapLocalPositions);
@@ -45,6 +45,7 @@ namespace Simulator.Editor
         public static Dictionary<MapLine, LineData> Line2LineData = new Dictionary<MapLine, LineData>();
         public List<LineData> befores { get; set; } = new List<LineData>();
         public List<LineData> afters { get; set; } = new List<LineData>();
+        public LineData() {}
         public LineData(MapLine line) : base(line)
         {
             mapLine = line;
@@ -54,19 +55,32 @@ namespace Simulator.Editor
 
     public class LaneData : PositionsData, ILaneLineDataCommon<LaneData>
     {
-        public MapLane mapLane;
+        public MapLane mapLane = null;
         public static Dictionary<MapLane, LaneData> Lane2LaneData = new Dictionary<MapLane, LaneData>();
         public List<LaneData> befores { get; set; } = new List<LaneData>();
         public List<LaneData> afters { get; set; } = new List<LaneData>();
+        public LineData leftLineData = null;
+        public LineData rightLineData = null;
+        public laneType type = laneType.driving;
+        public float speedLimit = 20f;
         public LaneData(MapLane lane) : base(lane)
         {
             mapLane = lane;
             Lane2LaneData[lane] = this;
+            speedLimit = lane.speedLimit;
+        }
+
+        public LaneData(MapPedestrian mapPedestrian) : base(mapPedestrian)
+        {
+            type = laneType.sidewalk;
+            speedLimit = 6.7056f; // 15 mph
         }
     }
 
     public class OpenDriveMapExporter
     {
+        float FakePedestrianLaneWidth = 1.5f;
+        double SideWalkHeight = 0.12;
         MapOrigin MapOrigin;
         MapManagerData MapAnnotationData;
         OpenDRIVE Map;
@@ -105,6 +119,7 @@ namespace Simulator.Editor
             var signalLights = new List<MapSignal>(MapAnnotationData.GetData<MapSignal>());
             var crossWalkList = new List<MapCrossWalk>(MapAnnotationData.GetData<MapCrossWalk>());
             var mapSignList = new List<MapSign>(MapAnnotationData.GetData<MapSign>());
+            var mapPedestrianPaths = new List<MapPedestrian>(MapAnnotationData.GetData<MapPedestrian>());
 
             foreach (var mapSign in mapSignList)
             {
@@ -114,8 +129,8 @@ namespace Simulator.Editor
                 }
             }
 
-            LanesData = GetLanesData(laneSegments);
             LinesData = GetLinesData(lineSegments);
+            LanesData = GetLanesData(laneSegments);
 
             if (!LinkSegments(LanesData)) return false;
             if (!LinkSegments(LinesData)) return false;
@@ -152,9 +167,37 @@ namespace Simulator.Editor
 
             Lanelet2MapExporter.AlignPointsInLines(LanesData);
 
+            CreateFakeLaneDataForPedPaths(mapPedestrianPaths);
             ComputeRoads();
 
             return true;
+        }
+
+        void CreateFakeLaneDataForPedPaths(List<MapPedestrian> mapPedestrianPaths)
+        {
+            foreach (var mapPedestrianPath in mapPedestrianPaths)
+            {
+                MapAnnotations.AddWorldPositions(mapPedestrianPath);
+                var pedLaneData = new LaneData(mapPedestrianPath);
+                ComputeFakeLineData(pedLaneData, out LineData leftLineData, out LineData rightLineData);
+                pedLaneData.leftLineData = leftLineData;
+                pedLaneData.rightLineData = rightLineData;
+                LanesData.Add(pedLaneData);
+            }
+        }
+
+        void ComputeFakeLineData(LaneData laneData, out LineData leftLineData, out LineData rightLineData)
+        {
+            var points = laneData.mapWorldPositions;
+            leftLineData = new LineData();
+            rightLineData = new LineData();
+
+            for (int i = 0; i < points.Count; i++)
+            {
+                Vector3 leftNormalDir = OpenDriveMapImporter.GetNormalDir(points, i, true);
+                leftLineData.mapWorldPositions.Add(points[i] + leftNormalDir * FakePedestrianLaneWidth / 2);
+                rightLineData.mapWorldPositions.Add(points[i] - leftNormalDir * FakePedestrianLaneWidth / 2);
+            }
         }
 
         public static HashSet<LaneData> GetLanesData(HashSet<MapLane> laneSegments)
@@ -164,6 +207,8 @@ namespace Simulator.Editor
             foreach (var lane in laneSegments)
             {
                 var laneData = new LaneData(lane);
+                laneData.leftLineData = LineData.Line2LineData[lane.leftLineBoundry];
+                laneData.rightLineData = LineData.Line2LineData[lane.rightLineBoundry];
                 lanesData.Add(laneData);
                 LaneData.Lane2LaneData[lane] = laneData;
             }
@@ -262,12 +307,11 @@ namespace Simulator.Editor
         {
             // Lanes are stored from left most to right most
             // Reference line is the left boundary line of the left most lane
-            var refLine = neighborLaneSectionLanesData[0].mapLane.leftLineBoundry;
-            if (refLine == null)
+            var refLineData = neighborLaneSectionLanesData[0].leftLineData;
+            if (refLineData == null)
             {
                 Debug.LogError($"Lane: {neighborLaneSectionLanesData[0].go.name} has no left boundary line, its object instance ID is {neighborLaneSectionLanesData[0].go.GetInstanceID()}");
             }
-            var refLineData = LineData.Line2LineData[refLine];
 
             positions = refLineData.mapWorldPositions;
             // Make sure refLine positions has same direction as the road lanes
@@ -283,7 +327,7 @@ namespace Simulator.Editor
         // Function to get neighbor lanes in the same road
         List<LaneData> GetNeighborForwardLaneSectionLanesData(LaneData self, bool fromLeft)
         {
-            if (self == null)
+            if (self == null || self.mapLane == null)
             {
                 return new List<LaneData>();
             }
@@ -379,6 +423,8 @@ namespace Simulator.Editor
                     var laneSectionLanesData2 = neighborForwardLaneSectionLanesData[j];
                     var leftMostLaneData2 = laneSectionLanesData2.First();
                     var rightMostLaneData2 = laneSectionLanesData2.Last();
+
+                    if (leftMostLaneData2.type == laneType.sidewalk || rightMostLaneData2.type == laneType.sidewalk) continue;
 
                     if (leftMostLaneData1 == leftMostLaneData2 && rightMostLaneData1 == rightMostLaneData2) continue;
                     if (visitedLanesData.Contains(leftMostLaneData2) || visitedLanesData.Contains(rightMostLaneData2)) continue;
@@ -496,7 +542,7 @@ namespace Simulator.Editor
                     Add2Lane2RoadId(roadId, consideredLanesData);
 
                     // Add speed limit
-                    var maxSpeedMPH = consideredLanesData[0].mapLane.speedLimit * 2.23694;
+                    var maxSpeedMPH = consideredLanesData[0].speedLimit * 2.23694;
                     road.type = new OpenDRIVERoadType[1]{
                         new OpenDRIVERoadType(){
                             speed = new OpenDRIVERoadTypeSpeed(){
@@ -1399,7 +1445,7 @@ namespace Simulator.Editor
             // TODO Add laneOffset for complex urban Roads
             // Add laneSection
 
-            var center = CreateCenterLane(true);
+            var center = CreateCenterLane(true, rightNeighborLaneSectionLanesData[0]);
             var right = CreateRightLanes(refLineData, rightNeighborLaneSectionLanesData);
             var laneSectionArray = new OpenDRIVERoadLanesLaneSection[1];
 
@@ -1496,7 +1542,7 @@ namespace Simulator.Editor
             roadLength = curS;
         }
 
-        OpenDRIVERoadLanesLaneSectionCenter CreateCenterLane(bool isOneWay)
+        OpenDRIVERoadLanesLaneSectionCenter CreateCenterLane(bool isOneWay, LaneData laneData)
         {
             var type = roadmarkType.solidsolid;
             if (isOneWay) type = roadmarkType.solid;
@@ -1518,7 +1564,7 @@ namespace Simulator.Editor
             var center = new OpenDRIVERoadLanesLaneSectionCenter();
             center.lane = new centerLane()
             {
-                type = laneType.driving,
+                type = laneData.type,
                 level = singleSide.@false,
                 link = new centerLaneLink(),
                 roadMark = new centerLaneRoadMark[1]{roadMark},
@@ -1543,8 +1589,7 @@ namespace Simulator.Editor
             {
                 var rightLaneData = neighborLaneSectionLanesData[i];
                 LaneData2LaneId[rightLaneData] = rightId;
-                var curRightBoundaryLine = rightLaneData.mapLane.rightLineBoundry;
-                var curRightBoundaryLineData = LineData.Line2LineData[curRightBoundaryLine];
+                var curRightBoundaryLineData = rightLaneData.rightLineData;
 
                 var laneChangeType = laneChange.both;
                 var roadMarkType = roadmarkType.broken;
@@ -1573,7 +1618,7 @@ namespace Simulator.Editor
                 var lane = new lane()
                 {
                     id = rightId--,
-                    type = laneType.driving,
+                    type = rightLaneData.type,
                     level = singleSide.@false,
                     link = new laneLink(),
 
@@ -1584,12 +1629,33 @@ namespace Simulator.Editor
                     typeSpecified = true,
                     levelSpecified = true,
                 };
+                if (rightLaneData.type == laneType.sidewalk)
+                {
+                    lane.height = GetLaneHeight();
+                }
 
                 right.lane[i] = lane;
                 curLeftBoundaryLineData = curRightBoundaryLineData;
             }
 
             return right;
+        }
+
+        laneHeight[] GetLaneHeight()
+        {
+            return new laneHeight[1]
+            {
+                new laneHeight()
+                {
+                    sOffset = 0,
+                    inner = SideWalkHeight,
+                    outer = SideWalkHeight,
+
+                    sOffsetSpecified = true,
+                    innerSpecified = true,
+                    outerSpecified = true,
+                }
+            };
         }
 
         OpenDRIVERoadLanesLaneSectionLeft CreateLeftLanes(LineData refLineData, List<LaneData> neighborLaneSectionLanesData)
@@ -1605,8 +1671,7 @@ namespace Simulator.Editor
             {
                 var leftLaneData = neighborLaneSectionLanesData[i];
                 LaneData2LaneId[leftLaneData] = leftId;
-                var curRightBoundaryLine = leftLaneData.mapLane.rightLineBoundry;
-                var curRightBoundaryLineData = LineData.Line2LineData[curRightBoundaryLine];
+                var curRightBoundaryLineData = leftLaneData.rightLineData;
 
                 var laneChangeType = laneChange.both;
                 var roadMarkType = roadmarkType.broken;
@@ -1635,7 +1700,7 @@ namespace Simulator.Editor
                 var lane = new lane()
                 {
                     id = leftId++,
-                    type = laneType.driving,
+                    type = leftLaneData.type,
                     level = singleSide.@false,
                     link = new laneLink(),
 
@@ -1647,6 +1712,10 @@ namespace Simulator.Editor
                     levelSpecified = true,
                 };
 
+                if (leftLaneData.type == laneType.sidewalk)
+                {
+                    lane.height = GetLaneHeight();
+                }
                 left.lane[neighborLaneSectionLanesData.Count - 1 - i] = lane;
                 curLeftBoundaryLineData = curRightBoundaryLineData;
             }
@@ -1865,7 +1934,8 @@ namespace Simulator.Editor
             var stack = new Stack<LaneData>(); // lanes to start dfs
             foreach (var laneSegment in LanesData)
             {
-                if (laneSegment.befores.Count == 0)
+                if (laneSegment.befores.Count == 0
+                    || laneSegment.type == laneType.sidewalk)
                 {
                     startingLanes.Add(laneSegment);
                     stack.Push(laneSegment);

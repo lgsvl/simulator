@@ -1876,7 +1876,7 @@ public class MapAnnotations : EditorWindow
         return String.Join("_", newName);
     }
 
-    private void AddWorldPositions(MapDataPoints mapDataPoints)
+    public static void AddWorldPositions(MapDataPoints mapDataPoints)
     {
         mapDataPoints.mapWorldPositions.Clear();
         foreach (var localPos in mapDataPoints.mapLocalPositions)

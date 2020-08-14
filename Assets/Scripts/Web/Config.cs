@@ -41,6 +41,8 @@ namespace Simulator.Web
 
         public static bool Headless = false;
 
+        public static bool RetryForever = false;
+
         public static string Root;
         public static string PersistentDataPath;
 
@@ -552,6 +554,9 @@ namespace Simulator.Web
                         break;
                     case "--agree":
                         AgreeToLicense = true;
+                        break;
+                    case "--retryForever":
+                        RetryForever = true;
                         break;
                     default:
                         // skip unknown arguments to allow to pass default Unity Player args

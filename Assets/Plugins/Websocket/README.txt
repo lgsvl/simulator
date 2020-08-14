@@ -1,0 +1,1 @@
+Built with commit id 8a395d0b765bf7930b344393baeb6e28c1adc5b9 from https://github.com/sta/websocket-sharp

@@ -103,6 +103,24 @@ public class ConnectionManager : MonoBehaviour
                     break;
                 }
             }
+
+            if (Config.RetryForever)
+            {
+                while (true)
+                {
+                    try
+                    {
+                        var reader = await API.Connect(simInfo);
+                        await ReadResponse(reader);
+                        break;
+                    }
+                    catch (CloudAPI.NoSuccessException ex)
+                    {
+                        Debug.Log(ex.Message + ", reconnecting after " + timeOutSequence[timeOutSequence.Length - 1] + " seconds");
+                        await Task.Delay(1000 * timeOutSequence[timeOutSequence.Length-1]);
+                    }
+                }
+            }
         }
         catch (CloudAPI.NoSuccessException ex)
         {

@@ -733,6 +733,13 @@ public class UIManager : MonoBehaviour
         SimulatorManager.Instance.EnvironmentEffectsManager.CurrentTimeOfDayCycle = value ? EnvironmentEffectsManager.TimeOfDayCycleTypes.Freeze : EnvironmentEffectsManager.TimeOfDayCycleTypes.Normal;
     }
 
+    public void UpdateEnvironmentalEffectsUI()
+    {
+        FogSlider.value = SimulatorManager.Instance.EnvironmentEffectsManager.Fog;
+        WetSlider.value = SimulatorManager.Instance.EnvironmentEffectsManager.Wet;
+        CloudSlider.value = SimulatorManager.Instance.EnvironmentEffectsManager.Cloud;
+    }
+
     public void RainOnValueChanged(float value)
     {
         if (SimulatorManager.Instance == null) return;

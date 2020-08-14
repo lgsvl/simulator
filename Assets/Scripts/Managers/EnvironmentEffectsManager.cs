@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -41,6 +41,8 @@ public class EnvironmentEffectsManager : MonoBehaviour
     public Volume PostPrecessingVolume { get; private set; }
     public VolumeProfile ActiveProfile { get; private set; }
 
+    private PhysicallyBasedSky PBS;
+
     [Space(5, order = 0)]
     [Header("TimeOfDay", order = 1)]
     [Range(0,24)]
@@ -57,6 +59,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     // Sun
     private Light Sun;
+    private HDAdditionalLightData SunHD;
     private double JDay;
     private float CycleDurationSeconds = 360f;
     private float SunRiseBegin = 6.0f;
@@ -82,10 +85,12 @@ public class EnvironmentEffectsManager : MonoBehaviour
     private float PrevFog = 0f;
     private Fog VolumetricFog;
     private float MaxFog = 5000f;
+    private float MaxFogHeight = 50f;
 
     [Range(0f, 1f)]
     public float Cloud = 0f;
     private float PrevCloud = 0f;
+    private float MinCloud = 0f;
     private Renderer CloudRenderer;
 
     [Range(0f, 1f)]
@@ -130,6 +135,8 @@ public class EnvironmentEffectsManager : MonoBehaviour
         UpdateFog();
         UpdateSunPosition();
         UpdateClouds();
+        UpdateSunEffect();
+        UpdatePhysicalSky();
         UpdateDamage();
         UpdateConfig();
 
@@ -159,6 +166,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
         Config = Loader.Instance?.SimConfig;
 
         Sun = Instantiate(SunGO, new Vector3(0f, 50f, 0f), Quaternion.Euler(90f, 0f, 0f)).GetComponent<Light>();
+        SunHD = Sun.gameObject.GetComponent<HDAdditionalLightData>();
 
         var dt = DateTime.Now;
         ResetTime(new DateTime(dt.Year, dt.Month, dt.Day, 12, 0, 0));
@@ -167,6 +175,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
         ActiveProfile = PostPrecessingVolume.profile;
 
         ActiveProfile.TryGet(out VolumetricFog);
+        ActiveProfile.TryGet(out PBS);
 
         CloudRenderer = Instantiate(CloudPrefab, new Vector3(0f, 0f, 0f), Quaternion.identity).GetComponentInChildren<Renderer>();
 
@@ -366,24 +375,71 @@ public class EnvironmentEffectsManager : MonoBehaviour
                 var emit = pfx.emission;
                 emit.rateOverTime = Rain * 100f;
             }
-        }
 
-        foreach (var m in WetMaterials)
-        {
-            m.SetFloat("_RainIntensity", Rain);
-        }
+            foreach (var m in WetMaterials)
+            {
+                m.SetFloat("_RainIntensity", Rain);
+            }
 
+            if (Rain != 0f)
+            {
+                UpdateClouds(true);
+                UpdateFog(true);
+            }
+        }
         PrevRain = Rain;
     }
 
-    private void UpdateFog()
+    private void UpdateSunEffect()
     {
-        if (Fog != PrevFog)
+        SunHD.angularDiameter = Rain != 0f ? 20f : 0.5f;
+        SunHD.flareSize = Rain != 0f ? 50f : 2f;
+        SunHD.flareFalloff = Rain != 0f ? 50f : 4f;
+        SunHD.flareTint = Rain != 0f ? Color.black : Color.white;
+        SunHD.surfaceTint = Rain != 0f ? Color.black : Color.white;
+        SunHD.shadowDimmer = Rain != 0f ? 0.2f : 0.8f;
+    }
+
+    private void UpdatePhysicalSky()
+    {
+        PBS.aerosolDensity.value = Rain != 0f ? 0.8f : 0.01192826f;
+    }
+
+    private void UpdateFog(bool force = false)
+    {
+        if (Rain != 0)
         {
-            MaxFog = Fog == 0 ? 5000f : 1000f;
-            VolumetricFog.meanFreePath.value = Mathf.Lerp(MaxFog, 25f, Fog);
+            MaxFog = 400;
+            MaxFogHeight = 100;
         }
+        else
+        {
+            MaxFog = Fog == 0f ? 5000f : 1000f;
+            MaxFogHeight = 50f;
+        }
+        VolumetricFog.meanFreePath.value = Mathf.Lerp(MaxFog, 25f, Fog);
+        VolumetricFog.maximumHeight.value = MaxFogHeight;
         PrevFog = Fog;
+    }
+
+    private void UpdateClouds(bool force = false)
+    {
+        if (Cloud != PrevCloud || force)
+        {
+            if (Rain != 0f)
+            {
+                MinCloud = 1f;
+                Cloud = 1f;
+                SimulatorManager.Instance.UIManager.UpdateEnvironmentalEffectsUI();
+            }
+            else
+            {
+                MinCloud = 0f;
+            }
+            CloudRenderer.material.SetFloat("_Density", Mathf.Lerp(MinCloud, 1f, Cloud));
+            CloudRenderer.material.SetFloat("_Size", Mathf.Lerp(MinCloud, 1f, Cloud));
+        }
+        PrevCloud = Cloud;
     }
 
     private void UpdateWet()
@@ -397,30 +453,17 @@ public class EnvironmentEffectsManager : MonoBehaviour
             {
                 if (Wet != 0f)
                 {
-                    m.SetFloat("_RainEffects", 1f);
                     m.SetFloat("_Dampness", damp);
                     m.SetFloat("_WaterLevel", puddle);
                 }
                 else
                 {
-                    m.SetFloat("_RainEffects", 0f);
                     m.SetFloat("_Dampness", 0f);
                     m.SetFloat("_WaterLevel", 0f);
                 }
             }
         }
         PrevWet = Wet;
-    }
-
-    private void UpdateClouds()
-    {
-        if (Cloud != PrevCloud)
-        {
-            CloudRenderer.material.SetFloat("_Density", Mathf.Lerp(0f, 1f, Cloud));
-            CloudRenderer.material.SetFloat("_Size", Mathf.Lerp(0f, 1f, Cloud));
-            CloudRenderer.material.SetFloat("_Cover", Mathf.Lerp(0f, 1f, Cloud));
-        }
-        PrevCloud = Cloud;
     }
 
     private void UpdateDamage()

@@ -219,9 +219,10 @@ namespace Simulator
             }
             Instance = this;
 
+            RenderLimiter.RenderLimitEnabled();
+
             if (!EditorLoader)
             {
-                RenderLimiter.RenderLimitEnabled();
                 LoaderScene = SceneManager.GetActiveScene().name;
                 DontDestroyOnLoad(this);
             }

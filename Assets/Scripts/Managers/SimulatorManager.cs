@@ -331,6 +331,7 @@ public class SimulatorManager : MonoBehaviour
 
         TimeManager.Deinitialize();
         Sensors.Deinitialize();
+        RenderLimiter.RenderLimitEnabled();
 
         DestroyImmediate(ManagerHolder);
     }

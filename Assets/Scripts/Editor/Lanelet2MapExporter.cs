@@ -1177,7 +1177,6 @@ namespace Simulator.Editor
                 CheckLinePositionsSize(lineData);
                 if (positions.Count > 2 && !isSameDirection3Points(p1, p2, positions[2]))
                 {
-                    Debug.LogWarning($"Line: {lineData.go.name} instanceID: {lineData.go.GetInstanceID()} first two points are overlapping, remove second one.", lineData.go);
                     positions.RemoveAt(1);
                     changed = true;
                 }
@@ -1188,7 +1187,6 @@ namespace Simulator.Editor
                 CheckLinePositionsSize(lineData);
                 if (positions.Count > 2 && !isSameDirection3Points(positions[positions.Count - 3], p3, p4))
                 {
-                    Debug.LogWarning($"Line: {lineData.go.name} instanceID: {lineData.go.GetInstanceID()} last two points are overlapping, remove the one before last one.", lineData.go);
                     positions.RemoveAt(positions.Count - 2);
                     changed = true;
                 }

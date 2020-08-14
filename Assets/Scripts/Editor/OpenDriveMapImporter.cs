@@ -27,6 +27,7 @@ namespace Simulator.Editor
         EditorSettings Settings;
         double GeometrySkipLength = 0.01;
         double LaneSectionSkipLength = 0.5; // skip importing such lane sections
+        float ConnectLaneThreshold = 5.0f; // distance threshold to connect lanes based on link info
         bool IsCreateStopLines = true;
         bool IsMeshNeeded; // Boolean value for traffic light/sign mesh importing.
         bool IsConnectLanes; // Boolean value for whether to connect lanes based on links in OpenDRIVE.
@@ -1814,8 +1815,10 @@ namespace Simulator.Editor
                 {
                     foreach (var beforeLane in befores)
                     {
-                        mapLane.befores.Add(beforeLane);
-                        if (!visitedLaneIdsEnd.Contains(beforeLane.name)) AdjustStartOrEndPoint(positions, beforeLane, true);
+                        var belowThreshold = (positions[0] - beforeLane.mapWorldPositions.Last()).magnitude < ConnectLaneThreshold;
+                        if (belowThreshold) mapLane.befores.Add(beforeLane);
+                        else Debug.LogWarning($"{mapLane.name} is far away from its before lane {beforeLane.name}, skipping connecting them.");
+                        if (!visitedLaneIdsEnd.Contains(beforeLane.name) && belowThreshold) AdjustStartOrEndPoint(positions, beforeLane, true);
                         visitedLaneIdsEnd.Add(beforeLane.name);
                     }
                 }
@@ -1824,8 +1827,10 @@ namespace Simulator.Editor
                 {
                     foreach (var afterLane in afters)
                     {
-                        mapLane.afters.Add(afterLane);
-                        if (!visitedLaneIdsStart.Contains(afterLane.name)) AdjustStartOrEndPoint(positions, afterLane, false);
+                        var belowThreshold = (positions.Last() - afterLane.mapWorldPositions.First()).magnitude < ConnectLaneThreshold;
+                        if (belowThreshold) mapLane.afters.Add(afterLane);
+                        else Debug.LogWarning($"{mapLane.name} is far away from its after lane {afterLane.name}, skipping connecting them.");
+                        if (!visitedLaneIdsStart.Contains(afterLane.name) && belowThreshold) AdjustStartOrEndPoint(positions, afterLane, false);
                         visitedLaneIdsStart.Add(afterLane.name);
                     }
                 }

@@ -107,8 +107,9 @@ namespace Simulator.Editor
                     while (!reader.EndOfStream)
                     {
                         string line = reader.ReadLine();
-                        line = Regex.Replace(line, "-?nan", "0", RegexOptions.IgnoreCase);
+                        line = Regex.Replace(line, "\"-?nan\"", "\"0\"", RegexOptions.IgnoreCase);
                         line = Regex.Replace(line, "type=\"bus\"", "type=\"driving\"", RegexOptions.IgnoreCase);
+                        line = Regex.Replace(line, "\"-?1.#.*\"", "\"0\"", RegexOptions.IgnoreCase);
                         writer.WriteLine(line);
                     }
                 }
@@ -136,7 +137,9 @@ namespace Simulator.Editor
                     }
                     catch
                     {
-                        Debug.LogError("Sorry, currently we only support version 1.4, please check your map version.");
+                        var msg = "Map parsing failed! Please check whether your map has ";
+                        msg += "invalid values, and also check your map version, currently we only support version 1.4.";
+                        Debug.LogError(msg);
                         DeleteTempFile(filePath);
                         return false;
                     }
@@ -743,6 +746,12 @@ namespace Simulator.Editor
             }
             dists.Add(geometry.length - 0.1);
 
+            // separate dists at least 1 meter except for the two points around lanesection idx
+            if (dists.Count > 1 && (dists.Last() - dists[dists.Count - 2]) < 0.1)
+            {
+                dists.RemoveAt(dists.Count - 2);
+            }
+
             if (sectionIdx < sectionsS.Count && Math.Abs(geometry.s - sectionsS[sectionIdx]) < 0.001)
             {
                 sectionPointsIdx.Add(refPoints.Count);
@@ -764,11 +773,19 @@ namespace Simulator.Editor
                 }
                 else
                 {
-                    var dist = sectionsS[sectionIdx] - geometry.s;
-                    if (dist - 0.1 < dists[idx-1]) dists.Insert(idx - 1, dist - 0.1);
-                    else dists.Insert(idx, dist - 0.1);
-                    idx++;
-                    dists.Insert(idx, dist);
+                    var sectionDist = sectionS - geometry.s;
+                    // Remove closest element in dists
+                    if (sectionDist - dists[idx - 1] < dists[idx] - sectionDist)
+                    {
+                        dists.RemoveAt(idx - 1);
+                        idx--;
+                    }
+                    else
+                    {
+                        dists.RemoveAt(idx);
+                    }
+                    dists.Insert(idx++, sectionDist - 0.1);
+                    dists.Insert(idx, sectionDist);
                     sectionPointsIdx.Add(refPoints.Count + idx);
                     sectionIdx++;
                 }

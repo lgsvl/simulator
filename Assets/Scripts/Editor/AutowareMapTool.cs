@@ -631,7 +631,7 @@ namespace Simulator.Editor
             return true;
         }
 
-        public void Export(string foldername)
+        public bool Export(string foldername)
         {
             MapAnnotationData = new MapManagerData();
 
@@ -682,6 +682,7 @@ namespace Simulator.Editor
 
                 Debug.Log("Successfully generated and exported Autoware Vector Map!");
             }
+            return true;
         }
 
         // Join and convert a set of singlely-connected segments and also setup world positions for all segments

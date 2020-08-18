@@ -405,14 +405,28 @@ namespace Simulator.Editor
                             AutowareMapTool autowareMapTool = new AutowareMapTool();
                             tmpdir = Path.Combine(outputFolder, $"{name}_autoware");
                             Directory.CreateDirectory(tmpdir);
-                            if (apolloMapTool.Export(Path.Combine(tmpdir, "AutowareVectorMap.zip")))
+                            var autowareMapFolder = Path.Combine(tmpdir, "AutowareVectorMap");
+                            Directory.CreateDirectory(autowareMapFolder);
+                            if (autowareMapTool.Export(Path.Combine(tmpdir, "AutowareVectorMap")))
                             {
+                                var archive = ZipFile.Create(Path.Combine(tmpdir, "AutowareVectorMap.zip"));
+                                archive.BeginUpdate();
+                                var files = Directory.GetFiles(autowareMapFolder);
+                                foreach (var filename in files)
+                                {
+                                    archive.Add(new StaticDiskDataSource(filename), Path.GetFileName(filename), CompressionMethod.Stored, true);
+                                }
+                                archive.CommitUpdate();
+                                archive.Close();
+
                                 buildArtifacts.Add((Path.Combine(tmpdir, "AutowareVectorMap.zip"), hdMaps.autoware));
                                 buildArtifacts.Add((tmpdir, null));
+
+                                Directory.Delete(autowareMapFolder, true);
                             }
                             else
                             {
-                                Directory.Delete(tmpdir);
+                                Directory.Delete(tmpdir, true);
                             }
 
                             var previewOrigin = origin.transform;

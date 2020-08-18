@@ -80,8 +80,8 @@ namespace Simulator.Editor
                 }
             }
 
-            LanesData = OpenDriveMapExporter.GetLanesData(laneSegments);
             LinesData = OpenDriveMapExporter.GetLinesData(lineSegments);
+            LanesData = OpenDriveMapExporter.GetLanesData(laneSegments);
 
             // Link before and after segment for each lane segment
             if (!OpenDriveMapExporter.LinkSegments(LanesData)) return false;

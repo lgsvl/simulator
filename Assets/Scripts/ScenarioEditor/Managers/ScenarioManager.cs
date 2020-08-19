@@ -8,12 +8,9 @@
 namespace Simulator.ScenarioEditor.Managers
 {
     using System;
-    using System.Collections;
-    using System.Threading;
     using System.Threading.Tasks;
     using Elements;
     using Input;
-    using Network.Core;
     using Network.Core.Threading;
     using UI.FileEdit;
     using UI.MapSelecting;
@@ -236,8 +233,8 @@ namespace Simulator.ScenarioEditor.Managers
             var agentsLoading = agentsManager.Initialize();
             waypointsManager.Initialize();
             await Task.WhenAll(mapLoading, agentsLoading);
-            Time.timeScale = 0.0f;
             await FixLights();
+            Time.timeScale = 0.0f;
             isInitialized = true;
             HideLoadingPanel();
         }
@@ -245,7 +242,7 @@ namespace Simulator.ScenarioEditor.Managers
         /// <summary>
         /// Fixes lights on the map scene
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Task</returns>
         private async Task FixLights()
         {
             //Enabling camera three times with those delays forces Unity to recalculate lights

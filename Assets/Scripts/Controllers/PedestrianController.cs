@@ -5,6 +5,7 @@
  *
  */
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,7 +27,7 @@ public enum PedestrianState
     Crossing
 };
 
-public class PedestrianController : DistributedComponent, IGloballyUniquelyIdentified
+public class PedestrianController : DistributedComponent, ITriggerAgent, IGloballyUniquelyIdentified
 {
     public enum ControlType
     {
@@ -42,7 +43,9 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
     List<float> speeds;
     List<float> idle;
     List<float> triggerDistance;
+    List<WaypointTrigger> laneTriggers;
     private float CurrentTriggerDistance;
+    private WaypointTrigger CurrentTrigger;
     private float CurrentIdle;
     bool waypointLoop;
 
@@ -70,12 +73,17 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
     private Vector3 CurrentTurn;
     private float CurrentSpeed;
     public Vector3 CurrentVelocity;
+    public Vector3 CurrentAcceleration;
     public Vector3 CurrentAngularVelocity;
     private Vector3 LastRBPosition;
     private Quaternion LastRBRotation;
     public uint GTID { get; set; }
     public string GUID { get; set; }
     public Bounds Bounds;
+
+    public Transform AgentTransform => transform;
+    public float MovementSpeed { get; private set; }
+    public Vector3 Acceleration => CurrentAcceleration;
 
     public PedestrianState ThisPedState
     {
@@ -145,6 +153,7 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
         speeds = waypoints.Select(wp => wp.Speed).ToList();
         idle = waypoints.Select(wp => wp.Idle).ToList();
         triggerDistance = waypoints.Select(wp => wp.TriggerDistance).ToList();
+        laneTriggers = waypoints.Select(wp => wp.Trigger).ToList();
 
         CurrentIdle = idle[0];
         CurrentTriggerDistance = triggerDistance[0];
@@ -282,6 +291,7 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
 
                 CurrentTurn = direction;
                 CurrentSpeed = LinearSpeed;
+                MovementSpeed = CurrentSpeed;
                 ThisPedState = PedestrianState.Walking;
 
                 if (direction.magnitude < Accuracy)
@@ -340,6 +350,7 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
 
             CurrentTurn = direction;
             CurrentSpeed = speeds[NextTargetIndex];
+            MovementSpeed = CurrentSpeed;
             ThisPedState = PedestrianState.Walking;
 
             if (direction.magnitude < Accuracy)
@@ -356,6 +367,7 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
                     Path.ClearCorners();
                     CurrentIdle = idle[NextTargetIndex];
                     CurrentTriggerDistance = triggerDistance[NextTargetIndex];
+                    CurrentTrigger = laneTriggers.Count > NextTargetIndex ? laneTriggers[NextTargetIndex] : null;
                     CurrentTargetIndex = NextTargetIndex;
                     NextTargetIndex = GetNextTargetIndex(CurrentTargetIndex);
                     CurrentWP = 0;
@@ -365,6 +377,20 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
                         ThisPedState = PedestrianState.Idle;
                         Coroutines[(int)CoroutineID.WaitForAgent] = FixedUpdateManager.StartCoroutine(EvaluateEgoToTrigger(NextTargetPos, CurrentTriggerDistance));
                     }
+
+                    // apply complex triggers
+                    else if (CurrentTrigger != null)
+                    {
+                        var previousState = thisPedState;
+                        var callback = new Action(() =>
+                        {
+                            ThisPedState = previousState;
+                        });
+                        ThisPedState = PedestrianState.Idle;
+                        Coroutines[(int)CoroutineID.WaitForAgent] = FixedUpdateManager.StartCoroutine(
+                            CurrentTrigger.Apply(this, callback));
+                    }
+                    
                     else if (ThisPedState == PedestrianState.Walking && CurrentIdle > 0f)
                     {
                         Coroutines[(int)CoroutineID.IdleAnimation] = FixedUpdateManager.StartCoroutine(IdleAnimation(CurrentIdle));
@@ -448,14 +474,16 @@ public class PedestrianController : DistributedComponent, IGloballyUniquelyIdent
     {
         if (CurrentSpeed != 0f)
         {
-            rb.MovePosition(rb.position + transform.forward * CurrentSpeed * Time.fixedDeltaTime);
+            rb.MovePosition(rb.position + transform.forward * (CurrentSpeed * Time.fixedDeltaTime));
         }
         else
         {
             rb.velocity = Vector3.zero;
         }
 
+        var previousVelocity = CurrentVelocity;
         CurrentVelocity = (rb.position - LastRBPosition) / Time.fixedDeltaTime;
+        CurrentAcceleration = CurrentVelocity - previousVelocity;
         LastRBPosition = rb.position;
     }
 

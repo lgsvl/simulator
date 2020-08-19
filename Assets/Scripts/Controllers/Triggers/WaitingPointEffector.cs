@@ -15,7 +15,7 @@ public class WaitingPointEffector : TriggerEffector
     public Vector3 ActivatorPoint;
     public float PointRadius = 2.0f;
     
-    public override IEnumerator Apply(NPCController parentNPC)
+    public override IEnumerator Apply(ITriggerAgent agent)
     {
         //Make parent npc wait until any ego is closer than the max distance
         var lowestDistance = float.PositiveInfinity;

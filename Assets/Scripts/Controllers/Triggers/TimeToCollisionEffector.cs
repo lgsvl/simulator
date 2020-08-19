@@ -11,27 +11,40 @@ using UnityEngine;
 
 public class TimeToCollisionEffector : TriggerEffector
 {
+    private const float TimeToCollisionLimit = float.PositiveInfinity;
+    
     public override string TypeName { get; } = "TimeToCollision";
 
-    public override AgentType[] UnsupportedAgentTypes { get; } = { AgentType.Unknown, AgentType.Ego, AgentType.Pedestrian};
+    public override AgentType[] UnsupportedAgentTypes { get; } = { AgentType.Unknown, AgentType.Ego};
 
-    public override IEnumerator Apply(NPCController parentNPC)
+    public override IEnumerator Apply(ITriggerAgent agent)
     {
-        var lowestTTC = float.PositiveInfinity;
+        var lowestTTC = TimeToCollisionLimit;
         var egos = SimulatorManager.Instance.AgentManager.ActiveAgents;
+        AgentController collisionEgo = null;
         foreach (var ego in egos)
         {
-            var ttc = CalculateTTC(ego.AgentGO.GetComponentInChildren<AgentController>(), parentNPC);
-            if (ttc < lowestTTC)
-                lowestTTC = ttc;
+            var agentController = ego.AgentGO.GetComponentInChildren<AgentController>();
+            var ttc = CalculateTTC(agentController, agent);
+            if (ttc >= lowestTTC || ttc < 0.0f) continue;
+            
+            lowestTTC = ttc;
+            collisionEgo = agentController;
         }
 
         //If there is no collision detected don't wait
-        if (float.IsPositiveInfinity(lowestTTC))
-            lowestTTC = 0.0f;
-        
-        //Make parent npc wait for "lowestTTC" time
-        yield return new WaitForSeconds(lowestTTC);
+        if (lowestTTC >= TimeToCollisionLimit || collisionEgo == null)
+            yield break;
+
+        //Agent will adjust waiting time while waiting
+        do
+        {
+            yield return null;
+            lowestTTC = CalculateTTC(collisionEgo, agent);
+            //Check if TTC is valid, for example ego did not change the direction
+            if (lowestTTC >= TimeToCollisionLimit)
+                yield break;
+        } while (lowestTTC > 0.0f);
     }
 
     public override void DeserializeProperties(JSONNode jsonData)
@@ -44,24 +57,29 @@ public class TimeToCollisionEffector : TriggerEffector
         
     }
 
-    private float CalculateTTC(AgentController ego, NPCController npc)
+    private float CalculateTTC(AgentController ego, ITriggerAgent agent)
     {
         //Calculate intersection point, return infinity if vehicles won't intersect
-        if (!GetLineIntersection(ego.transform.position, ego.transform.forward, npc.transform.position, npc.transform.forward,
+        if (!GetLineIntersection(ego.transform.position, ego.transform.forward, agent.AgentTransform.position, agent.AgentTransform.forward,
             out var intersection))
             return float.PositiveInfinity;
 
-        var egoDistance = Vector3.Distance(ego.transform.position, intersection);
-        var npcDistance = Vector3.Distance(npc.transform.position, intersection);
+        var egoDistance = Distance2D(ego.transform.position, intersection);
+        var npcDistance = Distance2D(agent.AgentTransform.position, intersection);
         var egoTimeToIntersection = CalculateTimeForAccelerated(ego.Velocity.magnitude, ego.Acceleration.magnitude, egoDistance);
-        var npcTimeToIntersection = CalculateTimeForAccelerated(npc.GetVelocity().magnitude, npc.simpleAcceleration.magnitude, npcDistance);
+        var npcTimeToIntersection = CalculateTimeForAccelerated(agent.MovementSpeed, agent.Acceleration.magnitude, npcDistance);
         
-        //If npc will reach intersection quicker, make npc wait for ego
-        if (egoTimeToIntersection >= npcTimeToIntersection)
-            return egoTimeToIntersection - npcTimeToIntersection;
+        //If npc will reach intersection quicker, ttc will be positive
+        //If agent cannot reach collision point before ego, ttc will be negative
+        return egoTimeToIntersection - npcTimeToIntersection;
+    }
 
-        Debug.LogWarning("NPC cannot reach collision point before ego.");
-        return float.PositiveInfinity;
+    private float Distance2D(Vector3 position, Vector3 intersection)
+    {
+        //Calculated distance omitting the Y axis
+        var x = position.x;
+        var z = position.z;
+        return Mathf.Sqrt((x - intersection.x) * (x - intersection.x) + (z - intersection.z) * (z - intersection.z));
     }
 
     private float CalculateTimeForAccelerated(float startingSpeed, float acceleration, float distance)

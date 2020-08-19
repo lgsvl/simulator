@@ -14,7 +14,7 @@ public class WaitTimeEffector : TriggerEffector
     public override string TypeName { get; } = "WaitTime";
     public float Value;
 
-    public override IEnumerator Apply(NPCController parentNPC)
+    public override IEnumerator Apply(ITriggerAgent agent)
     {
         //Make parent npc wait for "value" time
         yield return new WaitForSeconds(Value);

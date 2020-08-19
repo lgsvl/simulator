@@ -15,7 +15,7 @@ public abstract class TriggerEffector
 
     public virtual AgentType[] UnsupportedAgentTypes { get; } = { AgentType.Unknown, AgentType.Ego};
 
-    public abstract IEnumerator Apply(NPCController parentNPC);
+    public abstract IEnumerator Apply(ITriggerAgent triggerAgent);
 
     public abstract void DeserializeProperties(JSONNode jsonData);
     

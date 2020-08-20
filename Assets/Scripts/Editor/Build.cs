@@ -519,6 +519,7 @@ namespace Simulator.Editor
                     {
                         Manifest manifest = new Manifest();
                         var buildArtifacts = new List<(string source, string archiveName)>();
+                        var persistentBuildArtifacts = new List<(string source, string archiveName)>();
                         bool mainAssetIsScript = entry.mainAssetFile.EndsWith("." + ScriptExtension);
                         if (bundleType == BundleConfig.BundleTypes.Environment)
                         {
@@ -696,7 +697,7 @@ namespace Simulator.Editor
                                         {
                                             if (fi.Extension == TreeUtility.IndexFileExtension || fi.Extension == TreeUtility.NodeFileExtension || fi.Extension == TreeUtility.MeshFileExtension)
                                             {
-                                                buildArtifacts.Add((fi.FullName, Path.Combine(key, fi.Name)));
+                                                persistentBuildArtifacts.Add((fi.FullName, Path.Combine(key, fi.Name)));
                                             }
                                         }
                                     }
@@ -750,9 +751,10 @@ namespace Simulator.Editor
                             ZipFile archive = ZipFile.Create(Path.Combine(outputFolder, $"{thing}_{entry.name}"));
                             archive.BeginUpdate();
                             foreach (var file in buildArtifacts.Where(e => e.archiveName != null))
-                            {
                                 archive.Add(new StaticDiskDataSource(file.source), file.archiveName, CompressionMethod.Stored, true);
-                            }
+                            
+                            foreach (var file in persistentBuildArtifacts.Where(e => e.archiveName != null))
+                                archive.Add(new StaticDiskDataSource(file.source), file.archiveName, CompressionMethod.Stored, true);
 
                             archive.CommitUpdate();
                             archive.Close();

@@ -27,7 +27,6 @@ namespace Simulator.Web
         public Dropdown offlineDropdown;
         public Button offlineStartButton;
         public Button offlineStopButton;
-        public Text offlineModeText;
 
         SimulationService simulationService = new SimulationService();
         List<SimulationData> simulationData;
@@ -73,7 +72,6 @@ namespace Simulator.Web
                     statusButtonIcon.color = offlineColor;
                     offlineDropdown.gameObject.SetActive(false);
                     offlineStartButton.gameObject.SetActive(false);
-                    offlineModeText.gameObject.SetActive(false);
                     break;
                 case ConnectionManager.ConnectionStatus.Connected:
                     statusText.text = "";
@@ -84,17 +82,15 @@ namespace Simulator.Web
                     statusButton.interactable = true;
                     offlineDropdown.gameObject.SetActive(false);
                     offlineStartButton.gameObject.SetActive(false);
-                    offlineModeText.gameObject.SetActive(false);
                     break;
                 case ConnectionManager.ConnectionStatus.Offline:
                     statusButtonText.text = "Offline";
-                    statusText.text = "Go online to start using simulator or download a simulation to run in Offline Mode.";
+                    statusText.text = "Go Online to start new simulation or run previous simulations while being Offline";
                     statusButtonIcon.color = offlineColor;
                     linkButton.gameObject.SetActive(false);
                     statusButton.interactable = true;
                     offlineDropdown.gameObject.SetActive(true);
                     offlineStartButton.gameObject.SetActive(true);
-                    offlineModeText.gameObject.SetActive(true);
                     UpdateDropdown();
                     break;
                 case ConnectionManager.ConnectionStatus.Online:
@@ -106,7 +102,6 @@ namespace Simulator.Web
                     statusButton.interactable = true;
                     offlineDropdown.gameObject.SetActive(false);
                     offlineStartButton.gameObject.SetActive(false);
-                    offlineModeText.gameObject.SetActive(false);
                     break;
             }
         }
@@ -121,7 +116,6 @@ namespace Simulator.Web
             if(simulationData.Count == 0)
             {
                 offlineDropdown.gameObject.SetActive(false);
-                offlineModeText.gameObject.SetActive(false);
                 offlineStartButton.gameObject.SetActive(false);
             }
         }

@@ -345,10 +345,17 @@ public class CloudAPI
     private const uint fetchLimit = 50;
     StreamReader onlineStream;
 
+    private string CloudURIPrefix = "https://wise.";
+    private string CloudURISuffix = ".lgsvlsimulator.com/";
+    [NonSerialized]
+    public string CloudType;
+
     public CloudAPI(Uri instanceURL, string simId)
     {
         InstanceURL = instanceURL;
         SimId = simId;
+        CloudType = InstanceURL.AbsoluteUri.Replace(CloudURIPrefix, "");
+        CloudType = CloudType.Replace(CloudURISuffix, "").ToUpper();
         Console.WriteLine("[CONN] Instance URL {0}", InstanceURL.AbsoluteUri);
     }
 

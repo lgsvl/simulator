@@ -27,6 +27,8 @@ namespace Simulator.Web
         public Dropdown offlineDropdown;
         public Button offlineStartButton;
         public Button offlineStopButton;
+        public Text CloudTypeText;
+        public Button VSEButton;
 
         SimulationService simulationService = new SimulationService();
         List<SimulationData> simulationData;
@@ -72,6 +74,7 @@ namespace Simulator.Web
                     statusButtonIcon.color = offlineColor;
                     offlineDropdown.gameObject.SetActive(false);
                     offlineStartButton.gameObject.SetActive(false);
+                    CloudTypeText.text = ConnectionManager.API?.CloudType;
                     break;
                 case ConnectionManager.ConnectionStatus.Connected:
                     statusText.text = "";
@@ -82,6 +85,8 @@ namespace Simulator.Web
                     statusButton.interactable = true;
                     offlineDropdown.gameObject.SetActive(false);
                     offlineStartButton.gameObject.SetActive(false);
+                    VSEButton.gameObject.SetActive(true);
+                    CloudTypeText.text = ConnectionManager.API?.CloudType;
                     break;
                 case ConnectionManager.ConnectionStatus.Offline:
                     statusButtonText.text = "Offline";
@@ -91,7 +96,9 @@ namespace Simulator.Web
                     statusButton.interactable = true;
                     offlineDropdown.gameObject.SetActive(true);
                     offlineStartButton.gameObject.SetActive(true);
+                    VSEButton.gameObject.SetActive(false);
                     UpdateDropdown();
+                    CloudTypeText.text = "OFFLINE";
                     break;
                 case ConnectionManager.ConnectionStatus.Online:
                     statusButtonText.text = "Online";
@@ -102,6 +109,8 @@ namespace Simulator.Web
                     statusButton.interactable = true;
                     offlineDropdown.gameObject.SetActive(false);
                     offlineStartButton.gameObject.SetActive(false);
+                    VSEButton.gameObject.SetActive(true);
+                    CloudTypeText.text = ConnectionManager.API?.CloudType;
                     break;
             }
         }

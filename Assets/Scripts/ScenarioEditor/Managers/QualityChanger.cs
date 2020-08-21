@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright (c) 2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
@@ -7,9 +7,7 @@
 
 namespace Simulator.ScenarioEditor.Managers
 {
-    using System.Collections.Generic;
     using System.Reflection;
-    using UnityEditor.SceneManagement;
     using UnityEngine;
     using UnityEngine.Rendering;
     using UnityEngine.Rendering.HighDefinition;

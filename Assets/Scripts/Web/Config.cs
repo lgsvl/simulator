@@ -65,6 +65,8 @@ namespace Simulator.Web
 
         public static int DefaultPageSize = 100;
 
+        public static RunOnce RunOnceInstance = null;
+
 #if UNITY_EDITOR
         [UnityEditor.InitializeOnLoadMethod]
 #else
@@ -74,9 +76,27 @@ namespace Simulator.Web
         {
             Root = Path.Combine(Application.dataPath, "..");
             PersistentDataPath = Application.persistentDataPath;
+
+            ParseConfigFile();
+            if (!Application.isEditor)
+            {
+                ParseCommandLine();
+            }
+
+            RunOnceInstance = new RunOnce($"Global\\148fe96a-5e29-43a0-9b0c-e158bdbe6024-{PersistentDataPath}"); // using GUID to confirm ID is unique
+            if (RunOnceInstance.AlreadyRunning)
+            {
+                Debug.LogError("Another instance of simulator is running already!");
+#if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+#else
+                // return non-zero exit code
+                Application.Quit(1);
+#endif
+            }
+
             AssetBundle.UnloadAllAssetBundles(false);
             SensorPrefabs = RuntimeSettings.Instance.SensorPrefabs.ToList();
-
             if (SensorPrefabs.Any(s=> s == null))
             {
                 Debug.LogError("Null Sensor Prefab Detected - Check RuntimeSettings SensorPrefabs List for missing Sensor Prefab");
@@ -93,13 +113,6 @@ namespace Simulator.Web
             LoadExternalAssets();
             Sensors = SensorTypes.ListSensorFields(SensorPrefabs);
             BridgePlugins.Load();
-
-            ParseConfigFile();
-
-            if (!Application.isEditor)
-            {
-                ParseCommandLine();
-            }
 
             DatabaseManager.Init();
 

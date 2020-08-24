@@ -1045,8 +1045,8 @@ namespace Simulator.Editor
             // From left to right, compute other MapLines
             // Get number of lanes and move lane into a new MapLaneSection or SingleLanes
             GameObject parentObj = GetParentObj(roadIdLaneSectionId, laneSection);
-            if (laneSection.left != null) CreateLinesLanes(roadId, laneSectionId, sectionRefPoints, refMapLine, laneSection.left.lane, parentObj, true);
-            if (laneSection.right != null) CreateLinesLanes(roadId, laneSectionId, sectionRefPoints, refMapLine, laneSection.right.lane, parentObj, false);
+            if (laneSection.left != null && laneSection.left.lane != null) CreateLinesLanes(roadId, laneSectionId, sectionRefPoints, refMapLine, laneSection.left.lane, parentObj, true);
+            if (laneSection.right != null && laneSection.right.lane != null) CreateLinesLanes(roadId, laneSectionId, sectionRefPoints, refMapLine, laneSection.right.lane, parentObj, false);
 
             DownSampleLaneLines(roadId, laneSectionId);
 
@@ -1394,7 +1394,17 @@ namespace Simulator.Editor
                     incomingRoadIds.Add(incomingRoadId);
                     var connectingRoadId = connection.connectingRoad;
                     var contactPoint = connection.contactPoint; // contact point on the connecting road
+                    if (!Roads.ContainsKey(incomingRoadId))
+                    {
+                        Debug.LogWarning($"Road {incomingRoadId} doesn't exist");
+                        continue;
+                    }
                     var incomingLaneSections = Roads[incomingRoadId];
+                    if (!Roads.ContainsKey(connectingRoadId))
+                    {
+                        Debug.LogWarning($"Road {connectingRoadId} doesn't exist");
+                        continue;
+                    }
                     var connectingLaneSections = Roads[connectingRoadId];
                     Dictionary<int, MapLane> incomingId2MapLane, connectingId2MapLane;
 
@@ -1465,6 +1475,7 @@ namespace Simulator.Editor
         {
             foreach (var roadId in incomingRoadIds)
             {
+                if (!Roads.ContainsKey(roadId)) continue;
                 var isLeftLanes = isLeftLanesConnected(roadId, mapIntersection);
                 if (isLeftLanes)
                 {
@@ -1745,13 +1756,13 @@ namespace Simulator.Editor
                     if (preContactPoint == null) preContactPoint = contactPoint.end;
                     if (sucContactPoint == null) sucContactPoint = contactPoint.start;
 
-                    if (laneSection.left != null)
+                    if (laneSection.left != null && laneSection.left.lane != null)
                     {
                         UpdateLanesBeforesAfters(laneSection.left.lane, Id2MapLane, preRoadId, preLaneSectionId,
                                             sucRoadId, sucLaneSectionId, preContactPoint.Value, sucContactPoint.Value);
                     }
 
-                    if (laneSection.right != null)
+                    if (laneSection.right != null && laneSection.right.lane != null)
                     {
                         UpdateLanesBeforesAfters(laneSection.right.lane, Id2MapLane, preRoadId, preLaneSectionId,
                                             sucRoadId, sucLaneSectionId, preContactPoint.Value, sucContactPoint.Value);

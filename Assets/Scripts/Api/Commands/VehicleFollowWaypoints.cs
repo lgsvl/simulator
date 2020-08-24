@@ -51,7 +51,8 @@ namespace Simulator.Api.Commands
                         Idle = waypoints[i]["idle"].AsFloat,
                         Deactivate = deactivate.IsBoolean ? deactivate.AsBool : false,
                         TriggerDistance = waypoints[i]["trigger_distance"].AsFloat,
-                        TimeStamp = (ts == null) ? -1 : waypoints[i]["timestamp"].AsFloat
+                        TimeStamp = (ts == null) ? -1 : waypoints[i]["timestamp"].AsFloat,
+                        Trigger = DeserializeTrigger(waypoints[i]["trigger"])
                     }); ;
                 }
 
@@ -66,5 +67,25 @@ namespace Simulator.Api.Commands
                 api.SendError(this, $"Agent '{uid}' not found");
             }
         }
+
+        private WaypointTrigger DeserializeTrigger(JSONNode data)
+        {
+            if (data == null)
+                return null;
+            var effectorsNode = data["effectors"].AsArray;
+            var trigger = new WaypointTrigger();
+            trigger.Effectors = new List<TriggerEffector>();
+            for (int i = 0; i < effectorsNode.Count; i++)
+            {
+                var typeName = effectorsNode[i]["type_name"];
+                var newEffector = TriggersManager.GetEffectorOfType(typeName);
+                newEffector.Value = effectorsNode[i]["value"];
+                trigger.Effectors.Add(newEffector);
+            }
+
+            return trigger;
+
+        }
     }
+    
 }

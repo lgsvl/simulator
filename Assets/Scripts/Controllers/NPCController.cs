@@ -38,6 +38,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
 
     public Vector3 simpleVelocity;
     public Vector3 simpleAngularVelocity;
+    public Vector3 simpleAcceleration;
     private GameObject wheelColliderHolder;
     class WheelData
     {
@@ -174,7 +175,9 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver, IG
 
         if (Time.fixedDeltaTime > 0)
         {
+            var previousVelocity = simpleVelocity;
             simpleVelocity = (rb.position - lastRBPosition) / Time.fixedDeltaTime;
+            simpleAcceleration = simpleVelocity - previousVelocity;
 
             Vector3 euler1 = lastRBRotation.eulerAngles;
             Vector3 euler2 = rb.rotation.eulerAngles;

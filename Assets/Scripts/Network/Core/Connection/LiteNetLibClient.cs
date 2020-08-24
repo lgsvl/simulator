@@ -169,8 +169,12 @@ namespace Simulator.Network.Core.Connection
         {
             if (masterPeer != null)
                 return;
+            if (!activeConnections.TryGetValue(peer.EndPoint, out masterPeer))
+            {
+                masterPeer = new LiteNetLibPeerManager(peer);
+                activeConnections.Add(peer.EndPoint, masterPeer);
+            }
 
-            masterPeer = activeConnections[peer.EndPoint];
             PeerConnected?.Invoke(masterPeer);
         }
 
@@ -221,9 +225,36 @@ namespace Simulator.Network.Core.Connection
         /// <inheritdoc/>
         public void OnConnectionRequest(ConnectionRequest request)
         {
-            Log.Error(
-                $"{GetType().Name} received an connection request from address '{request.RemoteEndPoint.Address}' but client simulation cannot accept requests.");
-            request.Reject();
+            var key = request.Data.GetString();
+            if (ApplicationKey != key)
+            {
+                request.Reject();
+                Log.Warning(
+                    $"{GetType().Name} received and rejected a connection request from address '{request.RemoteEndPoint.Address}', invalid key was passed: {key}, current UTC time: {DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)}.");
+                return;
+            }
+
+            var identifier = request.Data.GetString();
+            var peerConnected = activeConnections.ContainsKey(request.RemoteEndPoint);
+            if (peerConnected)
+            {
+                //Connection to same peer is already established, probably request send from other sub-network
+                request.Reject();
+                return;
+            }
+
+            var acceptIdentifier = AcceptableIdentifiers.Contains(identifier);
+            if (!acceptIdentifier)
+            {
+                request.Reject();
+                Log.Warning(
+                    $"{GetType().Name} received and rejected a connection request from address '{request.RemoteEndPoint.Address}', unacceptable identifier was passed: {identifier}, current UTC time: {DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)}.");
+                return;
+            }
+
+            Log.Info(
+                $"{GetType().Name} received and accepted a connection request from address '{request.RemoteEndPoint.Address}', current UTC time: {DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)}.");
+            request.Accept();
         }
 
         /// <summary>

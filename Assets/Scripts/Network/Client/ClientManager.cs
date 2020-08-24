@@ -250,10 +250,14 @@ namespace Simulator.Network.Client
         /// </summary>
         public void TryConnectToMaster()
         {
+            if (State != SimulationState.Initial)
+                return;
+            
             State = SimulationState.Connecting;
             var masterEndPoints = Loader.Instance.Network.MasterAddresses;
             var localEndPoints = Loader.Instance.Network.LocalAddresses;
             var identifier = Loader.Instance.Network.LocalIdentifier;
+            Log.Info("Client tries to connect to the master.");
             foreach (var masterEndPoint in masterEndPoints)
             {
                 //Check if client is already connected
@@ -314,13 +318,13 @@ namespace Simulator.Network.Client
         {
             if (State != SimulationState.Connected) return;
             State = SimulationState.Ready;
-            var stopData = PacketsProcessor.Write(new Commands.Ready() { });
+            var stopData = PacketsProcessor.Write(new Commands.Ready());
             var message = MessagesPool.Instance.GetMessage(stopData.Length);
             message.AddressKey = Key;
             message.Content.PushBytes(stopData);
             message.Type = DistributedMessageType.ReliableOrdered;
             BroadcastMessage(message);
-            Log.Info($"{GetType().Name} is ready and has sent ready command to the master..");
+            Log.Info($"{GetType().Name} is ready and has sent ready command to the master.");
         }
 
         /// <summary>
@@ -329,6 +333,9 @@ namespace Simulator.Network.Client
         /// <param name="run">Received run command</param>
         private void OnRunCommand(Commands.Run run)
         {
+            //Check if the simulation is already loading or running
+            if (State == SimulationState.Running || State == SimulationState.Loading)
+                return;
             Debug.Assert(State == SimulationState.Ready);
             Loader.StartAsync(Loader.Instance.Network.CurrentSimulation);
             State = SimulationState.Running;

@@ -14,6 +14,7 @@ namespace Simulator.Network.Core.Connection
     using System.Net;
     using System.Net.Sockets;
     using LiteNetLib;
+    using LiteNetLib.Utils;
     using Messaging.Data;
     using Simulator.Network.Core.Messaging;
 
@@ -89,7 +90,10 @@ namespace Simulator.Network.Core.Connection
         /// <inheritdoc/>
         public IPeerManager Connect(IPEndPoint endPoint, string identifier)
         {
-            var peerManager = new LiteNetLibPeerManager(netServer.Connect(endPoint, identifier));
+            var writer = new NetDataWriter();
+            writer.Put(ApplicationKey);
+            writer.Put(identifier);
+            var peerManager = new LiteNetLibPeerManager(netServer.Connect(endPoint, writer));
             peers.Add(peerManager.PeerEndPoint, peerManager);
             Log.Info($"{GetType().Name} starts the connection to a peer with address '{endPoint.ToString()}'.");
             return peerManager;

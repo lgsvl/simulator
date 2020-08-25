@@ -529,7 +529,8 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
                 case ControlType.Waypoints:
                     anim.SetFloat("speed", speeds[NextTargetIndex]);
                     break;
-                case ControlType.Manual: // TODO
+                case ControlType.Manual:
+                    anim.SetFloat("speed", LinearSpeed);
                     break;
             }
             

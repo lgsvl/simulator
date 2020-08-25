@@ -48,7 +48,10 @@ namespace Simulator.Editor.MapMeshes
             var a1 = new Vertex(top1.X / 1000f, top1.Z / 1000f, top1.Y / 1000f);
             var b0 = new Vertex(bot2.X / 1000f, bot2.Z / 1000f, bot2.Y / 1000f);
             var b1 = new Vertex(top2.X / 1000f, top2.Z / 1000f, top2.Y / 1000f);
-            pt.Z = (long) (GetLineLineIntersectionPoint(a0, a1, b0, b1).y * 1000);
+            if (AreLinesIntersecting(a0, a1, b0, b1))
+                pt.Z = (long) (GetLineLineIntersectionPoint(a0, a1, b0, b1).y * 1000);
+            else
+                pt.Z = (bot1.Z + bot2.Z + top1.Z + top2.Z) / 4;
         }
 
         public static List<List<Vertex>> OptimizePoly(List<List<Vertex>> polys, string debugName = null)

@@ -41,6 +41,12 @@ namespace Simulator.Editor.MapMeshes
         public bool pushOuterVerts = true;
 
         /// <summary>
+        /// If true, pushed lane vertices will be made as a separate mesh.
+        /// </summary>
+        [Tooltip("If true, pushed lane vertices will be made as a separate mesh.")]
+        public bool separateOuterMesh = false;
+
+        /// <summary>
         /// Distance in meters to push external lane vertices (if enabled).
         /// </summary>
         [Tooltip("Distance in meters to push external lane vertices (if enabled).")]

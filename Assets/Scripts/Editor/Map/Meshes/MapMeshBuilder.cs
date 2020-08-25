@@ -126,7 +126,7 @@ namespace Simulator.Editor.MapMeshes
             {
                 return direct ? ConnectsDirect(cm) : ConnectsParallel(cm);
             }
-            
+
             private bool ConnectsDirect(CornerMask cm)
             {
                 return isRight == cm.isRight && isStart != cm.isStart;
@@ -318,21 +318,26 @@ namespace Simulator.Editor.MapMeshes
             }
         }
 
-        public static List<Vector3> debugList = new List<Vector3>();
+        private List<List<Vertex>> CreateLanePoly(MapLane lane, out List<List<Vertex>> pushedMesh)
+        {
+            var name = lane.gameObject.name;
+            var poly = BuildLanePoly(lane, out var roadsideMesh, true);
+            pushedMesh = roadsideMesh;
+            return MeshUtils.OptimizePoly(poly, name);
+        }
 
         private void CreateLaneMesh(MapLane lane, GameObject parentObject, MapMeshMaterials materials)
         {
             var name = lane.gameObject.name;
-            var poly = BuildLanePoly(lane, true);
-            var optimized = MeshUtils.OptimizePoly(poly, name);
-            var mesh = optimized == null ? null : Triangulation.TiangulateMultiPolygon(optimized, name);
+            var poly = CreateLanePoly(lane, out var pushedMesh);
+            var mesh = poly == null ? null : Triangulation.TiangulateMultiPolygon(poly, name);
 
             if (mesh == null)
             {
                 Debug.LogWarning($"Zero surface mesh detected, skipping. ({name})");
                 return;
             }
-            
+
             AddUv(mesh);
             var laneTransform = lane.transform;
             MoveMeshVericesToLocalSpace(mesh, laneTransform);
@@ -357,9 +362,35 @@ namespace Simulator.Editor.MapMeshes
                 var mc = go.AddComponent<MeshCollider>();
                 mc.sharedMesh = mesh;
             }
+
+            if (settings.separateOuterMesh && pushedMesh != null)
+            {
+                var roadsideMesh = Triangulation.TiangulateMultiPolygon(pushedMesh, $"{name} - roadside");
+                AddUv(roadsideMesh);
+                MoveMeshVericesToLocalSpace(roadsideMesh, laneTransform);
+
+                var roadsideGo = new GameObject(name + "_mesh_roadside");
+                roadsideGo.transform.SetParent(parentObject.transform);
+                roadsideGo.transform.rotation = laneTransform.rotation;
+                roadsideGo.transform.position = laneTransform.position;
+                
+                if (settings.createRenderers)
+                {
+                    var mf = roadsideGo.AddComponent<MeshFilter>();
+                    var mr = roadsideGo.AddComponent<MeshRenderer>();
+                    mf.sharedMesh = roadsideMesh;
+                    mr.sharedMaterial = materials.road;
+                }
+
+                if (settings.createCollider)
+                {
+                    var mc = roadsideGo.AddComponent<MeshCollider>();
+                    mc.sharedMesh = roadsideMesh;
+                }
+            }
         }
 
-        private void CreateIntersectionMesh(MapIntersection intersection, GameObject parentObject, MapMeshMaterials materials)
+        private List<List<Vertex>> CreateIntersectionPoly(MapIntersection intersection)
         {
             var name = intersection.gameObject.name;
             var intersectionLanes = intersection.GetComponentsInChildren<MapLane>();
@@ -368,14 +399,20 @@ namespace Simulator.Editor.MapMeshes
 
             foreach (var lane in intersectionLanes)
             {
-                var lanePoly = BuildLanePoly(lane, true);
+                var lanePoly = BuildLanePoly(lane, out _, true, true);
                 var optimizedLanePoly = MeshUtils.OptimizePoly(lanePoly, $"{lane.gameObject.name}, part of {name}");
                 if (optimizedLanePoly != null)
                     optimizedLanePolys.AddRange(optimizedLanePoly);
             }
 
             var merged = MeshUtils.ClipVatti(optimizedLanePolys);
-            var optimized = MeshUtils.OptimizePoly(merged, name);
+            return MeshUtils.OptimizePoly(merged, name);
+        }
+
+        private void CreateIntersectionMesh(MapIntersection intersection, GameObject parentObject, MapMeshMaterials materials)
+        {
+            var name = intersection.gameObject.name;
+            var optimized = CreateIntersectionPoly(intersection);
             var mesh = optimized == null ? null : Triangulation.TiangulateMultiPolygon(optimized, name);
 
             if (mesh == null)
@@ -383,7 +420,7 @@ namespace Simulator.Editor.MapMeshes
                 Debug.LogWarning($"Zero surface mesh detected, skipping. ({name})");
                 return;
             }
-            
+
             AddUv(mesh);
             var intersectionTransform = intersection.transform;
             MoveMeshVericesToLocalSpace(mesh, intersectionTransform);
@@ -440,7 +477,7 @@ namespace Simulator.Editor.MapMeshes
             }
         }
 
-        private List<Vertex> BuildLanePoly(MapLane lane, bool worldSpace = false)
+        private List<List<Vertex>> BuildLanePoly(MapLane lane, out List<List<Vertex>> pushedMesh, bool worldSpace = false, bool alwaysMerge = false)
         {
             var leftPoints = ListPool<LineVert>.Get();
             var rightPoints = ListPool<LineVert>.Get();
@@ -459,21 +496,70 @@ namespace Simulator.Editor.MapMeshes
             if (!leftReversed)
                 leftPoints.Reverse();
 
-            var polygon = rightPoints.Select(point => new Vertex(point.position + point.outVector * settings.pushDistance)).ToList();
-            polygon.AddRange(leftPoints.Select(point => new Vertex(point.position + point.outVector * settings.pushDistance)));
+            var polygon = rightPoints.Select(point => new Vertex(point.position)).ToList();
+            polygon.AddRange(leftPoints.Select(point => new Vertex(point.position)));
 
             MeshUtils.RemoveDuplicates(polygon);
 
+            var poly = new List<List<Vertex>>() {polygon};
+            pushedMesh = null;
+
+            // Add roadside
+            if (settings.pushOuterVerts)
+            {
+                var useSeparateMesh = settings.separateOuterMesh && !alwaysMerge;
+                var targetPoly = useSeparateMesh ? new List<List<Vertex>>() : poly;
+                
+                if (linesData[lane.rightLineBoundry].usageCount == 1)
+                {
+                    AddRoadsidePolygons(ref targetPoly, rightPoints);
+                    targetPoly = MeshUtils.ClipVatti(targetPoly);
+                }
+
+                if (linesData[lane.leftLineBoundry].usageCount == 1)
+                {
+                    AddRoadsidePolygons(ref targetPoly, leftPoints);
+                    targetPoly = MeshUtils.ClipVatti(targetPoly);
+                }
+
+                if (useSeparateMesh)
+                    pushedMesh = targetPoly.Count > 0 ? targetPoly : null;
+            }
+
             if (!worldSpace)
             {
-                for (var i = 0; i < polygon.Count; ++i)
-                    polygon[i].Position = lane.transform.InverseTransformPoint(polygon[i].Position);
+                for (var i = 0; i < poly.Count; ++i)
+                {
+                    for (var j = 0; j < poly[i].Count; ++j)
+                        poly[i][j].Position = lane.transform.InverseTransformPoint(polygon[i].Position);
+                }
             }
 
             ListPool<LineVert>.Release(leftPoints);
             ListPool<LineVert>.Release(rightPoints);
 
-            return polygon;
+            return poly;
+        }
+
+        private void AddRoadsidePolygons(ref List<List<Vertex>> poly, List<LineVert> linePoints)
+        {
+            for (var i = 1; i < linePoints.Count; ++i)
+            {
+                var v0 = new Vertex(linePoints[i].position);
+                var v1 = new Vertex(linePoints[i - 1].position);
+                var v2 = new Vertex(linePoints[i - 1].position + linePoints[i - 1].outVector * settings.pushDistance);
+                var v3 = new Vertex(linePoints[i].position + linePoints[i].outVector * settings.pushDistance);
+
+                if (MeshUtils.AreLinesIntersecting(v0, v3, v1, v2))
+                {
+                    var vInt = MeshUtils.GetLineLineIntersectionPoint(v0, v3, v1, v2);
+                    poly.Add(new List<Vertex> {v0, v1, vInt});
+                }
+                else
+                {
+                    poly.Add(new List<Vertex> {v0, v1, v2, v3});
+                }
+            }
         }
 
         private void GetLinesOrientation(MapLane lane, out bool leftReversed, out bool rightReversed)

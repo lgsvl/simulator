@@ -30,6 +30,7 @@ namespace Simulator.Editor
         private SerializedProperty createRenderers;
         private SerializedProperty snapLaneEnds;
         private SerializedProperty pushOuterVerts;
+        private SerializedProperty separateOuterMesh;
         private SerializedProperty pushDistance;
         private SerializedProperty snapThreshold;
         private SerializedProperty roadUvUnit;
@@ -110,6 +111,7 @@ namespace Simulator.Editor
             createRenderers = serializedSettings.FindProperty(nameof(MapMeshSettings.createRenderers));
             snapLaneEnds = serializedSettings.FindProperty(nameof(MapMeshSettings.snapLaneEnds));
             pushOuterVerts = serializedSettings.FindProperty(nameof(MapMeshSettings.pushOuterVerts));
+            separateOuterMesh = serializedSettings.FindProperty(nameof(MapMeshSettings.separateOuterMesh));
             pushDistance = serializedSettings.FindProperty(nameof(MapMeshSettings.pushDistance));
             snapThreshold = serializedSettings.FindProperty(nameof(MapMeshSettings.snapThreshold));
             roadUvUnit = serializedSettings.FindProperty(nameof(MapMeshSettings.roadUvUnit));
@@ -174,6 +176,7 @@ namespace Simulator.Editor
             EditorGUILayout.PropertyField(pushOuterVerts);
 
             EditorGUI.BeginDisabledGroup(!pushOuterVerts.boolValue);
+            EditorGUILayout.PropertyField(separateOuterMesh);
             EditorGUILayout.PropertyField(pushDistance);
             EditorGUI.EndDisabledGroup();
 

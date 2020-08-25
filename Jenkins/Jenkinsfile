@@ -37,7 +37,7 @@ pipeline {
     PYTHONUNBUFFERED = "1"
     DISPLAY = ":0"
     JENKINS_BUILD_ID = "${BUILD_ID}"
-    GIT_BRANCH = "${BRANCH_NAME}"
+    GIT_BRANCH = "${sh(script:"echo ${env.BRANCH_NAME} | sed 's#/#-#g'", returnStdout: true).trim()}"
     CODE_SIGNING_FILE = "/dev/urandom"
   }
 

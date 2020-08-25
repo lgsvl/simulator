@@ -26,7 +26,11 @@ pipeline {
     booleanParam(name: "BUILD_MACOS", defaultValue: false, description: "")
     booleanParam(name: "FORCE_CHECK", defaultValue: false, description: "")
     booleanParam(name: "FORCE_TEST", defaultValue: false, description: "")
+    booleanParam(name: "UPLOAD_TO_ECR", defaultValue: true, description: "Enable uploading docker image with build simulator zip to the ECR.")
     string(name: "CLOUD_URL", defaultValue: "${SIMULATOR_WISE_STAGING_URL}", description: "")
+    string(name: 'WISE_AWS_ECR_ACCOUNT_ID', defaultValue: '853285614468', description: 'The AWS account ID whose ECR will be used', trim: true)
+    string(name: 'WISE_AWS_ECR_REGION', defaultValue: 'us-east-1', description: 'The AWS region where the ECR is located', trim: true)
+    credentials( name: 'WISE_AWS_ECR_CREDENTIALS_ID', required: true, defaultValue: "simulator--aws-credentials", description: 'The credentials to be used for accessing the ECR', credentialType: 'com.cloudbees.jenkins.plugins.awscredentials.AWSCredentialsImpl')
   }
 
   environment {
@@ -310,6 +314,33 @@ pipeline {
       }
 
     } // macOS
+
+    stage("uploadECR") {
+      when {
+        environment name: "UPLOAD_TO_ECR", value: "true"
+      }
+
+      steps {
+        dir("Jenkins") {
+          sh "echo Using credentials ${WISE_AWS_ECR_CREDENTIALS_ID}"
+          withCredentials([[credentialsId: "${WISE_AWS_ECR_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY', $class: 'AmazonWebServicesCredentialsBinding']]) {
+            sh """
+              DOCKER_REGISTRY="${WISE_AWS_ECR_ACCOUNT_ID}.dkr.ecr.${WISE_AWS_ECR_REGION}.amazonaws.com"
+              docker-compose pull aws-cli
+              if ! UID=`id -u` docker-compose run --rm aws-cli ecr get-login-password --region $WISE_AWS_ECR_REGION | docker login --username AWS --password-stdin \$DOCKER_REGISTRY; then
+                echo "ABORT: bad AWS credentials?"
+                exit 1
+              fi
+              cd ../Docker
+              cp -al ../*-linux64-${GIT_BRANCH}-${JENKINS_BUILD_ID}.zip .
+              docker build --pull --no-cache --build-arg "simulator_zipfile=*-linux64-${GIT_BRANCH}-${JENKINS_BUILD_ID}.zip" -t \$DOCKER_REGISTRY/wise/simulator:build__${GIT_BRANCH}-${JENKINS_BUILD_ID} .
+              docker push \$DOCKER_REGISTRY/wise/simulator:build__${GIT_BRANCH}-${JENKINS_BUILD_ID}
+              rm -fv *-linux64-${GIT_BRANCH}-${JENKINS_BUILD_ID}.zip
+            """
+          }
+        }
+      }
+    } // uploadECR
   } // stages
 
   post {

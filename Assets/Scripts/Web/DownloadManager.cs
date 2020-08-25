@@ -107,6 +107,8 @@ namespace Simulator.Web
 
             Uri uri = new Uri(Config.CloudUrl + "/api/v1/assets/download/bundle/" + assetGuid);
 
+            ConnectionUI.instance?.UpdateDownloadProgress(name, 0);
+            Debug.Log($"{name} Download at 0%");
             var t = new TaskCompletionSource<AssetModel>();
             downloads.Enqueue(new Download(uri, localPath,
             progress => {

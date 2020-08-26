@@ -16,9 +16,6 @@ namespace Simulator.ScenarioEditor.UI.MapEdit.Buttons
     public class ElementMapResize : ElementMapEdit
     {
         /// <inheritdoc/>
-        public override string Title { get; } = "Resize";
-
-        /// <inheritdoc/>
         public override bool CanEditElement(ScenarioElement element)
         {
             return element.CanBeResized;

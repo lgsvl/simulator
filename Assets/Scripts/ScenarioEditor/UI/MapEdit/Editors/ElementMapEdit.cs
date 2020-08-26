@@ -16,20 +16,6 @@ namespace Simulator.ScenarioEditor.UI.MapEdit.Buttons
     /// </summary>
     public abstract class ElementMapEdit : MonoBehaviour
     {
-        //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
-#pragma warning disable 0649
-        /// <summary>
-        /// Text object displaying the edit feature title
-        /// </summary>
-        [SerializeField]
-        protected Text titleText;
-#pragma warning restore 0649
-        
-        /// <summary>
-        /// Title of this feature
-        /// </summary>
-        public virtual string Title { get; }
-
         /// <summary>
         /// Currently edited element reference
         /// </summary>
@@ -41,7 +27,7 @@ namespace Simulator.ScenarioEditor.UI.MapEdit.Buttons
         /// </summary>
         public virtual void Initialize()
         {
-            titleText.text = Title;
+            
         }
 
         /// <summary>

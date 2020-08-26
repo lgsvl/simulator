@@ -16,9 +16,6 @@ namespace Simulator.ScenarioEditor.UI.MapEdit.Buttons
     public class ElementMapRemove : ElementMapEdit
     {
         /// <inheritdoc/>
-        public override string Title { get; } = "Remove";
-
-        /// <inheritdoc/>
         public override bool CanEditElement(ScenarioElement element)
         {
             return element.CanBeRemoved;

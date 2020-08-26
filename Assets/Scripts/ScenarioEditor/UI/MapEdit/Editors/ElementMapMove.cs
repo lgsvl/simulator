@@ -16,9 +16,6 @@ namespace Simulator.ScenarioEditor.UI.MapEdit.Buttons
     public class ElementMapMove : ElementMapEdit
     {
         /// <inheritdoc/>
-        public override string Title { get; } = "Move";
-
-        /// <inheritdoc/>
         public override bool CanEditElement(ScenarioElement element)
         {
             return element.CanBeMoved;

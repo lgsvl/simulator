@@ -14,10 +14,7 @@ namespace Simulator.ScenarioEditor.UI.MapEdit.Buttons
     /// Feature allowing to rotate a map element
     /// </summary>
     public class ElementMapRotate : ElementMapEdit
-    {
-        /// <inheritdoc/>
-        public override string Title { get; } = "Rotate";
-        
+    {        
         /// <inheritdoc/>
         public override bool CanEditElement(ScenarioElement element)
         {

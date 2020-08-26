@@ -1,0 +1,118 @@
+From c31e220b240e07edadd1726bd2188c1d9c255c03 Mon Sep 17 00:00:00 2001
+From: Herb Kuta <herb.kuta@lge.com>
+Date: Fri, 7 Feb 2020 18:37:45 -0800
+Subject: [PATCH 1/1] loader.c: Implement VK_LOADER_SINGLE_PHYSDEV_INDEX_LGE
+---
+ loader/loader.c | 46 ++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 40 insertions(+), 6 deletions(-)
+
+diff --git a/loader/loader.c b/loader/loader.c
+index b58697fcb..e7449c757 100644
+--- a/loader/loader.c
++++ b/loader/loader.c
+@@ -128,6 +128,9 @@ LOADER_PLATFORM_THREAD_ONCE_DECLARATION(once_init);
+ uint32_t loader_major_version = 1;
+ uint32_t loader_minor_version = 2;
+ 
++// XXX
++static uint32_t g_loader_single_physdev_index_lge = UINT32_MAX;
++
+ void *loader_instance_heap_alloc(const struct loader_instance *instance, size_t size, VkSystemAllocationScope alloc_scope) {
+     void *pMemory = NULL;
+ #if (DEBUG_DISABLE_APP_ALLOCATORS == 1)
+@@ -2440,6 +2443,16 @@ void loader_initialize(void) {
+     // and not after the first call that has been statically linked
+     LoadLibrary("gdi32.dll");
+ #endif
++
++    const char *cp = getenv("VK_LOADER_SINGLE_PHYSDEV_INDEX_LGE");
++    if (cp) {
++        char *cp2 = NULL;
++        long val = strtol(cp, &cp2, 0);
++        // Only use if the entire string is valid and represents a non-negative number:
++        if ('\0' == *cp2 && val >= 0) {
++            g_loader_single_physdev_index_lge = val;
++        }
++    }
+ }
+ 
+ struct loader_data_files {
+@@ -6682,19 +6695,28 @@ VkResult setupLoaderTrampPhysDevs(VkInstance instance) {
+     // the count up.
+     total_count = inst->total_gpu_count;
+ 
++    // LGE: total_count is the count of physical devices (GPUs) on the host, not in the container.
++    uint32_t assigned_physdev_count_lge = total_count;
++    uint32_t assigned_physdev_idx_lge = total_count;
++    if (UINT32_MAX != g_loader_single_physdev_index_lge) {
++        assigned_physdev_idx_lge = g_loader_single_physdev_index_lge;
++        // Only one physical device per container is supported.
++        assigned_physdev_count_lge = 1;
++    }
++
+     // Create an array for the new physical devices, which will be stored
+     // in the instance for the trampoline code.
+     new_phys_devs = (struct loader_physical_device_tramp **)loader_instance_heap_alloc(
+-        inst, total_count * sizeof(struct loader_physical_device_tramp *), VK_SYSTEM_ALLOCATION_SCOPE_INSTANCE);
++        inst, assigned_physdev_count_lge * sizeof(struct loader_physical_device_tramp *), VK_SYSTEM_ALLOCATION_SCOPE_INSTANCE);
+     if (NULL == new_phys_devs) {
+         loader_log(inst, VK_DEBUG_REPORT_ERROR_BIT_EXT, 0,
+                    "setupLoaderTrampPhysDevs:  Failed to allocate new physical device"
+                    " array of size %d",
+-                   total_count);
++                   assigned_physdev_count_lge);
+         res = VK_ERROR_OUT_OF_HOST_MEMORY;
+         goto out;
+     }
+-    memset(new_phys_devs, 0, total_count * sizeof(struct loader_physical_device_tramp *));
++    memset(new_phys_devs, 0, assigned_physdev_count_lge * sizeof(struct loader_physical_device_tramp *));
+ 
+     // Create a temporary array (on the stack) to keep track of the
+     // returned VkPhysicalDevice values.
+@@ -6719,10 +6741,11 @@ VkResult setupLoaderTrampPhysDevs(VkInstance instance) {
+     }
+ 
+     // Copy or create everything to fill the new array of physical devices
+-    for (uint32_t new_idx = 0; new_idx < total_count; new_idx++) {
++    uint32_t new_idx = 0;
++    for (uint32_t idx = 0; idx < total_count; idx++) {
+         // Check if this physical device is already in the old buffer
+         for (uint32_t old_idx = 0; old_idx < inst->phys_dev_count_tramp; old_idx++) {
+-            if (local_phys_devs[new_idx] == inst->phys_devs_tramp[old_idx]->phys_dev) {
++            if (local_phys_devs[idx] == inst->phys_devs_tramp[old_idx]->phys_dev) {
+                 new_phys_devs[new_idx] = inst->phys_devs_tramp[old_idx];
+                 break;
+             }
+@@ -6730,6 +6753,10 @@ VkResult setupLoaderTrampPhysDevs(VkInstance instance) {
+ 
+         // If this physical device isn't in the old buffer, create it
+         if (NULL == new_phys_devs[new_idx]) {
++            if (assigned_physdev_idx_lge < total_count && assigned_physdev_idx_lge != idx) {
++                continue;
++            }
++
+             new_phys_devs[new_idx] = (struct loader_physical_device_tramp *)loader_instance_heap_alloc(
+                 inst, sizeof(struct loader_physical_device_tramp), VK_SYSTEM_ALLOCATION_SCOPE_INSTANCE);
+             if (NULL == new_phys_devs[new_idx]) {
+@@ -6745,10 +6772,17 @@ VkResult setupLoaderTrampPhysDevs(VkInstance instance) {
+             // Initialize the new physicalDevice object
+             loader_set_dispatch((void *)new_phys_devs[new_idx], inst->disp);
+             new_phys_devs[new_idx]->this_instance = inst;
+-            new_phys_devs[new_idx]->phys_dev = local_phys_devs[new_idx];
++            new_phys_devs[new_idx]->phys_dev = local_phys_devs[idx];
++        }
++
++        new_idx++;
++        if (new_idx >= assigned_physdev_count_lge) {
++            break;
+         }
+     }
+ 
++    total_count = assigned_physdev_count_lge;
++
+ out:
+ 
+     if (VK_SUCCESS != res) {
+-- 
+2.17.1
+

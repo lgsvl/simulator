@@ -171,8 +171,8 @@ namespace Simulator.Network.Master
         /// <param name="rootGameObject">Root game object where new component will be added</param>
         public void InitializeSimulationScene(GameObject rootGameObject)
         {
-            if (Loader.Instance.LoaderUI != null)
-                Loader.Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.PROGRESS);
+            if (Loader.Instance.ConnectionUI != null)
+                Loader.Instance.ConnectionUI.SetLoaderUIState(Web.ConnectionUI.LoaderUIStateType.PROGRESS);
             if (ObjectsRoot != null)
                 Log.Warning("Setting new master objects root, but previous one is still available on the scene.");
             objectsRoot = rootGameObject.AddComponent<MasterObjectsRoot>();

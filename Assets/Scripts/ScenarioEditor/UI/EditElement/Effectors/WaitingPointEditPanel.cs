@@ -5,7 +5,7 @@
  *
  */
 
-namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
+namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
 {
     using System;
     using Agents.Triggers;

@@ -5,34 +5,31 @@
  *
  */
 
-namespace Simulator.ScenarioEditor.UI.MapEdit
+namespace Simulator.ScenarioEditor.UI.MapEdit.Buttons
 {
     using System;
     using Elements;
 
     /// <summary>
-    /// Feature allowing to resize a map element
+    /// Feature allowing to rotate a map element
     /// </summary>
-    public class ElementMapResize : IElementMapEdit
+    public class ElementMapRotate : ElementMapEdit
     {
         /// <inheritdoc/>
-        public string Title { get; } = "Resize";
+        public override string Title { get; } = "Rotate";
         
         /// <inheritdoc/>
-        public ScenarioElement CurrentElement { get; set; }
+        public override bool CanEditElement(ScenarioElement element)
+        {
+            return element.CanBeRotated;
+        }
 
         /// <inheritdoc/>
-        public bool CanEditElement(ScenarioElement element)
-        {
-            return element.CanBeResized;
-        }
-        
-        /// <inheritdoc/>
-        public void Edit()
+        public override void Edit()
         {
             if (CurrentElement == null)
                 throw new ArgumentException("Current agent has to be set by external script before editing.");
-            CurrentElement.StartDragResize();
+            CurrentElement.StartDragRotation();
         }
     }
 }

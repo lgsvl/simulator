@@ -30,9 +30,12 @@ namespace Simulator.Web
         public Text CloudTypeText;
         public Button VSEButton;
 
-        SimulationService simulationService = new SimulationService();
-        List<SimulationData> simulationData;
-        int selectedSim;
+        public enum LoaderUIStateType { START, PROGRESS, READY };
+        public LoaderUIStateType LoaderUIState = LoaderUIStateType.START;
+
+        private SimulationService simulationService = new SimulationService();
+        private List<SimulationData> simulationData;
+        private int selectedSim;
 
         public void Awake()
         {
@@ -74,6 +77,7 @@ namespace Simulator.Web
                     statusButtonIcon.color = offlineColor;
                     offlineDropdown.gameObject.SetActive(false);
                     offlineStartButton.gameObject.SetActive(false);
+                    VSEButton.gameObject.SetActive(false);
                     CloudTypeText.text = ConnectionManager.API?.CloudType;
                     break;
                 case ConnectionManager.ConnectionStatus.Connected:
@@ -85,7 +89,7 @@ namespace Simulator.Web
                     statusButton.interactable = true;
                     offlineDropdown.gameObject.SetActive(false);
                     offlineStartButton.gameObject.SetActive(false);
-                    VSEButton.gameObject.SetActive(true);
+                    VSEButton.gameObject.SetActive(false);
                     CloudTypeText.text = ConnectionManager.API?.CloudType;
                     break;
                 case ConnectionManager.ConnectionStatus.Offline:
@@ -137,7 +141,10 @@ namespace Simulator.Web
         public void OnOfflineStartButtonClicked()
         {
             Loader.StartSimulation(simulationData[selectedSim]);
-            if (simulationData[selectedSim].ApiOnly) offlineStopButton.gameObject.SetActive(true);
+            if (simulationData[selectedSim].ApiOnly)
+            {
+                offlineStopButton.gameObject.SetActive(true);
+            }
         }
 
         public void OnOfflineStopButtonClicked()
@@ -148,6 +155,11 @@ namespace Simulator.Web
         public void SetLinkingButtonActive(bool active)
         {
             linkButton.gameObject.SetActive(active);
+        }
+
+        public void SetVSEButtonActive(bool active)
+        {
+            VSEButton.gameObject.SetActive(active);
         }
 
         public void OnStatusButtonClicked()
@@ -166,6 +178,39 @@ namespace Simulator.Web
                 Application.OpenURL(Simulator.Web.Config.CloudUrl);
                 SIM.LogSimulation(SIM.Simulation.ApplicationClick, "Open Browser");
             }
+        }
+
+        public void SetLoaderUIState(LoaderUIStateType state)
+        {
+            LoaderUIState = state;
+            switch (LoaderUIState)
+            {
+                case LoaderUIStateType.START:
+                    if (Config.RunAsMaster)
+                        statusButton.interactable = true;
+                    else
+                    {
+                        statusButton.interactable = false;
+                        statusButtonText.text = "Client ready";
+                        statusText.text = "Client ready";
+                    }
+                    break;
+                case LoaderUIStateType.PROGRESS:
+                    statusButton.interactable = false;
+                    statusButtonText.text = "Loading...";
+                    statusText.text = "Loading...";
+                    break;
+                case LoaderUIStateType.READY:
+                    statusButton.interactable = false;
+                    statusButtonText.text = "API ready!";
+                    statusText.text = "API ready!";
+                    break;
+            }
+        }
+
+        public void EnterScenarioEditor()
+        {
+            Loader.EnterScenarioEditor();
         }
     }
 }

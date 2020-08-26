@@ -7,34 +7,36 @@
 
 namespace Simulator.ScenarioEditor.UI.Inspector
 {
+    using UnityEngine;
+
     /// <summary>
     /// Interface that has to be implemented in order to consider panel as a inspector content panel
     /// </summary>
-    public interface IInspectorContentPanel
+    public abstract class InspectorContentPanel : MonoBehaviour
     {
         /// <summary>
         /// Menu item title that will be displayed in the inspector bar
         /// </summary>
-        string MenuItemTitle { get; }
+        public string MenuItemTitle { get; }
 
         /// <summary>
         /// Initializes content panel without showing it
         /// </summary>
-        void Initialize();
+        public abstract void Initialize();
         
         /// <summary>
         /// Deinitializes content panel
         /// </summary>
-        void Deinitialize();
+        public abstract void Deinitialize();
 
         /// <summary>
         /// Method that shows inspector content panel when it is requested
         /// </summary>
-        void Show();
+        public abstract void Show();
 
         /// <summary>
         /// Method that hides inspector content panel when it is requested
         /// </summary>
-        void Hide();
+        public abstract void Hide();
     }
 }

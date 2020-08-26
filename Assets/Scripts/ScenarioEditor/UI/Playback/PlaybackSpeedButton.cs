@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright (c) 2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
@@ -47,7 +47,7 @@ namespace Simulator.ScenarioEditor.UI.Playback
         /// </summary>
         public void MarkAsCurrent()
         {
-            speedText.color = Color.green;
+            speedText.color = new Color(0.9294118f, 0.2196078f, 0.4f);
         }
 
         /// <summary>

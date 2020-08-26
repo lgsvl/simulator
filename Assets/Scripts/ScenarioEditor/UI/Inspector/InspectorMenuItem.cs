@@ -18,39 +18,72 @@ namespace Simulator.ScenarioEditor.UI.Inspector
         //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
 #pragma warning disable 0649
         /// <summary>
+        /// Prefab of the inspector content panel that will be shown when this menu item is pressed
+        /// </summary>
+        [SerializeField]
+        private InspectorContentPanel panelPrefab;
+#pragma warning restore 0649
+        
+        /// <summary>
         /// Parent <see cref="inspectorMenu"/> where the show command will be passed
         /// </summary>
-        [SerializeField]
         private InspectorMenu inspectorMenu;
-
-        /// <summary>
-        /// Text object displaying the menu item name
-        /// </summary>
-        [SerializeField]
-        private Text nameText;
-#pragma warning restore 0649
-
+        
         /// <summary>
         /// Corresponding content panel that will be shown when this menu item is pressed
         /// </summary>
-        private IInspectorContentPanel panel;
+        private InspectorContentPanel panel;
 
         /// <summary>
-        /// Setups the menu item according to passed panel data
+        /// Initializes the menu item
         /// </summary>
-        /// <param name="panel">Content panel that will be corresponding to this menu item</param>
-        public void Setup(IInspectorContentPanel panel)
+        /// <param name="inspectorMenu">Parent inspector menu of this item</param>
+        public void Initialize(InspectorMenu inspectorMenu)
         {
-            this.panel = panel;
-            nameText.text = panel.MenuItemTitle;
+            this.inspectorMenu = inspectorMenu;
+            panel = Instantiate(panelPrefab, inspectorMenu.Content.transform);
+            panel.Initialize();
+        }
+
+        /// <summary>
+        /// Deinitializes the menu item
+        /// </summary>
+        public void Deinitialize()
+        {
+            panel.Deinitialize();
+            Destroy(panel);
+        }
+
+        /// <summary>
+        /// Shows the panel bound to this menu item
+        /// </summary>
+        public void ShowPanel()
+        {
+            panel.Show();
+        }
+
+        /// <summary>
+        /// Hides the panel bound to this menu item
+        /// </summary>
+        public void HidePanel()
+        {
+            panel.Hide();
         }
 
         /// <summary>
         /// Shows the corresponding content panel in the parent inspector menu
         /// </summary>
-        public void ShowPanel()
+        public void Pressed()
         {
-            inspectorMenu.ShowPanel(panel);
+            inspectorMenu.MenuItemSelected(this);
+        }
+
+        private void Start()
+        {
+            if (name == "FilePanelButton")
+            {
+                GetComponent<Button>().Select();
+            }
         }
     }
 }

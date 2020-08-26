@@ -5,7 +5,7 @@
  *
  */
 
-namespace Simulator.ScenarioEditor.UI.EditElement
+namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
 {
     using System;
     using System.Collections.Generic;
@@ -20,7 +20,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement
     /// <summary>
     /// UI panel which allows editing a selected scenario trigger
     /// </summary>
-    public class TriggerEditPanel : MonoBehaviour, IParameterEditPanel
+    public class TriggerEditPanel : ParameterEditPanel
     {
         //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
 #pragma warning disable 0649
@@ -36,8 +36,11 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         [SerializeField]
         private DefaultEffectorEditPanel defaultEffectorEditPanelPanel;
 
+        /// <summary>
+        /// Custom effector edit panels that are build within the VSE
+        /// </summary>
         [SerializeField]
-        private List<EffectorEditPanel> buildInCustomEffectorEditPanels;
+        private List<EffectorEditPanel> customEffectorEditPanels;
 #pragma warning restore 0649
 
         /// <summary>
@@ -72,13 +75,13 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         private List<EffectorEditPanel> visiblePanels = new List<EffectorEditPanel>();
         
         /// <inheritdoc/>
-        void IParameterEditPanel.Initialize()
+        public override void Initialize()
         {
             if (isInitialized)
                 return;
 
             var customEffectorPanels = new Dictionary<Type, EffectorEditPanel>();
-            foreach (var customEffectorEditPanel in buildInCustomEffectorEditPanels)
+            foreach (var customEffectorEditPanel in customEffectorEditPanels)
                 customEffectorPanels.Add(customEffectorEditPanel.EditedEffectorType, customEffectorEditPanel);
             var allEffectorTypes = TriggersManager.GetAllEffectorsTypes();
             for (int i = 0; i < allEffectorTypes.Count; i++)
@@ -97,7 +100,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         }
         
         /// <inheritdoc/>
-        void IParameterEditPanel.Deinitialize()
+        public override void Deinitialize()
         {
             if (!isInitialized)
                 return;

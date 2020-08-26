@@ -5,7 +5,7 @@
  *
  */
 
-namespace Simulator.ScenarioEditor.UI.EditElement
+namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
 {
     using System;
     using Elements;

@@ -5,21 +5,23 @@
  *
  */
 
-namespace Simulator.ScenarioEditor.UI.EditElement
+namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
 {
+    using UnityEngine;
+
     /// <summary>
     /// Edit panel for changing parameters of the edited scenario element
     /// </summary>
-    public interface IParameterEditPanel
+    public abstract class ParameterEditPanel : MonoBehaviour
     {
         /// <summary>
         /// Initializes edit panel
         /// </summary>
-        void Initialize();
+        public abstract void Initialize();
         
         /// <summary>
         /// Deinitializes edit panel
         /// </summary>
-        void Deinitialize();
+        public abstract void Deinitialize();
     }
 }

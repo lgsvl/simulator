@@ -5,7 +5,7 @@
  *
  */
 
-namespace Simulator.ScenarioEditor.UI.EditElement
+namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
 {
     using Agents;
     using Data.Serializer;
@@ -18,7 +18,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement
     /// <summary>
     /// UI panel which allows editing a selected scenario waypoint
     /// </summary>
-    public class WaypointEditPanel : MonoBehaviour, IParameterEditPanel, IAddElementsHandler
+    public class WaypointEditPanel : ParameterEditPanel, IAddElementsHandler
     {
         //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
 #pragma warning disable 0649
@@ -73,7 +73,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         private ScenarioWaypoint selectedWaypoint;
 
         /// <inheritdoc/>
-        void IParameterEditPanel.Initialize()
+        public override void Initialize()
         {
             if (isInitialized)
                 return;
@@ -84,7 +84,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         }
 
         /// <inheritdoc/>
-        void IParameterEditPanel.Deinitialize()
+        public override void Deinitialize()
         {
             if (!isInitialized)
                 return;

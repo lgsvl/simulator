@@ -5,7 +5,7 @@
  *
  */
 
-namespace Simulator.ScenarioEditor.UI.MapEdit
+namespace Simulator.ScenarioEditor.UI.MapEdit.Buttons
 {
     using Elements;
     using Managers;
@@ -13,22 +13,19 @@ namespace Simulator.ScenarioEditor.UI.MapEdit
     /// <summary>
     /// Feature allowing to remove a map element
     /// </summary>
-    public class ElementMapRemove : IElementMapEdit
+    public class ElementMapRemove : ElementMapEdit
     {
         /// <inheritdoc/>
-        public string Title { get; } = "Remove";
-        
-        /// <inheritdoc/>
-        public ScenarioElement CurrentElement { get; set; }
+        public override string Title { get; } = "Remove";
 
         /// <inheritdoc/>
-        public bool CanEditElement(ScenarioElement element)
+        public override bool CanEditElement(ScenarioElement element)
         {
             return element.CanBeRemoved;
         }
 
         /// <inheritdoc/>
-        public void Edit()
+        public override void Edit()
         {
             ScenarioManager.Instance.SelectedElement = null;
             ScenarioManager.Instance.IsScenarioDirty = true;

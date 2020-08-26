@@ -22,70 +22,72 @@ namespace Simulator.ScenarioEditor.UI.Inspector
         /// Game object where all the instantiated content panels will be stored
         /// </summary>
         [SerializeField]
-        private GameObject inspectorContent;
+        private GameObject content;
 
         /// <summary>
-        /// Button sample in the inspector bar used for switching between content panels
+        /// Prefabs of the menu items that will be used in the inspector
         /// </summary>
         [SerializeField]
-        private InspectorMenuItem buttonSample;
+        private List<InspectorMenuItem> menuItemsPrefabs = new List<InspectorMenuItem>();
 #pragma warning restore 0649
-
-        /// <summary>
-        /// Available inspector content panels
-        /// </summary>
-        private List<IInspectorContentPanel> panels = new List<IInspectorContentPanel>();
 
         /// <summary>
         /// Currently active inspector panel
         /// </summary>
-        private IInspectorContentPanel activePanel;
+        private InspectorMenuItem activeMenuItem;
+        
+        /// <summary>
+        /// Available menu items in this inspector
+        /// </summary>
+        private List<InspectorMenuItem> menuItems = new List<InspectorMenuItem>();
+
+        /// <summary>
+        /// Game object where all the instantiated content panels will be stored
+        /// </summary>
+        public GameObject Content => content;
 
         /// <summary>
         /// Unity Start method
         /// </summary>
         public void Start()
         {
-            var availablePanels = inspectorContent.GetComponentsInChildren<IInspectorContentPanel>(true);
-            for (var i = 0; i < availablePanels.Length; i++)
+            for (var i = 0; i < menuItemsPrefabs.Count; i++)
             {
-                var availablePanel = availablePanels[i];
-                panels.Add(availablePanel);
-                availablePanel.Initialize();
-                if (i == 0) availablePanel.Show();
-                else availablePanel.Hide();
-                var panelMenuItem = Instantiate(buttonSample, buttonSample.transform.parent);
-                panelMenuItem.Setup(availablePanel);
-                panelMenuItem.gameObject.SetActive(true);
+                var menuItem = Instantiate(menuItemsPrefabs[i], transform);
+                menuItems.Add(menuItem);
+                menuItem.Initialize(this);
+                if (i == 0) menuItem.ShowPanel();
+                else menuItem.HidePanel();
             }
 
-            buttonSample.gameObject.SetActive(false);
-
-            activePanel = availablePanels.Length > 0 ? availablePanels[0] : null;
+            activeMenuItem = menuItems.Count > 0 ? menuItems[0] : null;
         }
 
+        /// <summary>
+        /// Unity OnDestroy method
+        /// </summary>
         public void OnDestroy()
         {
-            for (var i = 0; i < panels.Count; i++)
-                panels[i].Deinitialize();
-            panels.Clear();
+            for (var i = 0; i < menuItems.Count; i++)
+                menuItems[i].Deinitialize();
+            menuItems.Clear();
         }
 
         /// <summary>
         /// Shows selected inspector content panel while hiding previously selected one
         /// </summary>
         /// <param name="panel"></param>
-        public void ShowPanel(IInspectorContentPanel panel)
+        public void MenuItemSelected(InspectorMenuItem menuItem)
         {
-            if (!panels.Contains(panel))
+            if (!menuItems.Contains(menuItem))
             {
                 Log.Warning("Cannot show inspector panel which is not in the inspector content hierarchy.");
                 return;
             }
 
-            activePanel?.Hide();
-            panel.Show();
-            activePanel = panel;
+            activeMenuItem?.HidePanel();
+            menuItem.ShowPanel();
+            activeMenuItem = menuItem;
         }
     }
 }

@@ -14,7 +14,7 @@ namespace Simulator.ScenarioEditor.UI.AddElement
     /// <summary>
     /// UI panel which allows adding new agents to the scenario
     /// </summary>
-    public class AddAgentsPanel : MonoBehaviour, IInspectorContentPanel
+    public class AddAgentsPanel : InspectorContentPanel
     {
         //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
 #pragma warning disable 0649
@@ -26,10 +26,7 @@ namespace Simulator.ScenarioEditor.UI.AddElement
 #pragma warning restore 0649
 
         /// <inheritdoc/>
-        public string MenuItemTitle => "Add";
-
-        /// <inheritdoc/>
-        void IInspectorContentPanel.Initialize()
+        public override void Initialize()
         {
             var sources = ScenarioManager.Instance.agentsManager.Sources;
             for (var i = 0; i < sources.Count; i++)
@@ -40,19 +37,19 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         }
         
         /// <inheritdoc/>
-        void IInspectorContentPanel.Deinitialize()
+        public override void Deinitialize()
         {
             
         }
 
         /// <inheritdoc/>
-        void IInspectorContentPanel.Show()
+        public override void Show()
         {
             gameObject.SetActive(true);
         }
 
         /// <inheritdoc/>
-        void IInspectorContentPanel.Hide()
+        public override void Hide()
         {
             gameObject.SetActive(false);
         }

@@ -17,7 +17,7 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
     /// <summary>
     /// Panel allows selecting different map for a scenario
     /// </summary>
-    public class MapSelectPanel : MonoBehaviour, IInspectorContentPanel
+    public class MapSelectPanel : InspectorContentPanel
     {
         //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
 #pragma warning disable 0649
@@ -39,16 +39,13 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
         private MapSelectButton currentMapButton;
 
         /// <inheritdoc/>
-        public string MenuItemTitle => "Map";
-
-        /// <inheritdoc/>
-        void IInspectorContentPanel.Initialize()
+        public override void Initialize()
         {
             var nonBlockingTask = SetupButtons();
         }
         
         /// <inheritdoc/>
-        void IInspectorContentPanel.Deinitialize()
+        public override void Deinitialize()
         {
             if (ScenarioManager.Instance != null)
                 ScenarioManager.Instance.MapManager.MapChanged -= OnMapLoaded;
@@ -107,13 +104,13 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
         }
 
         /// <inheritdoc/>
-        void IInspectorContentPanel.Show()
+        public override void Show()
         {
             gameObject.SetActive(true);
         }
 
         /// <inheritdoc/>
-        void IInspectorContentPanel.Hide()
+        public override void Hide()
         {
             gameObject.SetActive(false);
         }

@@ -19,7 +19,7 @@ namespace Simulator.ScenarioEditor.UI.Playback
     /// <summary>
     /// UI panel which allows playing a scenario inside the VSE
     /// </summary>
-    public class PlaybackPanel : MonoBehaviour, IInspectorContentPanel
+    public class PlaybackPanel : InspectorContentPanel
     {
         /// <summary>
         /// State type of scenario playback
@@ -30,31 +30,18 @@ namespace Simulator.ScenarioEditor.UI.Playback
             /// Scenario is currently not being played
             /// </summary>
             Idle = 0,
-            
+
             /// <summary>
             /// Scenario is currently being playing
             /// </summary>
             Playing = 1,
-            
+
             /// <summary>
             /// Scenario is currently paused
             /// </summary>
             Paused = 2
         }
-        
-        /// <inheritdoc/>
-        public string MenuItemTitle { get; } = "Playback";
-        
-        /// <summary>
-        /// Current state of the playback
-        /// </summary>
-        public PlaybackState State { get; private set; }
 
-        /// <summary>
-        /// Cached element reference that was selected before entering the playback mode
-        /// </summary>
-        private ScenarioElement selectedElement;
-        
         //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
 #pragma warning disable 0649
         /// <summary>
@@ -83,6 +70,11 @@ namespace Simulator.ScenarioEditor.UI.Playback
 #pragma warning restore 0649
 
         /// <summary>
+        /// Cached element reference that was selected before entering the playback mode
+        /// </summary>
+        private ScenarioElement selectedElement;
+
+        /// <summary>
         /// Coroutine that handles current playback
         /// </summary>
         private IEnumerator playCoroutine;
@@ -107,19 +99,24 @@ namespace Simulator.ScenarioEditor.UI.Playback
         /// </summary>
         private float playbackSpeed;
         
+        /// <summary>
+        /// Current state of the playback
+        /// </summary>
+        public PlaybackState State { get; private set; }
+        
         /// <inheritdoc/>
-        public void Initialize()
+        public override void Initialize()
         {
             timeSlider.SetValueWithoutNotify(0.0f);
         }
 
         /// <inheritdoc/>
-        public void Deinitialize()
+        public override void Deinitialize()
         {
         }
 
         /// <inheritdoc/>
-        public void Show()
+        public override void Show()
         {
             selectedElement = ScenarioManager.Instance.SelectedElement;
             ScenarioManager.Instance.SelectedElement = null;
@@ -140,7 +137,7 @@ namespace Simulator.ScenarioEditor.UI.Playback
         }
 
         /// <inheritdoc/>
-        public void Hide()
+        public override void Hide()
         {
             Stop();
             for (var i = 0; i < controllers.Count; i++)

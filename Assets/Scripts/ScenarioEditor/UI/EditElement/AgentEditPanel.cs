@@ -5,7 +5,7 @@
  *
  */
 
-namespace Simulator.ScenarioEditor.UI.EditElement
+namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -20,7 +20,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement
     /// <summary>
     /// UI panel which allows editing a scenario agent parameters
     /// </summary>
-    public class AgentEditPanel : MonoBehaviour, IParameterEditPanel, IAddElementsHandler
+    public class AgentEditPanel : ParameterEditPanel, IAddElementsHandler
     {
         /// <summary>
         /// Type of the element that is currently being added to the agent
@@ -79,7 +79,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         private ScenarioAgent selectedAgent;
 
         /// <inheritdoc/>
-        void IParameterEditPanel.Initialize()
+        public override void Initialize()
         {
             if (isInitialized)
                 return;
@@ -89,7 +89,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         }
         
         /// <inheritdoc/>
-        void IParameterEditPanel.Deinitialize()
+        public override void Deinitialize()
         {
             if (!isInitialized)
                 return;

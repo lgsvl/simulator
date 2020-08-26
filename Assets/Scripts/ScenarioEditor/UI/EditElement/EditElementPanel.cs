@@ -5,7 +5,7 @@
  *
  */
 
-namespace Simulator.ScenarioEditor.UI.EditElement
+namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
 {
     using System.Collections.Generic;
     using Inspector;
@@ -15,30 +15,36 @@ namespace Simulator.ScenarioEditor.UI.EditElement
     /// <summary>
     /// UI panel which allows editing currently selected scenario element
     /// </summary>
-    public class EditElementPanel : MonoBehaviour, IInspectorContentPanel
+    public class EditElementPanel : InspectorContentPanel
     {
-        /// <inheritdoc/>
-        public string MenuItemTitle => "Edit";
-        
+        //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
+#pragma warning disable 0649
+        /// <summary>
+        /// Dropdown for the agent variant selection
+        /// </summary>
+        [SerializeField]
+        private List<ParameterEditPanel> panelsPrefabs = new List<ParameterEditPanel>();
+#pragma warning restore 0649
+
         /// <summary>
         /// Available parameter edit panels
         /// </summary>
-        private List<IParameterEditPanel> panels = new List<IParameterEditPanel>();
+        private List<ParameterEditPanel> panels = new List<ParameterEditPanel>();
 
         /// <inheritdoc/>
-        void IInspectorContentPanel.Initialize()
+        public override void Initialize()
         {
-            var availablePanels = gameObject.GetComponentsInChildren<IParameterEditPanel>(true);
-            for (var i = 0; i < availablePanels.Length; i++)
+            for (var i = 0; i < panelsPrefabs.Count; i++)
             {
-                var availablePanel = availablePanels[i];
-                availablePanel.Initialize();
-                panels.Add(availablePanel);
+                var prefab = panelsPrefabs[i];
+                var panel = Instantiate(prefab, transform);
+                panel.Initialize();
+                panels.Add(panel);
             }
         }
         
         /// <inheritdoc/>
-        void IInspectorContentPanel.Deinitialize()
+        public override void Deinitialize()
         {
             for (var i = 0; i < panels.Count; i++)
                 panels[i].Deinitialize();
@@ -46,14 +52,14 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         }
 
         /// <inheritdoc/>
-        void IInspectorContentPanel.Show()
+        public override void Show()
         {
             gameObject.SetActive(true);
             UIUtilities.LayoutRebuild(transform as RectTransform);
         }
 
         /// <inheritdoc/>
-        void IInspectorContentPanel.Hide()
+        public override void Hide()
         {
             gameObject.SetActive(false);
         }

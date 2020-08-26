@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -148,7 +148,7 @@ namespace Simulator
 
         public NetworkSettings NetworkSettings;
 
-        public LoaderUI LoaderUI => FindObjectOfType<LoaderUI>();
+        public ConnectionUI ConnectionUI => FindObjectOfType<ConnectionUI>();
 
         // NOTE: When simulation is not running this reference will be null.
         public SimulationData CurrentSimulation;
@@ -295,6 +295,7 @@ namespace Simulator
                 if (ConnectionUI.instance != null)
                 {
                     ConnectionUI.instance.SetLinkingButtonActive(false);
+                    ConnectionUI.instance.SetVSEButtonActive(false);
                 }
 
                 await Task.WhenAll(downloads);
@@ -356,9 +357,9 @@ namespace Simulator
                             throw new Exception("Simulator is configured to run in headless mode, only headless simulations are allowed");
                         }
 
-                        if (Instance.LoaderUI != null)
+                        if (Instance.ConnectionUI != null)
                         {
-                            Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.PROGRESS);
+                            Instance.ConnectionUI.SetLoaderUIState(ConnectionUI.LoaderUIStateType.PROGRESS);
                         }
 
                         Instance.SimConfig = new SimulationConfig(simulation);
@@ -369,7 +370,7 @@ namespace Simulator
                             var api = Instantiate(Instance.ApiManagerPrefab);
                             api.name = "ApiManager";
 
-                            Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.READY);
+                            Instance.ConnectionUI.SetLoaderUIState(ConnectionUI.LoaderUIStateType.READY);
 
                             // Spawn external test case process
                             RunTestCase(simulation.Template);
@@ -573,7 +574,7 @@ namespace Simulator
                             if (op.isDone)
                             {
                                 AssetBundle.UnloadAllAssetBundles(false);
-                                Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.START);
+                                Instance.ConnectionUI.SetLoaderUIState(ConnectionUI.LoaderUIStateType.START);
                                 Instance.Status = SimulatorStatus.Idle;
                                 Instance.CurrentSimulation = null;
                             }

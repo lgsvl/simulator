@@ -9,8 +9,6 @@ using System.Collections.Generic;
 using System.Collections;
 using UnityEngine.UI;
 using UnityEngine;
-using Simulator;
-using Simulator.Web;
 using System.Linq;
 
 public class LoaderUI : MonoBehaviour
@@ -19,8 +17,6 @@ public class LoaderUI : MonoBehaviour
     public RectTransform bgCanvasRT;
     public Image BackgroundImage;
     public List<Sprite> BGSprites { get; set; } = new List<Sprite>();
-    public Button StartButton;
-    public Text StartButtonText;
 
     public GameObject SettingsPanel;
     public GameObject SettingsButton;
@@ -33,9 +29,6 @@ public class LoaderUI : MonoBehaviour
     private float fadeTime = 3f;
     private bool fading = true;
     private int currentBGImageIndex = -1;
-
-    public enum LoaderUIStateType { START, PROGRESS, READY };
-    public LoaderUIStateType LoaderUIState = LoaderUIStateType.START;
 
     // TODO set BackgroundImage.overrideSprite to sprite after Unity update https://issuetracker.unity3d.com/issues/image-color-cannot-be-changed-via-script-when-image-type-is-set-to-simple
 
@@ -50,8 +43,6 @@ public class LoaderUI : MonoBehaviour
         {
             SetDropdowns();
         }
-
-        origStartButtonText = StartButtonText.text;
         bgCanvasRT = BGCanvasScaler.GetComponent<RectTransform>();
         fading = true;
         currentBGImageIndex = -1;
@@ -60,8 +51,6 @@ public class LoaderUI : MonoBehaviour
         // TODO get bgSprites from DB
         if (BGSprites.Count > 0)
             StartCoroutine(BGFadeSwitch());
-
-        SetLoaderUIState(LoaderUIStateType.START);
     }
 
     private void Update()
@@ -100,31 +89,6 @@ public class LoaderUI : MonoBehaviour
             BackgroundImage.color = fading ? Color.black : Color.white;
             BackgroundImage.overrideSprite = fading ? GetBGImageSprite() : BackgroundImage.overrideSprite;
             fading = !fading;
-        }
-    }
-    
-    public void SetLoaderUIState(LoaderUIStateType state)
-    {
-        LoaderUIState = state;
-        switch (LoaderUIState)
-        {
-            case LoaderUIStateType.START:
-                if (Config.RunAsMaster)
-                    StartButton.interactable = true;
-                else
-                {
-                    StartButton.interactable = false;
-                    StartButtonText.text = "Client ready";
-                }
-                break;
-            case LoaderUIStateType.PROGRESS:
-                StartButton.interactable = false;
-                StartButtonText.text = "Loading...";
-                break;
-            case LoaderUIStateType.READY:
-                StartButton.interactable = false;
-                StartButtonText.text = "API ready!";
-                break;
         }
     }
     
@@ -189,10 +153,5 @@ public class LoaderUI : MonoBehaviour
         QualityDropdown.AddOptions(QualitySettings.names.ToList());
         QualityDropdown.value = QualitySettings.GetQualityLevel();
         QualityDropdown.RefreshShownValue();
-    }
-
-    public void EnterScenarioEditor()
-    {
-        Loader.EnterScenarioEditor();
     }
 }

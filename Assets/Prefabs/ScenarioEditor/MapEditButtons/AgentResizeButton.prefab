@@ -58,21 +58,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
   m_FontData:
-    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_Font: {fileID: 12800000, guid: 8b0858056dd5cee449ac4ad804e9e00d, type: 3}
     m_FontSize: 14
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 10
     m_MaxSize: 40
     m_Alignment: 4
-    m_AlignByGeometry: 0
-    m_RichText: 1
+    m_AlignByGeometry: 1
+    m_RichText: 0
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
@@ -87,11 +88,11 @@ GameObject:
   m_Component:
   - component: {fileID: 2983315514660521757}
   - component: {fileID: 5659537534690498965}
-  - component: {fileID: 7179837667283034967}
+  - component: {fileID: 5658840970246149422}
   - component: {fileID: 8968172489965214839}
   - component: {fileID: 4671106785070685385}
   m_Layer: 5
-  m_Name: AgentEditButton
+  m_Name: AgentResizeButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -114,7 +115,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 32, y: -32}
+  m_AnchoredPosition: {x: 32, y: -16}
   m_SizeDelta: {x: 64, y: 64}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5659537534690498965
@@ -125,7 +126,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8855937618132563978}
   m_CullTransparentMesh: 0
---- !u!114 &7179837667283034967
+--- !u!114 &5658840970246149422
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -134,7 +135,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 8855937618132563978}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 448d80e192f3d1046b9346f22aa93693, type: 3}
+  m_Script: {fileID: 11500000, guid: 15d69152e4501664db6c74db98b5ca50, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   titleText: {fileID: 4004403687384002524}
@@ -153,6 +154,7 @@ MonoBehaviour:
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -183,7 +185,7 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 7179837667283034967}
+        - m_Target: {fileID: 5658840970246149422}
           m_MethodName: Pressed
           m_Mode: 1
           m_Arguments:

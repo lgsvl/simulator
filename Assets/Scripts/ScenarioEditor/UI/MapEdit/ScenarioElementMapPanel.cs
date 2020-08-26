@@ -5,7 +5,7 @@
  *
  */
 
-namespace Simulator.ScenarioEditor.UI.MapEdit
+namespace Simulator.ScenarioEditor.UI.MapEdit.Buttons
 {
     using System;
     using System.Collections;
@@ -40,7 +40,7 @@ namespace Simulator.ScenarioEditor.UI.MapEdit
         /// Prefab of a single agent edit button
         /// </summary>
         [SerializeField]
-        private GameObject agentEditButtonPrefab;
+        private List<ElementMapEdit> agentEditPrefabs = new List<ElementMapEdit>();
 #pragma warning restore 0649
 
         /// <summary>
@@ -56,12 +56,7 @@ namespace Simulator.ScenarioEditor.UI.MapEdit
         /// <summary>
         /// Available element map edit features
         /// </summary>
-        private IElementMapEdit[] agentEdits;
-
-        /// <summary>
-        /// Available buttons for all the edit features
-        /// </summary>
-        private readonly List<ElementEditButton> buttons = new List<ElementEditButton>();
+        private readonly List<ElementMapEdit> agentEdits = new List<ElementMapEdit>();
 
         /// <summary>
         /// Unity Start method
@@ -95,14 +90,12 @@ namespace Simulator.ScenarioEditor.UI.MapEdit
             if (isInitialized)
                 return;
             ScenarioManager.Instance.SelectedOtherElement += SelectedOtherElement;
-            var interfaceType = typeof(IElementMapEdit);
-            var agentEditType =
-                ReflectionCache.FindTypes((type) => !type.IsAbstract && interfaceType.IsAssignableFrom(type));
-            agentEdits = new IElementMapEdit[agentEditType.Count];
-            for (var i = 0; i < agentEditType.Count; i++)
+            for (var i = 0; i < agentEditPrefabs.Count; i++)
             {
-                var buttonType = agentEditType[i];
-                agentEdits[i] = Activator.CreateInstance(buttonType) as IElementMapEdit;
+                var prefab = agentEditPrefabs[i];
+                var agentEdit = Instantiate(prefab, transform);
+                agentEdit.Initialize();
+                agentEdits.Add(agentEdit);
             }
 
             isInitialized = true;
@@ -150,24 +143,17 @@ namespace Simulator.ScenarioEditor.UI.MapEdit
         /// </summary>
         private void PrepareButtonsForElement()
         {
-            var buttonId = 0;
             foreach (var agentEdit in agentEdits)
             {
-                if (!agentEdit.CanEditElement(element)) continue;
-                if (buttonId >= buttons.Count)
+                if (!agentEdit.CanEditElement(element))
                 {
-                    var newButton = Instantiate(agentEditButtonPrefab, transform);
-                    buttons.Add(newButton.GetComponent<ElementEditButton>());
+                    agentEdit.gameObject.SetActive(false);
+                    continue;
                 }
 
-                buttons[buttonId].gameObject.SetActive(true);
-                buttons[buttonId++].Initialize(agentEdit);
+                agentEdit.gameObject.SetActive(true);
                 agentEdit.CurrentElement = element;
             }
-
-            //Disable unused buttons
-            for (var i = buttonId; i < buttons.Count; i++)
-                buttons[i].gameObject.SetActive(false);
         }
 
         /// <summary>

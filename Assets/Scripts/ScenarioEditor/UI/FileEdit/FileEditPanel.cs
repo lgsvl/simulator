@@ -26,7 +26,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
     /// <summary>
     /// UI panel for options, loading and saving scenario, managing scenario editor
     /// </summary>
-    public class FileEditPanel : MonoBehaviour, IInspectorContentPanel
+    public class FileEditPanel : InspectorContentPanel
     {
         /// <summary>
         /// Common persistence data key for all the paths
@@ -76,10 +76,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
 #pragma warning restore 0649
 
         /// <inheritdoc/>
-        public string MenuItemTitle => "File";
-
-        /// <inheritdoc/>
-        void IInspectorContentPanel.Initialize()
+        public override void Initialize()
         {
             var inputManager = ScenarioManager.Instance.inputManager;
             UpdateCameraModeText();
@@ -89,7 +86,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         }
         
         /// <inheritdoc/>
-        void IInspectorContentPanel.Deinitialize()
+        public override void Deinitialize()
         {
             
         }
@@ -214,13 +211,13 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         }
 
         /// <inheritdoc/>
-        void IInspectorContentPanel.Show()
+        public override void Show()
         {
             gameObject.SetActive(true);
         }
 
         /// <inheritdoc/>
-        void IInspectorContentPanel.Hide()
+        public override void Hide()
         {
             gameObject.SetActive(false);
         }

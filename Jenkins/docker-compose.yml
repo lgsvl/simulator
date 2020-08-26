@@ -59,7 +59,7 @@ services:
     entrypoint: "/mnt/Jenkins/build-bundles.sh"
 
   upload-bundles:
-    image: mesosphere/aws-cli
+    image: amazon/aws-cli
     user: ${UID}
     environment:
       - SIM_ENVIRONMENTS

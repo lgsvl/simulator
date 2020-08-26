@@ -499,7 +499,9 @@ namespace Simulator.Editor
 
                         refLineData = GetRefLineAndPositions(neighborLaneSectionLanesData, out refLinePositions);
 
-                        AddPlanViewElevationLateral(refLinePositions, road);
+                        var onlyLine = false;
+                        if (neighborLaneSectionLanesData[0].type == laneType.sidewalk) onlyLine = true;
+                        AddPlanViewElevationLateral(refLinePositions, road, onlyLine);
                         AddLanes(road, refLineData, neighborLaneSectionLanesData, neighborLaneSectionLanesData);
 
                         visitedNLSLIdx.Add(curNLSLIdx);
@@ -1474,12 +1476,12 @@ namespace Simulator.Editor
             road.lanes = lanes;
         }
 
-        void AddPlanViewElevationLateral(List<Vector3> positions, OpenDRIVERoad road)
+        void AddPlanViewElevationLateral(List<Vector3> positions, OpenDRIVERoad road, bool onlyLine=false)
         {
             OpenDRIVERoadGeometry[] geometryArray;
             OpenDRIVERoadElevationProfileElevation[] elevationProfileArray;
             double roadLength;
-            UpdateGeometryArrayElevationProfileArray(positions, out geometryArray, out elevationProfileArray, out roadLength);
+            UpdateGeometryArrayElevationProfileArray(positions, out geometryArray, out elevationProfileArray, out roadLength, onlyLine);
 
             road.length = roadLength;
             road.lengthSpecified = true;
@@ -1491,20 +1493,63 @@ namespace Simulator.Editor
             road.lateralProfile = new OpenDRIVERoadLateralProfile();
         }
 
-        void UpdateGeometryArrayElevationProfileArray(List<Vector3> positions, out OpenDRIVERoadGeometry[] geometryArray, out OpenDRIVERoadElevationProfileElevation[] elevationProfileArray, out double roadLength)
+        void UpdateGeometryArrayElevationProfileArray(List<Vector3> positions,
+            out OpenDRIVERoadGeometry[] geometryArray,
+            out OpenDRIVERoadElevationProfileElevation[] elevationProfileArray,
+            out double roadLength, bool onlyLine)
         {
-            geometryArray = new OpenDRIVERoadGeometry[positions.Count - 1];
+            float[] sList;
+            if (onlyLine) geometryArray = FitGeometryLine(positions, out sList);
+            else geometryArray = FitGeometryParaPoly3(positions, out sList);
+
             elevationProfileArray = new OpenDRIVERoadElevationProfileElevation[positions.Count - 1];
-            double curS = 0;
             for (int i = 0; i < positions.Count - 1; i ++)
             {
                 var point = positions[i];
-                var location = MapOrigin.GetGpsLocation(point);
                 var x = point.x;
                 var y = point.z;
                 var vec = positions[i+1] - positions[i];
                 var length = vec.magnitude;
-                var angle = Mathf.Deg2Rad * Vector2.SignedAngle(Vector2.right, new Vector2(vec.x, vec.z)); // TODO Validate
+                var angle = Mathf.Deg2Rad * Vector2.SignedAngle(Vector2.right, new Vector2(vec.x, vec.z));
+                var line = new OpenDRIVERoadGeometryLine();
+
+                var a = positions[i].y;
+                var b = (positions[i+1].y - positions[i].y) / length; // For line type
+                elevationProfileArray[i] = new OpenDRIVERoadElevationProfileElevation() // TODO: may need to fit as well
+                {
+                    s = sList[i],
+                    a = a,
+                    b = b,
+                    c = 0,
+                    d = 0,
+                    sSpecified = true,
+                    aSpecified = true,
+                    bSpecified = true,
+                    cSpecified = true,
+                    dSpecified = true,
+                };
+
+            }
+            roadLength = sList[sList.Length - 1];
+        }
+
+        OpenDRIVERoadGeometry[] FitGeometryLine(List<Vector3> positions, out float[] sList)
+        {
+            var geometryArray = new OpenDRIVERoadGeometry[positions.Count - 1];
+            float curS = 0;
+            sList = new float[positions.Count];
+            Debug.Assert(positions.Count >= 2, "a line should have at least two points");
+
+            for (int i = 0; i < positions.Count - 1; i ++)
+            {
+                sList[i] = curS;
+
+                var point = positions[i];
+                var x = point.x;
+                var y = point.z;
+                var vec = positions[i+1] - positions[i];
+                var length = vec.magnitude;
+                var angle = Mathf.Deg2Rad * Vector2.SignedAngle(Vector2.right, new Vector2(vec.x, vec.z));
                 var line = new OpenDRIVERoadGeometryLine();
                 geometryArray[i] = new OpenDRIVERoadGeometry()
                 {
@@ -1521,25 +1566,215 @@ namespace Simulator.Editor
                     lengthSpecified = true,
                 };
 
-                var a = positions[i].y;
-                var b = (positions[i+1].y - positions[i].y) / length; // For line type
-                elevationProfileArray[i] = new OpenDRIVERoadElevationProfileElevation()
-                {
-                    s = curS,
-                    a = a,
-                    b = b,
-                    c = 0,
-                    d = 0,
-                    sSpecified = true,
-                    aSpecified = true,
-                    bSpecified = true,
-                    cSpecified = true,
-                    dSpecified = true,
-                };
-
                 curS += length;
             }
-            roadLength = curS;
+            sList[positions.Count - 1] = curS; // last s is road length
+
+            return geometryArray;
+        }
+
+        OpenDRIVERoadGeometry[] FitGeometryParaPoly3(List<Vector3> positions, out float[] sList)
+        {
+            var geometryArray = new OpenDRIVERoadGeometry[positions.Count - 1];
+            float curS = 0;
+            sList = new float[positions.Count];
+            Debug.Assert(positions.Count >= 2, "a line should have at least two points");
+
+            // Add 1st coefficients for the first two points
+            if (positions.Count >= 2)
+            {
+                sList[0] = curS;
+                var point = positions[0];
+                var x = point.x;
+                var y = point.z;
+                var vec = positions[1] - positions[0];
+                var length = vec.magnitude;
+                var angle = Mathf.Deg2Rad * Vector2.SignedAngle(Vector2.right, new Vector2(vec.x, vec.z));
+                var line = new OpenDRIVERoadGeometryLine();
+                geometryArray[0] = new OpenDRIVERoadGeometry()
+                {
+                    s = curS,
+                    x = x,
+                    y = y,
+                    hdg = angle, // the angle between this lane segment and x axis (EAST)
+                    length = length,
+                    Items = new OpenDRIVERoadGeometryLine[1]{line},
+                    sSpecified = true,
+                    xSpecified = true,
+                    ySpecified = true,
+                    hdgSpecified = true,
+                    lengthSpecified = true,
+                };
+                curS += length;
+            }
+
+            if (positions.Count >= 4)
+            {
+                for (var i = 1; i < positions.Count - 2; i++)
+                {
+                    sList[i] = curS;
+                    var point = positions[i];
+                    var x = point.x;
+                    var y = point.z;
+                    var vec = positions[i + 1] - positions[i];
+
+                    var tempList = new List<Vector3>{positions[i-1], positions[i], positions[i+1], positions[i+2]};
+                    var controlPoints = GetControlPoints(tempList, i == 1, i == positions.Count - 3);
+                    var withControlPoints = new List<Vector3>{positions[i]};
+                    withControlPoints.AddRange(controlPoints);
+                    withControlPoints.Add(positions[i+1]);
+                    var tangentDir = withControlPoints[1] - withControlPoints[0];
+                    var angle = Mathf.Deg2Rad * Vector2.SignedAngle(Vector2.right, new Vector2(tangentDir.x, tangentDir.z));
+                    ConvertToUVSpace(withControlPoints, angle);
+
+                    var xList = new List<float>{withControlPoints[0].x, withControlPoints[1].x, withControlPoints[2].x, withControlPoints[3].x};
+                    var yList = new List<float>{withControlPoints[0].z, withControlPoints[1].z, withControlPoints[2].z, withControlPoints[3].z};
+                    BezierFit(xList, out float aU, out float bU, out float cU, out float dU);
+                    BezierFit(yList, out float aV, out float bV, out float cV, out float dV);
+                    var length = GetCubicPolyLength(xList, yList);
+                    geometryArray[i] = new OpenDRIVERoadGeometry()
+                    {
+                        s = curS,
+                        x = x,
+                        y = y,
+                        hdg = angle, // the angle between this lane segment and x axis (EAST)
+                        length = length,
+                        Items = new OpenDRIVERoadGeometryParamPoly3[1]
+                        {
+                            new OpenDRIVERoadGeometryParamPoly3()
+                            {
+                                aU = aU,
+                                bU = bU,
+                                cU = cU,
+                                dU = dU,
+                                aV = aV,
+                                bV = bV,
+                                cV = cV,
+                                dV = dV,
+                                aUSpecified = true,
+                                bUSpecified = true,
+                                cUSpecified = true,
+                                dUSpecified = true,
+                                aVSpecified = true,
+                                bVSpecified = true,
+                                cVSpecified = true,
+                                dVSpecified = true,
+                            }
+                        },
+                        sSpecified = true,
+                        xSpecified = true,
+                        ySpecified = true,
+                        hdgSpecified = true,
+                        lengthSpecified = true,
+                    };
+                    curS += length;
+                }
+            }
+
+            // Add last coefficients for the last two points
+            if (positions.Count >= 3)
+            {
+                var index = positions.Count - 2;
+                sList[index] = curS;
+                var point = positions[index];
+                var x = point.x;
+                var y = point.z;
+                var vec = positions[index + 1] - positions[index];
+                var length = vec.magnitude;
+                var angle = Mathf.Deg2Rad * Vector2.SignedAngle(Vector2.right, new Vector2(vec.x, vec.z));
+                var line = new OpenDRIVERoadGeometryLine();
+                geometryArray[index] = new OpenDRIVERoadGeometry()
+                {
+                    s = curS,
+                    x = x,
+                    y = y,
+                    hdg = angle, // the angle between this lane segment and x axis (EAST)
+                    length = length,
+                    Items = new OpenDRIVERoadGeometryLine[1]{line},
+                    sSpecified = true,
+                    xSpecified = true,
+                    ySpecified = true,
+                    hdgSpecified = true,
+                    lengthSpecified = true,
+                };
+                curS += length;
+            }
+            sList[positions.Count - 1] = curS; // last s is road length
+
+            return geometryArray;
+        }
+
+        void BezierFit(List<float> pList, out float a, out float b, out float c, out float d)
+        {
+            // f(t, p0, p1, p2, p3) = p0 + (t*((3*p1) - (3*p0))) +
+            // ((t*t)*((3*p0) + (3*p2) - (6*p1))) + ((t*t*t)*((3*p1) - (3*p2) - p0 + p3))
+            a = pList[0];
+            b = -3 * pList[0] + 3 * pList[1];
+            c = 3 * pList[0] - 6 * pList[1] + 3 * pList[2];
+            d = -pList[0] + 3 * pList[1] - 3 * pList[2] + pList[3];
+        }
+
+        List<Vector3> GetControlPoints(List<Vector3> points, bool isFirst, bool isLast)
+        {
+            var offset = (points[2] - points[1]).magnitude / 4; // TODO: better logic to get offset
+            var controlPoints = new List<Vector3>();
+            var dir01 = (points[1] - points[0]).normalized;
+            var dir12 = (points[2] - points[1]).normalized;
+            var dir1 = (dir01 + dir12).normalized;
+            if (isFirst) dir1 = dir01;
+            var control1 = points[1] + dir1 * offset;
+
+            var dir32 = (points[2] - points[3]).normalized;
+            var dir21 = (points[1] - points[2]).normalized;
+            var dir2 = (dir32 + dir21).normalized;
+            if (isLast) dir2 = dir32;
+            var control2 = points[2] + dir2 * offset;
+
+            return new List<Vector3>{control1, control2};
+        }
+
+        void ConvertToUVSpace(List<Vector3> points, float angle)
+        {
+            var point0 = points[0];
+            points[0] -= point0;
+            for (int i = 1; i < points.Count; ++i)
+            {
+                points[i] -= point0;
+                points[i] = Quaternion.Euler(0f, (float)(angle * 180f / Math.PI), 0f) * points[i];
+            }
+        }
+
+        static float GetCubicPolyLength(List<float> xList, List<float> yList)
+        {
+            int steps = 10;
+            float length = 0, preX = 0, preY = 0;
+            for (int i = 0; i <= steps; ++i)
+            {
+                float t = i / steps;
+                float curX = GetCubicBezierValue(xList, t);
+                float curY = GetCubicBezierValue(yList, t);
+                if (i > 0)
+                {
+                    float diffX = curX - preX;
+                    float diffY = curY - preY;
+                    length += (float)Math.Sqrt(diffX * diffX + diffY * diffY);
+                }
+                preX = curX;
+                preY = curY;
+            }
+
+            return length;
+        }
+
+        static float GetCubicBezierValue(List<float> weights, float t)
+        {
+            // refer https://pomax.github.io/bezierinfo/
+            var t2 = t * t;
+            var t3 = t2 * t;
+            var mt = 1 - t;
+            var mt2 = mt * mt;
+            var mt3 = mt2 * mt;
+            return weights[0] * mt3 + 3 * weights[1] * mt2 * t + 3 * weights[2] * mt * t2 + weights[3] * t3;
         }
 
         OpenDRIVERoadLanesLaneSectionCenter CreateCenterLane(bool isOneWay, LaneData laneData)

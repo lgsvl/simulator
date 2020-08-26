@@ -260,6 +260,7 @@ namespace Simulator.Editor
         // Calculate elevation at the specific length along the reference path
         public double GetElevation(double l, OpenDRIVERoadElevationProfile elevationProfile)
         {
+            if (l < 0) l = 0;
             double elevation = 0;
             if (elevationProfile == null || elevationProfile.elevation == null)
             {
@@ -744,7 +745,7 @@ namespace Simulator.Editor
             {
                 dists.Add(i);
             }
-            dists.Add(geometry.length - 0.1);
+            if (geometry.length - 0.1 >= 0) dists.Add(geometry.length - 0.1);
 
             // separate dists at least 1 meter except for the two points around lanesection idx
             if (dists.Count > 1 && (dists.Last() - dists[dists.Count - 2]) < 0.1)

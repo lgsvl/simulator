@@ -21,7 +21,7 @@ namespace Simulator.Editor.MapMeshes
     {
         private class LaneBoundEnumerator : IEnumerable<LineVert>, IEnumerator<LineVert>
         {
-            private Dictionary<MapLine, LineData> linesData;
+            private readonly Dictionary<MapLine, LineData> linesData;
             private int cIndex;
             private MapLane cLane;
 
@@ -179,9 +179,10 @@ namespace Simulator.Editor.MapMeshes
             }
 
             public int usageCount;
-            public Color color;
-            public LineShape shape;
-            public List<LineVert> worldPoints = new List<LineVert>();
+            public readonly Color color;
+            public readonly LineShape shape;
+            public readonly List<LineVert> worldPoints = new List<LineVert>();
+            public readonly List<(Mesh mesh, Matrix4x4 matrix)> meshData = new List<(Mesh mesh, Matrix4x4 matrix)>();
 
             public LineData(MapLine line)
             {
@@ -344,10 +345,15 @@ namespace Simulator.Editor.MapMeshes
 
             if (mesh == null)
                 return;
+
             var go = new GameObject(name + "_mesh");
             go.transform.SetParent(parentObject.transform);
             go.transform.rotation = laneTransform.rotation;
             go.transform.position = laneTransform.position;
+
+            var localToWorldMatrix = go.transform.localToWorldMatrix;
+            linesData[lane.leftLineBoundry].meshData.Add((mesh, localToWorldMatrix));
+            linesData[lane.rightLineBoundry].meshData.Add((mesh, localToWorldMatrix));
 
             if (settings.createRenderers)
             {
@@ -373,6 +379,10 @@ namespace Simulator.Editor.MapMeshes
                 roadsideGo.transform.SetParent(parentObject.transform);
                 roadsideGo.transform.rotation = laneTransform.rotation;
                 roadsideGo.transform.position = laneTransform.position;
+
+                var roadsideLocalToWorldMatrix = roadsideGo.transform.localToWorldMatrix;
+                linesData[lane.leftLineBoundry].meshData.Add((roadsideMesh, roadsideLocalToWorldMatrix));
+                linesData[lane.rightLineBoundry].meshData.Add((roadsideMesh, roadsideLocalToWorldMatrix));
                 
                 if (settings.createRenderers)
                 {
@@ -429,6 +439,14 @@ namespace Simulator.Editor.MapMeshes
             go.transform.SetParent(parentObject.transform);
             go.transform.rotation = intersectionTransform.rotation;
             go.transform.position = intersectionTransform.position;
+
+            var localToWorldMatrix = go.transform.localToWorldMatrix;
+            var intersectionLanes = intersection.GetComponentsInChildren<MapLane>();
+            foreach (var lane in intersectionLanes)
+            {
+                linesData[lane.leftLineBoundry].meshData.Add((mesh, localToWorldMatrix));
+                linesData[lane.rightLineBoundry].meshData.Add((mesh, localToWorldMatrix));
+            }
 
             if (settings.createRenderers)
             {
@@ -649,6 +667,25 @@ namespace Simulator.Editor.MapMeshes
             }
         }
 
+        private Vector3 CorrectPointToMesh(MapLine line, Vector3 point)
+        {
+            var topY = float.MinValue;
+
+            foreach (var (laneMesh, matrix) in linesData[line].meshData)
+            {
+                if (!MeshUtils.IntersectRayMesh(new Ray(point + Vector3.up, Vector3.down), laneMesh, matrix, out var hit))
+                    continue;
+
+                if (hit.point.y > topY)
+                    topY = hit.point.y;
+            }
+
+            if (topY > float.MinValue)
+                point.y = topY;
+
+            return point;
+        }
+
         private Mesh BuildLineMesh(MapLine line, float width)
         {
             width *= 0.5f;
@@ -658,6 +695,9 @@ namespace Simulator.Editor.MapMeshes
 
             var points = ListPool<Vector3>.Get();
             points.AddRange(linesData[line].worldPoints.Select(x => x.position));
+
+            for (var i = 0; i < points.Count; ++i)
+                points[i] = CorrectPointToMesh(line, points[i]);
 
             var fVec = (points[1] - points[0]).normalized * width;
             verts.Add(points[0] + new Vector3(-fVec.z, fVec.y, fVec.x));
@@ -694,6 +734,35 @@ namespace Simulator.Editor.MapMeshes
                     verts.Add(pointRight);
                 }
 
+                var raise = 0f;
+
+                for (var j = 1; j <= 2; ++j)
+                {
+                    var pointA = verts[verts.Count - j - 2];
+                    var pointB = verts[verts.Count - j];
+
+                    for (var k = 0; k <= 8; ++k)
+                    {
+                        var point = Vector3.Lerp(pointA, pointB, k / 8.0f);
+
+                        foreach (var (laneMesh, matrix) in linesData[line].meshData)
+                        {
+                            if (!MeshUtils.IntersectRayMesh(new Ray(point + Vector3.up, Vector3.down), laneMesh, matrix, out var hit))
+                                continue;
+
+                            var diff = hit.point.y - point.y;
+                            if (diff > raise)
+                                raise = diff;
+                        }
+                    }
+
+                    pointA.y += raise;
+                    pointB.y += raise;
+
+                    verts[verts.Count - j - 2] = pointA;
+                    verts[verts.Count - j] = pointB;
+                }
+
                 var uvIncr = Vector3.Distance(points[i], points[i - 1]) / settings.lineUvUnit;
                 uvs.Add(new Vector2(0, lastUv + uvIncr));
                 uvs.Add(new Vector2(1, lastUv + uvIncr));
@@ -709,9 +778,9 @@ namespace Simulator.Editor.MapMeshes
 
             for (var i = 0; i < verts.Count; ++i)
             {
-                var vert = line.transform.InverseTransformPoint(verts[i]);
+                var vert = verts[i];
                 vert.y += settings.lineBump;
-                verts[i] = vert;
+                verts[i] = line.transform.InverseTransformPoint(vert);
             }
 
             ListPool<Vector3>.Release(points);

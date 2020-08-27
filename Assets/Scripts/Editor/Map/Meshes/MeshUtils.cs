@@ -10,13 +10,19 @@ namespace Simulator.Editor.MapMeshes
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
     using ClipperLib;
+    using UnityEditor;
     using UnityEngine;
     using UnityEngine.Rendering;
 
     public static class MeshUtils
     {
         public const float Tolerance = 0.0001f;
+        
+        private static Type handleUtilityType;
+        private static MethodInfo intersectRayMeshMethod;
+        private static object[] intersectRayMeshParams;
 
         public static List<List<Vertex>> ClipVatti(List<List<Vertex>> clipPolys, List<Vertex> poly)
         {
@@ -52,6 +58,31 @@ namespace Simulator.Editor.MapMeshes
                 pt.Z = (long) (GetLineLineIntersectionPoint(a0, a1, b0, b1).y * 1000);
             else
                 pt.Z = (bot1.Z + bot2.Z + top1.Z + top2.Z) / 4;
+        }
+
+        public static bool IntersectRayMesh(Ray ray, Mesh mesh, Matrix4x4 matrix, out RaycastHit hit)
+        {
+            if (handleUtilityType == null || intersectRayMeshMethod == null)
+            {
+                handleUtilityType = typeof(Editor).Assembly.GetTypes().FirstOrDefault(t => t.Name == "HandleUtility");
+                if (handleUtilityType == null)
+                    throw new Exception("HandleUtility type not found. Did Unity version change?");
+
+                intersectRayMeshMethod = handleUtilityType.GetMethod("IntersectRayMesh",(BindingFlags.Static | BindingFlags.NonPublic));
+                if (intersectRayMeshMethod == null)
+                    throw new Exception("IntersectRayMesh method not found. Did Unity version change?");
+            }
+
+            if (intersectRayMeshParams == null)
+                intersectRayMeshParams = new object[4];
+
+            intersectRayMeshParams[0] = ray;
+            intersectRayMeshParams[1] = mesh;
+            intersectRayMeshParams[2] = matrix;
+            intersectRayMeshParams[3] = null;
+            var result = (bool) intersectRayMeshMethod.Invoke(null, intersectRayMeshParams);
+            hit = intersectRayMeshParams[3] as RaycastHit? ?? default;
+            return result;
         }
 
         public static List<List<Vertex>> OptimizePoly(List<List<Vertex>> polys, string debugName = null)

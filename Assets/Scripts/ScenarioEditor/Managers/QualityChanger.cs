@@ -12,6 +12,9 @@ namespace Simulator.ScenarioEditor.Managers
     using UnityEngine.Rendering;
     using UnityEngine.Rendering.HighDefinition;
 
+    /// <summary>
+    /// Manager which changes the graphics quality settings for the VSE
+    /// </summary>
     public class QualityChanger : MonoBehaviour
     {
         /// <summary>
@@ -40,23 +43,38 @@ namespace Simulator.ScenarioEditor.Managers
         private HDRenderPipelineAsset vseHdrpSettings;
 #pragma warning restore 0649
 
+        /// <summary>
+        /// Is initialized
+        /// </summary>
         private bool initialized;
         
-        void Start()
+        /// <summary>
+        /// Unity Start method
+        /// </summary>
+        private void Start()
         {
             Initialize();
         }
 
-        void OnDestroy()
+        /// <summary>
+        /// Unity OnDestroy method
+        /// </summary>
+        private void OnDestroy()
         {
-            Deinitialize();
+            Deinitialize(true);
         }
 
+        /// <summary>
+        /// Unity OnApplicationQuit method
+        /// </summary>
         private void OnApplicationQuit()
         {
-            Deinitialize();
+            Deinitialize(false);
         }
 
+        /// <summary>
+        /// Initialization method
+        /// </summary>
         private void Initialize()
         {
             if (initialized)
@@ -74,7 +92,11 @@ namespace Simulator.ScenarioEditor.Managers
             initialized = true;
         }
 
-        private void Deinitialize()
+        /// <summary>
+        /// Deinitialization method
+        /// </summary>
+        /// <param name="reinitializeRenderPipeline">Should reinitialize render pipeline after changes</param>
+        private void Deinitialize(bool reinitializeRenderPipeline)
         {
             if (!initialized)
                 return;
@@ -86,12 +108,16 @@ namespace Simulator.ScenarioEditor.Managers
                 shadows.maxShadowDistance.value /= QualityDistanceMultiplier;
             
             QualitySettings.renderPipeline = defaultHdrpSettings;
-            ReinitializeRenderPipeline();
+            if (reinitializeRenderPipeline)
+                ReinitializeRenderPipeline();
             
             initialized = false;
         }
         
-        private static void ReinitializeRenderPipeline()
+        /// <summary>
+        /// Reinitializes the HDRP after making changes in it
+        /// </summary>
+        public static void ReinitializeRenderPipeline()
         {
             // NOTE: This is a workaround for Vulkan. Even if HDRP is reinitialized, lighting data and depth buffers
             //       on render targets (even ones created afterwards) will be corrupted. Reloading scene before

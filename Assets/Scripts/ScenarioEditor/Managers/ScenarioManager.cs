@@ -251,6 +251,7 @@ namespace Simulator.ScenarioEditor.Managers
             objectsShotCapture.ShotObject(gameObject);
             await Task.Delay(100);
             objectsShotCapture.ShotObject(gameObject);
+            QualityChanger.ReinitializeRenderPipeline();
         }
 
         /// <summary>

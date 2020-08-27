@@ -46,13 +46,6 @@ pipeline {
 
         mail to: "${SIMULATOR_RELEASE_EMAILS}", subject: "Starting ${GIT_TAG} release build", body: "Starting ${GIT_TAG} release build: ${BUILD_URL}"
 
-        script {
-          env.S3_DOWNLOAD_HOST = "${S3_RELEASE_DOWNLOAD_HOST}"
-          env.S3_BUCKET_NAME = "${S3_RELEASE_BUCKET_NAME}"
-          env.AWS_ACCESS_KEY_ID = "${AWS_RELEASE_ACCESS_KEY_ID}"
-          env.AWS_SECRET_ACCESS_KEY = "${AWS_RELEASE_SECRET_ACCESS_KEY}"
-        }
-
         checkout([
           $class: "GitSCM",
           branches: [[name: "refs/tags/${GIT_TAG}"]],

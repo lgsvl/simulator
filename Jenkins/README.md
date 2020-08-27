@@ -66,8 +66,6 @@ To setup Pipeline CI job on jenkins following global environment variables are r
 * `DOCKER_IMAGE_NAME` - name of Docker image, ex: `gitlab.example.com:4567/hdrp/simulator`
 * `SIMULATOR_ENVIRONMENTS` - comma separated list of environment bundles to build, ex: `CubeTown,SanFrancisco`
 * `SIMULATOR_VEHICLES` - comma separated list of vehicle bundles to build, ex: `Car1,Car2`
-* `AWS_ACCESS_KEY_ID` - AWS access key
-* `AWS_SECRET_ACCESS_KEY` - AWS secret key
 * `S3_BUCKET_NAME` - AWS S3 bucket name to where upload bundles
 * `SIMULATOR_STAGING_CLOUD_URL` - staging URL to use for cloud access, used only for non-release job
 * `SIMULATOR_RELEASE_EMAILS` - comma separated e-mails where to send start/finish e-mails abour release job
@@ -76,6 +74,8 @@ Following credentials must be set up in Jenkins:
 
 * `auto-gitlab` - ssh key for cloning git repositories, this key must have access to HDRP repositories
 * `Jenkins-Gitlab` - username/password combo for Docker registry on GitLab where to push Simulator docker image
+* `s3--aws-credentials` - credentials to upload assets to s3
+* `s3-release--aws-credentials` - credentials to upload assets to release s3
 
 Pipeline requires following parameters available:
 

@@ -27,6 +27,7 @@ pipeline {
     string(name: "BUILD_SIMULATOR_VEHICLES", defaultValue: "${SIMULATOR_VEHICLES}", description: "Vehicles to build")
     string(name: "WISE_URL", defaultValue: "${SIMULATOR_WISE_BETA_URL}", description: "Url to use with wise-cli for uploading assets, CLOUD_URL should be used later, not it's separate to test against dev instead of staging")
     credentials(name: "WISE_CONTENT_UPLOAD_CREDENTIALS_ID", required: true, defaultValue: "WISE_CONTENT_UPLOAD_BETA", description: 'The credentials to be used for uploading asset bundles', credentialType: 'com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl')
+    credentials( name: 'S3_CREDENTIALS_ID', required: true, defaultValue: "s3-release--aws-credentials", description: 'The credentials to be used for uploading to S3 bucket', credentialType: 'com.cloudbees.jenkins.plugins.awscredentials.AWSCredentialsImpl')
   }
 
   environment {
@@ -39,8 +40,6 @@ pipeline {
     GIT_TAG = "${GIT_TAG}"
     S3_DOWNLOAD_HOST = "${S3_RELEASE_DOWNLOAD_HOST}"
     S3_BUCKET_NAME = "${S3_RELEASE_BUCKET_NAME}"
-    AWS_ACCESS_KEY_ID = "${AWS_RELEASE_ACCESS_KEY_ID}"
-    AWS_SECRET_ACCESS_KEY = "${AWS_RELEASE_SECRET_ACCESS_KEY}"
   }
 
   stages {
@@ -193,8 +192,10 @@ pipeline {
         }
       }
       steps {
-        dir("Jenkins") {
-          sh "UID=`id -u` docker-compose run --rm upload-bundles | tee ../upload-bundles.log"
+        withCredentials([[credentialsId: "${S3_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY', $class: 'AmazonWebServicesCredentialsBinding']]) {
+          dir("Jenkins") {
+            sh "UID=`id -u` docker-compose run --rm upload-bundles | tee ../upload-bundles.log"
+          }
         }
       }
     } // Upload

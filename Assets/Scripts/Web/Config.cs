@@ -125,6 +125,13 @@ namespace Simulator.Web
             csservice.SetSimID(SimID);
         }
 
+        public static void RegenerateSimID()
+        {
+            SimID = Guid.NewGuid().ToString();
+            ClientSettingsService csservice = new ClientSettingsService();
+            csservice.SetSimID(SimID);
+        }
+
         public delegate void AssetLoadFunc(Manifest manifest, VfsEntry dir);
 
         private static void CheckDir(VfsEntry dir, AssetLoadFunc loadFunc)

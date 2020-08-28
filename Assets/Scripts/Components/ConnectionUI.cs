@@ -15,10 +15,14 @@ namespace Simulator.Web
 {
     public class ConnectionUI : MonoBehaviour
     {
+        public GameObject statusMenuRoot;
         public Text statusText;
         public Button statusButton;
         public Text statusButtonText;
         public Image statusButtonIcon;
+        public Button statusMenuButton;
+        public Text statusMenuButtonText;
+        public Button unlinkButton;
         public Button linkButton;
         public Text linkButtonText;
         public static ConnectionUI instance;
@@ -49,10 +53,12 @@ namespace Simulator.Web
             ColorUtility.TryParseHtmlString("#FFFFFF", out onlineColor);
             statusButtonIcon.material.color = Color.white;
             instance = this;
-            statusButton.onClick.AddListener(OnStatusButtonClicked);
+            statusButton.onClick.AddListener(() => statusMenuRoot.SetActive(!statusMenuRoot.gameObject.activeSelf));
+            statusMenuButton.onClick.AddListener(OnStatusButtonClicked);
             linkButton.onClick.AddListener(OnLinkButtonClicked);
             offlineStartButton.onClick.AddListener(OnOfflineStartButtonClicked);
             offlineStopButton.onClick.AddListener(OnOfflineStopButtonClicked);
+            unlinkButton.onClick.AddListener(OnUnlinkButtonClicked);
             UpdateDropdown();
             offlineDropdown.onValueChanged.AddListener(OnDropdownValueChanged);
             UpdateStatus();
@@ -73,6 +79,7 @@ namespace Simulator.Web
             {
                 case ConnectionManager.ConnectionStatus.Connecting:
                     statusText.text = $"Connecting to the cloud...";
+                    unlinkButton.gameObject.SetActive(false);
                     linkButton.gameObject.SetActive(false);
                     statusButtonIcon.color = offlineColor;
                     offlineDropdown.gameObject.SetActive(false);
@@ -83,8 +90,10 @@ namespace Simulator.Web
                 case ConnectionManager.ConnectionStatus.Connected:
                     statusText.text = "";
                     statusButtonText.text = "Online";
+                    statusMenuButtonText.text = "Go Offline";
                     statusButtonIcon.color = offlineColor;
                     linkButtonText.text = "LINK TO CLOUD";
+                    unlinkButton.gameObject.SetActive(false);
                     linkButton.gameObject.SetActive(true);
                     statusButton.interactable = true;
                     offlineDropdown.gameObject.SetActive(false);
@@ -94,8 +103,10 @@ namespace Simulator.Web
                     break;
                 case ConnectionManager.ConnectionStatus.Offline:
                     statusButtonText.text = "Offline";
+                    statusMenuButtonText.text = "Go Online";
                     statusText.text = "Go Online to start new simulation or run previous simulations while being Offline";
                     statusButtonIcon.color = offlineColor;
+                    unlinkButton.gameObject.SetActive(true);
                     linkButton.gameObject.SetActive(false);
                     statusButton.interactable = true;
                     offlineDropdown.gameObject.SetActive(true);
@@ -106,9 +117,11 @@ namespace Simulator.Web
                     break;
                 case ConnectionManager.ConnectionStatus.Online:
                     statusButtonText.text = "Online";
+                    statusMenuButtonText.text = "Go Offline";
                     statusButtonIcon.color = onlineColor;
                     statusText.text = "";
                     linkButtonText.text = "OPEN BROWSER";
+                    unlinkButton.gameObject.SetActive(true);
                     linkButton.gameObject.SetActive(true);
                     statusButton.interactable = true;
                     offlineDropdown.gameObject.SetActive(false);
@@ -164,6 +177,7 @@ namespace Simulator.Web
 
         public void OnStatusButtonClicked()
         {
+            statusMenuRoot.gameObject.SetActive(false);
             ConnectionManager.instance.ConnectionStatusEvent();
         }
 
@@ -206,6 +220,16 @@ namespace Simulator.Web
                     statusText.text = "API ready!";
                     break;
             }
+        }
+
+        public void OnUnlinkButtonClicked()
+        {
+            statusMenuRoot.SetActive(false);
+            if (ConnectionManager.Status == ConnectionManager.ConnectionStatus.Online)
+            {
+                ConnectionManager.instance.Disconnect();
+            }
+            Config.RegenerateSimID();
         }
 
         public void EnterScenarioEditor()

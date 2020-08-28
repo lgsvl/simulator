@@ -73,7 +73,7 @@ namespace Simulator.Analysis
                 Formatting = Formatting.Indented
             };
 
-            PersistantPath = Application.persistentDataPath;
+            PersistantPath = Simulator.Web.Config.PersistentDataPath;
             AnalysisPath = Path.Combine(PersistantPath, "Analysis");
             if (!Directory.Exists(AnalysisPath))
                 Directory.CreateDirectory(AnalysisPath);

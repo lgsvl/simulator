@@ -132,7 +132,9 @@ public class UIManager : MonoBehaviour
     public Text SimTimeText;
     public Text FPSText;
     private TimeSpan CurrentTimeSpan;
-    private float AveFPS = 0f;
+    private float ElapsedFPSTime = 1f;
+    private float DeltaTime = 0.0f;
+    private float FPS = 0f;
 
     private StringBuilder sb = new StringBuilder();
     private GameObject CurrentAgent;
@@ -873,20 +875,30 @@ public class UIManager : MonoBehaviour
         if (FPSText == null)
             return;
 
-        AveFPS = Time.frameCount / Time.time;
-        if (AveFPS < 15)
+        DeltaTime += (Time.unscaledDeltaTime - DeltaTime) * 0.1f;
+        FPS = 1.0f / DeltaTime;
+
+        if (ElapsedFPSTime >= 1)
         {
-            FPSText.color = Color.red;
-        }
-        else if (AveFPS < 30)
-        {
-            FPSText.color = Color.yellow;
+            if (FPS < 15)
+            {
+                FPSText.color = Color.red;
+            }
+            else if (FPS < 30)
+            {
+                FPSText.color = Color.yellow;
+            }
+            else
+            {
+                FPSText.color = Color.green;
+            }
+            FPSText.text = FPS.ToString("F2");
+            ElapsedFPSTime = 0f;
         }
         else
         {
-            FPSText.color = Color.green;
+            ElapsedFPSTime += Time.unscaledDeltaTime;
         }
-        FPSText.text = AveFPS.ToString("F2");
     }
 
     private void UpdateSimTime()

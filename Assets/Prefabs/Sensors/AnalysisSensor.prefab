@@ -46,3 +46,14 @@ MonoBehaviour:
   Name: 
   Topic: 
   Frame: 
+  ParentTransform: {fileID: 0}
+  SuddenBrakeMax: 10
+  SuddenSteerMax: 10
+  StuckTravelThreshold: 0.1
+  StuckTimeThreshold: 10
+  MinFPS: 10
+  MinFPSTime: 5
+  CheckingStopLine: 0
+  Stopped: 0
+  StopLineViolation: 0
+  StopLineThreshold: 1

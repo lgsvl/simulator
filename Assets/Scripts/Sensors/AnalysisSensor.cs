@@ -14,6 +14,7 @@ using UnityEngine;
 using Simulator.Analysis;
 using Simulator.Map;
 using System;
+using System.Linq;
 
 namespace Simulator.Sensors
 {
@@ -32,7 +33,8 @@ namespace Simulator.Sensors
               "StuckTravelThreshold": 0.1,
               "StuckTimeThreshold": 10.0,
               "MinFPS": 10.0,
-              "MinFPSTime": 5.0
+              "MinFPSTime": 5.0,
+              "StopLineThreshold": 1.0
             }
           }
          */
@@ -110,6 +112,14 @@ namespace Simulator.Sensors
         private float SpeedViolationMin = 0f;
         private float SpeedViolationMax = 0f;
 
+        public bool CheckingStopLine = false;
+        public bool Stopped = false;
+        public bool StopLineViolation = false;
+        [SensorParameter]
+        public float StopLineThreshold = 1f;
+        private List<MapLine> StopLines = new List<MapLine>();
+        private Transform StopLineTransform = null;
+
         private void Awake()
         {
             AgentController = GetComponentInParent<AgentController>();
@@ -117,6 +127,14 @@ namespace Simulator.Sensors
             Actions = GetComponentInParent<VehicleActions>();
             Lane = GetComponentInParent<VehicleLane>();
             RB = GetComponentInParent<Rigidbody>();
+            var mapLines = FindObjectsOfType<MapLine>().ToList();
+            foreach (var line in mapLines)
+            {
+                if (line.lineType == MapData.LineType.STOP)
+                {
+                    StopLines.Add(line);
+                }
+            }
         }
 
         private void Start()
@@ -129,6 +147,7 @@ namespace Simulator.Sensors
         private void Update()
         {
             CalculateFPS();
+            CreateStopLineTransform();
         }
 
         public override void OnBridgeSetup(BridgeInstance bridge)
@@ -165,6 +184,7 @@ namespace Simulator.Sensors
                 { "CurrentSpeedLimit", SpeedViolationLane?.speedLimit },
                 { "SpeedViolationDuration", TimeSpan.FromSeconds(SpeedViolationCount).ToString() },
                 { "SpeedViolationMax", SpeedViolationMax },
+                { "StopLineViolation", StopLineViolation },
             };
             visualizer.UpdateGraphValues(graphData);
         }
@@ -309,6 +329,31 @@ namespace Simulator.Sensors
                 SpeedViolationMax = 0f;
                 SpeedViolationLane = null;
             }
+
+            // stop line violation
+            if (StopLineTransform != null)
+            {
+                MapLine closestLine = StopLines.OrderByDescending(i => Vector3.Distance(i.transform.position, StopLineTransform.position)).Last();
+                if (Vector3.Distance(closestLine.transform.position, StopLineTransform.position) < StopLineThreshold)
+                {
+                    StopLineViolation = false;
+                    CheckingStopLine = true;
+                    if (RB.velocity.magnitude < 0.01f && Mathf.Abs(Vector3.Dot(Vector3.Normalize(closestLine.transform.position - StopLineTransform.position), closestLine.transform.forward)) > 0.7f)
+                    {
+                        Stopped = true;
+                    }
+                }
+                else if (CheckingStopLine)
+                {
+                    if (!Stopped)
+                    {
+                        StopLineViolation = true;
+                        StopLineViolationEvent(AgentController.GTID);
+                    }
+                    CheckingStopLine = false;
+                    Stopped = false;
+                }
+            }
         }
 
         private void CalculateFPS()
@@ -328,6 +373,24 @@ namespace Simulator.Sensors
                     LowFPSEvent(AgentController.GTID);
                     LowFPSCalculatedTime = 0f;
                     LowFPS = true;
+                }
+            }
+        }
+
+        private void CreateStopLineTransform()
+        {
+            if (StopLineTransform != null)
+                return;
+
+            var wheelColliders = Actions.transform.GetComponentsInChildren<WheelCollider>();
+            foreach (var col in wheelColliders)
+            {
+                if (col.name == "FR")
+                {
+                    StopLineTransform = new GameObject("StopLineTransform").transform;
+                    StopLineTransform.transform.SetParent(Actions.transform);
+                    StopLineTransform.localPosition = new Vector3(0f, 0f, col.transform.localPosition.z);
+                    StopLineTransform.localRotation = Quaternion.identity;
                 }
             }
         }
@@ -412,6 +475,7 @@ namespace Simulator.Sensors
                 { "Id", id },
                 { "Type", "StopLineViolation" },
                 { "Time", SimulatorManager.Instance.GetSessionElapsedTimeSpan().ToString() },
+                { "Location", transform.position },
                 { "Status", AnalysisManager.AnalysisStatusType.Failed },
             };
             SimulatorManager.Instance.AnalysisManager.AddEvent(data);

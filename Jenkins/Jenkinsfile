@@ -326,15 +326,26 @@ pipeline {
           withCredentials([[credentialsId: "${WISE_AWS_ECR_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY', $class: 'AmazonWebServicesCredentialsBinding']]) {
             sh """
               DOCKER_REGISTRY="${WISE_AWS_ECR_ACCOUNT_ID}.dkr.ecr.${WISE_AWS_ECR_REGION}.amazonaws.com"
+              if [ "${GIT_BRANCH}" = "master" ]; then
+                  DOCKER_REPO="wise/simulator"
+              else
+                  DOCKER_REPO="wise/simulator/${GIT_BRANCH}"
+              fi
+              DOCKER_TAG="build__${JENKINS_BUILD_ID}"
+
               docker-compose pull aws-cli
               if ! UID=`id -u` docker-compose run --rm aws-cli ecr get-login-password --region $WISE_AWS_ECR_REGION | docker login --username AWS --password-stdin \$DOCKER_REGISTRY; then
                 echo "ABORT: bad AWS credentials?"
                 exit 1
               fi
+              if ! UID=`id -u` docker-compose run --rm aws-cli ecr create-repository --repository-name \$DOCKER_REPO --region $WISE_AWS_ECR_REGION; then
+                echo "INFO: aws-cli ecr create-repository --repository-name \$DOCKER_REPO --region $WISE_AWS_ECR_REGION failed - assuming that it's because the repo already exists in ECR"
+              fi
+
               cd ../Docker
               cp -al ../*-linux64-${GIT_BRANCH}-${JENKINS_BUILD_ID}.zip .
-              docker build --pull --no-cache --build-arg "simulator_zipfile=*-linux64-${GIT_BRANCH}-${JENKINS_BUILD_ID}.zip" -t \$DOCKER_REGISTRY/wise/simulator:build__${GIT_BRANCH}-${JENKINS_BUILD_ID} .
-              docker push \$DOCKER_REGISTRY/wise/simulator:build__${GIT_BRANCH}-${JENKINS_BUILD_ID}
+              docker build --pull --no-cache --build-arg "simulator_zipfile=*-linux64-${GIT_BRANCH}-${JENKINS_BUILD_ID}.zip" -t \$DOCKER_REGISTRY/\$DOCKER_REPO:\$DOCKER_TAG .
+              docker push \$DOCKER_REGISTRY/\$DOCKER_REPO:\$DOCKER_TAG
               rm -fv *-linux64-${GIT_BRANCH}-${JENKINS_BUILD_ID}.zip
             """
           }

@@ -225,29 +225,7 @@ namespace Simulator.Editor
                         var prefab = AssetDatabase.LoadAssetAtPath(prefabEntry.mainAssetFile, typeof(GameObject));
                         var tempObj = Instantiate(prefab) as GameObject;
 
-                        if (tempObj == null)
-                            throw new Exception("Cannot instantiate vehicle prefab.");
-
-                        foreach (var col in tempObj.transform.GetComponentsInChildren<Collider>(true))
-                        {
-                            var mr = col.transform.GetComponent<MeshRenderer>();
-                            if (mr != null)
-                                CoreUtils.Destroy(col.gameObject);
-                        }
-
-                        var emissionProp = Shader.PropertyToID("_EmissionColor");
-
-                        foreach (var rnd in tempObj.transform.GetComponentsInChildren<Renderer>())
-                        {
-                            var mats = rnd.sharedMaterials;
-                            for (var i = 0; i < mats.Length; ++i)
-                            {
-                                mats[i] = new Material(mats[i]);
-                                mats[i].SetColor(emissionProp, Color.clear);
-                            }
-
-                            rnd.sharedMaterials = mats;
-                        }
+                        FbxExportHelper.PrepareObject(tempObj);
 
                         string glbFilename = $"{manifest.assetGuid}_vehicle_{manifest.assetName}.glb";
                         string export = ModelExporter.ExportObject(Path.Combine("Assets", "External", "Vehicles", manifest.assetName, $"{manifest.assetName}.fbx"), tempObj);

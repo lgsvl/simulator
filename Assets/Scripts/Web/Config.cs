@@ -285,7 +285,7 @@ namespace Simulator.Web
             var pluginSource = LoadAssembly(dir, $"{manifest.assetName}.dll");
             foreach (Type ty in pluginSource.GetTypes())
             {
-                if (typeof(ISensorBridgePlugin).IsAssignableFrom(ty))
+                if (typeof(IBridgeFactory).IsAssignableFrom(ty))
                 {
                     var bridgeFactory = Activator.CreateInstance(ty) as IBridgeFactory;
                     BridgePlugins.Add(bridgeFactory);

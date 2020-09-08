@@ -314,22 +314,48 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                 }
                 else
                 {
+                    List<Type> assignableTypes = null;
+
+                    if (type.IsAbstract)
+                        assignableTypes = type.Assembly.GetTypes().Where(t => t != type && type.IsAssignableFrom(t)).ToList();
+
                     foreach (var elemValue in value)
                     {
-                        var elem = Activator.CreateInstance(type);
-
-                        foreach (var elemField in type.GetFields())
+                        void PopulateFields(object element, Type elementType)
                         {
-                            var name = elemField.Name;
+                            foreach (var elemField in elementType.GetFields())
+                            {
+                                var elemName = elemField.Name;
 
-                            if (elemValue.Value[name].IsNumber)
-                            {
-                                elemField.SetValue(elem, elemValue.Value[name].AsFloat);
+                                if (elemValue.Value[elemName].IsNumber)
+                                    elemField.SetValue(element, elemValue.Value[elemName].AsFloat);
+                                else if (elemValue.Value[elemName].IsString)
+                                    elemField.SetValue(element, elemValue.Value[elemName].AsBool);
+                                else if (elemValue.Value[elemName].IsBoolean)
+                                    elemField.SetValue(element, elemValue.Value[elemName].AsBool);
                             }
-                            else if (elemValue.Value[name].IsString)
-                            {
-                                elemField.SetValue(elem, elemValue.Value[name].Value);
-                            }
+                        }
+                        
+                        object elem;
+
+                        if (!type.IsAbstract)
+                        {
+                            elem = Activator.CreateInstance(type);
+                            PopulateFields(elem, type);
+                        }
+                        else
+                        {
+                            if (!elemValue.Value.HasKey("type"))
+                                throw new Exception($"Type {type.Name} is abstract and does not define `type` field ({gameObject.name} vehicle, {sb.Name} sensor, {key} field)");
+
+                            var typeName = elemValue.Value["type"].Value;
+                            var elementType = assignableTypes.FirstOrDefault(t => t.Name == typeName);
+                            
+                            if (elementType == null)
+                                throw new Exception($"No {typeName} type derived from {type.Name} for {key} field for {gameObject.name} vehicle, {sb.Name} sensor");
+
+                            elem = Activator.CreateInstance(elementType);
+                            PopulateFields(elem, elementType);
                         }
 
                         list.Add(elem);

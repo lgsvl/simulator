@@ -25,6 +25,8 @@ using UnityEngine.Experimental.Rendering;
 
 namespace Simulator.Sensors
 {
+    using Simulator.Sensors.Postprocessing;
+
     [RequireComponent(typeof(Camera))]
     public abstract class CameraSensorBase: SensorBase
     {
@@ -67,6 +69,9 @@ namespace Simulator.Sensors
 
         [SensorParameter]
         public float Xi = 0.0f;
+        
+        [SensorParameter]
+        public List<PostProcessData> Postprocessing;
 
         BridgeInstance Bridge;
         Publisher<ImageData> Publish;

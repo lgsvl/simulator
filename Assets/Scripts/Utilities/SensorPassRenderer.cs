@@ -74,7 +74,7 @@ namespace Simulator.Utilities
             {
                 if ((target.CubeFaceMask & (1 << i)) == 0)
                     continue;
-                
+
                 transform.localRotation = Quaternion.LookRotation(CoreUtils.lookAtList[i], CoreUtils.upVectorList[i]);
                 var view = hd.camera.worldToCameraMatrix;
                 SetupGlobalParamsForCubemap(cmd, view);
@@ -129,6 +129,14 @@ namespace Simulator.Utilities
                 var filter = new FilteringSettings(RenderQueueRange.all);
 
                 context.DrawRenderers(cull, ref drawing, ref filter);
+            }
+            
+            var sensor = hd.camera.GetComponent<CameraSensorBase>();
+            if (sensor != null && sensor.Postprocessing != null && sensor.Postprocessing.Count > 0)
+            {
+                SimulatorManager.Instance.Sensors.PostProcessSystem.RenderForSensor(cmd, hd, sensor, target.ColorHandle);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
             }
         }
     }

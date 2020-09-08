@@ -164,6 +164,20 @@ MonoBehaviour:
     m_Value: 2
     min: 1
     max: 6
+--- !u!114 &-343623008573483750
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7b728a4799712c44a16320ff29fc37b, type: 3}
+  m_Name: CameraRainFX
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -186,6 +200,20 @@ MonoBehaviour:
   - {fileID: 2009626105351207816}
   - {fileID: -5472647498024721378}
   - {fileID: 8734624370285724581}
+--- !u!114 &1220820518021458171
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7b728a4799712c44a16320ff29fc37b, type: 3}
+  m_Name: CameraRainFX
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
 --- !u!114 &1451188550250353699
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -606,6 +634,20 @@ MonoBehaviour:
   filter:
     m_OverrideState: 0
     m_Value: 0
+--- !u!114 &4714856863826996552
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7b728a4799712c44a16320ff29fc37b, type: 3}
+  m_Name: CameraRainFX
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
 --- !u!114 &5680305344348810305
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -678,6 +720,42 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 1
     min: 0.001
+--- !u!114 &8350489999421335525
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6116bfcb4ffa44e458e017a6d6187407, type: 3}
+  m_Name: GrayScale
+  m_EditorClassIdentifier: 
+  active: 1
+  <displayName>k__BackingField: 
+  m_AdvancedMode: 0
+  m_IsInitialized: 0
+  intensity:
+    m_OverrideState: 1
+    m_Value: 0
+    min: 0
+    max: 1
+  m_Material: {fileID: 0}
+--- !u!114 &8662298764691036545
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7b728a4799712c44a16320ff29fc37b, type: 3}
+  m_Name: CameraRainFX
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
 --- !u!114 &8734624370285724581
 MonoBehaviour:
   m_ObjectHideFlags: 3

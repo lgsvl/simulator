@@ -1,0 +1,7 @@
+<!--Some types in postprocessing are only used through reflection-->
+<!--Prevent unity from stripping anything in that namespace-->
+<linker>
+  <assembly fullname="Simulator">
+    <type fullname="Simulator.Sensors.Postprocessing*" />
+  </assembly>
+</linker>

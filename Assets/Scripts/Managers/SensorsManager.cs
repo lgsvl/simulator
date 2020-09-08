@@ -15,6 +15,7 @@ using Simulator.Network.Core.Connection;
 using Simulator.Network.Core.Messaging;
 using Simulator.Network.Core.Messaging.Data;
 using Simulator.Sensors;
+using Simulator.Sensors.Postprocessing;
 
 public class SensorsManager : IMessageSender, IMessageReceiver
 {
@@ -39,6 +40,8 @@ public class SensorsManager : IMessageSender, IMessageReceiver
 
 	public string Key { get; } = "SensorsManager";
 
+	public SensorPostProcessSystem PostProcessSystem { get; private set; }
+
 	private List<SensorMetaData> sensors = new List<SensorMetaData>();
 
 	private Dictionary<SensorBase, SensorMetaData> instanceToMetaData = new Dictionary<SensorBase, SensorMetaData>();
@@ -50,12 +53,15 @@ public class SensorsManager : IMessageSender, IMessageReceiver
 	public void Initialize()
 	{
 		Loader.Instance.Network.MessagesManager?.RegisterObject(this);
+		PostProcessSystem = new SensorPostProcessSystem();
+		PostProcessSystem.Initialize();
 	}
 
 	public void Deinitialize()
 	{
 		ClearSensorsRegistry();
 		Loader.Instance.Network.MessagesManager?.UnregisterObject(this);
+		PostProcessSystem?.Deinitialize();
 	}
 
 	public void RegisterSensor(SensorBase sensorBase)

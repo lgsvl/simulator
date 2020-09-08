@@ -14,6 +14,7 @@ namespace Simulator.ScenarioEditor.Managers
     using Network.Core.Threading;
     using UI.FileEdit;
     using UI.MapSelecting;
+    using Undo;
     using UnityEngine;
     using Utilities;
 
@@ -127,6 +128,11 @@ namespace Simulator.ScenarioEditor.Managers
         /// Manager for caching and handling all the scenario waypoints
         /// </summary>
         public ScenarioWaypointsManager waypointsManager;
+
+        /// <summary>
+        /// Manager for caching VSE action that can be reverted
+        /// </summary>
+        public ScenarioUndoManager undoManager;
 
         /// <summary>
         /// Camera used to render the scenario world
@@ -307,17 +313,20 @@ namespace Simulator.ScenarioEditor.Managers
             for (var i = agents.Count - 1; i >= 0; i--)
             {
                 var agent = agents[i];
-                agent.Remove();
+                agent.RemoveFromMap();
+                agent.Dispose();
             }
 
             var waypoints = waypointsManager.Waypoints;
             for (var i = waypoints.Count - 1; i >= 0; i--)
             {
                 var waypoint = waypoints[i];
-                waypoint.Remove();
+                waypoint.RemoveFromMap();
+                waypoint.Dispose();
             }
 
             Instance.IsScenarioDirty = false;
+            Instance.undoManager.ClearRecords();
         }
 
         /// <summary>

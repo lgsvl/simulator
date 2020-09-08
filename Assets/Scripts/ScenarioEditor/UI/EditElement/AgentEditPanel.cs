@@ -13,9 +13,10 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
     using Agents;
     using Elements;
     using Managers;
+    using ScenarioEditor.Utilities;
+    using Undo.Records;
     using UnityEngine;
     using UnityEngine.UI;
-    using Utilities;
 
     /// <summary>
     /// UI panel which allows editing a scenario agent parameters
@@ -133,7 +134,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             var variantId = agentSource.AgentVariants.IndexOf(selectedAgent.Variant);
             agentSelectDropdown.SetValueWithoutNotify(variantId);
             gameObject.SetActive(true);
-            UIUtilities.LayoutRebuild(transform as RectTransform);
+            UnityUtilities.LayoutRebuild(transform as RectTransform);
         }
 
         /// <summary>
@@ -141,6 +142,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// </summary>
         public void Hide()
         {
+            if (addedElementType != AgentElementType.None)
+                ScenarioManager.Instance.inputManager.CancelAddingElements(this);
             gameObject.SetActive(false);
             selectedAgent = null;
         }
@@ -181,6 +184,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             if (!ScenarioManager.Instance.inputManager.StartAddingElements(this))
                 addedElementType = AgentElementType.None;
         }
+        
         /// <inheritdoc/>
         void IAddElementsHandler.AddingStarted(Vector3 addPosition)
         {
@@ -197,7 +201,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                         return;
                     }
 
-                    newElementInstance.Reposition(addPosition);
+                    newElementInstance.ForceMove(addPosition);
                     selectedAgent.AddWaypoint(newElementInstance as ScenarioWaypoint);
                     break;
             }
@@ -206,7 +210,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// <inheritdoc/>
         void IAddElementsHandler.AddingMoved(Vector3 addPosition)
         {
-            newElementInstance.Reposition(addPosition);
+            newElementInstance.ForceMove(addPosition);
         }
 
         /// <inheritdoc/>
@@ -216,20 +220,25 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             {
                 case AgentElementType.Waypoints:
                     ScenarioManager.Instance.IsScenarioDirty = true;
+                    ScenarioManager.Instance.undoManager.RegisterRecord(new UndoAddElement(newElementInstance));
                     var mapWaypointPrefab = ScenarioManager.Instance.waypointsManager.waypointPrefab;
                     newElementInstance = ScenarioManager.Instance.prefabsPools.GetInstance(mapWaypointPrefab)
                         .GetComponent<ScenarioWaypoint>();
-                    newElementInstance.Reposition(addPosition);
+                    newElementInstance.ForceMove(addPosition);
                     selectedAgent.AddWaypoint(newElementInstance as ScenarioWaypoint);
                     break;
             }
         }
 
         /// <inheritdoc/>
-        void IAddElementsHandler.AddingCancelled(Vector3 addPosition)
+        public void AddingCancelled(Vector3 addPosition)
         {
             if (newElementInstance.CanBeRemoved)
-                newElementInstance.Remove();
+            {
+                newElementInstance.RemoveFromMap();
+                newElementInstance.Dispose();
+            }
+
             newElementInstance = null;
 
             addedElementType = AgentElementType.None;

@@ -5,12 +5,15 @@
  *
  */
 
-namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
+namespace Simulator.ScenarioEditor.UI.Utilities
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using Managers;
+    using Undo.Records;
     using UnityEngine;
+    using UnityEngine.EventSystems;
     using UnityEngine.UI;
 
     /// <summary>
@@ -82,13 +85,21 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         private Action<float> valueApply;
 
         /// <summary>
+        /// Unity OnDisable method
+        /// </summary>
+        private void OnDisable()
+        {
+            input.OnDeselect(new BaseEventData(EventSystem.current));
+        }
+
+        /// <summary>
         /// Initialization method
         /// </summary>
         /// <param name="unitTypePrefsKey">Player prefs key used to same the current unit type</param>
         /// <param name="valueApply">Callback invoked then the value is changed by the input field</param>
         public void Initialize(string unitTypePrefsKey, Action<float> valueApply)
         {
-            this.playerPrefsKey = unitTypePrefsKey;
+            playerPrefsKey = unitTypePrefsKey;
             this.valueApply = valueApply;
             
             currentUnit = PlayerPrefs.GetInt(unitTypePrefsKey, 0);
@@ -149,8 +160,10 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// <param name="valueString">Value in string</param>
         public void ChangeValue(string valueString)
         {
-            if (float.TryParse(valueString, out var value))
-                InputChangedValue(ConvertToBase(value, currentUnit));
+            if (!float.TryParse(valueString, out var value)) return;
+            
+            ScenarioManager.Instance.undoManager.RegisterRecord(new UndoFloatInputWithUnits(this, currentValue));
+            InputChangedValue(ConvertToBase(value, currentUnit));
         }
 
         /// <summary>

@@ -67,13 +67,12 @@ namespace Simulator.Api.Commands
                 return null;
             var effectorsNode = data["effectors"].AsArray;
             var trigger = new WaypointTrigger();
-            trigger.Effectors = new List<TriggerEffector>();
             for (int i = 0; i < effectorsNode.Count; i++)
             {
                 var typeName = effectorsNode[i]["type_name"];
                 var newEffector = TriggersManager.GetEffectorOfType(typeName);
                 newEffector.DeserializeProperties(effectorsNode[i]["parameters"]);
-                trigger.Effectors.Add(newEffector);
+                trigger.AddEffector(newEffector);
             }
 
             return trigger;

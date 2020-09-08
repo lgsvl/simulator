@@ -13,6 +13,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
     using Effectors;
     using Elements;
     using Managers;
+    using ScenarioEditor.Utilities;
+    using Undo.Records;
     using UnityEngine;
     using UnityEngine.UI;
     using Utilities;
@@ -110,6 +112,12 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                 scenarioManager.SelectedOtherElement -= OnSelectedOtherElement;
                 scenarioManager.NewScenarioElement -= OnNewElementActivation;
             }
+            if (selectedTrigger != null)
+            {
+                selectedTrigger.Trigger.EffectorAdded -= TriggerOnEffectorAdded;
+                selectedTrigger.Trigger.EffectorRemoved -= TriggerOnEffectorRemoved;
+                selectedTrigger = null;
+            }
 
             isInitialized = false;
         }
@@ -120,6 +128,12 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// <param name="selectedElement">Scenario element that has been selected</param>
         private void OnSelectedOtherElement(ScenarioElement selectedElement)
         {
+            if (selectedTrigger != null)
+            {
+                selectedTrigger.Trigger.EffectorAdded -= TriggerOnEffectorAdded;
+                selectedTrigger.Trigger.EffectorRemoved -= TriggerOnEffectorRemoved;
+                selectedTrigger = null;
+            }
             foreach (var effectorPanel in visiblePanels)
             {
                 effectorPanel.FinishEditing();
@@ -133,6 +147,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             if (selectedWaypoint != null)
             {
                 selectedTrigger = selectedWaypoint.LinkedTrigger;
+                selectedTrigger.Trigger.EffectorAdded += TriggerOnEffectorAdded;
+                selectedTrigger.Trigger.EffectorRemoved += TriggerOnEffectorRemoved;
                 var effectors = selectedTrigger.Trigger.Effectors;
                 var agentType = selectedTrigger.ParentAgent.Source.AgentType;
                 //Get available effectors that supports this agent and their instance is not added to the trigger yet
@@ -152,7 +168,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                     visiblePanels.Add(effectorPanel);
                 }
 
-                UIUtilities.LayoutRebuild(transform as RectTransform);
+                UnityUtilities.LayoutRebuild(transform as RectTransform);
             }
         }
 
@@ -170,6 +186,42 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                 var effectorPanel = effectorPanels[effector.TypeName];
                 effectorPanel.EffectorAddedToTrigger(trigger, effector, false);
             }
+        }
+
+        /// <summary>
+        /// Method called when the effector is added to the selected trigger
+        /// </summary>
+        /// <param name="effector">Effector that was added to the selected trigger</param>
+        private void TriggerOnEffectorAdded(TriggerEffector effector)
+        {
+            availableEffectorTypes.RemoveAt(triggerSelectDropdown.value);
+            triggerSelectDropdown.options.RemoveAt(triggerSelectDropdown.value);
+            triggerSelectDropdown.SetValueWithoutNotify(0);
+            triggerSelectDropdown.RefreshShownValue();
+
+            var effectorPanel = effectorPanels[effector.TypeName];
+            effectorPanel.StartEditing(this, selectedTrigger, effector);
+            effectorPanel.EffectorAddedToTrigger(selectedTrigger, effector, true);
+            effectorPanel.gameObject.SetActive(true);
+            visiblePanels.Add(effectorPanel);
+            UnityUtilities.LayoutRebuild(transform as RectTransform);
+        }
+
+        /// <summary>
+        /// Method called when the effector is removed from the selected trigger
+        /// </summary>
+        /// <param name="effector">Effector that was removed from the selected trigger</param>
+        private void TriggerOnEffectorRemoved(TriggerEffector effector )
+        {
+            var panel = effectorPanels[effector.TypeName];
+            panel.EffectorRemovedFromTrigger(selectedTrigger, effector);
+            panel.FinishEditing();
+            panel.gameObject.SetActive(false);
+            visiblePanels.Remove(panel);
+            UnityUtilities.LayoutRebuild(transform as RectTransform);
+            availableEffectorTypes.Add(effector);
+            triggerSelectDropdown.options.Add(new Dropdown.OptionData(effector.TypeName));
+            triggerSelectDropdown.RefreshShownValue();
         }
 
         /// <summary>
@@ -197,23 +249,13 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             if (triggerSelectDropdown.value < 0 || availableEffectorTypes.Count <= triggerSelectDropdown.value)
                 return;
             
-            ScenarioManager.Instance.IsScenarioDirty = true;
             var selectedEffectorType = availableEffectorTypes[triggerSelectDropdown.value].GetType();
             if (!(Activator.CreateInstance(selectedEffectorType) is TriggerEffector effector))
                 throw new ArgumentException(
                     $"Invalid effector type '{availableEffectorTypes[triggerSelectDropdown.value].GetType()}'.");
-            selectedTrigger.Trigger.Effectors.Add(effector);
-            availableEffectorTypes.RemoveAt(triggerSelectDropdown.value);
-            triggerSelectDropdown.options.RemoveAt(triggerSelectDropdown.value);
-            triggerSelectDropdown.SetValueWithoutNotify(0);
-            triggerSelectDropdown.RefreshShownValue();
-
-            var effectorPanel = effectorPanels[effector.TypeName];
-            effectorPanel.StartEditing(this, selectedTrigger, effector);
-            effectorPanel.EffectorAddedToTrigger(selectedTrigger, effector, true);
-            effectorPanel.gameObject.SetActive(true);
-            visiblePanels.Add(effectorPanel);
-            UIUtilities.LayoutRebuild(transform as RectTransform);
+            selectedTrigger.Trigger.AddEffector(effector);
+            ScenarioManager.Instance.IsScenarioDirty = true;
+            ScenarioManager.Instance.undoManager.RegisterRecord(new UndoAddEffector(selectedTrigger, effector));
         }
 
         /// <summary>
@@ -221,18 +263,10 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// </summary>
         public void RemoveEffector(TriggerEffector effector)
         {
-            var panel = effectorPanels[effector.TypeName];
-            panel.EffectorRemovedFromTrigger(selectedTrigger, effector);
-            panel.FinishEditing();
-            panel.gameObject.SetActive(false);
-            visiblePanels.Remove(panel);
-            UIUtilities.LayoutRebuild(transform as RectTransform);
 
+            selectedTrigger.Trigger.RemoveEffector(effector);
             ScenarioManager.Instance.IsScenarioDirty = true;
-            selectedTrigger.Trigger.Effectors.Remove(effector);
-            availableEffectorTypes.Add(effector);
-            triggerSelectDropdown.options.Add(new Dropdown.OptionData(effector.TypeName));
-            triggerSelectDropdown.RefreshShownValue();
+            ScenarioManager.Instance.undoManager.RegisterRecord(new UndoRemoveEffector(selectedTrigger, effector));
         }
     }
 }

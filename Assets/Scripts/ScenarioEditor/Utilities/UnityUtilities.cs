@@ -12,7 +12,10 @@ namespace Simulator.ScenarioEditor.Utilities
     using UnityEngine;
     using UnityEngine.UI;
 
-    public static class UIUtilities
+    /// <summary>
+    /// Class that has some common methods used to handle Unity engine
+    /// </summary>
+    public static class UnityUtilities
     {
         /// <summary>
         /// Method that rebuilds the UI layout after two frame updates

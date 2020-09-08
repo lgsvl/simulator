@@ -150,20 +150,24 @@ namespace Simulator.ScenarioEditor.Agents
         }
 
         /// <inheritdoc/>
-        public override void Remove()
+        public override void Dispose()
         {
             if (modelInstance != null)
                 source.ReturnModelInstance(modelInstance);
-            for (var i = waypoints.Count - 1; i >= 0; i--) waypoints[i].Remove();
+            for (var i = waypoints.Count - 1; i >= 0; i--)
+            {
+                waypoints[i].RemoveFromMap();
+                waypoints[i].Dispose();
+            }
 
             ScenarioManager.Instance.agentsManager.UnregisterAgent(this);
             Destroy(gameObject);
         }
 
         /// <inheritdoc/>
-        public override void Reposition(Vector3 requestedPosition)
+        public override void ForceMove(Vector3 requestedPosition)
         {
-            base.Reposition(requestedPosition);
+            base.ForceMove(requestedPosition);
             switch (Type)
             {
                 case AgentType.Ego:
@@ -192,7 +196,7 @@ namespace Simulator.ScenarioEditor.Agents
         /// </summary>
         /// <param name="waypoint">Waypoint that will be added to this agent</param>
         /// <param name="index">Index position where waypoint will be added</param>
-        public void AddWaypoint(ScenarioWaypoint waypoint, int index)
+        public int AddWaypoint(ScenarioWaypoint waypoint, int index)
         {
             if (index > waypoints.Count)
                 index = waypoints.Count;
@@ -209,13 +213,14 @@ namespace Simulator.ScenarioEditor.Agents
                 var position = lineRendererPositionOffset + waypoints[i].transform.localPosition;
                 lineRenderer.SetPosition(i + 1, position);
             }
+            return index;
         }
 
         /// <summary>
         /// Removes the waypoint from this agent
         /// </summary>
         /// <param name="waypoint">Waypoint that will be removed from this agent</param>
-        public void RemoveWaypoint(ScenarioWaypoint waypoint)
+        public int RemoveWaypoint(ScenarioWaypoint waypoint)
         {
             var index = waypoints.IndexOf(waypoint);
             waypoints.Remove(waypoint);
@@ -228,6 +233,7 @@ namespace Simulator.ScenarioEditor.Agents
             }
 
             lineRenderer.positionCount = waypoints.Count + 1;
+            return index;
         }
 
         /// <summary>

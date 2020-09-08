@@ -22,6 +22,11 @@ namespace Simulator.ScenarioEditor.Elements
         /// </summary>
         private ScenarioTrigger linkedTrigger;
 
+        /// <summary>
+        /// Index which this waypoint had in parent agent before being removed from map
+        /// </summary>
+        private int indexInAgentBeforeRemove = -1;
+
         /// <inheritdoc/>
         public override bool CanBeRotated => false;
         
@@ -77,7 +82,7 @@ namespace Simulator.ScenarioEditor.Elements
         }
 
         /// <inheritdoc/>
-        public override void Reposition(Vector3 requestedPosition)
+        public override void ForceMove(Vector3 requestedPosition)
         {
             transform.position = requestedPosition;
             if (ParentAgent != null)
@@ -97,14 +102,29 @@ namespace Simulator.ScenarioEditor.Elements
         }
 
         /// <inheritdoc/>
-        public override void Remove()
+        public override void RemoveFromMap()
         {
-            if (ParentAgent!=null)
-                ParentAgent.RemoveWaypoint(this);
+            base.RemoveFromMap();
+            if (ParentAgent != null)
+                indexInAgentBeforeRemove = ParentAgent.RemoveWaypoint(this);
+        }
+
+        /// <inheritdoc/>
+        public override void UndoRemove()
+        {
+            base.UndoRemove();
+            if (ParentAgent != null)
+                ParentAgent.AddWaypoint(this, indexInAgentBeforeRemove);
+        }
+
+        /// <inheritdoc/>
+        public override void Dispose()
+        {
             ParentAgent = null;
             if (linkedTrigger != null)
                 linkedTrigger.Deinitalize();
-
+            Speed = 6.0f;
+            WaitTime = 0.0f;
             ScenarioManager.Instance.prefabsPools.ReturnInstance(gameObject);
         }
 

@@ -10,7 +10,9 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
     using System;
     using Elements;
     using Managers;
+    using Undo.Records;
     using UnityEngine;
+    using UnityEngine.EventSystems;
     using UnityEngine.UI;
 
     /// <summary>
@@ -40,6 +42,14 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         /// <inheritdoc/>
         public override Type EditedEffectorType => typeof(WaitForDistanceEffector);
         
+        /// <summary>
+        /// Unity OnDisable method
+        /// </summary>
+        private void OnDisable()
+        {
+            maxDistanceInputField.OnDeselect(new BaseEventData(EventSystem.current));
+        }
+        
         /// <inheritdoc/>
         public override void StartEditing(TriggerEditPanel triggerPanel, ScenarioTrigger trigger, TriggerEffector effector)
         {
@@ -62,8 +72,11 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         /// <param name="maxDistanceString">Max distance that should be set to the effector</param>
         public void SetMaxDistance(string maxDistanceString)
         {
-            if (float.TryParse(maxDistanceString, out var maxDistance))
-                SetMaxDistance(maxDistance);
+            if (!float.TryParse(maxDistanceString, out var maxDistance)) return;
+            
+            ScenarioManager.Instance.undoManager.RegisterRecord(new UndoInputField(maxDistanceInputField,
+                editedEffector.MaxDistance.ToString("F")));
+            SetMaxDistance(maxDistance);
         }
 
 

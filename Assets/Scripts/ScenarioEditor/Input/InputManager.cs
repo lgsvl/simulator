@@ -613,6 +613,8 @@ namespace Simulator.ScenarioEditor.Input
             Transform cameraTransform = scenarioCamera.transform;
             RaycastHit? furthestHit;
             Vector3 furthestPoint;
+            if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.Z))
+                ScenarioManager.Instance.undoManager.Undo();
             switch (inputState)
             {
                 case InputState.MovingCamera:

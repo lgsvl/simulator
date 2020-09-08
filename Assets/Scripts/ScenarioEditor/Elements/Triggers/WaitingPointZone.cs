@@ -41,7 +41,7 @@ namespace Simulator.ScenarioEditor.Agents.Triggers
         public override bool CanBeResized => true;
 
         /// <inheritdoc/>
-        public override void Remove()
+        public override void Dispose()
         {
             throw new System.NotImplementedException();
         }

@@ -17,10 +17,10 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
     using Inspector;
     using Managers;
     using MapSelecting;
+    using ScenarioEditor.Utilities;
     using SimpleJSON;
     using UnityEngine;
     using UnityEngine.UI;
-    using Utilities;
     using Toggle = UnityEngine.UI.Toggle;
 
     /// <summary>
@@ -118,6 +118,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
             if (json != null && json.IsObject)
                 await JsonScenarioDeserializer.DeserializeScenario(json);
             ScenarioManager.Instance.HideLoadingPanel();
+            ScenarioManager.Instance.undoManager.ClearRecords();
         }
 
         /// <summary>

@@ -9,8 +9,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
 {
     using System.Collections.Generic;
     using Inspector;
+    using ScenarioEditor.Utilities;
     using UnityEngine;
-    using Utilities;
 
     /// <summary>
     /// UI panel which allows editing currently selected scenario element
@@ -55,7 +55,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         public override void Show()
         {
             gameObject.SetActive(true);
-            UIUtilities.LayoutRebuild(transform as RectTransform);
+            UnityUtilities.LayoutRebuild(transform as RectTransform);
         }
 
         /// <inheritdoc/>

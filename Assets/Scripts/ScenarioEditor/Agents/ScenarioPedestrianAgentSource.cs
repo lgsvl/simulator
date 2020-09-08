@@ -11,6 +11,7 @@ namespace Simulator.ScenarioEditor.Agents
     using System.Threading.Tasks;
     using Input;
     using Managers;
+    using Undo.Records;
     using UnityEngine;
 
     /// <inheritdoc/>
@@ -143,8 +144,9 @@ namespace Simulator.ScenarioEditor.Agents
         {
             var agent = GetAgentInstance(AgentVariants[0]);
             agent.TransformToRotate.rotation = draggedInstance.transform.rotation;
-            agent.Reposition(draggedInstance.transform.position);
+            agent.ForceMove(draggedInstance.transform.position);
             ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
+            ScenarioManager.Instance.undoManager.RegisterRecord(new UndoAddElement(agent));
             draggedInstance = null;
         }
 

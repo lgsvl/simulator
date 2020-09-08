@@ -8,8 +8,11 @@
 namespace Simulator.ScenarioEditor.Elements
 {
     using System;
+    using System.Collections.Generic;
     using Input;
     using Managers;
+    using Undo;
+    using Undo.Records;
     using UnityEngine;
 
     /// <summary>
@@ -93,7 +96,7 @@ namespace Simulator.ScenarioEditor.Elements
         /// </summary>
         public virtual string Uid
         {
-            get => uid ?? (uid = System.Guid.NewGuid().ToString());
+            get => uid ?? (uid = Guid.NewGuid().ToString());
             set => uid = value;
         }
 
@@ -160,19 +163,57 @@ namespace Simulator.ScenarioEditor.Elements
         {
             
         }
-        
+
+        /// <summary>
+        /// Removes element from the map, but holds it for the undo
+        /// </summary>
+        public virtual void RemoveFromMap()
+        {
+            if (ScenarioManager.Instance.SelectedElement == this)
+                ScenarioManager.Instance.SelectedElement = null;
+        }
+
         /// <summary>
         /// Method called to entirely remove element from the scenario
         /// </summary>
-        public abstract void Remove();
+        public virtual void UndoRemove()
+        {
+            
+        }
+
+        /// <summary>
+        /// Entirely removes element from the scene
+        /// </summary>
+        public abstract void Dispose();
 
         /// <summary>
         /// Repositions the scenario element on the map including the element's restrictions
         /// </summary>
-        /// <param name="requestedPosition"></param>
-        public virtual void Reposition(Vector3 requestedPosition)
+        /// <param name="requestedPosition">Position that will be applied</param>
+        public virtual void ForceMove(Vector3 requestedPosition)
         {
             transform.position = requestedPosition;
+            OnMoved();
+        }
+
+        /// <summary>
+        /// Rotates the scenario element on the map
+        /// </summary>
+        /// <param name="requestedRotation">Rotation that will be applied</param>
+        public virtual void ForceRotate(Quaternion requestedRotation)
+        {
+            transform.rotation = requestedRotation;
+            OnRotated();
+        }
+
+        /// <summary>
+        /// Resized the scenario element on the map
+        /// </summary>
+        /// <param name="requestedScale">Scale that will be applied</param>
+        public virtual void ForceResize(Vector3 requestedScale)
+        {
+            transform.localScale = requestedScale;
+            OnResized();
         }
 
         /// <summary>
@@ -220,6 +261,7 @@ namespace Simulator.ScenarioEditor.Elements
                     break;
                 case DragType.Movement:
                     positionBeforeDrag = TransformToMove.position;
+                    rotationBeforeRotating = TransformToRotate.rotation;
                     break;
                 case DragType.Rotation:
                     startViewportPosition = inputManager.MouseViewportPosition;
@@ -242,7 +284,7 @@ namespace Simulator.ScenarioEditor.Elements
                 case DragType.None:
                     break;
                 case DragType.Movement:
-                    Reposition(inputManager.MouseRaycastPosition);
+                    ForceMove(inputManager.MouseRaycastPosition);
                     OnMoved();
                     break;
                 case DragType.Rotation:
@@ -273,6 +315,25 @@ namespace Simulator.ScenarioEditor.Elements
         {
             //Apply current mouse position
             (this as IDragHandler).DragMoved();
+            switch (currentDragType)
+            {
+                case DragType.None:
+                    break;
+                case DragType.Movement:
+                    var records = new List<UndoRecord>();
+                    records.Add(new UndoMoveElement(this, positionBeforeDrag));
+                    records.Add(new UndoRotateElement(this, rotationBeforeRotating));
+                    ScenarioManager.Instance.undoManager.RegisterRecord(new ComplexUndo(records));
+                    break;
+                case DragType.Rotation:
+                    ScenarioManager.Instance.undoManager.RegisterRecord(new UndoRotateElement(this, rotationBeforeRotating));
+                    break;
+                case DragType.Resize:
+                    ScenarioManager.Instance.undoManager.RegisterRecord(new UndoResizeElement(this, scaleBeforeResizing));
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
 
             currentDragType = DragType.None;
         }

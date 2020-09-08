@@ -9,6 +9,7 @@ namespace Simulator.ScenarioEditor.UI.MapEdit.Buttons
 {
     using Elements;
     using Managers;
+    using Undo.Records;
 
     /// <summary>
     /// Feature allowing to remove a map element
@@ -26,7 +27,8 @@ namespace Simulator.ScenarioEditor.UI.MapEdit.Buttons
         {
             ScenarioManager.Instance.SelectedElement = null;
             ScenarioManager.Instance.IsScenarioDirty = true;
-            CurrentElement.Remove();
+            ScenarioManager.Instance.undoManager.RegisterRecord(new UndoRemoveElement(CurrentElement));
+            CurrentElement.RemoveFromMap();
         }
     }
 }

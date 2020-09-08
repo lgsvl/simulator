@@ -10,9 +10,10 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
     using System;
     using Elements;
     using Managers;
+    using Undo.Records;
     using UnityEngine;
+    using UnityEngine.EventSystems;
     using UnityEngine.UI;
-    using Utilities;
 
     /// <summary>
     /// Default panel that edits trigger effectors
@@ -40,6 +41,14 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
 
         /// <inheritdoc/>
         public override Type EditedEffectorType => typeof(WaitTimeEffector);
+        
+        /// <summary>
+        /// Unity OnDisable method
+        /// </summary>
+        private void OnDisable()
+        {
+            valueInputField.OnDeselect(new BaseEventData(EventSystem.current));
+        }
         
         /// <inheritdoc/>
         public override void StartEditing(TriggerEditPanel triggerPanel, ScenarioTrigger trigger, TriggerEffector effector)
@@ -69,8 +78,11 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         /// <param name="valueString">Value that should be set to the effector</param>
         public void SetValue(string valueString)
         {
-            if (float.TryParse(valueString, out var value))
-                SetValue(value);
+            if (!float.TryParse(valueString, out var value)) return;
+            
+            ScenarioManager.Instance.undoManager.RegisterRecord(new UndoInputField(valueInputField,
+                editedEffector.Value.ToString("F")));
+            SetValue(value);
         }
 
         /// <summary>

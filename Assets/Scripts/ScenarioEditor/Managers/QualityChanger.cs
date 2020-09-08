@@ -20,7 +20,7 @@ namespace Simulator.ScenarioEditor.Managers
         /// <summary>
         /// How many times maximum distance of the lod and shadows will be multiplied in the VSE
         /// </summary>
-        private const float QualityDistanceMultiplier = 2.0f;
+        private const float QualityDistanceMultiplier = 8.0f;
 
         //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
 #pragma warning disable 0649

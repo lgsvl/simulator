@@ -11,7 +11,10 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
     using Data.Serializer;
     using Elements;
     using Managers;
+    using ScenarioEditor.Utilities;
+    using Undo.Records;
     using UnityEngine;
+    using UnityEngine.EventSystems;
     using UnityEngine.UI;
     using Utilities;
 
@@ -33,7 +36,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// </summary>
         [SerializeField]
         private GameObject waitTimePanel;
-        
+
         /// <summary>
         /// Input field for editing wait time
         /// </summary>
@@ -71,6 +74,14 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// Reference to currently selected waypoint
         /// </summary>
         private ScenarioWaypoint selectedWaypoint;
+
+        /// <summary>
+        /// Unity OnDisable method
+        /// </summary>
+        private void OnDisable()
+        {
+            waitTimeInput.OnDeselect(new BaseEventData(EventSystem.current));
+        }
 
         /// <inheritdoc/>
         public override void Initialize()
@@ -122,7 +133,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                     waitTimeInput.text = selectedWaypoint.WaitTime.ToString("F");
                 }
 
-                UIUtilities.LayoutRebuild(transform as RectTransform);
+                UnityUtilities.LayoutRebuild(transform as RectTransform);
             }
         }
 
@@ -191,7 +202,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                         waypointInstance.transform);
                     break;
             }
-            
+
             selectedAgent.WaypointPositionChanged(waypointInstance);
         }
 
@@ -215,14 +226,21 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                         waypointInstance.transform);
                     break;
             }
+
             selectedAgent.AddWaypoint(waypointInstance, previousWaypoint);
+            ScenarioManager.Instance.IsScenarioDirty = true;
+            ScenarioManager.Instance.undoManager.RegisterRecord(new UndoAddElement(previousWaypoint));
         }
 
         /// <inheritdoc/>
         void IAddElementsHandler.AddingCancelled(Vector3 addPosition)
         {
             if (waypointInstance != null)
-                waypointInstance.Remove();
+            {
+                waypointInstance.RemoveFromMap();
+                waypointInstance.Dispose();
+            }
+
             waypointInstance = null;
             isAddingWaypoints = false;
         }
@@ -245,11 +263,12 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// <param name="waitTimeString">Wait time value in the string format</param>
         public void ChangeWaypointWaitTime(string waitTimeString)
         {
-            if (selectedWaypoint != null && float.TryParse(waitTimeString, out var value))
-            {
-                ScenarioManager.Instance.IsScenarioDirty = true;
-                selectedWaypoint.WaitTime = value;
-            }
+            if (selectedWaypoint == null || !float.TryParse(waitTimeString, out var value)) return;
+            
+            ScenarioManager.Instance.undoManager.RegisterRecord(new UndoInputField(waitTimeInput,
+                selectedWaypoint.WaitTime.ToString("F")));
+            ScenarioManager.Instance.IsScenarioDirty = true;
+            selectedWaypoint.WaitTime = value;
         }
     }
 }

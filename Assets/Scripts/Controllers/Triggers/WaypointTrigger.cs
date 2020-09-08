@@ -12,7 +12,13 @@ using UnityEngine;
 
 public class WaypointTrigger
 {
-    public List<TriggerEffector> Effectors = new List<TriggerEffector>();
+    protected List<TriggerEffector> effectors = new List<TriggerEffector>();
+
+    public event Action<TriggerEffector> EffectorAdded;
+    
+    public event Action<TriggerEffector> EffectorRemoved;
+
+    public List<TriggerEffector> Effectors => effectors;
 
     public IEnumerator Apply(ITriggerAgent triggerAgent, Action callback = null)
     {
@@ -25,5 +31,19 @@ public class WaypointTrigger
             yield return coroutines[i];
 
         callback?.Invoke();
+    }
+
+    public void AddEffector(TriggerEffector effector)
+    {
+        Effectors.Add(effector);
+        EffectorAdded?.Invoke(effector);
+    }
+
+    public void RemoveEffector(TriggerEffector effector)
+    {
+        if (!Effectors.Contains(effector))
+            return;
+        Effectors.Remove(effector);
+        EffectorRemoved?.Invoke(effector);
     }
 }

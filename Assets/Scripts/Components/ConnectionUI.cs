@@ -16,6 +16,7 @@ namespace Simulator.Web
     public class ConnectionUI : MonoBehaviour
     {
         public GameObject statusMenuRoot;
+        public GameObject dropdownArrow;
         public Text statusText;
         public Button statusButton;
         public Text statusButtonText;
@@ -24,6 +25,7 @@ namespace Simulator.Web
         public Text statusMenuButtonText;
         public Button unlinkButton;
         public Button linkButton;
+        public Button quitButton;
         public Text linkButtonText;
         public static ConnectionUI instance;
         public Color offlineColor;
@@ -53,12 +55,13 @@ namespace Simulator.Web
             ColorUtility.TryParseHtmlString("#FFFFFF", out onlineColor);
             statusButtonIcon.material.color = Color.white;
             instance = this;
-            statusButton.onClick.AddListener(() => statusMenuRoot.SetActive(!statusMenuRoot.gameObject.activeSelf));
-            statusMenuButton.onClick.AddListener(OnStatusButtonClicked);
+            statusButton.onClick.AddListener(OnStatusButtonClicked);
+            statusMenuButton.onClick.AddListener(OnStatusMenuButtonClicked);
             linkButton.onClick.AddListener(OnLinkButtonClicked);
             offlineStartButton.onClick.AddListener(OnOfflineStartButtonClicked);
             offlineStopButton.onClick.AddListener(OnOfflineStopButtonClicked);
             unlinkButton.onClick.AddListener(OnUnlinkButtonClicked);
+            quitButton.onClick.AddListener(OnQuitButtonClicked);
             UpdateDropdown();
             offlineDropdown.onValueChanged.AddListener(OnDropdownValueChanged);
             UpdateStatus();
@@ -95,7 +98,6 @@ namespace Simulator.Web
                     linkButtonText.text = "LINK TO CLOUD";
                     unlinkButton.gameObject.SetActive(false);
                     linkButton.gameObject.SetActive(true);
-                    statusButton.interactable = true;
                     offlineDropdown.gameObject.SetActive(false);
                     offlineStartButton.gameObject.SetActive(false);
                     VSEButton.gameObject.SetActive(false);
@@ -108,7 +110,6 @@ namespace Simulator.Web
                     statusButtonIcon.color = offlineColor;
                     unlinkButton.gameObject.SetActive(true);
                     linkButton.gameObject.SetActive(false);
-                    statusButton.interactable = true;
                     offlineDropdown.gameObject.SetActive(true);
                     offlineStartButton.gameObject.SetActive(true);
                     VSEButton.gameObject.SetActive(false);
@@ -123,7 +124,6 @@ namespace Simulator.Web
                     linkButtonText.text = "OPEN BROWSER";
                     unlinkButton.gameObject.SetActive(true);
                     linkButton.gameObject.SetActive(true);
-                    statusButton.interactable = true;
                     offlineDropdown.gameObject.SetActive(false);
                     offlineStartButton.gameObject.SetActive(false);
                     VSEButton.gameObject.SetActive(true);
@@ -151,6 +151,22 @@ namespace Simulator.Web
             selectedSim = value;
         }
 
+        public void OnStatusButtonClicked()
+        {
+            bool active = !statusMenuRoot.gameObject.activeSelf;
+            statusMenuRoot.SetActive(active);
+            dropdownArrow.transform.localScale = new Vector3(1, active ? 1 : -1, 1);
+        }
+
+        public void OnQuitButtonClicked()
+        {
+            #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+            #else
+             Application.Quit();
+            #endif
+        }
+
         public void OnOfflineStartButtonClicked()
         {
             Loader.StartSimulation(simulationData[selectedSim]);
@@ -175,7 +191,7 @@ namespace Simulator.Web
             VSEButton.gameObject.SetActive(active);
         }
 
-        public void OnStatusButtonClicked()
+        public void OnStatusMenuButtonClicked()
         {
             statusMenuRoot.gameObject.SetActive(false);
             ConnectionManager.instance.ConnectionStatusEvent();
@@ -200,22 +216,17 @@ namespace Simulator.Web
             switch (LoaderUIState)
             {
                 case LoaderUIStateType.START:
-                    if (Config.RunAsMaster)
-                        statusButton.interactable = true;
-                    else
+                    if (!Config.RunAsMaster)
                     {
-                        statusButton.interactable = false;
                         statusButtonText.text = "Client ready";
                         statusText.text = "Client ready";
                     }
                     break;
                 case LoaderUIStateType.PROGRESS:
-                    statusButton.interactable = false;
                     statusButtonText.text = "Loading...";
                     statusText.text = "Loading...";
                     break;
                 case LoaderUIStateType.READY:
-                    statusButton.interactable = false;
                     statusButtonText.text = "API ready!";
                     statusText.text = "API ready!";
                     break;

@@ -80,7 +80,6 @@ public class ConnectionManager : MonoBehaviour
             RunOnUnityThread(() =>
             {
                 ConnectionUI.instance.UpdateStatus();
-                ConnectionUI.instance.statusButton.interactable = false;
             });
             
             foreach (var timeOut in timeOutSequence)
@@ -213,7 +212,6 @@ public class ConnectionManager : MonoBehaviour
                                 {
                                     Status = ConnectionStatus.Online;
                                     ConnectionUI.instance.UpdateStatus();
-                                    ConnectionUI.instance.statusButton.interactable = false;
 
                                     SimulationData simData;
                                     try 

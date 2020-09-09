@@ -25,10 +25,21 @@ namespace Simulator.Api.Commands
             {
                 var position = spawn.transform.position;
                 var rotation = spawn.transform.rotation.eulerAngles;
+                var destinations = new JSONArray();
+                foreach (var dest in spawn.Destinations)
+                {
+                    var DestPosition = dest.transform.position;
+                    var DestRotation = dest.transform.rotation.eulerAngles;
+                    var d = new JSONObject();
+                    d.Add("position", DestPosition);
+                    d.Add("rotation", DestRotation);
+                    destinations.Add(d);
+                }
 
                 var s = new JSONObject();
                 s.Add("position", position);
                 s.Add("rotation", rotation);
+                s.Add("destinations", destinations);
                 spawns.Add(s);
             }
             api.SendResult(this, spawns);

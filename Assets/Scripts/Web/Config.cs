@@ -83,15 +83,14 @@ namespace Simulator.Web
                 ParseCommandLine();
             }
 
-            RunOnceInstance = new RunOnce($"Global\\148fe96a-5e29-43a0-9b0c-e158bdbe6024-{PersistentDataPath}"); // using GUID to confirm ID is unique
+            RunOnceInstance = new RunOnce($"148fe96a-5e29-43a0-9b0c-e158bdbe6024-{PersistentDataPath}"); // using GUID to confirm ID is unique
             if (RunOnceInstance.AlreadyRunning)
             {
-                Debug.LogError("Another instance of simulator is running already!");
+                Debug.LogError($"!!! Another instance of simulator is already using this data folder: {PersistentDataPath}");
 #if UNITY_EDITOR
                 UnityEditor.EditorApplication.isPlaying = false;
 #else
-                // return non-zero exit code
-                Application.Quit(1);
+                Application.Quit(1); // return non-zero exit code
 #endif
             }
 
@@ -99,12 +98,11 @@ namespace Simulator.Web
             SensorPrefabs = RuntimeSettings.Instance.SensorPrefabs.ToList();
             if (SensorPrefabs.Any(s=> s == null))
             {
-                Debug.LogError("Null Sensor Prefab Detected - Check RuntimeSettings SensorPrefabs List for missing Sensor Prefab");
+                Debug.LogError("!!! Null Sensor Prefab Detected - Check RuntimeSettings SensorPrefabs List for missing Sensor Prefab");
 #if UNITY_EDITOR
                 UnityEditor.EditorApplication.isPlaying = false;
 #else
-                // return non-zero exit code
-                Application.Quit(1);
+                Application.Quit(1); // return non-zero exit code
 #endif
                 return;
             }

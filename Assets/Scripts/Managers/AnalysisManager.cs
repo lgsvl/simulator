@@ -414,7 +414,18 @@ namespace Simulator.Analysis
                 var agentData = agentDataToken as JObject;
                 if (agentData==null)
                     continue;
-                ClientsSensorsData.Add(agentData["id"].Value<uint>(), agentData["Sensors"] as JObject);
+                var agentId = agentData["id"].Value<uint>();
+                var sensorsJson = agentData["Sensors"] as JObject;
+                if (sensorsJson == null) continue;
+                if (ClientsSensorsData.TryGetValue(agentId, out var sensors))
+                {
+                    foreach (var clientSensorData in sensorsJson.Properties())
+                        sensors.Add(clientSensorData.Name, clientSensorData.Value);
+                }
+                else
+                {
+                    ClientsSensorsData.Add(agentId, sensorsJson);
+                }
             }
             ReceivedClientsSensors++;
         }

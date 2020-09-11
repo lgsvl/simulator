@@ -49,7 +49,6 @@ public class AgentManager : MonoBehaviour
         // set it inactive until we can be sure setting up sensors etc worked without exceptions and it AgentController was initialized
         go.SetActive(false);
         var agentController = go.GetComponent<AgentController>();
-        agentController.SensorsChanged += AgentControllerOnSensorsChanged;
         agentController.Config = config;
         agentController.Config.AgentGO = go;
 
@@ -190,12 +189,6 @@ public class AgentManager : MonoBehaviour
         AgentChanged?.Invoke(agent);
     }
 
-    private void AgentControllerOnSensorsChanged(AgentController agentController)
-    {
-        if (agentController == CurrentActiveAgentController)
-            ActiveAgentChanged(CurrentActiveAgent);
-    }
-
     public void ResetAgent()
     {
         CurrentActiveAgent?.GetComponent<AgentController>()?.ResetPosition();
@@ -204,9 +197,6 @@ public class AgentManager : MonoBehaviour
     public void DestroyAgent(GameObject go)
     {
         ActiveAgents.RemoveAll(config => config.AgentGO == go);
-        var agentController = go.GetComponent<AgentController>();
-        if (agentController!= null)
-            agentController.SensorsChanged -= AgentControllerOnSensorsChanged;
         Destroy(go);
 
         if (ActiveAgents.Count == 0)

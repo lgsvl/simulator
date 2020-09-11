@@ -533,22 +533,36 @@ public class UIManager : MonoBehaviour
 
     private void OnAgentChange(GameObject agent)
     {
-        if (CurrentAgent == null)
+        if (CurrentAgent == agent)
+            return;
+        
+        //Detach from the current agent events
+        if (CurrentAgent != null)
         {
-            CurrentAgent = agent;
-        }
-        else
-        {
-            if (CurrentAgent == agent)
-            {
-                return;
-            }
-            else
-            {
-                CurrentAgent = agent;
-            }
+            var previousAgentController = CurrentAgent.GetComponent<AgentController>();
+            if (previousAgentController != null)
+                previousAgentController.SensorsChanged -= AgentControllerOnSensorsChanged;
         }
 
+        //Set new agent
+        CurrentAgent = agent;
+        AgentController agentController = null;
+                
+        //Attach to the new agent events
+        if (CurrentAgent != null)
+        {
+            agentController = CurrentAgent.GetComponent<AgentController>();
+            if (agentController != null)
+                agentController.SensorsChanged += AgentControllerOnSensorsChanged;
+        }
+
+        AgentControllerOnSensorsChanged(agentController);
+        SetAgentBridgeInfo(agent);
+        AgentDropdown.value = SimulatorManager.Instance.AgentManager.GetCurrentActiveAgentIndex();
+    }
+
+    private void AgentControllerOnSensorsChanged(AgentController agentController)
+    {
         for (int i = 0; i < visualizerToggles.Count; i++)
         {
             Destroy(visualizerToggles[i].gameObject);
@@ -559,14 +573,14 @@ public class UIManager : MonoBehaviour
         }
         visualizerToggles.Clear();
         visualizers.Clear();
-        VisualizerGridLayoutGroup.enabled = true;
-        Array.ForEach(agent.GetComponentsInChildren<SensorBase>(), sensor =>
+        
+        //Check if agent was not set to null
+        if (agentController != null)
         {
-            AddVisualizer(sensor);
-        });
-        VisualizerGridLayoutGroup.enabled = false;
-        SetAgentBridgeInfo(agent);
-        AgentDropdown.value = SimulatorManager.Instance.AgentManager.GetCurrentActiveAgentIndex();
+            VisualizerGridLayoutGroup.enabled = true;
+            Array.ForEach(agentController.GetComponentsInChildren<SensorBase>(), sensor => { AddVisualizer(sensor); });
+            VisualizerGridLayoutGroup.enabled = false;
+        }
     }
 
     private void SetCurrentPanel()

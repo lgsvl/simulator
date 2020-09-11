@@ -56,7 +56,7 @@ namespace Simulator.Network.Master
         /// <summary>
         /// Determines if time scale was locked from this script
         /// </summary>
-        private bool timescaleLockCalled = false;
+        private bool timescaleLockCalled;
         
         /// <summary>
         /// Identifier of the last sent ping
@@ -139,6 +139,7 @@ namespace Simulator.Network.Master
         {
             PacketsProcessor.SubscribeReusable<Commands.Pong, IPeerManager>(OnPongCommand);
             PacketsProcessor.SubscribeReusable<Commands.Ready, IPeerManager>(OnReadyCommand);
+            PacketsProcessor.SubscribeReusable<Commands.Loaded, IPeerManager>(OnLoadedCommand);
         }
 
         /// <summary>
@@ -163,6 +164,9 @@ namespace Simulator.Network.Master
         private void OnDestroy()
         {
             StopConnection();
+            PacketsProcessor.RemoveSubscription<Commands.Pong>();
+            PacketsProcessor.RemoveSubscription<Commands.Ready>();
+            PacketsProcessor.RemoveSubscription<Commands.Loaded>();
         }
 
         /// <summary>
@@ -179,6 +183,9 @@ namespace Simulator.Network.Master
             ObjectsRoot.SetMessagesManager(MessagesManager);
             ObjectsRoot.SetSettings(settings);
             Log.Info($"{GetType().Name} was initialized and waits for all the clients.");
+            SimulatorManager.Instance.TimeManager.TimeScaleSemaphore.Lock();
+            timescaleLockCalled = true;
+            TryStartSimulation();
         }
 
         /// <summary>
@@ -202,7 +209,8 @@ namespace Simulator.Network.Master
                 throw new NullReferenceException("Set network settings before starting the connection.");
             MessagesManager.RegisterObject(this);
             ConnectionManager.AcceptableIdentifiers.AddRange(acceptableIdentifiers);
-            ConnectionManager.Start(settings.ConnectionPort, settings.Timeout);
+            ConnectionManager.Port = settings.ConnectionPort;
+            ConnectionManager.Start(settings.Timeout);
             ConnectionManager.PeerConnected += OnClientConnected;
             ConnectionManager.PeerDisconnected += OnClientDisconnected;
             State = SimulationState.Connecting;
@@ -240,12 +248,28 @@ namespace Simulator.Network.Master
         /// <summary>
         /// Tries to start the simulation
         /// </summary>
-        public void TryStartSimulation()
+        public void TryLoadSimulation()
         {
             if (!Loader.Instance.Network.IsSimulationReady || State != SimulationState.Connected ||
                 clients.Any(c => c.State != SimulationState.Ready)) return;
             State = SimulationState.Ready;
             RunSimulation();
+        }
+
+        /// <summary>
+        /// Tries to start the simulation
+        /// </summary>
+        public void TryStartSimulation()
+        {
+            if (objectsRoot!=null && 
+                clients.Any(c => c.State != SimulationState.Loading)) return;
+            
+            if (timescaleLockCalled)
+            {
+                SimulatorManager.Instance.TimeManager.TimeScaleSemaphore.Unlock();
+                timescaleLockCalled = false;
+            }
+            State = SimulationState.Running;
         }
 
         /// <summary>
@@ -277,7 +301,7 @@ namespace Simulator.Network.Master
         private void OnClientDisconnected(IPeerManager clientPeerManager)
         {
             var client = Clients.Find(c => c.Peer == clientPeerManager);
-            Log.Info($"{GetType().Name} disconnected from the client with address '{client.Peer.PeerEndPoint.ToString()}'.");
+            Log.Info($"{GetType().Name} disconnected from the client with address '{client.Peer.PeerEndPoint}'.");
             Debug.Assert(client != null);
             Clients.Remove(client);
 
@@ -338,6 +362,25 @@ namespace Simulator.Network.Master
             }
 
             client.State = SimulationState.Ready;
+            TryLoadSimulation();
+
+        }
+
+        /// <summary>
+        /// Method invoked when manager receives loaded result command
+        /// </summary>
+        /// <param name="loaded">Received loaded result command</param>
+        /// <param name="peer">Peer which has sent the command</param>
+        public void OnLoadedCommand(Commands.Loaded loaded, IPeerManager peer)
+        {
+            var client = clients.First(c => c.Peer == peer);
+            if (client == null)
+            {
+                Log.Warning("Received loaded command from a unconnected client.");
+                return;
+            }
+
+            client.State = SimulationState.Running;
             TryStartSimulation();
 
         }
@@ -365,9 +408,11 @@ namespace Simulator.Network.Master
             message.Content.PushBytes(stopData);
             message.Type = DistributedMessageType.ReliableOrdered;
             BroadcastMessage(message);
-            
+
             Loader.StartAsync(Loader.Instance.Network.CurrentSimulation);
-            State = SimulationState.Running;
+            foreach (var clientConnection in clients)
+                clientConnection.State = SimulationState.Loading;
+            State = SimulationState.Loading;
         }
 
         /// <summary>

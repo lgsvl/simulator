@@ -253,7 +253,7 @@ namespace Simulator.Network.Shared
                 case ClusterNodeType.NotClusterNode:
                     break;
                 case ClusterNodeType.Master:
-                    Master.TryStartSimulation();
+                    Master.TryLoadSimulation();
                     break;
                 case ClusterNodeType.Client:
                     simulationData.Interactive = false;

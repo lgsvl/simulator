@@ -25,7 +25,7 @@ namespace Simulator.Network.Core.Connection
         /// <summary>
         /// Port used for the connections
         /// </summary>
-        int Port { get; }
+        int Port { get; set; }
         
         /// <summary>
         /// Timeout value in milliseconds
@@ -60,10 +60,9 @@ namespace Simulator.Network.Core.Connection
         /// <summary>
         /// Starts the manager, begins listening for events on given port
         /// </summary>
-        /// <param name="port">Listening port for the connection</param>
         /// <param name="timeout">Timeout value in milliseconds</param>
         /// <returns>True if manager was started, false if start failed</returns>
-        bool Start(int port, int timeout);
+        bool Start(int timeout);
 
         /// <summary>
         /// Stop the connection manager and all established connections

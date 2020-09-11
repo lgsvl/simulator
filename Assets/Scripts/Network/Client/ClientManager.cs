@@ -119,6 +119,10 @@ namespace Simulator.Network.Client
         {
             SetCollisionBetweenSimulationObjects(true);
             StopConnection();
+            PacketsProcessor.RemoveSubscription<Commands.Run>();
+            PacketsProcessor.RemoveSubscription<Commands.Stop>();
+            PacketsProcessor.RemoveSubscription<Commands.EnvironmentState>();
+            PacketsProcessor.RemoveSubscription<Commands.Ping>();
         }
 
         /// <summary>
@@ -160,6 +164,8 @@ namespace Simulator.Network.Client
             ObjectsRoot.SetMessagesManager(MessagesManager);
             ObjectsRoot.SetSettings(settings);
             Log.Info($"{GetType().Name} initialized the simulation.");
+            SendLoadedCommand();
+            State = SimulationState.Running;
         }
 
         /// <summary>
@@ -170,7 +176,7 @@ namespace Simulator.Network.Client
             if (settings == null)
                 throw new NullReferenceException("Set network settings before starting the connection.");
             MessagesManager.RegisterObject(this);
-            Connection.Start(settings.ConnectionPort, settings.Timeout);
+            Connection.Start(settings.Timeout);
             Connection.PeerConnected += OnPeerConnected;
             Connection.PeerDisconnected += OnPeerDisconnected;
             Log.Info($"{GetType().Name} started the connection manager.");
@@ -216,8 +222,6 @@ namespace Simulator.Network.Client
             if (peer != MasterPeer)
                 return;
             MasterPeer = null;
-            // OnStopCommand(new Commands.Stop());
-            // MessagesManager.RevokeIdentifiers();
             Log.Info($"Peer {peer.PeerEndPoint} disconnected.");
         }
 
@@ -328,17 +332,33 @@ namespace Simulator.Network.Client
         }
 
         /// <summary>
+        /// Sends loaded command to the master
+        /// </summary>
+        public void SendLoadedCommand()
+        {
+            if (State != SimulationState.Connected) return;
+            State = SimulationState.Ready;
+            var stopData = PacketsProcessor.Write(new Commands.Loaded());
+            var message = MessagesPool.Instance.GetMessage(stopData.Length);
+            message.AddressKey = Key;
+            message.Content.PushBytes(stopData);
+            message.Type = DistributedMessageType.ReliableOrdered;
+            BroadcastMessage(message);
+            Log.Info($"{GetType().Name} loaded the simulation and has sent loaded command to the master.");
+        }
+
+        /// <summary>
         /// Method invoked when manager receives run command
         /// </summary>
         /// <param name="run">Received run command</param>
         private void OnRunCommand(Commands.Run run)
         {
             //Check if the simulation is already loading or running
-            if (State == SimulationState.Running || State == SimulationState.Loading)
+            if (State == SimulationState.Running || State == SimulationState.Preparing)
                 return;
             Debug.Assert(State == SimulationState.Ready);
             Loader.StartAsync(Loader.Instance.Network.CurrentSimulation);
-            State = SimulationState.Running;
+            State = SimulationState.Loading;
             Log.Info($"{GetType().Name} received run command and started the simulation.");
         }
 

@@ -43,7 +43,7 @@ namespace Simulator.Network.Core.Connection
         public bool IsServer => true;
 
         /// <inheritdoc/>
-        public int Port { get; private set; }
+        public int Port { get; set; }
 
         /// <inheritdoc/>
         public int Timeout { get; private set; }
@@ -64,18 +64,17 @@ namespace Simulator.Network.Core.Connection
         public event Action<DistributedMessage> MessageReceived;
 
         /// <inheritdoc/>
-        public bool Start(int port, int timeout)
+        public bool Start(int timeout)
         {
-            Port = port;
             Timeout = timeout;
             NetDebug.Logger = this;
             netServer = new NetManager(this)
-                {BroadcastReceiveEnabled = false, UpdateTime = 5, DisconnectTimeout = timeout};
-            var result = netServer.Start(port);
+                {BroadcastReceiveEnabled = false, UpdateTime = 5, DisconnectTimeout = timeout, AutoRecycle = true};
+            var result = netServer.Start(Port);
             if (result)
-                Log.Info($"{GetType().Name} started using the port '{port}'.");
+                Log.Info($"{GetType().Name} started using the port '{Port}'.");
             else
-                Log.Error($"{GetType().Name} failed to start using the port '{port}'.");
+                Log.Error($"{GetType().Name} failed to start using the port '{Port}'.");
             return result;
         }
 

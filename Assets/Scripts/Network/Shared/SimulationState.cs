@@ -10,10 +10,11 @@ namespace Simulator.Network.Shared
     public enum SimulationState
     {
         Initial,
-        Connecting, // waiting from "init" command
-        Connected,  // "init" command is received
-        Loading,    // client is loading bundles
-        Ready,      // client finished all bundle loading
-        Running,    // simulation is running
+        Connecting,     // waiting from "init" command
+        Connected,      // "init" command is received
+        Preparing,      // client is downloading and loading bundles
+        Ready,          // client finished all bundle loading
+        Loading,        // client is loading the simulation
+        Running,        // simulation is running
     }
 }

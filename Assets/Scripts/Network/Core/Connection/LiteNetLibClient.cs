@@ -47,7 +47,7 @@ namespace Simulator.Network.Core.Connection
         public bool IsServer => false;
 
         /// <inheritdoc/>
-        public int Port { get; private set; }
+        public int Port { get; set; } = 0;
 
         /// <inheritdoc/>
         public int Timeout { get; private set; }
@@ -83,20 +83,19 @@ namespace Simulator.Network.Core.Connection
         public event Action<int> LatencyUpdated;
 
         /// <inheritdoc/>
-        public bool Start(int port, int timeout)
+        public bool Start(int timeout)
         {
-            Port = port;
             Timeout = timeout;
             netClient = new NetManager(this)
             {
                 UnconnectedMessagesEnabled = false, UpdateTime = 5, DisconnectTimeout = timeout,
-                AutoRecycle = true
+                AutoRecycle = true, 
             };
-            var result = NetClient.Start(port);
+            var result = NetClient.Start(Port);
             if (result)
-                Log.Info($"{GetType().Name} started using the port '{port}'.");
+                Log.Info($"{GetType().Name} started using the port '{Port}'.");
             else
-                Log.Error($"{GetType().Name} failed to start using the port '{port}'.");
+                Log.Error($"{GetType().Name} failed to start using the port '{Port}'.");
             return result;
         }
 
@@ -191,7 +190,8 @@ namespace Simulator.Network.Core.Connection
         /// <inheritdoc/>
         public void OnNetworkError(IPEndPoint endPoint, SocketError socketError)
         {
-            Log.Error("[Client] error " + socketError);
+            if (masterPeer!=null && Equals(endPoint.Address, masterPeer.PeerEndPoint.Address))
+                Log.Error("[Client] Network error: " + socketError);
         }
 
         /// <inheritdoc/>

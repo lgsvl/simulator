@@ -26,6 +26,10 @@ namespace Simulator.Network.Shared
         {
         }
         
+        public class Loaded
+        {
+        }
+        
         public class Run
         {
         }

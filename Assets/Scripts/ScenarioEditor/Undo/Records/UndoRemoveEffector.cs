@@ -8,6 +8,7 @@
 namespace Simulator.ScenarioEditor.Undo.Records
 {
     using Elements;
+    using Managers;
 
     /// <summary>
     /// Record that undoes removing an effector to the trigger
@@ -41,6 +42,7 @@ namespace Simulator.ScenarioEditor.Undo.Records
         {
             trigger.Trigger.AddEffector(effector);
             trigger.TryGetEffector(effector)?.Show();
+            ScenarioManager.Instance.logPanel.EnqueueInfo("Undo applied to rollback removing an effector.");
         }
 
         /// <inheritdoc/>

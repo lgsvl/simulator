@@ -8,6 +8,7 @@
 namespace Simulator.ScenarioEditor.Undo.Records
 {
     using Elements;
+    using Managers;
 
     /// <summary>
     /// Record that undoes adding an scenario element to the map
@@ -33,6 +34,7 @@ namespace Simulator.ScenarioEditor.Undo.Records
         {
             scenarioElement.RemoveFromMap();
             scenarioElement.Dispose();
+            ScenarioManager.Instance.logPanel.EnqueueInfo("Undo applied to rollback adding a scenario element.");
         }
 
         /// <inheritdoc/>

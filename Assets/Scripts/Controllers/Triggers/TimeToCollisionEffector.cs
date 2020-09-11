@@ -17,6 +17,12 @@ public class TimeToCollisionEffector : TriggerEffector
 
     public override AgentType[] UnsupportedAgentTypes { get; } = { AgentType.Unknown, AgentType.Ego};
 
+    public override object Clone()
+    {
+        var clone = new TimeToCollisionEffector();
+        return clone;
+    }
+
     public override IEnumerator Apply(ITriggerAgent agent)
     {
         var lowestTTC = TimeToCollisionLimit;

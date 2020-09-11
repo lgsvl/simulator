@@ -120,7 +120,7 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
             {
                 Type = LogType.Info,
                 Text = text,
-                TextColor = Color.black
+                TextColor = Color.white
             };
             logsQueue.Enqueue(logData);
             Show();

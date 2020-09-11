@@ -8,6 +8,7 @@
 namespace Simulator.ScenarioEditor.Undo.Records
 {
     using Elements;
+    using Managers;
     using UnityEngine;
 
     /// <summary>
@@ -40,6 +41,7 @@ namespace Simulator.ScenarioEditor.Undo.Records
         public override void Undo()
         {
             scenarioElement.ForceMove(previousPosition);
+            ScenarioManager.Instance.logPanel.EnqueueInfo("Undo applied to rollback element movement.");
         }
 
         /// <inheritdoc/>

@@ -12,7 +12,14 @@ using UnityEngine;
 public class WaitTimeEffector : TriggerEffector
 {
     public override string TypeName { get; } = "WaitTime";
+    
     public float Value;
+
+    public override object Clone()
+    {
+        var clone = new WaitTimeEffector {Value = Value};
+        return clone;
+    }
 
     public override IEnumerator Apply(ITriggerAgent agent)
     {

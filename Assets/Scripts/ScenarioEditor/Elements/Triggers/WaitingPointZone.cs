@@ -7,6 +7,7 @@
 
 namespace Simulator.ScenarioEditor.Agents.Triggers
 {
+    using System;
     using Elements;
     using Managers;
     using UnityEngine;
@@ -14,7 +15,7 @@ namespace Simulator.ScenarioEditor.Agents.Triggers
     /// <summary>
     /// Object that represents the activation zone of the waiting point effector in the scenario
     /// </summary>
-    public class WaitingPointZone : ScenarioElement
+    public class WaitingPointZone : ScenarioEffectorObject
     {
         /// <summary>
         /// The position offset that will be applied to the line renderer of waypoints
@@ -24,15 +25,12 @@ namespace Simulator.ScenarioEditor.Agents.Triggers
         /// <summary>
         /// Line renderer for displaying the connection between waypoint and activation zone
         /// </summary>
-        private LineRenderer lineRenderer;
-        
-        /// <summary>
-        /// Parent effector of this zone
-        /// </summary>
-        private WaitingPointEffector parentEffector;
+        private LineRenderer pathRenderer;
 
-        /// <inheritdoc/>
-        public override bool CanBeRemoved => false;
+        /// <summary>
+        /// Cached reference to the linked effector
+        /// </summary>
+        private WaitingPointEffector waitingPointEffector;
 
         /// <inheritdoc/>
         public override bool CanBeRotated => false;
@@ -40,67 +38,78 @@ namespace Simulator.ScenarioEditor.Agents.Triggers
         /// <inheritdoc/>
         public override bool CanBeResized => true;
 
-        /// <inheritdoc/>
-        public override void Dispose()
+        /// <summary>
+        /// Line renderer for displaying the connection between waypoint and activation zone
+        /// </summary>
+        public LineRenderer PathRenderer
         {
-            throw new System.NotImplementedException();
+            get
+            {
+                if (pathRenderer != null)
+                    return pathRenderer;
+                pathRenderer = gameObject.GetComponent<LineRenderer>();
+                if (pathRenderer != null)
+                    return pathRenderer;
+                pathRenderer = gameObject.AddComponent<LineRenderer>();
+                pathRenderer.material = ScenarioManager.Instance.waypointsManager.triggerPathMaterial;
+                pathRenderer.useWorldSpace = false;
+                pathRenderer.positionCount = 2;
+                pathRenderer.textureMode = LineTextureMode.Tile;
+                pathRenderer.sortingLayerName = "Ignore Raycast";
+                pathRenderer.widthMultiplier = 0.4f;
+                pathRenderer.SetPosition(0, lineRendererPositionOffset);
+                return pathRenderer;
+            }
         }
 
-        /// <summary>
-        /// Setups the zone object with the data
-        /// </summary>
-        /// <param name="parentEffector">Parent effector of this zone</param>
-        public void Setup(WaitingPointEffector parentEffector)
+        /// <inheritdoc/>
+        public override void CopyProperties(ScenarioElement origin)
         {
-            this.parentEffector = parentEffector;
-            lineRenderer = gameObject.GetComponent<LineRenderer>();
-            if (lineRenderer==null)
-                lineRenderer = gameObject.AddComponent<LineRenderer>();
-            lineRenderer.material = ScenarioManager.Instance.waypointsManager.triggerPathMaterial;
-            lineRenderer.useWorldSpace = false;
-            lineRenderer.positionCount = 2;
-            lineRenderer.textureMode = LineTextureMode.Tile;
-            lineRenderer.SetPosition(0, lineRendererPositionOffset);
-            var thisTransform = transform;
-            var localPos = thisTransform.localPosition;
-            var localScale = thisTransform.localScale;
-            var position = localPos;
-            position.x /= -localScale.x;
-            position.y = lineRendererPositionOffset.y/localScale.y;
-            position.z /= -localScale.z;
-            lineRenderer.SetPosition(1, position);
-            lineRenderer.sortingLayerName = "Ignore Raycast";
-            lineRenderer.widthMultiplier = 0.4f;
+            //Override the ActivatorPoint (global position) with the local position
+            var originWaitingPoint = origin as WaitingPointZone;
+            if (originWaitingPoint == null) return;
+            transform.localPosition = origin.transform.localPosition;
+            originWaitingPoint.waitingPointEffector.ActivatorPoint = transform.position;
+            Refresh();
+        }
+
+        /// <inheritdoc/>
+        public override void Setup(ScenarioTrigger trigger, TriggerEffector effector)
+        {
+            base.Setup(trigger, effector);
+            waitingPointEffector = effector as WaitingPointEffector;
+            if (waitingPointEffector == null)
+                throw new ArgumentException(
+                    $"{GetType().Name} received effector of invalid type {effector.GetType().Name}.");
+            Refresh();
         }
 
         /// <inheritdoc/>
         protected override void OnMoved()
         {
             base.OnMoved();
-            parentEffector.ActivatorPoint = transform.position;
+            waitingPointEffector.ActivatorPoint = transform.position;
             Refresh();
         }
 
         protected override void OnResized()
         {
             base.OnResized();
-            parentEffector.PointRadius = transform.localScale.x;
+            waitingPointEffector.PointRadius = transform.localScale.x;
             Refresh();
         }
 
-        /// <summary>
-        /// Refresh the zone visualization with current state
-        /// </summary>
-        public void Refresh()
+        /// <inheritdoc/>
+        public override void Refresh()
         {
             var thisTransform = transform;
             var localPos = thisTransform.localPosition;
             var localScale = thisTransform.localScale;
             var position = localPos;
             position.x /= -localScale.x;
-            position.y = lineRendererPositionOffset.y/localScale.y;
+            position.y = lineRendererPositionOffset.y / localScale.y;
             position.z /= -localScale.z;
-            lineRenderer.SetPosition(1, position);
+            PathRenderer.SetPosition(1, position);
         }
     }
 }

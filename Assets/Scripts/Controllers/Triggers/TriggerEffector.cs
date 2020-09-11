@@ -5,15 +5,17 @@
  *
  */
 
+using System;
 using System.Collections;
-using System.Collections.Generic;
 using SimpleJSON;
 
-public abstract class TriggerEffector
+public abstract class TriggerEffector : ICloneable
 {
     public abstract string TypeName { get; }
 
     public virtual AgentType[] UnsupportedAgentTypes { get; } = { AgentType.Unknown, AgentType.Ego};
+    
+    public abstract object Clone();
 
     public abstract IEnumerator Apply(ITriggerAgent triggerAgent);
 

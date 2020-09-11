@@ -183,7 +183,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                     break;
             }
 
-            selectedAgent.AddWaypoint(waypointInstance, selectedWaypoint);
+            selectedAgent.AddWaypoint(waypointInstance, true, selectedWaypoint);
         }
 
         /// <inheritdoc/>
@@ -227,7 +227,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                     break;
             }
 
-            selectedAgent.AddWaypoint(waypointInstance, previousWaypoint);
+            selectedAgent.AddWaypoint(waypointInstance, true, previousWaypoint);
             ScenarioManager.Instance.IsScenarioDirty = true;
             ScenarioManager.Instance.undoManager.RegisterRecord(new UndoAddElement(previousWaypoint));
         }

@@ -202,7 +202,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                     }
 
                     newElementInstance.ForceMove(addPosition);
-                    selectedAgent.AddWaypoint(newElementInstance as ScenarioWaypoint);
+                    selectedAgent.AddWaypoint(newElementInstance as ScenarioWaypoint, true);
                     break;
             }
         }
@@ -225,7 +225,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                     newElementInstance = ScenarioManager.Instance.prefabsPools.GetInstance(mapWaypointPrefab)
                         .GetComponent<ScenarioWaypoint>();
                     newElementInstance.ForceMove(addPosition);
-                    selectedAgent.AddWaypoint(newElementInstance as ScenarioWaypoint);
+                    selectedAgent.AddWaypoint(newElementInstance as ScenarioWaypoint, true);
                     break;
             }
         }

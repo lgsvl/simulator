@@ -29,28 +29,28 @@ namespace Simulator.ScenarioEditor.Elements
             /// Element is not dragged
             /// </summary>
             None = 0,
-            
+
             /// <summary>
             /// Element is dragged to be moved
             /// </summary>
             Movement = 1,
-            
+
             /// <summary>
             /// Element is dragged to be rotated
             /// </summary>
             Rotation = 2,
-            
+
             /// <summary>
             /// Element is dragged to be resized
             /// </summary>
             Resize = 3
         }
-        
+
         /// <summary>
         /// Rotation value in degrees that will be applied when swiping whole screen
         /// </summary>
         private const float ScreenWidthRotation = 360 * 2;
-        
+
         /// <summary>
         /// How many times element will be scaled when swiping whole screen
         /// </summary>
@@ -99,6 +99,11 @@ namespace Simulator.ScenarioEditor.Elements
             get => uid ?? (uid = Guid.NewGuid().ToString());
             set => uid = value;
         }
+
+        /// <summary>
+        /// Can this scenario element be copied
+        /// </summary>
+        public virtual bool CanBeCopied => false;
 
         /// <summary>
         /// Can this scenario element be removed
@@ -161,7 +166,6 @@ namespace Simulator.ScenarioEditor.Elements
         /// </summary>
         public virtual void Selected()
         {
-            
         }
 
         /// <summary>
@@ -178,13 +182,22 @@ namespace Simulator.ScenarioEditor.Elements
         /// </summary>
         public virtual void UndoRemove()
         {
-            
         }
 
         /// <summary>
         /// Entirely removes element from the scene
         /// </summary>
         public abstract void Dispose();
+
+        /// <summary>
+        /// Method called after this element is instantiated using copied element
+        /// </summary>
+        /// <param name="origin">Origin element from which copy was created</param>
+        public virtual void CopyProperties(ScenarioElement origin)
+        {
+            Debug.LogError(
+                $"Error while copying an object {gameObject.name}, copying scenario element of type {GetType()} is not implemented.");
+        }
 
         /// <summary>
         /// Repositions the scenario element on the map including the element's restrictions
@@ -235,7 +248,8 @@ namespace Simulator.ScenarioEditor.Elements
         public void StartDragRotation()
         {
             if (!CanBeMoved)
-                throw new ArgumentException("Drag rotation called for ScenarioElement which does not support rotating.");
+                throw new ArgumentException(
+                    "Drag rotation called for ScenarioElement which does not support rotating.");
             currentDragType = DragType.Rotation;
             ScenarioManager.Instance.inputManager.StartDraggingElement(this, true);
         }
@@ -288,8 +302,10 @@ namespace Simulator.ScenarioEditor.Elements
                     OnMoved();
                     break;
                 case DragType.Rotation:
-                    var rotationValue = (inputManager.MouseViewportPosition.x - startViewportPosition.x) * ScreenWidthRotation;
-                    TransformToRotate.localRotation = rotationBeforeRotating * Quaternion.Euler(0.0f, rotationValue, 0.0f);
+                    var rotationValue = (inputManager.MouseViewportPosition.x - startViewportPosition.x) *
+                                        ScreenWidthRotation;
+                    TransformToRotate.localRotation =
+                        rotationBeforeRotating * Quaternion.Euler(0.0f, rotationValue, 0.0f);
                     OnRotated();
                     break;
                 case DragType.Resize:
@@ -298,7 +314,8 @@ namespace Simulator.ScenarioEditor.Elements
                         scaleValue = 1.0f + (inputManager.MouseViewportPosition.x - startViewportPosition.x) *
                             ScreenWidthResizeMultiplier;
                     else
-                        scaleValue = (1.0f - (startViewportPosition.x - inputManager.MouseViewportPosition.x)/startViewportPosition.x);
+                        scaleValue = (1.0f - (startViewportPosition.x - inputManager.MouseViewportPosition.x) /
+                            startViewportPosition.x);
                     var minimalScaleFraction = 0.01f;
                     if (scaleValue >= 0.0f && scaleValue < minimalScaleFraction)
                         scaleValue = minimalScaleFraction;
@@ -326,10 +343,12 @@ namespace Simulator.ScenarioEditor.Elements
                     ScenarioManager.Instance.undoManager.RegisterRecord(new ComplexUndo(records));
                     break;
                 case DragType.Rotation:
-                    ScenarioManager.Instance.undoManager.RegisterRecord(new UndoRotateElement(this, rotationBeforeRotating));
+                    ScenarioManager.Instance.undoManager.RegisterRecord(new UndoRotateElement(this,
+                        rotationBeforeRotating));
                     break;
                 case DragType.Resize:
-                    ScenarioManager.Instance.undoManager.RegisterRecord(new UndoResizeElement(this, scaleBeforeResizing));
+                    ScenarioManager.Instance.undoManager.RegisterRecord(
+                        new UndoResizeElement(this, scaleBeforeResizing));
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -360,7 +379,7 @@ namespace Simulator.ScenarioEditor.Elements
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            
+
             currentDragType = DragType.None;
         }
 

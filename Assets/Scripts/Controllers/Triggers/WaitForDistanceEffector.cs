@@ -12,8 +12,15 @@ using UnityEngine;
 public class WaitForDistanceEffector : TriggerEffector
 {
     public override string TypeName { get; } = "WaitForDistance";
+
     public float MaxDistance = 5.0f;
-    
+
+    public override object Clone()
+    {
+        var clone = new WaitForDistanceEffector {MaxDistance = MaxDistance};
+        return clone;
+    }
+
     public override IEnumerator Apply(ITriggerAgent agent)
     {
         //Make parent npc wait until any ego is closer than the max distance

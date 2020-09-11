@@ -12,9 +12,17 @@ using UnityEngine;
 public class WaitingPointEffector : TriggerEffector
 {
     public override string TypeName { get; } = "WaitingPoint";
+
     public Vector3 ActivatorPoint;
+
     public float PointRadius = 2.0f;
-    
+
+    public override object Clone()
+    {
+        var clone = new WaitingPointEffector {ActivatorPoint = ActivatorPoint, PointRadius = PointRadius};
+        return clone;
+    }
+
     public override IEnumerator Apply(ITriggerAgent agent)
     {
         //Make parent npc wait until any ego is closer than the max distance

@@ -12,6 +12,7 @@ namespace Simulator.ScenarioEditor.Input
     using Elements;
     using Managers;
     using Network.Core.Threading;
+    using Undo.Records;
     using UnityEngine;
     using UnityEngine.EventSystems;
     using UnityEngine.InputSystem;
@@ -569,6 +570,7 @@ namespace Simulator.ScenarioEditor.Input
             if (InputSemaphore.IsLocked)
                 return;
             RaycastAll();
+            HandleKeyboardShortcuts();
             HandleMapInput();
         }
 
@@ -605,6 +607,46 @@ namespace Simulator.ScenarioEditor.Input
         }
 
         /// <summary>
+        /// Hnadl
+        /// </summary>
+        private void HandleKeyboardShortcuts()
+        {
+            if (Input.GetKeyDown(KeyCode.Delete))
+            {
+                var element = ScenarioManager.Instance.SelectedElement;
+                ScenarioManager.Instance.SelectedElement = null;
+                ScenarioManager.Instance.IsScenarioDirty = true;
+                ScenarioManager.Instance.undoManager.RegisterRecord(new UndoRemoveElement(element));
+                element.RemoveFromMap();
+                return;
+            }
+            if (Input.GetKey(KeyCode.LeftControl))
+            {
+                if (Input.GetKeyDown(KeyCode.Z))
+                {
+                    ScenarioManager.Instance.undoManager.Undo();
+                    return;
+                }
+
+                if (Input.GetKeyDown(KeyCode.C) && ScenarioManager.Instance.SelectedElement.CanBeCopied)
+                {
+                    var element = ScenarioManager.Instance.SelectedElement;
+                    ScenarioManager.Instance.CopiedElement = element;
+                    ScenarioManager.Instance.logPanel.EnqueueInfo($"Copied {element.name}.");
+                    return;
+                }
+
+                if (Input.GetKeyDown(KeyCode.V))
+                {
+                    var hit = GetFurthestHit(true);
+                    if (hit.HasValue)
+                        ScenarioManager.Instance.PlaceElementCopy(hit.Value.point);
+                    return;
+                }
+            }
+        }
+
+        /// <summary>
         /// Main loop for the input management
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException">Invalid input state value</exception>
@@ -613,8 +655,6 @@ namespace Simulator.ScenarioEditor.Input
             Transform cameraTransform = scenarioCamera.transform;
             RaycastHit? furthestHit;
             Vector3 furthestPoint;
-            if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.Z))
-                ScenarioManager.Instance.undoManager.Undo();
             switch (inputState)
             {
                 case InputState.MovingCamera:

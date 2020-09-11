@@ -13,11 +13,11 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
     using Effectors;
     using Elements;
     using Managers;
+    using MapSelecting;
     using ScenarioEditor.Utilities;
     using Undo.Records;
     using UnityEngine;
     using UnityEngine.UI;
-    using Utilities;
 
     /// <summary>
     /// UI panel which allows editing a selected scenario trigger
@@ -54,6 +54,11 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// Reference to currently selected trigger
         /// </summary>
         private ScenarioTrigger selectedTrigger;
+
+        /// <summary>
+        /// Trigger that is copied and it's effectors can be pasted to other triggers
+        /// </summary>
+        private ScenarioTrigger copiedTrigger;
 
         /// <summary>
         /// List of all the effector types
@@ -184,7 +189,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             foreach (var effector in effectors)
             {
                 var effectorPanel = effectorPanels[effector.TypeName];
-                effectorPanel.EffectorAddedToTrigger(trigger, effector, false);
+                effectorPanel.EffectorAddedToTrigger(trigger, effector);
             }
         }
 
@@ -201,7 +206,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
 
             var effectorPanel = effectorPanels[effector.TypeName];
             effectorPanel.StartEditing(this, selectedTrigger, effector);
-            effectorPanel.EffectorAddedToTrigger(selectedTrigger, effector, true);
+            effectorPanel.EffectorAddedToTrigger(selectedTrigger, effector);
             effectorPanel.gameObject.SetActive(true);
             visiblePanels.Add(effectorPanel);
             UnityUtilities.LayoutRebuild(transform as RectTransform);
@@ -253,6 +258,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             if (!(Activator.CreateInstance(selectedEffectorType) is TriggerEffector effector))
                 throw new ArgumentException(
                     $"Invalid effector type '{availableEffectorTypes[triggerSelectDropdown.value].GetType()}'.");
+            var effectorPanel = effectorPanels[effector.TypeName];
+            effectorPanel.InitializeEffector(selectedTrigger, effector);
             selectedTrigger.Trigger.AddEffector(effector);
             ScenarioManager.Instance.IsScenarioDirty = true;
             ScenarioManager.Instance.undoManager.RegisterRecord(new UndoAddEffector(selectedTrigger, effector));
@@ -263,10 +270,47 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// </summary>
         public void RemoveEffector(TriggerEffector effector)
         {
-
-            selectedTrigger.Trigger.RemoveEffector(effector);
+            selectedTrigger.Trigger.RemoveEffector(effector.TypeName);
             ScenarioManager.Instance.IsScenarioDirty = true;
             ScenarioManager.Instance.undoManager.RegisterRecord(new UndoRemoveEffector(selectedTrigger, effector));
+        }
+
+        /// <summary>
+        /// Copies selected trigger
+        /// </summary>
+        public void CopyEffectors()
+        {
+            copiedTrigger = selectedTrigger;
+            ScenarioManager.Instance.logPanel.EnqueueInfo($"Copied {selectedTrigger.Trigger.Effectors.Count} trigger effectors.");
+        }
+
+        /// <summary>
+        /// Paste all the effectors from the copied trigger to this
+        /// </summary>
+        public void PasteEffectors()
+        {
+            if (copiedTrigger == null)
+                return;
+
+            var pasteAction = new Action(() =>
+            {
+                ScenarioManager.Instance.undoManager.RegisterRecord(new UndoTriggerCopy(selectedTrigger));
+                selectedTrigger.CopyProperties(copiedTrigger);
+            });
+
+            //If there are any effectors added ask for replacing
+            if (selectedTrigger.Trigger.Effectors.Count > 0)
+            {
+                var popupData = new ConfirmationPopup.PopupData
+                {
+                    Text = "Replace currently added effectors with the copied ones?"
+                };
+                popupData.ConfirmCallback += pasteAction;
+                ScenarioManager.Instance.confirmationPopup.Show(popupData);
+            }
+            else 
+                pasteAction.Invoke();
+            
         }
     }
 }

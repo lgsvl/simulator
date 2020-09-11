@@ -21,11 +21,6 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
     /// </summary>
     public class WaitingPointEditPanel : EffectorEditPanel
     {
-        /// <summary>
-        /// Object name for the activation zone objects
-        /// </summary>
-        private static string ZoneObjectName = "WaitingPoint.ZoneVisualization";
-        
         //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
 #pragma warning disable 0649
         /// <summary>
@@ -83,23 +78,28 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         }
 
         /// <inheritdoc/>
-        public override void EffectorAddedToTrigger(ScenarioTrigger trigger, TriggerEffector effector, bool initializeData)
+        public override void InitializeEffector(ScenarioTrigger trigger, TriggerEffector effector)
         {
-            var zone = trigger.GetOrAddEffectorObject(effector, ZoneObjectName, zoneVisualization);
             if (!(effector is WaitingPointEffector waitingPointEffector))
                 throw new ArgumentException($"{GetType().Name} received effector of invalid type {effector.GetType().Name}.");
-            //If this effector should initialize data, put the activator point nearby the trigger
-            if (initializeData)
-                waitingPointEffector.ActivatorPoint = trigger.transform.position+zoneVisualization.transform.localPosition;
+            //Put the activator point nearby the trigger
+            waitingPointEffector.ActivatorPoint =
+                trigger.transform.position + zoneVisualization.transform.localPosition;
+            waitingPointEffector.PointRadius = 2.0f;
+        }
+
+        /// <inheritdoc/>
+        public override void EffectorAddedToTrigger(ScenarioTrigger trigger, TriggerEffector effector)
+        {
+            var zone = trigger.GetOrAddEffectorObject(effector, zoneVisualization.name, zoneVisualization);
+            if (!(effector is WaitingPointEffector waitingPointEffector))
+                throw new ArgumentException($"{GetType().Name} received effector of invalid type {effector.GetType().Name}.");
+
             zone.transform.position = waitingPointEffector.ActivatorPoint;
             zone.transform.localScale = Vector3.one * waitingPointEffector.PointRadius;
-            zone.SetActive(true);
+            zone.gameObject.SetActive(true);
             var zoneComponent = zone.GetComponent<WaitingPointZone>();
-            if (zoneComponent != null)
-                zoneComponent.Setup((WaitingPointEffector) effector);
-            else
-                ScenarioManager.Instance.logPanel.EnqueueError(
-                    $"Activation zone object used in the {GetType().Name} requires a {nameof(WaitingPointZone)} component.");
+            zoneComponent.Refresh();
         }
 
         /// <inheritdoc/>
@@ -138,7 +138,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         {
             ScenarioManager.Instance.IsScenarioDirty = true;
             editedEffector.PointRadius = radius;
-            var zoneGameObject = editedTrigger.GetOrAddEffectorObject(editedEffector, ZoneObjectName, zoneVisualization);
+            var zoneGameObject = editedTrigger.GetOrAddEffectorObject(editedEffector, zoneVisualization.name, zoneVisualization);
             zoneGameObject.transform.localScale = Vector3.one * editedEffector.PointRadius;
             var zone = zoneGameObject.GetComponent<WaitingPointZone>();
             if (zone!=null)

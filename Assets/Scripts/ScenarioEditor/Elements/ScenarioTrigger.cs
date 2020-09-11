@@ -7,8 +7,10 @@
 
 namespace Simulator.ScenarioEditor.Elements
 {
+    using System;
     using System.Collections.Generic;
     using Agents;
+    using Agents.Triggers;
     using Managers;
     using UnityEngine;
 
@@ -36,11 +38,12 @@ namespace Simulator.ScenarioEditor.Elements
             /// Object that holds objects of this effector
             /// </summary>
             private GameObject gameObject;
-            
+
             /// <summary>
             /// Dictionary effector objects that helps with visualizing the effector settings
             /// </summary>
-            private readonly Dictionary<string, GameObject> objects = new Dictionary<string, GameObject>();
+            private readonly Dictionary<string, ScenarioEffectorObject> objects =
+                new Dictionary<string, ScenarioEffectorObject>();
 
             /// <summary>
             /// Initialization of the effector
@@ -63,9 +66,22 @@ namespace Simulator.ScenarioEditor.Elements
             public void Deinitialize()
             {
                 foreach (var effectorObject in objects)
-                    ScenarioManager.Instance.prefabsPools.ReturnInstance(effectorObject.Value);
+                    ScenarioManager.Instance.prefabsPools.ReturnInstance(effectorObject.Value.gameObject);
                 objects.Clear();
                 Destroy(gameObject);
+            }
+
+            /// <summary>
+            /// Method called after this element is created by copying
+            /// </summary>
+            /// <param name="origin">Origin element from which copy was created</param>
+            public void CopyProperties(ScenarioEffector origin)
+            {
+                foreach (var originObject in origin.objects)
+                {
+                    var effectorObject = GetOrAddEffectorObject(originObject.Key, originObject.Value.gameObject);
+                    effectorObject.CopyProperties(originObject.Value);
+                }
             }
 
             /// <summary>
@@ -83,24 +99,53 @@ namespace Simulator.ScenarioEditor.Elements
             {
                 gameObject.SetActive(false);
             }
-            
+
             /// <summary>
             /// Gets an effector object from the trigger or creates new one
             /// </summary>
             /// <param name="objectName">The unique name for the object</param>
             /// <param name="prefab"></param>
             /// <returns>Effector object inside the trigger</returns>
-            public GameObject GetOrAddEffectorObject(string objectName, GameObject prefab)
+            public ScenarioEffectorObject GetOrAddEffectorObject(string objectName, GameObject prefab)
             {
                 if (objects.TryGetValue(objectName, out var effectorObject))
                     return effectorObject;
-                effectorObject = ScenarioManager.Instance.prefabsPools.GetInstance(prefab);
+                
+                //Check if there is unbound object
+                var childWithName = gameObject.transform.Find(objectName);
+                if (childWithName != null)
+                {
+                    effectorObject = childWithName.GetComponent<ScenarioEffectorObject>();
+                    if (effectorObject != null)
+                    {
+                        //Reinitialize unbound object
+                        effectorObject.transform.localPosition = prefab.transform.localPosition;
+                        effectorObject.Setup(parentTrigger, effector);
+                        objects.Add(objectName, effectorObject);
+                        return effectorObject;
+                    }
+
+                    Destroy(effectorObject);
+                }
+
+                //Instantiate new object
+                var instance = ScenarioManager.Instance.prefabsPools.GetInstance(prefab);
+                effectorObject = instance.GetComponent<ScenarioEffectorObject>();
+                if (effectorObject == null)
+                {
+                    ScenarioManager.Instance.logPanel.EnqueueError(
+                        $"Cannot initialize effector object {prefab.name}, prefab requires {nameof(ScenarioEffectorObject)} component.");
+                    return null;
+                }
+
                 effectorObject.gameObject.name = objectName;
                 effectorObject.transform.SetParent(gameObject.transform);
+                effectorObject.transform.localPosition = prefab.transform.localPosition;
+                effectorObject.Setup(parentTrigger, effector);
                 objects.Add(objectName, effectorObject);
                 return effectorObject;
             }
-            
+
             /// <summary>
             /// Removes the effector object from the trigger
             /// </summary>
@@ -108,16 +153,16 @@ namespace Simulator.ScenarioEditor.Elements
             public void RemoveEffectorObject(string objectName)
             {
                 if (!objects.TryGetValue(objectName, out var effectorObject)) return;
-                ScenarioManager.Instance.prefabsPools.ReturnInstance(effectorObject);
+                ScenarioManager.Instance.prefabsPools.ReturnInstance(effectorObject.gameObject);
                 objects.Remove(objectName);
             }
         }
-        
+
         /// <summary>
         /// Parent agent which includes this trigger
         /// </summary>
         public ScenarioAgent ParentAgent { get; set; }
-        
+
         /// <summary>
         /// Waypoint that is linked to this trigger
         /// </summary>
@@ -127,18 +172,19 @@ namespace Simulator.ScenarioEditor.Elements
         /// Effectors that will be invoked on this trigger
         /// </summary>
         public WaypointTrigger Trigger { get; set; } = new WaypointTrigger();
-        
+
         /// <summary>
         /// Effectors objects that are added as addons to this trigger
         /// </summary>
-        public Dictionary<TriggerEffector, ScenarioEffector> effectors = new Dictionary<TriggerEffector, ScenarioEffector>();
+        public Dictionary<string, ScenarioEffector> effectorsObjects =
+            new Dictionary<string, ScenarioEffector>();
 
         /// <summary>
         /// Initializes created trigger and it's effectors
         /// </summary>
         public void Initialize()
         {
-            //TODO add trigger effectors
+            
         }
 
         /// <summary>
@@ -146,11 +192,56 @@ namespace Simulator.ScenarioEditor.Elements
         /// </summary>
         public void Deinitalize()
         {
-            foreach (var effector in effectors)
+            ClearEffectors();
+
+            for (var i = transform.childCount - 1; i >= 0; i--)
+                Destroy(transform.GetChild(i).gameObject);
+        }
+
+        /// <summary>
+        /// Clears all the attached effectors
+        /// </summary>
+        public void ClearEffectors()
+        {
+            for (var i = Trigger.Effectors.Count - 1; i >= 0; i--)
             {
-                effector.Value.Deinitialize();
+                var effector = Trigger.Effectors[i];
+                Trigger.RemoveEffector(effector.TypeName);
             }
-            Trigger.Effectors.Clear();
+
+            foreach (var effector in effectorsObjects)
+                effector.Value.Deinitialize();
+            effectorsObjects.Clear();
+        }
+
+        /// <summary>
+        /// Copies property values from the origin
+        /// </summary>
+        /// <param name="originTrigger">Origin trigger, properties will be copied from it to this trigger</param>
+        public void CopyProperties(ScenarioTrigger originTrigger)
+        {
+            LinkedWaypoint = originTrigger.LinkedWaypoint;
+            ClearEffectors();
+            foreach (var effector in originTrigger.Trigger.Effectors)
+            {
+                var clone = effector.Clone() as TriggerEffector;
+                Trigger.AddEffector(clone);
+            }
+
+            foreach (var effector in originTrigger.effectorsObjects)
+            {
+                if (!effectorsObjects.TryGetValue(effector.Key, out var scenarioEffector))
+                {
+                    var cloneEffector = Trigger.Effectors.Find((e) => e.TypeName == effector.Key);
+                    if (cloneEffector == null)
+                        continue;
+                    scenarioEffector = new ScenarioEffector();
+                    effectorsObjects.Add(effector.Key, scenarioEffector);
+                    scenarioEffector.Initialize(this, cloneEffector);
+                }
+
+                scenarioEffector.CopyProperties(effector.Value);
+            }
         }
 
         /// <summary>
@@ -160,13 +251,13 @@ namespace Simulator.ScenarioEditor.Elements
         /// <param name="objectName">The unique name for the object</param>
         /// <param name="prefab"></param>
         /// <returns>Effector object inside the trigger</returns>
-        public GameObject GetOrAddEffectorObject(TriggerEffector effector, string objectName, GameObject prefab)
+        public ScenarioEffectorObject GetOrAddEffectorObject(TriggerEffector effector, string objectName, GameObject prefab)
         {
-            if (effectors.TryGetValue(effector, out var scenarioEffector))
+            if (effectorsObjects.TryGetValue(effector.TypeName, out var scenarioEffector))
                 return scenarioEffector.GetOrAddEffectorObject(objectName, prefab);
             scenarioEffector = new ScenarioEffector();
             scenarioEffector.Initialize(this, effector);
-            effectors.Add(effector, scenarioEffector);
+            effectorsObjects.Add(effector.TypeName, scenarioEffector);
             return scenarioEffector.GetOrAddEffectorObject(objectName, prefab);
         }
 
@@ -177,7 +268,7 @@ namespace Simulator.ScenarioEditor.Elements
         /// <param name="objectName">Effector object name</param>
         public void RemoveEffectorObject(TriggerEffector effector, string objectName)
         {
-            if (!effectors.TryGetValue(effector, out var scenarioEffector)) return;
+            if (!effectorsObjects.TryGetValue(effector.TypeName, out var scenarioEffector)) return;
             scenarioEffector.RemoveEffectorObject(objectName);
         }
 
@@ -188,8 +279,21 @@ namespace Simulator.ScenarioEditor.Elements
         /// <returns>Scenario effector data, null if it is not available</returns>
         public ScenarioEffector TryGetEffector(TriggerEffector effector)
         {
-            effectors.TryGetValue(effector, out var scenarioEffector);
+            effectorsObjects.TryGetValue(effector.TypeName, out var scenarioEffector);
             return scenarioEffector;
+        }
+
+        /// <summary>
+        /// Disposes all the effector objects
+        /// </summary>
+        /// <param name="effector">Effector which was removed and its objects will be disposed</param>
+        public void DisposeEffector(TriggerEffector effector)
+        {
+            effectorsObjects.TryGetValue(effector.TypeName, out var scenarioEffector);
+            if (scenarioEffector == null)
+                return;
+            scenarioEffector.Deinitialize();
+            effectorsObjects.Remove(effector.TypeName);
         }
     }
 }

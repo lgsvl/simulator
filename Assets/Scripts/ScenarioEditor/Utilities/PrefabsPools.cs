@@ -8,6 +8,7 @@
 namespace Simulator.ScenarioEditor.Utilities
 {
     using System.Collections.Generic;
+    using Elements;
     using UnityEngine;
     using UnityEngine.SceneManagement;
 
@@ -134,6 +135,34 @@ namespace Simulator.ScenarioEditor.Utilities
 
             pool.ReleaseInstance(instance);
             instanceToPool.Remove(instance);
+        }
+
+        private void ValidateClones(GameObject origin, GameObject clone)
+        {
+            if (instanceToPool.TryGetValue(origin, out var pool))
+                instanceToPool.Add(clone, pool);
+            
+            for (var i = 0; i < origin.transform.childCount; i++)
+            {
+                var originChild = origin.transform.GetChild(i).gameObject;
+                var cloneChild = clone.transform.GetChild(i).gameObject;
+                if (cloneChild != null)
+                    ValidateClones(originChild, cloneChild);
+            }
+
+            var cloneElement = clone.GetComponent<ScenarioElement>();
+            if (cloneElement != null)
+            {
+                var originElement = origin.GetComponent<ScenarioElement>();
+                cloneElement.CopyProperties(originElement);
+            }
+        }
+
+        public GameObject Clone(GameObject origin)
+        {
+            var clone = Instantiate(origin, origin.transform.parent);
+            ValidateClones(origin, clone);
+            return clone;
         }
     }
 }

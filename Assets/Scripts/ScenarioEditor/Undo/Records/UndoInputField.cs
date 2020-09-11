@@ -7,6 +7,7 @@
 
 namespace Simulator.ScenarioEditor.Undo.Records
 {
+    using Managers;
     using Undo;
     using UnityEngine.UI;
 
@@ -40,6 +41,7 @@ namespace Simulator.ScenarioEditor.Undo.Records
         public override void Undo()
         {
             inputField.text = previousValue;
+            ScenarioManager.Instance.logPanel.EnqueueInfo("Undo applied to rollback change in an input field.");
         }
 
         /// <inheritdoc/>

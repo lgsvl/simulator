@@ -42,7 +42,13 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         {
             
         }
-        
+
+        /// <inheritdoc/>
+        public override void InitializeEffector(ScenarioTrigger trigger, TriggerEffector effector)
+        {
+            
+        }
+
         /// <summary>
         /// Removes linked effector from the trigger and returns it to the pool
         /// </summary>

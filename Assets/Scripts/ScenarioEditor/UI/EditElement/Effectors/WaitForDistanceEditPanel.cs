@@ -57,6 +57,14 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
             editedEffector = (WaitForDistanceEffector) effector;
             maxDistanceInputField.text = editedEffector.MaxDistance.ToString("F");
         }
+        
+        /// <inheritdoc/>
+        public override void InitializeEffector(ScenarioTrigger trigger, TriggerEffector effector)
+        {
+            if (!(effector is WaitForDistanceEffector waitForDistanceEffector))
+                throw new ArgumentException($"{GetType().Name} received effector of invalid type {effector.GetType().Name}.");
+            waitForDistanceEffector.MaxDistance = 5.0f;
+        }
 
         /// <summary>
         /// Removes linked effector from the trigger and returns it to the pool

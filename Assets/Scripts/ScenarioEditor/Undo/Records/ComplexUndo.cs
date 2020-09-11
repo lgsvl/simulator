@@ -8,6 +8,7 @@
 namespace Simulator.ScenarioEditor.Undo.Records
 {
     using System.Collections.Generic;
+    using Managers;
 
     /// <summary>
     /// Complex undo record that contains multiple undo records that are handles at once

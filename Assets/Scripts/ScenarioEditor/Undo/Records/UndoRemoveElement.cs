@@ -45,6 +45,7 @@ namespace Simulator.ScenarioEditor.Undo.Records
             scenarioElement.transform.SetParent(previousParent);
             scenarioElement.gameObject.SetActive(true);
             scenarioElement.UndoRemove();
+            ScenarioManager.Instance.logPanel.EnqueueInfo("Undo applied to rollback removing a scenario element.");
         }
 
         /// <inheritdoc/>

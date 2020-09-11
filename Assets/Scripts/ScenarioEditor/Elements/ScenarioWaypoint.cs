@@ -18,18 +18,18 @@ namespace Simulator.ScenarioEditor.Elements
     public class ScenarioWaypoint : ScenarioElement
     {
         /// <summary>
+        /// Name of the gameobject containing trigger
+        /// </summary>
+        private static string triggerObjectName = "Trigger";
+
+        /// <summary>
         /// Trigger that is linked to this waypoint
         /// </summary>
         private ScenarioTrigger linkedTrigger;
 
-        /// <summary>
-        /// Index which this waypoint had in parent agent before being removed from map
-        /// </summary>
-        private int indexInAgentBeforeRemove = -1;
-
         /// <inheritdoc/>
         public override bool CanBeRotated => false;
-        
+
         /// <summary>
         /// Parent agent which includes this waypoint
         /// </summary>
@@ -43,7 +43,9 @@ namespace Simulator.ScenarioEditor.Elements
             get
             {
                 if (linkedTrigger != null) return linkedTrigger;
-                var go = new GameObject("Trigger");
+                linkedTrigger = GetComponentInChildren<ScenarioTrigger>();
+                if (linkedTrigger != null) return linkedTrigger;
+                var go = new GameObject(triggerObjectName);
                 go.transform.SetParent(transform);
                 go.transform.localPosition = Vector3.zero;
                 go.transform.localRotation = Quaternion.Euler(Vector3.zero);
@@ -65,6 +67,11 @@ namespace Simulator.ScenarioEditor.Elements
         public float WaitTime { get; set; }
 
         /// <summary>
+        /// Index which this waypoint had in parent agent before being removed from map
+        /// </summary>
+        public int IndexInAgent { get; set; } = -1;
+
+        /// <summary>
         /// Unity OnEnable method
         /// </summary>
         protected override void OnEnable()
@@ -82,23 +89,51 @@ namespace Simulator.ScenarioEditor.Elements
         }
 
         /// <inheritdoc/>
+        public override void CopyProperties(ScenarioElement origin)
+        {
+            var originWaypoint = origin.GetComponent<ScenarioWaypoint>();
+            if (originWaypoint != null)
+            {
+                //Clear triggers object
+                LinkedTrigger.Deinitalize();
+                LinkedTrigger.Initialize();
+                CopyProperties(originWaypoint, true);
+            }
+        }
+
+        /// <summary>
+        /// Copies property values from the origin
+        /// </summary>
+        /// <param name="originWaypoint">Origin waypoint, properties will be copied from it to this waypoint</param>
+        /// <param name="copyTrigger">Should triggers be copied with the waypoint</param>
+        public void CopyProperties(ScenarioWaypoint originWaypoint, bool copyTrigger = false)
+        {
+            Speed = originWaypoint.Speed;
+            WaitTime = originWaypoint.WaitTime;
+            IndexInAgent = originWaypoint.IndexInAgent;
+            if (copyTrigger)
+                LinkedTrigger.CopyProperties(originWaypoint.LinkedTrigger);
+        }
+
+        /// <inheritdoc/>
         public override void ForceMove(Vector3 requestedPosition)
         {
             transform.position = requestedPosition;
-            if (ParentAgent != null)
+            if (ParentAgent == null) return;
+            switch (ParentAgent.Type)
             {
-                switch (ParentAgent.Type)
-                {
-                    case AgentType.Ego:
-                    case AgentType.Npc:
-                        ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic, transform);
-                        break;
-                    case AgentType.Pedestrian:
-                        ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian, transform);
-                        break;
-                }
-                ParentAgent.WaypointPositionChanged(this);
+                case AgentType.Ego:
+                case AgentType.Npc:
+                    ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(
+                        LaneSnappingHandler.LaneType.Traffic, transform);
+                    break;
+                case AgentType.Pedestrian:
+                    ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(
+                        LaneSnappingHandler.LaneType.Pedestrian, transform);
+                    break;
             }
+
+            ParentAgent.WaypointPositionChanged(this);
         }
 
         /// <inheritdoc/>
@@ -106,7 +141,7 @@ namespace Simulator.ScenarioEditor.Elements
         {
             base.RemoveFromMap();
             if (ParentAgent != null)
-                indexInAgentBeforeRemove = ParentAgent.RemoveWaypoint(this);
+                IndexInAgent = ParentAgent.RemoveWaypoint(this);
         }
 
         /// <inheritdoc/>
@@ -114,7 +149,7 @@ namespace Simulator.ScenarioEditor.Elements
         {
             base.UndoRemove();
             if (ParentAgent != null)
-                ParentAgent.AddWaypoint(this, indexInAgentBeforeRemove);
+                ParentAgent.AddWaypoint(this, IndexInAgent);
         }
 
         /// <inheritdoc/>

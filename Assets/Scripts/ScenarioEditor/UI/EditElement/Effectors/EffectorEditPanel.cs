@@ -38,12 +38,18 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         }
 
         /// <summary>
+        /// Initializes effector with the default data
+        /// </summary>
+        /// <param name="trigger">Trigger that gained the new effector</param>
+        /// <param name="effector">New effector added to the trigger</param>
+        public abstract void InitializeEffector(ScenarioTrigger trigger, TriggerEffector effector);
+
+        /// <summary>
         /// Notifies edit panel that the effector was added to the trigger
         /// </summary>
         /// <param name="trigger">Trigger that gained the new effector</param>
         /// <param name="effector">New effector added to the trigger</param>
-        /// <param name="initializeData">Should the effector data be initialized by panel</param>
-        public virtual void EffectorAddedToTrigger(ScenarioTrigger trigger, TriggerEffector effector, bool initializeData)
+        public virtual void EffectorAddedToTrigger(ScenarioTrigger trigger, TriggerEffector effector)
         {
             
         }

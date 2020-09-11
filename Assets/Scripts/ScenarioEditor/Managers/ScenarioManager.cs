@@ -12,6 +12,7 @@ namespace Simulator.ScenarioEditor.Managers
     using Elements;
     using Input;
     using Network.Core.Threading;
+    using Simulator.Utilities;
     using UI.FileEdit;
     using UI.MapSelecting;
     using Undo;
@@ -162,6 +163,11 @@ namespace Simulator.ScenarioEditor.Managers
         }
 
         /// <summary>
+        /// Scenario element that is copied and will be cloned on demand
+        /// </summary>
+        public ScenarioElement CopiedElement { get; set; }
+
+        /// <summary>
         /// Is there a single popup visible in the scenario editor
         /// </summary>
         public bool ViewsPopup
@@ -257,7 +263,7 @@ namespace Simulator.ScenarioEditor.Managers
             objectsShotCapture.ShotObject(gameObject);
             await Task.Delay(100);
             objectsShotCapture.ShotObject(gameObject);
-            QualityChanger.ReinitializeRenderPipeline();
+            HDRPUtilities.ReinitializeRenderPipeline();
         }
 
         /// <summary>
@@ -327,6 +333,19 @@ namespace Simulator.ScenarioEditor.Managers
 
             Instance.IsScenarioDirty = false;
             Instance.undoManager.ClearRecords();
+        }
+
+        /// <summary>
+        /// Places an element copy on the map
+        /// </summary>
+        /// <param name="position">Position where the copy should be placed</param>
+        public void PlaceElementCopy(Vector3 position)
+        {
+            if (CopiedElement == null || !CopiedElement.isActiveAndEnabled)
+                return;
+            var clone = prefabsPools.Clone(CopiedElement.gameObject);
+            clone.transform.position = position;
+            IsScenarioDirty = false;
         }
 
         /// <summary>

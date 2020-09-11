@@ -59,9 +59,11 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         }
         
         /// <inheritdoc/>
-        public override void FinishEditing()
+        public override void InitializeEffector(ScenarioTrigger trigger, TriggerEffector effector)
         {
-            
+            if (!(effector is WaitTimeEffector waitTimeEffector))
+                throw new ArgumentException($"{GetType().Name} received effector of invalid type {effector.GetType().Name}.");
+            waitTimeEffector.Value = 0.0f;
         }
 
         /// <summary>

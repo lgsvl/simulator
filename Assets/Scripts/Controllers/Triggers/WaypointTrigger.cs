@@ -15,7 +15,7 @@ public class WaypointTrigger
     protected List<TriggerEffector> effectors = new List<TriggerEffector>();
 
     public event Action<TriggerEffector> EffectorAdded;
-    
+
     public event Action<TriggerEffector> EffectorRemoved;
 
     public List<TriggerEffector> Effectors => effectors;
@@ -35,13 +35,16 @@ public class WaypointTrigger
 
     public void AddEffector(TriggerEffector effector)
     {
+        if (Effectors.Find(t => t.TypeName == effector.TypeName) != null)
+            return;
         Effectors.Add(effector);
         EffectorAdded?.Invoke(effector);
     }
 
-    public void RemoveEffector(TriggerEffector effector)
+    public void RemoveEffector(string effectorTypeName)
     {
-        if (!Effectors.Contains(effector))
+        var effector = Effectors.Find(t => t.TypeName == effectorTypeName);
+        if (effector == null)
             return;
         Effectors.Remove(effector);
         EffectorRemoved?.Invoke(effector);

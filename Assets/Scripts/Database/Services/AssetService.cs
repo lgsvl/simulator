@@ -42,7 +42,18 @@ namespace Simulator.Database.Services
             using (var db = DatabaseManager.Open())
             {
                 var sql = Sql.Builder.Where("assetGuid = @0", assetGuid);
-                return db.Delete<AssetModel>(sql);
+                int result = db.Delete<AssetModel>(sql);
+                return result;
+            }
+        }
+
+        public int DeleteCategory(BundleConfig.BundleTypes type)
+        {
+            using (var db = DatabaseManager.Open())
+            {
+                var sql = Sql.Builder.Where("type = @0", BundleConfig.singularOf(type));
+                int result = db.Delete<AssetModel>(sql);
+                return result;
             }
         }
 

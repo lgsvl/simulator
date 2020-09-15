@@ -10,6 +10,9 @@ using UnityEngine.UI;
 using Simulator.Database.Services;
 using System.Linq;
 using System.Collections.Generic;
+using System;
+using Simulator.Database;
+using System.IO;
 
 namespace Simulator.Web
 {
@@ -25,6 +28,7 @@ namespace Simulator.Web
         public Text statusMenuButtonText;
         public Button unlinkButton;
         public Button linkButton;
+        public Button clearAssetCacheButton;
         public Button quitButton;
         public Text linkButtonText;
         public static ConnectionUI instance;
@@ -60,6 +64,7 @@ namespace Simulator.Web
             linkButton.onClick.AddListener(OnLinkButtonClicked);
             offlineStartButton.onClick.AddListener(OnOfflineStartButtonClicked);
             offlineStopButton.onClick.AddListener(OnOfflineStopButtonClicked);
+            clearAssetCacheButton.onClick.AddListener(OnClearAssetCacheButtonClicked);
             unlinkButton.onClick.AddListener(OnUnlinkButtonClicked);
             quitButton.onClick.AddListener(OnQuitButtonClicked);
             UpdateDropdown();
@@ -82,7 +87,7 @@ namespace Simulator.Web
             {
                 case ConnectionManager.ConnectionStatus.Connecting:
                     statusText.text = $"Connecting to the cloud...";
-                    unlinkButton.gameObject.SetActive(false);
+                    unlinkButton.interactable = false;
                     linkButton.gameObject.SetActive(false);
                     statusButtonIcon.color = offlineColor;
                     offlineDropdown.gameObject.SetActive(false);
@@ -96,7 +101,7 @@ namespace Simulator.Web
                     statusMenuButtonText.text = "Go Offline";
                     statusButtonIcon.color = offlineColor;
                     linkButtonText.text = "LINK TO CLOUD";
-                    unlinkButton.gameObject.SetActive(false);
+                    unlinkButton.interactable = false;
                     linkButton.gameObject.SetActive(true);
                     offlineDropdown.gameObject.SetActive(false);
                     offlineStartButton.gameObject.SetActive(false);
@@ -108,7 +113,7 @@ namespace Simulator.Web
                     statusMenuButtonText.text = "Go Online";
                     statusText.text = "Go Online to start new simulation or run previous simulations while being Offline";
                     statusButtonIcon.color = offlineColor;
-                    unlinkButton.gameObject.SetActive(true);
+                    unlinkButton.interactable = true;
                     linkButton.gameObject.SetActive(false);
                     offlineDropdown.gameObject.SetActive(true);
                     offlineStartButton.gameObject.SetActive(true);
@@ -122,7 +127,7 @@ namespace Simulator.Web
                     statusButtonIcon.color = onlineColor;
                     statusText.text = "";
                     linkButtonText.text = "OPEN BROWSER";
-                    unlinkButton.gameObject.SetActive(true);
+                    unlinkButton.interactable = true;
                     linkButton.gameObject.SetActive(true);
                     offlineDropdown.gameObject.SetActive(false);
                     offlineStartButton.gameObject.SetActive(false);
@@ -156,6 +161,29 @@ namespace Simulator.Web
             bool active = !statusMenuRoot.gameObject.activeSelf;
             statusMenuRoot.SetActive(active);
             dropdownArrow.transform.localScale = new Vector3(1, active ? 1 : -1, 1);
+        }
+
+        public void OnClearAssetCacheButtonClicked()
+        {
+            AssetService service = new AssetService();
+            foreach(BundleConfig.BundleTypes btype in Enum.GetValues(typeof(BundleConfig.BundleTypes)))
+            {
+                service.DeleteCategory(btype);
+            }
+
+            DirectoryInfo di = new DirectoryInfo(Path.Combine(Config.PersistentDataPath, "Environments"));
+
+            foreach (FileInfo file in di.GetFiles())
+            {
+                file.Delete();
+            }
+
+            di = new DirectoryInfo(Path.Combine(Config.PersistentDataPath, "Vehicles"));
+
+            foreach (FileInfo file in di.GetFiles())
+            {
+                file.Delete();
+            }
         }
 
         public void OnQuitButtonClicked()

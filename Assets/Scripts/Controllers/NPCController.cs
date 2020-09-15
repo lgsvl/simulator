@@ -66,6 +66,9 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
     public float dampenFactor = 10f; // this value requires tuning
     public float adjustFactor = 10f; // this value requires tuning
 
+    [HideInInspector]
+    public bool IsUserSpecified = false;
+
     private class IndicatorRenderer
     {
         public Renderer renderer = null;

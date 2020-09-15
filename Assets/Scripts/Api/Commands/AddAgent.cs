@@ -136,6 +136,7 @@ namespace Simulator.Api.Commands
                     };
 
                     var npcController = SimulatorManager.Instance.NPCManager.SpawnNPC(spawnData);
+                    npcController.IsUserSpecified = true;
                     npcController.SetBehaviour<NPCManualBehaviour>();
 
                     var body = npcController.GetComponent<Rigidbody>();

@@ -142,7 +142,8 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     protected void EvaluateDistanceFromFocus()
     {
         if (!SimulatorManager.Instance.NPCManager.WithinSpawnArea(transform.position) && 
-            !SimulatorManager.Instance.NPCManager.IsVisible(gameObject))
+            !SimulatorManager.Instance.NPCManager.IsVisible(gameObject) && 
+            !controller.IsUserSpecified)
         {
             Despawn();
         }
@@ -150,7 +151,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
 
     protected void Despawn()
     {
-        if (AutomaticMode && !SimulatorManager.Instance.IsAPI)
+        if (AutomaticMode)
         {
             ResetData();
             NPCManager.DespawnNPC(controller);
@@ -354,7 +355,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         {
             currentStopTime += Time.fixedDeltaTime;
         }
-        if (currentStopTime > 60f)
+        if (currentStopTime > 60f && !controller.IsUserSpecified)
         {
             Debug.Log($"NPC Despawn: Stopped for {currentStopTime} seconds");
             Despawn();
@@ -808,7 +809,8 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
 
         // ground collision
         groundCheckInfo = new RaycastHit();
-        if (!Physics.Raycast(transform.position + transform.up, -transform.up, out groundCheckInfo, 5f, groundHitBitmask))
+        if (!Physics.Raycast(transform.position + transform.up, -transform.up, out groundCheckInfo, 5f, groundHitBitmask) &&
+            !controller.IsUserSpecified)
         {
             Despawn();
         }

@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using SimpleJSON;
+using Newtonsoft.Json;
 using Simulator;
 using Simulator.Components;
 using Simulator.Network.Core;
@@ -19,21 +19,22 @@ using Simulator.Network.Core.Messaging.Data;
 using Simulator.Network.Shared;
 using Simulator.Sensors;
 using Simulator.Utilities;
+using Simulator.Web;
 using UnityEngine;
 
 public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
 {
     private struct SensorInstanceController
     {
-        private readonly JSONNode configuration;
+        private readonly SensorData configuration;
         private readonly SensorBase instance;
         private bool enabled;
 
         public SensorBase Instance => instance;
-        public JSONNode Configuration => configuration;
+        public SensorData Configuration => configuration;
         public bool Enabled => enabled;
 
-        public SensorInstanceController(JSONNode configuration, SensorBase instance)
+        public SensorInstanceController(SensorData configuration, SensorBase instance)
         {
             this.configuration = configuration;
             this.instance = instance;
@@ -116,10 +117,10 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         return type.Name;
     }
 
-    public void SetupSensors(string sensors)
+    public void SetupSensors(SensorData[] sensors)
     {
         var network = Loader.Instance.Network;
-        if (!string.IsNullOrEmpty(sensors) && !network.IsClient)
+        if (sensors != null && !network.IsClient)
         {
             InstantiateSensors(sensors);
             if (network.IsMaster)
@@ -132,7 +133,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         }
     }
 
-    private void InstantiateSensors(string sensors)
+    private void InstantiateSensors(SensorData[] sensors)
     {
         var available = Simulator.Web.Config.Sensors.ToDictionary(sensor => sensor.Name);
         var prefabs = Simulator.Web.Config.SensorPrefabs.ToDictionary(sensor => GetSensorType(sensor));
@@ -140,59 +141,61 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         var parents = new Dictionary<string, GameObject>()
         {
             {string.Empty, gameObject},
-            //Needed for WISE Parsing
-            {"null", gameObject},
         };
 
         var agentController = GetComponent<AgentController>();
-        var requested = JSONNode.Parse(sensors).Children.ToList();
+        var requested = sensors.ToList();
         var baseLink = transform.GetComponentInChildren<BaseLink>();
 
-        while (requested.Count != 0)
+        while (requested.Count > 0)
         {
+            // remember how many are still looking to find their parent
             int requestedCount = requested.Count;
 
-            foreach (var parent in parents.Keys.ToArray())
+            for (int i = 0; i < requested.Count(); i++)
             {
-                var parentObject = parents[parent];
+                var item = requested[i];
+                string parentName = item.Parent != null ? item.Parent : string.Empty;
+                Debug.Log($"check {i} {item.Name} {item.Type} ({item.Parent}) ({parentName})");
 
-                for (int i = 0; i < requested.Count; i++)
+                if (parents.ContainsKey(parentName))
                 {
-                    var item = requested[i];
-                    if (item["parent"].Value == parent)
+                    var parentObject = parents[parentName];
+
+                    Debug.Log("match "+parentName);
+                    var name = item.Name;
+                    var type = item.Type;
+
+                    SensorConfig config;
+                    if (!available.TryGetValue(type, out config))
                     {
-                        var name = item["name"].Value;
-                        var type = item["type"].Value;
-
-                        SensorConfig config;
-                        if (!available.TryGetValue(type, out config))
-                        {
-                            throw new Exception($"Unknown sensor type {type} for {gameObject.name} vehicle");
-                        }
-
-                        var sensor = CreateSensor(gameObject, parentObject, prefabs[type].gameObject, item, baseLink);
-                        var sensorBase = sensor.GetComponent<SensorBase>();
-                        sensorBase.Name = name;
-                        sensor.name = name;
-                        SIM.LogSimulation(SIM.Simulation.SensorStart, name);
-                        if (AgentBridgeClient != null)
-                        {
-                            sensor.GetComponent<SensorBase>().OnBridgeSetup(AgentBridgeClient.Bridge);
-                        }
-
-                        parents.Add(name, sensor);
-                        requested.RemoveAt(i);
-                        i--;
-                        var sensorInstanceController = new SensorInstanceController(item, sensorBase);
-                        if (SimulatorManager.InstanceAvailable)
-                            SimulatorManager.Instance.Sensors.RegisterSensor(sensorBase);
-                        sensorInstanceController.Enable();
-                        agentController.AgentSensors.Add(sensorBase);
-                        sensorsInstances.Add(name, sensorInstanceController);
+                        throw new Exception($"Unknown sensor type {type} for {gameObject.name} vehicle");
                     }
+
+                    var sensor = CreateSensor(gameObject, parentObject, prefabs[type].gameObject, item, baseLink);
+                    var sensorBase = sensor.GetComponent<SensorBase>();
+                    sensorBase.Name = name;
+                    sensor.name = name;
+                    SIM.LogSimulation(SIM.Simulation.SensorStart, name);
+                    if (AgentBridgeClient != null)
+                    {
+                        sensor.GetComponent<SensorBase>().OnBridgeSetup(AgentBridgeClient.Bridge);
+                    }
+
+                    parents.Add(name, sensor);
+                    Debug.Log("new parent "+name);
+                    requested.RemoveAt(i);
+                    i--;
+                    var sensorInstanceController = new SensorInstanceController(item, sensorBase);
+                    if (SimulatorManager.InstanceAvailable)
+                        SimulatorManager.Instance.Sensors.RegisterSensor(sensorBase);
+                    sensorInstanceController.Enable();
+                    agentController.AgentSensors.Add(sensorBase);
+                    sensorsInstances.Add(name, sensorInstanceController);
                 }
             }
 
+            // no sensors found their parent this round, they also won't find it next round
             if (requestedCount == requested.Count)
             {
                 throw new Exception(
@@ -203,7 +206,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         }
     }
 
-    private GameObject CreateSensor(GameObject agent, GameObject parent, GameObject prefab, JSONNode item, BaseLink baseLink)
+    private GameObject CreateSensor(GameObject agent, GameObject parent, GameObject prefab, SensorData item, BaseLink baseLink)
     {
         if (baseLink != null)
         {
@@ -212,11 +215,11 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         var position = parent.transform.position;
         var rotation = parent.transform.rotation;
 
-        var transform = item["transform"];
+        var transform = item.Transform;
         if (transform != null)
         {
-            position = parent.transform.TransformPoint(transform.ReadVector3());
-            rotation = parent.transform.rotation * Quaternion.Euler(transform.ReadVector3("pitch", "yaw", "roll"));
+            position = parent.transform.TransformPoint(transform.x, transform.y, transform.z);
+            rotation = parent.transform.rotation * Quaternion.Euler(transform.pitch, transform.yaw, transform.roll);
         }
 
         var sensor = Instantiate(prefab, position, rotation, agent.transform);
@@ -224,81 +227,77 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         var sb = sensor.GetComponent<SensorBase>();
         sb.ParentTransform = parent.transform;
 
-        var sbType = sb.GetType();
+        if (item.@params == null) return sensor;
 
-        foreach (var param in item["params"])
+        var sbType = sb.GetType();
+        foreach (var param in item.@params)
         {
             var key = param.Key;
             var value = param.Value;
 
             var field = sbType.GetField(key);
+            Debug.Log($"param key {key} value {value} field {field} gettype {field.GetType()} fieldtype {field.FieldType} value type {value.GetType()}");
             if (field == null)
             {
                 throw new Exception(
-                    $"Unknown {key} parameter for {item["name"].Value} sensor on {gameObject.name} vehicle");
+                    $"Unknown {key} parameter for {item.Name} sensor on {gameObject.name} vehicle");
             }
 
-            if (field.FieldType.IsEnum)
+            if (field.FieldType == typeof(System.Int64)
+            || field.FieldType == typeof(System.Int32)
+            || field.FieldType == typeof(System.Double)
+            || field.FieldType == typeof(System.Single)
+            || field.FieldType == typeof(System.String)
+            || field.FieldType == typeof(System.Boolean))
+            {
+                field.SetValue(sb, Convert.ChangeType(value, field.FieldType));
+            }
+            else if (field.FieldType.IsEnum)
             {
                 try
                 {
-                    var obj = Enum.Parse(field.FieldType, value.Value);
+                    var obj = Enum.Parse(field.FieldType, (string) value);
                     field.SetValue(sb, obj);
                 }
                 catch (ArgumentException ex)
                 {
                     throw new Exception(
-                        $"Failed to set {key} field to {value.Value} enum value for {gameObject.name} vehicle, {sb.Name} sensor",
+                        $"Failed to set {key} field to {value} enum value for {gameObject.name} vehicle, {sb.Name} sensor",
                         ex);
                 }
             }
             else if (field.FieldType == typeof(Color))
             {
-                if (ColorUtility.TryParseHtmlString(value.Value, out var color))
+                if (ColorUtility.TryParseHtmlString((string)value, out var color))
                 {
                     field.SetValue(sb, color);
                 }
                 else
                 {
                     throw new Exception(
-                        $"Failed to set {key} field to {value.Value} color for {gameObject.name} vehicle, {sb.Name} sensor");
+                        $"Failed to set {key} field to {value} color for {gameObject.name} vehicle, {sb.Name} sensor");
                 }
-            }
-            else if (field.FieldType == typeof(bool))
-            {
-                field.SetValue(sb, value.AsBool);
-            }
-            else if (field.FieldType == typeof(int))
-            {
-                field.SetValue(sb, value.AsInt);
-            }
-            else if (field.FieldType == typeof(float))
-            {
-                field.SetValue(sb, value.AsFloat);
-            }
-            else if (field.FieldType == typeof(string))
-            {
-                field.SetValue(sb, value.Value);
             }
             else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition() == typeof(List<>))
             {
                 var type = field.FieldType.GetGenericArguments()[0];
+                Debug.Log("found generic type "+field.FieldType+" "+type);
                 Type listType = typeof(List<>).MakeGenericType(new[] {type});
                 System.Collections.IList list = (System.Collections.IList) Activator.CreateInstance(listType);
 
                 if (type.IsEnum)
                 {
-                    foreach (var elemValue in value)
+                    foreach (var elemValue in ((List<object>)value).OfType<string>())
                     {
                         object elem;
                         try
                         {
-                            elem = Enum.Parse(type, elemValue.Value);
+                            elem = Enum.Parse(type, elemValue);
                         }
                         catch (ArgumentException ex)
                         {
                             throw new Exception(
-                                $"Failed to set {key} field to {value.Value} enum value for {gameObject.name} vehicle, {sb.Name} sensor",
+                                $"Failed to set {key} field to {value} enum value for {gameObject.name} vehicle, {sb.Name} sensor",
                                 ex);
                         }
                         list.Add(elem);
@@ -306,9 +305,9 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                 }
                 else if (type == typeof(float))
                 {
-                    foreach (var elemValue in value)
+                    foreach (var elemValue in ((List<object>)value).OfType<float>())
                     {
-                        float elem = elemValue.Value.AsFloat;
+                        float elem = elemValue;
                         list.Add(elem);
                     }
                 }
@@ -319,24 +318,18 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                     if (type.IsAbstract)
                         assignableTypes = type.Assembly.GetTypes().Where(t => t != type && type.IsAssignableFrom(t)).ToList();
 
-                    foreach (var elemValue in value)
+                    foreach (var elemValue in (List<object>)value)
                     {
+                        object elem;
                         void PopulateFields(object element, Type elementType)
                         {
-                            foreach (var elemField in elementType.GetFields())
+                            foreach (var targetField in elementType.GetFields())
                             {
-                                var elemName = elemField.Name;
-
-                                if (elemValue.Value[elemName].IsNumber)
-                                    elemField.SetValue(element, elemValue.Value[elemName].AsFloat);
-                                else if (elemValue.Value[elemName].IsString)
-                                    elemField.SetValue(element, elemValue.Value[elemName].AsBool);
-                                else if (elemValue.Value[elemName].IsBoolean)
-                                    elemField.SetValue(element, elemValue.Value[elemName].AsBool);
+                                var elemName = targetField.Name;
+                                var sourceField = elemValue.GetType().GetField(name);
+                                targetField.SetValue(element, sourceField.GetValue(elemValue));
                             }
                         }
-                        
-                        object elem;
 
                         if (!type.IsAbstract)
                         {
@@ -345,12 +338,14 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                         }
                         else
                         {
-                            if (!elemValue.Value.HasKey("type"))
+                            var typeField = elemValue.GetType().GetField("type");
+
+                            if (typeField.GetValue(elemValue) == null)
                                 throw new Exception($"Type {type.Name} is abstract and does not define `type` field ({gameObject.name} vehicle, {sb.Name} sensor, {key} field)");
 
-                            var typeName = elemValue.Value["type"].Value;
+                            var typeName = Convert.ToString(typeField.GetValue(elemValue));
                             var elementType = assignableTypes.FirstOrDefault(t => t.Name == typeName);
-                            
+
                             if (elementType == null)
                                 throw new Exception($"No {typeName} type derived from {type.Name} for {key} field for {gameObject.name} vehicle, {sb.Name} sensor");
 
@@ -391,9 +386,9 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
             return;
 
         var clientsCount = clients.Count;
-        var clientsSensors = new JSONArray[clientsCount];
+        var clientsSensors = new List<SensorData>[clientsCount];
         for (var i=0; i<clientsSensors.Length; i++)
-            clientsSensors[i] = new JSONArray();
+            clientsSensors[i] = new List<SensorData>();
 
         //Order sensors by distribution type, so ultra high loads will be handled first
         var sensorsByDistributionType =
@@ -477,7 +472,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         for (var i = 0; i < clientsCount; i++)
         {
             var client = network.Master.Clients[i];
-            var sensorString = clientsSensors[i].ToString();
+            var sensorString = JsonConvert.SerializeObject(clientsSensors[i], JsonSettings.camelCase);
             var message = MessagesPool.Instance.GetMessage(BytesStack.GetMaxByteCount(sensorString));
             message.AddressKey = Key;
             message.Content.PushString(sensorString);
@@ -502,7 +497,8 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         if (sensorsInstances.Any() || Loader.Instance.Network.IsMaster)
             return;
         var sensors = distributedMessage.Content.PopString();
-        InstantiateSensors(sensors);
+        var parsed = JsonConvert.DeserializeObject<SensorData[]>(sensors);
+        InstantiateSensors(parsed);
     }
 
     /// <inheritdoc/>

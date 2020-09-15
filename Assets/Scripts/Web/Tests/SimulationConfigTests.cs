@@ -41,7 +41,7 @@ namespace Simulator.Web.Tests
             Assert.That(simData.ApiOnly, Is.True);
             Assert.True(simData.ApiOnly);
 
-            var s = Newtonsoft.Json.JsonConvert.SerializeObject(simData);
+            var s = Newtonsoft.Json.JsonConvert.SerializeObject(simData, JsonSettings.camelCase);
             Debug.Log($"Simulation data: {s}");
         }
 
@@ -59,7 +59,7 @@ namespace Simulator.Web.Tests
 
             Assert.That(simData.ApiOnly, Is.False);
 
-            var s = Newtonsoft.Json.JsonConvert.SerializeObject(simData);
+            var s = Newtonsoft.Json.JsonConvert.SerializeObject(simData, JsonSettings.camelCase);
             Debug.Log($"Simulation data: {s}");
 
             Assert.That(simData.Map != null, Is.True);
@@ -111,7 +111,7 @@ namespace Simulator.Web.Tests
 
             Assert.That(simData.ApiOnly, Is.False);
 
-            var s = Newtonsoft.Json.JsonConvert.SerializeObject(simData);
+            var s = Newtonsoft.Json.JsonConvert.SerializeObject(simData, JsonSettings.camelCase);
             Debug.Log($"Simulation data: {s}");
 
             Assert.That(simData.Map != null, Is.True);
@@ -136,7 +136,7 @@ namespace Simulator.Web.Tests
 
             Assert.That(simData.ApiOnly, Is.True);
 
-            var s = Newtonsoft.Json.JsonConvert.SerializeObject(simData);
+            var s = Newtonsoft.Json.JsonConvert.SerializeObject(simData, JsonSettings.camelCase);
             Debug.Log($"Simulation data: {s}");
 
             Assert.That(simData.Map == null, Is.True);

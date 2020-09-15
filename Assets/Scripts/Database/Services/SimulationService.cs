@@ -38,7 +38,7 @@ namespace Simulator.Database.Services
             {
                 var sql = Sql.Builder.Where("simid = @0", data.Id);
                 Simulation sim = db.SingleOrDefault<Simulation>(sql);
-                string json = Newtonsoft.Json.JsonConvert.SerializeObject(data);
+                string json = Newtonsoft.Json.JsonConvert.SerializeObject(data, JsonSettings.camelCase);
                 if (sim != null)
                 {
                     sim.simData = json;

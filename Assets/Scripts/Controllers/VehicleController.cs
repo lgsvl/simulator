@@ -182,12 +182,11 @@ public class VehicleController : AgentController
         SIM.LogSimulation(SIM.Simulation.VehicleStop, Config.Name, elapsedTime);
         SIM.LogSimulation(SIM.Simulation.BridgeTypeStop, Config.Bridge != null ? Config.Bridge.Name : "None", elapsedTime);
 
-        if (string.IsNullOrEmpty(Config.Sensors))
+        if (Config.Sensors == null)
             return;
-        var sensors = SimpleJSON.JSONNode.Parse(Config.Sensors).Children.ToList();
-        foreach (var sensor in sensors)
+        foreach (var sensor in Config.Sensors)
         {
-            SIM.LogSimulation(SIM.Simulation.SensorStop, sensor["name"].Value, elapsedTime);
+            SIM.LogSimulation(SIM.Simulation.SensorStop, sensor.Name, elapsedTime);
         }
     }
 

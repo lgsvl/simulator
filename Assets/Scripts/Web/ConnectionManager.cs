@@ -371,7 +371,7 @@ public class CloudAPI
             onlineStream = null;
         }
 
-        var json = Newtonsoft.Json.JsonConvert.SerializeObject(simInfo);
+        var json = Newtonsoft.Json.JsonConvert.SerializeObject(simInfo, JsonSettings.camelCase);
         HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, new Uri(InstanceURL, "/api/v1/clusters/connect"));
         message.Content = new StringContent(json, Encoding.UTF8, "application/json");
         message.Headers.Add("SimId", Config.SimID);
@@ -431,7 +431,7 @@ public class CloudAPI
         do
         {
             data = await GetApi<LibraryList<DetailData>>($"{meta.ApiPath}?display=sim&limit={fetchLimit}&offset={result.Count}");
-            result.AddRange(data.rows);
+            result.AddRange(data.Rows);
         } while (result.Count < data.Count && data.Count > 0);
         return result.ToArray();
     }
@@ -509,7 +509,7 @@ public class CloudAPI
     public async Task PostApi<ApiData>(string route, ApiData data)
     {
         HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, new Uri(InstanceURL, route));
-        message.Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+        message.Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(data, JsonSettings.camelCase), Encoding.UTF8, "application/json");
         message.Headers.Add("SimId", Config.SimID);
         message.Headers.Add("Accept", "application/json");
 

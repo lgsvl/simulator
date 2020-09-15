@@ -41,14 +41,14 @@ namespace Simulator
         public GameObject AgentGO;
         public BridgePlugin Bridge;
         public string Connection;
-        public string Sensors;
+        public SensorData[] Sensors;
         public Vector3 Position;
         public Quaternion Rotation;
         public AgentConfig(){}
         public AgentConfig(VehicleData vehicleData)
         {
             Name = vehicleData.Name;
-            Connection = vehicleData.bridge != null ? vehicleData.bridge.connectionString : "";
+            Connection = vehicleData.Bridge != null ? vehicleData.Bridge.ConnectionString : "";
             AssetGuid = vehicleData.AssetGuid;
 #if UNITY_EDITOR
             if (vehicleData.Id.EndsWith(".prefab"))
@@ -61,14 +61,14 @@ namespace Simulator
             {
                 AssetBundle = Web.WebUtilities.GenerateLocalPath(vehicleData.AssetGuid, BundleConfig.BundleTypes.Vehicle);
             }
-            Sensors = Newtonsoft.Json.JsonConvert.SerializeObject(vehicleData.Sensors);
+            Sensors = vehicleData.Sensors;
 
-            if (vehicleData.bridge != null && !string.IsNullOrEmpty(vehicleData.bridge.type))
+            if (vehicleData.Bridge != null && !string.IsNullOrEmpty(vehicleData.Bridge.Type))
             {
-                Bridge = BridgePlugins.Get(vehicleData.bridge.type);
+                Bridge = BridgePlugins.Get(vehicleData.Bridge.Type);
                 if (Bridge == null)
                 {
-                    throw new Exception($"Bridge {vehicleData.bridge.type} not found");
+                    throw new Exception($"Bridge {vehicleData.Bridge.Type} not found");
                 }
             }
         }

@@ -270,13 +270,13 @@ namespace Simulator.Editor
 
                             var vehicle = developerSimulation.Vehicles[0];
                             vehicle.Id = (string)selection;
-                            if (vehicle.bridge == null)
+                            if (vehicle.Bridge == null)
                             {
-                                vehicle.bridge = new BridgeData();
+                                vehicle.Bridge = new BridgeData();
                             }
 
-                            vehicle.bridge.type = EditorGUILayout.TextField("Bridge Type", vehicle.bridge.type);
-                            vehicle.bridge.connectionString = EditorGUILayout.TextField("Bridge Connection", vehicle.bridge.connectionString);
+                            vehicle.Bridge.Type = EditorGUILayout.TextField("Bridge Type", vehicle.Bridge.Type);
+                            vehicle.Bridge.ConnectionString = EditorGUILayout.TextField("Bridge Connection", vehicle.Bridge.ConnectionString);
 
                             EditorGUILayout.LabelField("json sensor config");
                             sensorScratchPad = EditorGUILayout.TextArea(sensorScratchPad, GUILayout.Height(200));
@@ -321,7 +321,7 @@ namespace Simulator.Editor
                 var data = await API.Get<VehicleDetailData>(developerSimulation.Vehicles[0].Id);
                 developerSimulation.Vehicles = new VehicleData[] { data.ToVehicleData() };
             }
-            settings.developerSimulationJson = Newtonsoft.Json.JsonConvert.SerializeObject(developerSimulation);
+            settings.developerSimulationJson = Newtonsoft.Json.JsonConvert.SerializeObject(developerSimulation, JsonSettings.camelCase);
             EditorUtility.SetDirty(settings);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();

@@ -9,10 +9,21 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 using UnityEngine;
 
 namespace Simulator.Web
 {
+
+    public static class JsonSettings {
+        public static JsonSerializerSettings camelCase = new JsonSerializerSettings
+        {
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+//            Formatting = Formatting.Indented,
+        };
+
+    }
+
     [AttributeUsage(AttributeTargets.Class)]
     public class CloudData : Attribute
     {
@@ -68,24 +79,24 @@ namespace Simulator.Web
     public class UserData
     {
         public string id {get; set; }
-        public string email {get; set; }
-        public string firstName {get; set; }
-        public string lastName {get; set; }
+        public string Email {get; set; }
+        public string FirstName {get; set; }
+        public string LastName {get; set; }
     }
 
     public class VehicleData: CloudIdData
     {
         public string AssetGuid { get; set; }
         public SensorData[] Sensors { get; set; }
-        public BridgeData bridge { get; set; }
+        public BridgeData Bridge { get; set; }
     }
 
     [CloudData(ApiPath = "api/v1/vehicles")]
     public class VehicleDetailData: CloudAssetDetails
     {
         public SensorData[] Sensors { get; set; }
-        public BridgeData bridge { get; set; }
-        public string fmu { get; set; }
+        public BridgeData Bridge { get; set; }
+        public string Fmu { get; set; }
         public string BridgePluginId { get; set; }
         public VehicleData ToVehicleData()
         {
@@ -97,7 +108,7 @@ namespace Simulator.Web
                 UpdatedAt = UpdatedAt,
                 OwnerId = OwnerId,
                 AssetGuid = AssetGuid,
-                bridge = bridge,
+                Bridge = Bridge,
                 Sensors = Sensors,
             };
         }
@@ -112,10 +123,10 @@ namespace Simulator.Web
 
     public class BridgeData
     {
-        public string name { get; set; }
-        public string assetGuid { get; set; }
-        public string type { get; set; }
-        public string connectionString { get; set; }
+        public string Name { get; set; }
+        public string AssetGuid { get; set; }
+        public string Type { get; set; }
+        public string ConnectionString { get; set; }
     }
 
     public class ClusterData: CloudIdData
@@ -139,11 +150,11 @@ namespace Simulator.Web
 
     public class SensorData
     {
-        public string name;
-        public string parent;
-        public string type;
-        public TransformData transform;
-        public string assetGuid;
+        public string Name;
+        public string Parent;
+        public string Type;
+        public TransformData Transform;
+        public string AssetGuid;
         public Dictionary<string, object> @params;
     }
 
@@ -225,6 +236,6 @@ namespace Simulator.Web
     public class LibraryList<DetailData>
     {
         public int Count {get; set; }
-        public DetailData[] rows {get; set;}
+        public DetailData[] Rows {get; set;}
     }
 }

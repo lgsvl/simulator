@@ -156,13 +156,11 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
             {
                 var item = requested[i];
                 string parentName = item.Parent != null ? item.Parent : string.Empty;
-                Debug.Log($"check {i} {item.Name} {item.Type} ({item.Parent}) ({parentName})");
 
                 if (parents.ContainsKey(parentName))
                 {
                     var parentObject = parents[parentName];
 
-                    Debug.Log("match "+parentName);
                     var name = item.Name;
                     var type = item.Type;
 
@@ -183,7 +181,6 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                     }
 
                     parents.Add(name, sensor);
-                    Debug.Log("new parent "+name);
                     requested.RemoveAt(i);
                     i--;
                     var sensorInstanceController = new SensorInstanceController(item, sensorBase);
@@ -236,7 +233,6 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
             var value = param.Value;
 
             var field = sbType.GetField(key);
-            Debug.Log($"param key {key} value {value} field {field} gettype {field.GetType()} fieldtype {field.FieldType} value type {value.GetType()}");
             if (field == null)
             {
                 throw new Exception(
@@ -281,7 +277,6 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
             else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition() == typeof(List<>))
             {
                 var type = field.FieldType.GetGenericArguments()[0];
-                Debug.Log("found generic type "+field.FieldType+" "+type);
                 Type listType = typeof(List<>).MakeGenericType(new[] {type});
                 System.Collections.IList list = (System.Collections.IList) Activator.CreateInstance(listType);
 

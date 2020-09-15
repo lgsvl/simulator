@@ -16,14 +16,6 @@ namespace Simulator.Utilities
     {
         public static void ReinitializeRenderPipeline()
         {
-            // NOTE: This is a workaround for Vulkan. Even if HDRP is reinitialized, lighting data and depth buffers
-            //       on render targets (even ones created afterwards) will be corrupted. Reloading scene before
-            //       forcefully reinitializing HDRP will refresh both lighting and depth data appropriately.
-            //       This happens automatically for scene bundles, but is required for prefab ones.
-            //       If this is not called for scene bundles, however, command line execution from async method will
-            //       not create render pipeline at all when using Vulkan and crash with invalid memory access
-            // Last tested on Unity 2019.3.15f1 and HDRP 7.3.1
-
             var assetField = typeof(RenderPipelineManager).GetField("s_CurrentPipelineAsset", BindingFlags.NonPublic | BindingFlags.Static);
             if (assetField == null)
             {

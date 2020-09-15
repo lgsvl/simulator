@@ -12,13 +12,13 @@ namespace Simulator.Editor
     using System.Linq;
     using System.Reflection;
     using Simulator.PointCloud.Trees;
+    using Simulator.Utilities;
     using UnityEditor;
     using UnityEditor.SceneManagement;
     using UnityEngine;
     using UnityEngine.Rendering;
     using UnityEngine.Rendering.HighDefinition;
     using UnityEngine.SceneManagement;
-    using Utilities;
     using Object = UnityEngine.Object;
 
     public static class BundlePreviewRenderer
@@ -70,7 +70,7 @@ namespace Simulator.Editor
             var pos = origin.position;
             var rot = origin.rotation;
 
-            HDRPUtilities.ReinitializeRenderPipeline();
+            ReinitializeRenderPipeline();
 
             var previewRootPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/ScenePreviewRoot.prefab");
             var previewRoot = Object.Instantiate(previewRootPrefab);
@@ -98,7 +98,7 @@ namespace Simulator.Editor
 
         public static void RenderVehiclePreview(string vehicleAssetFile, PreviewTextures textures)
         {
-            HDRPUtilities.ReinitializeRenderPipeline();
+            ReinitializeRenderPipeline();
 
             var cameraObj = GameObject.Find("PreviewCamera");
             var camera = cameraObj == null ? null : cameraObj.GetComponent<Camera>();
@@ -260,6 +260,38 @@ namespace Simulator.Editor
                 RenderTexture.active = null;
                 RenderTexture.ReleaseTemporary(rt);
             }
+        }
+
+        private static void ReinitializeRenderPipeline()
+        {
+            // NOTE: This is a workaround for Vulkan. Even if HDRP is reinitialized, lighting data and depth buffers
+            //       on render targets (even ones created afterwards) will be corrupted. Reloading scene before
+            //       forcefully reinitializing HDRP will refresh both lighting and depth data appropriately.
+            //       This happens automatically for scene bundles, but is required for prefab ones.
+            //       If this is not called for scene bundles, however, command line execution from async method will
+            //       not create render pipeline at all when using Vulkan and crash with invalid memory access
+            // Last tested on Unity 2019.3.15f1 and HDRP 7.3.1
+
+            const string loaderScenePath = "Assets/Scenes/LoaderScene.unity";
+            var openScenePaths = new List<string>();
+            var activeScenePath = SceneManager.GetActiveScene().path;
+
+            for (var i = 0; i < EditorSceneManager.loadedSceneCount; ++i)
+                openScenePaths.Add(SceneManager.GetSceneAt(i).path);
+
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+            var mainScenePath = string.IsNullOrEmpty(activeScenePath) ? loaderScenePath : activeScenePath;
+            EditorSceneManager.OpenScene(mainScenePath, OpenSceneMode.Single);
+            foreach (var scenePath in openScenePaths)
+            {
+                if (string.Equals(scenePath, activeScenePath) || string.IsNullOrEmpty(scenePath))
+                    continue;
+
+                EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+            }
+
+            HDRPUtilities.ReinitializeRenderPipeline();
         }
     }
 }

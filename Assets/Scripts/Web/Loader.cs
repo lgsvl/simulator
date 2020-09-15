@@ -196,9 +196,12 @@ namespace Simulator
 
                 if (previous == newStatus)
                     return;
-
-                if(ConnectionManager.instance != null)
-                    ConnectionManager.instance.UpdateStatus(newStatus, CurrentSimulation.Id);
+                
+                if (ConnectionManager.instance != null)
+                {
+                    var simId = CurrentSimulation != null ? CurrentSimulation.Id : string.Empty;
+                    ConnectionManager.instance.UpdateStatus(newStatus, simId);
+                }
 
                 if(status == SimulatorStatus.Running)
                     WindowFlasher.Flash();

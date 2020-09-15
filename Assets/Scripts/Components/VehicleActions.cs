@@ -205,20 +205,21 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         set
         {
             _brakeLights = value;
-            brakeLights.ForEach(x => x.enabled = _brakeLights);
             switch (_currentHeadLightState)
             {
                 case HeadLightState.OFF:
                     if (brakeLightRenderer != null)
                     {
-                        brakeLightRenderer.material.SetFloat("_EmitIntensity", _brakeLights ? 4 : 0);
+                        brakeLights.ForEach(x => x.intensity = _brakeLights ? 3f : 0f);
+                        brakeLightRenderer.material.SetFloat("_EmitIntensity", _brakeLights ? 3 : 0);
                     }
                     break;
                 case HeadLightState.LOW:
                 case HeadLightState.HIGH:
                     if (brakeLightRenderer != null)
                     {
-                        brakeLightRenderer.material.SetFloat("_EmitIntensity", _brakeLights ? 4 : 1.1f);
+                        brakeLights.ForEach(x => x.intensity = _brakeLights ? 3f : 1f);
+                        brakeLightRenderer.material.SetFloat("_EmitIntensity", _brakeLights ? 3 : 1.1f);
                     }
                     break;
             }
@@ -436,7 +437,8 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         }
 
         headLights?.ForEach(x => x.enabled = false);
-        brakeLights?.ForEach(x => x.enabled = false);
+        brakeLights?.ForEach(x => x.enabled = true);
+        brakeLights.ForEach(x => x.intensity = 0f);
         indicatorLeftLights?.ForEach(x => x.enabled = false);
         indicatorRightLights?.ForEach(x => x.enabled = false);
         indicatorReverseLights?.ForEach(x => x.enabled = false);

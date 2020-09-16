@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Simulator;
 using Simulator.Components;
 using Simulator.Network.Core;
@@ -279,10 +280,12 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                 var type = field.FieldType.GetGenericArguments()[0];
                 Type listType = typeof(List<>).MakeGenericType(new[] {type});
                 System.Collections.IList list = (System.Collections.IList) Activator.CreateInstance(listType);
+                var jarray = (Newtonsoft.Json.Linq.JArray) value;
 
                 if (type.IsEnum)
                 {
-                    foreach (var elemValue in ((List<object>)value).OfType<string>())
+                    // TODO test this branch - remove this comment when you found a sensor + config that exercises this branch
+                    foreach (var elemValue in jarray.ToObject<List<string>>())
                     {
                         object elem;
                         try
@@ -298,13 +301,9 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                         list.Add(elem);
                     }
                 }
-                else if (type == typeof(float))
+                else if (type == typeof(System.Single))
                 {
-                    foreach (var elemValue in ((List<object>)value).OfType<float>())
-                    {
-                        float elem = elemValue;
-                        list.Add(elem);
-                    }
+                    list = jarray.ToObject<List<System.Single>>();
                 }
                 else
                 {
@@ -313,39 +312,27 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                     if (type.IsAbstract)
                         assignableTypes = type.Assembly.GetTypes().Where(t => t != type && type.IsAssignableFrom(t)).ToList();
 
-                    foreach (var elemValue in (List<object>)value)
+                    foreach (var jtoken in jarray)
                     {
                         object elem;
-                        void PopulateFields(object element, Type elementType)
-                        {
-                            foreach (var targetField in elementType.GetFields())
-                            {
-                                var elemName = targetField.Name;
-                                var sourceField = elemValue.GetType().GetField(name);
-                                targetField.SetValue(element, sourceField.GetValue(elemValue));
-                            }
-                        }
 
                         if (!type.IsAbstract)
                         {
-                            elem = Activator.CreateInstance(type);
-                            PopulateFields(elem, type);
+                            elem = jtoken.ToObject(type);
                         }
                         else
                         {
-                            var typeField = elemValue.GetType().GetField("type");
+                            var typeName = jtoken.Value<string>("type");
 
-                            if (typeField.GetValue(elemValue) == null)
+                            if (typeName == null)
                                 throw new Exception($"Type {type.Name} is abstract and does not define `type` field ({gameObject.name} vehicle, {sb.Name} sensor, {key} field)");
 
-                            var typeName = Convert.ToString(typeField.GetValue(elemValue));
                             var elementType = assignableTypes.FirstOrDefault(t => t.Name == typeName);
 
                             if (elementType == null)
                                 throw new Exception($"No {typeName} type derived from {type.Name} for {key} field for {gameObject.name} vehicle, {sb.Name} sensor");
 
-                            elem = Activator.CreateInstance(elementType);
-                            PopulateFields(elem, elementType);
+                            elem = jtoken.ToObject(elementType);
                         }
 
                         list.Add(elem);

@@ -354,7 +354,7 @@ namespace Simulator.Network.Client
         private void OnRunCommand(Commands.Run run)
         {
             //Check if the simulation is already loading or running
-            if (State == SimulationState.Running || State == SimulationState.Preparing)
+            if (State == SimulationState.Loading || State == SimulationState.Running)
                 return;
             Debug.Assert(State == SimulationState.Ready);
             Loader.StartAsync(Loader.Instance.Network.CurrentSimulation);

@@ -50,7 +50,8 @@ else
   export BUILD_VERSION="dev"
   DEVELOPMENT_BUILD=-developmentBuild
   if [ -v GIT_BRANCH ]; then
-    SUFFIX=${SUFFIX}-${GIT_BRANCH}
+    GIT_BRANCH_SUFFIX=`echo ${GIT_BRANCH} | tr / -  | tr [:upper:] [:lower:]`
+    SUFFIX=${SUFFIX}-${GIT_BRANCH_SUFFIX}
   fi
   if [ -v JENKINS_BUILD_ID ]; then
     SUFFIX=${SUFFIX}-${JENKINS_BUILD_ID}

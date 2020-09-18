@@ -454,7 +454,10 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         for (var i = 0; i < clientsCount; i++)
         {
             var client = network.Master.Clients[i];
-            var sensorString = JsonConvert.SerializeObject(clientsSensors[i], JsonSettings.camelCase);
+            //Do not change sensors JSON  string (for example with different case settings)
+            //Parameter names are used to fill the sensors fields by name
+            //Parameter names have to be the same as field names
+            var sensorString = JsonConvert.SerializeObject(clientsSensors[i]);
             var message = MessagesPool.Instance.GetMessage(BytesStack.GetMaxByteCount(sensorString));
             message.AddressKey = Key;
             message.Content.PushString(sensorString);

@@ -434,12 +434,14 @@ namespace Simulator
 
                                 if (zip.FindEntry($"{manifest.assetGuid}_environment_textures", false) != -1)
                                 {
-                                    var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_environment_textures"));
+                                    entry = zip.GetEntry($"{manifest.assetGuid}_environment_textures");
+                                    var texStream = VirtualFileSystem.VirtualFileSystem.EnsureSeekable(zip.GetInputStream(entry), entry.Size);
                                     textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
                                 }
 
                                 string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
-                                var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_environment_main_{platform}"));
+                                entry = zip.GetEntry($"{manifest.assetGuid}_environment_main_{platform}");
+                                var mapStream = VirtualFileSystem.VirtualFileSystem.EnsureSeekable(zip.GetInputStream(entry), entry.Size);
                                 mapBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
 
                                 if (mapBundle == null)

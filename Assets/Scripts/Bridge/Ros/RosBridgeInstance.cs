@@ -12,7 +12,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using SimpleJSON;
 using WebSocketSharp;
-using System.CodeDom;
 
 namespace Simulator.Bridge.Ros
 {
@@ -168,7 +167,7 @@ namespace Simulator.Bridge.Ros
 
         void OnClose(object sender, CloseEventArgs args)
         {
-            Status = Status.Disconnected;
+            Status = args.WasClean ?  Status.Disconnected : Status.UnexpectedlyDisconnected;
             Socket = null;
         }
 

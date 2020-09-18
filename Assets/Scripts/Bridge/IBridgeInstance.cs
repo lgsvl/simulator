@@ -10,6 +10,7 @@ namespace Simulator.Bridge
     public enum Status
     {
         Disconnected,
+        UnexpectedlyDisconnected,
         Connecting,
         Connected,
         Disconnecting,

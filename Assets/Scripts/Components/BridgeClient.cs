@@ -77,6 +77,11 @@ namespace Simulator.Components
                 }
             }
 
+            if (BridgeStatus == Status.UnexpectedlyDisconnected)
+            {
+                ConnectionManager.instance.UpdateStatus("Error", Loader.Instance.CurrentSimulation.Id, "Bridge socket was unexpectedly disconnected");
+            }
+
             if (BridgeStatus == Status.Connected)
             {
                 Bridge.Update();

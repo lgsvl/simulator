@@ -151,7 +151,10 @@ namespace Simulator
         public ConnectionUI ConnectionUI => FindObjectOfType<ConnectionUI>();
 
         // NOTE: When simulation is not running this reference will be null.
-        public SimulationData CurrentSimulation;
+        private SimulationData currentSimulation;
+        public SimulationData CurrentSimulation {
+            get { return currentSimulation; }
+        }
 
         ConcurrentQueue<Action> Actions = new ConcurrentQueue<Action>();
         public string LoaderScene { get; private set; }
@@ -196,15 +199,21 @@ namespace Simulator
 
                 if (previous == newStatus)
                     return;
-                
+
                 if (ConnectionManager.instance != null)
                 {
-                    var simId = CurrentSimulation != null ? CurrentSimulation.Id : string.Empty;
-                    ConnectionManager.instance.UpdateStatus(newStatus, simId);
+                    ConnectionManager.instance.UpdateStatus(newStatus, CurrentSimulation.Id);
                 }
 
-                if(status == SimulatorStatus.Running)
+                if (value == SimulatorStatus.Idle)
+                {
+                    currentSimulation = null;
+                }
+
+                if (status == SimulatorStatus.Running)
+                {
                     WindowFlasher.Flash();
+                }
             }
         }
 
@@ -235,9 +244,13 @@ namespace Simulator
                 SimulationData devSim;
                 var devSettings = (Simulator.Editor.DevelopmentSettingsAsset)UnityEditor.AssetDatabase.LoadAssetAtPath("Assets/Resources/Editor/DeveloperSettings.asset", typeof(Simulator.Editor.DevelopmentSettingsAsset));
                 if (devSettings != null && devSettings.developerSimulationJson != null)
+                {
                     devSim = Newtonsoft.Json.JsonConvert.DeserializeObject<SimulationData>(devSettings.developerSimulationJson);
+                }
                 else
+                {
                     devSim = new SimulationData();
+                }
 
                 StartSimulation(devSim);
 #endif
@@ -260,7 +273,6 @@ namespace Simulator
 
         public static async void StartSimulation(SimulationData simData)
         {
-            Instance.CurrentSimulation = simData;
             CloudAPI api = null;
             if (Instance.Status != SimulatorStatus.Idle)
             {
@@ -279,6 +291,7 @@ namespace Simulator
                     await api.EnsureConnectSuccess();
                 }
 #endif
+                Instance.currentSimulation = simData;
                 Instance.Status = SimulatorStatus.Loading;
                 Instance.Network.Initialize(Config.SimID, simData.Cluster, Instance.NetworkSettings);
                 var downloads = new List<Task>();
@@ -312,9 +325,13 @@ namespace Simulator
                 Debug.Log("All Downloads Complete");
 
                 if (!Instance.Network.IsClusterSimulation)
+                {
                     StartAsync(simData);
+                }
                 else
+                {
                     Instance.Network.SetSimulationData(simData);
+                }
             }
             catch (Exception ex)
             {
@@ -346,7 +363,7 @@ namespace Simulator
         public static void StartAsync(SimulationData simulation)
         {
             Debug.Assert(Instance.Status == SimulatorStatus.Loading);
-            Instance.CurrentSimulation = simulation;
+            Instance.currentSimulation = simulation;
             Instance.Status = SimulatorStatus.Starting;
 
             Instance.Actions.Enqueue(async () =>
@@ -505,7 +522,6 @@ namespace Simulator
                         textureBundle?.Unload(false);
                         mapBundle?.Unload(false);
                         AssetBundle.UnloadAllAssetBundles(true);
-                        Instance.CurrentSimulation = null;
                         await Instance.Network.Deinitialize();
                     }
                     catch (Exception ex)
@@ -522,13 +538,12 @@ namespace Simulator
                         {
                             Instance.Status = SimulatorStatus.Stopping;
                             SceneManager.LoadScene(Instance.LoaderScene);
-                            Instance.Status = SimulatorStatus.Idle;
                         }
 
+                        Instance.Status = SimulatorStatus.Idle;
                         textureBundle?.Unload(false);
                         mapBundle?.Unload(false);
                         AssetBundle.UnloadAllAssetBundles(true);
-                        Instance.CurrentSimulation = null;
                         await Instance.Network.Deinitialize();
                     }
             });
@@ -544,13 +559,12 @@ namespace Simulator
                     Instance.Status = SimulatorStatus.Stopping;
                     await Instance.Network.Deinitialize();
                     Instance.Status = SimulatorStatus.Idle;
-                    Instance.CurrentSimulation = null;
                     return;
                 }
-                
+
                 if (ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline)
                     Instance.Status = SimulatorStatus.Stopping;
-                
+
                 if (SimulatorManager.InstanceAvailable)
                     await SimulatorManager.Instance.AnalysisManager.AnalysisSave();
 
@@ -581,7 +595,6 @@ namespace Simulator
                                 AssetBundle.UnloadAllAssetBundles(false);
                                 Instance.ConnectionUI.SetLoaderUIState(ConnectionUI.LoaderUIStateType.START);
                                 Instance.Status = SimulatorStatus.Idle;
-                                Instance.CurrentSimulation = null;
                             }
                         };
                     }
@@ -590,7 +603,6 @@ namespace Simulator
                         Debug.Log($"Failed to stop '{Instance.CurrentSimulation.Name}' simulation");
                         Debug.LogException(ex);
                         Instance.Status = SimulatorStatus.Idle;
-                        Instance.CurrentSimulation = null;
                     }
                 }
             });
@@ -786,10 +798,9 @@ namespace Simulator
                 AssetBundle.UnloadAllAssetBundles(true);
                 // changing Status requires CurrentSimulation to be valid
                 Instance.Status = SimulatorStatus.Idle;
-                Instance.CurrentSimulation = null;
             }
         }
-	    
+
         public static async Task EnterScenarioEditor()
         {
             if (SimulatorManager.InstanceAvailable || ApiManager.Instance)
@@ -803,14 +814,14 @@ namespace Simulator
                 Debug.LogError("Cannot enter Scenario Editor when connection is not established.");
                 return;
             }
-            
+
             var maps = await ConnectionManager.API.GetLibrary<MapDetailData>();
             if (maps.Length == 0)
             {
                 Debug.LogError("Scenario Editor requires at least one map added to the library.");
                 return;
             }
-            
+
             var egos = await ConnectionManager.API.GetLibrary<VehicleDetailData>();
             if (egos.Length == 0)
             {
@@ -829,7 +840,9 @@ namespace Simulator
         {
             IsInScenarioEditor = false;
             if (SceneManager.GetSceneByName(ScenarioEditorSceneName).isLoaded)
+            {
                 SceneManager.LoadScene(Instance.LoaderScene);
+            }
         }
 
         static string ByteArrayToString(byte[] ba)

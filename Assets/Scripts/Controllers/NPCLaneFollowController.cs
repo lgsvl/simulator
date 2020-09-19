@@ -845,12 +845,12 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
 
     public void SetFollowClosestLane(float maxSpeed, bool isLaneChange)
     {
-        laneChange = isLaneChange;
-
         var position = transform.position;
 
         var lane = SimulatorManager.Instance.MapManager.GetClosestLane(position);
         InitLaneData(lane);
+
+        laneChange = isLaneChange;
 
         int index = -1;
         float minDist = float.PositiveInfinity;

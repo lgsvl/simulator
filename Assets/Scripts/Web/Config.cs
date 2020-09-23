@@ -28,12 +28,8 @@ namespace Simulator.Web
 
         public static string ApiHost = "localhost";
         public static int ApiPort = 8181;
-
-        public static bool RunAsMaster = true;
         
         public static string CloudUrl = "https://wise.lgsvlsimulator.com";
-        public static string Username;
-        public static string Password;
         public static string SessionGUID;
         public static string SimID;
 
@@ -420,7 +416,6 @@ namespace Simulator.Web
         private class YamlConfig
         {
             public bool headless { get; set; } = Config.Headless;
-            public bool client { get; set; } = !Config.RunAsMaster;
             public bool read_only { get; set; } = false;
             public string api_hostname { get; set; } = Config.ApiHost;
             public int api_port { get; set; } = Config.ApiPort;
@@ -453,7 +448,6 @@ namespace Simulator.Web
                 api_port = ApiPort,
                 data_path = PersistentDataPath,
                 cloud_url = CloudUrl,
-                client = !RunAsMaster,
                 headless = Headless
             };
         }
@@ -483,8 +477,7 @@ namespace Simulator.Web
             {
                 CloudUrl = cloudUrl;
             }
-
-            RunAsMaster = !config.client;
+            
             Headless = config.headless;
         }
 
@@ -532,34 +525,6 @@ namespace Simulator.Web
                             Application.Quit(1);
                         }
                         break;
-                    case "--client":
-                    case "-c":
-                        RunAsMaster = false;
-                        break;
-                    case "--master":
-                    case "-m":
-                        RunAsMaster = true;
-                        break;
-                    case "--username":
-                    case "-u":
-                        if (i == args.Length - 1)
-                        {
-                            Debug.LogError("No value for username provided!");
-                            Application.Quit(1);
-                        }
-
-                        Username = args[++i];
-                        break;
-                    case "--password":
-                    case "-w":
-                        if (i == args.Length - 1)
-                        {
-                            Debug.LogError("No value for password provided!");
-                            Application.Quit(1);
-                        }
-
-                        Password = args[++i];
-                        break;
                     case "--data":
                     case "-d":
                         if(i == args.Length - 1)
@@ -569,9 +534,6 @@ namespace Simulator.Web
                         }
 
                         PersistentDataPath = args[++i];
-                        break;
-                    case "--agree":
-                        AgreeToLicense = true;
                         break;
                     case "--retryForever":
                         RetryForever = true;

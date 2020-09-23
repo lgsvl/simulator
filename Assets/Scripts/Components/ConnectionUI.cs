@@ -244,11 +244,6 @@ namespace Simulator.Web
             switch (LoaderUIState)
             {
                 case LoaderUIStateType.START:
-                    if (!Config.RunAsMaster)
-                    {
-                        statusButtonText.text = "Client ready";
-                        statusText.text = "Client ready";
-                    }
                     break;
                 case LoaderUIStateType.PROGRESS:
                     statusButtonText.text = "Loading...";

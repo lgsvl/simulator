@@ -10,8 +10,10 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
     using Agents;
     using Data.Serializer;
     using Elements;
+    using Input;
     using Managers;
     using ScenarioEditor.Utilities;
+    using Undo;
     using Undo.Records;
     using UnityEngine;
     using UnityEngine.EventSystems;
@@ -113,7 +115,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         private void OnSelectedOtherElement(ScenarioElement selectedElement)
         {
             if (isAddingWaypoints)
-                ScenarioManager.Instance.inputManager.CancelAddingElements(this);
+                ScenarioManager.Instance.GetExtension<InputManager>().CancelAddingElements(this);
 
             selectedWaypoint = selectedElement as ScenarioWaypoint;
             selectedAgent = selectedWaypoint != null ? selectedWaypoint.ParentAgent : null;
@@ -129,7 +131,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                 waitTimePanel.SetActive(selectedWaypoint != null);
                 if (selectedWaypoint != null)
                 {
-                    speedInput.ExternalValueChange(selectedWaypoint.Speed);
+                    speedInput.ExternalValueChange(selectedWaypoint.Speed, false);
                     waitTimeInput.text = selectedWaypoint.WaitTime.ToString("F");
                 }
 
@@ -143,7 +145,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         public void Add()
         {
             if (selectedAgent != null)
-                ScenarioManager.Instance.inputManager.StartAddingElements(this);
+                ScenarioManager.Instance.GetExtension<InputManager>().StartAddingElements(this);
         }
 
         /// <inheritdoc/>
@@ -152,33 +154,34 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             if (selectedAgent == null)
             {
                 Debug.LogWarning("Cannot add waypoints if no agent or waypoint is selected.");
-                ScenarioManager.Instance.inputManager.CancelAddingElements(this);
+                ScenarioManager.Instance.GetExtension<InputManager>().CancelAddingElements(this);
                 return;
             }
 
             isAddingWaypoints = true;
 
-            var mapWaypointPrefab = ScenarioManager.Instance.waypointsManager.waypointPrefab;
-            waypointInstance = ScenarioManager.Instance.prefabsPools.GetInstance(mapWaypointPrefab)
+            var mapWaypointPrefab = ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>().waypointPrefab;
+            waypointInstance = ScenarioManager.Instance.GetExtension<PrefabsPools>().GetInstance(mapWaypointPrefab)
                 .GetComponent<ScenarioWaypoint>();
             if (waypointInstance == null)
             {
                 Debug.LogWarning("Cannot add waypoints. Add waypoint component to the prefab.");
-                ScenarioManager.Instance.inputManager.CancelAddingElements(this);
-                ScenarioManager.Instance.prefabsPools.ReturnInstance(waypointInstance.gameObject);
+                ScenarioManager.Instance.GetExtension<InputManager>().CancelAddingElements(this);
+                ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(waypointInstance.gameObject);
                 return;
             }
 
             waypointInstance.transform.position = addPosition;
+            var mapManager = ScenarioManager.Instance.GetExtension<ScenarioMapManager>();
             switch (selectedAgent.Type)
             {
                 case AgentType.Ego:
                 case AgentType.Npc:
-                    ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic,
+                    mapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic,
                         waypointInstance.transform);
                     break;
                 case AgentType.Pedestrian:
-                    ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian,
+                    mapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian,
                         waypointInstance.transform);
                     break;
             }
@@ -190,15 +193,16 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         void IAddElementsHandler.AddingMoved(Vector3 addPosition)
         {
             waypointInstance.transform.position = addPosition;
+            var mapManager = ScenarioManager.Instance.GetExtension<ScenarioMapManager>();
             switch (selectedAgent.Type)
             {
                 case AgentType.Ego:
                 case AgentType.Npc:
-                    ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic,
+                    mapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic,
                         waypointInstance.transform);
                     break;
                 case AgentType.Pedestrian:
-                    ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian,
+                    mapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian,
                         waypointInstance.transform);
                     break;
             }
@@ -210,26 +214,28 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         void IAddElementsHandler.AddElement(Vector3 addPosition)
         {
             var previousWaypoint = waypointInstance;
-            var mapWaypointPrefab = ScenarioManager.Instance.waypointsManager.waypointPrefab;
-            waypointInstance = ScenarioManager.Instance.prefabsPools.GetInstance(mapWaypointPrefab)
+            var mapWaypointPrefab = ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>().waypointPrefab;
+            waypointInstance = ScenarioManager.Instance.GetExtension<PrefabsPools>().GetInstance(mapWaypointPrefab)
                 .GetComponent<ScenarioWaypoint>();
             waypointInstance.transform.position = addPosition;
+            var mapManager = ScenarioManager.Instance.GetExtension<ScenarioMapManager>();
             switch (selectedAgent.Type)
             {
                 case AgentType.Ego:
                 case AgentType.Npc:
-                    ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic,
+                    mapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic,
                         waypointInstance.transform);
                     break;
                 case AgentType.Pedestrian:
-                    ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian,
+                    mapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian,
                         waypointInstance.transform);
                     break;
             }
 
             selectedAgent.AddWaypoint(waypointInstance, true, previousWaypoint);
             ScenarioManager.Instance.IsScenarioDirty = true;
-            ScenarioManager.Instance.undoManager.RegisterRecord(new UndoAddElement(previousWaypoint));
+            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
+                .RegisterRecord(new UndoAddElement(previousWaypoint));
         }
 
         /// <inheritdoc/>
@@ -264,8 +270,9 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         public void ChangeWaypointWaitTime(string waitTimeString)
         {
             if (selectedWaypoint == null || !float.TryParse(waitTimeString, out var value)) return;
-            
-            ScenarioManager.Instance.undoManager.RegisterRecord(new UndoInputField(waitTimeInput,
+
+            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoInputField(
+                waitTimeInput,
                 selectedWaypoint.WaitTime.ToString("F")));
             ScenarioManager.Instance.IsScenarioDirty = true;
             selectedWaypoint.WaitTime = value;

@@ -34,7 +34,7 @@ namespace Simulator.ScenarioEditor.Undo.Records
         {
             this.targetTrigger = targetTrigger;
             var gameObject =
-                Object.Instantiate(targetTrigger.gameObject, ScenarioManager.Instance.undoManager.transform);
+                Object.Instantiate(targetTrigger.gameObject, ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().transform);
             backupTrigger = gameObject.GetComponent<ScenarioTrigger>();
             backupTrigger.CopyProperties(targetTrigger);
         }

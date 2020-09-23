@@ -11,14 +11,18 @@ namespace Simulator.ScenarioEditor.Managers
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Agents;
+    using Input;
     using Simulator.Utilities;
-    using UnityEngine;
+    using Utilities;
 
     /// <summary>
     /// Manager for caching and handling all the scenario agents and their sources
     /// </summary>
-    public class ScenarioAgentsManager : MonoBehaviour
+    public class ScenarioAgentsManager : IScenarioEditorExtension
     {
+        /// <inheritdoc/>
+        public bool IsInitialized { get; private set; }
+        
         /// <summary>
         /// All the available agent sources in this assembly
         /// </summary>
@@ -44,6 +48,10 @@ namespace Simulator.ScenarioEditor.Managers
         /// </summary>
         public async Task Initialize()
         {
+            if (IsInitialized)
+                return;
+            await ScenarioManager.Instance.WaitForExtension<PrefabsPools>();
+            await ScenarioManager.Instance.WaitForExtension<InputManager>();
             var interfaceType = typeof(ScenarioAgentSource);
             var types = ReflectionCache.FindTypes((type) => !type.IsAbstract && interfaceType.IsAssignableFrom(type));
             var tasks = new Task[types.Count];
@@ -56,6 +64,8 @@ namespace Simulator.ScenarioEditor.Managers
                 Sources.Add(agentSource);
             }
             await Task.WhenAll(tasks);
+            ScenarioManager.Instance.ScenarioReset += InstanceOnScenarioReset;
+            IsInitialized = true;
         }
 
         /// <summary>
@@ -63,8 +73,27 @@ namespace Simulator.ScenarioEditor.Managers
         /// </summary>
         public void Deinitialize()
         {
+            if (!IsInitialized)
+                return;
+            InstanceOnScenarioReset();
+            foreach (var source in Sources)
+                source.Deinitialize();
             Sources.Clear();
             Agents.Clear();
+            IsInitialized = false;
+        }
+
+        /// <summary>
+        /// Method invoked when current scenario is being reset
+        /// </summary>
+        private void InstanceOnScenarioReset()
+        {
+            for (var i = Agents.Count - 1; i >= 0; i--)
+            {
+                var agent = Agents[i];
+                agent.RemoveFromMap();
+                agent.Dispose();
+            }
         }
 
         /// <summary>

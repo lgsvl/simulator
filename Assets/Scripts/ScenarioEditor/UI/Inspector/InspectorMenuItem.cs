@@ -25,9 +25,9 @@ namespace Simulator.ScenarioEditor.UI.Inspector
 #pragma warning restore 0649
         
         /// <summary>
-        /// Parent <see cref="inspectorMenu"/> where the show command will be passed
+        /// Parent <see cref="inspector"/> where the show command will be passed
         /// </summary>
-        private InspectorMenu inspectorMenu;
+        private Inspector inspector;
         
         /// <summary>
         /// Corresponding content panel that will be shown when this menu item is pressed
@@ -37,11 +37,11 @@ namespace Simulator.ScenarioEditor.UI.Inspector
         /// <summary>
         /// Initializes the menu item
         /// </summary>
-        /// <param name="inspectorMenu">Parent inspector menu of this item</param>
-        public void Initialize(InspectorMenu inspectorMenu)
+        /// <param name="inspector">Parent inspector menu of this item</param>
+        public void Initialize(Inspector inspector)
         {
-            this.inspectorMenu = inspectorMenu;
-            panel = Instantiate(panelPrefab, inspectorMenu.Content.transform);
+            this.inspector = inspector;
+            panel = Instantiate(panelPrefab, inspector.Content.transform);
             panel.Initialize();
         }
 
@@ -75,7 +75,7 @@ namespace Simulator.ScenarioEditor.UI.Inspector
         /// </summary>
         public void Pressed()
         {
-            inspectorMenu.MenuItemSelected(this);
+            inspector.MenuItemSelected(this);
         }
 
         private void Start()

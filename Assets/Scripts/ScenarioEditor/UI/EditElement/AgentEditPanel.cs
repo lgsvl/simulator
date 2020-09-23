@@ -12,8 +12,10 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
     using System.Threading.Tasks;
     using Agents;
     using Elements;
+    using Input;
     using Managers;
     using ScenarioEditor.Utilities;
+    using Undo;
     using Undo.Records;
     using UnityEngine;
     using UnityEngine.UI;
@@ -45,13 +47,19 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// Dropdown for the agent variant selection
         /// </summary>
         [SerializeField]
-        private Dropdown agentSelectDropdown;
-        
+        private Dropdown variantDropdown;
+
         /// <summary>
-        /// Game object components that will be disabled for ego agent
+        /// Dropdown for the agent behaviour selection
         /// </summary>
         [SerializeField]
-        private List<GameObject> objectsDisabledForEgo = new List<GameObject>();
+        private Dropdown behaviourDropdown;
+
+        /// <summary>
+        /// Panel which contains UI for editing the agent waypoints
+        /// </summary>
+        [SerializeField]
+        private GameObject waypointsPanel;
 #pragma warning restore 0649
 
         /// <summary>
@@ -88,7 +96,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             isInitialized = true;
             OnSelectedOtherElement(ScenarioManager.Instance.SelectedElement);
         }
-        
+
         /// <inheritdoc/>
         public override void Deinitialize()
         {
@@ -106,11 +114,47 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// <param name="selectedElement">Scenario element that has been selected</param>
         private void OnSelectedOtherElement(ScenarioElement selectedElement)
         {
+            //Detach from current agent events
+            if (selectedAgent != null)
+            {
+                selectedAgent.VariantChanged -= SelectedAgentOnVariantChanged;
+                selectedAgent.BehaviourChanged -= SelectedAgentOnBehaviourChanged;
+            }
+
             selectedAgent = selectedElement as ScenarioAgent;
-            if (selectedAgent == null)
-                Hide();
-            else
+            //Attach to selected agent events
+            if (selectedAgent != null)
+            {
                 Show();
+                selectedAgent.VariantChanged += SelectedAgentOnVariantChanged;
+                selectedAgent.BehaviourChanged += SelectedAgentOnBehaviourChanged;
+            }
+            else
+            {
+                Hide();
+            }
+        }
+
+        /// <summary>
+        /// Method invoked when selected agent changes the variant
+        /// </summary>
+        /// <param name="newVariant">Agent new variant</param>
+        private void SelectedAgentOnVariantChanged(AgentVariant newVariant)
+        {
+            var variantId = agentSource.AgentVariants.IndexOf(newVariant);
+            variantDropdown.SetValueWithoutNotify(variantId);
+        }
+
+        /// <summary>
+        /// Method invoked when selected agent changes the behaviour
+        /// </summary>
+        /// <param name="newBehaviour">Agent new behaviour</param>
+        private void SelectedAgentOnBehaviourChanged(string newBehaviour)
+        {
+            var behaviourId = agentSource.Behaviours.IndexOf(newBehaviour);
+            behaviourDropdown.SetValueWithoutNotify(behaviourId);
+            //Disable waypoints panel if waypoints are not supported
+            waypointsPanel.SetActive(agentSource.AgentSupportWaypoints(selectedAgent));
         }
 
         /// <summary>
@@ -121,18 +165,37 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             //TODO Cache only when the parent EditElementPanel is active
             if (agentSource != selectedAgent.Source)
             {
+                //Setup variants
                 agentSource = selectedAgent.Source;
-                agentSelectDropdown.options.Clear();
-                agentSelectDropdown.AddOptions(
+                variantDropdown.options.Clear();
+                variantDropdown.AddOptions(
                     agentSource.AgentVariants.Select(variant => variant.name).ToList());
+                //Setup behaviour
+                behaviourDropdown.options.Clear();
+                if (agentSource.Behaviours != null && agentSource.Behaviours.Count > 0)
+                {
+                    behaviourDropdown.gameObject.SetActive(true);
+                    behaviourDropdown.AddOptions(agentSource.Behaviours);
+                }
+                else
+                {
+                    behaviourDropdown.gameObject.SetActive(false);
+                }
             }
 
-            //Disable some game objects if ego agent is selected
-            for (int i = 0; i < objectsDisabledForEgo.Count; i++)
-                objectsDisabledForEgo[i].SetActive(agentSource.AgentTypeId != 1);
+            //Disable waypoints panel if waypoints are not supported
+            waypointsPanel.SetActive(agentSource.AgentSupportWaypoints(selectedAgent));
 
             var variantId = agentSource.AgentVariants.IndexOf(selectedAgent.Variant);
-            agentSelectDropdown.SetValueWithoutNotify(variantId);
+            variantDropdown.SetValueWithoutNotify(variantId);
+            if (agentSource.Behaviours != null)
+            {
+                var behaviourId = string.IsNullOrEmpty(selectedAgent.Behaviour)
+                    ? 0
+                    : agentSource.Behaviours.IndexOf(selectedAgent.Behaviour);
+                behaviourDropdown.SetValueWithoutNotify(behaviourId);
+            }
+
             gameObject.SetActive(true);
             UnityUtilities.LayoutRebuild(transform as RectTransform);
         }
@@ -143,7 +206,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         public void Hide()
         {
             if (addedElementType != AgentElementType.None)
-                ScenarioManager.Instance.inputManager.CancelAddingElements(this);
+                ScenarioManager.Instance.GetExtension<InputManager>().CancelAddingElements(this);
             gameObject.SetActive(false);
             selectedAgent = null;
         }
@@ -152,7 +215,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// Method changing the variant of the currently selected scenario agent
         /// </summary>
         /// <param name="variantId">Variant identifier in the source</param>
-        public void AgentSelectDropdownChanged(int variantId)
+        public void VariantDropdownChanged(int variantId)
         {
             var nonBlockingTask = ChangeVariant(agentSource.AgentVariants[variantId]);
         }
@@ -170,7 +233,17 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                 await cloudVariant.DownloadAsset();
                 ScenarioManager.Instance.HideLoadingPanel();
             }
+
             selectedAgent.ChangeVariant(variant);
+        }
+
+        /// <summary>
+        /// Method changing the behaviour of the currently selected scenario agent
+        /// </summary>
+        /// <param name="behaviourId">Behaviour identifier in the source</param>
+        public void BehaviourDropdownChanged(int behaviourId)
+        {
+            selectedAgent.ChangeBehaviour(agentSource.Behaviours[behaviourId]);
         }
 
         /// <summary>
@@ -181,19 +254,20 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             if (selectedAgent == null)
                 return;
             addedElementType = AgentElementType.Waypoints;
-            if (!ScenarioManager.Instance.inputManager.StartAddingElements(this))
+            if (!ScenarioManager.Instance.GetExtension<InputManager>().StartAddingElements(this))
                 addedElementType = AgentElementType.None;
         }
-        
+
         /// <inheritdoc/>
         void IAddElementsHandler.AddingStarted(Vector3 addPosition)
         {
             switch (addedElementType)
             {
                 case AgentElementType.Waypoints:
-                    var mapWaypointPrefab = ScenarioManager.Instance.waypointsManager.waypointPrefab;
-                    newElementInstance = ScenarioManager.Instance.prefabsPools.GetInstance(mapWaypointPrefab)
-                        .GetComponent<ScenarioWaypoint>();
+                    var mapWaypointPrefab =
+                        ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>().waypointPrefab;
+                    newElementInstance = ScenarioManager.Instance.GetExtension<PrefabsPools>()
+                        .GetInstance(mapWaypointPrefab).GetComponent<ScenarioWaypoint>();
                     if (newElementInstance == null)
                     {
                         Debug.LogWarning(
@@ -220,10 +294,12 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             {
                 case AgentElementType.Waypoints:
                     ScenarioManager.Instance.IsScenarioDirty = true;
-                    ScenarioManager.Instance.undoManager.RegisterRecord(new UndoAddElement(newElementInstance));
-                    var mapWaypointPrefab = ScenarioManager.Instance.waypointsManager.waypointPrefab;
-                    newElementInstance = ScenarioManager.Instance.prefabsPools.GetInstance(mapWaypointPrefab)
-                        .GetComponent<ScenarioWaypoint>();
+                    ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
+                        .RegisterRecord(new UndoAddElement(newElementInstance));
+                    var mapWaypointPrefab =
+                        ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>().waypointPrefab;
+                    newElementInstance = ScenarioManager.Instance.GetExtension<PrefabsPools>()
+                        .GetInstance(mapWaypointPrefab).GetComponent<ScenarioWaypoint>();
                     newElementInstance.ForceMove(addPosition);
                     selectedAgent.AddWaypoint(newElementInstance as ScenarioWaypoint, true);
                     break;

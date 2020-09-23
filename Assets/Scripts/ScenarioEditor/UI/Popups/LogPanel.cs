@@ -190,7 +190,7 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
         {
             var delimiters = new[] {' ', '\r', '\n'};
             var words = text.Split(delimiters, StringSplitOptions.RemoveEmptyEntries).Length;
-            return 60.0f * words / WordsPerMinute;
+            return 1.0f+ 60.0f * words / WordsPerMinute;
         }
 
         /// <summary>

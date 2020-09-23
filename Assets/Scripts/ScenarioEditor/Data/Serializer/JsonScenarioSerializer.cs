@@ -31,7 +31,7 @@ namespace Simulator.ScenarioEditor.Data.Serializer
             var vseMetadata = new JSONObject();
             scenarioData.Add("vse_metadata", vseMetadata);
             SerializeMetadata(vseMetadata);
-            AddMapNode(scenarioData, scenarioManager.MapManager.CurrentMapName);
+            AddMapNode(scenarioData, scenarioManager.GetExtension<ScenarioMapManager>().CurrentMapName);
             var agents = scenarioManager.GetComponentsInChildren<ScenarioAgent>();
             foreach (var agent in agents)
             {
@@ -87,7 +87,14 @@ namespace Simulator.ScenarioEditor.Data.Serializer
             transform.Add("position", position);
             var rotation = new JSONObject().WriteVector3(scenarioAgent.TransformToRotate.rotation.eulerAngles);
             transform.Add("rotation", rotation);
-            AddWaypointsNodes(agent, scenarioAgent);
+            if (!string.IsNullOrEmpty(scenarioAgent.Behaviour))
+            {
+                var behaviour = new JSONObject();
+                behaviour.Add("name", new JSONString(scenarioAgent.Behaviour));
+                agent.Add("behaviour", behaviour);
+            }
+            if (scenarioAgent.Source.AgentSupportWaypoints(scenarioAgent))
+                AddWaypointsNodes(agent, scenarioAgent);
         }
 
         /// <summary>

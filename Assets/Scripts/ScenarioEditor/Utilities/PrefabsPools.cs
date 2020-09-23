@@ -8,14 +8,16 @@
 namespace Simulator.ScenarioEditor.Utilities
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using Elements;
+    using Managers;
     using UnityEngine;
     using UnityEngine.SceneManagement;
 
     /// <summary>
     /// Pooling mechanism for prefabs in the visual scenario editor
     /// </summary>
-    public class PrefabsPools : MonoBehaviour
+    public class PrefabsPools : MonoBehaviour, IScenarioEditorExtension
     {
         /// <summary>
         /// Pool handling a single prefabs
@@ -88,6 +90,9 @@ namespace Simulator.ScenarioEditor.Utilities
             }
         }
 
+        /// <inheritdoc/>
+        public bool IsInitialized { get; private set; }
+
         /// <summary>
         /// Dictionary of all prefab pools accessed by the prefab reference
         /// </summary>
@@ -97,6 +102,24 @@ namespace Simulator.ScenarioEditor.Utilities
         /// Dictionary of prefab pools corresponding to the used instance reference
         /// </summary>
         private Dictionary<GameObject, PrefabPool> instanceToPool = new Dictionary<GameObject, PrefabPool>();
+        
+        /// <inheritdoc/>
+        public Task Initialize()
+        {
+            if (IsInitialized)
+                return Task.CompletedTask;
+            gameObject.SetActive(false);
+            IsInitialized = true;
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        public void Deinitialize()
+        {
+            if (!IsInitialized)
+                return;
+            IsInitialized = false;
+        }
 
         /// <summary>
         /// Gets a unused prefab instance

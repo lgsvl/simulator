@@ -11,8 +11,10 @@ namespace Simulator.ScenarioEditor.Agents
     using System.Threading.Tasks;
     using Input;
     using Managers;
+    using Undo;
     using Undo.Records;
     using UnityEngine;
+    using Utilities;
 
     /// <inheritdoc/>
     /// <remarks>
@@ -46,7 +48,7 @@ namespace Simulator.ScenarioEditor.Agents
 #pragma warning disable 1998
         public override async Task Initialize()
         {
-            inputManager = ScenarioManager.Instance.inputManager;
+            inputManager = ScenarioManager.Instance.GetExtension<InputManager>();
             var pedestrianManager = Loader.Instance.SimulatorManagerPrefab.pedestrianManagerPrefab;
             var pedestriansInSimulation = pedestrianManager.pedModels;
             for (var i = 0; i < pedestriansInSimulation.Count; i++)
@@ -73,7 +75,7 @@ namespace Simulator.ScenarioEditor.Agents
         /// <inheritdoc/>
         public override GameObject GetModelInstance(AgentVariant variant)
         {
-            var instance = ScenarioManager.Instance.prefabsPools.GetInstance(variant.prefab);
+            var instance = ScenarioManager.Instance.GetExtension<PrefabsPools>().GetInstance(variant.prefab);
             if (instance.GetComponent<BoxCollider>() == null)
             {
                 var collider = instance.AddComponent<BoxCollider>();
@@ -109,23 +111,29 @@ namespace Simulator.ScenarioEditor.Agents
         /// <inheritdoc/>
         public override void ReturnModelInstance(GameObject instance)
         {
-            ScenarioManager.Instance.prefabsPools.ReturnInstance(instance);
+            ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(instance);
+        }
+
+        /// <inheritdoc/>
+        public override bool AgentSupportWaypoints(ScenarioAgent agent)
+        {
+            return true;
         }
 
         /// <inheritdoc/>
         public override void DragNewAgent()
         {
-            ScenarioManager.Instance.inputManager.StartDraggingElement(this);
+            ScenarioManager.Instance.GetExtension<InputManager>().StartDraggingElement(this);
         }
 
         /// <inheritdoc/>
         public override void DragStarted()
         {
-            draggedInstance = ScenarioManager.Instance.prefabsPools.GetInstance(AgentVariants[0].prefab);
+            draggedInstance = ScenarioManager.Instance.GetExtension<PrefabsPools>().GetInstance(AgentVariants[0].prefab);
             draggedInstance.transform.SetParent(ScenarioManager.Instance.transform);
             draggedInstance.transform.SetPositionAndRotation(inputManager.MouseRaycastPosition,
                 Quaternion.Euler(0.0f, 0.0f, 0.0f));
-            ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian,
+            ScenarioManager.Instance.GetExtension<ScenarioMapManager>().LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian,
                 draggedInstance.transform,
                 draggedInstance.transform);
         }
@@ -134,7 +142,7 @@ namespace Simulator.ScenarioEditor.Agents
         public override void DragMoved()
         {
             draggedInstance.transform.position = inputManager.MouseRaycastPosition;
-            ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian,
+            ScenarioManager.Instance.GetExtension<ScenarioMapManager>().LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian,
                 draggedInstance.transform,
                 draggedInstance.transform);
         }
@@ -145,15 +153,14 @@ namespace Simulator.ScenarioEditor.Agents
             var agent = GetAgentInstance(AgentVariants[0]);
             agent.TransformToRotate.rotation = draggedInstance.transform.rotation;
             agent.ForceMove(draggedInstance.transform.position);
-            ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
-            ScenarioManager.Instance.undoManager.RegisterRecord(new UndoAddElement(agent));
+            ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(draggedInstance);
+            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoAddElement(agent));
             draggedInstance = null;
         }
 
         /// <inheritdoc/>
         public override void DragCancelled()
         {
-            ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
             draggedInstance = null;
         }
     }

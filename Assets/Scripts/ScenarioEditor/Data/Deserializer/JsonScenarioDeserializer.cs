@@ -11,9 +11,11 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
     using System.Threading.Tasks;
     using Agents;
     using Elements;
+    using Input;
     using Managers;
     using SimpleJSON;
     using UnityEngine;
+    using Utilities;
 
     /// <summary>
     /// Class deserializing json data and loading a scenario from it
@@ -34,7 +36,7 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
             DeserializeMetadata(json);
             callback?.Invoke();
         }
-        
+
         /// <summary>
         /// Deserializes scenario meta data from the json data
         /// </summary>
@@ -46,7 +48,7 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
             if (cameraSettings == null)
                 return;
             var position = cameraSettings["position"];
-            ScenarioManager.Instance.inputManager.ForceCameraReposition(position);
+            ScenarioManager.Instance.GetExtension<InputManager>().ForceCameraReposition(position);
         }
 
         /// <summary>
@@ -63,9 +65,9 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
             var mapName = map["name"];
             if (mapName == null)
                 return false;
-            if (ScenarioManager.Instance.MapManager.CurrentMapName != mapName)
+            var mapManager = ScenarioManager.Instance.GetExtension<ScenarioMapManager>();
+            if (mapManager.CurrentMapName != mapName)
             {
-                var mapManager = ScenarioManager.Instance.MapManager;
                 if (mapManager.MapExists(mapName))
                 {
                     await mapManager.LoadMapAsync(mapName);
@@ -77,7 +79,7 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                 return false;
             }
 
-            await ScenarioManager.Instance.MapManager.LoadMapAsync(mapName);
+            await mapManager.LoadMapAsync(mapName);
             return true;
         }
 
@@ -93,8 +95,8 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
             foreach (var agentNode in agents.Children)
             {
                 var agentType = agentNode["type"];
-                var agentSource =
-                    ScenarioManager.Instance.agentsManager.Sources.Find(source => source.AgentTypeId == agentType);
+                var agentsManager = ScenarioManager.Instance.GetExtension<ScenarioAgentsManager>();
+                var agentSource = agentsManager.Sources.Find(source => source.AgentTypeId == agentType);
                 if (agentSource == null)
                 {
                     ScenarioManager.Instance.logPanel.EnqueueError(
@@ -117,8 +119,12 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                 var transformNode = agentNode["transform"];
                 agentInstance.transform.position = transformNode["position"].ReadVector3();
                 agentInstance.transform.rotation = Quaternion.Euler(transformNode["rotation"].ReadVector3());
+                if (agentNode.HasKey("behaviour"))
+                    agentInstance.ChangeBehaviour(agentNode["behaviour"]["name"]);
 
                 DeserializeWaypoints(agentNode, agentInstance);
+                agentInstance.WaypointsParent.gameObject.SetActive(agentSource.AgentSupportWaypoints(agentInstance));
+                    
             }
         }
 
@@ -135,9 +141,10 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
 
             foreach (var waypointNode in waypointsNode.Children)
             {
-                var mapWaypointPrefab = ScenarioManager.Instance.waypointsManager.waypointPrefab;
-                var waypointInstance = ScenarioManager.Instance.prefabsPools.GetInstance(mapWaypointPrefab)
-                    .GetComponent<ScenarioWaypoint>();
+                var mapWaypointPrefab =
+                    ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>().waypointPrefab;
+                var waypointInstance = ScenarioManager.Instance.GetExtension<PrefabsPools>()
+                    .GetInstance(mapWaypointPrefab).GetComponent<ScenarioWaypoint>();
                 waypointInstance.transform.position = waypointNode["position"].ReadVector3();
                 waypointInstance.WaitTime = waypointNode["wait_time"];
                 waypointInstance.Speed = waypointNode["speed"];

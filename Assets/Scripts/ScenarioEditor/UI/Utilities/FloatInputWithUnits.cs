@@ -11,6 +11,7 @@ namespace Simulator.ScenarioEditor.UI.Utilities
     using System.Collections.Generic;
     using System.Linq;
     using Managers;
+    using Undo;
     using Undo.Records;
     using UnityEngine;
     using UnityEngine.EventSystems;
@@ -31,18 +32,18 @@ namespace Simulator.ScenarioEditor.UI.Utilities
             /// Full name of this unit type
             /// </summary>
             public string fullName;
-            
+
             /// <summary>
             /// Short name of this unit type
             /// </summary>
             public string shortName;
-            
+
             /// <summary>
             /// Factor used to calculate to the base
             /// </summary>
             public float factorToBase = 1.0f;
         }
-        
+
         //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
 #pragma warning disable 0649
         /// <summary>
@@ -50,7 +51,7 @@ namespace Simulator.ScenarioEditor.UI.Utilities
         /// </summary>
         [SerializeField]
         private List<UnitType> unitTypes;
-        
+
         /// <summary>
         /// Input field for editing value
         /// </summary>
@@ -68,7 +69,7 @@ namespace Simulator.ScenarioEditor.UI.Utilities
         /// Current value of this input
         /// </summary>
         private float currentValue;
-        
+
         /// <summary>
         /// Currently selected unit type index
         /// </summary>
@@ -101,7 +102,7 @@ namespace Simulator.ScenarioEditor.UI.Utilities
         {
             playerPrefsKey = unitTypePrefsKey;
             this.valueApply = valueApply;
-            
+
             currentUnit = PlayerPrefs.GetInt(unitTypePrefsKey, 0);
             if (currentUnit >= unitTypes.Count)
                 currentUnit = 0;
@@ -131,7 +132,7 @@ namespace Simulator.ScenarioEditor.UI.Utilities
             PlayerPrefs.SetInt(playerPrefsKey, unitId);
             input.text = ConvertFromBase(currentValue, currentUnit).ToString("F");
         }
-        
+
         /// <summary>
         /// Converts the source unit type value to base unit type
         /// </summary>
@@ -161,8 +162,9 @@ namespace Simulator.ScenarioEditor.UI.Utilities
         public void ChangeValue(string valueString)
         {
             if (!float.TryParse(valueString, out var value)) return;
-            
-            ScenarioManager.Instance.undoManager.RegisterRecord(new UndoFloatInputWithUnits(this, currentValue));
+
+            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
+                .RegisterRecord(new UndoFloatInputWithUnits(this, currentValue));
             InputChangedValue(ConvertToBase(value, currentUnit));
         }
 
@@ -180,10 +182,13 @@ namespace Simulator.ScenarioEditor.UI.Utilities
         /// Changes the value of this input field without calling the callback
         /// </summary>
         /// <param name="baseValue">New value in the base unit type</param>
-        public void ExternalValueChange(float baseValue)
+        /// <param name="invokeApply">Should this method call invoke value apply callback</param>
+        public void ExternalValueChange(float baseValue, bool invokeApply)
         {
             currentValue = baseValue;
             input.SetTextWithoutNotify(ConvertFromBase(currentValue, currentUnit).ToString("F"));
+            if (invokeApply)
+                valueApply?.Invoke(currentValue);
         }
     }
 }

@@ -11,6 +11,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
     using Agents.Triggers;
     using Elements;
     using Managers;
+    using Undo;
     using Undo.Records;
     using UnityEngine;
     using UnityEngine.EventSystems;
@@ -52,7 +53,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
 
         /// <inheritdoc/>
         public override Type EditedEffectorType => typeof(WaitingPointEffector);
-        
+
         /// <summary>
         /// Unity OnDisable method
         /// </summary>
@@ -62,7 +63,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         }
 
         /// <inheritdoc/>
-        public override void StartEditing(TriggerEditPanel triggerPanel, ScenarioTrigger trigger, TriggerEffector effector)
+        public override void StartEditing(TriggerEditPanel triggerPanel, ScenarioTrigger trigger,
+            TriggerEffector effector)
         {
             parentPanel = triggerPanel;
             editedTrigger = trigger;
@@ -81,7 +83,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         public override void InitializeEffector(ScenarioTrigger trigger, TriggerEffector effector)
         {
             if (!(effector is WaitingPointEffector waitingPointEffector))
-                throw new ArgumentException($"{GetType().Name} received effector of invalid type {effector.GetType().Name}.");
+                throw new ArgumentException(
+                    $"{GetType().Name} received effector of invalid type {effector.GetType().Name}.");
             //Put the activator point nearby the trigger
             waitingPointEffector.ActivatorPoint =
                 trigger.transform.position + zoneVisualization.transform.localPosition;
@@ -91,11 +94,13 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         /// <inheritdoc/>
         public override void EffectorAddedToTrigger(ScenarioTrigger trigger, TriggerEffector effector)
         {
-            var zone = trigger.GetOrAddEffectorObject(effector, zoneVisualization.name, zoneVisualization);
             if (!(effector is WaitingPointEffector waitingPointEffector))
-                throw new ArgumentException($"{GetType().Name} received effector of invalid type {effector.GetType().Name}.");
-
-            zone.transform.position = waitingPointEffector.ActivatorPoint;
+                throw new ArgumentException(
+                    $"{GetType().Name} received effector of invalid type {effector.GetType().Name}.");
+            var zone = trigger.GetEffectorObject(effector, zoneVisualization.name);
+            if (zone != null) return;
+            zone = trigger.AddEffectorObject(effector, zoneVisualization.name, zoneVisualization);
+            zone.transform.localPosition = waitingPointEffector.ActivatorPoint-trigger.transform.position;
             zone.transform.localScale = Vector3.one * waitingPointEffector.PointRadius;
             zone.gameObject.SetActive(true);
             var zoneComponent = zone.GetComponent<WaitingPointZone>();
@@ -124,9 +129,9 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         public void SetRadius(string radiusString)
         {
             if (!float.TryParse(radiusString, out var radius)) return;
-            
-            ScenarioManager.Instance.undoManager.RegisterRecord(new UndoInputField(radiusInputField,
-                editedEffector.PointRadius.ToString("F")));
+
+            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoInputField(
+                radiusInputField, editedEffector.PointRadius.ToString("F")));
             SetRadius(radius);
         }
 
@@ -138,10 +143,10 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         {
             ScenarioManager.Instance.IsScenarioDirty = true;
             editedEffector.PointRadius = radius;
-            var zoneGameObject = editedTrigger.GetOrAddEffectorObject(editedEffector, zoneVisualization.name, zoneVisualization);
+            var zoneGameObject = editedTrigger.GetEffectorObject(editedEffector, zoneVisualization.name);
             zoneGameObject.transform.localScale = Vector3.one * editedEffector.PointRadius;
             var zone = zoneGameObject.GetComponent<WaitingPointZone>();
-            if (zone!=null)
+            if (zone != null)
                 zone.Refresh();
         }
     }

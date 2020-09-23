@@ -19,6 +19,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
     using MapSelecting;
     using ScenarioEditor.Utilities;
     using SimpleJSON;
+    using Undo;
     using UnityEngine;
     using UnityEngine.UI;
     using Toggle = UnityEngine.UI.Toggle;
@@ -78,9 +79,9 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         /// <inheritdoc/>
         public override void Initialize()
         {
-            var inputManager = ScenarioManager.Instance.inputManager;
+            var inputManager = ScenarioManager.Instance.GetExtension<InputManager>();
             UpdateCameraModeText();
-            snapToLanesToggle.SetIsOnWithoutNotify(ScenarioManager.Instance.MapManager.LaneSnapping.SnappingEnabled);
+            snapToLanesToggle.SetIsOnWithoutNotify(ScenarioManager.Instance.GetExtension<ScenarioMapManager>().LaneSnapping.SnappingEnabled);
             invertedXRotationToggle.SetIsOnWithoutNotify(inputManager.InvertedXRotation);
             invertedYRotationToggle.SetIsOnWithoutNotify(inputManager.InvertedYRotation);
         }
@@ -118,7 +119,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
             if (json != null && json.IsObject)
                 await JsonScenarioDeserializer.DeserializeScenario(json);
             ScenarioManager.Instance.HideLoadingPanel();
-            ScenarioManager.Instance.undoManager.ClearRecords();
+            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().ClearRecords();
         }
 
         /// <summary>
@@ -142,27 +143,6 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
             File.WriteAllText(path, scenario.ScenarioData.ToString());
             ScenarioManager.Instance.IsScenarioDirty = false;
             ScenarioManager.Instance.logPanel.EnqueueInfo($"Scenario has been saved to the file: '{path}'.");
-        }
-
-        /// <summary>
-        /// Opens <see cref="SelectFileDialog"/> and exports the scenario to Python API script
-        /// </summary>
-        public void ExportPythonApi()
-        {
-            ScenarioManager.Instance.selectFileDialog.Show(ExportPythonApi, true, ExportPythonPath.Value,
-                "Export Scenario To Python Script", "Export To File", new[] {"py"});
-        }
-
-        /// <summary>
-        /// Exports the scenario to Python API script in the path
-        /// </summary>
-        /// <param name="path">Path to the Python API script where scenario will be exported</param>
-        private void ExportPythonApi(string path)
-        {
-            path = Path.ChangeExtension(path, ".py");
-            ExportPythonPath.Value = path;
-            var scenario = PythonScenarioSerializer.SerializeScenario();
-            File.WriteAllText(path, scenario.ScenarioData);
         }
 
         /// <summary>
@@ -229,7 +209,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         /// </summary>
         private void UpdateCameraModeText()
         {
-            var inputManager = ScenarioManager.Instance.inputManager;
+            var inputManager = ScenarioManager.Instance.GetExtension<InputManager>();
             switch (inputManager.CameraMode)
             {
                 case InputManager.CameraModeType.TopDown:
@@ -251,7 +231,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         /// </summary>
         public void ChangeCameraMode()
         {
-            var inputManager = ScenarioManager.Instance.inputManager;
+            var inputManager = ScenarioManager.Instance.GetExtension<InputManager>();
             inputManager.CameraMode =
                 (InputManager.CameraModeType) (((int) inputManager.CameraMode + 1) %
                     ((int) InputManager.CameraModeType.Free + 1));
@@ -264,7 +244,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         /// <param name="value">Current value for the snapping to lane setting</param>
         public void ChangeSnappingToLane(bool value)
         {
-            ScenarioManager.Instance.MapManager.LaneSnapping.SnappingEnabled = value;
+            ScenarioManager.Instance.GetExtension<ScenarioMapManager>().LaneSnapping.SnappingEnabled = value;
         }
 
         /// <summary>
@@ -273,7 +253,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         /// <param name="value">Current value for the rotation X inversion setting</param>
         public void ChangeRotationXInversion(bool value)
         {
-            ScenarioManager.Instance.inputManager.InvertedXRotation = value;
+            ScenarioManager.Instance.GetExtension<InputManager>().InvertedXRotation = value;
         }
 
         /// <summary>
@@ -282,7 +262,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         /// <param name="value">Current value for the rotation Y inversion setting</param>
         public void ChangeRotationYInversion(bool value)
         {
-            ScenarioManager.Instance.inputManager.InvertedYRotation = value;
+            ScenarioManager.Instance.GetExtension<InputManager>().InvertedYRotation = value;
         }
     }
 }

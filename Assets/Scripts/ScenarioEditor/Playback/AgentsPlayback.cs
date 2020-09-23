@@ -137,9 +137,10 @@ namespace Simulator.ScenarioEditor.Playback
         public override void Initialize()
         {
             Duration = 0.0f;
-            for (var i = 0; i < ScenarioManager.Instance.agentsManager.Agents.Count; i++)
+            var agentsManager = ScenarioManager.Instance.GetExtension<ScenarioAgentsManager>();
+            for (var i = 0; i < agentsManager.Agents.Count; i++)
             {
-                var agent = ScenarioManager.Instance.agentsManager.Agents[i];
+                var agent = agentsManager.Agents[i];
                 var path = new AgentController(agent);
                 agents.Add(agent, path);
                 path.PrepareForPlay();

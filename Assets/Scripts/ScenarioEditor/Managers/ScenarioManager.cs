@@ -8,14 +8,17 @@
 namespace Simulator.ScenarioEditor.Managers
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Elements;
     using Input;
     using Network.Core.Threading;
     using Simulator.Utilities;
     using UI.FileEdit;
+    using UI.Inspector;
     using UI.MapSelecting;
     using Undo;
+    using Undo.Records;
     using UnityEngine;
     using Utilities;
 
@@ -59,6 +62,18 @@ namespace Simulator.ScenarioEditor.Managers
         private Camera scenarioCamera;
 
         /// <summary>
+        /// Prefabs that will be instantiated inside this editor object
+        /// </summary>
+        [SerializeField]
+        private List<GameObject> extensions;
+
+        /// <summary>
+        /// Inspector menu used in the scenario editor
+        /// </summary>
+        [SerializeField]
+        private Inspector inspector;
+
+        /// <summary>
         /// The loading panel game object
         /// </summary>
         [SerializeField]
@@ -71,9 +86,15 @@ namespace Simulator.ScenarioEditor.Managers
         private bool isInitialized;
 
         /// <summary>
+        /// Available scenario editor extensions for the visual scenario editor
+        /// </summary>
+        private readonly Dictionary<Type, IScenarioEditorExtension> scenarioEditorExtensions =
+            new Dictionary<Type, IScenarioEditorExtension>();
+
+        /// <summary>
         /// Semaphore that holds the loading screen
         /// </summary>
-        private LockingSemaphore loadingSemaphore = new LockingSemaphore();
+        private readonly LockingSemaphore loadingSemaphore = new LockingSemaphore();
 
         /// <summary>
         /// Is there a single popup visible in the scenario editor
@@ -91,19 +112,9 @@ namespace Simulator.ScenarioEditor.Managers
         private ScenarioElement selectedElement;
 
         /// <summary>
-        /// <see cref="InputManager"/> used in the scenario manager
-        /// </summary>
-        public InputManager inputManager;
-
-        /// <summary>
         /// <see cref="ObjectsShotCapture"/> allows taking a screen shot of the object as a texture
         /// </summary>
         public ObjectsShotCapture objectsShotCapture;
-
-        /// <summary>
-        /// <see cref="PrefabsPools"/> used for pooling game objects in the scenario editor
-        /// </summary>
-        public PrefabsPools prefabsPools;
 
         /// <summary>
         /// Shared <see cref="SelectFileDialog"/> to be used in the scenario editor, dialog can handle only one request at same time
@@ -121,29 +132,9 @@ namespace Simulator.ScenarioEditor.Managers
         public LogPanel logPanel;
 
         /// <summary>
-        /// Manager for caching and handling all the scenario agents and their sources
-        /// </summary>
-        public ScenarioAgentsManager agentsManager;
-
-        /// <summary>
-        /// Manager for caching and handling all the scenario waypoints
-        /// </summary>
-        public ScenarioWaypointsManager waypointsManager;
-
-        /// <summary>
-        /// Manager for caching VSE action that can be reverted
-        /// </summary>
-        public ScenarioUndoManager undoManager;
-
-        /// <summary>
         /// Camera used to render the scenario world
         /// </summary>
         public Camera ScenarioCamera => scenarioCamera;
-
-        /// <summary>
-        /// Scenario editor map manager for checking current map and loading another
-        /// </summary>
-        public ScenarioMapManager MapManager { get; } = new ScenarioMapManager();
 
         /// <summary>
         /// Currently selected scenario element
@@ -179,9 +170,9 @@ namespace Simulator.ScenarioEditor.Managers
                     return;
                 viewsPopup = value;
                 if (viewsPopup)
-                    inputManager.InputSemaphore.Lock();
+                    GetExtension<InputManager>().InputSemaphore.Lock();
                 else
-                    inputManager.InputSemaphore.Unlock();
+                    GetExtension<InputManager>().InputSemaphore.Unlock();
             }
         }
 
@@ -189,6 +180,11 @@ namespace Simulator.ScenarioEditor.Managers
         /// Is scenario dirty, true if there are some unsaved changes
         /// </summary>
         public bool IsScenarioDirty { get; set; }
+
+        /// <summary>
+        /// Event invoked when the scenario is being reset
+        /// </summary>
+        public event Action ScenarioReset;
 
         /// <summary>
         /// Event invoked when the new scenario element is created and activated in scenario
@@ -235,16 +231,52 @@ namespace Simulator.ScenarioEditor.Managers
         /// <summary>
         /// Initialization method
         /// </summary>
-        public async Task Initialize()
+        private async Task Initialize()
         {
             if (isInitialized)
                 return;
             ShowLoadingPanel();
-            MapManager.MapChanged += OnMapLoaded;
-            var mapLoading = MapManager.LoadMapAsync();
-            var agentsLoading = agentsManager.Initialize();
-            waypointsManager.Initialize();
-            await Task.WhenAll(mapLoading, agentsLoading);
+            //Initialize all the scenario editor extensions
+            var managersTypes = ReflectionCache.FindTypes(type =>
+                typeof(IScenarioEditorExtension).IsAssignableFrom(type) && !type.IsAbstract);
+            var tasks = new Task[managersTypes.Count];
+            var i = 0;
+            foreach (var addonPrefab in extensions)
+            {
+                var addon = Instantiate(addonPrefab, transform);
+                var scenarioManager = addon.GetComponent<IScenarioEditorExtension>();
+                if (scenarioManager != null)
+                {
+                    var type = scenarioManager.GetType();
+                    managersTypes.Remove(type);
+                    tasks[i++] = scenarioManager.Initialize();
+                    scenarioEditorExtensions.Add(type, scenarioManager);
+                }
+            }
+
+            foreach (var scenarioManagerType in managersTypes)
+            {
+                if (scenarioManagerType.IsSubclassOf(typeof(MonoBehaviour)))
+                {
+                    var go = new GameObject(scenarioManagerType.Name, scenarioManagerType);
+                    go.transform.SetParent(transform);
+                    var scenarioManager = go.GetComponent(scenarioManagerType) as IScenarioEditorExtension;
+                    tasks[i++] = scenarioManager?.Initialize();
+                    scenarioEditorExtensions.Add(scenarioManagerType, scenarioManager);
+                }
+                else
+                {
+                    var scenarioManager = Activator.CreateInstance(scenarioManagerType) as IScenarioEditorExtension;
+                    tasks[i++] = scenarioManager?.Initialize();
+                    scenarioEditorExtensions.Add(scenarioManagerType, scenarioManager);
+                }
+            }
+
+            await Task.WhenAll(tasks);
+            var mapManager = GetExtension<ScenarioMapManager>();
+            mapManager.MapChanged += OnMapLoaded;
+            await mapManager.LoadMapAsync();
+            inspector.Initialize();
             await FixLights();
             Time.timeScale = 0.0f;
             isInitialized = true;
@@ -269,16 +301,50 @@ namespace Simulator.ScenarioEditor.Managers
         /// <summary>
         /// Deinitialization method
         /// </summary>
-        public void Deinitialize()
+        private void Deinitialize()
         {
             if (!isInitialized)
                 return;
-            MapManager.MapChanged -= OnMapLoaded;
-            MapManager.UnloadMapAsync();
-            waypointsManager.Deinitialize();
-            agentsManager.Deinitialize();
+            selectedElement = null;
+            if (inspector!=null)
+                inspector.Deinitialize();
+            foreach (var scenarioManager in scenarioEditorExtensions)
+                scenarioManager.Value.Deinitialize();
+            GetExtension<ScenarioMapManager>().MapChanged += OnMapLoaded;
             Time.timeScale = 1.0f;
             isInitialized = false;
+        }
+
+        /// <summary>
+        /// Checks if the scenario editor extension of given type is ready
+        /// </summary>
+        /// <typeparam name="T">Type of the scenario editor extension</typeparam>
+        /// <returns>Is the scenario editor extension of given type ready</returns>
+        public bool IsExtensionReady<T>() where T : class, IScenarioEditorExtension
+        {
+            return scenarioEditorExtensions.TryGetValue(typeof(T), out var scenarioManager) &&
+                   scenarioManager.IsInitialized;
+        }
+        
+        /// <summary>
+        /// Waits until extension is ready to be used
+        /// </summary>
+        /// <typeparam name="T">Type of the scenario editor extension</typeparam>
+        /// <returns>Asynchronous task waiting for the extension to be ready</returns>
+        public async Task WaitForExtension<T>() where T : class, IScenarioEditorExtension
+        {
+            while (!IsExtensionReady<T>())
+                await Task.Delay(25);
+        }
+
+        /// <summary>
+        /// Returns a scenario editor extension of the requested type created for this editor
+        /// </summary>
+        /// <typeparam name="T">Type of the scenario editor extension</typeparam>
+        /// <returns>Scenario editor extension of the requested type created for this editor</returns>
+        public T GetExtension<T>() where T : class, IScenarioEditorExtension
+        {
+            return scenarioEditorExtensions[typeof(T)] as T;
         }
 
         /// <summary>
@@ -315,24 +381,9 @@ namespace Simulator.ScenarioEditor.Managers
         private void ResetScenario()
         {
             SelectedElement = null;
-            var agents = agentsManager.Agents;
-            for (var i = agents.Count - 1; i >= 0; i--)
-            {
-                var agent = agents[i];
-                agent.RemoveFromMap();
-                agent.Dispose();
-            }
-
-            var waypoints = waypointsManager.Waypoints;
-            for (var i = waypoints.Count - 1; i >= 0; i--)
-            {
-                var waypoint = waypoints[i];
-                waypoint.RemoveFromMap();
-                waypoint.Dispose();
-            }
-
-            Instance.IsScenarioDirty = false;
-            Instance.undoManager.ClearRecords();
+            ScenarioReset?.Invoke();
+            IsScenarioDirty = false;
+            GetExtension<ScenarioUndoManager>().ClearRecords();
         }
 
         /// <summary>
@@ -343,8 +394,11 @@ namespace Simulator.ScenarioEditor.Managers
         {
             if (CopiedElement == null || !CopiedElement.isActiveAndEnabled)
                 return;
-            var clone = prefabsPools.Clone(CopiedElement.gameObject);
-            clone.transform.position = position;
+            var copy = GetExtension<PrefabsPools>().Clone(CopiedElement.gameObject);
+            var scenarioElementCopy = copy.GetComponent<ScenarioElement>();
+            if (scenarioElementCopy!=null)
+                GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoAddElement(scenarioElementCopy));
+            copy.transform.position = position;
             IsScenarioDirty = false;
         }
 

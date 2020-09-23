@@ -36,7 +36,7 @@ namespace Simulator.ScenarioEditor.Undo.Records
             GameObject gameObject;
             (gameObject = scenarioElement.gameObject).SetActive(false);
             previousParent = gameObject.transform.parent;
-            scenarioElement.transform.SetParent(ScenarioManager.Instance.undoManager.transform);
+            scenarioElement.transform.SetParent(ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().transform);
         }
         
         /// <inheritdoc/>

@@ -40,7 +40,7 @@ namespace Simulator.ScenarioEditor.Undo.Records
         /// <inheritdoc/>
         public override void Undo()
         {
-            floatInputWithUnits.ExternalValueChange(previousValue);
+            floatInputWithUnits.ExternalValueChange(previousValue, true);
             ScenarioManager.Instance.logPanel.EnqueueInfo("Undo applied to rollback change in an input field.");
         }
 

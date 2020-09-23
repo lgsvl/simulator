@@ -8,14 +8,18 @@
 namespace Simulator.ScenarioEditor.Undo
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using Managers;
     using UnityEngine;
 
     /// <summary>
     /// Manager for caching VSE actions that can be reverted
     /// </summary>
-    public class ScenarioUndoManager : MonoBehaviour
+    public class ScenarioUndoManager : MonoBehaviour, IScenarioEditorExtension
     {
+        /// <inheritdoc/>
+        public bool IsInitialized { get; private set; }
+        
         /// <summary>
         /// Maximum number of the undo records that can be undone
         /// </summary>
@@ -25,6 +29,23 @@ namespace Simulator.ScenarioEditor.Undo
         /// Cached undo records that can be undone
         /// </summary>
         private readonly LinkedList<UndoRecord> recordsCache = new LinkedList<UndoRecord>();
+
+        /// <inheritdoc/>
+        public Task Initialize()
+        {
+            if (IsInitialized)
+                return Task.CompletedTask;
+            IsInitialized = true;
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        public void Deinitialize()
+        {
+            if (!IsInitialized)
+                return;
+            IsInitialized = false;
+        }
 
         /// <summary>
         /// Register new undo action record that can be undone

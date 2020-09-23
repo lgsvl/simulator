@@ -8,14 +8,18 @@
 namespace Simulator.ScenarioEditor.Managers
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using Elements;
     using UnityEngine;
 
     /// <summary>
     /// Manager for caching and handling all the waypoints
     /// </summary>
-    public class ScenarioWaypointsManager : MonoBehaviour
+    public class ScenarioWaypointsManager : MonoBehaviour, IScenarioEditorExtension
     {
+        /// <inheritdoc/>
+        public bool IsInitialized { get; private set; }
+
         /// <summary>
         /// Shared material that will be used for all the waypoints line renderers
         /// </summary>
@@ -36,19 +40,38 @@ namespace Simulator.ScenarioEditor.Managers
         /// </summary>
         public List<ScenarioWaypoint> Waypoints { get; } = new List<ScenarioWaypoint>();
 
-        /// <summary>
-        /// Initialization method
-        /// </summary>
-        public void Initialize()
+        /// <inheritdoc/>
+        public Task Initialize()
         {
+            if (IsInitialized)
+                return Task.CompletedTask;
+            ScenarioManager.Instance.ScenarioReset += OnScenarioReset;
+            IsInitialized = true;
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        public void Deinitialize()
+        {
+            if (!IsInitialized)
+                return;
+            ScenarioManager.Instance.ScenarioReset -= OnScenarioReset;
+            OnScenarioReset();
+            Waypoints.Clear();
+            IsInitialized = false;
         }
 
         /// <summary>
-        /// Deinitialization method
+        /// Method invoked when current scenario is being reset
         /// </summary>
-        public void Deinitialize()
+        private void OnScenarioReset()
         {
-            Waypoints.Clear();
+            for (var i = Waypoints.Count - 1; i >= 0; i--)
+            {
+                var waypoint = Waypoints[i];
+                waypoint.RemoveFromMap();
+                waypoint.Dispose();
+            }
         }
 
         /// <summary>

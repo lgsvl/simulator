@@ -10,6 +10,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
     using System;
     using Elements;
     using Managers;
+    using Undo;
     using Undo.Records;
     using UnityEngine;
     using UnityEngine.EventSystems;
@@ -82,7 +83,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         {
             if (!float.TryParse(valueString, out var value)) return;
             
-            ScenarioManager.Instance.undoManager.RegisterRecord(new UndoInputField(valueInputField,
+            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoInputField(valueInputField,
                 editedEffector.Value.ToString("F")));
             SetValue(value);
         }

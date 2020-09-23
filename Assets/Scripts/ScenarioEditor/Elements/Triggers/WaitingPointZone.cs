@@ -51,7 +51,7 @@ namespace Simulator.ScenarioEditor.Agents.Triggers
                 if (pathRenderer != null)
                     return pathRenderer;
                 pathRenderer = gameObject.AddComponent<LineRenderer>();
-                pathRenderer.material = ScenarioManager.Instance.waypointsManager.triggerPathMaterial;
+                pathRenderer.material = ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>().triggerPathMaterial;
                 pathRenderer.useWorldSpace = false;
                 pathRenderer.positionCount = 2;
                 pathRenderer.textureMode = LineTextureMode.Tile;
@@ -65,11 +65,7 @@ namespace Simulator.ScenarioEditor.Agents.Triggers
         /// <inheritdoc/>
         public override void CopyProperties(ScenarioElement origin)
         {
-            //Override the ActivatorPoint (global position) with the local position
-            var originWaitingPoint = origin as WaitingPointZone;
-            if (originWaitingPoint == null) return;
-            transform.localPosition = origin.transform.localPosition;
-            originWaitingPoint.waitingPointEffector.ActivatorPoint = transform.position;
+            transform.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
             Refresh();
         }
 

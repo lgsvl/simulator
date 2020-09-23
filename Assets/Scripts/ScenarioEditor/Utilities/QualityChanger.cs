@@ -5,9 +5,8 @@
  *
  */
 
-namespace Simulator.ScenarioEditor.Managers
+namespace Simulator.ScenarioEditor.Utilities
 {
-    using System.Reflection;
     using Simulator.Utilities;
     using UnityEngine;
     using UnityEngine.Rendering;

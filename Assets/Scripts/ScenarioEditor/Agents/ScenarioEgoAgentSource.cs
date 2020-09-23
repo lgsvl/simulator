@@ -14,8 +14,10 @@ namespace Simulator.ScenarioEditor.Agents
     using Database.Services;
     using Input;
     using Managers;
+    using Undo;
     using Undo.Records;
     using UnityEngine;
+    using Utilities;
     using Web;
 
     /// <inheritdoc/>
@@ -49,7 +51,7 @@ namespace Simulator.ScenarioEditor.Agents
         /// <inheritdoc/>
         public override async Task Initialize()
         {
-            inputManager = ScenarioManager.Instance.inputManager;
+            inputManager = ScenarioManager.Instance.GetExtension<InputManager>();
             var library = await ConnectionManager.API.GetLibrary<VehicleDetailData>();
 
             var assetService = new AssetService();
@@ -99,7 +101,7 @@ namespace Simulator.ScenarioEditor.Agents
                 return null;
             }
 
-            var instance = ScenarioManager.Instance.prefabsPools.GetInstance(variant.prefab);
+            var instance = ScenarioManager.Instance.GetExtension<PrefabsPools>().GetInstance(variant.prefab);
             instance.GetComponent<VehicleController>().enabled = false;
             Object.DestroyImmediate(instance.GetComponent<VehicleActions>());
             return instance;
@@ -124,13 +126,19 @@ namespace Simulator.ScenarioEditor.Agents
         /// <inheritdoc/>
         public override void ReturnModelInstance(GameObject instance)
         {
-            ScenarioManager.Instance.prefabsPools.ReturnInstance(instance);
+            ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(instance);
+        }
+
+        /// <inheritdoc/>
+        public override bool AgentSupportWaypoints(ScenarioAgent agent)
+        {
+            return false;
         }
 
         /// <inheritdoc/>
         public override void DragNewAgent()
         {
-            ScenarioManager.Instance.inputManager.StartDraggingElement(this);
+            ScenarioManager.Instance.GetExtension<InputManager>().StartDraggingElement(this);
         }
 
         /// <inheritdoc/>
@@ -140,7 +148,7 @@ namespace Simulator.ScenarioEditor.Agents
             draggedInstance.transform.SetParent(ScenarioManager.Instance.transform);
             draggedInstance.transform.SetPositionAndRotation(inputManager.MouseRaycastPosition,
                 Quaternion.Euler(0.0f, 0.0f, 0.0f));
-            ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic,
+            ScenarioManager.Instance.GetExtension<ScenarioMapManager>().LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic,
                 draggedInstance.transform,
                 draggedInstance.transform);
         }
@@ -149,7 +157,7 @@ namespace Simulator.ScenarioEditor.Agents
         public override void DragMoved()
         {
             draggedInstance.transform.position = inputManager.MouseRaycastPosition;
-            ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic,
+            ScenarioManager.Instance.GetExtension<ScenarioMapManager>().LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic,
                 draggedInstance.transform,
                 draggedInstance.transform);
         }
@@ -160,15 +168,15 @@ namespace Simulator.ScenarioEditor.Agents
             var agent = GetAgentInstance(DefaultVariant);
             agent.TransformToRotate.rotation = draggedInstance.transform.rotation;
             agent.ForceMove(draggedInstance.transform.position);
-            ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
-            ScenarioManager.Instance.undoManager.RegisterRecord(new UndoAddElement(agent));
+            ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(draggedInstance);
+            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoAddElement(agent));
             draggedInstance = null;
         }
 
         /// <inheritdoc/>
         public override void DragCancelled()
         {
-            ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
+            ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(draggedInstance);
             draggedInstance = null;
         }
     }

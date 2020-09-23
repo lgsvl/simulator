@@ -12,6 +12,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
     using System.IO;
     using System.Text;
     using Managers;
+    using ScenarioEditor.Utilities;
     using UnityEngine;
     using UnityEngine.UI;
 
@@ -24,27 +25,27 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         /// Callback with the selected file path that will be invoked after selecting a file
         /// </summary>
         private Action<string> callback;
-        
+
         /// <summary>
         /// File extensions that will be visible in the dialog, if null all extensions are viewed
         /// </summary>
         private string[] viewedExtensions;
-        
+
         /// <summary>
         /// Currently selected file button
         /// </summary>
         private SelectFileDialogFileButton selectedFile;
-        
+
         /// <summary>
         /// All of the currently available file buttons in the current directory
         /// </summary>
         private List<SelectFileDialogFileButton> filesButtons = new List<SelectFileDialogFileButton>();
-        
+
         /// <summary>
         /// Is dialog allowing custom filename input, should be false for load commands
         /// </summary>
         private bool allowCustomFilename;
-        
+
         /// <summary>
         /// Currently viewed directory path
         /// </summary>
@@ -54,22 +55,22 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         /// Dialog title text
         /// </summary>
         public Text title;
-        
+
         /// <summary>
         /// Input field for the manual directory path selection
         /// </summary>
         public InputField directoryPathInputField;
-        
+
         /// <summary>
         /// Grid where all the buttons for current files will be added
         /// </summary>
         public RectTransform filesGrid;
-        
+
         /// <summary>
         /// Sample of the file button used in this dialog
         /// </summary>
         public SelectFileDialogFileButton fileButtonSample;
-        
+
         /// <summary>
         /// Input field for the manual file name selection
         /// </summary>
@@ -84,7 +85,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         /// Currently viewed directory path
         /// </summary>
         public string DirectoryPath => currentPath;
-        
+
         /// <summary>
         /// Checks if the dialog can be showed
         /// </summary>
@@ -107,7 +108,8 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         /// <param name="selectFileTitle">Text of the select file button</param>
         /// <param name="extensions">File extensions that will be visible in the dialog, if null all extensions are viewed</param>
         public void Show(Action<string> pathSelected, bool allowCustomFilename, string directoryPath = null,
-            string dialogTitle = "Select File Dialog", string selectFileTitle = "Select File", string[] extensions = null)
+            string dialogTitle = "Select File Dialog", string selectFileTitle = "Select File",
+            string[] extensions = null)
         {
             if (!CanBeShown)
                 return;
@@ -120,7 +122,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
             var path = directoryPath ?? Application.persistentDataPath;
             SelectDirectoryPath(path);
             customFileNameInputField.interactable = allowCustomFilename;
-                
+
             ScenarioManager.Instance.ViewsPopup = true;
             gameObject.SetActive(true);
         }
@@ -159,7 +161,8 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
             var directories = Directory.GetDirectories(path);
             foreach (var directory in directories)
             {
-                var buttonGameObject = ScenarioManager.Instance.prefabsPools.GetInstance(fileButtonSample.gameObject);
+                var buttonGameObject = ScenarioManager.Instance.GetExtension<PrefabsPools>()
+                    .GetInstance(fileButtonSample.gameObject);
                 buttonGameObject.transform.SetParent(filesGrid);
                 buttonGameObject.SetActive(true);
                 var button = buttonGameObject.GetComponent<SelectFileDialogFileButton>();
@@ -187,7 +190,8 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
             var files = Directory.GetFiles(path, searchPattern);
             foreach (var file in files)
             {
-                var buttonGameObject = ScenarioManager.Instance.prefabsPools.GetInstance(fileButtonSample.gameObject);
+                var buttonGameObject = ScenarioManager.Instance.GetExtension<PrefabsPools>()
+                    .GetInstance(fileButtonSample.gameObject);
                 buttonGameObject.transform.SetParent(filesGrid);
                 buttonGameObject.SetActive(true);
                 var button = buttonGameObject.GetComponent<SelectFileDialogFileButton>();
@@ -209,7 +213,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
             for (var i = filesButtons.Count - 1; i >= 0; i--)
             {
                 var fileButton = filesButtons[i];
-                ScenarioManager.Instance.prefabsPools.ReturnInstance(fileButton.gameObject);
+                ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(fileButton.gameObject);
             }
 
             filesButtons.Clear();

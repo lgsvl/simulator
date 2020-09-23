@@ -10,6 +10,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
     using System;
     using Elements;
     using Managers;
+    using Undo;
     using Undo.Records;
     using UnityEngine;
     using UnityEngine.EventSystems;
@@ -28,12 +29,12 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         [SerializeField]
         private InputField maxDistanceInputField;
 #pragma warning restore 0649
-        
+
         /// <summary>
         /// Parent trigger panel
         /// </summary>
         private TriggerEditPanel parentPanel;
-        
+
         /// <summary>
         /// Trigger effector type linked to this panel
         /// </summary>
@@ -41,7 +42,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
 
         /// <inheritdoc/>
         public override Type EditedEffectorType => typeof(WaitForDistanceEffector);
-        
+
         /// <summary>
         /// Unity OnDisable method
         /// </summary>
@@ -49,20 +50,22 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         {
             maxDistanceInputField.OnDeselect(new BaseEventData(EventSystem.current));
         }
-        
+
         /// <inheritdoc/>
-        public override void StartEditing(TriggerEditPanel triggerPanel, ScenarioTrigger trigger, TriggerEffector effector)
+        public override void StartEditing(TriggerEditPanel triggerPanel, ScenarioTrigger trigger,
+            TriggerEffector effector)
         {
             parentPanel = triggerPanel;
             editedEffector = (WaitForDistanceEffector) effector;
             maxDistanceInputField.text = editedEffector.MaxDistance.ToString("F");
         }
-        
+
         /// <inheritdoc/>
         public override void InitializeEffector(ScenarioTrigger trigger, TriggerEffector effector)
         {
             if (!(effector is WaitForDistanceEffector waitForDistanceEffector))
-                throw new ArgumentException($"{GetType().Name} received effector of invalid type {effector.GetType().Name}.");
+                throw new ArgumentException(
+                    $"{GetType().Name} received effector of invalid type {effector.GetType().Name}.");
             waitForDistanceEffector.MaxDistance = 5.0f;
         }
 
@@ -73,7 +76,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         {
             parentPanel.RemoveEffector(editedEffector);
         }
-        
+
         /// <summary>
         /// Sets the trigger effector max distance
         /// </summary>
@@ -81,9 +84,9 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         public void SetMaxDistance(string maxDistanceString)
         {
             if (!float.TryParse(maxDistanceString, out var maxDistance)) return;
-            
-            ScenarioManager.Instance.undoManager.RegisterRecord(new UndoInputField(maxDistanceInputField,
-                editedEffector.MaxDistance.ToString("F")));
+
+            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoInputField(
+                maxDistanceInputField, editedEffector.MaxDistance.ToString("F")));
             SetMaxDistance(maxDistance);
         }
 

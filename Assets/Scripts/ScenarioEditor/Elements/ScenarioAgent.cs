@@ -11,6 +11,8 @@ namespace Simulator.ScenarioEditor.Agents
     using System.Collections.Generic;
     using Elements;
     using Managers;
+    using Undo;
+    using Undo.Records;
     using UnityEngine;
 
     /// <inheritdoc cref="Simulator.ScenarioEditor.Elements.ScenarioElement" />
@@ -84,7 +86,8 @@ namespace Simulator.ScenarioEditor.Agents
                     waypointsParent = newGameObject.transform;
                     waypointsParent.SetParent(transform);
                     waypointsParent.localPosition = Vector3.zero;
-                    PathRenderer.material = ScenarioManager.Instance.waypointsManager.waypointPathMaterial;
+                    PathRenderer.material = ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>()
+                        .waypointPathMaterial;
                     PathRenderer.useWorldSpace = false;
                     PathRenderer.positionCount = 1;
                     PathRenderer.SetPosition(0, lineRendererPositionOffset);
@@ -104,7 +107,7 @@ namespace Simulator.ScenarioEditor.Agents
             get
             {
                 if (pathRenderer != null) return pathRenderer;
-                
+
                 pathRenderer = WaypointsParent.gameObject.GetComponent<LineRenderer>();
                 if (pathRenderer == null)
                     pathRenderer = WaypointsParent.gameObject.AddComponent<LineRenderer>();
@@ -117,6 +120,11 @@ namespace Simulator.ScenarioEditor.Agents
 
         /// <inheritdoc/>
         public override Transform TransformForPlayback => modelInstance.transform;
+
+        /// <summary>
+        /// Behaviour that will control this agent in the simulation
+        /// </summary>
+        public string Behaviour { get; private set; }
 
         /// <summary>
         /// Parent source of this scenario agent
@@ -134,14 +142,19 @@ namespace Simulator.ScenarioEditor.Agents
         public List<ScenarioWaypoint> Waypoints => waypoints;
 
         /// <summary>
-        /// Included triggers that will influence this agent
-        /// </summary>
-        public List<ScenarioTrigger> Triggers => triggers;
-
-        /// <summary>
         /// Type of this agent
         /// </summary>
         public AgentType Type => source.AgentType;
+
+        /// <summary>
+        /// Event invoked when this agent changes the variant
+        /// </summary>
+        public event Action<AgentVariant> VariantChanged;
+
+        /// <summary>
+        /// Event invoked when this agent changes the behaviour
+        /// </summary>
+        public event Action<string> BehaviourChanged;
 
         /// <summary>
         /// Setup method for initializing the required agent data
@@ -151,15 +164,16 @@ namespace Simulator.ScenarioEditor.Agents
         public void Setup(ScenarioAgentSource agentSource, AgentVariant agentVariant)
         {
             source = agentSource;
-            ChangeVariant(agentVariant);
-            ScenarioManager.Instance.agentsManager.RegisterAgent(this);
+            ChangeVariant(agentVariant, false);
+            ScenarioManager.Instance.GetExtension<ScenarioAgentsManager>().RegisterAgent(this);
         }
 
         /// <summary>
         /// Changes the current agent variant
         /// </summary>
         /// <param name="newVariant">New agent variant</param>
-        public void ChangeVariant(AgentVariant newVariant)
+        /// <param name="registerUndo">If true, this action can be undone</param>
+        public void ChangeVariant(AgentVariant newVariant, bool registerUndo = true)
         {
             var position = Vector3.zero;
             var rotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
@@ -170,12 +184,31 @@ namespace Simulator.ScenarioEditor.Agents
                 source.ReturnModelInstance(modelInstance);
             }
 
+            if (registerUndo)
+                ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
+                    .RegisterRecord(new UndoChangeVariant(this, variant));
             variant = newVariant;
             modelInstance = source.GetModelInstance(variant);
             modelInstance.name = modelObjectName;
             modelInstance.transform.SetParent(transform);
             modelInstance.transform.localPosition = position;
             modelInstance.transform.localRotation = rotation;
+            VariantChanged?.Invoke(variant);
+        }
+
+        /// <summary>
+        /// Changes the current agent behaviour
+        /// </summary>
+        /// <param name="newBehaviour">New agent behaviour</param>
+        /// <param name="registerUndo">If true, this action can be undone</param>
+        public void ChangeBehaviour(string newBehaviour, bool registerUndo = true)
+        {
+            if (registerUndo)
+                ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
+                    .RegisterRecord(new UndoChangeBehaviour(this, Behaviour));
+            Behaviour = newBehaviour;
+            WaypointsParent.gameObject.SetActive(source.AgentSupportWaypoints(this));
+            BehaviourChanged?.Invoke(Behaviour);
         }
 
         /// <inheritdoc/>
@@ -190,7 +223,7 @@ namespace Simulator.ScenarioEditor.Agents
                 waypoint.Dispose();
             }
 
-            ScenarioManager.Instance.agentsManager.UnregisterAgent(this);
+            ScenarioManager.Instance.GetExtension<ScenarioAgentsManager>().UnregisterAgent(this);
             Destroy(gameObject);
         }
 
@@ -220,24 +253,26 @@ namespace Simulator.ScenarioEditor.Agents
                 }
             }
 
+            Behaviour = originAgent.Behaviour;
             variant = originAgent.variant;
             source = originAgent.source;
-            ScenarioManager.Instance.agentsManager.RegisterAgent(this);
+            ScenarioManager.Instance.GetExtension<ScenarioAgentsManager>().RegisterAgent(this);
         }
 
         /// <inheritdoc/>
         public override void ForceMove(Vector3 requestedPosition)
         {
             base.ForceMove(requestedPosition);
+            var mapManager = ScenarioManager.Instance.GetExtension<ScenarioMapManager>();
             switch (Type)
             {
                 case AgentType.Ego:
                 case AgentType.Npc:
-                    ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic,
+                    mapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic,
                         TransformToMove, TransformToRotate);
                     break;
                 case AgentType.Pedestrian:
-                    ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian,
+                    mapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian,
                         TransformToMove, TransformToRotate);
                     break;
             }

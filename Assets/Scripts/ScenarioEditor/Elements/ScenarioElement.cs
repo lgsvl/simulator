@@ -150,7 +150,7 @@ namespace Simulator.ScenarioEditor.Elements
         /// </summary>
         protected virtual void Start()
         {
-            inputManager = ScenarioManager.Instance.inputManager;
+            inputManager = ScenarioManager.Instance.GetExtension<InputManager>();
         }
 
         /// <summary>
@@ -238,7 +238,7 @@ namespace Simulator.ScenarioEditor.Elements
             if (!CanBeMoved)
                 throw new ArgumentException("Drag movement called for ScenarioElement which does not support moving.");
             currentDragType = DragType.Movement;
-            ScenarioManager.Instance.inputManager.StartDraggingElement(this, true);
+            inputManager.StartDraggingElement(this, true);
         }
 
         /// <summary>
@@ -251,7 +251,7 @@ namespace Simulator.ScenarioEditor.Elements
                 throw new ArgumentException(
                     "Drag rotation called for ScenarioElement which does not support rotating.");
             currentDragType = DragType.Rotation;
-            ScenarioManager.Instance.inputManager.StartDraggingElement(this, true);
+            inputManager.StartDraggingElement(this, true);
         }
 
         /// <summary>
@@ -263,7 +263,7 @@ namespace Simulator.ScenarioEditor.Elements
             if (!CanBeMoved)
                 throw new ArgumentException("Drag resize called for ScenarioElement which does not support resizing.");
             currentDragType = DragType.Resize;
-            ScenarioManager.Instance.inputManager.StartDraggingElement(this, true);
+            inputManager.StartDraggingElement(this, true);
         }
 
         /// <inheritdoc/>
@@ -332,6 +332,7 @@ namespace Simulator.ScenarioEditor.Elements
         {
             //Apply current mouse position
             (this as IDragHandler).DragMoved();
+            var undoManager = ScenarioManager.Instance.GetExtension<ScenarioUndoManager>();
             switch (currentDragType)
             {
                 case DragType.None:
@@ -340,15 +341,13 @@ namespace Simulator.ScenarioEditor.Elements
                     var records = new List<UndoRecord>();
                     records.Add(new UndoMoveElement(this, positionBeforeDrag));
                     records.Add(new UndoRotateElement(this, rotationBeforeRotating));
-                    ScenarioManager.Instance.undoManager.RegisterRecord(new ComplexUndo(records));
+                    undoManager.RegisterRecord(new ComplexUndo(records));
                     break;
                 case DragType.Rotation:
-                    ScenarioManager.Instance.undoManager.RegisterRecord(new UndoRotateElement(this,
-                        rotationBeforeRotating));
+                    undoManager.RegisterRecord(new UndoRotateElement(this, rotationBeforeRotating));
                     break;
                 case DragType.Resize:
-                    ScenarioManager.Instance.undoManager.RegisterRecord(
-                        new UndoResizeElement(this, scaleBeforeResizing));
+                    undoManager.RegisterRecord(new UndoResizeElement(this, scaleBeforeResizing));
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

@@ -10,6 +10,7 @@ namespace Simulator.ScenarioEditor.UI.Playback
     using System.Collections;
     using System.Collections.Generic;
     using Elements;
+    using Input;
     using Inspector;
     using Managers;
     using ScenarioEditor.Playback;
@@ -120,7 +121,7 @@ namespace Simulator.ScenarioEditor.UI.Playback
         {
             selectedElement = ScenarioManager.Instance.SelectedElement;
             ScenarioManager.Instance.SelectedElement = null;
-            ScenarioManager.Instance.inputManager.ElementSelectingSemaphore.Lock();
+            ScenarioManager.Instance.GetExtension<InputManager>().ElementSelectingSemaphore.Lock();
             didLockSemaphore = true;
             duration = 0.0f;
             for (var i = 0; i < controllers.Count; i++)
@@ -144,7 +145,7 @@ namespace Simulator.ScenarioEditor.UI.Playback
                 controllers[i].Deinitialize();
             gameObject.SetActive(false);
             if (didLockSemaphore)
-                ScenarioManager.Instance.inputManager.ElementSelectingSemaphore.Unlock();
+                ScenarioManager.Instance.GetExtension<InputManager>().ElementSelectingSemaphore.Unlock();
             didLockSemaphore = false;
             ScenarioManager.Instance.SelectedElement = selectedElement;
             selectedElement = null;

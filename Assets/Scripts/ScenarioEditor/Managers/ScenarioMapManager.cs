@@ -24,7 +24,7 @@ namespace Simulator.ScenarioEditor.Managers
     /// <summary>
     /// Manager for calculating the map's meta-data, loading other maps and caching last loaded map
     /// </summary>
-    public class ScenarioMapManager
+    public class ScenarioMapManager : IScenarioEditorExtension
     {
         /// <summary>
         /// Meta data of the available maps
@@ -70,11 +70,6 @@ namespace Simulator.ScenarioEditor.Managers
         /// Persistence data key for last loaded map
         /// </summary>
         private const string MapPersistenceKey = "Simulator/ScenarioEditor/MapManager/MapName";
-
-        /// <summary>
-        /// Is this map manager initialized
-        /// </summary>
-        private bool isInitialized;
         
         /// <summary>
         /// Currently loaded scene name after loading the map
@@ -98,20 +93,19 @@ namespace Simulator.ScenarioEditor.Managers
         
         public LaneSnappingHandler LaneSnapping { get; } = new LaneSnappingHandler();
 
-        /// <summary>
-        /// Is this map manager initialized
-        /// </summary>
-        public bool IsInitialized => isInitialized;
+        /// <inheritdoc/>
+        public bool IsInitialized { get; private set; }
 
         /// <summary>
         /// Event invoked when the currently loaded map changes
         /// </summary>
         public event Action<string> MapChanged;
 
+        /// <inheritdoc/>
         /// <summary>
         /// Loads and lists all the available maps models from the cloud
         /// </summary>
-        private async Task Initialize()
+        public async Task Initialize()
         {
             if (IsInitialized)
                 return;
@@ -130,9 +124,18 @@ namespace Simulator.ScenarioEditor.Managers
                 AvailableMaps.Add(newMap);
             }
 
-            isInitialized = true;
+            IsInitialized = true;
         }
-        
+
+        /// <inheritdoc/>
+        public void Deinitialize()
+        {
+            if (!IsInitialized)
+                return;
+            UnloadMapAsync();
+            IsInitialized = false;
+        }
+
         /// <summary>
         /// Checks if map with given name is available in the database
         /// </summary>

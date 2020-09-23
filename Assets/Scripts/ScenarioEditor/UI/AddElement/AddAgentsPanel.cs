@@ -9,6 +9,7 @@ namespace Simulator.ScenarioEditor.UI.AddElement
 {
     using Inspector;
     using Managers;
+    using ScenarioEditor.Utilities;
     using UnityEngine;
 
     /// <summary>
@@ -28,12 +29,14 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         /// <inheritdoc/>
         public override void Initialize()
         {
-            var sources = ScenarioManager.Instance.agentsManager.Sources;
+            var agentsManager = ScenarioManager.Instance.GetExtension<ScenarioAgentsManager>();
+            var sources = agentsManager.Sources;
             for (var i = 0; i < sources.Count; i++)
             {
                 var newPanel = Instantiate(agentSourcePanelPrefab, transform);
                 newPanel.Initialize(sources[i]);
             }
+            UnityUtilities.LayoutRebuild(transform as RectTransform);
         }
         
         /// <inheritdoc/>

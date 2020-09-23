@@ -10,6 +10,7 @@ namespace Simulator.ScenarioEditor.Elements
     using Agents;
     using Managers;
     using UnityEngine;
+    using Utilities;
 
     /// <inheritdoc cref="Simulator.ScenarioEditor.Elements.ScenarioElement" />
     /// <remarks>
@@ -77,7 +78,7 @@ namespace Simulator.ScenarioEditor.Elements
         protected override void OnEnable()
         {
             base.OnEnable();
-            ScenarioManager.Instance.waypointsManager.RegisterWaypoint(this);
+            ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>().RegisterWaypoint(this);
         }
 
         /// <summary>
@@ -85,7 +86,7 @@ namespace Simulator.ScenarioEditor.Elements
         /// </summary>
         private void OnDisable()
         {
-            ScenarioManager.Instance.waypointsManager.UnregisterWaypoint(this);
+            ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>().UnregisterWaypoint(this);
         }
 
         /// <inheritdoc/>
@@ -120,16 +121,15 @@ namespace Simulator.ScenarioEditor.Elements
         {
             transform.position = requestedPosition;
             if (ParentAgent == null) return;
+            var mapManager = ScenarioManager.Instance.GetExtension<ScenarioMapManager>();
             switch (ParentAgent.Type)
             {
                 case AgentType.Ego:
                 case AgentType.Npc:
-                    ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(
-                        LaneSnappingHandler.LaneType.Traffic, transform);
+                    mapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic, transform);
                     break;
                 case AgentType.Pedestrian:
-                    ScenarioManager.Instance.MapManager.LaneSnapping.SnapToLane(
-                        LaneSnappingHandler.LaneType.Pedestrian, transform);
+                    mapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian, transform);
                     break;
             }
 
@@ -160,7 +160,7 @@ namespace Simulator.ScenarioEditor.Elements
                 linkedTrigger.Deinitalize();
             Speed = 6.0f;
             WaitTime = 0.0f;
-            ScenarioManager.Instance.prefabsPools.ReturnInstance(gameObject);
+            ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(gameObject);
         }
 
         /// <inheritdoc/>

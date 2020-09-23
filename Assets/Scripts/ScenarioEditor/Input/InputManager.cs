@@ -8,10 +8,12 @@
 namespace Simulator.ScenarioEditor.Input
 {
     using System;
+    using System.Threading.Tasks;
     using Agents;
     using Elements;
     using Managers;
     using Network.Core.Threading;
+    using Undo;
     using Undo.Records;
     using UnityEngine;
     using UnityEngine.EventSystems;
@@ -20,7 +22,7 @@ namespace Simulator.ScenarioEditor.Input
     /// <summary>
     /// Input manager that handles all the keyboard and mouse inputs in the Scenario Editor
     /// </summary>
-    public class InputManager : MonoBehaviour
+    public class InputManager : MonoBehaviour, IScenarioEditorExtension
     {
         /// <summary>
         /// Input state type that determines input behaviour
@@ -124,6 +126,9 @@ namespace Simulator.ScenarioEditor.Input
         /// Persistence data key for Y rotation inversion value
         /// </summary>
         private static string YRotationInversionKey = "Simulator/ScenarioEditor/InputManager/YRotationInversion";
+
+        /// <inheritdoc/>
+        public bool IsInitialized { get; private set; }
 
         /// <summary>
         /// Cached scenario world camera
@@ -344,13 +349,12 @@ namespace Simulator.ScenarioEditor.Input
                                                 Screen.width < Input.mousePosition.x ||
                                                 Screen.height < Input.mousePosition.y);
 
-        /// <summary>
-        /// Unity Start method
-        /// </summary>
-        /// <exception cref="ArgumentException">Invalid setup</exception>
-        private void Start()
+        /// <inheritdoc/>
+        public Task Initialize()
         {
-            scenarioCamera = FindObjectOfType<ScenarioManager>()?.ScenarioCamera;
+            if (IsInitialized)
+                return Task.CompletedTask;
+            scenarioCamera = ScenarioManager.Instance.ScenarioCamera;
             if (scenarioCamera == null)
                 throw new ArgumentException("Scenario camera reference is required in the ScenarioManager.");
             controls = new SimulatorControls();
@@ -367,15 +371,17 @@ namespace Simulator.ScenarioEditor.Input
             //Setup layers mask
             var ignoreRaycastLayer = LayerMask.NameToLayer("Ignore Raycast");
             raycastLayerMask &= ~(1 << ignoreRaycastLayer);
+            IsInitialized = true;
+            return Task.CompletedTask;
         }
 
-        /// <summary>
-        /// Unity OnDestroy method
-        /// </summary>
-        /// <exception cref="ArgumentException">Invalid setup</exception>
-        private void OnDestroy()
+        /// <inheritdoc/>
+        public void Deinitialize()
         {
+            if (!IsInitialized)
+                return;
             DeinitControls();
+            IsInitialized = false;
         }
 
         /// <summary>
@@ -405,8 +411,7 @@ namespace Simulator.ScenarioEditor.Input
             controls.Camera.MouseMiddle.performed -= MouseMiddleOnPerformed;
         }
 
-        #region Events
-
+        #region Input System Events
         /// <summary>
         /// Callback on camera mouse scroll
         /// </summary>
@@ -570,7 +575,8 @@ namespace Simulator.ScenarioEditor.Input
             if (InputSemaphore.IsLocked)
                 return;
             RaycastAll();
-            HandleKeyboardShortcuts();
+            if (ElementSelectingSemaphore.IsUnlocked)
+                HandleKeyboardActions();
             HandleMapInput();
         }
 
@@ -607,16 +613,16 @@ namespace Simulator.ScenarioEditor.Input
         }
 
         /// <summary>
-        /// Hnadl
+        /// Handle keyboard actions
         /// </summary>
-        private void HandleKeyboardShortcuts()
+        private void HandleKeyboardActions()
         {
             if (Input.GetKeyDown(KeyCode.Delete))
             {
                 var element = ScenarioManager.Instance.SelectedElement;
                 ScenarioManager.Instance.SelectedElement = null;
                 ScenarioManager.Instance.IsScenarioDirty = true;
-                ScenarioManager.Instance.undoManager.RegisterRecord(new UndoRemoveElement(element));
+                ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoRemoveElement(element));
                 element.RemoveFromMap();
                 return;
             }
@@ -624,11 +630,13 @@ namespace Simulator.ScenarioEditor.Input
             {
                 if (Input.GetKeyDown(KeyCode.Z))
                 {
-                    ScenarioManager.Instance.undoManager.Undo();
+                    ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().Undo();
                     return;
                 }
 
-                if (Input.GetKeyDown(KeyCode.C) && ScenarioManager.Instance.SelectedElement.CanBeCopied)
+                if (Input.GetKeyDown(KeyCode.C) && 
+                    ScenarioManager.Instance.SelectedElement != null &&
+                    ScenarioManager.Instance.SelectedElement.CanBeCopied)
                 {
                     var element = ScenarioManager.Instance.SelectedElement;
                     ScenarioManager.Instance.CopiedElement = element;
@@ -726,7 +734,7 @@ namespace Simulator.ScenarioEditor.Input
         /// <param name="position">Requested camera position</param>
         private void MoveCameraTo(Vector3 position)
         {
-            var mapBounds = ScenarioManager.Instance.MapManager.CurrentMapBounds;
+            var mapBounds = ScenarioManager.Instance.GetExtension<ScenarioMapManager>().CurrentMapBounds;
             position.x = Mathf.Clamp(position.x, mapBounds.min.x, mapBounds.max.x);
             position.y = Mathf.Clamp(position.y, 5.0f, 200.0f);
             position.z = Mathf.Clamp(position.z, mapBounds.min.z, mapBounds.max.z);

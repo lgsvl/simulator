@@ -43,6 +43,11 @@ namespace Simulator.ScenarioEditor.Agents
         public abstract AgentVariant DefaultVariant { get; set; }
 
         /// <summary>
+        /// Available behaviour for this agent
+        /// </summary>
+        public List<string> Behaviours { get; protected set; }
+
+        /// <summary>
         /// Initialization method
         /// </summary>
         public abstract Task Initialize();
@@ -71,6 +76,13 @@ namespace Simulator.ScenarioEditor.Agents
         /// </summary>
         /// <param name="instance">Agent variant instance which should be returned to the pool</param>
         public abstract void ReturnModelInstance(GameObject instance);
+
+        /// <summary>
+        /// Checks if the given agent supports waypoints
+        /// </summary>
+        /// <param name="agent">Agent to check</param>
+        /// <returns>True if agent supports waypoints, false otherwise</returns>
+        public abstract bool AgentSupportWaypoints(ScenarioAgent agent);
 
         /// <summary>
         /// Method that instantiates new agent and starts dragging it

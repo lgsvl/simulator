@@ -12,6 +12,7 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
     using System.Threading.Tasks;
     using Inspector;
     using Managers;
+    using ScenarioEditor.Utilities;
     using UnityEngine;
 
     /// <summary>
@@ -42,13 +43,17 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
         public override void Initialize()
         {
             var nonBlockingTask = SetupButtons();
+            UnityUtilities.LayoutRebuild(transform as RectTransform);
         }
         
         /// <inheritdoc/>
         public override void Deinitialize()
         {
-            if (ScenarioManager.Instance != null)
-                ScenarioManager.Instance.MapManager.MapChanged -= OnMapLoaded;
+            if (ScenarioManager.Instance == null)
+                return;
+            var mapManager = ScenarioManager.Instance.GetExtension<ScenarioMapManager>();
+            if (mapManager!=null)
+                mapManager.MapChanged -= OnMapLoaded;
         }
 
         /// <summary>
@@ -57,12 +62,11 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
         /// <returns>Task</returns>
         private async Task SetupButtons()
         {
-            var mapManager = ScenarioManager.Instance.MapManager;
-            while (!mapManager.IsInitialized)
-                await Task.Delay(25);
+            await ScenarioManager.Instance.WaitForExtension<ScenarioMapManager>();
+            var mapManager = ScenarioManager.Instance.GetExtension<ScenarioMapManager>();
             mapManager.MapChanged += OnMapLoaded;
-            var availableMaps = ScenarioManager.Instance.MapManager.AvailableMaps;
-            var currentMapName = ScenarioManager.Instance.MapManager.CurrentMapName;
+            var availableMaps = mapManager.AvailableMaps;
+            var currentMapName = mapManager.CurrentMapName;
             for (var i = 0; i < availableMaps.Count; i++)
             {
                 var availableMap = availableMaps[i];
@@ -137,7 +141,7 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
         private async Task DelayedSelectMap(string mapName)
         {
             await Task.Delay(20);
-            await ScenarioManager.Instance.MapManager.LoadMapAsync(mapName);
+            await ScenarioManager.Instance.GetExtension<ScenarioMapManager>().LoadMapAsync(mapName);
             ScenarioManager.Instance.HideLoadingPanel();
         }
     }

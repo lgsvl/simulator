@@ -77,7 +77,7 @@ namespace Simulator.ScenarioEditor.Agents
         {
             var instance = source.GetModelInstance(this);
             var texture = ScenarioManager.Instance.objectsShotCapture.ShotObject(instance);
-            ScenarioManager.Instance.prefabsPools.ReturnInstance(instance);
+            ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(instance);
             return texture;
         }
 

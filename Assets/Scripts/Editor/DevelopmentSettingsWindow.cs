@@ -15,7 +15,7 @@ using UnityEngine;
 using System.Reflection;
 using Simulator.Database;
 using Simulator.Web;
-using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace Simulator.Editor
 {
@@ -33,6 +33,8 @@ namespace Simulator.Editor
         int currentVehicleIndex = 0;
         string sensorScratchPad = "";
 
+        float saveAssetTime = float.MaxValue;
+
         Vector2 ScrollPos;
 
         [MenuItem("Simulator/Development Settings...", false, 50)]
@@ -46,8 +48,10 @@ namespace Simulator.Editor
         void OnEnable()
         {
             _instance = this;
-            EditorApplication.playModeStateChanged -= HandlePlayMode;
             EditorApplication.playModeStateChanged += HandlePlayMode;
+            AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
+            EditorApplication.update += OnEditorUpdate;
+
             settings = (DevelopmentSettingsAsset)AssetDatabase.LoadAssetAtPath("Assets/Resources/Editor/DeveloperSettings.asset", typeof(DevelopmentSettingsAsset));
             if (settings == null)
             {
@@ -58,7 +62,7 @@ namespace Simulator.Editor
 
             if (settings.developerSimulationJson != null)
             {
-                developerSimulation = Newtonsoft.Json.JsonConvert.DeserializeObject<SimulationData>(settings.developerSimulationJson);
+                developerSimulation = JsonConvert.DeserializeObject<SimulationData>(settings.developerSimulationJson);
             }
 
             if (developerSimulation == null)
@@ -85,6 +89,17 @@ namespace Simulator.Editor
             Refresh();
         }
 
+        void OnDisable()
+        {
+            EditorApplication.playModeStateChanged -= HandlePlayMode;
+            AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeAssemblyReload;
+        }
+
+        public void OnBeforeAssemblyReload()
+        {
+            API.Disconnect();
+        }
+
         void OnDestroy()
         {
             if (API != null)
@@ -93,7 +108,14 @@ namespace Simulator.Editor
             }
             _instance = null;
         }
-
+        protected virtual void OnEditorUpdate()
+        {
+            if (Time.realtimeSinceStartup > saveAssetTime)
+            {
+                updateAsset();
+                saveAssetTime = float.MaxValue;
+            }
+        }
         private static void HandlePlayMode(PlayModeStateChange state)
         {
             if (state == PlayModeStateChange.ExitingEditMode && _instance != null && _instance.API != null)
@@ -163,6 +185,7 @@ namespace Simulator.Editor
                     {
                         currentVehicleIndex = 0;
                     }
+                    await updateCloudVehicleDetails();
                 }
             }
             catch (Exception ex)
@@ -283,7 +306,7 @@ namespace Simulator.Editor
 
                             try
                             {
-                                vehicle.Sensors = Newtonsoft.Json.JsonConvert.DeserializeObject<SensorData[]>(sensorScratchPad);
+                                vehicle.Sensors = JsonConvert.DeserializeObject<SensorData[]>(sensorScratchPad);
                             }
                             catch (Exception e)
                             {
@@ -294,6 +317,18 @@ namespace Simulator.Editor
                         {
                             // want cloud vehicle, so clear local vehicle
                             developerSimulation.Vehicles = new VehicleData[] { ((VehicleDetailData)selection).ToVehicleData() };
+                            var vehicle = developerSimulation.Vehicles[0];
+                            if (vehicle.Bridge != null)
+                            {
+                                vehicle.Bridge.ConnectionString = EditorGUILayout.TextField("Bridge Connection", vehicle.Bridge.ConnectionString);
+                                EditorGUI.BeginDisabledGroup(true);
+                                EditorGUILayout.TextField("Bridge Type", vehicle.Bridge.Type);
+                                EditorGUILayout.TextField("Bridge Name", vehicle.Bridge.Name);
+                                EditorGUILayout.TextField("Bridge AssetGuid", vehicle.Bridge.AssetGuid);
+                                EditorGUILayout.LabelField("json sensor config");
+                                EditorGUILayout.TextArea(Newtonsoft.Json.JsonConvert.SerializeObject(vehicle.Sensors, JsonSettings.camelCase), GUILayout.Height(200));
+                                EditorGUI.EndDisabledGroup();
+                            }
                         }
                         EditorGUI.indentLevel--;
                     }
@@ -307,11 +342,11 @@ namespace Simulator.Editor
 
             if (EditorGUI.EndChangeCheck())
             {
-                updateAsset();
+                saveAssetTime = Time.realtimeSinceStartup + .25f;
             }
         }
 
-        async void updateAsset()
+        async Task updateCloudVehicleDetails()
         {
             if (developerSimulation.Vehicles != null && !developerSimulation.Vehicles[0].Id.EndsWith(".prefab"))
             {
@@ -320,11 +355,19 @@ namespace Simulator.Editor
                 // we do it after a change was made to the settings in this fire and forget async function
                 var data = await API.Get<VehicleDetailData>(developerSimulation.Vehicles[0].Id);
                 developerSimulation.Vehicles = new VehicleData[] { data.ToVehicleData() };
+                // splice in fetched data (containing extended data like bridge) for matching id
+                CloudVehicles = CloudVehicles.Select(v => v.Id == developerSimulation.Vehicles[0].Id ? data : v).ToList();
             }
-            settings.developerSimulationJson = Newtonsoft.Json.JsonConvert.SerializeObject(developerSimulation, JsonSettings.camelCase);
+        }
+        
+        async void updateAsset()
+        {
+            await updateCloudVehicleDetails();
+            settings.developerSimulationJson = JsonConvert.SerializeObject(developerSimulation, JsonSettings.camelCase);
             EditorUtility.SetDirty(settings);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
+            Debug.Log("Saved DeveloperSettings.");
         }
     }
 }

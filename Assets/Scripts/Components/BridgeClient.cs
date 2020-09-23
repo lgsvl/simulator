@@ -48,7 +48,7 @@ namespace Simulator.Components
 
         public void Update()
         {
-            if (BridgeStatus != Status.Disconnected)
+            if (BridgeStatus != Status.Disconnected && BridgeStatus != Status.UnexpectedlyDisconnected)
             {
                 Disconnected = false;
             }
@@ -79,7 +79,14 @@ namespace Simulator.Components
 
             if (BridgeStatus == Status.UnexpectedlyDisconnected)
             {
-                ConnectionManager.instance.UpdateStatus("Error", Loader.Instance.CurrentSimulation.Id, "Bridge socket was unexpectedly disconnected");
+                if (ConnectionManager.instance != null)
+                {
+                    ConnectionManager.instance.UpdateStatus("Error", Loader.Instance.CurrentSimulation.Id, "Bridge socket was unexpectedly disconnected");
+                }
+                else
+                {
+                    UnityEngine.Debug.LogError("Bridge socket was unexpectedly disconnected.");
+                }
             }
 
             if (BridgeStatus == Status.Connected)

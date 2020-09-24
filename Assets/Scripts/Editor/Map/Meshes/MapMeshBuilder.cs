@@ -514,6 +514,8 @@ namespace Simulator.Editor.MapMeshes
             if (!leftReversed)
                 leftPoints.Reverse();
 
+            RemoveWeldedPoints(rightPoints, leftPoints);
+
             var polygon = rightPoints.Select(point => new Vertex(point.position)).ToList();
             polygon.AddRange(leftPoints.Select(point => new Vertex(point.position)));
 
@@ -593,6 +595,43 @@ namespace Simulator.Editor.MapMeshes
 
             leftReversed = Vector3.Distance(laneStart, leftEnd) < Vector3.Distance(laneStart, leftStart);
             rightReversed = Vector3.Distance(laneStart, rightEnd) < Vector3.Distance(laneStart, rightStart);
+        }
+
+        private void RemoveWeldedPoints(List<LineVert> forward, List<LineVert> reverse)
+        {
+            RemoveWeldedPointsForwardReverse(forward, reverse);
+            RemoveWeldedPointsForwardReverse(reverse, forward);
+        }
+
+        private void RemoveWeldedPointsForwardReverse(List<LineVert> forward, List<LineVert> reverse)
+        {
+            const float threshold = 0.05f;
+
+            if (Vector3.Distance(forward[0].position, reverse[reverse.Count - 1].position) < threshold)
+            {
+                var forwardVecList = forward.Select(x => x.position).ToList();
+                var forwardIndex = 0;
+                var reverseIndex = reverse.Count - 1;
+                for (var i = 1; i < reverse.Count - 1; ++i)
+                {
+                    var reversePoint = reverse[reverse.Count - 1 - i];
+                    var dist = MeshUtils.PointLaneDistance(reversePoint.position, forwardVecList, out var crIndex);
+
+                    if (dist < threshold)
+                    {
+                        forwardIndex = crIndex;
+                        reverseIndex = reverse.Count - 1 - i;
+                    }
+                    else
+                        break;
+                }
+
+                var point = new LineVert(forward[forwardIndex].position);
+
+                forward.RemoveRange(0, forwardIndex);
+                reverse.RemoveRange(reverseIndex, reverse.Count - reverseIndex);
+                reverse.Add(point);
+            }
         }
 
         private void CalculateOutVectors(List<MapLane> lanes)

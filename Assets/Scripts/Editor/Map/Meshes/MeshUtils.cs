@@ -19,7 +19,7 @@ namespace Simulator.Editor.MapMeshes
     public static class MeshUtils
     {
         public const float Tolerance = 0.0001f;
-        
+
         private static Type handleUtilityType;
         private static MethodInfo intersectRayMeshMethod;
         private static object[] intersectRayMeshParams;
@@ -68,7 +68,7 @@ namespace Simulator.Editor.MapMeshes
                 if (handleUtilityType == null)
                     throw new Exception("HandleUtility type not found. Did Unity version change?");
 
-                intersectRayMeshMethod = handleUtilityType.GetMethod("IntersectRayMesh",(BindingFlags.Static | BindingFlags.NonPublic));
+                intersectRayMeshMethod = handleUtilityType.GetMethod("IntersectRayMesh", (BindingFlags.Static | BindingFlags.NonPublic));
                 if (intersectRayMeshMethod == null)
                     throw new Exception("IntersectRayMesh method not found. Did Unity version change?");
             }
@@ -576,6 +576,63 @@ namespace Simulator.Editor.MapMeshes
             var c = x23 * x23 + z23 * z23;
 
             return x03 * z13 * c + z03 * b * x23 + a * x13 * z23 - x23 * z13 * a - z23 * b * x03 - c * x13 * z03;
+        }
+
+        public static float PointLaneDistance(Vector3 p, List<Vector3> line, out int vertexIndex)
+        {
+            const float threshold = 0.05f;
+            vertexIndex = 0;
+            var closest = float.MaxValue;
+            for (var i = 1; i < line.Count; ++i)
+            {
+                var dist = PointLineDistance(p, line[i - 1], line[i]);
+
+                if (dist < closest)
+                {
+                    vertexIndex = i;
+                    closest = dist;
+                }
+
+                if (dist < threshold)
+                    return dist;
+            }
+
+            return closest;
+        }
+
+        private static float PointLineDistance(Vector3 p, Vector3 a0, Vector3 a1)
+        {
+            var aX = a1.x - a0.x;
+            var aY = a1.y - a0.y;
+            var aZ = a1.z - a0.z;
+
+            if (Mathf.Approximately(aX, 0f) && Mathf.Approximately(aZ, 0f))
+            {
+                aX = p.x - a0.x;
+                aZ = p.z - a0.z;
+                return Mathf.Sqrt(aX * aX + aZ * aZ);
+            }
+
+            var t = ((p.x - a0.x) * aX + (p.z - a0.z) * aZ) / (aX * aX + aZ * aZ);
+
+            if (t < 0)
+            {
+                aX = p.x - a0.x;
+                aZ = p.z - a0.z;
+            }
+            else if (t > 1)
+            {
+                aX = p.x - a1.x;
+                aZ = p.z - a1.z;
+            }
+            else
+            {
+                var closest = new Vector3(a0.x + t * aX, a0.y + t * aY, a0.z + t * aZ);
+                aX = p.x - closest.x;
+                aZ = p.z - closest.z;
+            }
+
+            return Mathf.Sqrt(aX * aX + aZ * aZ);
         }
     }
 }

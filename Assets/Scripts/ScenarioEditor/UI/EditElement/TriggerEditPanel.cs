@@ -225,7 +225,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             var panel = effectorPanels[effector.TypeName];
             panel.EffectorRemovedFromTrigger(selectedTrigger, effector);
             panel.FinishEditing();
-            panel.gameObject.SetActive(false);
+            panel.gameObject?.SetActive(false);
             visiblePanels.Remove(panel);
             UnityUtilities.LayoutRebuild(transform as RectTransform);
             availableEffectorTypes.Add(effector);

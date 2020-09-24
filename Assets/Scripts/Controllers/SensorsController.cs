@@ -225,12 +225,14 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         var sb = sensor.GetComponent<SensorBase>();
         sb.ParentTransform = parent.transform;
 
+
         if (item.@params == null) return sensor;
 
         var sbType = sb.GetType();
         foreach (var param in item.@params)
         {
-            var key = param.Key;
+            // these keys do not go through camelCase modifier so we do it manually
+            var key = param.Key.First().ToString().ToUpper() + param.Key.Substring(1);
             var value = param.Value;
 
             var field = sbType.GetField(key);
@@ -454,10 +456,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         for (var i = 0; i < clientsCount; i++)
         {
             var client = network.Master.Clients[i];
-            //Do not change sensors JSON  string (for example with different case settings)
-            //Parameter names are used to fill the sensors fields by name
-            //Parameter names have to be the same as field names
-            var sensorString = JsonConvert.SerializeObject(clientsSensors[i]);
+            var sensorString = JsonConvert.SerializeObject(clientsSensors[i], JsonSettings.camelCase);
             var message = MessagesPool.Instance.GetMessage(BytesStack.GetMaxByteCount(sensorString));
             message.AddressKey = Key;
             message.Content.PushString(sensorString);

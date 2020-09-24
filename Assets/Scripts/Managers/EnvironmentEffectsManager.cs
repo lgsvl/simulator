@@ -85,12 +85,10 @@ public class EnvironmentEffectsManager : MonoBehaviour
     private float PrevFog = 0f;
     private Fog VolumetricFog;
     private float MaxFog = 5000f;
-    private float MaxFogHeight = 50f;
 
     [Range(0f, 1f)]
     public float Cloud = 0f;
     private float PrevCloud = 0f;
-    private float MinCloud = 0f;
     private Renderer CloudRenderer;
 
     [Range(0f, 1f)]
@@ -392,33 +390,49 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     private void UpdateSunEffect()
     {
-        SunHD.angularDiameter = Rain != 0f ? 20f : 0.5f;
-        SunHD.flareSize = Rain != 0f ? 50f : 2f;
-        SunHD.flareFalloff = Rain != 0f ? 50f : 4f;
-        SunHD.flareTint = Rain != 0f ? Color.black : Color.white;
-        SunHD.surfaceTint = Rain != 0f ? Color.black : Color.white;
-        SunHD.shadowDimmer = Rain != 0f ? 0.2f : 0.8f;
+        var factor = (Rain + Cloud) / 2f;
+        if (Rain != 0f || Cloud != 0f)
+        {
+            if (Rain >= 0.25f || Cloud >= 0.25f)
+            {
+                SunHD.shadowDimmer = Mathf.Lerp(0.8f, 0.6f, (factor - 0.25f) * 4f); // Controls shadow density when rain or clouds are on.
+            }
+            else
+            {
+                SunHD.shadowDimmer = 0.8f;
+            }
+        }
+        else
+        {
+            SunHD.shadowDimmer = 0.8f;
+        }
     }
 
     private void UpdatePhysicalSky()
     {
-        PBS.aerosolDensity.value = Rain != 0f ? 0.8f : 0.01192826f;
+        var factor = (Rain + Cloud) / 2f;
+        if (Rain != 0f || Cloud != 0f)
+        {
+            PBS.aerosolDensity.value = Mathf.Lerp(0.01192826f, 0.8f, factor); //darkens the sky using particle density in the atmosphere
+        }
+        else
+        {
+            PBS.aerosolDensity.value = 0.01192826f;
+        }
     }
 
     private void UpdateFog(bool force = false)
     {
-        if (Rain != 0)
+        if (Rain >= 0.15f)
         {
-            MaxFog = 400;
-            MaxFogHeight = 100;
+            VolumetricFog.maximumHeight.value = Mathf.Lerp(50f, 100f, Fog);
         }
         else
         {
-            MaxFog = Fog == 0f ? 5000f : 1000f;
-            MaxFogHeight = 50f;
+            VolumetricFog.maximumHeight.value = Mathf.Lerp(25f, 50f, Fog);
         }
+        MaxFog = Fog == 0f ? 5000f : 1000f;
         VolumetricFog.meanFreePath.value = Mathf.Lerp(MaxFog, 25f, Fog);
-        VolumetricFog.maximumHeight.value = MaxFogHeight;
         PrevFog = Fog;
     }
 
@@ -428,16 +442,15 @@ public class EnvironmentEffectsManager : MonoBehaviour
         {
             if (Rain != 0f)
             {
-                MinCloud = 1f;
-                Cloud = 1f;
-                SimulatorManager.Instance.UIManager.UpdateEnvironmentalEffectsUI();
+                CloudRenderer.material.SetFloat("_RainAmount", Mathf.Lerp(0f, 1f, Rain)); //Rain amount tells the shader to lerp to a darker version of the clouds
             }
             else
             {
-                MinCloud = 0f;
+                CloudRenderer.material.SetFloat("_RainAmount", 0);
             }
-            CloudRenderer.material.SetFloat("_Density", Mathf.Lerp(MinCloud, 1f, Cloud));
-            CloudRenderer.material.SetFloat("_Size", Mathf.Lerp(MinCloud, 1f, Cloud));
+            SimulatorManager.Instance.UIManager.UpdateEnvironmentalEffectsUI();
+            CloudRenderer.material.SetFloat("_Density", Mathf.Lerp(0f, 1f, Cloud));
+            CloudRenderer.material.SetFloat("_Size", Mathf.Lerp(.8f, 1f, Cloud));
         }
         PrevCloud = Cloud;
     }

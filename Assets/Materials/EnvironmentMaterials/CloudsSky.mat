@@ -254,6 +254,7 @@ Material:
     - _PPDMinSamples: 5
     - _PPDPrimitiveLength: 1
     - _PPDPrimitiveWidth: 1
+    - _RainAmount: 0
     - _ReceivesSSR: 0
     - _RefractionModel: 0
     - _RenderQueueType: 5

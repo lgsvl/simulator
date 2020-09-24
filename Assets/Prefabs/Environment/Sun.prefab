@@ -142,7 +142,7 @@ MonoBehaviour:
   m_FlareSize: 0.1
   m_FlareTint: {r: 0.16825384, g: 0.1721289, b: 0.1792453, a: 1}
   m_FlareFalloff: 0.1
-  m_SurfaceTexture: {fileID: 0}
+  m_SurfaceTexture: {fileID: 2800000, guid: 0ddb8fed43194684f8ead194f87faadc, type: 3}
   m_SurfaceTint: {r: 0, g: 0, b: 0, a: 1}
   m_Distance: 1.5e+11
   m_UseRayTracedShadows: 0
@@ -404,6 +404,6 @@ MonoBehaviour:
   useOldInspector: 0
   useVolumetric: 1
   featuresFoldout: 1
-  showAdditionalSettings: 8
+  showAdditionalSettings: 9
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0

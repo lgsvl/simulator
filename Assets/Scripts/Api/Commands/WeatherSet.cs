@@ -26,6 +26,8 @@ namespace Simulator.Api.Commands
             env.Rain = args["rain"].AsFloat;
             env.Fog = args["fog"].AsFloat;
             env.Wet = args["wetness"].AsFloat;
+            env.Cloud = args["cloudiness"].AsFloat;
+            env.Damage = args["damage"].AsFloat;
 
             api.SendResult(this);
         }

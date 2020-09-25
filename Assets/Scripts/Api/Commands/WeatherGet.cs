@@ -27,6 +27,8 @@ namespace Simulator.Api.Commands
             result.Add("rain", new JSONNumber(env.Rain));
             result.Add("fog", new JSONNumber(env.Fog));
             result.Add("wetness", new JSONNumber(env.Wet));
+            result.Add("cloudiness", new JSONNumber(env.Cloud));
+            result.Add("damage", new JSONNumber(env.Damage));
 
             api.SendResult(this, result);
         }

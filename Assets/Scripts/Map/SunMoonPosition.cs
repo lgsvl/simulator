@@ -25,19 +25,9 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
                 return degrees * Math.PI / 180.0;
             }
 
-            public static float Sin(float x)
-            {
-                return (float)Math.Sin(ToRadians(x));
-            }
-
             public static double Sin(double x)
             {
                 return Math.Sin(ToRadians(x));
-            }
-
-            public static float Cos(float x)
-            {
-                return (float)Math.Cos(ToRadians(x));
             }
 
             public static double Cos(double x)
@@ -48,11 +38,6 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
             public static double Acos(double x)
             {
                 return Radians.ToDegrees(Math.Acos(x));
-            }
-
-            public static float Atan2(float y, float x)
-            {
-                return Radians.ToDegrees((float)Math.Atan2(y, x));
             }
 
             public static double Atan2(double y, double x)
@@ -85,29 +70,14 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
                 return radians * 180.0 / Math.PI;
             }
 
-            public static float Sin(float x)
-            {
-                return (float)Math.Sin(x);
-            }
-
             public static double Sin(double x)
             {
                 return Math.Sin(x);
             }
 
-            public static float Cos(float x)
-            {
-                return (float)Math.Cos(x);
-            }
-
             public static double Cos(double x)
             {
                 return Math.Cos(x);
-            }
-
-            public static float Atan2(float y, float x)
-            {
-                return (float)Math.Atan2(y, x);
             }
 
             public static double Atan2(double y, double x)
@@ -279,10 +249,8 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
 
         public static int GetJulianDayFromGregorianDate(int year, int month, int day)
         {
-            int a = (14 - month) / 12;
-            int y = year + 4800 - a;
-            int m = month + 12 * a - 3;
-            return day + (153 * m + 2) / 5 + 365 * y + y / 4 - y / 100 + y / 400 - 32045;
+            // https://en.wikipedia.org/wiki/Julian_day#Converting_Gregorian_calendar_date_to_Julian_Day_Number
+            return (1461 * (year + 4800 + (month - 14) / 12)) / 4 + (367 * (month - 2 - 12 * ((month - 14) / 12))) / 12 - (3 * ((year + 4900 + (month - 14) / 12) / 100)) / 4 + day - 32075;
         }
 
         public static double GetJulianDayFromGregorianDateTime(DateTime dt)

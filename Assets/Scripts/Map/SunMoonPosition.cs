@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -8,18 +8,16 @@
 using System;
 using UnityEngine;
 
-namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/ppcomp.html
+namespace Simulator.Map
 {
+    // Calculations are from
+    // http://www.stjarnhimlen.se/comp/ppcomp.html
+    // http://www.stjarnhimlen.se/comp/tutorial.html
 
     public static class SunMoonPosition
     {
-        public static class Degrees
+        static class Degrees
         {
-            public static float ToRadians(float degrees)
-            {
-                return degrees * (float)Math.PI / 180.0f;
-            }
-
             public static double ToRadians(double degrees)
             {
                 return degrees * Math.PI / 180.0;
@@ -56,14 +54,9 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
             }
         }
 
-        public static class Radians
+        static class Radians
         {
             public const float PI = (float)Math.PI;
-
-            public static float ToDegrees(float radians)
-            {
-                return radians * 180.0f / (float)Math.PI;
-            }
 
             public static double ToDegrees(double radians)
             {
@@ -97,16 +90,16 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
 
         }
 
-        //Sun Calculations
+        // Sun Calculations
 
-        public static void ConvertRectangularToSpherical(double x, double y, double z, out double rasc, out double decl, out double dist)
+        static void ConvertRectangularToSpherical(double x, double y, double z, out double rasc, out double decl, out double dist)
         {
             dist = Math.Sqrt(x * x + y * y + z * z);
             rasc = Degrees.Atan2(y, x);
             decl = Degrees.Atan2(z, Math.Sqrt(x * x + y * y));
         }
 
-        public static void ConvertEclipticToEquatorial(double jday, double lon, double lat, out double rasc, out double decl)
+        static void ConvertEclipticToEquatorial(double jday, double lon, double lat, out double rasc, out double decl)
         {
             double d = jday - 2451543.5;
             double oblecl = 23.4393 - 3.563E-7 * d;
@@ -124,7 +117,7 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
             decl = Degrees.Atan2(ze, r);
         }
 
-        public static void ConvertEquatorialToHorizontal(double jday, double longitude, double latitude, double rasc, double decl, out double azimuth, out double altitude)
+        static void ConvertEquatorialToHorizontal(double jday, double longitude, double latitude, double rasc, double decl, out double azimuth, out double altitude)
         {
             double d = jday - 2451543.5;
             double w = 282.9404 + 4.70935E-5 * d;
@@ -245,9 +238,9 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
             }
         }
 
-        //Time and date calculations
+        // Time and date calculations
 
-        public static int GetJulianDayFromGregorianDate(int year, int month, int day)
+        static int GetJulianDayFromGregorianDate(int year, int month, int day)
         {
             // https://en.wikipedia.org/wiki/Julian_day#Converting_Gregorian_calendar_date_to_Julian_Day_Number
             return (1461 * (year + 4800 + (month - 14) / 12)) / 4 + (367 * (month - 2 - 12 * ((month - 14) / 12))) / 12 - (3 * ((year + 4900 + (month - 14) / 12) / 100)) / 4 + day - 32075;
@@ -260,13 +253,13 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
             return jdn + (dt.Hour - 12) / 24.0 + dt.Minute / 1440.0 + dt.Second / 86400.0;
         }
 
-        public static double GetJulianDayFromGregorianDateTime(int year, int month, int day, double secondsFromMidnight)
+        static double GetJulianDayFromGregorianDateTime(int year, int month, int day, double secondsFromMidnight)
         {
             int jdn = GetJulianDayFromGregorianDate(year, month, day);
             return jdn + secondsFromMidnight / 86400.0 - 0.5;
         }
 
-        public static void GetGregorianDateFromJulianDay(int julianDay, out int year, out int month, out int day)
+        static void GetGregorianDateFromJulianDay(int julianDay, out int year, out int month, out int day)
         {
             int J = julianDay;
             int j = J + 32044;
@@ -287,7 +280,7 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
             day = d + 1;
         }
 
-        public static void GetGregorianDateTimeFromJulianDay(double julianDay, out int year, out int month, out int day, out int hour, out int minute, out double second)
+        static void GetGregorianDateTimeFromJulianDay(double julianDay, out int year, out int month, out int day, out int hour, out int minute, out double second)
         {
             int ijd = (int)Math.Floor(julianDay + 0.5);
             GetGregorianDateFromJulianDay(ijd, out year, out month, out day);
@@ -300,7 +293,7 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
             second = s;
         }
 
-        public static void GetGregorianDateFromJulianDay(double julianDay, out int year, out int month, out int day)
+        static void GetGregorianDateFromJulianDay(double julianDay, out int year, out int month, out int day)
         {
             int hour;
             int minute;
@@ -308,11 +301,11 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
             GetGregorianDateTimeFromJulianDay(julianDay, out year, out month, out day, out hour, out minute, out second);
         }
         
-//Moon Calculations
+        // Moon Calculations
 
-        public const double J2000 = 2451545.0;
+        const double J2000 = 2451545.0;
 
-        public static void GetEclipticMoonPosition(double jday, out double lon, out double lat, out double dist)
+        static void GetEclipticMoonPosition(double jday, out double lon, out double lat, out double dist)
         {
             double d = jday - 2451543.5;
 
@@ -331,12 +324,12 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
             double D = Degrees.Normalize(Lm - Ls); // Moon's mean elongation
             double F = Degrees.Normalize(Lm - N); // Moon's argument of latitude
 
-            double E0 = Mm + 180.0 / Math.PI * e * Degrees.Sin(Mm) * (1.0 + e * Degrees.Cos(Mm));
+            double E0 = Mm + e * Degrees.Sin(Mm) * (1.0 + e * Degrees.Cos(Mm));
             double diff = 1.0;
 
             while (diff > 0.005)
             {
-                double E1 = E0 - (E0 - 180.0 / Math.PI * e * Degrees.Sin(E0) - Mm) / (1.0 + e * Degrees.Cos(E0));
+                double E1 = E0 - (E0 - e * Degrees.Sin(E0) - Mm) / (1.0 + e * Degrees.Cos(E0));
                 diff = Math.Abs(E0 - E1);
                 E0 = E1;
             }
@@ -358,43 +351,45 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
             double latitude = Degrees.Atan2(ze, Math.Sqrt(xe * xe + ye * ye));
 
             lon = longitude
-            - 1.274 * Degrees.Sin(Mm - 2 * D)      // Evection
-            + 0.658 * Degrees.Sin(2 * D)           // Variation
-            - 0.186 * Degrees.Sin(Ms)              // Yearly equation
-            - 0.059 * Degrees.Sin(2 * Mm - 2 * D)
-            - 0.057 * Degrees.Sin(Mm - 2 * D + Ms)
-            + 0.053 * Degrees.Sin(Mm + 2 * D)
-            + 0.046 * Degrees.Sin(2 * D - Ms)
-            + 0.041 * Degrees.Sin(Mm - Ms)
-            - 0.035 * Degrees.Sin(D)               // Parallactic equation
-            - 0.031 * Degrees.Sin(Mm + Ms)
-            - 0.015 * Degrees.Sin(2 * F - 2 * D)
-            + 0.011 * Degrees.Sin(Mm - 4 * D);
+                - 1.274 * Degrees.Sin(Mm - 2 * D)      // Evection
+                + 0.658 * Degrees.Sin(2 * D)           // Variation
+                - 0.186 * Degrees.Sin(Ms)              // Yearly equation
+                - 0.059 * Degrees.Sin(2 * Mm - 2 * D)
+                - 0.057 * Degrees.Sin(Mm - 2 * D + Ms)
+                + 0.053 * Degrees.Sin(Mm + 2 * D)
+                + 0.046 * Degrees.Sin(2 * D - Ms)
+                + 0.041 * Degrees.Sin(Mm - Ms)
+                - 0.035 * Degrees.Sin(D)               // Parallactic equation
+                - 0.031 * Degrees.Sin(Mm + Ms)
+                - 0.015 * Degrees.Sin(2 * F - 2 * D)
+                + 0.011 * Degrees.Sin(Mm - 4 * D);
 
             lat = latitude
-            - 0.173 * Degrees.Sin(F - 2 * D)
-            - 0.055 * Degrees.Sin(Mm - F - 2 * D)
-            - 0.046 * Degrees.Sin(Mm + F - 2 * D)
-            + 0.033 * Degrees.Sin(F + 2 * D)
-            + 0.017 * Degrees.Sin(2 * Mm + F);
+                - 0.173 * Degrees.Sin(F - 2 * D)
+                - 0.055 * Degrees.Sin(Mm - F - 2 * D)
+                - 0.046 * Degrees.Sin(Mm + F - 2 * D)
+                + 0.033 * Degrees.Sin(F + 2 * D)
+                + 0.017 * Degrees.Sin(2 * Mm + F);
 
             dist = r
-            - 0.58 * Degrees.Cos(Mm - 2 * D)
-            - 0.46 * Degrees.Cos(2 * D);
+                - 0.58 * Degrees.Cos(Mm - 2 * D)
+                - 0.46 * Degrees.Cos(2 * D);
 
             lon = Degrees.Normalize(lon);
             lat = Degrees.Normalize(lat);
         }
 
-        public static void GetHorizontalMoonPosition(double jday, double longitude, double latitude, out double azimuth, out double altitude, out double distance)
+        public static Quaternion GetMoonPosition(double jday, double longitude, double latitude)
         {
             double lonecl, latecl;
+            double distance; // TODO: you can use this to change moon size - as it moves closer & further from Earth
             GetEclipticMoonPosition(jday, out lonecl, out latecl, out distance);
 
             double rasc, decl;
             ConvertEclipticToEquatorial(jday, lonecl, latecl, out rasc, out decl);
+            ConvertEquatorialToHorizontal(jday, longitude, latitude, rasc, decl, out double azimuth, out double altitude);
 
-            ConvertEquatorialToHorizontal(jday, longitude, latitude, rasc, decl, out azimuth, out altitude);
+            return Quaternion.Euler(0f, (float)azimuth, 0f) * Quaternion.Euler((float)altitude, 0f, 0f);
         }
     }
 }

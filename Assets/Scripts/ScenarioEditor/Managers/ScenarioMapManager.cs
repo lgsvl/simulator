@@ -74,12 +74,17 @@ namespace Simulator.ScenarioEditor.Managers
         /// <summary>
         /// Currently loaded scene name after loading the map
         /// </summary>
+        /// 
         private string loadedSceneName;
+        /// <summary>
+        /// Currently loaded map name
+        /// </summary>
+        public MapMetaData CurrentMapMetaData { get; private set; }
 
         /// <summary>
         /// Currently loaded map name
         /// </summary>
-        public string CurrentMapName { get; private set; }
+        public string CurrentMapName => CurrentMapMetaData?.name;
 
         /// <summary>
         /// Bounds of currently loaded map
@@ -99,7 +104,7 @@ namespace Simulator.ScenarioEditor.Managers
         /// <summary>
         /// Event invoked when the currently loaded map changes
         /// </summary>
-        public event Action<string> MapChanged;
+        public event Action<MapMetaData> MapChanged;
 
         /// <inheritdoc/>
         /// <summary>
@@ -125,6 +130,7 @@ namespace Simulator.ScenarioEditor.Managers
             }
 
             IsInitialized = true;
+            Debug.Log($"{GetType().Name} scenario editor extension has been initialized.");
         }
 
         /// <inheritdoc/>
@@ -134,6 +140,7 @@ namespace Simulator.ScenarioEditor.Managers
                 return;
             UnloadMapAsync();
             IsInitialized = false;
+            Debug.Log($"{GetType().Name} scenario editor extension has been deinitialized.");
         }
 
         /// <summary>
@@ -207,7 +214,7 @@ namespace Simulator.ScenarioEditor.Managers
                     mapToLoad = map;
                 }
             }
-            await LoadMapAssets(mapToLoad.assetModel, mapToLoad.name);
+            await LoadMapAssets(mapToLoad.assetModel, mapToLoad);
             ScenarioManager.Instance.HideLoadingPanel();
         }
 
@@ -227,8 +234,8 @@ namespace Simulator.ScenarioEditor.Managers
         /// Map assets loading task
         /// </summary>
         /// <param name="map">MapModel to be loaded</param>
-        /// <param name="name">Map name to be loaded</param>
-        private async Task LoadMapAssets(AssetModel map, string name)
+        /// <param name="mapMetaData">Map meta data to be loaded</param>
+        private async Task LoadMapAssets(AssetModel map, MapMetaData mapMetaData)
         {
             AssetBundle textureBundle = null;
             AssetBundle mapBundle = null;
@@ -290,16 +297,16 @@ namespace Simulator.ScenarioEditor.Managers
                 var scene = SceneManager.GetSceneByName(sceneName);
                 SceneManager.SetActiveScene(scene);
                 SIM.LogAPI(SIM.API.SimulationLoad, sceneName);
+                CurrentMapMetaData = mapMetaData;
 
                 if (Loader.Instance.SimConfig != null)
-                    Loader.Instance.SimConfig.MapName = name;
+                    Loader.Instance.SimConfig.MapName = CurrentMapMetaData.name;
 
-                CurrentMapName = name;
                 CurrentMapBounds = CalculateMapBounds(scene);
                 FixShaders(scene);
                 LaneSnapping.Initialize();
-                PlayerPrefs.SetString(MapPersistenceKey, name);
-                MapChanged?.Invoke(name);
+                PlayerPrefs.SetString(MapPersistenceKey, CurrentMapMetaData.name);
+                MapChanged?.Invoke(CurrentMapMetaData);
             }
             finally
             {

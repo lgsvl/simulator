@@ -222,11 +222,18 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// <param name="effector">Effector that was removed from the selected trigger</param>
         private void TriggerOnEffectorRemoved(TriggerEffector effector)
         {
+            if (this == null)
+                return;
             var panel = effectorPanels[effector.TypeName];
-            panel.EffectorRemovedFromTrigger(selectedTrigger, effector);
-            panel.FinishEditing();
-            panel.gameObject?.SetActive(false);
-            visiblePanels.Remove(panel);
+            if (panel != null)
+            {
+                panel.EffectorRemovedFromTrigger(selectedTrigger, effector);
+                panel.FinishEditing();
+                if (panel.gameObject != null)
+                    panel.gameObject.SetActive(false);
+                visiblePanels.Remove(panel);
+            }
+
             UnityUtilities.LayoutRebuild(transform as RectTransform);
             availableEffectorTypes.Add(effector);
             triggerSelectDropdown.options.Add(new Dropdown.OptionData(effector.TypeName));

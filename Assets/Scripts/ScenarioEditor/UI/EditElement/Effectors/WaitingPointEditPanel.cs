@@ -75,6 +75,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         /// <inheritdoc/>
         public override void FinishEditing()
         {
+            if (this == null || zoneVisualization == null)
+                return;
             zoneVisualization.SetActive(false);
             zoneVisualization.transform.SetParent(transform);
         }

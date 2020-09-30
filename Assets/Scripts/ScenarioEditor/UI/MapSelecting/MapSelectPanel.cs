@@ -94,13 +94,13 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
         /// <summary>
         /// Method called when new map is loaded
         /// </summary>
-        /// <param name="mapName">The loaded map name</param>
+        /// <param name="mapMetaData">The loaded map meta data</param>
         /// <exception cref="ArgumentException">There is no button corresponding to the loaded map</exception>
-        private void OnMapLoaded(string mapName)
+        private void OnMapLoaded(ScenarioMapManager.MapMetaData mapMetaData)
         {
             if (currentMapButton!=null)
                 currentMapButton.UnmarkCurrent();
-            var mapCorrespondingButton = buttons.Find((button) => button.MapName == mapName);
+            var mapCorrespondingButton = buttons.Find((button) => button.MapName == mapMetaData.name);
             if (mapCorrespondingButton == null)
                 throw new ArgumentException("Could not find button corresponding to loaded map.");
             mapCorrespondingButton.MarkAsCurrent();

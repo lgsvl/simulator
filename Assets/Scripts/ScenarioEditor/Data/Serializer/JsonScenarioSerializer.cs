@@ -11,7 +11,6 @@ namespace Simulator.ScenarioEditor.Data.Serializer
     using Elements;
     using Managers;
     using SimpleJSON;
-    using UI.MapSelecting;
     using UnityEngine;
 
     /// <summary>
@@ -31,12 +30,14 @@ namespace Simulator.ScenarioEditor.Data.Serializer
             var vseMetadata = new JSONObject();
             scenarioData.Add("vse_metadata", vseMetadata);
             SerializeMetadata(vseMetadata);
-            AddMapNode(scenarioData, scenarioManager.GetExtension<ScenarioMapManager>().CurrentMapName);
-            var agents = scenarioManager.GetComponentsInChildren<ScenarioAgent>();
+            AddMapNode(scenarioData, scenarioManager.GetExtension<ScenarioMapManager>().CurrentMapMetaData);
+            //Add agents
+            var agents = scenarioManager.GetExtension<ScenarioAgentsManager>().Agents;
+            var agentsNode = scenarioData.GetValueOrDefault("agents", new JSONArray());
+            if (!scenarioData.HasKey("agents"))
+                scenarioData.Add("agents", agentsNode);
             foreach (var agent in agents)
-            {
-                AddAgentNode(scenarioData, agent);
-            }
+                AddAgentNode(agentsNode, agent);
 
             return new JsonScenario(scenarioData);
         }
@@ -58,12 +59,14 @@ namespace Simulator.ScenarioEditor.Data.Serializer
         /// Adds map node to the json
         /// </summary>
         /// <param name="data">Json object where data will be added</param>
-        /// <param name="mapName">Scenario map to serialize</param>
-        private static void AddMapNode(JSONObject data, string mapName)
+        /// <param name="scenarioMap">Scenario map to serialize</param>
+        private static void AddMapNode(JSONObject data, ScenarioMapManager.MapMetaData scenarioMap)
         {
-            var map = new JSONObject();
-            data.Add("map", map);
-            map.Add("name", new JSONString(mapName));
+            var mapNode = new JSONObject();
+            data.Add("map", mapNode);
+            mapNode.Add("id", new JSONString(scenarioMap.guid));
+            mapNode.Add("name", new JSONString(scenarioMap.name));
+            mapNode.Add("parameterType", new JSONString("map"));
         }
 
         /// <summary>
@@ -71,18 +74,18 @@ namespace Simulator.ScenarioEditor.Data.Serializer
         /// </summary>
         /// <param name="data">Json object where data will be added</param>
         /// <param name="scenarioAgent">Scenario agent to serialize</param>
-        private static void AddAgentNode(JSONObject data, ScenarioAgent scenarioAgent)
+        private static void AddAgentNode(JSONNode data, ScenarioAgent scenarioAgent)
         {
-            var agents = data.GetValueOrDefault("agents", new JSONArray());
-            if (!data.HasKey("agents"))
-                data.Add("agents", agents);
-            var agent = new JSONObject();
-            agents.Add(agent);
-            agent.Add("uid", new JSONString(scenarioAgent.Uid));
-            agent.Add("variant", new JSONString(scenarioAgent.Variant.name));
-            agent.Add("type", new JSONNumber(scenarioAgent.Source.AgentTypeId));
+            var agentNode = new JSONObject();
+            data.Add(agentNode);
+            if (scenarioAgent.Variant is CloudAgentVariant cloudVariant)
+                agentNode.Add("id", new JSONString(cloudVariant.guid));
+            agentNode.Add("uid", new JSONString(scenarioAgent.Uid));
+            agentNode.Add("variant", new JSONString(scenarioAgent.Variant.name));
+            agentNode.Add("type", new JSONNumber(scenarioAgent.Source.AgentTypeId));
+            agentNode.Add("parameterType", new JSONString(""));
             var transform = new JSONObject();
-            agent.Add("transform", transform);
+            agentNode.Add("transform", transform);
             var position = new JSONObject().WriteVector3(scenarioAgent.TransformToMove.position);
             transform.Add("position", position);
             var rotation = new JSONObject().WriteVector3(scenarioAgent.TransformToRotate.rotation.eulerAngles);
@@ -91,10 +94,10 @@ namespace Simulator.ScenarioEditor.Data.Serializer
             {
                 var behaviour = new JSONObject();
                 behaviour.Add("name", new JSONString(scenarioAgent.Behaviour));
-                agent.Add("behaviour", behaviour);
+                agentNode.Add("behaviour", behaviour);
             }
             if (scenarioAgent.Source.AgentSupportWaypoints(scenarioAgent))
-                AddWaypointsNodes(agent, scenarioAgent);
+                AddWaypointsNodes(agentNode, scenarioAgent);
         }
 
         /// <summary>

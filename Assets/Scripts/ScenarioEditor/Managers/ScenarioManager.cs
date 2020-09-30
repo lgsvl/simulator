@@ -424,8 +424,8 @@ namespace Simulator.ScenarioEditor.Managers
         /// <summary>
         /// Method called when new map has been loaded, resets the camera position and hides loading panel
         /// </summary>
-        /// <param name="mapName">New loaded map name</param>
-        public void OnMapLoaded(string mapName)
+        /// <param name="mapMetaData">The loaded map meta data</param>
+        public void OnMapLoaded(ScenarioMapManager.MapMetaData mapMetaData)
         {
             var cameraTransform = ScenarioCamera.transform;
             cameraTransform.position = cameraInitialPosition;

@@ -22,7 +22,7 @@ namespace Simulator.ScenarioEditor.Agents
     public class CloudAgentVariant : AgentVariant
     {
         /// <summary>
-        /// Guid of the vehicle
+        /// Guid of the agent variant
         /// </summary>
         public readonly string guid;
             

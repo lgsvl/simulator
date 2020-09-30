@@ -21,6 +21,10 @@ using System.Threading.Tasks;
 using System.Linq;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 public class ConnectionManager : MonoBehaviour
 {
     public enum ConnectionStatus
@@ -56,12 +60,26 @@ public class ConnectionManager : MonoBehaviour
         service = new ClientSettingsService();
         ClientSettings settings = service.GetOrMake();
         API = new CloudAPI(new Uri(Config.CloudUrl), Config.SimID);
+        #if UNITY_EDITOR
+        EditorApplication.playModeStateChanged += HandlePlayMode;
+        #endif
 
         if (settings.onlineStatus)
         {
             ConnectionStatusEvent();
         }
     }
+
+#if UNITY_EDITOR
+    private static void HandlePlayMode(PlayModeStateChange state)
+    {
+        if (state == PlayModeStateChange.ExitingPlayMode)
+        {
+            Debug.Log("Disconnecting before leaving playmode");
+            API.Disconnect();
+        }
+    }
+#endif
 
     private void OnDestroy()
     {

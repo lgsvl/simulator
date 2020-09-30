@@ -167,7 +167,15 @@ namespace Simulator.Bridge.Ros
 
         void OnClose(object sender, CloseEventArgs args)
         {
-            Status = args.WasClean ?  Status.Disconnected : Status.UnexpectedlyDisconnected;
+            if (!args.WasClean)
+            {
+                Status = Status.UnexpectedlyDisconnected;
+                UnityEngine.Debug.LogError("RosBridge socket was unexpectedly disconnected. Connection was: " + Socket.Url);
+            }
+            else
+            {
+                Status = Status.Disconnected;
+            }
             Socket = null;
         }
 

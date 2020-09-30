@@ -117,6 +117,7 @@ namespace Simulator.Sensors
         public bool StopLineViolation = false;
         [SensorParameter]
         public float StopLineThreshold = 1f;
+        private float SquareStopLineThreshold;
         private List<MapLine> StopLines = new List<MapLine>();
         private Transform StopLineTransform = null;
 
@@ -135,6 +136,8 @@ namespace Simulator.Sensors
                     StopLines.Add(line);
                 }
             }
+
+            SquareStopLineThreshold = StopLineThreshold * StopLineThreshold;
         }
 
         private void Start()
@@ -147,7 +150,7 @@ namespace Simulator.Sensors
         private void Update()
         {
             CalculateFPS();
-            CreateStopLineTransform();
+            CreateStopTransform();
         }
 
         public override void OnBridgeSetup(BridgeInstance bridge)
@@ -318,6 +321,7 @@ namespace Simulator.Sensors
                 SpeedViolationLane = Lane.CurrentMapLane;
                 SpeedViolationCount += Time.fixedDeltaTime;
                 UpdateMinMax(Speed, ref SpeedViolationMin, ref SpeedViolationMax);
+                Debug.Log("Speed limit: " + Lane?.CurrentMapLane?.speedLimit + ", current speed: " + Speed);
             }
             else
             {
@@ -333,12 +337,24 @@ namespace Simulator.Sensors
             // stop line violation
             if (StopLineTransform != null)
             {
-                MapLine closestLine = StopLines.OrderByDescending(i => Vector3.Distance(i.transform.position, StopLineTransform.position)).Last();
-                if (Vector3.Distance(closestLine.transform.position, StopLineTransform.position) < StopLineThreshold)
+                MapLine closesStoptLine = StopLines.OrderByDescending(i => SquareDistanceToStopLine(i, StopLineTransform.position)).Last();
+
+                bool shouldStop = false;
+                if (closesStoptLine.isStopSign) // For stop sign, we should always stop
+                {
+                    shouldStop = true;
+                }
+                else if (closesStoptLine.signals[0].CurrentState == "red") // For traffic light, we should stop if it is red
+                {
+                    shouldStop = true;
+                }
+
+                if (shouldStop && SquareDistanceToStopLine(closesStoptLine, StopLineTransform.position) < SquareStopLineThreshold)
                 {
                     StopLineViolation = false;
                     CheckingStopLine = true;
-                    if (RB.velocity.magnitude < 0.01f && Mathf.Abs(Vector3.Dot(Vector3.Normalize(closestLine.transform.position - StopLineTransform.position), closestLine.transform.forward)) > 0.7f)
+                    // Check if speed is low enough and if the stop line is almost perpendicular to the ego forward direction.
+                    if (RB.velocity.magnitude < 0.01f && Mathf.Abs(Vector3.Dot(Vector3.Normalize(closesStoptLine.transform.position - StopLineTransform.position), closesStoptLine.transform.forward)) > 0.7f)
                     {
                         Stopped = true;
                     }
@@ -348,12 +364,20 @@ namespace Simulator.Sensors
                     if (!Stopped)
                     {
                         StopLineViolation = true;
-                        StopLineViolationEvent(AgentController.GTID);
+                        StopLineViolationEvent(AgentController.GTID, closesStoptLine.isStopSign);
                     }
                     CheckingStopLine = false;
                     Stopped = false;
                 }
             }
+        }
+
+        private float SquareDistanceToStopLine(MapLine stopLine, Vector3 point)
+        {
+            // Assuming stop line is always straigh.
+            // So we can use its first and last point to calculate the distance.
+            int n = stopLine.mapWorldPositions.Count;
+            return Utility.SqrDistanceToSegment(stopLine.mapWorldPositions[0], stopLine.mapWorldPositions[n - 1], StopLineTransform.position);
         }
 
         private void CalculateFPS()
@@ -377,7 +401,7 @@ namespace Simulator.Sensors
             }
         }
 
-        private void CreateStopLineTransform()
+        private void CreateStopTransform()
         {
             if (StopLineTransform != null)
                 return;
@@ -468,12 +492,13 @@ namespace Simulator.Sensors
             SimulatorManager.Instance.AnalysisManager.AddEvent(data);
         }
 
-        private void StopLineViolationEvent(uint id)
+        private void StopLineViolationEvent(uint id, bool isStopSign)
         {
             Hashtable data = new Hashtable
             {
                 { "Id", id },
                 { "Type", "StopLineViolation" },
+                { "StopType",  isStopSign ? "StopSign" : "RedTrafficLight"},
                 { "Time", SimulatorManager.Instance.GetSessionElapsedTimeSpan().ToString() },
                 { "Location", transform.position },
                 { "Status", AnalysisManager.AnalysisStatusType.Failed },

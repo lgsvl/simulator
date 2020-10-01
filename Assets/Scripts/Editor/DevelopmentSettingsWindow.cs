@@ -128,6 +128,7 @@ namespace Simulator.Editor
             }
         }
 
+        bool updating = false;
         async void Refresh()
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode)
@@ -137,6 +138,7 @@ namespace Simulator.Editor
 
             try
             {
+                updating = true;
                 errorMessage = "";
                 Simulator.Web.Config.ParseConfigFile();
 
@@ -183,6 +185,7 @@ namespace Simulator.Editor
                     // vehicle was previously selected but no longer available, need to keep something selected
                     if (currentVehicleIndex < 0)
                     {
+                        Debug.Log("previously selected vehicle missing.");
                         currentVehicleIndex = 0;
                     }
                     await updateCloudVehicleDetails();
@@ -197,6 +200,11 @@ namespace Simulator.Editor
                     errorMessage += "\n" + ex.InnerException.Message;
                 }
                 API.Disconnect();
+            }
+            finally
+            {
+                updating = false;
+                Repaint();
             }
 
             string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/External/Vehicles" });
@@ -216,6 +224,12 @@ namespace Simulator.Editor
             if (EditorApplication.isPlayingOrWillChangePlaymode)
             {
                 EditorGUILayout.HelpBox("Disabled during play mode", MessageType.Info);
+                return;
+            }
+
+            if (updating)
+            {
+                EditorGUILayout.HelpBox("Updating...", MessageType.Info);
                 return;
             }
 
@@ -354,19 +368,27 @@ namespace Simulator.Editor
                 // I do not want to query each vehicle individually and I can't block the UI, so
                 // we do it after a change was made to the settings in this fire and forget async function
                 var data = await API.Get<VehicleDetailData>(developerSimulation.Vehicles[0].Id);
+                // copy previous bridge data as it is not saved with the vehicle
+                if (developerSimulation.Vehicles[0].Bridge != null)
+                {
+                    data.Bridge.ConnectionString = developerSimulation.Vehicles[0].Bridge.ConnectionString;
+                }
                 developerSimulation.Vehicles = new VehicleData[] { data.ToVehicleData() };
+
                 // splice in fetched data (containing extended data like bridge) for matching id
                 CloudVehicles = CloudVehicles.Select(v => v.Id == developerSimulation.Vehicles[0].Id ? data : v).ToList();
             }
         }
-        
+
         async void updateAsset()
         {
+            updating = true;
             await updateCloudVehicleDetails();
             settings.developerSimulationJson = JsonConvert.SerializeObject(developerSimulation, JsonSettings.camelCase);
             EditorUtility.SetDirty(settings);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
+            updating = false;
             Debug.Log("Saved DeveloperSettings.");
         }
     }

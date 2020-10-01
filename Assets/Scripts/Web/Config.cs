@@ -79,16 +79,14 @@ namespace Simulator.Web
                 ParseCommandLine();
             }
 
-            RunOnceInstance = new RunOnce($"148fe96a-5e29-43a0-9b0c-e158bdbe6024-{PersistentDataPath}"); // using GUID to confirm ID is unique
+#if !UNITY_EDITOR
+            RunOnceInstance = new RunOnce(Path.Combine(PersistentDataPath, "pid.txt"));
             if (RunOnceInstance.AlreadyRunning)
             {
                 Debug.LogError($"!!! Another instance of simulator is already using this data folder: {PersistentDataPath}");
-#if UNITY_EDITOR
-                UnityEditor.EditorApplication.isPlaying = false;
-#else
                 Application.Quit(1); // return non-zero exit code
-#endif
             }
+#endif
 
             AssetBundle.UnloadAllAssetBundles(false);
             SensorPrefabs = RuntimeSettings.Instance.SensorPrefabs.ToList();

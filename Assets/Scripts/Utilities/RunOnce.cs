@@ -6,42 +6,49 @@
  */
 
 using System;
-using System.Threading;
+using System.Diagnostics;
+using System.IO;
 
 namespace Simulator.Utilities
 {
-    public class RunOnce : IDisposable
+    public class RunOnce
     {
-        public bool AlreadyRunning { get { return _alreadyRunning; } private set { _alreadyRunning = value; } }
-        private bool _alreadyRunning;
-        private string Name;
-        private Mutex Mutex;
+        public bool AlreadyRunning { get; private set; }
 
-        public RunOnce(string name)
+        // Current implementation does not handel all possible exceptions of files.
+        // It assumes there is no problem for accesse permission, disk space, etc.
+        // If this causes any problems, we can refine this implementation by adding
+        // more exception handlings.
+        public RunOnce(string pidFileName)
         {
-            Name = name;
-            AlreadyRunning = false;
-            Mutex = new Mutex(false, Name, out bool mutex);
-            AlreadyRunning = !mutex;
-        }
-
-        ~RunOnce()
-        {
-            DisposeImpl(false);
-        }
-
-        private void DisposeImpl(bool is_disposing)
-        {
-            GC.SuppressFinalize(this);
-            if (is_disposing)
+            if (File.Exists(pidFileName))
             {
-                Mutex.Close();
+                var pidStrings = File.ReadAllLines(pidFileName);
+                if (pidStrings.Length != 1)
+                {
+                    UnityEngine.Debug.LogError("PID file contains more than one line!");
+                }
+                int id = int.Parse(pidStrings[0]);
+                try
+                {
+                    Process.GetProcessById(id);
+                    AlreadyRunning = true;
+                }
+                catch (Exception e)
+                {
+                    // Process is not active, delete PID file.
+                    File.Delete(pidFileName);
+                }
             }
-        }
-
-        public void Dispose()
-        {
-            DisposeImpl(true);
+            if (!AlreadyRunning)
+            {
+                Process currentProcess = Process.GetCurrentProcess();
+                int pid = currentProcess.Id;
+                string[] pidStrings = new string[1];
+                pidStrings[0] = pid.ToString();
+                Directory.CreateDirectory(Path.GetDirectoryName(pidFileName));
+                File.WriteAllLines(pidFileName, pidStrings);
+            }
         }
     }
 }

@@ -346,7 +346,7 @@ namespace Simulator.Bridge.Ros
             return r;
         }
 
-        public static Lgsvl.DetectedRadarObjectArray ROS2ConvertFrom(DetectedRadarObjectData data)
+        public static Lgsvl.DetectedRadarObjectArray RosConvertFrom(DetectedRadarObjectData data)
         {
             var r = new Lgsvl.DetectedRadarObjectArray()
             {
@@ -378,6 +378,39 @@ namespace Simulator.Bridge.Ros
             }
 
             return r;
+        }
+
+        public static Lgsvl.CanBusDataRos RosConvertFrom(CanBusData data)
+        {
+            return new Lgsvl.CanBusDataRos()
+            {
+                header = new Ros.Header()
+                {
+                    stamp = ConvertTime(data.Time),
+                    frame_id = data.Frame,
+                },
+                speed_mps = data.Speed,
+                throttle_pct = data.Throttle,
+                brake_pct = data.Braking,
+                steer_pct = data.Steering,
+                parking_brake_active = false,   // parking brake is not supported in Simulator side
+                high_beams_active = data.HighBeamSignal,
+                low_beams_active = data.LowBeamSignal,
+                hazard_lights_active = data.HazardLights,
+                fog_lights_active = data.FogLights,
+                left_turn_signal_active = data.LeftTurnSignal,
+                right_turn_signal_active = data.RightTurnSignal,
+                wipers_active = data.Wipers,
+                reverse_gear_active = data.InReverse,
+                selected_gear = (data.InReverse ? Lgsvl.Gear.GEAR_REVERSE : Lgsvl.Gear.GEAR_DRIVE),
+                engine_active = data.EngineOn,
+                engine_rpm = data.EngineRPM,
+                gps_latitude = data.Latitude,
+                gps_longitude = data.Longitude,
+                gps_altitude = data.Altitude,
+                orientation = Convert(data.Orientation),
+                linear_velocities = ConvertToVector(data.Velocity),
+            };
         }
 
         public static Apollo.ChassisMsg ConvertFrom(CanBusData data)

@@ -116,7 +116,8 @@ namespace Simulator.Bridge.Ros
                 }
             );
 
-            RegPublisher<DetectedRadarObjectData, Lgsvl.DetectedRadarObjectArray>(plugin, Conversions.ROS2ConvertFrom);
+            RegPublisher<CanBusData, Lgsvl.CanBusDataRos>(plugin, Conversions.RosConvertFrom);
+            RegPublisher<DetectedRadarObjectData, Lgsvl.DetectedRadarObjectArray>(plugin, Conversions.RosConvertFrom);
             RegPublisher<GpsOdometryData, Ros.Odometry>(plugin, Conversions.ConvertFrom);
             RegPublisher<ImuData, Ros.Imu>(plugin, Conversions.ConvertFrom);
             RegPublisher<Detected3DObjectData, Lgsvl.Detection3DArray>(plugin, Conversions.ConvertFrom);

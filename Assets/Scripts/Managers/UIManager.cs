@@ -557,7 +557,6 @@ public class UIManager : MonoBehaviour
         }
 
         AgentControllerOnSensorsChanged(agentController);
-        SetAgentBridgeInfo(agent);
         AgentDropdown.value = SimulatorManager.Instance.AgentManager.GetCurrentActiveAgentIndex();
     }
 
@@ -581,6 +580,7 @@ public class UIManager : MonoBehaviour
             Array.ForEach(agentController.GetComponentsInChildren<SensorBase>(), sensor => { AddVisualizer(sensor); });
             VisualizerGridLayoutGroup.enabled = false;
         }
+        SetAgentBridgeInfo(agentController.gameObject);
     }
 
     private void SetCurrentPanel()

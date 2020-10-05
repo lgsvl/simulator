@@ -53,13 +53,16 @@ public class EnvironmentEffectsManager : MonoBehaviour
     [Space(5, order = 0)]
     [Header("Prefabs", order = 1)]
     public GameObject SunGO;
+    public GameObject MoonGO;
     public ParticleSystem RainPfx;
     public GameObject CloudPrefab;
     public GameObject TireSprayPrefab;
 
-    // Sun
+    // Sun moon
     private Light Sun;
     private HDAdditionalLightData SunHD;
+    private Light Moon;
+    private HDAdditionalLightData MoonHD;
     private double JDay;
     private float CycleDurationSeconds = 360f;
     private float SunRiseBegin = 6.0f;
@@ -132,6 +135,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
         UpdateWet();
         UpdateFog();
         UpdateSunPosition();
+        UpdateMoonPosition();
         UpdateClouds();
         UpdateSunEffect();
         UpdatePhysicalSky();
@@ -165,6 +169,9 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
         Sun = Instantiate(SunGO, new Vector3(0f, 50f, 0f), Quaternion.Euler(90f, 0f, 0f)).GetComponent<Light>();
         SunHD = Sun.gameObject.GetComponent<HDAdditionalLightData>();
+
+        Moon = Instantiate(MoonGO, new Vector3(0f, 50f, 0f), Quaternion.Euler(90f, 0f, 0f)).GetComponent<Light>();
+        MoonHD = Moon.gameObject.GetComponent<HDAdditionalLightData>();
 
         var dt = DateTime.Now;
         ResetTime(new DateTime(dt.Year, dt.Month, dt.Day, 12, 0, 0));
@@ -299,6 +306,11 @@ public class EnvironmentEffectsManager : MonoBehaviour
         Sun.transform.rotation = SunMoonPosition.GetSunPosition(JDay + CurrentTimeOfDay / 24f, GPSLocation.Longitude, GPSLocation.Latitude);
     }
 
+    private void UpdateMoonPosition()
+    {
+        Moon.transform.rotation = SunMoonPosition.GetMoonPosition(JDay + CurrentTimeOfDay / 24f, GPSLocation.Longitude, GPSLocation.Latitude);
+    }
+
     private void TimeOfDayCycle()
     {
         switch (CurrentTimeOfDayCycle)
@@ -352,6 +364,21 @@ public class EnvironmentEffectsManager : MonoBehaviour
         else
         {
             SetTimeOfDayState(TimeOfDayStateTypes.Night);
+        }
+
+        if (CurrentTimeOfDayState == TimeOfDayStateTypes.Day)
+        {
+            if (Moon.enabled)
+            {
+                Moon.enabled = false;
+            }
+        }
+        else
+        {
+            if (!Moon.enabled)
+            {
+                Moon.enabled = true;
+            }
         }
     }
 

@@ -205,6 +205,8 @@ public class UIManager : MonoBehaviour
                 NPCToggle.isOn = config.UseTraffic;
                 PedestrianToggle.isOn = config.UsePedestrians;
             }
+
+            StopSimButton.gameObject.SetActive(config.ClusterName != "DeveloperSettingsDummy"); // no stop sim in dev settings
         }
 
         SetBuildInfo();

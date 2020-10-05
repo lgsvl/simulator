@@ -26,7 +26,7 @@ namespace Simulator.Api.Commands
                 adata["name"] = agent.Key;
                 adata["type"] = "NPC";
                 adata["NPCType"] = Enum.GetName(typeof(NPCSizeType), agent.Value.NPCType);
-                adata["loaded"] = agent.Value.prefab != null;
+                adata["loaded"] = agent.Value.Prefab != null;
                 adata["AssetGuid"] = agent.Value.AssetGuid;
                 data.Add(adata);
             }

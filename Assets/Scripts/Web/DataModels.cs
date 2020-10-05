@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using UnityEngine;
+using static Simulator.Web.Config;
 
 namespace Simulator.Web
 {
@@ -230,6 +231,7 @@ namespace Simulator.Web
         public ClusterData Cluster { get; set; }
         public TemplateData Template { get; set; }
         public string TestReportId { get; set; }
+        public NPCAssetData[] NPCs { get; set; }
     }
 
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -18,17 +18,10 @@ using Simulator.Network.Core.Messaging;
 using Simulator.Network.Core.Messaging.Data;
 using Simulator.Network.Shared;
 using Simulator.Network.Shared.Messages;
+using static Simulator.Web.Config;
 
 public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 {
-    [System.Serializable]
-    public struct NPCS
-    {
-        public GameObject Prefab;
-        public NPCSizeType NPCType;
-    }
-    public List<NPCS> NPCVehicles = new List<NPCS>();
-
     public Dictionary<NPCSizeType, int> NPCFrequencyWeights = new Dictionary<NPCSizeType, int> ()
     {
         [NPCSizeType.Compact]       = 5,
@@ -57,6 +50,9 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         public Color Color;
         public int Weight;
     }
+
+    public List<NPCAssetData> NPCVehicles = new List<NPCAssetData>();
+
     // loosely based on ppg 2017 trends https://news.ppg.com/automotive-color-trends/
     public List<NPCColors> NPCColorData = new List<NPCColors>();
 
@@ -65,7 +61,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     {
         public bool Active;
         public string GenId;
-        public NPCS Template;
+        public NPCAssetData Template;
         public Vector3 Position;
         public Quaternion Rotation;
         public Color Color;
@@ -134,16 +130,32 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         MapManager = SimulatorManager.Instance.MapManager;
 
         NPCVehicles.Clear();
-        foreach (var data in Simulator.Web.Config.NPCVehicles)
+        if (Loader.Instance.CurrentSimulation.NPCs == null)
         {
-            NPCVehicles.Add(new NPCS{
-                NPCType = data.Value.NPCType,
-                Prefab = data.Value.prefab,
-            });
-           
-            if(NPCColorData.Count(d => d.Type == data.Value.NPCType) == 0)
+            Loader.Instance.CurrentSimulation.NPCs = Simulator.Web.Config.NPCVehicles.Values.ToArray();
+        }
+        foreach (var data in Loader.Instance.CurrentSimulation.NPCs)
+        {
+            if (data.Enabled)
             {
-                Debug.LogWarning($"NPC of type {data.Value.NPCType} loaded but no colors to pick configured for this type");
+                GameObject obj = null;
+                foreach (var item in Simulator.Web.Config.NPCVehicles.Values)
+                {
+                    if (item.Name == data.Name)
+                    {
+                        obj = item.Prefab;
+                    }
+                }
+                NPCVehicles.Add(new NPCAssetData
+                {
+                    NPCType = data.NPCType,
+                    Prefab = obj,
+                });
+
+                if (NPCColorData.Count(d => d.Type == data.NPCType) == 0)
+                {
+                    Debug.LogWarning($"NPC of type {data.NPCType} loaded but no colors to pick configured for this type");
+                }
             }
         }
 
@@ -244,6 +256,11 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         for (int i = 0; i < poolCount; i++)
         {
             var template = GetWeightedRandomNPC();
+            if (template == null)
+            {
+                Debug.LogError("NPC size weights are incorrectly set!"); // TODO change to while with timer to make sure poolCount is reached
+                continue;
+            }
             var spawnData = new NPCSpawnData
             {
                 Active = false,
@@ -432,7 +449,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         return 1;
     }
 
-    private NPCS GetWeightedRandomNPC()
+    private NPCAssetData GetWeightedRandomNPC()
     {
         int totalWeight = NPCVehicles.Where(npc => HasSizeFlag(npc.NPCType)).Sum(npc => GetNPCFrequencyWeight(npc.NPCType));
         int rnd = RandomGenerator.Next(totalWeight);
@@ -449,8 +466,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
                 rnd -= weight;
             }
         }
-
-        throw new System.Exception("NPC size weights are incorrectly set!");
+        return null;
     }
 
     public Color GetWeightedRandomColor(NPCSizeType type)

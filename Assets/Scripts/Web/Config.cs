@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -48,12 +48,14 @@ namespace Simulator.Web
         public static Dictionary<string, IControllable> Controllables = new Dictionary<string, IControllable>();
         public static Dictionary<string, Type> NPCBehaviours = new Dictionary<string, Type>();
 
-        public struct NPCAssetData
+        public class NPCAssetData
         {
-            public GameObject prefab;
+            [NonSerialized]
+            public GameObject Prefab;
             public Map.NPCSizeType NPCType;
             public string Name;
             public string AssetGuid;
+            public bool Enabled = true;
         }
         public static Dictionary<string, NPCAssetData> NPCVehicles = new Dictionary<string, NPCAssetData>();
 
@@ -208,7 +210,7 @@ namespace Simulator.Web
 
                 NPCVehicles.Add(entry, new NPCAssetData
                 {
-                    prefab = go,
+                    Prefab = go,
                     NPCType = size,
                     Name = entry,
                     AssetGuid = $"builtin-{entry}",
@@ -393,7 +395,7 @@ namespace Simulator.Web
 
                 NPCVehicles.Add(manifest.assetName, new NPCAssetData()
                 {
-                    prefab = prefab,
+                    Prefab = prefab,
                     Name = manifest.assetName,
                     AssetGuid = manifest.assetGuid,
                     NPCType = size,

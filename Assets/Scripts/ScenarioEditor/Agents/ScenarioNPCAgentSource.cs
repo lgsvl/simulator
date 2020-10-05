@@ -56,7 +56,7 @@ namespace Simulator.ScenarioEditor.Agents
                 {
                     source = this,
                     name = npcAssetData.Value.Name,
-                    prefab = npcAssetData.Value.prefab
+                    prefab = npcAssetData.Value.Prefab
                 };
                 Variants.Add(npcVariant);
             }

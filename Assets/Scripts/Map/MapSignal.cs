@@ -57,6 +57,43 @@ namespace Simulator.Map
         public string DefaultControlPolicy { get; set; } = "";
         public string CurrentControlPolicy { get; set; }
 
+        static int MaxId = -1; // Maximum id of existing signals
+
+ #if UNITY_EDITOR
+        private void Reset()
+        {
+            id = "signal_" + (++MaxId);
+        }
+
+        [InitializeOnLoadMethod]
+        static void Initialize()
+        {
+            UnityEditor.SceneManagement.EditorSceneManager.sceneOpened += OnEditorSceneManagerSceneOpened;
+        }
+
+        static void OnEditorSceneManagerSceneOpened(UnityEngine.SceneManagement.Scene scene, UnityEditor.SceneManagement.OpenSceneMode mode)
+        {
+            var mapHolder = UnityEngine.Object.FindObjectOfType<MapHolder>();
+            if (mapHolder == null) return;
+
+            var existingSignals = new List<MapSignal>(mapHolder.transform.GetComponentsInChildren<MapSignal>());
+            int curMaxId = 0;
+            for (int i = 0; i < existingSignals.Count; i++)
+            {
+                int curId = getNumber(existingSignals[i].id);
+                if (curId > curMaxId) curMaxId = curId;
+            }
+            MaxId = curMaxId;
+        }
+ #endif
+        static int getNumber(string signalId)
+        {
+            var splitted = signalId.Split('_');
+            if (splitted.Length < 2) return 0;
+
+            return int.TryParse(splitted[1], out int num) ? num : 0;
+        }
+
         public void Control(List<ControlAction> controlActions)
         {
             var fixedUpdateManager = SimulatorManager.Instance.FixedUpdateManager;

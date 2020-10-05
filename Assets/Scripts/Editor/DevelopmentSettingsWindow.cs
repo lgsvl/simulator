@@ -113,7 +113,6 @@ namespace Simulator.Editor
             if (Time.realtimeSinceStartup > saveAssetTime)
             {
                 updateAsset();
-                saveAssetTime = float.MaxValue;
             }
         }
         private static void HandlePlayMode(PlayModeStateChange state)
@@ -239,6 +238,7 @@ namespace Simulator.Editor
             {
                 API.Disconnect();
             }
+            
             if (GUILayout.Button("Refresh"))
             {
                 Refresh();
@@ -362,6 +362,9 @@ namespace Simulator.Editor
 
         async Task updateCloudVehicleDetails()
         {
+            if (API == null)
+                return;
+
             if (developerSimulation.Vehicles != null && !developerSimulation.Vehicles[0].Id.EndsWith(".prefab"))
             {
                 // vehicle list does not give us sensor data, so we have to get it later.
@@ -382,6 +385,7 @@ namespace Simulator.Editor
 
         async void updateAsset()
         {
+            saveAssetTime = float.MaxValue;
             updating = true;
             await updateCloudVehicleDetails();
             settings.developerSimulationJson = JsonConvert.SerializeObject(developerSimulation, JsonSettings.camelCase);
@@ -390,6 +394,11 @@ namespace Simulator.Editor
             AssetDatabase.Refresh();
             updating = false;
             Debug.Log("Saved DeveloperSettings.");
+        }
+        
+        void OnLostFocus()
+        {
+            updateAsset();
         }
     }
 }

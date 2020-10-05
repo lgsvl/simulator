@@ -224,4 +224,12 @@ namespace Simulator.Bridge.Ros.Lgsvl
 
         public List<DetectedRadarObject> objects;
     }
+
+    [MessageType("lgsvl_msgs/Ultrasonic")]
+    public class Ultrasonic
+    {
+        public Ros.Header header;
+
+        public float minimum_distance;
+    }
 }

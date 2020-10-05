@@ -243,6 +243,19 @@ namespace Simulator.Bridge.Ros
             };
         }
 
+        public static Lgsvl.Ultrasonic ConvertFrom(UltrasonicData data)
+        {
+            return new Lgsvl.Ultrasonic()
+            {
+                header = new Ros.Header()
+                {
+                    stamp = ConvertTime(data.Time),
+                    frame_id = data.Frame,
+                },
+                minimum_distance = data.MinimumDistance,
+            };
+        }
+
         public static Apollo.Perception.TrafficLightDetection ApolloConvertFrom(SignalDataArray data)
         {
             bool contain_lights = false;

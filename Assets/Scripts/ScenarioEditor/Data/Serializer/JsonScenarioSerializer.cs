@@ -7,8 +7,11 @@
 
 namespace Simulator.ScenarioEditor.Data.Serializer
 {
+    using System.Collections;
     using Agents;
+    using Controllables;
     using Elements;
+    using Elements.Agent;
     using Managers;
     using SimpleJSON;
     using UnityEngine;
@@ -38,6 +41,13 @@ namespace Simulator.ScenarioEditor.Data.Serializer
                 scenarioData.Add("agents", agentsNode);
             foreach (var agent in agents)
                 AddAgentNode(agentsNode, agent);
+            //Add controllables
+            var controllables = scenarioManager.GetExtension<ScenarioControllablesManager>().Controllables;
+            var controllablesNode = scenarioData.GetValueOrDefault("controllables", new JSONArray());
+            if (!scenarioData.HasKey("controllables"))
+                scenarioData.Add("controllables", controllablesNode);
+            foreach (var controllable in controllables)
+                AddControllableNode(controllablesNode, controllable);
 
             return new JsonScenario(scenarioData);
         }
@@ -53,6 +63,8 @@ namespace Simulator.ScenarioEditor.Data.Serializer
             var camera = ScenarioManager.Instance.ScenarioCamera;
             var position = new JSONObject().WriteVector3(camera.transform.position);
             cameraSettings.Add("position", position);
+            var rotation = new JSONObject().WriteVector3(camera.transform.rotation.eulerAngles);
+            cameraSettings.Add("rotation", rotation);
         }
 
         /// <summary>
@@ -95,6 +107,14 @@ namespace Simulator.ScenarioEditor.Data.Serializer
                 var behaviour = new JSONObject();
                 behaviour.Add("name", new JSONString(scenarioAgent.Behaviour));
                 agentNode.Add("behaviour", behaviour);
+                if (scenarioAgent.BehaviourParameters.Count > 0)
+                    behaviour.Add("parameters", scenarioAgent.BehaviourParameters);
+            }
+
+            if (scenarioAgent.DestinationPoint != null)
+            {
+                var destinationPoint = new JSONObject().WriteVector3(scenarioAgent.DestinationPoint.transform.position);
+                agentNode.Add("destinationPoint", destinationPoint);
             }
             if (scenarioAgent.Source.AgentSupportWaypoints(scenarioAgent))
                 AddWaypointsNodes(agentNode, scenarioAgent);
@@ -151,6 +171,25 @@ namespace Simulator.ScenarioEditor.Data.Serializer
                 effectorsArray.Add(effectorNode);
             }
             data.Add("trigger", triggerNode);
+        }
+        
+        /// <summary>
+        /// Adds an controllable node to the json
+        /// </summary>
+        /// <param name="data">Json object where data will be added</param>
+        /// <param name="controllable">Scenario controllable to serialize</param>
+        private static void AddControllableNode(JSONNode data, ScenarioControllable controllable)
+        {
+            var controllableNode = new JSONObject();
+            data.Add(controllableNode);
+            controllableNode.Add("uid", new JSONString(controllable.Uid));
+            controllableNode.Add("name", new JSONString(controllable.Variant.name));
+            var transform = new JSONObject();
+            controllableNode.Add("transform", transform);
+            var position = new JSONObject().WriteVector3(controllable.TransformToMove.position);
+            transform.Add("position", position);
+            var rotation = new JSONObject().WriteVector3(controllable.TransformToRotate.rotation.eulerAngles);
+            transform.Add("rotation", rotation);
         }
     }
 }

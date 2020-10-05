@@ -5,12 +5,15 @@
  *
  */
 
-namespace Simulator.ScenarioEditor.Agents
+namespace Simulator.ScenarioEditor.Elements.Agent
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
+    using Agents;
     using Elements;
     using Managers;
+    using SimpleJSON;
     using Undo;
     using Undo.Records;
     using UnityEngine;
@@ -19,7 +22,7 @@ namespace Simulator.ScenarioEditor.Agents
     /// <remarks>
     /// Scenario agent representation
     /// </remarks>
-    public class ScenarioAgent : ScenarioElement
+    public class ScenarioAgent : ScenarioElementWithVariant
     {
         /// <summary>
         /// The position offset that will be applied to the line renderer of waypoints
@@ -27,30 +30,10 @@ namespace Simulator.ScenarioEditor.Agents
         private static Vector3 lineRendererPositionOffset = new Vector3(0.0f, 0.5f, 0.0f);
 
         /// <summary>
-        /// Name for the gameobject containing the model instance
-        /// </summary>
-        private static string modelObjectName = "Model";
-
-        /// <summary>
         /// Name for the gameobject containing waypoints
         /// </summary>
         private static string waypointsObjectName = "Waypoints";
-
-        /// <summary>
-        /// Parent source of this scenario agent
-        /// </summary>
-        private ScenarioAgentSource source;
-
-        /// <summary>
-        /// This agent variant
-        /// </summary>
-        private AgentVariant variant;
-
-        /// <summary>
-        /// Cached model instance object
-        /// </summary>
-        private GameObject modelInstance;
-
+        
         /// <summary>
         /// Line renderer for displaying the connection between waypoints
         /// </summary>
@@ -125,16 +108,26 @@ namespace Simulator.ScenarioEditor.Agents
         /// Behaviour that will control this agent in the simulation
         /// </summary>
         public string Behaviour { get; private set; }
+        
+        /// <summary>
+        /// Parameters used by the set behaviour
+        /// </summary>
+        public JSONObject BehaviourParameters { get; set; } = new JSONObject();
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        public ScenarioDestinationPoint DestinationPoint { get; set; }
 
         /// <summary>
         /// Parent source of this scenario agent
         /// </summary>
-        public ScenarioAgentSource Source => source;
+        public ScenarioAgentSource Source => source as ScenarioAgentSource;
 
         /// <summary>
         /// This agent variant
         /// </summary>
-        public AgentVariant Variant => variant;
+        public AgentVariant Variant => variant as AgentVariant;
 
         /// <summary>
         /// Included waypoints that this agent will follow
@@ -144,56 +137,18 @@ namespace Simulator.ScenarioEditor.Agents
         /// <summary>
         /// Type of this agent
         /// </summary>
-        public AgentType Type => source.AgentType;
-
-        /// <summary>
-        /// Event invoked when this agent changes the variant
-        /// </summary>
-        public event Action<AgentVariant> VariantChanged;
+        public AgentType Type => Source.AgentType;
 
         /// <summary>
         /// Event invoked when this agent changes the behaviour
         /// </summary>
         public event Action<string> BehaviourChanged;
 
-        /// <summary>
-        /// Setup method for initializing the required agent data
-        /// </summary>
-        /// <param name="agentSource">Source of this agent</param>
-        /// <param name="agentVariant">This agent variant</param>
-        public void Setup(ScenarioAgentSource agentSource, AgentVariant agentVariant)
+        /// <inheritdoc/>
+        public override void Setup(ScenarioElementSource source, SourceVariant variant)
         {
-            source = agentSource;
-            ChangeVariant(agentVariant, false);
+            base.Setup(source, variant);
             ScenarioManager.Instance.GetExtension<ScenarioAgentsManager>().RegisterAgent(this);
-        }
-
-        /// <summary>
-        /// Changes the current agent variant
-        /// </summary>
-        /// <param name="newVariant">New agent variant</param>
-        /// <param name="registerUndo">If true, this action can be undone</param>
-        public void ChangeVariant(AgentVariant newVariant, bool registerUndo = true)
-        {
-            var position = Vector3.zero;
-            var rotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
-            if (modelInstance != null)
-            {
-                position = modelInstance.transform.localPosition;
-                rotation = modelInstance.transform.localRotation;
-                source.ReturnModelInstance(modelInstance);
-            }
-
-            if (registerUndo)
-                ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
-                    .RegisterRecord(new UndoChangeVariant(this, variant));
-            variant = newVariant;
-            modelInstance = source.GetModelInstance(variant);
-            modelInstance.name = modelObjectName;
-            modelInstance.transform.SetParent(transform);
-            modelInstance.transform.localPosition = position;
-            modelInstance.transform.localRotation = rotation;
-            VariantChanged?.Invoke(variant);
         }
 
         /// <summary>
@@ -205,17 +160,29 @@ namespace Simulator.ScenarioEditor.Agents
         {
             if (registerUndo)
                 ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
-                    .RegisterRecord(new UndoChangeBehaviour(this, Behaviour));
+                    .RegisterRecord(new UndoChangeBehaviour(this));
             Behaviour = newBehaviour;
-            WaypointsParent.gameObject.SetActive(source.AgentSupportWaypoints(this));
+            WaypointsParent.gameObject.SetActive(Source.AgentSupportWaypoints(this));
             BehaviourChanged?.Invoke(Behaviour);
+        }
+
+        /// <inheritdoc/>
+        public override void RemoveFromMap()
+        {
+            base.RemoveFromMap();
+            ScenarioManager.Instance.GetExtension<ScenarioAgentsManager>().UnregisterAgent(this);
+        }
+
+        /// <inheritdoc/>
+        public override void UndoRemove()
+        {
+            base.UndoRemove();
+            ScenarioManager.Instance.GetExtension<ScenarioAgentsManager>().RegisterAgent(this);
         }
 
         /// <inheritdoc/>
         public override void Dispose()
         {
-            if (modelInstance != null)
-                source.ReturnModelInstance(modelInstance);
             for (var i = waypoints.Count - 1; i >= 0; i--)
             {
                 var waypoint = waypoints[i];
@@ -223,8 +190,7 @@ namespace Simulator.ScenarioEditor.Agents
                 waypoint.Dispose();
             }
 
-            ScenarioManager.Instance.GetExtension<ScenarioAgentsManager>().UnregisterAgent(this);
-            Destroy(gameObject);
+            base.Dispose();
         }
 
         /// <inheritdoc/>
@@ -234,6 +200,8 @@ namespace Simulator.ScenarioEditor.Agents
             if (originAgent == null)
                 throw new ArgumentException(
                     $"Invalid origin scenario element type ({origin.GetType().Name}) when cloning {GetType().Name}.");
+            base.CopyProperties(origin);
+            Behaviour = originAgent.Behaviour;
             PathRenderer.positionCount = 0;
             for (var i = 0; i < transform.childCount; i++)
             {
@@ -247,15 +215,8 @@ namespace Simulator.ScenarioEditor.Agents
                         AddWaypoint(waypoint, waypoint.IndexInAgent);
                     }
                 }
-                else if (child.name == modelObjectName)
-                {
-                    modelInstance = child.gameObject;
-                }
             }
 
-            Behaviour = originAgent.Behaviour;
-            variant = originAgent.variant;
-            source = originAgent.source;
             ScenarioManager.Instance.GetExtension<ScenarioAgentsManager>().RegisterAgent(this);
         }
 

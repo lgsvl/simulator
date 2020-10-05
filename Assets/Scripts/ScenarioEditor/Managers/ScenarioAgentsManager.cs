@@ -11,15 +11,27 @@ namespace Simulator.ScenarioEditor.Managers
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Agents;
+    using Elements.Agent;
     using Input;
     using Simulator.Utilities;
+    using UnityEngine;
     using Utilities;
 
     /// <summary>
     /// Manager for caching and handling all the scenario agents and their sources
     /// </summary>
-    public class ScenarioAgentsManager : IScenarioEditorExtension
+    public class ScenarioAgentsManager : MonoBehaviour, IScenarioEditorExtension
     {
+        /// <summary>
+        /// Prefab for the destination point graphic representation on the map
+        /// </summary>
+        public GameObject destinationPoint;
+
+        /// <summary>
+        /// Material used for path between agent and destination point
+        /// </summary>
+        public Material destinationPathMaterial;
+        
         /// <inheritdoc/>
         public bool IsInitialized { get; private set; }
         
@@ -66,6 +78,7 @@ namespace Simulator.ScenarioEditor.Managers
             await Task.WhenAll(tasks);
             ScenarioManager.Instance.ScenarioReset += InstanceOnScenarioReset;
             IsInitialized = true;
+            Debug.Log($"{GetType().Name} scenario editor extension has been initialized.");
         }
 
         /// <summary>
@@ -81,6 +94,7 @@ namespace Simulator.ScenarioEditor.Managers
             Sources.Clear();
             Agents.Clear();
             IsInitialized = false;
+            Debug.Log($"{GetType().Name} scenario editor extension has been deinitialized.");
         }
 
         /// <summary>

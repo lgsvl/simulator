@@ -372,6 +372,7 @@ namespace Simulator.ScenarioEditor.Input
             var ignoreRaycastLayer = LayerMask.NameToLayer("Ignore Raycast");
             raycastLayerMask &= ~(1 << ignoreRaycastLayer);
             IsInitialized = true;
+            Debug.Log($"{GetType().Name} scenario editor extension has been initialized.");
             return Task.CompletedTask;
         }
 
@@ -382,6 +383,7 @@ namespace Simulator.ScenarioEditor.Input
                 return;
             DeinitControls();
             IsInitialized = false;
+            Debug.Log($"{GetType().Name} scenario editor extension has been deinitialized.");
         }
 
         /// <summary>
@@ -757,7 +759,8 @@ namespace Simulator.ScenarioEditor.Input
             this.dragHandler = dragHandler;
             RaycastAll();
             var furthestHit = GetFurthestHit();
-            MouseRaycastPosition = furthestHit?.point ?? Vector3.zero;
+            if (furthestHit!=null)
+                MouseRaycastPosition = furthestHit.Value.point;
             MouseViewportPosition = scenarioCamera.ScreenToViewportPoint(Input.mousePosition);
             this.dragHandler.DragStarted();
         }
@@ -776,7 +779,8 @@ namespace Simulator.ScenarioEditor.Input
 
             RaycastAll();
             var furthestHit = GetFurthestHit();
-            MouseRaycastPosition = furthestHit?.point ?? Vector3.zero;
+            if (furthestHit!=null)
+                MouseRaycastPosition = furthestHit.Value.point;
             this.dragHandler.DragCancelled();
             this.dragHandler = null;
             inputState = InputState.Idle;
@@ -823,9 +827,18 @@ namespace Simulator.ScenarioEditor.Input
         /// Forces new position and rotation for the scenario camera, and saves the changes
         /// </summary>
         /// <param name="position">New camera position</param>
-        public void ForceCameraReposition(Vector3 position)
+        /// <param name="rotation">New camera rotation</param>
+        public void ForceCameraReposition(Vector3 position, Vector3 rotation)
         {
             MoveCameraTo(position);
+            if (CameraMode == CameraModeType.Free)
+            {
+                rotationTilt = rotation.x;
+                rotationLook = rotation.y;
+                PlayerPrefs.SetFloat(RotationLookKey, rotationLook);
+                PlayerPrefs.SetFloat(RotationTiltKey, rotationTilt);
+                scenarioCamera.transform.rotation = Quaternion.Euler(rotationTilt, rotationLook, 0f);
+            }
         }
     }
 }

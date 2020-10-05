@@ -10,7 +10,9 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
     using System;
     using System.Threading.Tasks;
     using Agents;
+    using Controllables;
     using Elements;
+    using Elements.Agent;
     using Input;
     using Managers;
     using SimpleJSON;
@@ -33,6 +35,7 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
             if (!mapDeserialized)
                 return;
             await DeserializeAgents(json);
+            DeserializeControllables(json);
             DeserializeMetadata(json);
             callback?.Invoke();
         }
@@ -48,7 +51,11 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
             if (cameraSettings == null)
                 return;
             var position = cameraSettings["position"];
-            ScenarioManager.Instance.GetExtension<InputManager>().ForceCameraReposition(position);
+            var camera = ScenarioManager.Instance.ScenarioCamera;
+            var rotation = cameraSettings.HasKey("rotation")
+                ? cameraSettings["rotation"].ReadVector3()
+                : camera.transform.rotation.eulerAngles;
+            ScenarioManager.Instance.GetExtension<InputManager>().ForceCameraReposition(position, rotation);
         }
 
         /// <summary>
@@ -105,7 +112,7 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                 }
 
                 var variantName = agentNode["variant"];
-                var variant = agentSource.AgentVariants.Find(sourceVariant => sourceVariant.name == variantName);
+                var variant = agentSource.Variants.Find(sourceVariant => sourceVariant.Name == variantName);
                 if (variant == null)
                 {
                     ScenarioManager.Instance.logPanel.EnqueueError(
@@ -113,18 +120,35 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                     continue;
                 }
 
-                await variant.Prepare();
-                var agentInstance = agentSource.GetAgentInstance(variant);
+                if (!(variant is AgentVariant agentVariant))
+                {
+                    ScenarioManager.Instance.logPanel.EnqueueError(
+                        $"Could not properly deserialize variant '{variantName}' as {nameof(AgentVariant)} class.");
+                    continue;
+                }
+
+                await agentVariant.Prepare();
+                var agentInstance = agentSource.GetAgentInstance(agentVariant);
                 agentInstance.Uid = agentNode["uid"];
                 var transformNode = agentNode["transform"];
                 agentInstance.transform.position = transformNode["position"].ReadVector3();
                 agentInstance.transform.rotation = Quaternion.Euler(transformNode["rotation"].ReadVector3());
                 if (agentNode.HasKey("behaviour"))
-                    agentInstance.ChangeBehaviour(agentNode["behaviour"]["name"]);
+                {
+                    var behaviourNode = agentNode["behaviour"];
+                    if (behaviourNode.HasKey("parameters"))
+                        agentInstance.BehaviourParameters = behaviourNode["parameters"] as JSONObject;
+                    agentInstance.ChangeBehaviour(behaviourNode["name"], false);
+                }
+
+                if (agentInstance.DestinationPoint != null && agentNode.HasKey("destinationPoint"))
+                {
+                    agentInstance.DestinationPoint.transform.position = agentNode["destinationPoint"].ReadVector3();
+                    agentInstance.DestinationPoint.Refresh();
+                }
 
                 DeserializeWaypoints(agentNode, agentInstance);
                 agentInstance.WaypointsParent.gameObject.SetActive(agentSource.AgentSupportWaypoints(agentInstance));
-                    
             }
         }
 
@@ -186,6 +210,42 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
             }
 
             return trigger;
+        }
+
+        /// <summary>
+        /// Deserializes scenario controllables from the json data
+        /// </summary>
+        /// <param name="data">Json data with scenario controllables</param>
+        private static void DeserializeControllables(JSONNode data)
+        {
+            var controllablesNode = data["controllables"] as JSONArray;
+            if (controllablesNode == null)
+                return;
+            foreach (var controllableNode in controllablesNode.Children)
+            {
+                var controllableName = controllableNode["name"];
+                var controllablesManager = ScenarioManager.Instance.GetExtension<ScenarioControllablesManager>();
+                var variant = controllablesManager.source.Variants.Find(v => v.Name == controllableName);
+                if (variant == null)
+                {
+                    ScenarioManager.Instance.logPanel.EnqueueError(
+                        $"Error while deserializing Scenario. Controllable variant '{controllableName}' could not be found in Simulator.");
+                    continue;
+                }
+
+                if (!(variant is ControllableVariant controllableVariant))
+                {
+                    ScenarioManager.Instance.logPanel.EnqueueError(
+                        $"Could not properly deserialize variant '{controllableName}' as {nameof(ControllableVariant)} class.");
+                    continue;
+                }
+
+                var agentInstance = controllablesManager.source.GetControllableInstance(controllableVariant);
+                agentInstance.Uid = controllableNode["uid"];
+                var transformNode = controllableNode["transform"];
+                agentInstance.transform.position = transformNode["position"].ReadVector3();
+                agentInstance.transform.rotation = Quaternion.Euler(transformNode["rotation"].ReadVector3());
+            }
         }
     }
 }

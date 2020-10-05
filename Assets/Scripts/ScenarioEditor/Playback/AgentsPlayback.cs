@@ -9,6 +9,7 @@ namespace Simulator.ScenarioEditor.Playback
 {
     using System.Collections.Generic;
     using Agents;
+    using Elements.Agent;
     using Managers;
     using UnityEngine;
 

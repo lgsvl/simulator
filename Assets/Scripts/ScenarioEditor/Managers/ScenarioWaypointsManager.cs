@@ -47,6 +47,7 @@ namespace Simulator.ScenarioEditor.Managers
                 return Task.CompletedTask;
             ScenarioManager.Instance.ScenarioReset += OnScenarioReset;
             IsInitialized = true;
+            Debug.Log($"{GetType().Name} scenario editor extension has been initialized.");
             return Task.CompletedTask;
         }
 
@@ -59,6 +60,7 @@ namespace Simulator.ScenarioEditor.Managers
             OnScenarioReset();
             Waypoints.Clear();
             IsInitialized = false;
+            Debug.Log($"{GetType().Name} scenario editor extension has been deinitialized.");
         }
 
         /// <summary>

@@ -96,6 +96,9 @@ namespace Simulator.ScenarioEditor.Managers
         /// </summary>
         public List<MapMetaData> AvailableMaps { get; } = new List<MapMetaData>();
         
+        /// <summary>
+        /// Handler for snapping positions to the map lanes
+        /// </summary>
         public LaneSnappingHandler LaneSnapping { get; } = new LaneSnappingHandler();
 
         /// <inheritdoc/>

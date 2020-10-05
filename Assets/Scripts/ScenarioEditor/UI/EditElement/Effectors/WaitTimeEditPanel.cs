@@ -79,12 +79,21 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         /// Sets the trigger effector value
         /// </summary>
         /// <param name="valueString">Value that should be set to the effector</param>
+        public void OnValueInputChange(string valueString)
+        {
+            if (!float.TryParse(valueString, out var value)) return;
+            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoInputField(valueInputField,
+                editedEffector.Value.ToString("F"), SetValue));
+            SetValue(value);
+        }
+
+        /// <summary>
+        /// Sets the trigger effector value
+        /// </summary>
+        /// <param name="valueString">Value that should be set to the effector</param>
         public void SetValue(string valueString)
         {
             if (!float.TryParse(valueString, out var value)) return;
-            
-            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoInputField(valueInputField,
-                editedEffector.Value.ToString("F")));
             SetValue(value);
         }
 

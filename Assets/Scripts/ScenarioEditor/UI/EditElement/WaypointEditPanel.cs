@@ -10,6 +10,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
     using Agents;
     using Data.Serializer;
     using Elements;
+    using Elements.Agent;
     using Input;
     using Managers;
     using ScenarioEditor.Utilities;
@@ -264,18 +265,35 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         }
 
         /// <summary>
+        /// Changes the currently selected waypoint wait time and registers an undo record 
+        /// </summary>
+        /// <param name="waitTimeString">Wait time value in the string format</param>
+        public void OnWaypointWaitTimeInputChange(string waitTimeString)
+        {
+            if (selectedWaypoint == null || !float.TryParse(waitTimeString, out var waitTime)) return;
+            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoInputField(
+                waitTimeInput, selectedWaypoint.WaitTime.ToString("F"), ChangeWaypointWaitTime));
+            ChangeWaypointWaitTime(waitTime);
+        }
+
+        /// <summary>
         /// Changes the currently selected waypoint wait time
         /// </summary>
         /// <param name="waitTimeString">Wait time value in the string format</param>
-        public void ChangeWaypointWaitTime(string waitTimeString)
+        private void ChangeWaypointWaitTime(string waitTimeString)
         {
-            if (selectedWaypoint == null || !float.TryParse(waitTimeString, out var value)) return;
-
-            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoInputField(
-                waitTimeInput,
-                selectedWaypoint.WaitTime.ToString("F")));
+            if (selectedWaypoint == null || !float.TryParse(waitTimeString, out var waitTime)) return;
+            ChangeWaypointWaitTime(waitTime);
+        }
+        
+        /// <summary>
+        /// Changes the currently selected waypoint wait time
+        /// </summary>
+        /// <param name="waitTime">Wait time value</param>
+        private void ChangeWaypointWaitTime(float waitTime)
+        {
             ScenarioManager.Instance.IsScenarioDirty = true;
-            selectedWaypoint.WaitTime = value;
+            selectedWaypoint.WaitTime = waitTime;
         }
     }
 }

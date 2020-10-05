@@ -5,13 +5,14 @@
  *
  */
 
-namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
+namespace Simulator.ScenarioEditor.UI.EditElement
 {
-    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Agents;
+    using Effectors;
     using Elements;
+    using Elements.Agent;
     using Input;
     using Managers;
     using ScenarioEditor.Utilities;
@@ -139,9 +140,9 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// Method invoked when selected agent changes the variant
         /// </summary>
         /// <param name="newVariant">Agent new variant</param>
-        private void SelectedAgentOnVariantChanged(AgentVariant newVariant)
+        private void SelectedAgentOnVariantChanged(SourceVariant newVariant)
         {
-            var variantId = agentSource.AgentVariants.IndexOf(newVariant);
+            var variantId = agentSource.Variants.IndexOf(newVariant);
             variantDropdown.SetValueWithoutNotify(variantId);
         }
 
@@ -169,7 +170,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                 agentSource = selectedAgent.Source;
                 variantDropdown.options.Clear();
                 variantDropdown.AddOptions(
-                    agentSource.AgentVariants.Select(variant => variant.name).ToList());
+                    agentSource.Variants.Select(variant => variant.Name).ToList());
                 //Setup behaviour
                 behaviourDropdown.options.Clear();
                 if (agentSource.Behaviours != null && agentSource.Behaviours.Count > 0)
@@ -186,7 +187,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             //Disable waypoints panel if waypoints are not supported
             waypointsPanel.SetActive(agentSource.AgentSupportWaypoints(selectedAgent));
 
-            var variantId = agentSource.AgentVariants.IndexOf(selectedAgent.Variant);
+            var variantId = agentSource.Variants.IndexOf(selectedAgent.Variant);
             variantDropdown.SetValueWithoutNotify(variantId);
             if (agentSource.Behaviours != null)
             {
@@ -208,7 +209,6 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             if (addedElementType != AgentElementType.None)
                 ScenarioManager.Instance.GetExtension<InputManager>().CancelAddingElements(this);
             gameObject.SetActive(false);
-            selectedAgent = null;
         }
 
         /// <summary>
@@ -217,7 +217,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// <param name="variantId">Variant identifier in the source</param>
         public void VariantDropdownChanged(int variantId)
         {
-            var nonBlockingTask = ChangeVariant(agentSource.AgentVariants[variantId]);
+            var nonBlockingTask = ChangeVariant(agentSource.Variants[variantId]);
         }
 
         /// <summary>
@@ -225,7 +225,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// </summary>
         /// <param name="variant">Variant that will be applied to the vehicle</param>
         /// <returns>Task</returns>
-        private async Task ChangeVariant(AgentVariant variant)
+        private async Task ChangeVariant(SourceVariant variant)
         {
             if (variant is CloudAgentVariant cloudVariant && cloudVariant.prefab == null)
             {

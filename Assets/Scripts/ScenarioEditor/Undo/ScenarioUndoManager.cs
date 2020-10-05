@@ -36,6 +36,7 @@ namespace Simulator.ScenarioEditor.Undo
             if (IsInitialized)
                 return Task.CompletedTask;
             IsInitialized = true;
+            Debug.Log($"{GetType().Name} scenario editor extension has been initialized.");
             return Task.CompletedTask;
         }
 
@@ -45,6 +46,7 @@ namespace Simulator.ScenarioEditor.Undo
             if (!IsInitialized)
                 return;
             IsInitialized = false;
+            Debug.Log($"{GetType().Name} scenario editor extension has been deinitialized.");
         }
 
         /// <summary>

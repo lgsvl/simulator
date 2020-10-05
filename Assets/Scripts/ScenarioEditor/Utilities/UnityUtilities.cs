@@ -36,10 +36,10 @@ namespace Simulator.ScenarioEditor.Utilities
         /// <returns>IEnumerator</returns>
         private static IEnumerator DelayedLayoutRebuild(RectTransform transformToRebuild)
         {
-            yield return null;
-            LayoutRebuilder.MarkLayoutForRebuild (transformToRebuild);
-            yield return null;
-            LayoutRebuilder.MarkLayoutForRebuild (transformToRebuild);
+            var wait = new WaitForEndOfFrame();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(transformToRebuild);
+            yield return wait;
+            LayoutRebuilder.ForceRebuildLayoutImmediate(transformToRebuild);
         }
     }
 }

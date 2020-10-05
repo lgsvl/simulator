@@ -8,6 +8,7 @@
 namespace Simulator.ScenarioEditor.Undo.Records
 {
     using Agents;
+    using Elements;
     using Managers;
 
     /// <summary>
@@ -16,30 +17,30 @@ namespace Simulator.ScenarioEditor.Undo.Records
     public class UndoChangeVariant : UndoRecord
     {
         /// <summary>
-        /// Scenario agent which variant was changed
+        /// Scenario element which variant was changed
         /// </summary>
-        private ScenarioAgent scenarioAgent;
+        private ScenarioElementWithVariant scenarioElementWithVariant;
 
         /// <summary>
-        /// Previous agent variant
+        /// Previous source variant
         /// </summary>
-        private AgentVariant agentVariant;
+        private SourceVariant sourceVariant;
         
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="scenarioAgent">Scenario agent which variant was changed</param>
-        /// <param name="agentVariant">Previous agent variant</param>
-        public UndoChangeVariant(ScenarioAgent scenarioAgent, AgentVariant agentVariant)
+        /// <param name="scenarioElementWithVariant">Scenario element which variant was changed</param>
+        /// <param name="sourceVariant">Previous source variant</param>
+        public UndoChangeVariant(ScenarioElementWithVariant scenarioElementWithVariant, SourceVariant sourceVariant)
         {
-            this.scenarioAgent = scenarioAgent;
-            this.agentVariant = agentVariant;
+            this.scenarioElementWithVariant = scenarioElementWithVariant;
+            this.sourceVariant = sourceVariant;
         }
         
         /// <inheritdoc/>
         public override void Undo()
         {
-            scenarioAgent.ChangeVariant(agentVariant, false);
+            scenarioElementWithVariant.ChangeVariant(sourceVariant, false);
             ScenarioManager.Instance.logPanel.EnqueueInfo("Undo applied to rollback changed agent variant.");
         }
 

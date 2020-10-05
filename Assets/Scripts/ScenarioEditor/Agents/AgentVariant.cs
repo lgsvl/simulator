@@ -15,7 +15,7 @@ namespace Simulator.ScenarioEditor.Agents
     /// <summary>
     /// Data describing a single agent variant of the scenario agent type
     /// </summary>
-    public class AgentVariant
+    public class AgentVariant : SourceVariant
     {
         /// <summary>
         /// The source of the scenario agent type, this variant is a part of this source
@@ -42,10 +42,14 @@ namespace Simulator.ScenarioEditor.Agents
         /// </summary>
         private Sprite iconSprite;
 
-        /// <summary>
-        /// Texture used to visualize this agent variant in UI
-        /// </summary>
-        public Texture2D IconTexture
+        /// <inheritdoc/>
+        public override string Name => name;
+
+        /// <inheritdoc/>
+        public override GameObject Prefab => prefab;
+
+        /// <inheritdoc/>
+        public override Texture2D IconTexture
         {
             get
             {
@@ -76,8 +80,8 @@ namespace Simulator.ScenarioEditor.Agents
         private Texture2D ShotTexture()
         {
             var instance = source.GetModelInstance(this);
-            var texture = ScenarioManager.Instance.objectsShotCapture.ShotObject(instance);
-            ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(instance);
+            var texture = ScenarioManager.Instance.objectsShotCapture.ShotObject(instance.gameObject);
+            ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(instance.gameObject);
             return texture;
         }
 

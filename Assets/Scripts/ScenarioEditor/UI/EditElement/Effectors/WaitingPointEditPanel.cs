@@ -125,15 +125,24 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         }
 
         /// <summary>
+        /// Sets the trigger effector max distance and registers an undo record
+        /// </summary>
+        /// <param name="radiusString">Radius that should be set to the effector</param>
+        public void OnRadiusInputChange(string radiusString)
+        {
+            if (!float.TryParse(radiusString, out var radius)) return;
+            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoInputField(
+                radiusInputField, editedEffector.PointRadius.ToString("F"), SetRadius));
+            SetRadius(radius);
+        }
+
+        /// <summary>
         /// Sets the trigger effector max distance
         /// </summary>
         /// <param name="radiusString">Radius that should be set to the effector</param>
-        public void SetRadius(string radiusString)
+        private void SetRadius(string radiusString)
         {
             if (!float.TryParse(radiusString, out var radius)) return;
-
-            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoInputField(
-                radiusInputField, editedEffector.PointRadius.ToString("F")));
             SetRadius(radius);
         }
 

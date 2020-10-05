@@ -236,6 +236,8 @@ namespace Simulator.ScenarioEditor.Managers
             if (isInitialized)
                 return;
             ShowLoadingPanel();
+            await FixLights();
+            
             //Initialize all the scenario editor extensions
             var managersTypes = ReflectionCache.FindTypes(type =>
                 typeof(IScenarioEditorExtension).IsAssignableFrom(type) && !type.IsAbstract);
@@ -271,13 +273,14 @@ namespace Simulator.ScenarioEditor.Managers
                     scenarioEditorExtensions.Add(scenarioManagerType, scenarioManager);
                 }
             }
-
             await Task.WhenAll(tasks);
+            
+            //Initialize map
             var mapManager = GetExtension<ScenarioMapManager>();
             mapManager.MapChanged += OnMapLoaded;
             await mapManager.LoadMapAsync();
-            inspector.Initialize();
             await FixLights();
+            inspector.Initialize();
             Time.timeScale = 0.0f;
             isInitialized = true;
             HideLoadingPanel();
@@ -310,7 +313,7 @@ namespace Simulator.ScenarioEditor.Managers
                 inspector.Deinitialize();
             foreach (var scenarioManager in scenarioEditorExtensions)
                 scenarioManager.Value.Deinitialize();
-            GetExtension<ScenarioMapManager>().MapChanged += OnMapLoaded;
+            GetExtension<ScenarioMapManager>().MapChanged -= OnMapLoaded;
             Time.timeScale = 1.0f;
             isInitialized = false;
         }

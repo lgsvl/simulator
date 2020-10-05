@@ -78,15 +78,25 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         }
 
         /// <summary>
+        /// Sets the trigger effector max distance and registers an undo record
+        /// </summary>
+        /// <param name="maxDistanceString">Max distance that should be set to the effector</param>
+        public void OnMaxDistanceInputChange(string maxDistanceString)
+        {
+            if (!float.TryParse(maxDistanceString, out var maxDistance)) return;
+            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoInputField(
+                maxDistanceInputField, editedEffector.MaxDistance.ToString("F"), SetMaxDistance));
+            SetMaxDistance(maxDistance);
+        }
+
+        /// <summary>
         /// Sets the trigger effector max distance
         /// </summary>
         /// <param name="maxDistanceString">Max distance that should be set to the effector</param>
-        public void SetMaxDistance(string maxDistanceString)
+        /// <returns>Was the max distance changed</returns>
+        private void SetMaxDistance(string maxDistanceString)
         {
             if (!float.TryParse(maxDistanceString, out var maxDistance)) return;
-
-            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoInputField(
-                maxDistanceInputField, editedEffector.MaxDistance.ToString("F")));
             SetMaxDistance(maxDistance);
         }
 

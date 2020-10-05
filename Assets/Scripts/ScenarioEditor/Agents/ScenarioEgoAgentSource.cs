@@ -12,6 +12,7 @@ namespace Simulator.ScenarioEditor.Agents
     using System.Threading.Tasks;
     using Database;
     using Database.Services;
+    using Elements.Agent;
     using Input;
     using Managers;
     using Undo;
@@ -37,17 +38,14 @@ namespace Simulator.ScenarioEditor.Agents
         private GameObject draggedInstance;
 
         /// <inheritdoc/>
-        public override string AgentTypeName => "EgoAgent";
+        public override string ElementTypeName => "EgoAgent";
 
         /// <inheritdoc/>
         public override int AgentTypeId => 1;
 
         /// <inheritdoc/>
-        public override List<AgentVariant> AgentVariants { get; } = new List<AgentVariant>();
-
-        /// <inheritdoc/>
-        public override AgentVariant DefaultVariant { get; set; }
-
+        public override List<SourceVariant> Variants { get; } = new List<SourceVariant>();
+        
         /// <inheritdoc/>
         public override async Task Initialize()
         {
@@ -58,7 +56,7 @@ namespace Simulator.ScenarioEditor.Agents
             var vehiclesInDatabase = assetService.List(BundleConfig.BundleTypes.Environment);
             var cachedVehicles = vehiclesInDatabase as AssetModel[] ?? vehiclesInDatabase.ToArray();
 
-            var isAnyPrefabAvailable = false;
+            var downloadTasks = new List<Task>();
             foreach (var vehicleDetailData in library)
             {
                 var newVehicle = new CloudAgentVariant(vehicleDetailData.Id, vehicleDetailData.Name,
@@ -69,22 +67,14 @@ namespace Simulator.ScenarioEditor.Agents
                         cachedVehicles.FirstOrDefault(cachedMap => cachedMap.AssetGuid == vehicleDetailData.AssetGuid)
                 };
                 if (newVehicle.assetModel != null)
-                {
                     newVehicle.AcquirePrefab();
-                    if (DefaultVariant == null)
-                        DefaultVariant = newVehicle;
-                    isAnyPrefabAvailable = true;
-                }
+                else 
+                    downloadTasks.Add(newVehicle.DownloadAsset());
 
-                AgentVariants.Add(newVehicle);
+                Variants.Add(newVehicle);
             }
 
-            if (!isAnyPrefabAvailable)
-            {
-                await ((CloudAgentVariant) AgentVariants[0]).DownloadAsset();
-                if (DefaultVariant == null)
-                    DefaultVariant = AgentVariants[0];
-            }
+            await Task.WhenAll(downloadTasks);
         }
 
         /// <inheritdoc/>
@@ -93,15 +83,9 @@ namespace Simulator.ScenarioEditor.Agents
         }
 
         /// <inheritdoc/>
-        public override GameObject GetModelInstance(AgentVariant variant)
+        public override GameObject GetModelInstance(SourceVariant variant)
         {
-            if (variant.prefab == null)
-            {
-                Debug.LogError("Variant has to be prepared before getting it's model.");
-                return null;
-            }
-
-            var instance = ScenarioManager.Instance.GetExtension<PrefabsPools>().GetInstance(variant.prefab);
+            var instance = base.GetModelInstance(variant);
             instance.GetComponent<VehicleController>().enabled = false;
             Object.DestroyImmediate(instance.GetComponent<VehicleActions>());
             return instance;
@@ -116,17 +100,17 @@ namespace Simulator.ScenarioEditor.Agents
                 return null;
             }
 
-            var newGameObject = new GameObject(AgentTypeName);
-            newGameObject.transform.SetParent(ScenarioManager.Instance.transform);
+            var agentsManager = ScenarioManager.Instance.GetExtension<ScenarioAgentsManager>();
+            var newGameObject = new GameObject(ElementTypeName);
+            newGameObject.transform.SetParent(agentsManager.transform);
             var scenarioAgent = newGameObject.AddComponent<ScenarioAgent>();
             scenarioAgent.Setup(this, variant);
+            //Add destination point
+            var destinationPointObject = ScenarioManager.Instance.GetExtension<PrefabsPools>()
+                .GetInstance(agentsManager.destinationPoint);
+            var destinationPoint = destinationPointObject.GetComponent<ScenarioDestinationPoint>();
+            destinationPoint.AttachToAgent(scenarioAgent);
             return scenarioAgent;
-        }
-
-        /// <inheritdoc/>
-        public override void ReturnModelInstance(GameObject instance)
-        {
-            ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(instance);
         }
 
         /// <inheritdoc/>
@@ -136,15 +120,9 @@ namespace Simulator.ScenarioEditor.Agents
         }
 
         /// <inheritdoc/>
-        public override void DragNewAgent()
-        {
-            ScenarioManager.Instance.GetExtension<InputManager>().StartDraggingElement(this);
-        }
-
-        /// <inheritdoc/>
         public override void DragStarted()
         {
-            draggedInstance = GetModelInstance(DefaultVariant);
+            draggedInstance = GetModelInstance(selectedVariant);
             draggedInstance.transform.SetParent(ScenarioManager.Instance.transform);
             draggedInstance.transform.SetPositionAndRotation(inputManager.MouseRaycastPosition,
                 Quaternion.Euler(0.0f, 0.0f, 0.0f));
@@ -165,7 +143,7 @@ namespace Simulator.ScenarioEditor.Agents
         /// <inheritdoc/>
         public override void DragFinished()
         {
-            var agent = GetAgentInstance(DefaultVariant);
+            var agent = GetAgentInstance(selectedVariant);
             agent.TransformToRotate.rotation = draggedInstance.transform.rotation;
             agent.ForceMove(draggedInstance.transform.position);
             ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(draggedInstance);

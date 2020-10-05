@@ -117,9 +117,9 @@ namespace Simulator.ScenarioEditor.UI.Utilities
         /// </summary>
         public void Deinitialize()
         {
-            unitTypes = null;
             playerPrefsKey = null;
             valueApply = null;
+            currentValue = 0;
         }
 
         /// <summary>
@@ -159,7 +159,7 @@ namespace Simulator.ScenarioEditor.UI.Utilities
         /// Changes the value according to currently selected unit type
         /// </summary>
         /// <param name="valueString">Value in string</param>
-        public void ChangeValue(string valueString)
+        public void OnValueInputApply(string valueString)
         {
             if (!float.TryParse(valueString, out var value)) return;
 

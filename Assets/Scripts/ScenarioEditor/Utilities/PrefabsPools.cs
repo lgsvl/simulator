@@ -110,6 +110,7 @@ namespace Simulator.ScenarioEditor.Utilities
                 return Task.CompletedTask;
             gameObject.SetActive(false);
             IsInitialized = true;
+            Debug.Log($"{GetType().Name} scenario editor extension has been initialized.");
             return Task.CompletedTask;
         }
 
@@ -119,6 +120,7 @@ namespace Simulator.ScenarioEditor.Utilities
             if (!IsInitialized)
                 return;
             IsInitialized = false;
+            Debug.Log($"{GetType().Name} scenario editor extension has been deinitialized.");
         }
 
         /// <summary>

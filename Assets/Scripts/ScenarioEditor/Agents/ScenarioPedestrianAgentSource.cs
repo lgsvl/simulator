@@ -9,6 +9,7 @@ namespace Simulator.ScenarioEditor.Agents
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Elements.Agent;
     using Input;
     using Managers;
     using Undo;
@@ -33,16 +34,13 @@ namespace Simulator.ScenarioEditor.Agents
         private GameObject draggedInstance;
 
         /// <inheritdoc/>
-        public override string AgentTypeName => "PedestrianAgent";
+        public override string ElementTypeName => "PedestrianAgent";
 
         /// <inheritdoc/>
         public override int AgentTypeId => 3;
 
         /// <inheritdoc/>
-        public override List<AgentVariant> AgentVariants { get; } = new List<AgentVariant>();
-
-        /// <inheritdoc/>
-        public override AgentVariant DefaultVariant { get; set; }
+        public override List<SourceVariant> Variants { get; } = new List<SourceVariant>();
 
         /// <inheritdoc/>
 #pragma warning disable 1998
@@ -60,10 +58,8 @@ namespace Simulator.ScenarioEditor.Agents
                     name = pedestrian.name,
                     prefab = pedestrian
                 };
-                AgentVariants.Add(egoAgent);
+                Variants.Add(egoAgent);
             }
-
-            DefaultVariant = AgentVariants[0];
         }
 #pragma warning restore 1998
 
@@ -73,9 +69,9 @@ namespace Simulator.ScenarioEditor.Agents
         }
 
         /// <inheritdoc/>
-        public override GameObject GetModelInstance(AgentVariant variant)
+        public override GameObject GetModelInstance(SourceVariant variant)
         {
-            var instance = ScenarioManager.Instance.GetExtension<PrefabsPools>().GetInstance(variant.prefab);
+            var instance = base.GetModelInstance(variant);
             if (instance.GetComponent<BoxCollider>() == null)
             {
                 var collider = instance.AddComponent<BoxCollider>();
@@ -101,17 +97,12 @@ namespace Simulator.ScenarioEditor.Agents
         /// <inheritdoc/>
         public override ScenarioAgent GetAgentInstance(AgentVariant variant)
         {
-            var newGameObject = new GameObject(AgentTypeName);
-            newGameObject.transform.SetParent(ScenarioManager.Instance.transform);
+            var agentsManager = ScenarioManager.Instance.GetExtension<ScenarioAgentsManager>();
+            var newGameObject = new GameObject(ElementTypeName);
+            newGameObject.transform.SetParent(agentsManager.transform);
             var scenarioAgent = newGameObject.AddComponent<ScenarioAgent>();
             scenarioAgent.Setup(this, variant);
             return scenarioAgent;
-        }
-
-        /// <inheritdoc/>
-        public override void ReturnModelInstance(GameObject instance)
-        {
-            ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(instance);
         }
 
         /// <inheritdoc/>
@@ -121,15 +112,9 @@ namespace Simulator.ScenarioEditor.Agents
         }
 
         /// <inheritdoc/>
-        public override void DragNewAgent()
-        {
-            ScenarioManager.Instance.GetExtension<InputManager>().StartDraggingElement(this);
-        }
-
-        /// <inheritdoc/>
         public override void DragStarted()
         {
-            draggedInstance = ScenarioManager.Instance.GetExtension<PrefabsPools>().GetInstance(AgentVariants[0].prefab);
+            draggedInstance = GetModelInstance(selectedVariant);
             draggedInstance.transform.SetParent(ScenarioManager.Instance.transform);
             draggedInstance.transform.SetPositionAndRotation(inputManager.MouseRaycastPosition,
                 Quaternion.Euler(0.0f, 0.0f, 0.0f));
@@ -150,7 +135,7 @@ namespace Simulator.ScenarioEditor.Agents
         /// <inheritdoc/>
         public override void DragFinished()
         {
-            var agent = GetAgentInstance(AgentVariants[0]);
+            var agent = GetAgentInstance(selectedVariant);
             agent.TransformToRotate.rotation = draggedInstance.transform.rotation;
             agent.ForceMove(draggedInstance.transform.position);
             ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(draggedInstance);

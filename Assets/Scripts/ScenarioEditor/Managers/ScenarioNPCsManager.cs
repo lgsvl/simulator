@@ -33,6 +33,7 @@ namespace Simulator.ScenarioEditor.Managers
                 return Task.CompletedTask;
             AvailableBehaviourTypes = ReflectionCache.FindTypes(type => type.IsSubclassOf(typeof(NPCBehaviourBase)) && !type.IsAbstract);
             IsInitialized = true;
+            Debug.Log($"{GetType().Name} scenario editor extension has been initialized.");
             return Task.CompletedTask;
         }
 
@@ -42,6 +43,7 @@ namespace Simulator.ScenarioEditor.Managers
             if (!IsInitialized)
                 return;
             IsInitialized = false;
+            Debug.Log($"{GetType().Name} scenario editor extension has been deinitialized.");
         }
     }
 }

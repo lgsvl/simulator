@@ -7,6 +7,7 @@
 
 namespace Simulator.ScenarioEditor.Elements
 {
+    using Agent;
     using Agents;
     using Managers;
     using UnityEngine;

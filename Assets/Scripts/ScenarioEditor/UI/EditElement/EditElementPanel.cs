@@ -24,6 +24,12 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// </summary>
         [SerializeField]
         private List<ParameterEditPanel> panelsPrefabs = new List<ParameterEditPanel>();
+        
+        /// <summary>
+        /// Transform parent for the panel content
+        /// </summary>
+        [SerializeField]
+        private Transform contentParent;
 #pragma warning restore 0649
 
         /// <summary>
@@ -37,7 +43,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             for (var i = 0; i < panelsPrefabs.Count; i++)
             {
                 var prefab = panelsPrefabs[i];
-                var panel = Instantiate(prefab, transform);
+                var panel = Instantiate(prefab, contentParent);
                 panel.Initialize();
                 panels.Add(panel);
             }
@@ -55,7 +61,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         public override void Show()
         {
             gameObject.SetActive(true);
-            UnityUtilities.LayoutRebuild(transform as RectTransform);
+            UnityUtilities.LayoutRebuild(contentParent as RectTransform);
         }
 
         /// <inheritdoc/>

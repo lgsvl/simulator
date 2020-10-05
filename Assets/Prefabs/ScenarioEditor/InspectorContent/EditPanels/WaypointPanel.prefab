@@ -1658,7 +1658,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 7678158460482234438}
-        m_MethodName: ChangeValue
+        m_MethodName: OnValueInputApply
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2291,7 +2291,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 7678158459915483645}
-        m_MethodName: ChangeWaypointWaitTime
+        m_MethodName: OnWaypointWaitTimeInputChange
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

@@ -18,7 +18,7 @@ namespace Simulator.ScenarioEditor.Agents.Triggers
     public class WaitingPointZone : ScenarioEffectorObject
     {
         /// <summary>
-        /// The position offset that will be applied to the line renderer of waypoints
+        /// The position offset that will be applied to the line renderer
         /// </summary>
         private static Vector3 lineRendererPositionOffset = new Vector3(0.0f, 0.2f, 0.0f);
 

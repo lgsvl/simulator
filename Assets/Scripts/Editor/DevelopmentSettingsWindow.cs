@@ -83,14 +83,8 @@ namespace Simulator.Editor
                                 MacAddress="00:00:00:00:00:00"
                             }
                         }
-                    },
-                    NPCs = new Config.NPCAssetData[] { },
+                    }
                 };
-            }
-
-            if (DeveloperSimulation.NPCs == null || DeveloperSimulation.NPCs.Length == 0)
-            {
-                DeveloperSimulation.NPCs = Config.NPCVehicles.Values.ToArray(); // TODO get from cloud and refresh config.cs LoadExternalAssets()
             }
 
             Refresh();
@@ -137,6 +131,11 @@ namespace Simulator.Editor
         }
 
         bool updating = false;
+
+       List<(string idOrPath, object data, string display)> VehicleChoices =>
+                            LocalVehicles.Select(g => (idOrPath: g,    data: (object)g, display: "local: " + Path.GetFileName(g))).Concat(
+                            CloudVehicles.Select(v => (idOrPath: v.Id, data: (object)v, display: "cloud: " + v.Name)))
+                            .ToList();
         async void Refresh()
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode)
@@ -178,6 +177,9 @@ namespace Simulator.Editor
                 var ret = await API.GetLibrary<VehicleDetailData>();
                 CloudVehicles = ret.ToList();
 
+                string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/External/Vehicles" });
+                LocalVehicles = guids.Select(g => AssetDatabase.GUIDToAssetPath(g)).ToList();
+
                 string idOrPath = null;
                 if (DeveloperSimulation.Vehicles != null) // get previously selected thing
                 {
@@ -188,17 +190,14 @@ namespace Simulator.Editor
                 if (idOrPath != null)
                 {
                     // find index of previously selected thing in new dataset
-                    var vehicleChoices = LocalVehicles.Select(g => g).Concat(
-                    CloudVehicles.Select(v => v.Id)).ToList();
-                    CurrentVehicleIndex = vehicleChoices.FindIndex(v => v == idOrPath);
-                    // vehicle was previously selected but no longer available, need to keep something selected
-                    if (CurrentVehicleIndex < 0)
-                    {
-                        Debug.Log("previously selected vehicle missing.");
-                        CurrentVehicleIndex = 0;
-                    }
+                    var vehicleChoices = VehicleChoices;
+                    var selected = vehicleChoices.FindIndex(v => v.idOrPath == idOrPath);
+                    SetVehicleFromSelectionIndex(vehicleChoices, selected);
+
                     await UpdateCloudVehicleDetails();
                 }
+
+                DeveloperSimulation.NPCs = Config.NPCVehicles.Values.ToArray(); // TODO get from cloud and refresh config.cs LoadExternalAssets()
             }
             catch (Exception ex)
             {
@@ -216,8 +215,6 @@ namespace Simulator.Editor
                 Repaint();
             }
 
-            string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/External/Vehicles" });
-            LocalVehicles = guids.Select(g => AssetDatabase.GUIDToAssetPath(g)).ToList();
         }
 
         void OnGUI()
@@ -302,36 +299,16 @@ namespace Simulator.Editor
                     if (VehicleSetup)
                     {
                         // a list of tuples (display:"name to show", data:string or VehicleDetailData )
-                        var vehicleChoices = LocalVehicles.Select(g => (data: (object)g, display: "local: " + Path.GetFileName(g))).Concat(
-                            CloudVehicles.Select(v => (data: (object)v, display: "cloud: " + v.Name))).ToList();
+                        var vehicleChoices = VehicleChoices;
 
                         if (vehicleChoices.Count > 0)
                         {
                             EditorGUI.indentLevel++;
-                            CurrentVehicleIndex = EditorGUILayout.Popup(CurrentVehicleIndex, vehicleChoices.Select(v => v.display).ToArray());
+                            var newIndex = EditorGUILayout.Popup(CurrentVehicleIndex, vehicleChoices.Select(v => v.display).ToArray());
+                            var vehicle = SetVehicleFromSelectionIndex(vehicleChoices, newIndex);
 
-                            if (CurrentVehicleIndex > vehicleChoices.Count - 1)
-                                return;
-
-                            object selection = vehicleChoices[CurrentVehicleIndex].data;
-
-                            if (selection.GetType() == typeof(string))
+                            if(vehicle.Id.EndsWith(".prefab"))
                             {
-                                if (DeveloperSimulation.Vehicles == null)
-                                {
-                                    DeveloperSimulation.Vehicles = new VehicleData[]
-                                    {
-                                    new VehicleData()
-                                    };
-                                }
-
-                                var vehicle = DeveloperSimulation.Vehicles[0];
-                                vehicle.Id = (string)selection;
-                                if (vehicle.Bridge == null)
-                                {
-                                    vehicle.Bridge = new BridgeData();
-                                }
-
                                 vehicle.Bridge.Type = EditorGUILayout.TextField("Bridge Type", vehicle.Bridge.Type);
                                 vehicle.Bridge.ConnectionString = EditorGUILayout.TextField("Bridge Connection", vehicle.Bridge.ConnectionString);
 
@@ -347,11 +324,8 @@ namespace Simulator.Editor
                                     EditorGUILayout.HelpBox(e.Message, MessageType.Error);
                                 }
                             }
-                            else if (selection.GetType() == typeof(VehicleDetailData))
+                            else
                             {
-                                // want cloud vehicle, so clear local vehicle
-                                DeveloperSimulation.Vehicles = new VehicleData[] { ((VehicleDetailData)selection).ToVehicleData() };
-                                var vehicle = DeveloperSimulation.Vehicles[0];
                                 if (vehicle.Bridge != null)
                                 {
                                     vehicle.Bridge.ConnectionString = EditorGUILayout.TextField("Bridge Connection", vehicle.Bridge.ConnectionString);
@@ -377,6 +351,7 @@ namespace Simulator.Editor
             NPCSelectEnable = EditorGUILayout.BeginToggleGroup("NPC Select", NPCSelectEnable);
             if (NPCSelectEnable)
             {
+                EditorGUI.indentLevel++;
                 EditorGUILayout.BeginHorizontal(GUILayout.ExpandHeight(false));
                 if (GUILayout.Button("Select All", GUILayout.ExpandWidth(false)))
                 {
@@ -397,6 +372,7 @@ namespace Simulator.Editor
                 {
                     npc.Enabled = EditorGUILayout.Toggle($"{npc.Name}", npc.Enabled);
                 }
+                EditorGUI.indentLevel--;
             }
             EditorGUILayout.EndToggleGroup();
             EditorGUILayout.EndScrollView();
@@ -407,13 +383,39 @@ namespace Simulator.Editor
             }
         }
 
+        private VehicleData SetVehicleFromSelectionIndex(List<(string idOrPath, object data, string display)> vehicleChoices, int newSelectionIndex)
+        {
+            if (newSelectionIndex < 0 || newSelectionIndex > vehicleChoices.Count)
+            {
+                Debug.Log("previously selected vehicle missing.");
+                newSelectionIndex = 0;
+            }
+            CurrentVehicleIndex = newSelectionIndex;
+            object selection = vehicleChoices[CurrentVehicleIndex].data;
+            VehicleData vehicle;
+
+            if (selection.GetType() == typeof(string))
+            {
+                vehicle = new VehicleData {
+                    Id = (string)selection,
+                    Bridge = new BridgeData()
+                };
+            }
+            else // Cloud Vehicle
+            {
+                vehicle = ((VehicleDetailData)selection).ToVehicleData();
+            }
+            DeveloperSimulation.Vehicles = new VehicleData[] { vehicle };
+            return vehicle;
+        }
+
         async Task UpdateCloudVehicleDetails()
         {
             if (API == null)
                 return;
 
             if (DeveloperSimulation.Vehicles != null && !DeveloperSimulation.Vehicles[0].Id.EndsWith(".prefab"))
-            {
+            try {
                 // vehicle list does not give us sensor data, so we have to get it later.
                 // I do not want to query each vehicle individually and I can't block the UI, so
                 // we do it after a change was made to the settings in this fire and forget async function
@@ -427,6 +429,10 @@ namespace Simulator.Editor
 
                 // splice in fetched data (containing extended data like bridge) for matching id
                 CloudVehicles = CloudVehicles.Select(v => v.Id == DeveloperSimulation.Vehicles[0].Id ? data : v).ToList();
+            }
+            catch(Exception e)
+            {
+                Debug.Log($"Failed to get details of vehicle {DeveloperSimulation.Vehicles[0].Id}: {e.Message}");
             }
         }
 

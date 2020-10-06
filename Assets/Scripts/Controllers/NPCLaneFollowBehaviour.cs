@@ -44,6 +44,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     //protected float nextRaycast = 0f;
     protected float laneSpeedLimit = 0f;
     protected float normalSpeed = 0f;
+    protected float APIMaxSpeed = 0f;
     public float targetSpeed = 0f;
     public float targetTurn = 0f;
     public float currentTurn = 0f;
@@ -514,14 +515,15 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
             currentMapLane = currentMapLane.nextConnectedLanes[RandomGenerator.Next(currentMapLane.nextConnectedLanes.Count)];
             laneSpeedLimit = currentMapLane.speedLimit;
             aggressionAdjustRate = laneSpeedLimit / 11.176f; // 11.176 m/s corresponds to 25 mph
-            normalSpeed = RandomGenerator.NextFloat(laneSpeedLimit - 3 + aggression, laneSpeedLimit + 1 + aggression);
+            normalSpeed = APIMaxSpeed > 0 ?
+                Mathf.Min(APIMaxSpeed, laneSpeedLimit) :
+                RandomGenerator.NextFloat(laneSpeedLimit - 3 + aggression, laneSpeedLimit + 1 + aggression); // API set max speed or lane speed limit
             SetLaneData(currentMapLane.mapWorldPositions);
             SetTurnSignal();
         }
-        else // issue getting new waypoints so despawn
+        else
         {
-            // TODO raycast to see adjacent lanes? Need system
-            Despawn();
+            Despawn(); // issue getting new waypoints so despawn
         }
     }
 
@@ -893,8 +895,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         {
             StartStoppingCoroutine();
         }
-
-        normalSpeed = maxSpeed;
+        normalSpeed = APIMaxSpeed = maxSpeed;
     }
 
     void StartStoppingCoroutine()

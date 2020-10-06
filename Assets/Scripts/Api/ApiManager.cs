@@ -17,6 +17,7 @@ using WebSocketSharp.Server;
 
 using Simulator.Web;
 using System.Net;
+using System.Net.Sockets;
 using System.Collections.Concurrent;
 using Simulator.Controllable;
 using Simulator.Network.Core.Connection;
@@ -237,7 +238,7 @@ namespace Simulator.Api
             DontDestroyOnLoad(gameObject);
             Instance = this;
 
-            IPAddress address;
+            IPAddress address = null;
             if (Config.ApiHost == "*")
             {
                 address = IPAddress.Any;
@@ -246,14 +247,31 @@ namespace Simulator.Api
             {
                 address = IPAddress.Loopback;
             }
+            else if (IPAddress.TryParse(Config.ApiHost, out address))
+            {
+                // IP address has been parsed. Nothing else to do.
+            }
             else
             {
+                // Resolve name using DNS
                 var entries = Dns.GetHostEntry(Config.ApiHost);
                 if (entries.AddressList.Length == 0)
                 {
                     throw new Exception($"Cannot resolve {Config.ApiHost} hostname");
                 }
-                address = entries.AddressList[0];
+
+                foreach (var adr in entries.AddressList)
+                {
+                    if (adr.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        address = adr;
+                        break;
+                    }
+                }
+                if (address == null)
+                {
+                    throw new Exception($"No IPv4 address for {Config.ApiHost} hostname");
+                }
             }
 
             Server = new WebSocketServer(address, Config.ApiPort);

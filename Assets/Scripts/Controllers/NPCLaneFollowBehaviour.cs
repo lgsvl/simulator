@@ -801,9 +801,14 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
 
         if ((currentMapLane.isIntersectionLane || Vector3.Distance(transform.position, currentMapLane.mapWorldPositions[currentMapLane.mapWorldPositions.Count - 1]) < 10) && !isRightTurn && !isLeftTurn)
         {
-            stopHitDistance = Mathf.Lerp(4f, 20 / aggression * aggressionAdjustRate, currentSpeed / laneSpeedLimit); // if going straight through an intersection or is approaching the end of the current lane, give more space
+            // if going straight through an intersection or is approaching the end of the current lane, give more space
+            stopHitDistance = Mathf.Lerp(4f, 20 / aggression * aggressionAdjustRate, currentSpeed / laneSpeedLimit);
         }
-        else stopHitDistance = Mathf.Lerp(4f, 12 / aggression * aggressionAdjustRate, currentSpeed / laneSpeedLimit); // higher aggression and/or lower speeds -> lower stophitdistance
+        else
+        {
+            // higher aggression and/or lower speeds -> lower stophitdistance
+            stopHitDistance = Mathf.Lerp(4f, 12 / aggression * aggressionAdjustRate, currentSpeed / laneSpeedLimit);
+        }
 
         isFrontDetectWithinStopDistance = (frontClosestHitInfo.collider) && frontClosestHitInfo.distance < stopHitDistance;
         isRightDetectWithinStopDistance = (rightClosestHitInfo.collider) && rightClosestHitInfo.distance < stopHitDistance / 2;
@@ -832,6 +837,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         blocking = blocking ?? leftClosestHitInfo.transform;
 
         float tempS = 0f;
+        // TODO logic has changed and this is causing an issue with behavior SetFrontDetectSpeed should never have frontClosestHitInfo.distance > stopHitDistance
         if (Vector3.Dot(transform.forward, blocking.transform.forward) > 0.7f) // detected is on similar vector
         {
             if (frontClosestHitInfo.distance > stopHitDistance)
@@ -839,10 +845,10 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
                 tempS = (normalSpeed) * (frontClosestHitInfo.distance / stopHitDistance);
             }
         }
-        else if (Vector3.Dot(transform.forward, blocking.transform.forward) < -0.2f && (isRightTurn || isLeftTurn))
-        {
-            tempS = normalSpeed;
-        }
+        //else if (Vector3.Dot(transform.forward, blocking.transform.forward) < -0.2f && (isRightTurn || isLeftTurn))
+        //{
+        //    tempS = normalSpeed;
+        //}
         return tempS;
     }
     #endregion

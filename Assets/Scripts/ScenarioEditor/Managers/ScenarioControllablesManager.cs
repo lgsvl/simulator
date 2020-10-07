@@ -52,7 +52,6 @@ namespace Simulator.ScenarioEditor.Managers
         {
             if (IsInitialized)
                 return;
-            await ScenarioManager.Instance.WaitForExtension<PrefabsPools>();
             await ScenarioManager.Instance.WaitForExtension<InputManager>();
             await source.Initialize();
             ScenarioManager.Instance.ScenarioReset += InstanceOnScenarioReset;

@@ -162,13 +162,13 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             isAddingWaypoints = true;
 
             var mapWaypointPrefab = ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>().waypointPrefab;
-            waypointInstance = ScenarioManager.Instance.GetExtension<PrefabsPools>().GetInstance(mapWaypointPrefab)
+            waypointInstance = ScenarioManager.Instance.prefabsPools.GetInstance(mapWaypointPrefab)
                 .GetComponent<ScenarioWaypoint>();
             if (waypointInstance == null)
             {
                 Debug.LogWarning("Cannot add waypoints. Add waypoint component to the prefab.");
                 ScenarioManager.Instance.GetExtension<InputManager>().CancelAddingElements(this);
-                ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(waypointInstance.gameObject);
+                ScenarioManager.Instance.prefabsPools.ReturnInstance(waypointInstance.gameObject);
                 return;
             }
 
@@ -216,7 +216,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         {
             var previousWaypoint = waypointInstance;
             var mapWaypointPrefab = ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>().waypointPrefab;
-            waypointInstance = ScenarioManager.Instance.GetExtension<PrefabsPools>().GetInstance(mapWaypointPrefab)
+            waypointInstance = ScenarioManager.Instance.prefabsPools.GetInstance(mapWaypointPrefab)
                 .GetComponent<ScenarioWaypoint>();
             waypointInstance.transform.position = addPosition;
             var mapManager = ScenarioManager.Instance.GetExtension<ScenarioMapManager>();

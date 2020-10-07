@@ -62,7 +62,6 @@ namespace Simulator.ScenarioEditor.Managers
         {
             if (IsInitialized)
                 return;
-            await ScenarioManager.Instance.WaitForExtension<PrefabsPools>();
             await ScenarioManager.Instance.WaitForExtension<InputManager>();
             var interfaceType = typeof(ScenarioAgentSource);
             var types = ReflectionCache.FindTypes((type) => !type.IsAbstract && interfaceType.IsAssignableFrom(type));

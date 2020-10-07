@@ -8,9 +8,7 @@
 namespace Simulator.ScenarioEditor.Agents
 {
     using System.Threading.Tasks;
-    using Managers;
     using UnityEngine;
-    using Utilities;
 
     /// <summary>
     /// Data describing a single agent variant of the scenario agent type
@@ -20,27 +18,17 @@ namespace Simulator.ScenarioEditor.Agents
         /// <summary>
         /// The source of the scenario agent type, this variant is a part of this source
         /// </summary>
-        public ScenarioAgentSource source;
+        protected ScenarioAgentSource source;
 
         /// <summary>
         /// Name of this agent variant
         /// </summary>
-        public string name;
+        protected string name;
 
         /// <summary>
         /// Prefab used to visualize this agent variant
         /// </summary>
-        public GameObject prefab;
-
-        /// <summary>
-        /// Texture used to visualize this agent variant in UI
-        /// </summary>
-        private Texture2D iconTexture;
-
-        /// <summary>
-        /// Sprite used to visualize this agent variant in UI
-        /// </summary>
-        private Sprite iconSprite;
+        protected GameObject prefab;
 
         /// <inheritdoc/>
         public override string Name => name;
@@ -48,53 +36,24 @@ namespace Simulator.ScenarioEditor.Agents
         /// <inheritdoc/>
         public override GameObject Prefab => prefab;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="source">The source of the scenario agent type, this variant is a part of this source</param>
+        /// <param name="name">Name of this agent variant</param>
+        /// <param name="prefab">Prefab used to visualize this agent variant</param>
+        public AgentVariant(ScenarioAgentSource source, string name, GameObject prefab)
+        {
+            this.source = source;
+            this.name = name;
+            this.prefab = prefab;
+            IsPrepared = prefab != null;
+        }
+
         /// <inheritdoc/>
-        public override Texture2D IconTexture
+        public override Task Prepare()
         {
-            get
-            {
-                if (iconTexture == null)
-                    iconTexture = ShotTexture();
-                return iconTexture;
-            }
+            return Task.CompletedTask;
         }
-
-        /// <summary>
-        /// Sprite used to visualize this agent variant in UI
-        /// </summary>
-        public Sprite IconSprite
-        {
-            get
-            {
-                if (iconSprite == null)
-                    iconSprite = Sprite.Create(IconTexture, new Rect(0.0f, 0.0f, IconTexture.width, IconTexture.height),
-                        new Vector2(0.5f, 0.5f), 100.0f);
-                return iconSprite;
-            }
-        }
-
-        /// <summary>
-        /// Shots the variant's prefab to a texture using the <see cref="ObjectsShotCapture"/>
-        /// </summary>
-        /// <returns>Shot texture of this variant's prefab</returns>
-        private Texture2D ShotTexture()
-        {
-            var instance = source.GetModelInstance(this);
-            var texture = ScenarioManager.Instance.objectsShotCapture.ShotObject(instance.gameObject);
-            ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(instance.gameObject);
-            return texture;
-        }
-
-        /// <summary>
-        /// Prepares the variant with all the assets
-        /// </summary>
-        /// <returns>Task</returns>
-        #pragma warning disable 1998
-        public virtual async Task Prepare()
-        {
-            //Invoke icon initialization
-            var texture = IconTexture;
-        }
-        #pragma warning restore 1998
     }
 }

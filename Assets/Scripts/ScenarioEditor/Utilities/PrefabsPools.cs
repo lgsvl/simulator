@@ -17,10 +17,10 @@ namespace Simulator.ScenarioEditor.Utilities
     /// <summary>
     /// Pooling mechanism for prefabs in the visual scenario editor
     /// </summary>
-    public class PrefabsPools : MonoBehaviour, IScenarioEditorExtension
+    public class PrefabsPools : MonoBehaviour
     {
         /// <summary>
-        /// Pool handling a single prefabs
+        /// Pool handling a single prefab instances
         /// </summary>
         private class PrefabPool
         {

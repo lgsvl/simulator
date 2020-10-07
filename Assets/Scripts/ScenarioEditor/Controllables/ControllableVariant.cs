@@ -7,6 +7,7 @@
 
 namespace Simulator.ScenarioEditor.Controllables
 {
+    using System.Threading.Tasks;
     using Agents;
     using Controllable;
     using Managers;
@@ -28,27 +29,11 @@ namespace Simulator.ScenarioEditor.Controllables
         /// </summary>
         public IControllable controllable;
 
-        /// <summary>
-        /// Texture used to visualize this agent variant in UI
-        /// </summary>
-        private Texture2D iconTexture;
-
         /// <inheritdoc/>
         public override string Name => name;
 
         /// <inheritdoc/>
         public override GameObject Prefab => controllable.gameObject;
-        
-        /// <inheritdoc/>
-        public override Texture2D IconTexture
-        {
-            get
-            {
-                if (iconTexture == null)
-                    iconTexture = ShotTexture();
-                return iconTexture;
-            }
-        }
 
         /// <summary>
         /// Setup the controllable variant with the required data
@@ -59,17 +44,13 @@ namespace Simulator.ScenarioEditor.Controllables
         {
             this.name = name;
             this.controllable = controllable;
+            IsPrepared = Prefab != null;
         }
-
-        /// <summary>
-        /// Shots the variant's prefab to a texture using the <see cref="ObjectsShotCapture"/>
-        /// </summary>
-        private Texture2D ShotTexture()
+        
+        /// <inheritdoc/>
+        public override Task Prepare()
         {
-            var instance = ScenarioManager.Instance.GetExtension<PrefabsPools>().GetInstance(Prefab);
-            var texture = ScenarioManager.Instance.objectsShotCapture.ShotObject(instance);
-            ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(instance);
-            return texture;
+            return Task.CompletedTask;
         }
     }
 }

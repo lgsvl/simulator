@@ -28,6 +28,11 @@ namespace Simulator.ScenarioEditor.Agents
         /// Id of the agent type this source handles
         /// </summary>
         public abstract int AgentTypeId { get; }
+        
+        /// <summary>
+        /// Parameter type of agents handled by this source
+        /// </summary>
+        public abstract string ParameterType { get; }
 
         /// <summary>
         /// Agent type this source handles

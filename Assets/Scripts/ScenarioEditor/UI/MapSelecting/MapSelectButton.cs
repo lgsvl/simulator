@@ -7,6 +7,7 @@
 
 namespace Simulator.ScenarioEditor.UI.MapSelecting
 {
+    using Managers;
     using UnityEngine;
     using UnityEngine.UI;
 
@@ -15,6 +16,11 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
     /// </summary>
     public class MapSelectButton : MonoBehaviour
     {
+        /// <summary>
+        /// Sign that is added to the name text when bound map is unprepared
+        /// </summary>
+        private static string UnpreparedSign = "";
+        
         //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
 #pragma warning disable 0649
         /// <summary>
@@ -62,7 +68,8 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
         public void Setup(string map)
         {
             MapName = map;
-            nameText.text = map;
+            var isMapDownloaded = ScenarioManager.Instance.GetExtension<ScenarioMapManager>().IsMapDownloaded(map);
+            nameText.text = !isMapDownloaded ? $"{UnpreparedSign} {map} {UnpreparedSign}" : map;
         }
 
         /// <summary>
@@ -81,6 +88,7 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
         {
             uiButton.interactable = false;
             isCurrentMap = true;
+            nameText.text = MapName;
         }
 
         /// <summary>

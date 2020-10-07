@@ -45,13 +45,29 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Behaviours
         protected override void OnShown()
         {
             base.OnShown();
-            currentIsLaneChange = selectedAgent.BehaviourParameters.HasKey("isLaneChange") &&
-                               (bool) selectedAgent.BehaviourParameters["isLaneChange"];
+            //Setup the isLaneChange value
+            if (selectedAgent.BehaviourParameters.HasKey("isLaneChange"))
+            {
+                currentIsLaneChange = (bool) selectedAgent.BehaviourParameters["isLaneChange"];
+            }
+            else
+            {
+                currentIsLaneChange = false;
+                selectedAgent.BehaviourParameters["isLaneChange"] = currentIsLaneChange;
+            }
             isLaneChangeToggle.SetIsOnWithoutNotify(currentIsLaneChange);
+            //Setup the maxSpeed value and input
             maxSpeedInput.Initialize(ScenarioPersistenceKeys.SpeedUnitKey, MaxSpeedApply);
-            var maxSpeed = selectedAgent.BehaviourParameters.HasKey("maxSpeed")
-                ? (float) selectedAgent.BehaviourParameters["maxSpeed"]
-                : 0.0f;
+            float maxSpeed;
+            if (selectedAgent.BehaviourParameters.HasKey("maxSpeed"))
+            {
+                maxSpeed = (float) selectedAgent.BehaviourParameters["maxSpeed"];
+            }
+            else
+            {
+                maxSpeed = 0.0f;
+                selectedAgent.BehaviourParameters["maxSpeed"] = maxSpeed;
+            }
             maxSpeedInput.ExternalValueChange(maxSpeed, false);
         }
 

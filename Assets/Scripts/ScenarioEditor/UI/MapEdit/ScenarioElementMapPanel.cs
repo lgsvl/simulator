@@ -10,10 +10,8 @@ namespace Simulator.ScenarioEditor.UI.MapEdit.Buttons
     using System;
     using System.Collections;
     using System.Collections.Generic;
-    using System.Linq;
     using Elements;
     using Managers;
-    using Simulator.Utilities;
     using UnityEngine;
 
     /// <summary>

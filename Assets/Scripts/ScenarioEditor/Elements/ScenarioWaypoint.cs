@@ -161,7 +161,7 @@ namespace Simulator.ScenarioEditor.Elements
                 linkedTrigger.Deinitalize();
             Speed = 6.0f;
             WaitTime = 0.0f;
-            ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(gameObject);
+            ScenarioManager.Instance.prefabsPools.ReturnInstance(gameObject);
         }
 
         /// <inheritdoc/>

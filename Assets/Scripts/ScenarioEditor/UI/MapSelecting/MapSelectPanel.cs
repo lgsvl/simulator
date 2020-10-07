@@ -14,6 +14,7 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
     using Managers;
     using ScenarioEditor.Utilities;
     using UnityEngine;
+    using Utilities;
 
     /// <summary>
     /// Panel allows selecting different map for a scenario
@@ -127,9 +128,10 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
         {
             ScenarioManager.Instance.RequestResetScenario(() =>
             {
-                ScenarioManager.Instance.ShowLoadingPanel();
+                var loadingProcess = ScenarioManager.Instance.loadingPanel.AddProgress();
+                loadingProcess.Update($"Switching to the {mapName} map.", false);
                 //Delay selecting map so the loading panel can initialize
-                var nonBlockingTask = DelayedSelectMap(mapName);
+                var nonBlockingTask = DelayedSelectMap(mapName, loadingProcess);
             }, null);
         }
 
@@ -138,11 +140,11 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
         /// </summary>
         /// <param name="mapName">Name of map which should be loaded</param>
         /// <returns>IEnumerator</returns>
-        private async Task DelayedSelectMap(string mapName)
+        private async Task DelayedSelectMap(string mapName, LoadingPanel.LoadingProcess loadingProcess)
         {
             await Task.Delay(20);
             await ScenarioManager.Instance.GetExtension<ScenarioMapManager>().LoadMapAsync(mapName);
-            ScenarioManager.Instance.HideLoadingPanel();
+            loadingProcess.Update($"Switched to the {mapName} map.", true);
         }
     }
 }

@@ -161,7 +161,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
             var directories = Directory.GetDirectories(path);
             foreach (var directory in directories)
             {
-                var buttonGameObject = ScenarioManager.Instance.GetExtension<PrefabsPools>()
+                var buttonGameObject = ScenarioManager.Instance.prefabsPools
                     .GetInstance(fileButtonSample.gameObject);
                 buttonGameObject.transform.SetParent(filesGrid);
                 buttonGameObject.SetActive(true);
@@ -190,7 +190,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
             var files = Directory.GetFiles(path, searchPattern);
             foreach (var file in files)
             {
-                var buttonGameObject = ScenarioManager.Instance.GetExtension<PrefabsPools>()
+                var buttonGameObject = ScenarioManager.Instance.prefabsPools
                     .GetInstance(fileButtonSample.gameObject);
                 buttonGameObject.transform.SetParent(filesGrid);
                 buttonGameObject.SetActive(true);
@@ -213,7 +213,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
             for (var i = filesButtons.Count - 1; i >= 0; i--)
             {
                 var fileButton = filesButtons[i];
-                ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(fileButton.gameObject);
+                ScenarioManager.Instance.prefabsPools.ReturnInstance(fileButton.gameObject);
             }
 
             filesButtons.Clear();

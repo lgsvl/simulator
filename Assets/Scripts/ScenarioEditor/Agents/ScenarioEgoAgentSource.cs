@@ -41,11 +41,14 @@ namespace Simulator.ScenarioEditor.Agents
         public override string ElementTypeName => "EgoAgent";
 
         /// <inheritdoc/>
+        public override string ParameterType => "vehicle";
+
+        /// <inheritdoc/>
         public override int AgentTypeId => 1;
 
         /// <inheritdoc/>
         public override List<SourceVariant> Variants { get; } = new List<SourceVariant>();
-        
+
         /// <inheritdoc/>
         public override async Task Initialize()
         {
@@ -53,28 +56,22 @@ namespace Simulator.ScenarioEditor.Agents
             var library = await ConnectionManager.API.GetLibrary<VehicleDetailData>();
 
             var assetService = new AssetService();
-            var vehiclesInDatabase = assetService.List(BundleConfig.BundleTypes.Environment);
+            var vehiclesInDatabase = assetService.List(BundleConfig.BundleTypes.Vehicle);
             var cachedVehicles = vehiclesInDatabase as AssetModel[] ?? vehiclesInDatabase.ToArray();
 
-            var downloadTasks = new List<Task>();
             foreach (var vehicleDetailData in library)
             {
-                var newVehicle = new CloudAgentVariant(vehicleDetailData.Id, vehicleDetailData.Name,
-                    vehicleDetailData.AssetGuid)
+                var newVehicle = new CloudAgentVariant(this, vehicleDetailData.Name, null, 
+                    vehicleDetailData.Id, vehicleDetailData.AssetGuid)
                 {
-                    source = this,
                     assetModel =
-                        cachedVehicles.FirstOrDefault(cachedMap => cachedMap.AssetGuid == vehicleDetailData.AssetGuid)
+                        cachedVehicles.FirstOrDefault(model => model.AssetGuid == vehicleDetailData.AssetGuid)
                 };
                 if (newVehicle.assetModel != null)
                     newVehicle.AcquirePrefab();
-                else 
-                    downloadTasks.Add(newVehicle.DownloadAsset());
 
                 Variants.Add(newVehicle);
             }
-
-            await Task.WhenAll(downloadTasks);
         }
 
         /// <inheritdoc/>
@@ -86,7 +83,12 @@ namespace Simulator.ScenarioEditor.Agents
         public override GameObject GetModelInstance(SourceVariant variant)
         {
             var instance = base.GetModelInstance(variant);
+            var colliders = instance.GetComponentsInChildren<Collider>();
+            foreach (var collider in colliders) collider.isTrigger = true;
             instance.GetComponent<VehicleController>().enabled = false;
+            var rigidbody = instance.GetComponent<Rigidbody>();
+            rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+            rigidbody.isKinematic = true;
             Object.DestroyImmediate(instance.GetComponent<VehicleActions>());
             return instance;
         }
@@ -94,7 +96,7 @@ namespace Simulator.ScenarioEditor.Agents
         /// <inheritdoc/>
         public override ScenarioAgent GetAgentInstance(AgentVariant variant)
         {
-            if (variant.prefab == null)
+            if (variant.Prefab == null)
             {
                 Debug.LogError("Variant has to be prepared before getting it's instance.");
                 return null;
@@ -106,7 +108,7 @@ namespace Simulator.ScenarioEditor.Agents
             var scenarioAgent = newGameObject.AddComponent<ScenarioAgent>();
             scenarioAgent.Setup(this, variant);
             //Add destination point
-            var destinationPointObject = ScenarioManager.Instance.GetExtension<PrefabsPools>()
+            var destinationPointObject = ScenarioManager.Instance.prefabsPools
                 .GetInstance(agentsManager.destinationPoint);
             var destinationPoint = destinationPointObject.GetComponent<ScenarioDestinationPoint>();
             destinationPoint.AttachToAgent(scenarioAgent);
@@ -126,7 +128,8 @@ namespace Simulator.ScenarioEditor.Agents
             draggedInstance.transform.SetParent(ScenarioManager.Instance.transform);
             draggedInstance.transform.SetPositionAndRotation(inputManager.MouseRaycastPosition,
                 Quaternion.Euler(0.0f, 0.0f, 0.0f));
-            ScenarioManager.Instance.GetExtension<ScenarioMapManager>().LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic,
+            ScenarioManager.Instance.GetExtension<ScenarioMapManager>().LaneSnapping.SnapToLane(
+                LaneSnappingHandler.LaneType.Traffic,
                 draggedInstance.transform,
                 draggedInstance.transform);
         }
@@ -135,7 +138,8 @@ namespace Simulator.ScenarioEditor.Agents
         public override void DragMoved()
         {
             draggedInstance.transform.position = inputManager.MouseRaycastPosition;
-            ScenarioManager.Instance.GetExtension<ScenarioMapManager>().LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic,
+            ScenarioManager.Instance.GetExtension<ScenarioMapManager>().LaneSnapping.SnapToLane(
+                LaneSnappingHandler.LaneType.Traffic,
                 draggedInstance.transform,
                 draggedInstance.transform);
         }
@@ -146,7 +150,7 @@ namespace Simulator.ScenarioEditor.Agents
             var agent = GetAgentInstance(selectedVariant);
             agent.TransformToRotate.rotation = draggedInstance.transform.rotation;
             agent.ForceMove(draggedInstance.transform.position);
-            ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(draggedInstance);
+            ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
             ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoAddElement(agent));
             draggedInstance = null;
         }
@@ -154,7 +158,7 @@ namespace Simulator.ScenarioEditor.Agents
         /// <inheritdoc/>
         public override void DragCancelled()
         {
-            ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(draggedInstance);
+            ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
             draggedInstance = null;
         }
     }

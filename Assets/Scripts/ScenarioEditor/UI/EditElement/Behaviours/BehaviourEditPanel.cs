@@ -7,7 +7,6 @@
 
 namespace Simulator.ScenarioEditor.UI.EditElement.Behaviours
 {
-    using Agents;
     using Effectors;
     using Elements;
     using Elements.Agent;

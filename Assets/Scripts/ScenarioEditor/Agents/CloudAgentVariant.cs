@@ -13,6 +13,7 @@ namespace Simulator.ScenarioEditor.Agents
     using System.Threading.Tasks;
     using Database;
     using ICSharpCode.SharpZipLib.Zip;
+    using Managers;
     using UnityEngine;
     using Web;
 
@@ -25,29 +26,32 @@ namespace Simulator.ScenarioEditor.Agents
         /// Guid of the agent variant
         /// </summary>
         public readonly string guid;
-            
+
         /// <summary>
         /// Guid of the asset loaded within this vehicle
         /// </summary>
         public readonly string assetGuid;
-            
+
         /// <summary>
         /// Asset model of the downloaded vehicle, null if vehicle is not cached yet
         /// </summary>
         public AssetModel assetModel;
-        
+
         /// <summary>
         /// Constructor
         /// </summary>
+        /// <param name="source">The source of the scenario agent type, this variant is a part of this source</param>
+        /// <param name="name">Name of this agent variant</param>
+        /// <param name="prefab">Prefab used to visualize this agent variant</param>
         /// <param name="guid">Guid of the vehicle</param>
-        /// <param name="name">User friendly name of the vehicle</param>
         /// <param name="assetGuid">Guid of the asset loaded within this vehicle</param>
-        public CloudAgentVariant(string guid, string name, string assetGuid)
+        public CloudAgentVariant(ScenarioAgentSource source, string name, GameObject prefab, string guid,
+            string assetGuid) : base(source, name, prefab)
         {
             this.guid = guid;
-            this.name = name;
             this.assetGuid = assetGuid;
         }
+
         /// <summary>
         /// Loads the vehicle prefab from database for the selected vehicle model data
         /// </summary>
@@ -107,6 +111,7 @@ namespace Simulator.ScenarioEditor.Agents
                     }
 
                     prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
+                    IsPrepared = prefab != null;
                 }
                 finally
                 {
@@ -122,15 +127,21 @@ namespace Simulator.ScenarioEditor.Agents
         /// <returns>Asynchronous task</returns>
         public async Task DownloadAsset()
         {
+            ScenarioManager.Instance.logPanel.EnqueueInfo($"Started a download process of the {name} agent.");
             assetModel = await DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, assetGuid, name);
             AcquirePrefab();
+            ScenarioManager.Instance.logPanel.EnqueueInfo($"Agent {name} has been downloaded.");
         }
 
         /// <inheritdoc/>
         public override async Task Prepare()
         {
+            if (IsPrepared || IsBusy)
+                return;
+            IsBusy = true;
             await DownloadAsset();
             await base.Prepare();
+            IsBusy = false;
         }
     }
 }

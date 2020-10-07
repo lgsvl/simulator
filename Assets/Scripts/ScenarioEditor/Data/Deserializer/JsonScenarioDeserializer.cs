@@ -17,7 +17,6 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
     using Managers;
     using SimpleJSON;
     using UnityEngine;
-    using Utilities;
 
     /// <summary>
     /// Class deserializing json data and loading a scenario from it
@@ -132,7 +131,7 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                 agentInstance.Uid = agentNode["uid"];
                 var transformNode = agentNode["transform"];
                 agentInstance.transform.position = transformNode["position"].ReadVector3();
-                agentInstance.transform.rotation = Quaternion.Euler(transformNode["rotation"].ReadVector3());
+                agentInstance.TransformToRotate.rotation = Quaternion.Euler(transformNode["rotation"].ReadVector3());
                 if (agentNode.HasKey("behaviour"))
                 {
                     var behaviourNode = agentNode["behaviour"];
@@ -143,7 +142,9 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
 
                 if (agentInstance.DestinationPoint != null && agentNode.HasKey("destinationPoint"))
                 {
-                    agentInstance.DestinationPoint.transform.position = agentNode["destinationPoint"].ReadVector3();
+                    var destinationPoint = agentNode["destinationPoint"];
+                    agentInstance.DestinationPoint.TransformToMove.position = destinationPoint["position"].ReadVector3();
+                    agentInstance.DestinationPoint.TransformToRotate.rotation = Quaternion.Euler(destinationPoint["rotation"].ReadVector3());
                     agentInstance.DestinationPoint.Refresh();
                 }
 
@@ -167,7 +168,7 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
             {
                 var mapWaypointPrefab =
                     ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>().waypointPrefab;
-                var waypointInstance = ScenarioManager.Instance.GetExtension<PrefabsPools>()
+                var waypointInstance = ScenarioManager.Instance.prefabsPools
                     .GetInstance(mapWaypointPrefab).GetComponent<ScenarioWaypoint>();
                 waypointInstance.transform.position = waypointNode["position"].ReadVector3();
                 waypointInstance.WaitTime = waypointNode["wait_time"];
@@ -244,7 +245,7 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                 agentInstance.Uid = controllableNode["uid"];
                 var transformNode = controllableNode["transform"];
                 agentInstance.transform.position = transformNode["position"].ReadVector3();
-                agentInstance.transform.rotation = Quaternion.Euler(transformNode["rotation"].ReadVector3());
+                agentInstance.TransformToRotate.rotation = Quaternion.Euler(transformNode["rotation"].ReadVector3());
             }
         }
     }

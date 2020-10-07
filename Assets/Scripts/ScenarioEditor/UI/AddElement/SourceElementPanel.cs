@@ -7,9 +7,9 @@
 
 namespace Simulator.ScenarioEditor.UI.AddElement
 {
-    using System.Threading.Tasks;
     using Agents;
     using Elements;
+    using Managers;
     using UnityEngine;
     using UnityEngine.UI;
 
@@ -18,13 +18,18 @@ namespace Simulator.ScenarioEditor.UI.AddElement
     /// </summary>
     public class SourceElementPanel : MonoBehaviour
     {
+        /// <summary>
+        /// Sign that is added to the name text when bound variant is unprepared
+        /// </summary>
+        private static string UnpreparedSign = "";
+        
         //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
 #pragma warning disable 0649
         /// <summary>
-        /// Main image of this panel
+        /// Main text of this panel
         /// </summary>
         [SerializeField]
-        private RawImage image;
+        private Text text;
 #pragma warning restore 0649
 
         /// <summary>
@@ -46,19 +51,29 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         {
             this.source = source;
             this.variant = variant;
-
-            var nonBlockingTask = SetupTexture();
+            if (!variant.IsPrepared)
+            {
+                text.text = $"{UnpreparedSign} {variant.Name} {UnpreparedSign}";
+                variant.Prepared += VariantOnPrepared;
+            }
+            else text.text = variant.Name;
         }
 
         /// <summary>
-        /// Setups the texture of this panel asynchronously waiting until the texture is ready
+        /// Unity OnDestroy method
         /// </summary>
-        /// <returns>Task</returns>
-        private async Task SetupTexture()
+        public void OnDestroy()
         {
-            while (variant.IconTexture == null)
-                await Task.Delay(25);
-            image.texture = variant.IconTexture;
+            variant.Prepared -= VariantOnPrepared;
+        }
+
+        /// <summary>
+        /// Method invoked when bound variant becomes prepared
+        /// </summary>
+        private void VariantOnPrepared()
+        {
+            text.text = variant.Name;
+            variant.Prepared -= VariantOnPrepared;
         }
 
         /// <summary>
@@ -66,7 +81,16 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         /// </summary>
         public void OnElementSelected()
         {
-            source.OnVariantSelected(variant);
+            if (variant.IsBusy)
+            {
+                ScenarioManager.Instance.logPanel.EnqueueInfo($"Downloading of the {variant.Name} agent is currently in progress.");
+                return;
+            }
+
+            if (!variant.IsPrepared)
+                variant.Prepare();
+            else
+                source.OnVariantSelected(variant);
         }
     }
 }

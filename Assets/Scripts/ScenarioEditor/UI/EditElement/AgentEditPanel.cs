@@ -227,12 +227,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         /// <returns>Task</returns>
         private async Task ChangeVariant(SourceVariant variant)
         {
-            if (variant is CloudAgentVariant cloudVariant && cloudVariant.prefab == null)
-            {
-                ScenarioManager.Instance.ShowLoadingPanel();
+            if (variant is CloudAgentVariant cloudVariant && cloudVariant.Prefab == null)
                 await cloudVariant.DownloadAsset();
-                ScenarioManager.Instance.HideLoadingPanel();
-            }
 
             selectedAgent.ChangeVariant(variant);
         }
@@ -266,7 +262,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement
                 case AgentElementType.Waypoints:
                     var mapWaypointPrefab =
                         ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>().waypointPrefab;
-                    newElementInstance = ScenarioManager.Instance.GetExtension<PrefabsPools>()
+                    newElementInstance = ScenarioManager.Instance.prefabsPools
                         .GetInstance(mapWaypointPrefab).GetComponent<ScenarioWaypoint>();
                     if (newElementInstance == null)
                     {
@@ -298,7 +294,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement
                         .RegisterRecord(new UndoAddElement(newElementInstance));
                     var mapWaypointPrefab =
                         ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>().waypointPrefab;
-                    newElementInstance = ScenarioManager.Instance.GetExtension<PrefabsPools>()
+                    newElementInstance = ScenarioManager.Instance.prefabsPools
                         .GetInstance(mapWaypointPrefab).GetComponent<ScenarioWaypoint>();
                     newElementInstance.ForceMove(addPosition);
                     selectedAgent.AddWaypoint(newElementInstance as ScenarioWaypoint, true);

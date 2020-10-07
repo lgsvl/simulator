@@ -37,6 +37,9 @@ namespace Simulator.ScenarioEditor.Agents
         public override string ElementTypeName => "PedestrianAgent";
 
         /// <inheritdoc/>
+        public override string ParameterType => "";
+
+        /// <inheritdoc/>
         public override int AgentTypeId => 3;
 
         /// <inheritdoc/>
@@ -52,12 +55,7 @@ namespace Simulator.ScenarioEditor.Agents
             for (var i = 0; i < pedestriansInSimulation.Count; i++)
             {
                 var pedestrian = pedestriansInSimulation[i];
-                var egoAgent = new AgentVariant()
-                {
-                    source = this,
-                    name = pedestrian.name,
-                    prefab = pedestrian
-                };
+                var egoAgent = new AgentVariant(this, pedestrian.name, pedestrian);
                 Variants.Add(egoAgent);
             }
         }
@@ -75,6 +73,7 @@ namespace Simulator.ScenarioEditor.Agents
             if (instance.GetComponent<BoxCollider>() == null)
             {
                 var collider = instance.AddComponent<BoxCollider>();
+                collider.isTrigger = true;
                 var b = new Bounds(instance.transform.position, Vector3.zero);
                 foreach (Renderer r in instance.GetComponentsInChildren<Renderer>())
                     b.Encapsulate(r.bounds);
@@ -138,7 +137,7 @@ namespace Simulator.ScenarioEditor.Agents
             var agent = GetAgentInstance(selectedVariant);
             agent.TransformToRotate.rotation = draggedInstance.transform.rotation;
             agent.ForceMove(draggedInstance.transform.position);
-            ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(draggedInstance);
+            ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
             ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoAddElement(agent));
             draggedInstance = null;
         }

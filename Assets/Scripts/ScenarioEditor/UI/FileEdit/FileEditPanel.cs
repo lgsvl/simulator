@@ -22,6 +22,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
     using Undo;
     using UnityEngine;
     using UnityEngine.UI;
+    using Utilities;
     using Toggle = UnityEngine.UI.Toggle;
 
     /// <summary>
@@ -113,12 +114,13 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         /// <param name="path">Path to the json file that contains a scenario</param>
         private async Task LoadScenarioFromJson(string path)
         {
-            ScenarioManager.Instance.ShowLoadingPanel();
+            var loadingProcess = ScenarioManager.Instance.loadingPanel.AddProgress();
+            loadingProcess.Update("Loading a scenario from a JSON file.", false);
             LoadPath.Value = path;
             var json = JSONNode.Parse(File.ReadAllText(path));
             if (json != null && json.IsObject)
                 await JsonScenarioDeserializer.DeserializeScenario(json);
-            ScenarioManager.Instance.HideLoadingPanel();
+            loadingProcess.Update("Scenario has been loaded from a JSON file.", true);
             ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().ClearRecords();
         }
 
@@ -166,18 +168,20 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
                 };
                 popupData.ConfirmCallback += () =>
                 {
-                    ScenarioManager.Instance.ShowLoadingPanel();
+                    var loadingProcess = ScenarioManager.Instance.loadingPanel.AddProgress();
+                    loadingProcess.Update("Saving changes before exiting the visual scenario editor.", false);
                     //Delay exiting editor so the loading panel can initialize
-                    StartCoroutine(DelayedExitEditor());
+                    StartCoroutine(DelayedExitEditor(loadingProcess));
                 };
 
                 ScenarioManager.Instance.confirmationPopup.Show(popupData);
             }
             else
             {
-                ScenarioManager.Instance.ShowLoadingPanel();
+                var loadingProcess = ScenarioManager.Instance.loadingPanel.AddProgress();
+                loadingProcess.Update("Saving changes before exiting the visual scenario editor.", false);
                 //Delay exiting editor so the loading panel can initialize
-                StartCoroutine(DelayedExitEditor());
+                StartCoroutine(DelayedExitEditor(loadingProcess));
             }
         }
 
@@ -185,10 +189,13 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         /// Invokes visual scenario editor exit after a single frame update
         /// </summary>
         /// <returns>IEnumerator</returns>
-        private IEnumerator DelayedExitEditor()
+        private IEnumerator DelayedExitEditor(LoadingPanel.LoadingProcess loadingProcess)
         {
             yield return null;
+            loadingProcess.Update("Visual scenario editor changes were saved, exiting the editor.", false);
             Loader.ExitScenarioEditor();
+            //Do not turn off loading process - loading panel will be destroyed within the scene
+            //loadingProcess.Update("Exited Visual scenario editor.", true);
         }
 
         /// <inheritdoc/>

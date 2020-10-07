@@ -126,7 +126,7 @@ namespace Simulator.ScenarioEditor.Controllables
             var controllable = GetControllableInstance(selectedVariant);
             controllable.transform.rotation = draggedInstance.transform.rotation;
             controllable.transform.position = draggedInstance.transform.position;
-            ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(draggedInstance);
+            ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
             ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
                 .RegisterRecord(new UndoAddElement(controllable));
             draggedInstance = null;

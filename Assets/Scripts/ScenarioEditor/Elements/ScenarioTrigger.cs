@@ -68,7 +68,7 @@ namespace Simulator.ScenarioEditor.Elements
             public void Deinitialize()
             {
                 foreach (var effectorObject in objects)
-                    ScenarioManager.Instance.GetExtension<PrefabsPools>()
+                    ScenarioManager.Instance.prefabsPools
                         .ReturnInstance(effectorObject.Value.gameObject);
                 objects.Clear();
                 Destroy(gameObject);
@@ -149,7 +149,7 @@ namespace Simulator.ScenarioEditor.Elements
                 }
 
                 //Instantiate new object
-                var instance = ScenarioManager.Instance.GetExtension<PrefabsPools>().GetInstance(prefab);
+                var instance = ScenarioManager.Instance.prefabsPools.GetInstance(prefab);
                 effectorObject = instance.GetComponent<ScenarioEffectorObject>();
                 if (effectorObject == null)
                 {
@@ -174,7 +174,7 @@ namespace Simulator.ScenarioEditor.Elements
             public void RemoveEffectorObject(string objectName)
             {
                 if (!objects.TryGetValue(objectName, out var effectorObject)) return;
-                ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(effectorObject.gameObject);
+                ScenarioManager.Instance.prefabsPools.ReturnInstance(effectorObject.gameObject);
                 objects.Remove(objectName);
             }
         }

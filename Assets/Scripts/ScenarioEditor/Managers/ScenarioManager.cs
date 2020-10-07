@@ -17,6 +17,7 @@ namespace Simulator.ScenarioEditor.Managers
     using UI.FileEdit;
     using UI.Inspector;
     using UI.MapSelecting;
+    using UI.Utilities;
     using Undo;
     using Undo.Records;
     using UnityEngine;
@@ -72,12 +73,6 @@ namespace Simulator.ScenarioEditor.Managers
         /// </summary>
         [SerializeField]
         private Inspector inspector;
-
-        /// <summary>
-        /// The loading panel game object
-        /// </summary>
-        [SerializeField]
-        private GameObject loadingPanel;
 #pragma warning restore 0649
 
         /// <summary>
@@ -90,11 +85,6 @@ namespace Simulator.ScenarioEditor.Managers
         /// </summary>
         private readonly Dictionary<Type, IScenarioEditorExtension> scenarioEditorExtensions =
             new Dictionary<Type, IScenarioEditorExtension>();
-
-        /// <summary>
-        /// Semaphore that holds the loading screen
-        /// </summary>
-        private readonly LockingSemaphore loadingSemaphore = new LockingSemaphore();
 
         /// <summary>
         /// Is there a single popup visible in the scenario editor
@@ -110,11 +100,11 @@ namespace Simulator.ScenarioEditor.Managers
         /// Currently selected scenario element
         /// </summary>
         private ScenarioElement selectedElement;
-
+        
         /// <summary>
-        /// <see cref="ObjectsShotCapture"/> allows taking a screen shot of the object as a texture
+        /// Pooling mechanism for prefabs in the visual scenario editor
         /// </summary>
-        public ObjectsShotCapture objectsShotCapture;
+        public PrefabsPools prefabsPools;
 
         /// <summary>
         /// Shared <see cref="SelectFileDialog"/> to be used in the scenario editor, dialog can handle only one request at same time
@@ -125,6 +115,11 @@ namespace Simulator.ScenarioEditor.Managers
         /// Popup which requires user interaction to confirm an operation
         /// </summary>
         public ConfirmationPopup confirmationPopup;
+
+        /// <summary>
+        /// The loading panel reference
+        /// </summary>
+        public LoadingPanel loadingPanel;
 
         /// <summary>
         /// Log panel for displaying message to the user for a limited time
@@ -235,17 +230,17 @@ namespace Simulator.ScenarioEditor.Managers
         {
             if (isInitialized)
                 return;
-            ShowLoadingPanel();
-            await FixLights();
-            
+            var loadingProcess = loadingPanel.AddProgress();
+
             //Initialize all the scenario editor extensions
             var managersTypes = ReflectionCache.FindTypes(type =>
                 typeof(IScenarioEditorExtension).IsAssignableFrom(type) && !type.IsAbstract);
+            loadingProcess.Update($"Initializing {managersTypes.Count} visual scenario managers.", false);
             var tasks = new Task[managersTypes.Count];
             var i = 0;
-            foreach (var addonPrefab in extensions)
+            foreach (var extensionPrefab in extensions)
             {
-                var addon = Instantiate(addonPrefab, transform);
+                var addon = Instantiate(extensionPrefab, transform);
                 var scenarioManager = addon.GetComponent<IScenarioEditorExtension>();
                 if (scenarioManager != null)
                 {
@@ -279,26 +274,10 @@ namespace Simulator.ScenarioEditor.Managers
             var mapManager = GetExtension<ScenarioMapManager>();
             mapManager.MapChanged += OnMapLoaded;
             await mapManager.LoadMapAsync();
-            await FixLights();
             inspector.Initialize();
             Time.timeScale = 0.0f;
             isInitialized = true;
-            HideLoadingPanel();
-        }
-
-        /// <summary>
-        /// Fixes lights on the map scene
-        /// </summary>
-        /// <returns>Task</returns>
-        private async Task FixLights()
-        {
-            //Enabling camera three times with those delays forces Unity to recalculate lights
-            objectsShotCapture.ShotObject(gameObject);
-            await Task.Delay(100);
-            objectsShotCapture.ShotObject(gameObject);
-            await Task.Delay(100);
-            objectsShotCapture.ShotObject(gameObject);
-            HDRPUtilities.ReinitializeRenderPipeline();
+            loadingProcess.Update("Scenario manager initialized.", true);
         }
 
         /// <summary>
@@ -397,31 +376,12 @@ namespace Simulator.ScenarioEditor.Managers
         {
             if (CopiedElement == null || !CopiedElement.isActiveAndEnabled)
                 return;
-            var copy = GetExtension<PrefabsPools>().Clone(CopiedElement.gameObject);
+            var copy = prefabsPools.Clone(CopiedElement.gameObject);
             var scenarioElementCopy = copy.GetComponent<ScenarioElement>();
             if (scenarioElementCopy!=null)
                 GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoAddElement(scenarioElementCopy));
             copy.transform.position = position;
             IsScenarioDirty = false;
-        }
-
-        /// <summary>
-        /// Shows loading panel
-        /// </summary>
-        public void ShowLoadingPanel()
-        {
-            loadingSemaphore.Lock();
-            loadingPanel.gameObject.SetActive(true);
-        }
-
-        /// <summary>
-        /// Hides loading panel
-        /// </summary>
-        public void HideLoadingPanel()
-        {
-            loadingSemaphore.Unlock();
-            if (loadingSemaphore.IsUnlocked)
-                loadingPanel.gameObject.SetActive(false);
         }
 
         /// <summary>

@@ -7,7 +7,6 @@
 
 namespace Simulator.ScenarioEditor.Data.Serializer
 {
-    using System.Collections;
     using Agents;
     using Controllables;
     using Elements;
@@ -93,9 +92,9 @@ namespace Simulator.ScenarioEditor.Data.Serializer
             if (scenarioAgent.Variant is CloudAgentVariant cloudVariant)
                 agentNode.Add("id", new JSONString(cloudVariant.guid));
             agentNode.Add("uid", new JSONString(scenarioAgent.Uid));
-            agentNode.Add("variant", new JSONString(scenarioAgent.Variant.name));
+            agentNode.Add("variant", new JSONString(scenarioAgent.Variant.Name));
             agentNode.Add("type", new JSONNumber(scenarioAgent.Source.AgentTypeId));
-            agentNode.Add("parameterType", new JSONString(""));
+            agentNode.Add("parameterType", new JSONString(scenarioAgent.Source.ParameterType));
             var transform = new JSONObject();
             agentNode.Add("transform", transform);
             var position = new JSONObject().WriteVector3(scenarioAgent.TransformToMove.position);
@@ -113,8 +112,12 @@ namespace Simulator.ScenarioEditor.Data.Serializer
 
             if (scenarioAgent.DestinationPoint != null)
             {
-                var destinationPoint = new JSONObject().WriteVector3(scenarioAgent.DestinationPoint.transform.position);
+                var destinationPoint = new JSONObject();
                 agentNode.Add("destinationPoint", destinationPoint);
+                var destinationPosition = new JSONObject().WriteVector3(scenarioAgent.DestinationPoint.TransformToMove.position);
+                destinationPoint.Add("position", destinationPosition);
+                var destinationRotation = new JSONObject().WriteVector3(scenarioAgent.DestinationPoint.TransformToRotate.rotation.eulerAngles);
+                destinationPoint.Add("rotation", destinationRotation);
             }
             if (scenarioAgent.Source.AgentSupportWaypoints(scenarioAgent))
                 AddWaypointsNodes(agentNode, scenarioAgent);

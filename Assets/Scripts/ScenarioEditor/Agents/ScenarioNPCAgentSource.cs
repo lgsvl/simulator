@@ -37,6 +37,9 @@ namespace Simulator.ScenarioEditor.Agents
 
         /// <inheritdoc/>
         public override string ElementTypeName => "NPCAgent";
+        
+        /// <inheritdoc/>
+        public override string ParameterType => "";
 
         /// <inheritdoc/>
         public override int AgentTypeId => 2;
@@ -52,12 +55,7 @@ namespace Simulator.ScenarioEditor.Agents
             var npcVehiclesInSimulation = Config.NPCVehicles;
             foreach (var npcAssetData in npcVehiclesInSimulation)
             {
-                var npcVariant = new AgentVariant()
-                {
-                    source = this,
-                    name = npcAssetData.Value.Name,
-                    prefab = npcAssetData.Value.Prefab
-                };
+                var npcVariant = new AgentVariant(this, npcAssetData.Value.Name, npcAssetData.Value.Prefab);
                 Variants.Add(npcVariant);
             }
 
@@ -79,6 +77,7 @@ namespace Simulator.ScenarioEditor.Agents
             if (instance.GetComponent<BoxCollider>() == null)
             {
                 var collider = instance.AddComponent<BoxCollider>();
+                collider.isTrigger = true;
                 var b = new Bounds(instance.transform.position, Vector3.zero);
                 foreach (Renderer r in instance.GetComponentsInChildren<Renderer>())
                     b.Encapsulate(r.bounds);
@@ -143,7 +142,7 @@ namespace Simulator.ScenarioEditor.Agents
             agent.TransformToRotate.rotation = draggedInstance.transform.rotation;
             agent.ForceMove(draggedInstance.transform.position);
             agent.ChangeBehaviour(nameof(NPCWaypointBehaviour));
-            ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(draggedInstance);
+            ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
             ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoAddElement(agent));
             draggedInstance = null;
         }
@@ -151,7 +150,7 @@ namespace Simulator.ScenarioEditor.Agents
         /// <inheritdoc/>
         public override void DragCancelled()
         {
-            ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(draggedInstance);
+            ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
             draggedInstance = null;
         }
     }

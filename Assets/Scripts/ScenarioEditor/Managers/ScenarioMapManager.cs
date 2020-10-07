@@ -163,6 +163,22 @@ namespace Simulator.ScenarioEditor.Managers
         }
 
         /// <summary>
+        /// Checks if map with given name is already downloaded
+        /// </summary>
+        /// <param name="name">Map name to check in the cache</param>
+        /// <returns>True if map is downloaded, false otherwise</returns>
+        public bool IsMapDownloaded(string name)
+        {
+            for (var i = 0; i < AvailableMaps.Count; i++)
+            {
+                var map = AvailableMaps[i];
+                if (map.name == name) return map.assetModel != null;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Asynchronously loads the map, if map is not available last map will be loaded or any is both are unavailable
         /// </summary>
         /// <param name="mapName">Map name to be loaded, can be null to load last map</param>
@@ -170,11 +186,12 @@ namespace Simulator.ScenarioEditor.Managers
         {
             if (!string.IsNullOrEmpty(CurrentMapName) && CurrentMapName == mapName)
                 return;
-            ScenarioManager.Instance.ShowLoadingPanel();
+            
+            var loadingProcess = ScenarioManager.Instance.loadingPanel.AddProgress();
+            loadingProcess.Update("Loading scenario map manager ...", false);
+            
             if (!string.IsNullOrEmpty(loadedSceneName))
-            {
                 UnloadMapAsync();
-            }
 
             await Initialize();
 
@@ -187,6 +204,7 @@ namespace Simulator.ScenarioEditor.Managers
                 {
                     var map = AvailableMaps[i];
                     if (map.name != name) continue;
+                    loadingProcess.Update($"Downloading {map.name} map.", false);
                     //Download map if it's not available
                     if (map.assetModel == null)
                         map.assetModel =
@@ -212,13 +230,15 @@ namespace Simulator.ScenarioEditor.Managers
                 if (mapToLoad == null)
                 {
                     var map = AvailableMaps[0];
+                    loadingProcess.Update($"Downloading map {map.name}.", false);
                     map.assetModel =
                         await DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, map.assetGuid, map.name);
                     mapToLoad = map;
                 }
             }
+            loadingProcess.Update($"Loading map {mapToLoad.name}.", false);
             await LoadMapAssets(mapToLoad.assetModel, mapToLoad);
-            ScenarioManager.Instance.HideLoadingPanel();
+            loadingProcess.Update($"Scenario map manager loaded {mapToLoad.name} map.", true);
         }
 
         /// <summary>
@@ -306,7 +326,7 @@ namespace Simulator.ScenarioEditor.Managers
                     Loader.Instance.SimConfig.MapName = CurrentMapMetaData.name;
 
                 CurrentMapBounds = CalculateMapBounds(scene);
-                FixShaders(scene);
+                //FixShaders(scene);
                 LaneSnapping.Initialize();
                 PlayerPrefs.SetString(MapPersistenceKey, CurrentMapMetaData.name);
                 MapChanged?.Invoke(CurrentMapMetaData);

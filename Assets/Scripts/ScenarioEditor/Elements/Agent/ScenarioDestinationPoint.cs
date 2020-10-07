@@ -16,15 +16,24 @@ namespace Simulator.ScenarioEditor.Elements.Agent
     /// </summary>
     public class ScenarioDestinationPoint : ScenarioElement
     {
+        //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
+#pragma warning disable 0649
+        /// <summary>
+        /// Transform that will be used to display the rotation
+        /// </summary>
+        [SerializeField]
+        private Transform transformToRotate;
+#pragma warning restore 0649
+
         /// <summary>
         /// Position offset from agent that will be applied while initializing
         /// </summary>
         private const float InitialOffset = 10.0f;
-        
+
         /// <summary>
         /// The position offset that will be applied to the line renderer
         /// </summary>
-        private static Vector3 lineRendererPositionOffset = new Vector3(0.0f, 0.2f, 0.0f);
+        private static Vector3 lineRendererPositionOffset = new Vector3(0.0f, 1.0f, 0.0f);
 
         /// <summary>
         /// Line renderer for displaying the connection between agent and destination point
@@ -38,15 +47,15 @@ namespace Simulator.ScenarioEditor.Elements.Agent
 
         /// <inheritdoc/>
         public override bool CanBeRemoved { get; } = false;
-        
+
         /// <inheritdoc/>
         public override bool CanBeCopied { get; } = false;
-        
+
         /// <inheritdoc/>
         public override bool CanBeResized { get; } = false;
-        
+
         /// <inheritdoc/>
-        public override bool CanBeRotated { get; } = false;
+        public override Transform TransformToRotate => transformToRotate;
 
         /// <summary>
         /// Line renderer for displaying the connection between agent and destination point
@@ -61,12 +70,14 @@ namespace Simulator.ScenarioEditor.Elements.Agent
                 if (pathRenderer != null)
                     return pathRenderer;
                 pathRenderer = gameObject.AddComponent<LineRenderer>();
-                pathRenderer.material = ScenarioManager.Instance.GetExtension<ScenarioAgentsManager>().destinationPathMaterial;
+                pathRenderer.material = ScenarioManager.Instance.GetExtension<ScenarioAgentsManager>()
+                    .destinationPathMaterial;
                 pathRenderer.useWorldSpace = false;
                 pathRenderer.positionCount = 2;
                 pathRenderer.textureMode = LineTextureMode.Tile;
                 pathRenderer.sortingLayerName = "Ignore Raycast";
-                pathRenderer.widthMultiplier = 0.4f;
+                PathRenderer.widthMultiplier = 1.0f;
+                PathRenderer.generateLightingData = false;
                 pathRenderer.SetPosition(0, lineRendererPositionOffset);
                 return pathRenderer;
             }
@@ -75,7 +86,7 @@ namespace Simulator.ScenarioEditor.Elements.Agent
         /// <inheritdoc/>
         public override void Dispose()
         {
-            ScenarioManager.Instance.GetExtension<PrefabsPools>().ReturnInstance(gameObject);
+            ScenarioManager.Instance.prefabsPools.ReturnInstance(gameObject);
         }
 
         /// <summary>
@@ -86,13 +97,13 @@ namespace Simulator.ScenarioEditor.Elements.Agent
         {
             ParentAgent = agent;
             agent.DestinationPoint = this;
-            var thisTransform = transform;
-            thisTransform.SetParent(agent.transform);
-            thisTransform.localPosition = agent.transform.forward * InitialOffset;
-            thisTransform.localRotation = Quaternion.Euler(Vector3.zero);
+            transform.SetParent(agent.transform);
+            var forward = agent.TransformToMove.forward;
+            TransformToMove.localPosition = forward * InitialOffset;
+            TransformToRotate.localRotation = Quaternion.LookRotation(forward);
             Refresh();
         }
-        
+
         /// <inheritdoc/>
         protected override void OnMoved()
         {
@@ -102,10 +113,10 @@ namespace Simulator.ScenarioEditor.Elements.Agent
             {
                 case AgentType.Ego:
                 case AgentType.Npc:
-                    mapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic, transform);
+                    mapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic, TransformToMove);
                     break;
                 case AgentType.Pedestrian:
-                    mapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian, transform);
+                    mapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian, TransformToMove);
                     break;
             }
 

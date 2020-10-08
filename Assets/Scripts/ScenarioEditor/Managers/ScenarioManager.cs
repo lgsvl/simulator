@@ -12,7 +12,6 @@ namespace Simulator.ScenarioEditor.Managers
     using System.Threading.Tasks;
     using Elements;
     using Input;
-    using Network.Core.Threading;
     using Simulator.Utilities;
     using UI.FileEdit;
     using UI.Inspector;
@@ -90,11 +89,6 @@ namespace Simulator.ScenarioEditor.Managers
         /// Is there a single popup visible in the scenario editor
         /// </summary>
         private bool viewsPopup;
-
-        /// <summary>
-        /// Initial position of the camera, applied when the map changes
-        /// </summary>
-        private Vector3 cameraInitialPosition;
 
         /// <summary>
         /// Currently selected scenario element
@@ -199,8 +193,6 @@ namespace Simulator.ScenarioEditor.Managers
         {
             if (scenarioCamera == null)
                 throw new ArgumentException("Scenario camera reference is required in the ScenarioManager.");
-            var cameraTransform = scenarioCamera.transform;
-            cameraInitialPosition = cameraTransform.position;
             if (Instance == null || Instance == this)
             {
                 var nonBlockingTask = Initialize();
@@ -391,7 +383,8 @@ namespace Simulator.ScenarioEditor.Managers
         public void OnMapLoaded(ScenarioMapManager.MapMetaData mapMetaData)
         {
             var cameraTransform = ScenarioCamera.transform;
-            cameraTransform.position = cameraInitialPosition;
+            var spawnInfo = FindObjectOfType<SpawnInfo>();
+            cameraTransform.position = (spawnInfo == null ? Vector3.zero : spawnInfo.transform.position)+new Vector3(0.0f, 30.0f, 0.0f);
         }
 
         /// <summary>

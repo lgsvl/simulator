@@ -351,7 +351,7 @@ public class ConnectionManager : MonoBehaviour
     }
 }
 
-public class CloudAPI 
+public class CloudAPI
 {
     HttpClient client = new HttpClient();
     string SimId;
@@ -438,16 +438,23 @@ public class CloudAPI
         return GetApi<DetailData>($"{meta.ApiPath}/{cloudId}");
     }
 
-    public async Task<DetailData[]> GetLibrary<DetailData>() where DetailData: CloudAssetDetails
+    public async Task<LibraryList<DetailData>> GetLibraryPage<DetailData>(uint offset, uint limit = fetchLimit) where DetailData: CloudAssetDetails
     {
         var meta = (CloudData)Attribute.GetCustomAttribute(typeof(DetailData), typeof(CloudData));
+        return await GetApi<LibraryList<DetailData>>($"{meta.ApiPath}?display=sim&limit={limit}&offset={offset}");
+    }
+
+    public async Task<DetailData[]> GetLibrary<DetailData>() where DetailData: CloudAssetDetails
+    {
         List<DetailData> result = new List<DetailData>();
         LibraryList<DetailData> data;
         do
         {
-            data = await GetApi<LibraryList<DetailData>>($"{meta.ApiPath}?display=sim&limit={fetchLimit}&offset={result.Count}");
+            data = await GetLibraryPage<DetailData>((uint)result.Count);
             result.AddRange(data.Rows);
-        } while (result.Count < data.Count && data.Count > 0);
+        }
+        while (result.Count < data.Count && data.Count > 0);
+
         return result.ToArray();
     }
 

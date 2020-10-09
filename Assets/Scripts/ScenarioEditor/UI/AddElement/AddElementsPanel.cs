@@ -8,6 +8,7 @@
 namespace Simulator.ScenarioEditor.UI.AddElement
 {
     using System.Collections;
+    using System.Collections.Generic;
     using Controllables;
     using Inspector;
     using Managers;
@@ -33,6 +34,11 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         [SerializeField]
         private Transform contentParent;
 #pragma warning restore 0649
+        
+        /// <summary>
+        /// List of available source panels
+        /// </summary>
+        private List<SourcePanel> sourcePanels = new List<SourcePanel>();
 
         /// <inheritdoc/>
         public override void Initialize()
@@ -45,19 +51,27 @@ namespace Simulator.ScenarioEditor.UI.AddElement
             {
                 newPanel = Instantiate(sourcePanelPrefab, contentParent);
                 newPanel.Initialize(sources[i]);
+                sourcePanels.Add(newPanel);
             }
 
             //Controllables panels
             newPanel = Instantiate(sourcePanelPrefab, contentParent);
             var controllablesManager = ScenarioManager.Instance.GetExtension<ScenarioControllablesManager>();
             newPanel.Initialize(controllablesManager.source);
+            sourcePanels.Add(newPanel);
             UnityUtilities.LayoutRebuild(contentParent as RectTransform);
         }
         
         /// <inheritdoc/>
         public override void Deinitialize()
         {
-            
+            for (var i = 0; i < sourcePanels.Count; i++)
+            {
+                sourcePanels[i].Deinitialize();
+                Destroy(sourcePanels[i].gameObject);
+            }
+
+            sourcePanels.Clear();
         }
 
         /// <inheritdoc/>

@@ -51,20 +51,31 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         {
             this.source = source;
             this.variant = variant;
-            if (!variant.IsPrepared)
+            if (variant == null)
             {
-                text.text = $"{UnpreparedSign} {variant.Name} {UnpreparedSign}";
-                variant.Prepared += VariantOnPrepared;
+                gameObject.SetActive(false);
             }
-            else text.text = variant.Name;
+            else
+            {
+                gameObject.SetActive(true);
+                if (!variant.IsPrepared)
+                {
+                    text.text = $"{UnpreparedSign} {variant.Name} {UnpreparedSign}";
+                    variant.Prepared += VariantOnPrepared;
+                }
+                else text.text = variant.Name;
+            }
         }
 
         /// <summary>
-        /// Unity OnDestroy method
+        /// Deinitialization method
         /// </summary>
-        public void OnDestroy()
+        public void Deinitialize()
         {
-            variant.Prepared -= VariantOnPrepared;
+            if (variant!=null)
+                variant.Prepared -= VariantOnPrepared;
+            source = null;
+            variant = null;
         }
 
         /// <summary>

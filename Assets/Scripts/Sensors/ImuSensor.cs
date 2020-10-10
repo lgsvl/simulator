@@ -44,7 +44,7 @@ namespace Simulator.Sensors
         Rigidbody RigidBody;
         Vector3 LastVelocity;
 
-        ImuData data;
+        ImuData latestData;
         
         public override SensorDistributionType DistributionType => SensorDistributionType.HighLoad;
 
@@ -140,7 +140,7 @@ namespace Simulator.Sensors
             var orientation = transform.rotation;
             orientation.Set(-orientation.z, orientation.x, -orientation.y, orientation.w); // converting to right handed xyz
 
-            data = new ImuData()
+            var data = new ImuData()
             {
                 Name = Name,
                 Frame = Frame,
@@ -156,6 +156,8 @@ namespace Simulator.Sensors
                 LinearVelocity = velocity,
                 AngularVelocity = angularVelocity,
             };
+
+            latestData = data;
 
             var correctedData = new CorrectedImuData()
             {
@@ -203,19 +205,19 @@ namespace Simulator.Sensors
         {
             UnityEngine.Debug.Assert(visualizer != null);
 
-            if (data == null)
+            if (latestData == null)
             {
                 return;
             }
 
             var graphData = new Dictionary<string, object>()
             {
-                {"Measurement Span", data.MeasurementSpan},
-                {"Position", data.Position},
-                {"Orientation", data.Orientation},
-                {"Acceleration", data.Acceleration},
-                {"Linear Velocity", data.LinearVelocity},
-                {"Angular Velocity", data.AngularVelocity}
+                {"Measurement Span", latestData.MeasurementSpan},
+                {"Position", latestData.Position},
+                {"Orientation", latestData.Orientation},
+                {"Acceleration", latestData.Acceleration},
+                {"Linear Velocity", latestData.LinearVelocity},
+                {"Angular Velocity", latestData.AngularVelocity}
             };
             visualizer.UpdateGraphValues(graphData);
         }

@@ -31,9 +31,9 @@ namespace Simulator.Sensors
         bool IsFirstFixedUpdate = true;
         double LastTimestamp;
 
-        ClockData data;
+        ClockData latestData;
         private bool Sending = false;
-        
+
         public override SensorDistributionType DistributionType => SensorDistributionType.LowLoad;
 
         public override void OnBridgeSetup(BridgeInstance bridge)
@@ -114,10 +114,12 @@ namespace Simulator.Sensors
                 return;
             }
 
-            data = new ClockData()
+            var data = new ClockData()
             {
                 Clock = time,
             };
+
+            latestData = data;
 
             if (Bridge != null && Bridge.Status == Status.Connected)
             {
@@ -138,14 +140,14 @@ namespace Simulator.Sensors
         {
             UnityEngine.Debug.Assert(visualizer != null);
 
-            if (data == null)
+            if (latestData == null)
             {
                 return;
             }
 
             var graphData = new Dictionary<string, object>()
             {
-                {"Time", data.Clock},
+                {"Time", latestData.Clock},
                 {"Fixed DeltaTime", Time.fixedDeltaTime}
             };
             visualizer.UpdateGraphValues(graphData);

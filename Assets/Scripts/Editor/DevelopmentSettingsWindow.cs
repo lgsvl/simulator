@@ -307,7 +307,7 @@ namespace Simulator.Editor
                             var newIndex = EditorGUILayout.Popup(CurrentVehicleIndex, vehicleChoices.Select(v => v.display).ToArray());
                             var vehicle = SetVehicleFromSelectionIndex(vehicleChoices, newIndex);
 
-                            if(vehicle.Id.EndsWith(".prefab"))
+                            if (vehicle.Id.EndsWith(".prefab"))
                             {
                                 vehicle.Bridge.Type = EditorGUILayout.TextField("Bridge Type", vehicle.Bridge.Type);
                                 vehicle.Bridge.ConnectionString = EditorGUILayout.TextField("Bridge Connection", vehicle.Bridge.ConnectionString);
@@ -385,6 +385,8 @@ namespace Simulator.Editor
 
         private VehicleData SetVehicleFromSelectionIndex(List<(string idOrPath, object data, string display)> vehicleChoices, int newSelectionIndex)
         {
+            VehicleData previousVehicle = DeveloperSimulation.Vehicles?[0];
+
             if (newSelectionIndex < 0 || newSelectionIndex > vehicleChoices.Count)
             {
                 Debug.Log("previously selected vehicle missing.");
@@ -396,15 +398,26 @@ namespace Simulator.Editor
 
             if (selection.GetType() == typeof(string))
             {
-                vehicle = new VehicleData {
+                if (previousVehicle != null && (string) selection == previousVehicle.Id)
+                {
+                    return previousVehicle;
+                }
+
+                vehicle = new VehicleData
+                {
                     Id = (string)selection,
-                    Bridge = new BridgeData()
+                    Bridge = previousVehicle?.Bridge ?? new BridgeData()
                 };
             }
             else // Cloud Vehicle
             {
                 vehicle = ((VehicleDetailData)selection).ToVehicleData();
+                if (previousVehicle != null && vehicle.Id == previousVehicle.Id)
+                {
+                    return previousVehicle;
+                }
             }
+
             DeveloperSimulation.Vehicles = new VehicleData[] { vehicle };
             return vehicle;
         }

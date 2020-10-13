@@ -934,10 +934,9 @@ namespace Simulator
             // Schedule real action to stop simulation
             Instance.Actions.Enqueue(() =>
             {
-                
                 if (e.Failed)
                 {
-                    // TODO TC: Report failed testcase to the cloud
+                    ConnectionManager.instance.UpdateStatus("Error", Instance.CurrentSimulation.Id, e.ErrorData);
                 }
 
                 Console.WriteLine($"[LOADER] Stopping simulation on TestCase process exit");

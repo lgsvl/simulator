@@ -43,6 +43,18 @@ namespace Simulator.Sensors
         [Range(0, 51)]
         public int Quality = 22;
 
+        [SensorParameter]
+        [Range(1.0f, 90.0f)]
+        public float FieldOfView = 60.0f;
+
+        [SensorParameter]
+        [Range(0.01f, 1000.0f)]
+        public float MinDistance = 0.1f;
+
+        [SensorParameter]
+        [Range(0.01f, 2000.0f)]
+        public float MaxDistance = 2000.0f;
+
         Camera Camera;
         RenderTexture Texture;
         VideoCapture Recorder;
@@ -51,6 +63,7 @@ namespace Simulator.Sensors
         string Outfile;
         bool IsInit = false;
         bool IsRecording = false;
+        private float CurrentFieldOfView;
 
         void Init()
         {
@@ -78,6 +91,9 @@ namespace Simulator.Sensors
 
             Camera.enabled = false;
             Camera.depth = -1;
+            CurrentFieldOfView = FieldOfView;
+            Camera.nearClipPlane = MinDistance;
+            Camera.farClipPlane = MaxDistance;
 
             var hd = Camera.GetComponent<HDAdditionalCameraData>();
             hd.hasPersistentHistory = true;
@@ -99,6 +115,7 @@ namespace Simulator.Sensors
 
         void Update()
         {
+            Camera.fieldOfView = FieldOfView;
             CheckTexture();
         }
 

@@ -22,13 +22,15 @@ namespace Simulator.Web
     {
         class Download
         {
-            public const float rateLimit = 1; // in seconds
+            public const float rateLimit = 0.5f; // in seconds
 
             public Uri uri;
             public string path;
             public Action<int> update;
             public Action<bool, Exception> completed;
             public bool valid = true;
+            public long ExpectedBytes = 0;
+            public long BytesReceived = 0;
 
             public Download(Uri uri, string path, Action<int> update, Action<bool, Exception> completed)
             {
@@ -45,7 +47,16 @@ namespace Simulator.Web
                     Debug.LogException(args.Error);
                 }
 
-                completed?.Invoke(args.Error == null && !args.Cancelled, args.Error);
+                if (ExpectedBytes != BytesReceived)
+                {
+                    completed?.Invoke(false, new Exception($"Download incomplete, received {BytesReceived} of {ExpectedBytes}"));
+                    // TODO continue partial download with range header.
+                    // needs rewrite to use WebRequest here and needs range support on WISE asset service side
+                }
+                else
+                {
+                    completed?.Invoke(args.Error == null && !args.Cancelled, args.Error);
+                }
 
                 client.DownloadProgressChanged -= Update;
                 client.DownloadFileCompleted -= Completed;
@@ -53,6 +64,8 @@ namespace Simulator.Web
 
             public void Update(object sender, DownloadProgressChangedEventArgs args)
             {
+                ExpectedBytes = args.TotalBytesToReceive;
+                BytesReceived = args.BytesReceived;
                 long now = Stopwatch.GetTimestamp();
                 if (now < nextUpdate)
                 {
@@ -95,8 +108,17 @@ namespace Simulator.Web
             Init();
             var assetService = new AssetService();
             var found = assetService.Get(assetGuid);
-            if(found != null) {
-                return Task.FromResult(found);
+            if(found != null)
+            {
+                if(File.Exists(found.LocalPath))
+                {
+                    return Task.FromResult(found);
+                }
+                else
+                {
+                    Debug.Log($"removing stale entry from assetService due to missing file: {found.LocalPath}");
+                    assetService.Delete(assetGuid);
+                }
             }
 
             var typeString = BundleConfig.singularOf(type);
@@ -118,15 +140,24 @@ namespace Simulator.Web
             (success, ex) => {
                 if (success)
                 {
-                    var model = new AssetModel()
+                    try
                     {
-                        AssetGuid = assetGuid,
-                        Type = typeString,
-                        Name = name,
-                        LocalPath = localPath
-                    };
-                    assetService.Add(model);
-                    t.TrySetResult(model);
+                        var model = new AssetModel()
+                        {
+                            AssetGuid = assetGuid,
+                            Type = typeString,
+                            Name = name,
+                            LocalPath = localPath
+                        };
+                        assetService.Add(model);
+                        Debug.Log($"{name} Download Complete.");
+                        ConnectionUI.instance?.UpdateDownloadProgress(name, 100);
+                        t.TrySetResult(model);
+                    }
+                    catch (Exception e)
+                    {
+                        t.TrySetException(e);
+                    }
                 }
                 else
                 {
@@ -180,22 +211,24 @@ namespace Simulator.Web
 
                 currentProgress = 0;
                 nextUpdate = 0;
-                client.DownloadProgressChanged += ValidateDownload;
+                client.DownloadProgressChanged += ValidateDownloadPreflight;
                 client.DownloadProgressChanged += download.Update;
                 client.DownloadFileCompleted += download.Completed;
                 cancelled = false;
                 await client.DownloadFileTaskAsync(download.uri, download.path);
             }
-            catch
+            catch(Exception ex)
             {
                 if (File.Exists(download.path))
                 {
                     File.Delete(download.path);
                 }
+                Debug.LogException(ex);
+                throw ex;
             }
         }
 
-        static void ValidateDownload(object sender, DownloadProgressChangedEventArgs args)
+        static void ValidateDownloadPreflight(object sender, DownloadProgressChangedEventArgs args)
         {
             if (!(client.ResponseHeaders["content-type"].StartsWith("application") || client.ResponseHeaders["content-type"].StartsWith("binary")))
             {
@@ -203,7 +236,7 @@ namespace Simulator.Web
                 Debug.LogError($"Failed to download: Content-Type {client.ResponseHeaders["content-type"]} not supported.");
             }
 
-            client.DownloadProgressChanged -= ValidateDownload;
+            client.DownloadProgressChanged -= ValidateDownloadPreflight;
         }
     }
 }

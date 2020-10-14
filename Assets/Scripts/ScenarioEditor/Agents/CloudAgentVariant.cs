@@ -43,10 +43,11 @@ namespace Simulator.ScenarioEditor.Agents
         /// <param name="source">The source of the scenario agent type, this variant is a part of this source</param>
         /// <param name="name">Name of this agent variant</param>
         /// <param name="prefab">Prefab used to visualize this agent variant</param>
+        /// <param name="description">Description with agent variant details</param>
         /// <param name="guid">Guid of the vehicle</param>
         /// <param name="assetGuid">Guid of the asset loaded within this vehicle</param>
-        public CloudAgentVariant(ScenarioAgentSource source, string name, GameObject prefab, string guid,
-            string assetGuid) : base(source, name, prefab)
+        public CloudAgentVariant(ScenarioAgentSource source, string name, GameObject prefab, string description, string guid,
+            string assetGuid) : base(source, name, prefab, description)
         {
             this.guid = guid;
             this.assetGuid = assetGuid;

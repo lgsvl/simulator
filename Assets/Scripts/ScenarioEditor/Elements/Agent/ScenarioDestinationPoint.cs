@@ -33,7 +33,7 @@ namespace Simulator.ScenarioEditor.Elements.Agent
         /// <summary>
         /// The position offset that will be applied to the line renderer
         /// </summary>
-        private static Vector3 lineRendererPositionOffset = new Vector3(0.0f, 1.0f, 0.0f);
+        private static Vector3 lineRendererPositionOffset = new Vector3(0.0f, 0.1f, 0.0f);
 
         /// <summary>
         /// Line renderer for displaying the connection between agent and destination point
@@ -76,7 +76,7 @@ namespace Simulator.ScenarioEditor.Elements.Agent
                 pathRenderer.positionCount = 2;
                 pathRenderer.textureMode = LineTextureMode.Tile;
                 pathRenderer.sortingLayerName = "Ignore Raycast";
-                PathRenderer.widthMultiplier = 1.0f;
+                PathRenderer.widthMultiplier = 0.1f;
                 PathRenderer.generateLightingData = false;
                 pathRenderer.SetPosition(0, lineRendererPositionOffset);
                 return pathRenderer;

@@ -7,6 +7,7 @@
 
 namespace Simulator.ScenarioEditor.UI.AddElement
 {
+    using System.Collections;
     using Agents;
     using Elements;
     using Managers;
@@ -33,6 +34,11 @@ namespace Simulator.ScenarioEditor.UI.AddElement
 #pragma warning restore 0649
 
         /// <summary>
+        /// Add elements panel that handles this element panel
+        /// </summary>
+        private AddElementsPanel addElementsPanel;
+
+        /// <summary>
         /// Cached scenario element source class which is used for adding new elements from this panel
         /// </summary>
         private ScenarioElementSource source;
@@ -43,12 +49,23 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         private SourceVariant variant;
 
         /// <summary>
+        /// Coroutine invoked to show the panel with variant description
+        /// </summary>
+        private IEnumerator showDescriptionCoroutine;
+
+        /// <summary>
+        /// Cached scenario element source variant handled by this panel
+        /// </summary>
+        public SourceVariant Variant => variant;
+
+        /// <summary>
         /// Initialization method
         /// </summary>
         /// <param name="source">Scenario element source class which will be used for adding new elements from this panel</param>
         /// <param name="variant">Cached scenario element source variant handled by this panel</param>
         public void Initialize(ScenarioElementSource source, SourceVariant variant)
         {
+            addElementsPanel = GetComponentInParent<AddElementsPanel>();
             this.source = source;
             this.variant = variant;
             if (variant == null)
@@ -72,8 +89,8 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         /// </summary>
         public void Deinitialize()
         {
-            if (variant!=null)
-                variant.Prepared -= VariantOnPrepared;
+            if (Variant!=null)
+                Variant.Prepared -= VariantOnPrepared;
             source = null;
             variant = null;
         }
@@ -83,8 +100,8 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         /// </summary>
         private void VariantOnPrepared()
         {
-            text.text = variant.Name;
-            variant.Prepared -= VariantOnPrepared;
+            text.text = Variant.Name;
+            Variant.Prepared -= VariantOnPrepared;
         }
 
         /// <summary>
@@ -92,16 +109,49 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         /// </summary>
         public void OnElementSelected()
         {
-            if (variant.IsBusy)
+            if (Variant.IsBusy)
             {
-                ScenarioManager.Instance.logPanel.EnqueueInfo($"Downloading of the {variant.Name} agent is currently in progress.");
+                ScenarioManager.Instance.logPanel.EnqueueInfo($"Downloading of the {Variant.Name} agent is currently in progress.");
                 return;
             }
 
-            if (!variant.IsPrepared)
-                variant.Prepare();
+            if (!Variant.IsPrepared)
+                Variant.Prepare();
             else
-                source.OnVariantSelected(variant);
+                source.OnVariantSelected(Variant);
+        }
+
+        /// <summary>
+        /// Method invokes when the pointer enters this panel collider
+        /// </summary>
+        public void OnPointerEnter()
+        {
+            if (showDescriptionCoroutine != null)
+                return;
+            showDescriptionCoroutine = DelayedDisplayDescription();
+            StartCoroutine(showDescriptionCoroutine);
+        }
+
+        /// <summary>
+        /// Coroutine that invokes displaying the bound variant description after a short delay
+        /// </summary>
+        /// <returns>Coroutine</returns>
+        private IEnumerator DelayedDisplayDescription()
+        {
+            yield return new WaitForSecondsRealtime(addElementsPanel.DescriptionPanel.ShowDelay);
+            addElementsPanel.DescriptionPanel.Show(transform as RectTransform, variant);
+            showDescriptionCoroutine = null;
+        }
+        
+        /// <summary>
+        /// Method invokes when the pointer exits this panel collider
+        /// </summary>
+        public void OnPointerExit()
+        {
+            addElementsPanel.DescriptionPanel.Hide(variant);
+            if (showDescriptionCoroutine == null) return;
+            StopCoroutine(showDescriptionCoroutine);
+            showDescriptionCoroutine = null;
         }
     }
 }

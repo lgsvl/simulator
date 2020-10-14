@@ -55,7 +55,7 @@ namespace Simulator.ScenarioEditor.Agents
             for (var i = 0; i < pedestriansInSimulation.Count; i++)
             {
                 var pedestrian = pedestriansInSimulation[i];
-                var egoAgent = new AgentVariant(this, pedestrian.name, pedestrian);
+                var egoAgent = new AgentVariant(this, pedestrian.name, pedestrian, string.Empty);
                 Variants.Add(egoAgent);
             }
         }

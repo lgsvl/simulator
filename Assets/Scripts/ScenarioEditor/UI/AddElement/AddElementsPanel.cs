@@ -7,9 +7,7 @@
 
 namespace Simulator.ScenarioEditor.UI.AddElement
 {
-    using System.Collections;
     using System.Collections.Generic;
-    using Controllables;
     using Inspector;
     using Managers;
     using ScenarioEditor.Utilities;
@@ -27,18 +25,29 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         /// </summary>
         [SerializeField]
         private SourcePanel sourcePanelPrefab;
-        
+
         /// <summary>
         /// Transform parent for the panel content
         /// </summary>
         [SerializeField]
         private Transform contentParent;
+
+        /// <summary>
+        /// Panel that popups above source element on hover to view more details
+        /// </summary>
+        [SerializeField]
+        private SourceElementDescriptionPanel descriptionPanel;
 #pragma warning restore 0649
-        
+
         /// <summary>
         /// List of available source panels
         /// </summary>
         private List<SourcePanel> sourcePanels = new List<SourcePanel>();
+
+        /// <summary>
+        /// Panel that popups above source element on hover to view more details
+        /// </summary>
+        public SourceElementDescriptionPanel DescriptionPanel => descriptionPanel;
 
         /// <inheritdoc/>
         public override void Initialize()
@@ -61,7 +70,7 @@ namespace Simulator.ScenarioEditor.UI.AddElement
             sourcePanels.Add(newPanel);
             UnityUtilities.LayoutRebuild(contentParent as RectTransform);
         }
-        
+
         /// <inheritdoc/>
         public override void Deinitialize()
         {

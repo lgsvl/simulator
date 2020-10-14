@@ -8,7 +8,9 @@
 namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
 {
     using System.Collections.Generic;
+    using Elements;
     using Inspector;
+    using Managers;
     using ScenarioEditor.Utilities;
     using UnityEngine;
 
@@ -30,6 +32,12 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// </summary>
         [SerializeField]
         private Transform contentParent;
+        
+        /// <summary>
+        /// Info that is displayed when there is no scenario element selected
+        /// </summary>
+        [SerializeField]
+        private GameObject noElementInfo;
 #pragma warning restore 0649
 
         /// <summary>
@@ -47,6 +55,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                 panel.Initialize();
                 panels.Add(panel);
             }
+            ScenarioManager.Instance.SelectedOtherElement += OnSelectedOtherElement;
         }
         
         /// <inheritdoc/>
@@ -55,6 +64,9 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             for (var i = 0; i < panels.Count; i++)
                 panels[i].Deinitialize();
             panels.Clear();
+            var scenarioManager = ScenarioManager.Instance;
+            if (scenarioManager != null)
+                scenarioManager.SelectedOtherElement -= OnSelectedOtherElement;
         }
 
         /// <inheritdoc/>
@@ -68,6 +80,15 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         public override void Hide()
         {
             gameObject.SetActive(false);
+        }
+
+        /// <summary>
+        /// Method called when another scenario element has been selected
+        /// </summary>
+        /// <param name="selectedElement">Scenario element that has been selected</param>
+        private void OnSelectedOtherElement(ScenarioElement selectedElement)
+        {
+            noElementInfo.SetActive(selectedElement==null);
         }
     }
 }

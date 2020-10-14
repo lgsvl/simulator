@@ -27,9 +27,19 @@ namespace Simulator.ScenarioEditor.Agents
         public abstract string Name { get; }
         
         /// <summary>
+        /// Description of this variant
+        /// </summary>
+        public abstract string Description { get; }
+        
+        /// <summary>
         /// Prefab used to visualize a scenario element variant
         /// </summary>
         public abstract GameObject Prefab { get;}
+        
+        /// <summary>
+        /// Is this source variant currently being prepared
+        /// </summary>
+        public bool IsBusy { get; protected set; }
         
         /// <summary>
         /// Is this source variant prepared
@@ -45,11 +55,6 @@ namespace Simulator.ScenarioEditor.Agents
                     Prepared?.Invoke();
             }
         }
-        
-        /// <summary>
-        /// Is this source variant currently being prepared
-        /// </summary>
-        public bool IsBusy { get; protected set; }
 
         /// <summary>
         /// Prepares the variant with all the assets

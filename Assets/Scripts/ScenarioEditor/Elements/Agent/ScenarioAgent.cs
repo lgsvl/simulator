@@ -27,7 +27,7 @@ namespace Simulator.ScenarioEditor.Elements.Agent
         /// <summary>
         /// The position offset that will be applied to the line renderer of waypoints
         /// </summary>
-        private static Vector3 lineRendererPositionOffset = new Vector3(0.0f, 1.0f, 0.0f);
+        private static Vector3 lineRendererPositionOffset = new Vector3(0.0f, 0.1f, 0.0f);
 
         /// <summary>
         /// Name for the gameobject containing waypoints
@@ -75,7 +75,7 @@ namespace Simulator.ScenarioEditor.Elements.Agent
                     PathRenderer.positionCount = 1;
                     PathRenderer.SetPosition(0, lineRendererPositionOffset);
                     PathRenderer.sortingLayerName = "Ignore Raycast";
-                    PathRenderer.widthMultiplier = 1.0f;
+                    PathRenderer.widthMultiplier = 0.1f;
                     PathRenderer.generateLightingData = false;
                     PathRenderer.textureMode = LineTextureMode.Tile;
                 }

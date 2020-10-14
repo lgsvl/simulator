@@ -7,12 +7,11 @@
 
 namespace Simulator.ScenarioEditor.Controllables
 {
+    using System.Text;
     using System.Threading.Tasks;
     using Agents;
     using Controllable;
-    using Managers;
     using UnityEngine;
-    using Utilities;
 
     /// <summary>
     /// Data describing a single controllable variant
@@ -22,7 +21,12 @@ namespace Simulator.ScenarioEditor.Controllables
         /// <summary>
         /// Name of this controllable variant
         /// </summary>
-        public string name;
+        protected string name;
+        
+        /// <summary>
+        /// Description of this controllable variant
+        /// </summary>
+        protected string description;
 
         /// <summary>
         /// <see cref="IControllable"/> bound to this source variant
@@ -31,6 +35,9 @@ namespace Simulator.ScenarioEditor.Controllables
 
         /// <inheritdoc/>
         public override string Name => name;
+
+        /// <inheritdoc/>
+        public override string Description => description;
 
         /// <inheritdoc/>
         public override GameObject Prefab => controllable.gameObject;
@@ -45,6 +52,34 @@ namespace Simulator.ScenarioEditor.Controllables
             this.name = name;
             this.controllable = controllable;
             IsPrepared = Prefab != null;
+            var sb = new StringBuilder();
+            sb.Append("Control type: ");
+            sb.Append(controllable.ControlType);
+            if (controllable.ValidActions.Length > 0)
+            {
+                sb.Append("\nValid actions: ");
+                for (var i = 0; i < controllable.ValidActions.Length; i++)
+                {
+                    var validAction = controllable.ValidActions[i];
+                    sb.Append(validAction);
+                    if (i<controllable.ValidActions.Length-1)
+                        sb.Append(", ");
+                }
+            }
+
+            if (controllable.ValidStates.Length > 0)
+            {
+                sb.Append("\nValid states: ");
+                for (var i = 0; i < controllable.ValidStates.Length; i++)
+                {
+                    var validState = controllable.ValidStates[i];
+                    sb.Append(validState);
+                    if (i<controllable.ValidStates.Length-1)
+                        sb.Append(", ");
+                }
+            }
+
+            description = sb.ToString();
         }
         
         /// <inheritdoc/>

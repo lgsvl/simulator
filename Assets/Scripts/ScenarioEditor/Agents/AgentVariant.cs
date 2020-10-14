@@ -24,6 +24,11 @@ namespace Simulator.ScenarioEditor.Agents
         /// Name of this agent variant
         /// </summary>
         protected string name;
+        
+        /// <summary>
+        /// Description of this agent variant
+        /// </summary>
+        protected string description;
 
         /// <summary>
         /// Prefab used to visualize this agent variant
@@ -32,6 +37,9 @@ namespace Simulator.ScenarioEditor.Agents
 
         /// <inheritdoc/>
         public override string Name => name;
+        
+        /// <inheritdoc/>
+        public override string Description => description;
 
         /// <inheritdoc/>
         public override GameObject Prefab => prefab;
@@ -42,11 +50,13 @@ namespace Simulator.ScenarioEditor.Agents
         /// <param name="source">The source of the scenario agent type, this variant is a part of this source</param>
         /// <param name="name">Name of this agent variant</param>
         /// <param name="prefab">Prefab used to visualize this agent variant</param>
-        public AgentVariant(ScenarioAgentSource source, string name, GameObject prefab)
+        /// <param name="description">Description with agent variant details</param>
+        public AgentVariant(ScenarioAgentSource source, string name, GameObject prefab, string description)
         {
             this.source = source;
             this.name = name;
             this.prefab = prefab;
+            this.description = description;
             IsPrepared = prefab != null;
         }
 

@@ -9,6 +9,7 @@ namespace Simulator.ScenarioEditor.Agents
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
     using System.Threading.Tasks;
     using Database;
     using Database.Services;
@@ -61,8 +62,10 @@ namespace Simulator.ScenarioEditor.Agents
 
             foreach (var vehicleDetailData in library)
             {
+                var sb = new StringBuilder();
+                sb.Append(vehicleDetailData.Description);
                 var newVehicle = new CloudAgentVariant(this, vehicleDetailData.Name, null, 
-                    vehicleDetailData.Id, vehicleDetailData.AssetGuid)
+                    sb.ToString(), vehicleDetailData.Id, vehicleDetailData.AssetGuid)
                 {
                     assetModel =
                         cachedVehicles.FirstOrDefault(model => model.AssetGuid == vehicleDetailData.AssetGuid)

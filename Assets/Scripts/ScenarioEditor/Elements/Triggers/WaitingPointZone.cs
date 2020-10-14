@@ -20,7 +20,7 @@ namespace Simulator.ScenarioEditor.Agents.Triggers
         /// <summary>
         /// The position offset that will be applied to the line renderer
         /// </summary>
-        private static Vector3 lineRendererPositionOffset = new Vector3(0.0f, 0.2f, 0.0f);
+        private static Vector3 lineRendererPositionOffset = new Vector3(0.0f, 0.1f, 0.0f);
 
         /// <summary>
         /// Line renderer for displaying the connection between waypoint and activation zone
@@ -56,7 +56,7 @@ namespace Simulator.ScenarioEditor.Agents.Triggers
                 pathRenderer.positionCount = 2;
                 pathRenderer.textureMode = LineTextureMode.Tile;
                 pathRenderer.sortingLayerName = "Ignore Raycast";
-                pathRenderer.widthMultiplier = 0.4f;
+                pathRenderer.widthMultiplier = 0.1f;
                 pathRenderer.SetPosition(0, lineRendererPositionOffset);
                 return pathRenderer;
             }

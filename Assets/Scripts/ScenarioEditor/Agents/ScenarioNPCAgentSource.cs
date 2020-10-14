@@ -9,6 +9,7 @@ namespace Simulator.ScenarioEditor.Agents
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
     using System.Threading.Tasks;
     using Elements.Agent;
     using Input;
@@ -37,13 +38,13 @@ namespace Simulator.ScenarioEditor.Agents
 
         /// <inheritdoc/>
         public override string ElementTypeName => "NPCAgent";
-        
+
         /// <inheritdoc/>
         public override string ParameterType => "";
 
         /// <inheritdoc/>
         public override int AgentTypeId => 2;
-        
+
         /// <inheritdoc/>
         public override List<SourceVariant> Variants { get; } = new List<SourceVariant>();
 
@@ -55,7 +56,11 @@ namespace Simulator.ScenarioEditor.Agents
             var npcVehiclesInSimulation = Config.NPCVehicles;
             foreach (var npcAssetData in npcVehiclesInSimulation)
             {
-                var npcVariant = new AgentVariant(this, npcAssetData.Value.Name, npcAssetData.Value.Prefab);
+                var sb = new StringBuilder();
+                sb.Append("NPC type: ");
+                sb.Append(npcAssetData.Value.NPCType);
+                var npcVariant = new AgentVariant(this, npcAssetData.Value.Name, npcAssetData.Value.Prefab,
+                    sb.ToString());
                 Variants.Add(npcVariant);
             }
 

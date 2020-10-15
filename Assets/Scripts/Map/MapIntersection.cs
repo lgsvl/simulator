@@ -21,7 +21,8 @@ namespace Simulator.Map
         public List<MapSignal> oppFacingGroup = new List<MapSignal>();
         [System.NonSerialized]
         public List<MapSignal> currentSignalGroup = new List<MapSignal>();
-
+        [System.NonSerialized]
+        public List<MapLine> stopLines = new List<MapLine>();
         public Vector3 triggerBounds; // match to size of intersection so all stop sign queue goes in and out
         public BoxCollider yieldTrigger { get; set; }
 
@@ -38,7 +39,7 @@ namespace Simulator.Map
         public void SetIntersectionData()
         {
             var allMapLines = new List<MapLine>();
-            var stopLines = new List<MapLine>();
+            stopLines = new List<MapLine>();
             allMapLines.AddRange(transform.GetComponentsInChildren<MapLine>());
             foreach (var line in allMapLines)
             {

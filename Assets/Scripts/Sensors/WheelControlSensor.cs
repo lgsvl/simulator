@@ -9,6 +9,7 @@ using UnityEngine;
 using Simulator.Bridge;
 using Simulator.Utilities;
 using Simulator.Sensors.UI;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Simulator.Sensors
@@ -22,6 +23,9 @@ namespace Simulator.Sensors
         private float steer = 0f;
         private float accel = 0f;
         private float brake = 0f;
+        private float MaxSteer = 0f;
+        private float MaxAccel = 0f;
+        private float MaxBrake = 0f;
 
         private SimulatorControls controls;
         private IVehicleDynamics dynamics;
@@ -188,6 +192,9 @@ namespace Simulator.Sensors
                 SteerInput = steer;
                 AccelInput = accel - brake;
                 BrakeInput = brake;
+                MaxSteer = Mathf.Max(MaxSteer, Mathf.Sign(steer) * steer);
+                MaxAccel = Mathf.Max(MaxAccel, Mathf.Sign(accel) * accel);
+                MaxBrake = Mathf.Max(MaxBrake, Mathf.Sign(brake) * brake);
             }
         }
 
@@ -234,6 +241,16 @@ namespace Simulator.Sensors
                 {"Velocity", dynamics.RB.velocity}
             };
             visualizer.UpdateGraphValues(graphData);
+        }
+
+        public override void SetAnalysisData()
+        {
+            SensorAnalysisData = new Hashtable
+            {
+                { "Max Steer", MaxSteer },
+                { "Max Accel", MaxAccel },
+                { "Max Brake", MaxBrake },
+            };
         }
 
         public override void OnVisualizeToggle(bool state)

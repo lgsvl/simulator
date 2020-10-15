@@ -14,6 +14,7 @@ using Simulator.Bridge.Data;
 using Simulator.Sensors.UI;
 using Simulator.Utilities;
 using Simulator.Map;
+using System.Collections;
 
 namespace Simulator.Sensors
 {
@@ -38,6 +39,8 @@ namespace Simulator.Sensors
         private MapSignal[] Visualized = Array.Empty<MapSignal>();
         private MapManager MapManager;
         private WireframeBoxes WireframeBoxes;
+
+        List<string> DetectedStates = new List<string>();
 
         public override SensorDistributionType DistributionType => SensorDistributionType.LowLoad;
 
@@ -106,6 +109,11 @@ namespace Simulator.Sensors
                                 id = "signal_" + signal.SeqId.ToString();
                             }
 
+                            if (!DetectedStates.Contains(signal.CurrentState))
+                            {
+                                DetectedStates.Add(signal.CurrentState);
+                            }
+
                             if (!DetectedSignals.ContainsKey(signal))
                             {
                                 var signalData = new SignalData()
@@ -156,6 +164,15 @@ namespace Simulator.Sensors
 
                 WireframeBoxes.Draw(signal.gameObject.transform.localToWorldMatrix, signal.boundOffsets, signal.boundScale, color);
             }
+        }
+        
+        public override void SetAnalysisData()
+        {
+            SensorAnalysisData = new Hashtable
+            {
+                { "States Detected", DetectedStates },
+                { "Signals Detected", DetectedSignals.Count }
+            };
         }
 
         public override void OnVisualizeToggle(bool state) {}

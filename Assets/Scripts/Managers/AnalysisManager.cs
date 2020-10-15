@@ -76,7 +76,9 @@ namespace Simulator.Analysis
             PersistantPath = Simulator.Web.Config.PersistentDataPath;
             AnalysisPath = Path.Combine(PersistantPath, "Analysis");
             if (!Directory.Exists(AnalysisPath))
+            {
                 Directory.CreateDirectory(AnalysisPath);
+            }
         }
 
         private void Start()
@@ -193,7 +195,7 @@ namespace Simulator.Analysis
                         JObject agentJO = new JObject();
                         agentJO.Add("Name", agent.Name);
                         agentJO.Add("id", agent.GTID);
-                        JObject sensorsJO = GetSensorsData(agent, agentJO);
+                        JArray sensorsJO = GetSensorsData(agent, agentJO);
                         agentJO.Add("Sensors", sensorsJO);
                         agentsJA.Add(agentJO);
                     }
@@ -234,14 +236,14 @@ namespace Simulator.Analysis
                 JObject agentJO = new JObject();
                 agentJO.Add("Name", agent.Name);
                 agentJO.Add("id", agent.GTID);
-                JObject sensorsJO = GetSensorsData(agent, agentJO);
+                JArray sensorsJO = GetSensorsData(agent, agentJO);
                 
                 //Add sensors data from clients
                 if (Loader.Instance != null && Loader.Instance.Network.IsMaster)
                 {
                     if (ClientsSensorsData.TryGetValue(agent.GTID, out var agentSensors))
                         foreach (var clientSensorData in agentSensors.Properties())
-                            sensorsJO.Add(clientSensorData.Name, clientSensorData.Value);
+                            sensorsJO.Add(clientSensorData.Value);
                 }
                 agentJO.Add("Sensors", sensorsJO);
 
@@ -266,7 +268,7 @@ namespace Simulator.Analysis
             iterationInfo.Add("Duration", SimulatorManager.Instance.GetSessionElapsedTimeSpan().ToString());
             iterationInfo.Add("StartTime", AnalysisStart);
             iterationInfo.Add("StopTime", DateTime.Now);
-            iterationInfo.Add("Version", "0.1");
+            iterationInfo.Add("Version", "0.2");
 
             resultRoot.Add("Agents", agentsJA);
             resultRoot.Add("simulationConfig", configJO);
@@ -276,9 +278,9 @@ namespace Simulator.Analysis
             Init = false;
         }
 
-        private JObject GetSensorsData(AgentConfig agent, JObject agentJO)
+        private JArray GetSensorsData(AgentConfig agent, JObject agentJO)
         {
-            var sensorsJO = new JObject();
+            var sensorsJO = new JArray();
             Array.ForEach(agent.AgentGO.GetComponentsInChildren<SensorBase>(), sensorBase =>
             {
                 sensorBase.SetAnalysisData();
@@ -286,18 +288,8 @@ namespace Simulator.Analysis
                 {
                     var sData = JsonConvert.SerializeObject(sensorBase.SensorAnalysisData, SerializerSettings);
                     JToken token = JToken.Parse(sData);
-                    sensorsJO.Add(sensorBase.GetType().ToString(), token);
-                }
-
-                if (sensorBase is VideoRecordingSensor recorder)
-                {
-                    if (Loader.Instance.Network.IsClient)
-                        Debug.LogError("Saving captured video on clients simulation is currently unsupported. The data will be lost.");
-                    else if (recorder.StopRecording())
-                    {
-                        agentJO.Add("VideoCapture",
-                                    Path.Combine(recorder.GetOutdir(), recorder.GetFileName()));
-                    }
+                    token["Type"] = sensorBase.GetType().ToString();
+                    sensorsJO.Add(token);
                 }
             });
 

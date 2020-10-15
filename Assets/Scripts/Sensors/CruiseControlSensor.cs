@@ -10,6 +10,7 @@ using Simulator.Bridge;
 using Simulator.Utilities;
 using Simulator.Sensors.UI;
 using System.Collections.Generic;
+using System.Collections;
 
 namespace Simulator.Sensors
 {
@@ -26,7 +27,8 @@ namespace Simulator.Sensors
         public float SteerInput { get; private set; } = 0f;
         public float AccelInput { get; private set; } = 0f;
         public float BrakeInput { get; private set; } = 0f;
-        
+        private float MaxSpeed = 0;
+
         public override SensorDistributionType DistributionType => SensorDistributionType.LowLoad;
 
         private void Start()
@@ -43,6 +45,8 @@ namespace Simulator.Sensors
             {
                 AccelInput = dynamics.RB.velocity.magnitude < CruiseSpeed ? 1f : 0f;
             }
+
+            MaxSpeed = Mathf.Max(MaxSpeed, dynamics.RB.velocity.magnitude);
         }
         
         public override void OnBridgeSetup(BridgeInstance bridge)
@@ -68,6 +72,14 @@ namespace Simulator.Sensors
                 {"Velocity", dynamics.RB.velocity}
             };
             visualizer.UpdateGraphValues(graphData);
+        }
+
+        public override void SetAnalysisData()
+        {
+            SensorAnalysisData = new Hashtable
+            {
+                { "Max Speed", MaxSpeed },
+            };
         }
 
         public override void OnVisualizeToggle(bool state)

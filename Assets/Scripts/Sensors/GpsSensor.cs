@@ -16,6 +16,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using Simulator.Sensors.UI;
+using System.Collections;
 
 namespace Simulator.Sensors
 {
@@ -43,12 +44,16 @@ namespace Simulator.Sensors
         Publisher<GpsData> Publish;
 
         MapOrigin MapOrigin;
+        private Vector3 startPosition;
+        private Quaternion startRotation;
 
         public override SensorDistributionType DistributionType => SensorDistributionType.LowLoad;
 
         private void Awake()
         {
             MapOrigin = MapOrigin.Find();
+            startPosition = transform.position;
+            startRotation = transform.rotation;
         }
 
         public void Start()
@@ -206,6 +211,28 @@ namespace Simulator.Sensors
         public override void OnVisualizeToggle(bool state)
         {
             //
+        }
+
+        public override void SetAnalysisData()
+        {
+            var startLocation = MapOrigin.GetGpsLocation(startPosition, IgnoreMapOrigin);
+            var location = MapOrigin.GetGpsLocation(transform.position, IgnoreMapOrigin);
+
+            SensorAnalysisData = new Hashtable
+            {
+                { "Start Latitude", startLocation.Latitude},
+                { "Start Longitude", startLocation.Longitude},
+                { "Start Altitude", startLocation.Altitude},
+                { "Start Northing", startLocation.Northing},
+                { "Start Easting", startLocation.Easting},
+                {"Start Map URL", $"https://www.google.com/maps/search/?api=1&query={startLocation.Latitude},{startLocation.Longitude}" },
+                { "Latitude", location.Latitude},
+                { "Longitude", location.Longitude},
+                { "Altitude", location.Altitude},
+                { "Northing", location.Northing},
+                { "Easting", location.Easting},
+                {"End Map URL", $"https://www.google.com/maps/search/?api=1&query={location.Latitude},{location.Longitude}" },
+            };
         }
     }
 }

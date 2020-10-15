@@ -18,6 +18,7 @@ using UnityEngine.Rendering.HighDefinition;
 using Unity.Collections;
 
 using UltrasonicData = Simulator.Bridge.Data.UltrasonicData;
+using System.Collections;
 
 namespace Simulator.Sensors
 {
@@ -56,6 +57,9 @@ namespace Simulator.Sensors
         BridgeInstance Bridge;
         Publisher<UltrasonicData> Publish;
         uint Sequence;
+
+        private float minRecorded;
+        private float maxRecorded;
 
         const int MaxJpegSize = 4 * 1024 * 1024; // 4MB
 
@@ -272,6 +276,9 @@ namespace Simulator.Sensors
                         }
                     }
 
+                    minRecorded = Mathf.Min(minRecorded, min_d);
+                    maxRecorded = Mathf.Max(maxRecorded, distance);
+
                     UltrasonicResult = new UltrasonicData()
                     {
                         Name = Name,
@@ -329,6 +336,15 @@ namespace Simulator.Sensors
         {
             var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(SensorCamera);
             return GeometryUtility.TestPlanesAABB(activeCameraPlanes, bounds);
+        }
+
+        public override void SetAnalysisData()
+        {
+            SensorAnalysisData = new Hashtable
+            {
+                {"Minimum Distance Recorded", minRecorded},
+                {"Minimum Distance Recorded", maxRecorded}
+            };
         }
     }
 }

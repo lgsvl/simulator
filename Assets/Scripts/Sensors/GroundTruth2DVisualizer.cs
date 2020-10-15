@@ -11,6 +11,7 @@ using Simulator.Bridge.Data;
 using Simulator.Utilities;
 using Simulator.Sensors.UI;
 using System;
+using System.Collections;
 
 namespace Simulator.Sensors
 {
@@ -44,7 +45,9 @@ namespace Simulator.Sensors
         AAWireBox SolidAABox;
 
         private Camera Camera;
-        
+
+        private int MaxTracked = -1;
+
         public override SensorDistributionType DistributionType => SensorDistributionType.HighLoad;
 
         private void Awake()
@@ -89,6 +92,7 @@ namespace Simulator.Sensors
 
         public override void OnVisualize(Visualizer visualizer)
         {
+            MaxTracked = Math.Max(MaxTracked, Detected.Length);
             foreach (var detected in Detected)
             {
                 Color color;
@@ -121,6 +125,14 @@ namespace Simulator.Sensors
         public override void OnVisualizeToggle(bool state)
         {
             //
+        }
+
+        public override void SetAnalysisData()
+        {
+            SensorAnalysisData = new Hashtable
+            {
+                { "Maximum Objects Tracked", MaxTracked },
+            };
         }
     }
 }

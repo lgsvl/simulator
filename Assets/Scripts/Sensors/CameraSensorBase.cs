@@ -25,7 +25,9 @@ using UnityEngine.Experimental.Rendering;
 
 namespace Simulator.Sensors
 {
+    using Simulator.Analysis;
     using Simulator.Sensors.Postprocessing;
+    using System.Collections;
 
     [RequireComponent(typeof(Camera))]
     public abstract class CameraSensorBase: SensorBase
@@ -128,6 +130,20 @@ namespace Simulator.Sensors
         private ConcurrentBag<byte[]> JpegOutput = new ConcurrentBag<byte[]>();
         private Queue<Task> Tasks = new Queue<Task>();
 
+        #region FPSCalculation
+        [SensorParameter]
+        public float MinFPS = 10f;
+        [SensorParameter]
+        public float MinFPSTime = 5f;
+        private float LowFPSCalculatedTime = 0f;
+        private float DeltaTime = 0.0f;
+        private float MS = 0f;
+        private float FPS = 0f;
+        private float AveFPS = 0f;
+        private float LowestFPS = float.MaxValue;
+        private bool LowFPS = false;
+        #endregion
+
         public virtual void Start()
         {
             SensorCamera.enabled = false;
@@ -206,6 +222,8 @@ namespace Simulator.Sensors
             ProcessReadbackRequests();
 
             SizeChanged = false;
+
+            CalculateFPS();
         }
 
         void CheckDistortion()
@@ -538,6 +556,53 @@ namespace Simulator.Sensors
         {
             var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(SensorCamera);
             return GeometryUtility.TestPlanesAABB(activeCameraPlanes, bounds);
+        }
+
+        private void CalculateFPS()
+        {
+            if (LowFPS)
+                return;
+
+            DeltaTime += (Time.unscaledDeltaTime - DeltaTime) * 0.1f;
+            MS = DeltaTime * 1000.0f;
+            FPS = 1.0f / DeltaTime;
+            LowestFPS = Mathf.Min(FPS, LowestFPS);
+            AveFPS = Time.frameCount / Time.time;
+            if (FPS < MinFPS)
+            {
+                LowFPSCalculatedTime += Time.deltaTime;
+                if (LowFPSCalculatedTime >= MinFPSTime)
+                {
+                    LowFPSEvent(GetComponentInParent<AgentController>().GTID);
+                    LowFPSCalculatedTime = 0f;
+                    LowFPS = true;
+                }
+            }
+        }
+
+        public override void SetAnalysisData()
+        {
+            SensorAnalysisData = new Hashtable
+            {
+                { "Average FPS", AveFPS },
+                { "Lowest FPS", LowestFPS },
+                { "Target FPS", MinFPS },
+            };
+        }
+
+        private void LowFPSEvent(uint id)
+        {
+            Hashtable data = new Hashtable
+            {
+                { "Id", id },
+                { "Type", "LowFPS" },
+                { "Time", SimulatorManager.Instance.GetSessionElapsedTimeSpan().ToString() },
+                { "MS", MS },
+                { "FPS", FPS },
+                { "Average FPS", AveFPS },
+                { "Status", AnalysisManager.AnalysisStatusType.Failed },
+            };
+            SimulatorManager.Instance.AnalysisManager.AddEvent(data);
         }
     }
 }

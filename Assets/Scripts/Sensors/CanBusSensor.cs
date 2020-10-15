@@ -12,6 +12,7 @@ using Simulator.Utilities;
 using UnityEngine;
 using Simulator.Sensors.UI;
 using System.Collections.Generic;
+using System.Collections;
 
 namespace Simulator.Sensors
 {
@@ -25,6 +26,11 @@ namespace Simulator.Sensors
         uint SendSequence;
         float NextSend;
 
+        private float MaxSpeed = 0;
+        private float MaxThrottle = 0;
+        private float MaxBrake = 0;
+        private float MaxSteering = 0;
+        private float GearUsed;
         BridgeInstance Bridge;
         Publisher<CanBusData> Publish;
 
@@ -70,6 +76,7 @@ namespace Simulator.Sensors
             NextSend = Time.time + 1.0f / Frequency;
 
             float speed = RigidBody.velocity.magnitude;
+            MaxSpeed = Mathf.Max(MaxSpeed, speed);
 
             var gps = MapOrigin.GetGpsLocation(transform.position);
 
@@ -158,6 +165,18 @@ namespace Simulator.Sensors
         public override void OnVisualizeToggle(bool state)
         {
             //
+        }
+
+        public override void SetAnalysisData()
+        {
+            SensorAnalysisData = new Hashtable
+            {
+                { "Max Speed", MaxSpeed },
+                { "Max Throttle", MaxBrake },
+                { "Max Brake", MaxBrake },
+                { "Max Steering", MaxSteering },
+                { "Gear Used", Mathf.RoundToInt(Dynamics.CurrentGear) },
+            };
         }
     }
 }

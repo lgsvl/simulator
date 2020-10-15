@@ -12,6 +12,7 @@ using Simulator.Sensors.UI;
 using Simulator.Utilities;
 using Simulator.Plugins;
 using UnityEngine.Rendering.HighDefinition;
+using System.Collections;
 
 namespace Simulator.Sensors
 {
@@ -72,7 +73,7 @@ namespace Simulator.Sensors
                 return;
             }
 
-            Outdir = Path.Combine(Application.persistentDataPath, "Videos");
+            Outdir = Path.Combine(Simulator.Web.Config.PersistentDataPath, "Videos");
             if (!Directory.Exists(Outdir))
             {
                 Directory.CreateDirectory(Outdir);
@@ -269,6 +270,21 @@ namespace Simulator.Sensors
         public override void OnVisualizeToggle(bool state)
         {
             //
+        }
+
+
+        public override void SetAnalysisData()
+        {
+            if (Loader.Instance.Network.IsClient)
+                Debug.LogError("Saving captured video on clients simulation is currently unsupported. The data will be lost.");
+            else if (StopRecording())
+            {
+
+                SensorAnalysisData = new Hashtable
+                {
+                    { "VideoCapture", Path.Combine(GetOutdir(), GetFileName()) },
+                };
+            }
         }
     }
 }

@@ -13,6 +13,7 @@ using Simulator.Utilities;
 using UnityEngine;
 using UnityEngine.AI;
 using Simulator.Sensors.UI;
+using System.Collections;
 
 namespace Simulator.Sensors
 {
@@ -35,6 +36,8 @@ namespace Simulator.Sensors
         
         private Dictionary<Collider, DetectedRadarObject> Detected = new Dictionary<Collider, DetectedRadarObject>();
         private Dictionary<Collider, Box> Visualized = new Dictionary<Collider, Box>();
+
+        private int MaxTracked = -1;
         
         public override SensorDistributionType DistributionType => SensorDistributionType.HighLoad;
         
@@ -74,8 +77,9 @@ namespace Simulator.Sensors
             {
                 return;
             }
+
             nextPublish = Time.time + 1.0f / Frequency;
-            
+            MaxTracked = Mathf.Max(MaxTracked, Detected.Count);
             Publish(new DetectedRadarObjectData()
             {
                 Name = Name,
@@ -311,6 +315,14 @@ namespace Simulator.Sensors
                     break;
             }
             return visible;
+        }
+
+        public override void SetAnalysisData()
+        {
+            SensorAnalysisData = new Hashtable
+            {
+                { "Maximum Objects Tracked", MaxTracked },
+            };
         }
     }
 }

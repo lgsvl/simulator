@@ -10,6 +10,7 @@ using Simulator.Bridge;
 using Simulator.Utilities;
 using Simulator.Sensors.UI;
 using System.Collections.Generic;
+using System.Collections;
 
 namespace Simulator.Sensors
 {
@@ -25,6 +26,10 @@ namespace Simulator.Sensors
         private VehicleActions actions;
         private Vector2 keyboardInput = Vector2.zero;
         private AgentController AgentController;
+
+        public float MaxSteer = 0f;
+        public float MaxAccel = 0f;
+        public float MaxBrake = 0f;
 
         private void Start()
         {
@@ -155,7 +160,9 @@ namespace Simulator.Sensors
             if (AgentController.Active)
             {
                 SteerInput = Mathf.MoveTowards(SteerInput, keyboardInput.x, Time.deltaTime);
+                MaxSteer = Mathf.Max(Mathf.Abs(SteerInput), MaxSteer);
                 AccelInput = keyboardInput.y;
+                MaxAccel = Mathf.Max(Mathf.Abs(AccelInput), MaxAccel);
             }
         }
 
@@ -204,6 +211,16 @@ namespace Simulator.Sensors
                 {"Velocity", dynamics.RB.velocity}
             };
             visualizer.UpdateGraphValues(graphData);
+        }
+
+        public override void SetAnalysisData()
+        {
+            SensorAnalysisData = new Hashtable
+            {
+                { "Max Steer", MaxSteer },
+                { "Max Accel", MaxAccel },
+                { "Max Brake", MaxBrake },
+            };
         }
 
         public override void OnVisualizeToggle(bool state)

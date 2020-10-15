@@ -15,6 +15,7 @@ using Simulator.Bridge;
 using Simulator.Bridge.Data;
 using Simulator.Utilities;
 using Simulator.Sensors.UI;
+using System.Collections;
 
 #pragma warning disable CS0649
 
@@ -43,6 +44,18 @@ namespace Simulator.Sensors
 
         Rigidbody RigidBody;
         Vector3 LastVelocity;
+        float minX;
+        float maxX;
+        float minGyroX;
+        float maxGyroX;
+        float minY;
+        float maxY;
+        float minGyroY;
+        float maxGyroY;
+        float minZ;
+        float maxZ;
+        float minGyroZ;
+        float maxGyroZ;
 
         ImuData latestData;
         
@@ -126,6 +139,13 @@ namespace Simulator.Sensors
 
             var position = transform.position;
             position.Set(position.z, -position.x, position.y);
+            minX = Mathf.Min(minX, position.x);
+            maxX = Mathf.Max(maxX, position.x);
+            minY = Mathf.Min(minY, position.y);
+            maxY = Mathf.Max(maxY, position.y);
+            minZ = Mathf.Min(minZ, position.z);
+            maxZ = Mathf.Max(maxZ, position.z);
+
             var velocity = transform.InverseTransformDirection(RigidBody.velocity);
             velocity.Set(velocity.z, -velocity.x, velocity.y);
             var acceleration = (velocity - LastVelocity) / Time.fixedDeltaTime;
@@ -139,6 +159,12 @@ namespace Simulator.Sensors
 
             var orientation = transform.rotation;
             orientation.Set(-orientation.z, orientation.x, -orientation.y, orientation.w); // converting to right handed xyz
+            minGyroX = Mathf.Min(minGyroX, orientation.x);
+            maxGyroX = Mathf.Max(maxGyroX, orientation.x);
+            minGyroY = Mathf.Min(minGyroY, orientation.y);
+            maxGyroY = Mathf.Max(maxGyroY, orientation.y);
+            minGyroZ = Mathf.Min(minGyroZ, orientation.z);
+            maxGyroZ = Mathf.Max(maxGyroZ, orientation.z);
 
             var data = new ImuData()
             {
@@ -225,6 +251,25 @@ namespace Simulator.Sensors
         public override void OnVisualizeToggle(bool state)
         {
             //
+        }
+
+        public override void SetAnalysisData()
+        {
+            SensorAnalysisData = new Hashtable
+            {
+                { "Min X", minX },
+                { "Max X", maxX },
+                { "Min Gyro X", minGyroX },
+                { "Max Gyro X", maxGyroX },
+                { "Min Y", minX },
+                { "Max Y", maxX },
+                { "Min Gyro Y", minGyroY },
+                { "Max Gyro Y", maxGyroY },
+                { "Min Z", minZ },
+                { "Max Z", maxZ },
+                { "Min Gyro Z", minGyroZ },
+                { "Max Gyro Z", maxGyroZ },
+            };
         }
     }
 }

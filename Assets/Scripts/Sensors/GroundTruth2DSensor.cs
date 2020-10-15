@@ -13,6 +13,7 @@ using Simulator.Bridge;
 using Simulator.Bridge.Data;
 using Simulator.Utilities;
 using Simulator.Sensors.UI;
+using System.Collections;
 
 namespace Simulator.Sensors
 {
@@ -66,6 +67,8 @@ namespace Simulator.Sensors
         private Publisher<Detected2DObjectData> Publish;
 
         private Camera Camera;
+
+        private int MaxTracked = -1;
         
         public override SensorDistributionType DistributionType => SensorDistributionType.HighLoad;
 
@@ -123,6 +126,7 @@ namespace Simulator.Sensors
 
         private void Update()
         {
+            MaxTracked = Math.Max(MaxTracked, Detected.Count);
             if (Bridge != null && Bridge.Status == Status.Connected)
             {
                 if (Time.time < nextSend)
@@ -355,6 +359,14 @@ namespace Simulator.Sensors
         {
             var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(Camera);
             return GeometryUtility.TestPlanesAABB(activeCameraPlanes, bounds);
+        }
+
+        public override void SetAnalysisData()
+        {
+            SensorAnalysisData = new Hashtable
+            {
+                { "Maximum Objects Tracked", MaxTracked },
+            };
         }
     }
 }

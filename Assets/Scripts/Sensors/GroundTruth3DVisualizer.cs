@@ -12,6 +12,7 @@ using Simulator.Utilities;
 using Simulator.Sensors.UI;
 using System;
 using Unity.Mathematics;
+using System.Collections;
 
 namespace Simulator.Sensors
 {
@@ -21,7 +22,9 @@ namespace Simulator.Sensors
         Detected3DObject[] Detected = Array.Empty<Detected3DObject>();
 
         WireframeBoxes WireframeBoxes;
-        
+
+        private int MaxTracked = -1;
+
         public override SensorDistributionType DistributionType => SensorDistributionType.HighLoad;
 
         void Start()
@@ -36,6 +39,7 @@ namespace Simulator.Sensors
 
         public override void OnVisualize(Visualizer visualizer)
         {
+            MaxTracked = Math.Max(MaxTracked, Detected.Length);
             foreach (var detected in Detected)
             {
                 Color color;
@@ -67,6 +71,14 @@ namespace Simulator.Sensors
         public override void OnVisualizeToggle(bool state)
         {
             //
+        }
+
+        public override void SetAnalysisData()
+        {
+            SensorAnalysisData = new Hashtable
+            {
+                { "Maximum Objects Tracked", MaxTracked },
+            };
         }
     }
 }

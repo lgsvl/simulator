@@ -11,6 +11,7 @@ using Simulator.Utilities;
 using UnityEngine;
 using Simulator.Sensors.UI;
 using System.Collections.Generic;
+using System.Collections;
 
 namespace Simulator.Sensors
 {
@@ -28,6 +29,9 @@ namespace Simulator.Sensors
         public float SteerInput { get; private set; } = 0f;
         public float AccelInput { get; private set; } = 0f;
         public float BrakeInput { get; private set; } = 0f;
+        private float MaxSteer = 0f;
+        private float MaxAccel = 0f;
+        private float MaxBrake = 0f;
 
         float ADAccelInput = 0f;
         float ADSteerInput = 0f;
@@ -77,6 +81,9 @@ namespace Simulator.Sensors
             {
                 AccelInput = ADAccelInput;
                 SteerInput = ADSteerInput;
+                MaxSteer = Mathf.Max(MaxSteer, Mathf.Sign(SteerInput) * SteerInput);
+                MaxAccel = Mathf.Max(MaxAccel, Mathf.Sign(AccelInput) * AccelInput);
+                MaxBrake = Mathf.Max(MaxBrake, Mathf.Sign(BrakeInput) * BrakeInput);
             }
         }
 
@@ -231,6 +238,16 @@ namespace Simulator.Sensors
         public override void OnVisualizeToggle(bool state)
         {
             //
+        }
+
+        public override void SetAnalysisData()
+        {
+            SensorAnalysisData = new Hashtable
+            {
+                { "Max Steer", MaxSteer },
+                { "Max Accel", MaxAccel },
+                { "Max Brake", MaxBrake },
+            };
         }
     }
 }

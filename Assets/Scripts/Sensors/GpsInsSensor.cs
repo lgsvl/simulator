@@ -11,6 +11,7 @@ using Simulator.Utilities;
 using UnityEngine;
 using Simulator.Sensors.UI;
 using System.Collections.Generic;
+using System.Collections;
 
 namespace Simulator.Sensors
 {
@@ -75,6 +76,15 @@ namespace Simulator.Sensors
                 {"Position Type", 56}
             };
             visualizer.UpdateGraphValues(graphData);
+        }
+
+        public override void SetAnalysisData()
+        {
+            SensorAnalysisData = new Hashtable
+            {
+                {"Status", 3},
+                {"Position Type", 56}
+            };
         }
 
         public override void OnVisualizeToggle(bool state)

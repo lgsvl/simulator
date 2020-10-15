@@ -15,6 +15,7 @@ using Simulator.Bridge;
 using Simulator.Bridge.Data;
 using Simulator.Utilities;
 using Simulator.Sensors.UI;
+using System.Collections;
 
 namespace Simulator.Sensors
 {
@@ -30,8 +31,10 @@ namespace Simulator.Sensors
         bool Destroyed = false;
         bool IsFirstFixedUpdate = true;
         double LastTimestamp;
-
         ClockData latestData;
+        float realTimeStart;
+        
+        ClockData data;
         private bool Sending = false;
 
         public override SensorDistributionType DistributionType => SensorDistributionType.LowLoad;
@@ -45,6 +48,7 @@ namespace Simulator.Sensors
         public void Start()
         {
             Task.Run(Publisher);
+            realTimeStart = Time.time;
         }
 
         void OnDestroy()
@@ -134,6 +138,15 @@ namespace Simulator.Sensors
         void Update()
         {
             IsFirstFixedUpdate = true;
+        }
+
+        public override void SetAnalysisData()
+        {
+            SensorAnalysisData = new Hashtable
+            {
+                { "Simulation Duration", SimulatorManager.Instance.CurrentTime - SimulatorManager.Instance.SessionStartTime },
+                { "Realtime Duration", Time.time - realTimeStart },
+            };
         }
 
         public override void OnVisualize(Visualizer visualizer)

@@ -126,12 +126,9 @@ namespace Simulator.Api.Commands
                         j = new JSONObject();
                         j.Add("type", "analysis");
                         j.Add("name", analysis.Name);
-                        j.Add("suddenbrakemax", new JSONNumber(analysis.SuddenBrakeMax));
-                        j.Add("suddensteermax", new JSONNumber(analysis.SuddenSteerMax));
                         j.Add("stucktravelthreshold", new JSONNumber(analysis.StuckTravelThreshold));
                         j.Add("stucktimethreshold", new JSONNumber(analysis.StuckTimeThreshold));
-                        j.Add("minfps", new JSONNumber(analysis.MinFPS));
-                        j.Add("minfpstime", new JSONNumber(analysis.MinFPSTime));
+                        j.Add("stoplinethreshold", new JSONNumber(analysis.StopLineThreshold));
                     }
 
                     if (j != null)

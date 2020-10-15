@@ -393,7 +393,6 @@ public class CloudAPI
         message.Headers.Add("Accept", "application/json");
         message.Headers.Add("Connection", "Keep-Alive");
         message.Headers.Add("X-Accel-Buffering", "no");
-
         Console.WriteLine("[CONN] Connecting to WISE");
 
         var response = await client.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, requestTokenSource.Token).ConfigureAwait(false);
@@ -476,7 +475,6 @@ public class CloudAPI
             }
             guid = Guid.Parse(matches[0].Id);
         }
-
         try
         {
             return await GetApi<DetailData>($"{meta.ApiPath}/{guid.ToString()}");
@@ -575,6 +573,7 @@ public class CloudAPI
                 ips.Add(address);
             }
         }
+
         return new SimulatorInfo()
         {
             linkToken = Guid.NewGuid().ToString(),

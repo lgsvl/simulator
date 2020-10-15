@@ -28,12 +28,8 @@ namespace Simulator.Sensors
             "name": "Analysis Sensor",
             "params":
             {
-              "SuddenBrakeMax": 10.0,
-              "SuddenSteerMax": 10.0,
               "StuckTravelThreshold": 0.1,
               "StuckTimeThreshold": 10.0,
-              "MinFPS": 10.0,
-              "MinFPSTime": 5.0,
               "StopLineThreshold": 1.0
             }
           }
@@ -47,8 +43,6 @@ namespace Simulator.Sensors
         private float Distance = 0f;
         private Vector3 PrevPos = new Vector3(0f, 0f, 0f);
 
-        [SensorParameter]
-        public float SuddenBrakeMax = 10f;
         private float SpeedMin = float.MaxValue;
         private float SpeedMax = 0f;
         private float SpeedAvg = 0f;
@@ -76,8 +70,6 @@ namespace Simulator.Sensors
         private float JerkLatMin = float.MaxValue;
         private float JerkLatMax = 0f;
 
-        [SensorParameter]
-        public float SuddenSteerMax = 10f;
         private float SteerAngleMax = 0f;
         private float SteerAngle = 0f;
         private float PrevSteerAngle = 0f;
@@ -94,24 +86,13 @@ namespace Simulator.Sensors
         private float StuckTime;
         private bool EgoIsStuck = false;
 
-        [SensorParameter]
-        public float MinFPS = 10f;
-        [SensorParameter]
-        public float MinFPSTime = 5f;
-        private float LowFPSCalculatedTime = 0f;
-        private float DeltaTime = 0.0f;
-        private float MS = 0f;
-        private float FPS = 0f;
-        private float AveFPS = 0f;
-        private bool LowFPS = false;
-
         private Vector3 StartPosition;
 
         private MapLane SpeedViolationLane;
         private float SpeedViolationCount = 0f;
         private float SpeedViolationMin = 0f;
         private float SpeedViolationMax = 0f;
-
+        
         public bool CheckingStopLine = false;
         public bool Stopped = false;
         public bool StopLineViolation = false;
@@ -120,7 +101,7 @@ namespace Simulator.Sensors
         private float SquareStopLineThreshold;
         private List<MapLine> StopLines = new List<MapLine>();
         private Transform StopLineTransform = null;
-
+        
         private void Awake()
         {
             AgentController = GetComponentInParent<AgentController>();
@@ -142,14 +123,12 @@ namespace Simulator.Sensors
 
         private void Start()
         {
-            LowFPSCalculatedTime = 0f;
             StartPosition = transform.position;
             StuckStartPosition = StartPosition;
         }
-
+        
         private void Update()
         {
-            CalculateFPS();
             CreateStopTransform();
         }
 
@@ -177,13 +156,9 @@ namespace Simulator.Sensors
                 { "JerkLatMin", JerkLatMin },
                 { "JerkLatMax", JerkLatMax },
                 { "SteerAngleMax", SteerAngleMax },
-                { "MS", MS },
-                { "FPS", FPS },
-                { "Average FPS", AveFPS },
                 { "Start Position", StartPosition },
                 { "EgoIsStuck", EgoIsStuck },
                 { "FellOffAdded", FellOffAdded },
-                { "LowFPS", LowFPS },
                 { "CurrentSpeedLimit", SpeedViolationLane?.speedLimit },
                 { "SpeedViolationDuration", TimeSpan.FromSeconds(SpeedViolationCount).ToString() },
                 { "SpeedViolationMax", SpeedViolationMax },
@@ -219,7 +194,6 @@ namespace Simulator.Sensors
                 { "JerkLatMin", JerkLatMin },
                 { "JerkLatMax", JerkLatMax },
                 { "SteerAngleMax", SteerAngleMax },
-                { "Average FPS", AveFPS },
                 { "Start Position", StartPosition },
                 { "End Position", transform.position },
             };
@@ -298,10 +272,6 @@ namespace Simulator.Sensors
                 StuckTime = 0f;
             }
 
-            if (Mathf.Abs(PrevSpeed - Speed) > SuddenBrakeMax)
-            {
-                SuddenBrakeEvent(AgentController.GTID);
-            }
             PrevSpeed = Speed;
 
             // steer angle max
@@ -309,10 +279,7 @@ namespace Simulator.Sensors
             {
                 SteerAngleMax = SteerAngle;
             }
-            if (Mathf.Abs(PrevSteerAngle - SteerAngle) > SuddenSteerMax)
-            {
-                SuddenSteerEvent(AgentController.GTID);
-            }
+
             PrevSteerAngle = SteerAngle;
 
             // traffic speed
@@ -321,7 +288,6 @@ namespace Simulator.Sensors
                 SpeedViolationLane = Lane.CurrentMapLane;
                 SpeedViolationCount += Time.fixedDeltaTime;
                 UpdateMinMax(Speed, ref SpeedViolationMin, ref SpeedViolationMax);
-                Debug.Log("Speed limit: " + Lane?.CurrentMapLane?.speedLimit + ", current speed: " + Speed);
             }
             else
             {
@@ -335,7 +301,7 @@ namespace Simulator.Sensors
             }
 
             // stop line violation
-            if (StopLineTransform != null)
+            if (StopLineTransform != null || StopLines != null || StopLines.Count > 0)
             {
                 MapLine closesStoptLine = StopLines.OrderByDescending(i => SquareDistanceToStopLine(i, StopLineTransform.position)).Last();
 
@@ -378,27 +344,6 @@ namespace Simulator.Sensors
             // So we can use its first and last point to calculate the distance.
             int n = stopLine.mapWorldPositions.Count;
             return Utility.SqrDistanceToSegment(stopLine.mapWorldPositions[0], stopLine.mapWorldPositions[n - 1], StopLineTransform.position);
-        }
-
-        private void CalculateFPS()
-        {
-            if (LowFPS)
-                return;
-
-            DeltaTime += (Time.unscaledDeltaTime - DeltaTime) * 0.1f;
-            MS = DeltaTime * 1000.0f;
-            FPS = 1.0f / DeltaTime;
-            AveFPS = Time.frameCount / Time.time;
-            if (FPS < MinFPS)
-            {
-                LowFPSCalculatedTime += Time.deltaTime;
-                if (LowFPSCalculatedTime >= MinFPSTime)
-                {
-                    LowFPSEvent(AgentController.GTID);
-                    LowFPSCalculatedTime = 0f;
-                    LowFPS = true;
-                }
-            }
         }
 
         private void CreateStopTransform()
@@ -456,29 +401,6 @@ namespace Simulator.Sensors
             SimulatorManager.Instance.AnalysisManager.AddEvent(data);
         }
 
-        private void SuddenBrakeEvent(uint id)
-        {
-            Hashtable data = new Hashtable
-            {
-                { "Id", id },
-                { "Type", "SuddenBrake" },
-                { "Time", SimulatorManager.Instance.GetSessionElapsedTimeSpan().ToString() },
-                { "Status", AnalysisManager.AnalysisStatusType.Failed },
-            };
-            SimulatorManager.Instance.AnalysisManager.AddEvent(data);
-        }
-
-        private void SuddenSteerEvent(uint id)
-        {
-            Hashtable data = new Hashtable
-            {
-                { "Id", id },
-                { "Type", "SuddenSteer" },
-                { "Time", SimulatorManager.Instance.GetSessionElapsedTimeSpan().ToString() },
-                { "Status", AnalysisManager.AnalysisStatusType.Failed },
-            };
-            SimulatorManager.Instance.AnalysisManager.AddEvent(data);
-        }
 
         private void TrafficViolationEvent(uint id)
         {
@@ -491,7 +413,7 @@ namespace Simulator.Sensors
             };
             SimulatorManager.Instance.AnalysisManager.AddEvent(data);
         }
-
+        
         private void StopLineViolationEvent(uint id, bool isStopSign)
         {
             Hashtable data = new Hashtable
@@ -505,7 +427,7 @@ namespace Simulator.Sensors
             };
             SimulatorManager.Instance.AnalysisManager.AddEvent(data);
         }
-
+        
         private void SpeedViolationEvent(uint id, MapLane laneData)
         {
             Hashtable data = new Hashtable
@@ -529,21 +451,6 @@ namespace Simulator.Sensors
                 { "Id", id },
                 { "Type", "LaneViolation" },
                 { "Time", SimulatorManager.Instance.GetSessionElapsedTimeSpan().ToString() },
-                { "Status", AnalysisManager.AnalysisStatusType.Failed },
-            };
-            SimulatorManager.Instance.AnalysisManager.AddEvent(data);
-        }
-
-        private void LowFPSEvent(uint id)
-        {
-            Hashtable data = new Hashtable
-            {
-                { "Id", id },
-                { "Type", "LowFPS" },
-                { "Time", SimulatorManager.Instance.GetSessionElapsedTimeSpan().ToString() },
-                { "MS", MS },
-                { "FPS", FPS },
-                { "Average FPS", AveFPS },
                 { "Status", AnalysisManager.AnalysisStatusType.Failed },
             };
             SimulatorManager.Instance.AnalysisManager.AddEvent(data);

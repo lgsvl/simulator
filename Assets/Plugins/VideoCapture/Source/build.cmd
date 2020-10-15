@@ -19,7 +19,7 @@ if errorlevel 1 (
 set CL=/O2
 set LINK=/OPT:REF /OPT:ICF
 
-rem set CL=/Zi
+rem set CL=/Zi /Od
 rem set LINK=/DEBUG
 
 fxc.exe /nologo /T cs_5_0 /E FlipKernel /O3 /WX /Ges /Fh VideoCaptureFlip.cs.h /Qstrip_reflect /Qstrip_debug /Qstrip_priv VideoCaptureFlip.hlsl

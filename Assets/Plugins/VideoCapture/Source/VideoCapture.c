@@ -9,6 +9,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <d3d11.h>
+#include <synchapi.h>
 
 #include "IUnityGraphics.h"
 #include "IUnityGraphicsD3D11.h"
@@ -29,6 +30,7 @@ static ID3D11Device* Device;
 static ID3D11DeviceContext* Context;
 static ID3D11ComputeShader* FlipShader;
 
+static SRWLOCK SrwLock;
 static HMODULE NvEncodeModule;
 static NV_ENCODE_API_FUNCTION_LIST NvEncodeApi;
 
@@ -89,6 +91,8 @@ UNITY_INTERFACE_EXPORT int VideoCapture_Init(const char* ffmpeg, VideoCapture_Lo
 
     if (NvEncodeModule == NULL)
     {
+        InitializeSRWLock(&SrwLock);
+
         NvEncodeModule = LoadLibraryA("nvEncodeAPI64.dll");
         if (NvEncodeModule == NULL)
         {
@@ -193,7 +197,9 @@ UNITY_INTERFACE_EXPORT int VideoCapture_Start(int width, int height, int framera
             .apiVersion = NVENCAPI_VERSION,
         };
 
+        AcquireSRWLockExclusive(&SrwLock);
         err = NvEncodeApi.nvEncOpenEncodeSessionEx(&params, &encoder);
+        ReleaseSRWLockExclusive(&SrwLock);
         if (err != NV_ENC_SUCCESS)
         {
             Log("nvEncOpenEncodeSessionEx failed, error = %u", err);
@@ -485,7 +491,9 @@ static void UNITY_INTERFACE_API VideoCapture_Update(int id)
         .registeredResource = capture->input,
     };
 
+    AcquireSRWLockShared(&SrwLock);
     NVENCSTATUS err = NvEncodeApi.nvEncMapInputResource(capture->encoder, &resource);
+    ReleaseSRWLockShared(&SrwLock);
     if (err != NV_ENC_SUCCESS)
     {
         Log("nvEncMapInputResource failed, error = %u", err);

@@ -695,10 +695,19 @@ namespace Simulator.Bridge.Ros
             float Deg2Rad = UnityEngine.Mathf.Deg2Rad;
             float MaxSteeringAngle = 39.4f * Deg2Rad;
             float wheelAngle = 0f;
+
             if (data.target_wheel_angle > MaxSteeringAngle)
+            {
                 wheelAngle = MaxSteeringAngle;
+            }
             else if (data.target_wheel_angle < -MaxSteeringAngle)
+            {
                 wheelAngle = -MaxSteeringAngle;
+            }
+            else
+            {
+                wheelAngle = data.target_wheel_angle;
+            }
 
             // ratio between -MaxSteeringAngle and MaxSteeringAngle
             var k = (float)(wheelAngle + MaxSteeringAngle) / (MaxSteeringAngle*2);

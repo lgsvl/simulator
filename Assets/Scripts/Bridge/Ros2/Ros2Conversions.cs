@@ -377,6 +377,10 @@ namespace Simulator.Bridge.Ros2
             {
                 wheelAngle = -MaxSteeringAngle;
             }
+            else
+            {
+                wheelAngle = data.target_wheel_angle;
+            }
 
             // ratio between -MaxSteeringAngle and MaxSteeringAngle
             var k = (float)(wheelAngle + MaxSteeringAngle) / (MaxSteeringAngle*2);

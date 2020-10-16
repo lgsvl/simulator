@@ -120,6 +120,12 @@ namespace Simulator.Api.Commands
                         j.Add("width", new JSONNumber(recorder.Width));
                         j.Add("height", new JSONNumber(recorder.Height));
                         j.Add("framerate", new JSONNumber(recorder.Framerate));
+                        j.Add("fov", new JSONNumber(recorder.FieldOfView));
+                        j.Add("near_plane", new JSONNumber(recorder.MinDistance));
+                        j.Add("far_plane", new JSONNumber(recorder.MaxDistance));
+                        j.Add("bitrate", new JSONNumber(recorder.Bitrate));
+                        j.Add("max_bitrate", new JSONNumber(recorder.MaxBitrate));
+                        j.Add("quality", new JSONNumber(recorder.Quality));
                     }
                     else if (sensor is AnalysisSensor analysis)
                     {

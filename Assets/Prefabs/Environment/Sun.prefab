@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 5489468262300979067}
   - component: {fileID: 5489468262300979066}
   - component: {fileID: 5489468262300979069}
+  - component: {fileID: 7425613078454477452}
   m_Layer: 0
   m_Name: Sun
   m_TagString: Untagged
@@ -203,3 +204,15 @@ MonoBehaviour:
   showAdditionalSettings: 9
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
+--- !u!114 &7425613078454477452
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5489468262300979065}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b56e421de27a4472a09f8b90ddeccdc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

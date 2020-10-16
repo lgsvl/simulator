@@ -420,6 +420,16 @@ public class EnvironmentEffectsManager : MonoBehaviour
         var factor = (Rain + Cloud) / 2f;
         if (Rain != 0f || Cloud != 0f)
         {
+            if (Cloud != 0f)
+            {
+                SunHD.flareTint = Color.Lerp(Color.white, Color.black, Cloud);
+                SunHD.surfaceTint = Color.Lerp(Color.white, Color.black, Cloud);
+            }
+            else
+            {
+                SunHD.flareTint = Color.white;
+                SunHD.surfaceTint = Color.white;
+            }
             if (Rain >= 0.25f || Cloud >= 0.25f)
             {
                 SunHD.shadowDimmer = Mathf.Lerp(0.8f, 0.6f, (factor - 0.25f) * 4f); // Controls shadow density when rain or clouds are on.
@@ -432,6 +442,20 @@ public class EnvironmentEffectsManager : MonoBehaviour
         else
         {
             SunHD.shadowDimmer = 0.8f;
+        }
+    }
+
+    private void UpdateMoonEffect()
+    {
+        if (Cloud != 0)
+        {
+            MoonHD.flareTint = Color.Lerp(Color.grey, Color.black, Cloud);
+            MoonHD.surfaceTint = Color.Lerp(Color.white, Color.black, Cloud);
+        }
+        else
+        {
+            MoonHD.flareTint = Color.grey;
+            MoonHD.surfaceTint = Color.white;
         }
     }
 

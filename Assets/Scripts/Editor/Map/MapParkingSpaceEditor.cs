@@ -26,7 +26,7 @@ public class MapParkingSpaceEditor : Editor
         if (vmMapParkingSpace.mapLocalPositions.Count < 1)
             return;
 
-        if (vmMapParkingSpace.displayHandles)
+        if (vmMapParkingSpace.DisplayHandles)
         {
             Undo.RecordObject(vmMapParkingSpace, "Speed Bump points change");
             for (int i = 0; i < vmMapParkingSpace.mapLocalPositions.Count - 1; i++)

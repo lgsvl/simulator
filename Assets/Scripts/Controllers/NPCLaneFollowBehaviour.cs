@@ -379,8 +379,12 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
                     {
                         continue; // Ignore NPCs that have been despawned
                     }
+
                     var laneFollow = npc.GetComponent<NPCLaneFollowBehaviour>();
-                    if(laneFollow == null) continue;
+                    if (laneFollow == null)
+                    {
+                        continue;
+                    }
 
                     for (int k = 0; k < currentMapLane.yieldToLanes.Count; k++)
                     {
@@ -397,6 +401,11 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
                         }
                         else
                         {
+                            if (currentMapLane.yieldToLanes[k] == null)
+                            {
+                                Debug.LogError($"MapLane YieldToLane index {k} is missing please fix", currentMapLane.gameObject);
+                                return false;
+                            }
                             for (int j = 0; j < currentMapLane.yieldToLanes[k].prevConnectedLanes.Count; j++) // checks each active NPC if it is approaching a yieldTo lane
                             {
                                 if (laneFollow.currentMapLane == currentMapLane.yieldToLanes[k].prevConnectedLanes[j])

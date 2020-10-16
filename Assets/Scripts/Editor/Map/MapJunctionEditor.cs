@@ -26,7 +26,7 @@ public class MapJunctionEditor : Editor
         if (vmMapJunction.mapLocalPositions.Count < 1)
             return;
 
-        if (vmMapJunction.displayHandles)
+        if (vmMapJunction.DisplayHandles)
         {
             Undo.RecordObject(vmMapJunction, "Junction points change");
             for (int i = 0; i < vmMapJunction.mapLocalPositions.Count - 1; i++)

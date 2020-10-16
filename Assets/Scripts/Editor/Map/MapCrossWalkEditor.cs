@@ -26,7 +26,7 @@ public class MapCrossWalkEditor : Editor
         if (vmMapCrossWalk.mapLocalPositions.Count < 1)
             return;
 
-        if (vmMapCrossWalk.displayHandles)
+        if (vmMapCrossWalk.DisplayHandles)
         {
             Undo.RecordObject(vmMapCrossWalk, "Cross Walk points change");
             for (int i = 0; i < vmMapCrossWalk.mapLocalPositions.Count - 1; i++)

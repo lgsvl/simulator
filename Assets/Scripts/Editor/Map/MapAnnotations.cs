@@ -708,7 +708,11 @@ public class MapAnnotations : EditorWindow
                     EditorGUILayout.ObjectField("Selected scene object", data.gameObject, typeof(GameObject), true);
                     GUI.enabled = true;
                     serializedObject.Update();
-                    ShowBool(serializedObject.FindProperty("displayHandles"));
+                    ShowBool(serializedObject.FindProperty("DisplayHandles"));
+                    GUILayout.Space(10);
+                    var denySpawn = serializedObject.FindProperty("DenySpawn");
+                    if (denySpawn != null)
+                        ShowBool(serializedObject.FindProperty("DenySpawn"));
                     GUILayout.Space(10);
                     ShowList(serializedObject.FindProperty("mapLocalPositions"));
                     serializedObject.ApplyModifiedProperties();
@@ -769,22 +773,12 @@ public class MapAnnotations : EditorWindow
 
     private void ShowBool(SerializedProperty enabled)
     {
-        enabled.boolValue = GUILayout.Toggle(enabled.boolValue, "Toggle Handles", new GUIStyle(GUI.skin.button), GUILayout.MaxHeight(25), GUILayout.ExpandHeight(false));
+        enabled.boolValue = GUILayout.Toggle(enabled.boolValue, $"{enabled.name} = {enabled.boolValue}", new GUIStyle(GUI.skin.button), GUILayout.MaxHeight(25), GUILayout.ExpandHeight(false));
     }
 
     private void ShowList(SerializedProperty list)
     {
         EditorGUILayout.PropertyField(list);
-        EditorGUI.indentLevel += 1;
-        if (list.isExpanded)
-        {
-            EditorGUILayout.PropertyField(list.FindPropertyRelative("Array.size"));
-            for (int i = 0; i < list.arraySize; i++)
-            {
-                EditorGUILayout.PropertyField(list.GetArrayElementAtIndex(i));
-            }
-        }
-        EditorGUI.indentLevel -= 1;
     }
 
     private void AppendLocalPositions()
@@ -1593,7 +1587,7 @@ public class MapAnnotations : EditorWindow
 
         Selection.activeObject = newGo;
 
-        junction.displayHandles = true;
+        junction.DisplayHandles = true;
     }
 
     private static void CreateCrossWalk()
@@ -1669,7 +1663,7 @@ public class MapAnnotations : EditorWindow
 
         Selection.activeObject = newGo;
 
-        clearArea.displayHandles = true;
+        clearArea.DisplayHandles = true;
     }
 
     private static void CreateParkingSpace()
@@ -1746,7 +1740,7 @@ public class MapAnnotations : EditorWindow
 
         Selection.activeObject = newGo;
 
-        speedBump.displayHandles = true;
+        speedBump.DisplayHandles = true;
     }
 
     static Vector3 Average(IEnumerable<MapWaypoint> items)

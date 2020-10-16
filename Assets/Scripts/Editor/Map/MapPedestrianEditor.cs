@@ -24,7 +24,7 @@ public class MapPedestrianEditor : Editor
         if (vmMapPed.mapLocalPositions.Count < 1)
             return;
 
-        if (vmMapPed.displayHandles)
+        if (vmMapPed.DisplayHandles)
         {
             for (int i = 0; i < vmMapPed.mapLocalPositions.Count; i++)
             {

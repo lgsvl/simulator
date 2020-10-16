@@ -24,7 +24,7 @@ public class MapLineEditor : Editor
         GUI.enabled = true;
         SerializedObject serializedObject = new SerializedObject(mapLine);
         serializedObject.Update();
-        ShowBool(serializedObject.FindProperty("displayHandles"));
+        ShowBool(serializedObject.FindProperty("DisplayHandles"));
         ShowList(serializedObject.FindProperty("mapLocalPositions"));
         serializedObject.ApplyModifiedProperties();
         Repaint();
@@ -71,7 +71,7 @@ public class MapLineEditor : Editor
         if (vmMapLine.mapLocalPositions.Count < 1)
             return;
 
-        if (vmMapLine.displayHandles)
+        if (vmMapLine.DisplayHandles)
         {
             Undo.RecordObject(vmMapLine, "Line points change");
             for (int i = 0; i < vmMapLine.mapLocalPositions.Count - 1; i++)

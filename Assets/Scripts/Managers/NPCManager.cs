@@ -296,6 +296,9 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             if (lane.mapWorldPositions.Count < 2)
                 continue;
 
+            if (lane.DenySpawn)
+                continue;
+
             var spawnPos = lane.mapWorldPositions[0];
             CurrentPooledNPCs[i].transform.position = spawnPos;
 

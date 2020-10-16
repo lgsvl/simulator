@@ -13,7 +13,7 @@ namespace Simulator.Map
 {
     public class MapDataPoints : MapData
     {
-        public bool displayHandles = false;
+        public bool DisplayHandles = false;
 
         public List<Vector3> mapLocalPositions = new List<Vector3>();
         [System.NonSerialized]

@@ -60,6 +60,8 @@ namespace Simulator.Map
 
         [System.NonSerialized]
         public bool Spawnable = false;
+        public bool DenySpawn = false; // to deny spawns in odd lanes on ramps etc.
+
         public bool isTrafficLane { get; set; } = false;
         public bool isStopSignIntersectionLane { get; set; } = false;
         public bool isIntersectionLane { get; set; } = false;

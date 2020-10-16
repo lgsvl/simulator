@@ -26,7 +26,7 @@ public class MapClearAreaEditor : Editor
         if (vmMapClearArea.mapLocalPositions.Count < 1)
             return;
 
-        if (vmMapClearArea.displayHandles)
+        if (vmMapClearArea.DisplayHandles)
         {
             Undo.RecordObject(vmMapClearArea, "Clear Area points change");
             for (int i = 0; i < vmMapClearArea.mapLocalPositions.Count - 1; i++)

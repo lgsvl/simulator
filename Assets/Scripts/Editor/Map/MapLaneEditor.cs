@@ -45,7 +45,7 @@ public class MapLaneEditor : Editor
         if (vmMapLane.mapLocalPositions.Count < 1)
             return;
 
-        if (vmMapLane.displayHandles)
+        if (vmMapLane.DisplayHandles)
         {
             for (int i = 0; i < vmMapLane.mapLocalPositions.Count; i++)
             {

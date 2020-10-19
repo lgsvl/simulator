@@ -60,7 +60,6 @@ namespace Simulator.Map
         public int PedSpawnBoundSize = 200;
 
         public string Description;
-        public string LicenseName;
 
         public static MapOrigin Find()
         {

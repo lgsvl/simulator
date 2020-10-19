@@ -186,11 +186,7 @@ namespace Simulator.Editor
                 manifest.assetGuid = assetGuid;
                 manifest.assetFormat = BundleConfig.Versions[bundleType];
                 manifest.description = "";
-                manifest.licenseName = "";
-                manifest.authorName = "";
-                manifest.authorUrl = "";
                 manifest.fmuName = "";
-                manifest.copyright = "";
                 manifest.bridgeDataTypes = Array.Empty<string>();
 
                 Scene scene = EditorSceneManager.OpenScene(vehiclePreviewScenePath, OpenSceneMode.Additive);
@@ -209,7 +205,6 @@ namespace Simulator.Editor
                             throw new Exception($"Build failed: Vehicle info on {prefabEntry.mainAssetFile} not found. Please add a VehicleInfo component and rebuild.");
                         }
 
-                        manifest.licenseName = info.LicenseName;
                         manifest.description = info.Description;
                         manifest.assetType = "vehicle";
                         manifest.fmuName = fmu == null ? "" : fmu.FMUData.Name;
@@ -309,11 +304,7 @@ namespace Simulator.Editor
                             manifest.mapOrigin = new double[] {origin.OriginEasting, origin.OriginNorthing};
                             manifest.assetFormat = BundleConfig.Versions[BundleConfig.BundleTypes.Environment];
                             manifest.description = origin.Description;
-                            manifest.licenseName = origin.LicenseName;
-                            manifest.authorName = "";
-                            manifest.authorUrl = "";
                             manifest.fmuName = "";
-                            manifest.copyright = "";
                             manifest.attachments = new Dictionary<string, object>();
 
                             string name = manifest.assetName;

@@ -18,11 +18,7 @@ namespace Simulator
         public double[] mapOrigin;
         public double[] baseLink;
         public string description;
-        public string licenseName;
-        public string authorName;
-        public string authorUrl;
         public string fmuName;
-        public string copyright;
         public Dictionary<string, object> attachments;
         public Dictionary<string, Simulator.Utilities.SensorParam> sensorParams;
         public string[] bridgeDataTypes;

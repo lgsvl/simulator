@@ -42,7 +42,7 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         /// <summary>
         /// List of available source panels
         /// </summary>
-        private List<SourcePanel> sourcePanels = new List<SourcePanel>();
+        private readonly List<SourcePanel> sourcePanels = new List<SourcePanel>();
 
         /// <summary>
         /// Panel that popups above source element on hover to view more details

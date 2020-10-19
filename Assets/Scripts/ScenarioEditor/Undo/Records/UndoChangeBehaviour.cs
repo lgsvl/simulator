@@ -7,19 +7,17 @@
 
 namespace Simulator.ScenarioEditor.Undo.Records
 {
-    using System.Collections;
-    using Agents;
     using Elements.Agent;
     using Managers;
     using SimpleJSON;
 
     /// <summary>
-    /// Record that undoes changing the agent variant
+    /// Record that undoes changing the agent behaviour
     /// </summary>
     public class UndoChangeBehaviour : UndoRecord
     {
         /// <summary>
-        /// Scenario agent which variant was changed
+        /// Scenario agent which behaviour was changed
         /// </summary>
         private ScenarioAgent scenarioAgent;
 

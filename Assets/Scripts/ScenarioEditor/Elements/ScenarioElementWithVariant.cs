@@ -24,7 +24,7 @@ namespace Simulator.ScenarioEditor.Elements
         /// Name for the gameobject containing the model instance
         /// </summary>
         private static string modelObjectName = "Model";
-        
+
         /// <summary>
         /// Parent source of this scenario element
         /// </summary>
@@ -41,9 +41,20 @@ namespace Simulator.ScenarioEditor.Elements
         protected GameObject modelInstance;
 
         /// <summary>
+        /// All the renderers in the agent model
+        /// </summary>
+        private Renderer[] modelRenderers;
+
+        /// <summary>
         /// Event invoked when this element changes the variant
         /// </summary>
         public event Action<SourceVariant> VariantChanged;
+
+        /// <summary>
+        /// All the renderers in the agent model
+        /// </summary>
+        public Renderer[] ModelRenderers =>
+            modelRenderers ?? (modelRenderers = modelInstance.GetComponentsInChildren<Renderer>());
 
         /// <summary>
         /// Setup method for initializing the required element data
@@ -62,43 +73,60 @@ namespace Simulator.ScenarioEditor.Elements
         /// </summary>
         /// <param name="newVariant">New agent variant</param>
         /// <param name="registerUndo">If true, this action can be undone</param>
-        public void ChangeVariant(SourceVariant newVariant, bool registerUndo = true)
+        public virtual void ChangeVariant(SourceVariant newVariant, bool registerUndo = true)
         {
+            if (registerUndo)
+                RegisterUndoChangeVariant();
             var position = Vector3.zero;
             var rotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
             if (modelInstance != null)
             {
                 position = modelInstance.transform.localPosition;
                 rotation = modelInstance.transform.localRotation;
-                source.ReturnModelInstance(modelInstance);
+                DisposeModel();
             }
-
-            if (registerUndo)
-                ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
-                    .RegisterRecord(new UndoChangeVariant(this, variant));
             variant = newVariant;
             modelInstance = source.GetModelInstance(variant).gameObject;
             modelInstance.name = modelObjectName;
             modelInstance.transform.SetParent(transform);
             modelInstance.transform.localPosition = position;
             modelInstance.transform.localRotation = rotation;
+            modelRenderers = null;
             VariantChanged?.Invoke(variant);
         }
-        
+
+        /// <summary>
+        /// Registers the undo record before changing the variant
+        /// </summary>
+        protected virtual void RegisterUndoChangeVariant()
+        {
+            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
+                .RegisterRecord(new UndoChangeVariant(this, variant));
+        }
+
         /// <inheritdoc/>
         public override void Dispose()
         {
             if (modelInstance != null)
-                source.ReturnModelInstance(modelInstance);
+                DisposeModel();
             Destroy(gameObject);
+        }
+
+        /// <summary>
+        /// Method invoked to dispose the model instance
+        /// </summary>
+        protected virtual void DisposeModel()
+        {
+            source.ReturnModelInstance(modelInstance);
         }
 
         /// <inheritdoc/>
         public override void CopyProperties(ScenarioElement origin)
         {
             var originWithVariant = origin as ScenarioElementWithVariant;
-            if (originWithVariant==null)
-                throw new ArgumentException($"Could not cast copied element to {nameof(ScenarioElementWithVariant)} type.");
+            if (originWithVariant == null)
+                throw new ArgumentException(
+                    $"Could not cast copied element to {nameof(ScenarioElementWithVariant)} type.");
             source = originWithVariant.source;
             variant = originWithVariant.variant;
             for (var i = 0; i < transform.childCount; i++)

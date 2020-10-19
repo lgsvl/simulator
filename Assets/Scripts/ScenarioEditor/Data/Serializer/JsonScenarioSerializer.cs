@@ -119,6 +119,16 @@ namespace Simulator.ScenarioEditor.Data.Serializer
                 var destinationRotation = new JSONObject().WriteVector3(scenarioAgent.DestinationPoint.TransformToRotate.rotation.eulerAngles);
                 destinationPoint.Add("rotation", destinationRotation);
             }
+
+            if (scenarioAgent.SupportColors)
+            {
+                var colorNode = new JSONObject();
+                agentNode.Add("color", colorNode);
+                colorNode.Add("r", new JSONNumber(scenarioAgent.AgentColor.r));
+                colorNode.Add("g", new JSONNumber(scenarioAgent.AgentColor.g));
+                colorNode.Add("b", new JSONNumber(scenarioAgent.AgentColor.b));
+            }
+            
             if (scenarioAgent.Source.AgentSupportWaypoints(scenarioAgent))
                 AddWaypointsNodes(agentNode, scenarioAgent);
         }

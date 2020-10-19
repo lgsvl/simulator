@@ -61,6 +61,18 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         /// </summary>
         [SerializeField]
         private GameObject waypointsPanel;
+
+        /// <summary>
+        /// Panel which contains UI for editing the agent color
+        /// </summary>
+        [SerializeField]
+        private GameObject colorPanel;
+
+        /// <summary>
+        /// Image that represents color of the agent
+        /// </summary>
+        [SerializeField]
+        private Image colorImage;
 #pragma warning restore 0649
 
         /// <summary>
@@ -120,6 +132,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement
             {
                 selectedAgent.VariantChanged -= SelectedAgentOnVariantChanged;
                 selectedAgent.BehaviourChanged -= SelectedAgentOnBehaviourChanged;
+                selectedAgent.ColorChanged -= SelectedAgentOnColorChanged;
             }
 
             selectedAgent = selectedElement as ScenarioAgent;
@@ -129,6 +142,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement
                 Show();
                 selectedAgent.VariantChanged += SelectedAgentOnVariantChanged;
                 selectedAgent.BehaviourChanged += SelectedAgentOnBehaviourChanged;
+                selectedAgent.ColorChanged += SelectedAgentOnColorChanged;
             }
             else
             {
@@ -156,6 +170,16 @@ namespace Simulator.ScenarioEditor.UI.EditElement
             behaviourDropdown.SetValueWithoutNotify(behaviourId);
             //Disable waypoints panel if waypoints are not supported
             waypointsPanel.SetActive(agentSource.AgentSupportWaypoints(selectedAgent));
+        }
+
+        /// <summary>
+        /// Method invoked when selected agent changes the color
+        /// </summary>
+        /// <param name="newColor">Agent new color</param>
+        private void SelectedAgentOnColorChanged(Color newColor)
+        {
+            if (colorImage!=null)
+                colorImage.color = newColor;
         }
 
         /// <summary>
@@ -197,6 +221,10 @@ namespace Simulator.ScenarioEditor.UI.EditElement
                 behaviourDropdown.SetValueWithoutNotify(behaviourId);
             }
 
+            colorPanel.SetActive(selectedAgent.SupportColors);
+            if (selectedAgent.SupportColors)
+                colorImage.color = selectedAgent.AgentColor;
+
             gameObject.SetActive(true);
             UnityUtilities.LayoutRebuild(transform as RectTransform);
         }
@@ -227,6 +255,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         /// <returns>Task</returns>
         private async Task ChangeVariant(SourceVariant variant)
         {
+            ScenarioManager.Instance.colorPicker.Hide();
             if (variant is CloudAgentVariant cloudVariant && cloudVariant.Prefab == null)
                 await cloudVariant.DownloadAsset();
 
@@ -252,6 +281,21 @@ namespace Simulator.ScenarioEditor.UI.EditElement
             addedElementType = AgentElementType.Waypoints;
             if (!ScenarioManager.Instance.GetExtension<InputManager>().StartAddingElements(this))
                 addedElementType = AgentElementType.None;
+        }
+
+        /// <summary>
+        /// Shows the color picker to change the selected agent color
+        /// </summary>
+        public void EditColor()
+        {
+            if (!selectedAgent.SupportColors)
+                return;
+            var colorPicker = ScenarioManager.Instance.colorPicker;
+            var previousColor = selectedAgent.AgentColor;
+            colorPicker.Show(selectedAgent.AgentColor,
+                color => selectedAgent.AgentColor = color,
+                () => ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
+                    .RegisterRecord(new UndoChangeColor(selectedAgent, previousColor)));
         }
 
         /// <inheritdoc/>

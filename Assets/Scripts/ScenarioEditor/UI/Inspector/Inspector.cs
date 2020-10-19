@@ -88,6 +88,11 @@ namespace Simulator.ScenarioEditor.UI.Inspector
         private IEnumerator slideAnimation;
 
         /// <summary>
+        /// Event invoked when the inspector changes active menu item
+        /// </summary>
+        public event Action<InspectorMenuItem> MenuItemChanged;
+
+        /// <summary>
         /// Initialization method
         /// </summary>
         public void Initialize()
@@ -102,6 +107,7 @@ namespace Simulator.ScenarioEditor.UI.Inspector
             }
 
             activeMenuItem = menuItems.Count > 0 ? menuItems[0] : null;
+            MenuItemChanged?.Invoke(activeMenuItem);
         }
 
         /// <summary>
@@ -131,6 +137,7 @@ namespace Simulator.ScenarioEditor.UI.Inspector
 
             menuItem.ShowPanel();
             activeMenuItem = menuItem;
+            MenuItemChanged?.Invoke(activeMenuItem);
         }
 
         /// <summary>

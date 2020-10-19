@@ -107,6 +107,7 @@ namespace Simulator.ScenarioEditor.Agents
             var newGameObject = new GameObject(ElementTypeName);
             newGameObject.transform.SetParent(agentsManager.transform);
             var scenarioAgent = newGameObject.AddComponent<ScenarioAgent>();
+            scenarioAgent.SupportColors = true;
             scenarioAgent.Setup(this, variant);
             return scenarioAgent;
         }

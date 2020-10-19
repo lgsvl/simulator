@@ -8,7 +8,6 @@
 namespace Simulator.ScenarioEditor.Elements.Agent
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
     using Agents;
     using Elements;
@@ -30,10 +29,15 @@ namespace Simulator.ScenarioEditor.Elements.Agent
         private static Vector3 lineRendererPositionOffset = new Vector3(0.0f, 0.1f, 0.0f);
 
         /// <summary>
+        /// Id of the shader property named _BaseColor
+        /// </summary>
+        public static int BaseColorShaderId = Shader.PropertyToID("_BaseColor");
+
+        /// <summary>
         /// Name for the gameobject containing waypoints
         /// </summary>
         private static string waypointsObjectName = "Waypoints";
-        
+
         /// <summary>
         /// Line renderer for displaying the connection between waypoints
         /// </summary>
@@ -43,6 +47,11 @@ namespace Simulator.ScenarioEditor.Elements.Agent
         /// Waypoints parent where inherited waypoints objects will be added
         /// </summary>
         private Transform waypointsParent;
+
+        /// <summary>
+        /// Color of this agent if it supports changing the color
+        /// </summary>
+        private Color agentColor;
 
         /// <summary>
         /// Included waypoints that this agent will follow
@@ -103,6 +112,11 @@ namespace Simulator.ScenarioEditor.Elements.Agent
         /// <inheritdoc/>
         public override bool CanBeCopied => true;
 
+        /// <summary>
+        /// Does this agent supports changing the color
+        /// </summary>
+        public bool SupportColors { get; set; }
+
         /// <inheritdoc/>
         public override Transform TransformForPlayback => modelInstance.transform;
 
@@ -110,12 +124,39 @@ namespace Simulator.ScenarioEditor.Elements.Agent
         /// Behaviour that will control this agent in the simulation
         /// </summary>
         public string Behaviour { get; private set; }
-        
+
+        /// <summary>
+        /// Color of this agent if it supports changing the color
+        /// </summary>
+        public Color AgentColor
+        {
+            get => agentColor;
+            set
+            {
+                if (!SupportColors)
+                    return;
+                agentColor = value;
+                foreach (var modelRenderer in ModelRenderers)
+                {
+                    foreach (var material in modelRenderer.materials)
+                        if (material.name.Contains("Body"))
+                            material.SetColor(BaseColorShaderId, agentColor);
+                }
+
+                ColorChanged?.Invoke(agentColor);
+            }
+        }
+
+        /// <summary>
+        /// Initial color of this agent
+        /// </summary>
+        public Color InitialColor { get; set; }
+
         /// <summary>
         /// Parameters used by the set behaviour
         /// </summary>
         public JSONObject BehaviourParameters { get; set; } = new JSONObject();
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -146,11 +187,41 @@ namespace Simulator.ScenarioEditor.Elements.Agent
         /// </summary>
         public event Action<string> BehaviourChanged;
 
+        /// <summary>
+        /// Event invoked when this agent changes the color
+        /// </summary>
+        public event Action<Color> ColorChanged;
+
         /// <inheritdoc/>
         public override void Setup(ScenarioElementSource source, SourceVariant variant)
         {
             base.Setup(source, variant);
             ScenarioManager.Instance.GetExtension<ScenarioAgentsManager>().RegisterAgent(this);
+        }
+
+        /// <inheritdoc/>
+        public override void ChangeVariant(SourceVariant newVariant, bool registerUndo = true)
+        {
+            base.ChangeVariant(newVariant, registerUndo);
+
+            foreach (var modelRenderer in ModelRenderers)
+            {
+                //Search for the initial color
+                var colorSet = false;
+                foreach (var material in modelRenderer.materials)
+                    if (material.name.Contains("Body"))
+                    {
+                        InitialColor = material.GetColor(BaseColorShaderId);
+                        if (Mathf.Approximately(InitialColor.a, 0.0f)) continue;
+                        colorSet = true;
+                        break;
+                    }
+
+                if (colorSet)
+                    break;
+            }
+
+            AgentColor = Mathf.Approximately(InitialColor.a, 0.0f) ? Color.white : InitialColor;
         }
 
         /// <summary>
@@ -183,6 +254,16 @@ namespace Simulator.ScenarioEditor.Elements.Agent
         }
 
         /// <inheritdoc/>
+        protected override void RegisterUndoChangeVariant()
+        {
+            var undoRecords = new List<UndoRecord>();
+            undoRecords.Add(new UndoChangeVariant(this, variant));
+            undoRecords.Add(new UndoChangeColor(this, AgentColor));
+            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
+                .RegisterRecord(new ComplexUndo(undoRecords));
+        }
+
+        /// <inheritdoc/>
         public override void Dispose()
         {
             for (var i = waypoints.Count - 1; i >= 0; i--)
@@ -196,6 +277,14 @@ namespace Simulator.ScenarioEditor.Elements.Agent
         }
 
         /// <inheritdoc/>
+        protected override void DisposeModel()
+        {
+            if (SupportColors)
+                AgentColor = InitialColor;
+            base.DisposeModel();
+        }
+
+        /// <inheritdoc/>
         public override void CopyProperties(ScenarioElement origin)
         {
             var originAgent = origin as ScenarioAgent;
@@ -204,6 +293,10 @@ namespace Simulator.ScenarioEditor.Elements.Agent
                     $"Invalid origin scenario element type ({origin.GetType().Name}) when cloning {GetType().Name}.");
             base.CopyProperties(origin);
             Behaviour = originAgent.Behaviour;
+            BehaviourParameters = originAgent.BehaviourParameters;
+            SupportColors = originAgent.SupportColors;
+            InitialColor = originAgent.InitialColor;
+            AgentColor = originAgent.AgentColor;
             PathRenderer.positionCount = 0;
             for (var i = 0; i < transform.childCount; i++)
             {

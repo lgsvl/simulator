@@ -143,9 +143,18 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                 if (agentInstance.DestinationPoint != null && agentNode.HasKey("destinationPoint"))
                 {
                     var destinationPoint = agentNode["destinationPoint"];
-                    agentInstance.DestinationPoint.TransformToMove.position = destinationPoint["position"].ReadVector3();
-                    agentInstance.DestinationPoint.TransformToRotate.rotation = Quaternion.Euler(destinationPoint["rotation"].ReadVector3());
+                    agentInstance.DestinationPoint.TransformToMove.position =
+                        destinationPoint["position"].ReadVector3();
+                    agentInstance.DestinationPoint.TransformToRotate.rotation =
+                        Quaternion.Euler(destinationPoint["rotation"].ReadVector3());
                     agentInstance.DestinationPoint.Refresh();
+                }
+
+                if (agentInstance.SupportColors && agentNode.HasKey("color"))
+                {
+                    var colorNode = agentNode["color"];
+                    agentInstance.AgentColor = new Color(colorNode["r"].AsFloat, colorNode["g"].AsFloat,
+                        colorNode["b"].AsFloat);
                 }
 
                 DeserializeWaypoints(agentNode, agentInstance);

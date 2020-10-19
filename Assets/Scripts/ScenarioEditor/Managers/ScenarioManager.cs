@@ -13,6 +13,7 @@ namespace Simulator.ScenarioEditor.Managers
     using Elements;
     using Input;
     using Simulator.Utilities;
+    using UI.ColorPicker;
     using UI.FileEdit;
     using UI.Inspector;
     using UI.MapSelecting;
@@ -66,12 +67,6 @@ namespace Simulator.ScenarioEditor.Managers
         /// </summary>
         [SerializeField]
         private List<GameObject> extensions;
-
-        /// <summary>
-        /// Inspector menu used in the scenario editor
-        /// </summary>
-        [SerializeField]
-        private Inspector inspector;
 #pragma warning restore 0649
 
         /// <summary>
@@ -94,11 +89,21 @@ namespace Simulator.ScenarioEditor.Managers
         /// Currently selected scenario element
         /// </summary>
         private ScenarioElement selectedElement;
+
+        /// <summary>
+        /// Inspector menu used in the scenario editor
+        /// </summary>
+        public Inspector inspector;
         
         /// <summary>
         /// Pooling mechanism for prefabs in the visual scenario editor
         /// </summary>
         public PrefabsPools prefabsPools;
+
+        /// <summary>
+        /// Panel which allows selecting a custom color
+        /// </summary>
+        public ColorPicker colorPicker;
 
         /// <summary>
         /// Shared <see cref="SelectFileDialog"/> to be used in the scenario editor, dialog can handle only one request at same time

@@ -27,6 +27,12 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
 #pragma warning disable 0649
         /// <summary>
+        /// Content of this panel which is disabled if there is no valid variant set
+        /// </summary>
+        [SerializeField]
+        private GameObject content;
+        
+        /// <summary>
         /// Main text of this panel
         /// </summary>
         [SerializeField]
@@ -61,20 +67,21 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         /// <summary>
         /// Initialization method
         /// </summary>
+        /// <param name="sourcePanel">Parent source panel</param>
         /// <param name="source">Scenario element source class which will be used for adding new elements from this panel</param>
         /// <param name="variant">Cached scenario element source variant handled by this panel</param>
-        public void Initialize(ScenarioElementSource source, SourceVariant variant)
+        public void Initialize(SourcePanel sourcePanel, ScenarioElementSource source, SourceVariant variant)
         {
             addElementsPanel = GetComponentInParent<AddElementsPanel>();
             this.source = source;
             this.variant = variant;
             if (variant == null)
             {
-                gameObject.SetActive(false);
+                (sourcePanel.MultiplePages ? content : gameObject).SetActive(false);
             }
             else
             {
-                gameObject.SetActive(true);
+                (sourcePanel.MultiplePages ? content : gameObject).SetActive(true);
                 if (!variant.IsPrepared)
                 {
                     text.text = $"{UnpreparedSign} {variant.Name} {UnpreparedSign}";

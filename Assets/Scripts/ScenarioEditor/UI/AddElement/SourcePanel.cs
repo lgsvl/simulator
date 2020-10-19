@@ -80,6 +80,11 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         private SourceElementPanel[] elementPanels;
 
         /// <summary>
+        /// True if this source panel contains multiple pages
+        /// </summary>
+        public bool MultiplePages => variants.PagesCount > 1;
+
+        /// <summary>
         /// Initialization method
         /// </summary>
         /// <param name="source">Scenario element source class which will be used for adding new elements from this panel</param>
@@ -100,7 +105,7 @@ namespace Simulator.ScenarioEditor.UI.AddElement
             variants.Setup(source.Variants, elementsPerPage);
             gameObject.SetActive(variants.PagesCount>0);
             pageControlPanel.SetActive(variants.PagesCount>1);
-            pagesCountText.text = (variants.PagesCount-1).ToString();
+            pagesCountText.text = variants.PagesCount.ToString();
             
             //Rebuild the UI layout
             contentSizeFitter.enabled = true;
@@ -122,20 +127,19 @@ namespace Simulator.ScenarioEditor.UI.AddElement
 
         private void VariantsOnPageChanged(int currentPage, SourceVariant[] variants)
         {
-            pageNumberInput.SetTextWithoutNotify(currentPage.ToString());
+            pageNumberInput.SetTextWithoutNotify((currentPage+1).ToString());
             for (var i = 0; i < elementsPerPage; i++)
             {
                 elementPanels[i].Deinitialize();
-                elementPanels[i].Initialize(source, variants[i]);
+                elementPanels[i].Initialize(this, source, variants[i]);
             }
-            UnityUtilities.LayoutRebuild(transform.parent as RectTransform);
         }
 
         public void OnPageInputChange(string newPageString)
         {
-            pageNumberInput.SetTextWithoutNotify(variants.CurrentPage.ToString());
+            pageNumberInput.SetTextWithoutNotify((variants.CurrentPage-1).ToString());
             if (int.TryParse(newPageString, out var newPage))
-                variants.ChangePage(newPage);
+                variants.ChangePage(newPage-1);
         }
 
         public void PreviousPage()

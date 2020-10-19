@@ -351,6 +351,12 @@ pipeline {
               docker build --pull --no-cache --build-arg "simulator_zipfile=*-linux64-${GIT_BRANCH}-${JENKINS_BUILD_ID}.zip" -t \$DOCKER_REGISTRY/\$DOCKER_REPO:\$DOCKER_TAG .
               docker push \$DOCKER_REGISTRY/\$DOCKER_REPO:\$DOCKER_TAG
               rm -fv *-linux64-${GIT_BRANCH}-${JENKINS_BUILD_ID}.zip
+
+              docker image rm \
+                \$DOCKER_REGISTRY/\$DOCKER_REPO:\$DOCKER_TAG
+              docker container prune -f
+              docker volume prune -f
+              docker image prune -f
             """
           }
         }

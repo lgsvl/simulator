@@ -184,8 +184,14 @@ namespace Simulator.Analysis
                 if (Loader.Instance.Network.IsMaster)
                 {
                     var clientsCount = Loader.Instance.Network.ClientsCount;
-                    while (ReceivedClientsSensors<clientsCount)
+                    var timeout = Loader.Instance.Network.Settings.Timeout/1000;
+                    var startTime = Time.unscaledTime;
+                    while (ReceivedClientsSensors<clientsCount && 
+                           Loader.Instance.Network.Master.Clients.Count>0 && 
+                           Time.unscaledTime-startTime<timeout)
                         await Task.Delay(100);
+                    if (ReceivedClientsSensors<clientsCount)
+                        Debug.LogWarning($"{GetType().Name} received {ReceivedClientsSensors} analysis reports from {clientsCount} clients.");
                 }
                 else if (Loader.Instance.Network.IsClient)
                 {

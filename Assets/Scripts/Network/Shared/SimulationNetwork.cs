@@ -234,10 +234,17 @@ namespace Simulator.Network.Shared
         /// </summary>
         private void ClearNetworkObjects()
         {
-            if (Type == ClusterNodeType.Master)
-                Object.Destroy(Master.gameObject);
-            else if (Type == ClusterNodeType.Client)
-                Object.Destroy(Client.gameObject);
+            switch (Type)
+            {
+                case ClusterNodeType.Master:
+                    if (Master!=null)
+                        Object.Destroy(Master.gameObject);
+                    break;
+                case ClusterNodeType.Client:
+                    if (Client!=null)
+                        Object.Destroy(Client.gameObject);
+                    break;
+            }
         }
 
         /// <summary>

@@ -89,7 +89,7 @@ namespace Simulator.Network.Core.Connection
             netClient = new NetManager(this)
             {
                 UnconnectedMessagesEnabled = false, UpdateTime = 5, DisconnectTimeout = timeout,
-                AutoRecycle = true, 
+                AutoRecycle = true
             };
             var result = NetClient.Start(Port);
             if (result)
@@ -167,7 +167,10 @@ namespace Simulator.Network.Core.Connection
         public void OnPeerConnected(NetPeer peer)
         {
             if (masterPeer != null)
+            {
+                activeConnections.Remove(peer.EndPoint);
                 return;
+            }
             if (!activeConnections.TryGetValue(peer.EndPoint, out masterPeer))
             {
                 masterPeer = new LiteNetLibPeerManager(peer);
@@ -181,9 +184,13 @@ namespace Simulator.Network.Core.Connection
         public void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
         {
             if (masterPeer == null || masterPeer.Peer != peer)
+            {
+                activeConnections.Remove(peer.EndPoint);
                 return;
+            }
             var disconnectedPeer = masterPeer;
             masterPeer = null;
+            activeConnections.Remove(peer.EndPoint);
             PeerDisconnected?.Invoke(disconnectedPeer);
         }
 
@@ -192,6 +199,8 @@ namespace Simulator.Network.Core.Connection
         {
             if (masterPeer!=null && Equals(endPoint.Address, masterPeer.PeerEndPoint.Address))
                 Log.Error("[Client] Network error: " + socketError);
+            else
+                activeConnections.Remove(endPoint);
         }
 
         /// <inheritdoc/>

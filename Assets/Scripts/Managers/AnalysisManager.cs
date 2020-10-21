@@ -444,4 +444,11 @@ namespace Simulator.Analysis
         }
 #endregion
     }
+
+    public struct AnalysisReportItem
+    {
+        public string type;
+        public string name;
+        public object value;
+    }
 }

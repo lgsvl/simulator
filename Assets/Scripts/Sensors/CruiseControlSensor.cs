@@ -11,6 +11,7 @@ using Simulator.Utilities;
 using Simulator.Sensors.UI;
 using System.Collections.Generic;
 using System.Collections;
+using Simulator.Analysis;
 
 namespace Simulator.Sensors
 {
@@ -76,9 +77,13 @@ namespace Simulator.Sensors
 
         public override void SetAnalysisData()
         {
-            SensorAnalysisData = new Hashtable
+            SensorAnalysisData = new List<AnalysisReportItem>
             {
-                { "Max Speed", MaxSpeed },
+                new AnalysisReportItem {
+                    name = "Max Speed",
+                    type = "velocity",
+                    value = MaxSpeed
+                },
             };
         }
 

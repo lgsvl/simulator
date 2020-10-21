@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using Simulator.Sensors.UI;
 using System.Collections;
+using Simulator.Analysis;
 
 namespace Simulator.Sensors
 {
@@ -218,20 +219,69 @@ namespace Simulator.Sensors
             var startLocation = MapOrigin.GetGpsLocation(startPosition, IgnoreMapOrigin);
             var location = MapOrigin.GetGpsLocation(transform.position, IgnoreMapOrigin);
 
-            SensorAnalysisData = new Hashtable
+
+            SensorAnalysisData = new List<AnalysisReportItem>
             {
-                { "Start Latitude", startLocation.Latitude},
-                { "Start Longitude", startLocation.Longitude},
-                { "Start Altitude", startLocation.Altitude},
-                { "Start Northing", startLocation.Northing},
-                { "Start Easting", startLocation.Easting},
-                {"Start Map URL", $"https://www.google.com/maps/search/?api=1&query={startLocation.Latitude},{startLocation.Longitude}" },
-                { "Latitude", location.Latitude},
-                { "Longitude", location.Longitude},
-                { "Altitude", location.Altitude},
-                { "Northing", location.Northing},
-                { "Easting", location.Easting},
-                {"End Map URL", $"https://www.google.com/maps/search/?api=1&query={location.Latitude},{location.Longitude}" },
+                new AnalysisReportItem {
+                    name = "Start Latitude",
+                    type = "latitude",
+                    value = startLocation.Latitude
+                },
+                new AnalysisReportItem {
+                    name = "Start Longitude",
+                    type = "longitude",
+                    value = startLocation.Longitude
+                },
+                new AnalysisReportItem {
+                    name = "Start Altitude",
+                    type = "altitude",
+                    value = startLocation.Altitude
+                },
+                new AnalysisReportItem {
+                    name = "Start Northing",
+                    type = "northing",
+                    value = startLocation.Northing
+                },
+                new AnalysisReportItem {
+                    name = "Start Easting",
+                    type = "easting",
+                    value = startLocation.Easting
+                },
+                new AnalysisReportItem {
+                    name = "Start Map Url",
+                    type = "mapUrl",
+                    value =  $"https://www.google.com/maps/search/?api=1&query={startLocation.Latitude},{startLocation.Longitude}"
+                },
+                new AnalysisReportItem {
+                    name = "Latitude",
+                    type = "latitude",
+                    value = location.Latitude
+                },
+                new AnalysisReportItem {
+                    name = "Longitude",
+                    type = "longitude",
+                    value = location.Longitude
+                },
+                new AnalysisReportItem {
+                    name = "Altitude",
+                    type = "altitude",
+                    value = location.Altitude
+                },
+                new AnalysisReportItem {
+                    name = "Northing",
+                    type = "northing",
+                    value = location.Northing
+                },
+                new AnalysisReportItem {
+                    name = "Easting",
+                    type = "easting",
+                    value = location.Easting
+                },
+                new AnalysisReportItem {
+                    name = "Map Url",
+                    type = "mapUrl",
+                    value =  $"https://www.google.com/maps/search/?api=1&query={location.Latitude},{location.Longitude}"
+                },
             };
         }
     }

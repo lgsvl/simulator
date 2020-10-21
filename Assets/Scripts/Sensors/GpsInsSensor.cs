@@ -12,6 +12,7 @@ using UnityEngine;
 using Simulator.Sensors.UI;
 using System.Collections.Generic;
 using System.Collections;
+using Simulator.Analysis;
 
 namespace Simulator.Sensors
 {
@@ -80,10 +81,20 @@ namespace Simulator.Sensors
 
         public override void SetAnalysisData()
         {
-            SensorAnalysisData = new Hashtable
+            SensorAnalysisData = new List<AnalysisReportItem>
             {
-                {"Status", 3},
-                {"Position Type", 56}
+                new AnalysisReportItem
+                {
+                    name = "Status",
+                    type = "status",
+                    value = 3
+                },
+                new AnalysisReportItem
+                {
+                    name = "Position Type",
+                    type = "status",
+                    value = 56
+                },
             };
         }
 

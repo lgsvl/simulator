@@ -179,23 +179,83 @@ namespace Simulator.Sensors
 
         public override void SetAnalysisData()
         {
-            SensorAnalysisData = new Hashtable
+            SensorAnalysisData = new List<AnalysisReportItem>
             {
-                { "Distance", Distance },
-                { "SpeedMin", SpeedMin },
-                { "SpeedMax", SpeedMax },
-                { "SpeedAvg", SpeedAvg },
-                { "AccelLongMin", AccelLongMin },
-                { "AccelLongMax", AccelLongMax },
-                { "AccelLatMin", AccelLatMin },
-                { "AccelLatMax", AccelLatMax },
-                { "JerkLongMin", JerkLongMin },
-                { "JerkLongMax", JerkLongMax },
-                { "JerkLatMin", JerkLatMin },
-                { "JerkLatMax", JerkLatMax },
-                { "SteerAngleMax", SteerAngleMax },
-                { "Start Position", StartPosition },
-                { "End Position", transform.position },
+                new AnalysisReportItem {
+                    name = "Distance",
+                    type = "distance",
+                    value = Distance
+                },
+                new AnalysisReportItem {
+                    name = "SpeedMin",
+                    type = "velocity",
+                    value = SpeedMin
+                },
+                new AnalysisReportItem {
+                    name = "SpeedMax",
+                    type = "velocity",
+                    value = SpeedMax
+                },
+                new AnalysisReportItem {
+                    name = "SpeedAvg",
+                    type = "velocity",
+                    value = SpeedAvg
+                },
+                new AnalysisReportItem {
+                    name = "AccelLongMin",
+                    type = "acceleration",
+                    value = AccelLongMin
+                },
+                new AnalysisReportItem {
+                    name = "AccelLongMax",
+                    type = "acceleration",
+                    value = AccelLongMax
+                },
+                new AnalysisReportItem {
+                    name = "AccelLatMin",
+                    type = "acceleration",
+                    value = AccelLatMin
+                },
+                new AnalysisReportItem {
+                    name = "AccelLatMax",
+                    type = "acceleration",
+                    value = AccelLatMax
+                },
+                new AnalysisReportItem {
+                    name = "JerkLongMin",
+                    type = "jerk",
+                    value = JerkLongMin
+                },
+                new AnalysisReportItem {
+                    name = "JerkLongMax",
+                    type = "jerk",
+                    value = JerkLongMax
+                },
+                new AnalysisReportItem {
+                    name = "JerkLatMin",
+                    type = "jerk",
+                    value = JerkLatMin
+                },
+                new AnalysisReportItem {
+                    name = "JerkLatMax",
+                    type = "jerk",
+                    value = JerkLatMax
+                },
+                new AnalysisReportItem {
+                    name = "SteerAngleMax",
+                    type = "angle",
+                    value = SteerAngleMax
+                },
+                new AnalysisReportItem {
+                    name = "StartPosition",
+                    type = "position",
+                    value = StartPosition
+                },
+                new AnalysisReportItem {
+                    name = "EndPosition",
+                    type = "position",
+                    value = transform.position
+                },
             };
         }
 

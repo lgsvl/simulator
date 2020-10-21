@@ -10,6 +10,8 @@ using Simulator.Bridge;
 using Simulator.Utilities;
 using Simulator.Sensors.UI;
 using System.Collections;
+using Simulator.Analysis;
+using System.Collections.Generic;
 
 namespace Simulator.Sensors
 {
@@ -23,7 +25,7 @@ namespace Simulator.Sensors
             UltraHighLoad = 3
         }
 
-        public Hashtable SensorAnalysisData;
+        public List<AnalysisReportItem> SensorAnalysisData;
         public string Name;
 
         [SensorParameter]

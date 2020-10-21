@@ -582,11 +582,23 @@ namespace Simulator.Sensors
 
         public override void SetAnalysisData()
         {
-            SensorAnalysisData = new Hashtable
+            SensorAnalysisData = new List<AnalysisReportItem>
             {
-                { "Average FPS", AveFPS },
-                { "Lowest FPS", LowestFPS },
-                { "Target FPS", MinFPS },
+                new AnalysisReportItem {
+                    name = "Average FPS",
+                    type = "fps",
+                    value = AveFPS
+                },
+                new AnalysisReportItem {
+                    name = "Lowest FPS",
+                    type = "fps",
+                    value = LowestFPS
+                },
+                new AnalysisReportItem {
+                    name = "Target FPS",
+                    type = "fps",
+                    value = MinFPS
+                },
             };
         }
 

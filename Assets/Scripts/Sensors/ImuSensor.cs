@@ -16,6 +16,7 @@ using Simulator.Bridge.Data;
 using Simulator.Utilities;
 using Simulator.Sensors.UI;
 using System.Collections;
+using Simulator.Analysis;
 
 #pragma warning disable CS0649
 
@@ -255,20 +256,68 @@ namespace Simulator.Sensors
 
         public override void SetAnalysisData()
         {
-            SensorAnalysisData = new Hashtable
+            SensorAnalysisData = new List<AnalysisReportItem>
             {
-                { "Min X", minX },
-                { "Max X", maxX },
-                { "Min Gyro X", minGyroX },
-                { "Max Gyro X", maxGyroX },
-                { "Min Y", minX },
-                { "Max Y", maxX },
-                { "Min Gyro Y", minGyroY },
-                { "Max Gyro Y", maxGyroY },
-                { "Min Z", minZ },
-                { "Max Z", maxZ },
-                { "Min Gyro Z", minGyroZ },
-                { "Max Gyro Z", maxGyroZ },
+                new AnalysisReportItem {
+                    name = "Min X",
+                    type = "position",
+                    value = minX
+                },
+                new AnalysisReportItem {
+                    name = "Max X",
+                    type = "position",
+                    value = maxX
+                },
+                new AnalysisReportItem {
+                    name = "Min Gyro X",
+                    type = "angle",
+                    value = minGyroX
+                },
+                new AnalysisReportItem {
+                    name = "Max Gyro X",
+                    type = "angle",
+                    value = maxGyroX
+                },
+                new AnalysisReportItem {
+                    name = "Min Y",
+                    type = "position",
+                    value = minY
+                },
+                new AnalysisReportItem {
+                    name = "Max Y",
+                    type = "position",
+                    value = maxY
+                },
+                new AnalysisReportItem {
+                    name = "Min Gyro Y",
+                    type = "angle",
+                    value = minGyroY
+                },
+                new AnalysisReportItem {
+                    name = "Max Gyro Y",
+                    type = "angle",
+                    value = maxGyroY
+                },
+                new AnalysisReportItem {
+                    name = "Min Z",
+                    type = "position",
+                    value = minZ
+                },
+                new AnalysisReportItem {
+                    name = "Max Z",
+                    type = "position",
+                    value = maxZ
+                },
+                new AnalysisReportItem {
+                    name = "Min Gyro Z",
+                    type = "angle",
+                    value = minGyroZ
+                },
+                new AnalysisReportItem {
+                    name = "Max Gyro Z",
+                    type = "angle",
+                    value = maxGyroZ
+                },
             };
         }
     }

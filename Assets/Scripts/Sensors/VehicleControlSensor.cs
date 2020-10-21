@@ -12,6 +12,7 @@ using UnityEngine;
 using Simulator.Sensors.UI;
 using System.Collections.Generic;
 using System.Collections;
+using Simulator.Analysis;
 
 namespace Simulator.Sensors
 {
@@ -242,11 +243,23 @@ namespace Simulator.Sensors
 
         public override void SetAnalysisData()
         {
-            SensorAnalysisData = new Hashtable
+            SensorAnalysisData = new List<AnalysisReportItem>
             {
-                { "Max Steer", MaxSteer },
-                { "Max Accel", MaxAccel },
-                { "Max Brake", MaxBrake },
+                new AnalysisReportItem {
+                        name = "Max Steer",
+                        type = "input",
+                        value = MaxSteer
+                    },
+                new AnalysisReportItem {
+                    name = "Max Accel",
+                    type = "input",
+                    value = MaxAccel
+                },
+                new AnalysisReportItem {
+                    name = "Max Brake",
+                    type = "input",
+                    value = MaxBrake
+                },
             };
         }
     }

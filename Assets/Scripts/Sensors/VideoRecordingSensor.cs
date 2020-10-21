@@ -13,6 +13,8 @@ using Simulator.Utilities;
 using Simulator.Plugins;
 using UnityEngine.Rendering.HighDefinition;
 using System.Collections;
+using Simulator.Analysis;
+using System.Collections.Generic;
 
 namespace Simulator.Sensors
 {
@@ -280,9 +282,13 @@ namespace Simulator.Sensors
             else if (StopRecording())
             {
 
-                SensorAnalysisData = new Hashtable
+                SensorAnalysisData = new List<AnalysisReportItem>
                 {
-                    { "VideoCapture", Path.Combine(GetOutdir(), GetFileName()) },
+                    new AnalysisReportItem {
+                        name = "VideoCapture",
+                        type = "filepath",
+                        value = Path.Combine(GetOutdir(), GetFileName())
+                    },
                 };
             }
         }

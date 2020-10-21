@@ -16,6 +16,7 @@ using Simulator.Bridge.Data;
 using Simulator.Utilities;
 using Simulator.Sensors.UI;
 using System.Collections;
+using Simulator.Analysis;
 
 namespace Simulator.Sensors
 {
@@ -142,10 +143,18 @@ namespace Simulator.Sensors
 
         public override void SetAnalysisData()
         {
-            SensorAnalysisData = new Hashtable
+            SensorAnalysisData = new List<AnalysisReportItem>
             {
-                { "Simulation Duration", SimulatorManager.Instance.CurrentTime - SimulatorManager.Instance.SessionStartTime },
-                { "Realtime Duration", Time.time - realTimeStart },
+                new AnalysisReportItem {
+                    name = "Simulation Duration",
+                    type = "time",
+                    value = SimulatorManager.Instance.CurrentTime - SimulatorManager.Instance.SessionStartTime
+                },
+                new AnalysisReportItem {
+                    name = "Realtime Duration",
+                    type = "time",
+                    value = Time.time - realTimeStart
+                },
             };
         }
 

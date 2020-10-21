@@ -19,6 +19,7 @@ using Unity.Collections;
 
 using UltrasonicData = Simulator.Bridge.Data.UltrasonicData;
 using System.Collections;
+using Simulator.Analysis;
 
 namespace Simulator.Sensors
 {
@@ -340,10 +341,18 @@ namespace Simulator.Sensors
 
         public override void SetAnalysisData()
         {
-            SensorAnalysisData = new Hashtable
+            SensorAnalysisData = new List<AnalysisReportItem>
             {
-                {"Minimum Distance Recorded", minRecorded},
-                {"Maximum Distance Recorded", maxRecorded}
+                new AnalysisReportItem {
+                    name = "Minimum Distance Recorded",
+                    type = "distance",
+                    value = minRecorded
+                },
+                new AnalysisReportItem {
+                    name = "Maximum Distance Recorded",
+                    type = "distance",
+                    value = maxRecorded
+                },
             };
         }
     }

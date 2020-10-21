@@ -13,6 +13,8 @@ using Simulator.Sensors.UI;
 using System;
 using Unity.Mathematics;
 using System.Collections;
+using System.Collections.Generic;
+using Simulator.Analysis;
 
 namespace Simulator.Sensors
 {
@@ -75,9 +77,13 @@ namespace Simulator.Sensors
 
         public override void SetAnalysisData()
         {
-            SensorAnalysisData = new Hashtable
+            SensorAnalysisData = new List<AnalysisReportItem>
             {
-                { "Maximum Objects Tracked", MaxTracked },
+                new AnalysisReportItem {
+                    name = "Maximum Objects Tracked",
+                    type = "distance",
+                    value = MaxTracked
+                },
             };
         }
     }

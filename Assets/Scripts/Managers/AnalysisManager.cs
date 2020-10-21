@@ -292,9 +292,10 @@ namespace Simulator.Analysis
                 sensorBase.SetAnalysisData();
                 if (sensorBase.SensorAnalysisData != null)
                 {
-                    var sData = JsonConvert.SerializeObject(sensorBase.SensorAnalysisData, SerializerSettings);
+                    var sData = JsonConvert.SerializeObject(new {
+                        items = sensorBase.SensorAnalysisData,
+                        Type = sensorBase.GetType().ToString() }, SerializerSettings);
                     JToken token = JToken.Parse(sData);
-                    token["Type"] = sensorBase.GetType().ToString();
                     sensorsJO.Add(token);
                 }
             });

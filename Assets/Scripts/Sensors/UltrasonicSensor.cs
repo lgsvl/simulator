@@ -343,7 +343,7 @@ namespace Simulator.Sensors
             SensorAnalysisData = new Hashtable
             {
                 {"Minimum Distance Recorded", minRecorded},
-                {"Minimum Distance Recorded", maxRecorded}
+                {"Maximum Distance Recorded", maxRecorded}
             };
         }
     }

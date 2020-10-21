@@ -301,7 +301,7 @@ namespace Simulator.Sensors
             }
 
             // stop line violation
-            if (StopLineTransform != null || StopLines != null || StopLines.Count > 0)
+            if (StopLineTransform != null && StopLines != null && StopLines.Count > 0)
             {
                 MapLine closesStoptLine = StopLines.OrderByDescending(i => SquareDistanceToStopLine(i, StopLineTransform.position)).Last();
 

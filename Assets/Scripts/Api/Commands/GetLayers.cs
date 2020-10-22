@@ -16,18 +16,16 @@ namespace Simulator.Api.Commands
 
         public void Execute(JSONNode args)
         {
-            JSONArray result = new JSONArray();
             JSONObject j = new JSONObject();
             for (int i = 0; i < 32; i++)
             {
                 var layerInfo = LayerMask.LayerToName(i);
                 if (layerInfo != "")
                 {
-                    j.Add($"{i}", layerInfo);
+                    j.Add(layerInfo, i);
                 }
             }
-            result.Add(j);
-            ApiManager.Instance.SendResult(this, result);
+            ApiManager.Instance.SendResult(this, j);
         }
     }
 }

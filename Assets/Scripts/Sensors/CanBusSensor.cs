@@ -75,7 +75,7 @@ namespace Simulator.Sensors
             }
             NextSend = Time.time + 1.0f / Frequency;
 
-            float speed = RigidBody.velocity.magnitude;
+            float speed = Dynamics.Speed;
             MaxSpeed = Mathf.Max(MaxSpeed, speed);
 
             var gps = MapOrigin.GetGpsLocation(transform.position);

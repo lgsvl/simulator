@@ -36,6 +36,17 @@ public class VehicleSMI : MonoBehaviour, IVehicleDynamics
             return 0.0f;
         }
     }
+    public float Speed
+    {
+        get
+        {
+            if (RB != null)
+            {
+                return RB.velocity.magnitude;
+            }
+            return 0f;
+        }
+    }
     public IgnitionStatus CurrentIgnitionStatus { get; set; } = IgnitionStatus.On;
 
     public List<AxleInfo> Axles;

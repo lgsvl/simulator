@@ -22,6 +22,7 @@ public interface IVehicleDynamics
     float CurrentGear { get; }
     bool Reverse { get; }
     float WheelAngle { get; }
+    float Speed { get; }
 
     IgnitionStatus CurrentIgnitionStatus { get; set; }
 

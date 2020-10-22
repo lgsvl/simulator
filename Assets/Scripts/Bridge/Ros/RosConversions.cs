@@ -635,6 +635,20 @@ namespace Simulator.Bridge.Ros
             };
         }
 
+        public static Lgsvl.VehicleOdometry ConvertFrom(VehicleOdometryData data)
+        {
+            return new Lgsvl.VehicleOdometry()
+            {
+                header = new Ros.Header()
+                {
+                    stamp = ConvertTime(data.Time),
+                },
+                velocity = data.Speed,
+                front_wheel_angle = UnityEngine.Mathf.Deg2Rad * data.SteeringAngleFront,
+                rear_wheel_angle = UnityEngine.Mathf.Deg2Rad * data.SteeringAngleBack,
+            };
+        }
+
         public static Detected3DObjectArray ConvertTo(Lgsvl.Detection3DArray data)
         {
             return new Detected3DObjectArray()

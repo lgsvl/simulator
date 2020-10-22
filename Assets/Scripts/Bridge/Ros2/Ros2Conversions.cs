@@ -333,16 +333,19 @@ namespace Simulator.Bridge.Ros2
             };
         }
 
-        // public static VehicleOdometry ConvertFrom(VehicleOdometryData data)
-        // {
-        //     return new VehicleOdometry()
-        //     {
-        //         stamp = Convert(data.Time),
-        //         velocity_mps = data.Speed,
-        //         front_wheel_angle_rad = UnityEngine.Mathf.Deg2Rad * data.SteeringAngleFront,
-        //         rear_wheel_angle_rad = UnityEngine.Mathf.Deg2Rad * data.SteeringAngleBack,
-        //     };
-        // }
+        public static Lgsvl.VehicleOdometry ConvertFrom(VehicleOdometryData data)
+        {
+            return new Lgsvl.VehicleOdometry()
+            {
+                header = new Ros.Header()
+                {
+                    stamp = Convert(data.Time),
+                },
+                velocity = data.Speed,
+                front_wheel_angle = UnityEngine.Mathf.Deg2Rad * data.SteeringAngleFront,
+                rear_wheel_angle = UnityEngine.Mathf.Deg2Rad * data.SteeringAngleBack,
+            };
+        }
 
         public static Detected3DObjectArray ConvertTo(Lgsvl.Detection3DArray data)
         {

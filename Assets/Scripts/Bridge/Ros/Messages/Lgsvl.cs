@@ -6,6 +6,7 @@
  */
 
 using System.Collections.Generic;
+using Simulator.Bridge.Ros.Ros;
 
 namespace Simulator.Bridge.Ros.Lgsvl
 {
@@ -195,6 +196,15 @@ namespace Simulator.Bridge.Ros.Lgsvl
         public bool hand_brake_active;
         public bool horn_active;
         public bool autonomous_mode_active;
+    }
+
+    [MessageType("lgsvl_msgs/VehicleOdometry")]
+    public class VehicleOdometry
+    {
+        public Header header;
+        public float velocity;
+        public float front_wheel_angle;
+        public float rear_wheel_angle;
     }
 
     [MessageType("lgsvl_msgs/DetectedRadarObject")]

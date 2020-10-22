@@ -123,6 +123,7 @@ namespace Simulator.Bridge.Ros
             RegPublisher<Detected3DObjectData, Lgsvl.Detection3DArray>(plugin, Conversions.ConvertFrom);
             RegPublisher<SignalDataArray, Lgsvl.SignalArray>(plugin, Conversions.ConvertFrom);
             RegPublisher<UltrasonicData, Lgsvl.Ultrasonic>(plugin, Conversions.ConvertFrom);
+            RegPublisher<VehicleOdometryData, Lgsvl.VehicleOdometry>(plugin, Conversions.ConvertFrom);
 
             RegSubscriber<VehicleControlData, Autoware.VehicleCmd>(plugin, Conversions.ConvertTo);
         }

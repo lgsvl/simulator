@@ -8,15 +8,14 @@
 namespace Simulator.ScenarioEditor.Elements
 {
     using System.Collections.Generic;
-    using Agents;
     using Managers;
+    using ScenarioEditor.Agents;
     using UnityEngine;
-    using Utilities;
 
     /// <summary>
     /// Abstract scenario element source 
     /// </summary>
-    public abstract class ScenarioElementSource 
+    public abstract class ScenarioElementSource : MonoBehaviour
     {
         /// <summary>
         /// Name of the agent type this source handles

@@ -10,7 +10,7 @@ namespace Simulator.ScenarioEditor.Data.Serializer
     using Agents;
     using Controllables;
     using Elements;
-    using Elements.Agent;
+    using Elements.Agents;
     using Managers;
     using SimpleJSON;
     using UnityEngine;
@@ -110,7 +110,7 @@ namespace Simulator.ScenarioEditor.Data.Serializer
                     behaviour.Add("parameters", scenarioAgent.BehaviourParameters);
             }
 
-            if (scenarioAgent.DestinationPoint != null)
+            if (scenarioAgent.DestinationPoint != null &&  scenarioAgent.DestinationPoint.IsActive)
             {
                 var destinationPoint = new JSONObject();
                 agentNode.Add("destinationPoint", destinationPoint);

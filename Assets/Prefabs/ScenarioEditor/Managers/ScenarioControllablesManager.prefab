@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6935095351782639035}
-  - component: {fileID: 8197510005781965884}
+  - component: {fileID: -5217231990384661683}
   m_Layer: 0
-  m_Name: ScenarioAgentsManager
+  m_Name: ScenarioControllablesManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -31,7 +31,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8197510005781965884
+--- !u!114 &-5217231990384661683
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -40,14 +40,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 8017406143537599127}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 22af824360c2b304289df35e5759b7cf, type: 3}
+  m_Script: {fileID: 11500000, guid: 67fb516e2925aa74d984d6cc48f88b02, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sources:
-  - {fileID: 4119718222997998401, guid: 19f521d49b45521428f6315039288c42, type: 3}
-  - {fileID: -5094355937385840946, guid: 708962f64e4505a4a9b5b71f159c5d59, type: 3}
-  - {fileID: 8150633560772785354, guid: f246a5a9c71690041b22ccb472114b71, type: 3}
-  destinationPoint: {fileID: 1460225512146967788, guid: d7d3e002d8fd5684fa32950d1c6a56f1,
-    type: 3}
-  destinationPathMaterial: {fileID: 2100000, guid: bf19772bd0711774482dce20b8ac1e3f,
-    type: 2}
+  source: {fileID: -1283496071658741896, guid: 5b9e4b9803075934b98589ed3488caf7, type: 3}

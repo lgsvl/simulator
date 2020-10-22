@@ -349,6 +349,21 @@ namespace Simulator.ScenarioEditor.Input
                                                 Screen.width < Input.mousePosition.x ||
                                                 Screen.height < Input.mousePosition.y);
 
+        /// <summary>
+        /// Cached scenario world camera
+        /// </summary>
+        public Camera ScenarioCamera => scenarioCamera;
+
+        /// <summary>
+        /// Layer mask used when raycasting world
+        /// </summary>
+        public int RaycastLayerMask => raycastLayerMask;
+
+        /// <summary>
+        /// Maximum raycast distance
+        /// </summary>
+        public float RaycastDistance => raycastDistance;
+
         /// <inheritdoc/>
         public Task Initialize()
         {
@@ -442,7 +457,6 @@ namespace Simulator.ScenarioEditor.Input
                     if (leftMouseButtonPressed && ElementSelectingSemaphore.IsUnlocked &&
                         !EventSystem.current.IsPointerOverGameObject())
                     {
-                        ScenarioManager.Instance.SelectedElement = null;
                         furthestHit = GetFurthestHit();
                         if (furthestHit == null)
                             return;
@@ -583,17 +597,36 @@ namespace Simulator.ScenarioEditor.Input
         }
 
         /// <summary>
-        /// Raycasts everything in the move position
+        /// Raycasts everything in the mouse position
         /// </summary>
         private void RaycastAll()
         {
             //TODO Check if raycast is needed
             mouseMoved = (lastMousePosition - Input.mousePosition).magnitude > 1.0f;
             var ray = scenarioCamera.ScreenPointToRay(Input.mousePosition);
-            raycastHitsCount = Physics.RaycastNonAlloc(ray, raycastHits, raycastDistance, raycastLayerMask);
+            raycastHitsCount = RaycastAll(ray, raycastHits);
             lastMousePosition = Input.mousePosition;
         }
 
+        /// <summary>
+        /// Raycasts everything in the move position
+        /// </summary>
+        /// <param name="ray">Ray that will be used to determine the collision</param>
+        /// <param name="hits">Prealocated raycast hits array</param>
+        public int RaycastAll(Ray ray, RaycastHit[] hits)
+        {
+           return Physics.RaycastNonAlloc(ray, hits, raycastDistance, raycastLayerMask);
+        }
+
+        /// <summary>
+        /// Raycasts everything in the move position
+        /// </summary>
+        /// <param name="ray">Ray that will be used to determine the collision</param>
+        public RaycastHit[] RaycastAll(Ray ray)
+        {
+            return Physics.RaycastAll(ray, raycastDistance, raycastLayerMask);
+        }
+        
         /// <summary>
         /// Selects the furthest hit from the current raycast hits
         /// </summary>
@@ -601,13 +634,25 @@ namespace Simulator.ScenarioEditor.Input
         /// <returns>Furthest hit, null if there was no valid raycast hit</returns>
         private RaycastHit? GetFurthestHit(bool ignoreRigidbodies = false)
         {
+            return GetFurthestHit(raycastHits, raycastHitsCount, ignoreRigidbodies);
+        }
+
+        /// <summary>
+        /// Selects the furthest hit from the current raycast hits
+        /// </summary>
+        /// <param name="hits">Prealocated raycast hits array</param>
+        /// <param name="hitsCount">Count of the valid raycast hits</param>
+        /// <param name="ignoreRigidbodies">Should the colliders with rigidbodies be ignored</param>
+        /// <returns>Furthest hit, null if there was no valid raycast hit</returns>
+        public RaycastHit? GetFurthestHit(RaycastHit[] hits, int hitsCount, bool ignoreRigidbodies = false)
+        {
             RaycastHit? furthestHit = null;
             var furthestDistance = 0.0f;
-            for (var i = 0; i < raycastHitsCount; i++)
-                if (raycastHits[i].distance > furthestDistance &&
-                    (!ignoreRigidbodies || raycastHits[i].rigidbody == null))
+            for (var i = 0; i < hitsCount; i++)
+                if (hits[i].distance > furthestDistance &&
+                    (!ignoreRigidbodies || hits[i].rigidbody == null))
                 {
-                    furthestHit = raycastHits[i];
+                    furthestHit = hits[i];
                     furthestDistance = furthestHit.Value.distance;
                 }
 
@@ -641,7 +686,7 @@ namespace Simulator.ScenarioEditor.Input
                     ScenarioManager.Instance.SelectedElement.CanBeCopied)
                 {
                     var element = ScenarioManager.Instance.SelectedElement;
-                    ScenarioManager.Instance.CopiedElement = element;
+                    ScenarioManager.Instance.CopyElement(element);
                     ScenarioManager.Instance.logPanel.EnqueueInfo($"Copied {element.name}.");
                     return;
                 }

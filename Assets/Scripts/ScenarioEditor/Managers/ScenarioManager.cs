@@ -140,6 +140,8 @@ namespace Simulator.ScenarioEditor.Managers
             {
                 if (selectedElement == value)
                     return;
+                if (selectedElement!=null)
+                    selectedElement.Deselected();
                 selectedElement = value;
                 if (selectedElement != null)
                     selectedElement.Selected();
@@ -150,7 +152,7 @@ namespace Simulator.ScenarioEditor.Managers
         /// <summary>
         /// Scenario element that is copied and will be cloned on demand
         /// </summary>
-        public ScenarioElement CopiedElement { get; set; }
+        public ScenarioElement CopiedElement { get; private set; }
 
         /// <summary>
         /// Is there a single popup visible in the scenario editor
@@ -366,19 +368,42 @@ namespace Simulator.ScenarioEditor.Managers
         }
 
         /// <summary>
+        /// Creates an element clone with current state so it can be duplicated later
+        /// </summary>
+        public void CopyElement(ScenarioElement element)
+        {
+            if (CopiedElement != null)
+                CopiedElement.Dispose();
+            CopiedElement = element;
+            CopiedElement = PlaceElementCopy(element.transform.position);
+            CopiedElement.RemoveFromMap();
+            CopiedElement.gameObject.SetActive(false);
+        }
+
+        /// <summary>
         /// Places an element copy on the map
         /// </summary>
         /// <param name="position">Position where the copy should be placed</param>
-        public void PlaceElementCopy(Vector3 position)
+        public ScenarioElement PlaceElementCopy(Vector3 position)
         {
-            if (CopiedElement == null || !CopiedElement.isActiveAndEnabled)
-                return;
+            if (CopiedElement == null)
+                return null;
             var copy = prefabsPools.Clone(CopiedElement.gameObject);
+            copy.SetActive(true);
             var scenarioElementCopy = copy.GetComponent<ScenarioElement>();
             if (scenarioElementCopy!=null)
                 GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoAddElement(scenarioElementCopy));
             copy.transform.position = position;
-            IsScenarioDirty = false;
+            //Reposition all scenario elements on ground, do not snap while repositioning
+            var scenarioElements = copy.GetComponentsInChildren<ScenarioElement>(true);
+            var mapManager = GetExtension<ScenarioMapManager>();
+            var snap = mapManager.LaneSnapping.SnappingEnabled;
+            mapManager.LaneSnapping.SnappingEnabled = false;
+            foreach (var scenarioElement in scenarioElements)
+                scenarioElement.RepositionOnGround();
+            mapManager.LaneSnapping.SnappingEnabled = snap;
+            IsScenarioDirty = true;
+            return scenarioElementCopy;
         }
 
         /// <summary>

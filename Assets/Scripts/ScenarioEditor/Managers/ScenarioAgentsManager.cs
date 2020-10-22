@@ -11,7 +11,7 @@ namespace Simulator.ScenarioEditor.Managers
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Agents;
-    using Elements.Agent;
+    using Elements.Agents;
     using Input;
     using Simulator.Utilities;
     using UnityEngine;
@@ -22,6 +22,14 @@ namespace Simulator.ScenarioEditor.Managers
     /// </summary>
     public class ScenarioAgentsManager : MonoBehaviour, IScenarioEditorExtension
     {
+        //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
+#pragma warning disable 0649
+        /// <summary>
+        /// Available agent sources
+        /// </summary>
+        public List<ScenarioAgentSource> sources;
+#pragma warning restore 0649
+        
         /// <summary>
         /// Prefab for the destination point graphic representation on the map
         /// </summary>
@@ -34,9 +42,9 @@ namespace Simulator.ScenarioEditor.Managers
         
         /// <inheritdoc/>
         public bool IsInitialized { get; private set; }
-        
+
         /// <summary>
-        /// All the available agent sources in this assembly
+        /// Available agent sources
         /// </summary>
         public List<ScenarioAgentSource> Sources { get; } = new List<ScenarioAgentSource>();
 
@@ -63,17 +71,14 @@ namespace Simulator.ScenarioEditor.Managers
             if (IsInitialized)
                 return;
             await ScenarioManager.Instance.WaitForExtension<InputManager>();
-            var interfaceType = typeof(ScenarioAgentSource);
-            var types = ReflectionCache.FindTypes((type) => !type.IsAbstract && interfaceType.IsAssignableFrom(type));
-            var tasks = new Task[types.Count];
-            for (var i = 0; i < types.Count; i++)
+            var tasks = new Task[sources.Count];
+            for (var i = 0; i < sources.Count; i++)
             {
-                var agentSource = Activator.CreateInstance(types[i]) as ScenarioAgentSource;
-                if (agentSource == null) continue;
-                tasks[i] = agentSource.Initialize();
-
-                Sources.Add(agentSource);
+                var newSource = Instantiate(sources[i], transform);
+                Sources.Add(newSource);
+                tasks[i] = newSource.Initialize();
             }
+            
             await Task.WhenAll(tasks);
             ScenarioManager.Instance.ScenarioReset += InstanceOnScenarioReset;
             IsInitialized = true;
@@ -89,7 +94,10 @@ namespace Simulator.ScenarioEditor.Managers
                 return;
             InstanceOnScenarioReset();
             foreach (var source in Sources)
+            {
                 source.Deinitialize();
+                Destroy(source);
+            }
             Sources.Clear();
             Agents.Clear();
             IsInitialized = false;

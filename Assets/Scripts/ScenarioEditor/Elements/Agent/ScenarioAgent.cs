@@ -5,13 +5,13 @@
  *
  */
 
-namespace Simulator.ScenarioEditor.Elements.Agent
+namespace Simulator.ScenarioEditor.Elements.Agents
 {
     using System;
     using System.Collections.Generic;
-    using Agents;
     using Elements;
     using Managers;
+    using ScenarioEditor.Agents;
     using SimpleJSON;
     using Undo;
     using Undo.Records;
@@ -26,17 +26,22 @@ namespace Simulator.ScenarioEditor.Elements.Agent
         /// <summary>
         /// The position offset that will be applied to the line renderer of waypoints
         /// </summary>
-        private static Vector3 lineRendererPositionOffset = new Vector3(0.0f, 0.1f, 0.0f);
+        private static readonly Vector3 LineRendererPositionOffset = new Vector3(0.0f, 0.1f, 0.0f);
 
         /// <summary>
         /// Id of the shader property named _BaseColor
         /// </summary>
-        public static int BaseColorShaderId = Shader.PropertyToID("_BaseColor");
+        public static readonly int BaseColorShaderId = Shader.PropertyToID("_BaseColor");
 
         /// <summary>
         /// Name for the gameobject containing waypoints
         /// </summary>
-        private static string waypointsObjectName = "Waypoints";
+        private const string WaypointsObjectName = "Waypoints";
+
+        /// <summary>
+        /// Parent source of this scenario agent
+        /// </summary>
+        protected ScenarioAgentSource AgentSource => source as ScenarioAgentSource;
 
         /// <summary>
         /// Line renderer for displaying the connection between waypoints
@@ -56,12 +61,12 @@ namespace Simulator.ScenarioEditor.Elements.Agent
         /// <summary>
         /// Included waypoints that this agent will follow
         /// </summary>
-        private List<ScenarioWaypoint> waypoints = new List<ScenarioWaypoint>();
+        private readonly List<ScenarioWaypoint> waypoints = new List<ScenarioWaypoint>();
 
         /// <summary>
         /// Included triggers that will influence this agent
         /// </summary>
-        private List<ScenarioTrigger> triggers = new List<ScenarioTrigger>();
+        private readonly List<ScenarioTrigger> triggers = new List<ScenarioTrigger>();
 
         /// <summary>
         /// Waypoints parent where inherited waypoints objects will be added
@@ -71,22 +76,13 @@ namespace Simulator.ScenarioEditor.Elements.Agent
             get
             {
                 if (waypointsParent == null)
-                    waypointsParent = transform.Find(waypointsObjectName);
+                    waypointsParent = transform.Find(WaypointsObjectName);
                 if (waypointsParent == null)
                 {
-                    var newGameObject = new GameObject(waypointsObjectName);
+                    var newGameObject = new GameObject(WaypointsObjectName);
                     waypointsParent = newGameObject.transform;
                     waypointsParent.SetParent(transform);
                     waypointsParent.localPosition = Vector3.zero;
-                    PathRenderer.material = ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>()
-                        .waypointPathMaterial;
-                    PathRenderer.useWorldSpace = false;
-                    PathRenderer.positionCount = 1;
-                    PathRenderer.SetPosition(0, lineRendererPositionOffset);
-                    PathRenderer.sortingLayerName = "Ignore Raycast";
-                    PathRenderer.widthMultiplier = 0.1f;
-                    PathRenderer.generateLightingData = false;
-                    PathRenderer.textureMode = LineTextureMode.Tile;
                 }
 
                 return waypointsParent;
@@ -104,7 +100,18 @@ namespace Simulator.ScenarioEditor.Elements.Agent
 
                 pathRenderer = WaypointsParent.gameObject.GetComponent<LineRenderer>();
                 if (pathRenderer == null)
+                {
                     pathRenderer = WaypointsParent.gameObject.AddComponent<LineRenderer>();
+                    pathRenderer.material = AgentSource.WaypointsMaterial;
+                    pathRenderer.useWorldSpace = false;
+                    pathRenderer.positionCount = 1;
+                    pathRenderer.SetPosition(0, LineRendererPositionOffset);
+                    pathRenderer.sortingLayerName = "Ignore Raycast";
+                    pathRenderer.widthMultiplier = 0.1f;
+                    pathRenderer.generateLightingData = false;
+                    pathRenderer.textureMode = LineTextureMode.Tile;
+                }
+
                 return pathRenderer;
             }
         }
@@ -158,7 +165,7 @@ namespace Simulator.ScenarioEditor.Elements.Agent
         public JSONObject BehaviourParameters { get; set; } = new JSONObject();
 
         /// <summary>
-        /// 
+        /// Point that indicates the destination for this agent
         /// </summary>
         public ScenarioDestinationPoint DestinationPoint { get; set; }
 
@@ -301,7 +308,7 @@ namespace Simulator.ScenarioEditor.Elements.Agent
             for (var i = 0; i < transform.childCount; i++)
             {
                 var child = transform.GetChild(i);
-                if (child.name == waypointsObjectName)
+                if (child.name == WaypointsObjectName)
                 {
                     waypointsParent = child;
                     for (var j = 0; j < waypointsParent.childCount; j++)
@@ -311,6 +318,9 @@ namespace Simulator.ScenarioEditor.Elements.Agent
                     }
                 }
             }
+            var destinationPoint = GetComponentInChildren<ScenarioDestinationPoint>(true);
+            if (destinationPoint!=null)
+                destinationPoint.AttachToAgent(this, false);
 
             ScenarioManager.Instance.GetExtension<ScenarioAgentsManager>().RegisterAgent(this);
         }
@@ -364,13 +374,15 @@ namespace Simulator.ScenarioEditor.Elements.Agent
             AddTrigger(waypoint.LinkedTrigger);
             waypoints.Insert(index, waypoint);
             waypoint.ParentAgent = this;
+            waypoint.waypointRenderer.material = AgentSource.WaypointsMaterial;
             waypoint.IndexInAgent = index;
             var waypointTransform = waypoint.transform;
             waypointTransform.SetParent(WaypointsParent);
+            waypointTransform.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
             PathRenderer.positionCount = waypoints.Count + 1;
             for (var i = index; i < waypoints.Count; i++)
             {
-                var position = lineRendererPositionOffset + waypoints[i].transform.localPosition;
+                var position = LineRendererPositionOffset + waypoints[i].transform.localPosition;
                 PathRenderer.SetPosition(i + 1, position);
                 waypoints[i].IndexInAgent = i;
             }
@@ -390,7 +402,7 @@ namespace Simulator.ScenarioEditor.Elements.Agent
             RemoveTrigger(waypoint.LinkedTrigger);
             for (var i = index; i < waypoints.Count; i++)
             {
-                var position = lineRendererPositionOffset + waypoints[i].transform.transform.localPosition;
+                var position = LineRendererPositionOffset + waypoints[i].transform.transform.localPosition;
                 PathRenderer.SetPosition(i + 1, position);
                 waypoints[i].IndexInAgent = i;
             }
@@ -406,8 +418,13 @@ namespace Simulator.ScenarioEditor.Elements.Agent
         public void WaypointPositionChanged(ScenarioWaypoint waypoint)
         {
             var index = waypoints.IndexOf(waypoint);
-            var position = lineRendererPositionOffset + waypoint.transform.transform.localPosition;
+            var position = LineRendererPositionOffset + waypoint.transform.transform.localPosition;
             PathRenderer.SetPosition(index + 1, position);
+            
+            //Update waypoint direction indicator
+            var previousPosition = PathRenderer.GetPosition(index)-position;
+            waypoint.directionTransform.localPosition = previousPosition / 2.0f;
+            waypoint.directionTransform.localRotation = Quaternion.LookRotation(-previousPosition);
         }
 
         /// <summary>

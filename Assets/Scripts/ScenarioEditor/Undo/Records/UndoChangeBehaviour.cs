@@ -7,7 +7,7 @@
 
 namespace Simulator.ScenarioEditor.Undo.Records
 {
-    using Elements.Agent;
+    using Elements.Agents;
     using Managers;
     using SimpleJSON;
 

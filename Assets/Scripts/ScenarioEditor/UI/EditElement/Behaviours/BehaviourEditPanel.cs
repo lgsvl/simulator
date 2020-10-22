@@ -9,7 +9,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Behaviours
 {
     using Effectors;
     using Elements;
-    using Elements.Agent;
+    using Elements.Agents;
     using Managers;
     using ScenarioEditor.Utilities;
     using UnityEngine;

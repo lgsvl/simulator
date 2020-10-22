@@ -20,9 +20,9 @@ namespace Simulator.ScenarioEditor.Controllables
     using Web;
 
     /// <summary>
-    /// This scenario source handles controllables
+    /// This scenario source handles adding controllable
     /// </summary>
-    public class ScenarioControllablesSource : ScenarioElementSource, IDragHandler
+    public class ScenarioControllableSource : ScenarioElementSource, IDragHandler
     {
         /// <summary>
         /// Cached reference to the scenario editor input manager
@@ -40,7 +40,7 @@ namespace Simulator.ScenarioEditor.Controllables
         public bool IsInitialized { get; private set; }
 
         /// <inheritdoc/>
-        public override string ElementTypeName { get; } = "Controllables";
+        public override string ElementTypeName { get; } = "Controllable";
 
         /// <summary>
         /// List of available controllable variants

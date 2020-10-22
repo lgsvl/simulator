@@ -8,8 +8,8 @@
 namespace Simulator.ScenarioEditor.Elements
 {
     using System;
-    using Agents;
     using Managers;
+    using ScenarioEditor.Agents;
     using Undo;
     using Undo.Records;
     using UnityEngine;

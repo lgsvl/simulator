@@ -5,11 +5,10 @@
  *
  */
 
-namespace Simulator.ScenarioEditor.Elements.Agent
+namespace Simulator.ScenarioEditor.Elements.Agents
 {
     using Managers;
     using UnityEngine;
-    using Utilities;
 
     /// <summary>
     /// Editable destination point for an agent
@@ -31,16 +30,6 @@ namespace Simulator.ScenarioEditor.Elements.Agent
         private const float InitialOffset = 10.0f;
 
         /// <summary>
-        /// The position offset that will be applied to the line renderer
-        /// </summary>
-        private static Vector3 lineRendererPositionOffset = new Vector3(0.0f, 0.1f, 0.0f);
-
-        /// <summary>
-        /// Line renderer for displaying the connection between agent and destination point
-        /// </summary>
-        private LineRenderer pathRenderer;
-
-        /// <summary>
         /// Parent agent which includes this destination point
         /// </summary>
         public ScenarioAgent ParentAgent { get; private set; }
@@ -58,30 +47,9 @@ namespace Simulator.ScenarioEditor.Elements.Agent
         public override Transform TransformToRotate => transformToRotate;
 
         /// <summary>
-        /// Line renderer for displaying the connection between agent and destination point
+        /// True if this destination point is active, false otherwise
         /// </summary>
-        public LineRenderer PathRenderer
-        {
-            get
-            {
-                if (pathRenderer != null)
-                    return pathRenderer;
-                pathRenderer = gameObject.GetComponent<LineRenderer>();
-                if (pathRenderer != null)
-                    return pathRenderer;
-                pathRenderer = gameObject.AddComponent<LineRenderer>();
-                pathRenderer.material = ScenarioManager.Instance.GetExtension<ScenarioAgentsManager>()
-                    .destinationPathMaterial;
-                pathRenderer.useWorldSpace = false;
-                pathRenderer.positionCount = 2;
-                pathRenderer.textureMode = LineTextureMode.Tile;
-                pathRenderer.sortingLayerName = "Ignore Raycast";
-                PathRenderer.widthMultiplier = 0.1f;
-                PathRenderer.generateLightingData = false;
-                pathRenderer.SetPosition(0, lineRendererPositionOffset);
-                return pathRenderer;
-            }
-        }
+        public bool IsActive { get; private set; }
 
         /// <inheritdoc/>
         public override void Dispose()
@@ -89,14 +57,48 @@ namespace Simulator.ScenarioEditor.Elements.Agent
             ScenarioManager.Instance.prefabsPools.ReturnInstance(gameObject);
         }
 
+        /// <inheritdoc/>
+        public override void CopyProperties(ScenarioElement origin)
+        {
+            TransformToMove.localPosition = origin.TransformToMove.localPosition;
+            SetActive(((ScenarioDestinationPoint) origin).IsActive);
+            SetVisibility(false);
+        }
+
+        /// <inheritdoc/>
+        public override void Deselected()
+        {
+            SetVisibility(false);
+        }
+
+        /// <summary>
+        /// Activates or deactivates this destination point
+        /// </summary>
+        public void SetActive(bool active)
+        {
+            IsActive = active;
+            gameObject.SetActive(active);
+        }
+
+        /// <summary>
+        /// Makes this destination point visible or not
+        /// </summary>
+        /// <param name="visible">Should this destination point be visible or not</param>
+        public void SetVisibility(bool visible)
+        {
+            gameObject.SetActive(visible);
+        }
+
         /// <summary>
         /// Attach this destination point to the agent
         /// </summary>
         /// <param name="agent">Scenario agent to which destination point will be attached</param>
-        public void AttachToAgent(ScenarioAgent agent)
+        /// <param name="initializeTransform">Should </param>
+        public void AttachToAgent(ScenarioAgent agent, bool initializeTransform)
         {
             ParentAgent = agent;
             agent.DestinationPoint = this;
+            if (!initializeTransform) return;
             transform.SetParent(agent.transform);
             var forward = agent.TransformToMove.forward;
             TransformToMove.localPosition = forward * InitialOffset;
@@ -113,10 +115,10 @@ namespace Simulator.ScenarioEditor.Elements.Agent
             {
                 case AgentType.Ego:
                 case AgentType.Npc:
-                    mapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic, TransformToMove);
+                    mapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic, TransformToMove, TransformToRotate);
                     break;
                 case AgentType.Pedestrian:
-                    mapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian, TransformToMove);
+                    mapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian, TransformToMove, TransformToRotate);
                     break;
             }
 
@@ -124,18 +126,11 @@ namespace Simulator.ScenarioEditor.Elements.Agent
         }
 
         /// <summary>
-        /// Refresh the 
+        /// Refresh the destination point after transform changes
         /// </summary>
         public void Refresh()
         {
-            var thisTransform = transform;
-            var localPos = thisTransform.localPosition;
-            var localScale = thisTransform.localScale;
-            var position = localPos;
-            position.x /= -localScale.x;
-            position.y = lineRendererPositionOffset.y / localScale.y;
-            position.z /= -localScale.z;
-            PathRenderer.SetPosition(1, position);
+            
         }
     }
 }

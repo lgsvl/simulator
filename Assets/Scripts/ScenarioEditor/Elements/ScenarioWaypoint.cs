@@ -7,11 +7,9 @@
 
 namespace Simulator.ScenarioEditor.Elements
 {
-    using Agent;
     using Agents;
     using Managers;
     using UnityEngine;
-    using Utilities;
 
     /// <inheritdoc cref="Simulator.ScenarioEditor.Elements.ScenarioElement" />
     /// <remarks>
@@ -19,6 +17,21 @@ namespace Simulator.ScenarioEditor.Elements
     /// </remarks>
     public class ScenarioWaypoint : ScenarioElement
     {
+        /// <summary>
+        /// Transform of the object that shows the direction of this waypoint
+        /// </summary>
+        public Transform directionTransform;
+
+        /// <summary>
+        /// Transform that will be rotated
+        /// </summary>
+        public Transform transformToRotate;
+
+        /// <summary>
+        /// Mesh renderer of the waypoint model
+        /// </summary>
+        public MeshRenderer waypointRenderer;
+        
         /// <summary>
         /// Name of the gameobject containing trigger
         /// </summary>
@@ -28,6 +41,9 @@ namespace Simulator.ScenarioEditor.Elements
         /// Trigger that is linked to this waypoint
         /// </summary>
         private ScenarioTrigger linkedTrigger;
+
+        /// <inheritdoc/>
+        public override Transform TransformToRotate => transformToRotate;
 
         /// <inheritdoc/>
         public override bool CanBeRotated => false;
@@ -127,10 +143,10 @@ namespace Simulator.ScenarioEditor.Elements
             {
                 case AgentType.Ego:
                 case AgentType.Npc:
-                    mapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic, transform);
+                    mapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Traffic, TransformToMove, TransformToRotate);
                     break;
                 case AgentType.Pedestrian:
-                    mapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian, transform);
+                    mapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian, TransformToMove, TransformToRotate);
                     break;
             }
 

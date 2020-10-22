@@ -112,6 +112,9 @@ namespace Simulator.ScenarioEditor.UI.AddElement
             verticalLayoutGroup.enabled = true;
         }
 
+        /// <summary>
+        /// Deinitialization method
+        /// </summary>
         public void Deinitialize()
         {
             variants.PageChanged -= VariantsOnPageChanged;
@@ -125,16 +128,25 @@ namespace Simulator.ScenarioEditor.UI.AddElement
             variants.Clear();
         }
 
-        private void VariantsOnPageChanged(int currentPage, SourceVariant[] variants)
+        /// <summary>
+        /// Method invoked when the page of variants changes
+        /// </summary>
+        /// <param name="currentPage">Id of current page</param>
+        /// <param name="pageVariants">Variants available on this page</param>
+        private void VariantsOnPageChanged(int currentPage, SourceVariant[] pageVariants)
         {
             pageNumberInput.SetTextWithoutNotify((currentPage+1).ToString());
             for (var i = 0; i < elementsPerPage; i++)
             {
                 elementPanels[i].Deinitialize();
-                elementPanels[i].Initialize(this, source, variants[i]);
+                elementPanels[i].Initialize(this, source, pageVariants[i]);
             }
         }
 
+        /// <summary>
+        /// Method handling the string page input
+        /// </summary>
+        /// <param name="newPageString">New page number in string</param>
         public void OnPageInputChange(string newPageString)
         {
             pageNumberInput.SetTextWithoutNotify((variants.CurrentPage-1).ToString());
@@ -142,11 +154,17 @@ namespace Simulator.ScenarioEditor.UI.AddElement
                 variants.ChangePage(newPage-1);
         }
 
+        /// <summary>
+        /// Selects previous variants page
+        /// </summary>
         public void PreviousPage()
         {
             variants.PreviousPage();
         }
 
+        /// <summary>
+        /// Selects next variants page
+        /// </summary>
         public void NextPage()
         {
             variants.NextPage();

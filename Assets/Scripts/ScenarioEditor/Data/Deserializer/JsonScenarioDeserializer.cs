@@ -12,7 +12,7 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
     using Agents;
     using Controllables;
     using Elements;
-    using Elements.Agent;
+    using Elements.Agents;
     using Input;
     using Managers;
     using SimpleJSON;
@@ -147,6 +147,7 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                         destinationPoint["position"].ReadVector3();
                     agentInstance.DestinationPoint.TransformToRotate.rotation =
                         Quaternion.Euler(destinationPoint["rotation"].ReadVector3());
+                    agentInstance.DestinationPoint.SetActive(true);
                     agentInstance.DestinationPoint.Refresh();
                 }
 

@@ -20,15 +20,23 @@ namespace Simulator.ScenarioEditor.Managers
     /// <summary>
     /// Manager for caching and handling all the scenario controllables
     /// </summary>
-    public class ScenarioControllablesManager : IScenarioEditorExtension
+    public class ScenarioControllablesManager : MonoBehaviour, IScenarioEditorExtension
     {
+        //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
+#pragma warning disable 0649
+        /// <summary>
+        /// Source of the controllable elements
+        /// </summary>
+        public ScenarioControllableSource source;
+#pragma warning restore 0649
+        
         /// <inheritdoc/>
         public bool IsInitialized { get; private set; }
         
         /// <summary>
         /// Source of the controllable elements
         /// </summary>
-        public ScenarioControllablesSource source = new ScenarioControllablesSource();
+        public ScenarioControllableSource Source { get; private set; }
 
         /// <summary>
         /// All instantiated scenario controllables
@@ -53,6 +61,7 @@ namespace Simulator.ScenarioEditor.Managers
             if (IsInitialized)
                 return;
             await ScenarioManager.Instance.WaitForExtension<InputManager>();
+            Source = Instantiate(source, transform);
             await source.Initialize();
             ScenarioManager.Instance.ScenarioReset += InstanceOnScenarioReset;
             IsInitialized = true;
@@ -67,7 +76,9 @@ namespace Simulator.ScenarioEditor.Managers
             if (!IsInitialized)
                 return;
             InstanceOnScenarioReset();
-            source.Deinitialize();
+            Source.Deinitialize();
+            Destroy(Source);
+            Source = null;
             Controllables.Clear();
             IsInitialized = false;
             Debug.Log($"{GetType().Name} scenario editor extension has been deinitialized.");

@@ -13,7 +13,7 @@ namespace Simulator.ScenarioEditor.Agents
     using System.Threading.Tasks;
     using Database;
     using Database.Services;
-    using Elements.Agent;
+    using Elements.Agents;
     using Input;
     using Managers;
     using Undo;
@@ -43,7 +43,7 @@ namespace Simulator.ScenarioEditor.Agents
 
         /// <inheritdoc/>
         public override string ParameterType => "vehicle";
-
+        
         /// <inheritdoc/>
         public override int AgentTypeId => 1;
 
@@ -107,14 +107,15 @@ namespace Simulator.ScenarioEditor.Agents
 
             var agentsManager = ScenarioManager.Instance.GetExtension<ScenarioAgentsManager>();
             var newGameObject = new GameObject(ElementTypeName);
-            newGameObject.transform.SetParent(agentsManager.transform);
+            newGameObject.transform.SetParent(transform);
             var scenarioAgent = newGameObject.AddComponent<ScenarioAgent>();
             scenarioAgent.Setup(this, variant);
             //Add destination point
             var destinationPointObject = ScenarioManager.Instance.prefabsPools
                 .GetInstance(agentsManager.destinationPoint);
             var destinationPoint = destinationPointObject.GetComponent<ScenarioDestinationPoint>();
-            destinationPoint.AttachToAgent(scenarioAgent);
+            destinationPoint.AttachToAgent(scenarioAgent, true);
+            destinationPoint.SetActive(false);
             return scenarioAgent;
         }
 

@@ -12,7 +12,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement
     using Agents;
     using Effectors;
     using Elements;
-    using Elements.Agent;
+    using Elements.Agents;
     using Input;
     using Managers;
     using ScenarioEditor.Utilities;
@@ -73,6 +73,24 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         /// </summary>
         [SerializeField]
         private Image colorImage;
+
+        /// <summary>
+        /// Panel for editing agent's destination point
+        /// </summary>
+        [SerializeField]
+        private GameObject destinationPointPanel;
+
+        /// <summary>
+        /// Panel for editing an active destination point
+        /// </summary>
+        [SerializeField]
+        private GameObject activeDestinationPointPanel;
+
+        /// <summary>
+        /// Toggle for the agent's destination point
+        /// </summary>
+        [SerializeField]
+        private Toggle destinationPointToggle;
 #pragma warning restore 0649
 
         /// <summary>
@@ -133,6 +151,10 @@ namespace Simulator.ScenarioEditor.UI.EditElement
                 selectedAgent.VariantChanged -= SelectedAgentOnVariantChanged;
                 selectedAgent.BehaviourChanged -= SelectedAgentOnBehaviourChanged;
                 selectedAgent.ColorChanged -= SelectedAgentOnColorChanged;
+
+                //Hide destination point if agent is deselected and something else is selected
+                if (selectedAgent.DestinationPoint != null && selectedElement != selectedAgent.DestinationPoint)
+                    selectedAgent.DestinationPoint.SetVisibility(false);
             }
 
             selectedAgent = selectedElement as ScenarioAgent;
@@ -178,7 +200,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         /// <param name="newColor">Agent new color</param>
         private void SelectedAgentOnColorChanged(Color newColor)
         {
-            if (colorImage!=null)
+            if (colorImage != null)
                 colorImage.color = newColor;
         }
 
@@ -224,6 +246,16 @@ namespace Simulator.ScenarioEditor.UI.EditElement
             colorPanel.SetActive(selectedAgent.SupportColors);
             if (selectedAgent.SupportColors)
                 colorImage.color = selectedAgent.AgentColor;
+            var supportsDestinationPoint = selectedAgent.DestinationPoint != null;
+            if (supportsDestinationPoint)
+            {
+                var active = selectedAgent.DestinationPoint.IsActive;
+                destinationPointToggle.SetIsOnWithoutNotify(active);
+                activeDestinationPointPanel.SetActive(active);
+                selectedAgent.DestinationPoint.SetVisibility(active);
+            }
+
+            destinationPointPanel.SetActive(supportsDestinationPoint);
 
             gameObject.SetActive(true);
             UnityUtilities.LayoutRebuild(transform as RectTransform);
@@ -296,6 +328,49 @@ namespace Simulator.ScenarioEditor.UI.EditElement
                 color => selectedAgent.AgentColor = color,
                 () => ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
                     .RegisterRecord(new UndoChangeColor(selectedAgent, previousColor)));
+        }
+
+        /// <summary>
+        /// Sets destination point as active or inactive if it is supported by selected agent
+        /// </summary>
+        /// <param name="active">Should the destination point be active</param>
+        public void ToggleSetDestinationPoint(bool active)
+        {
+            if (selectedAgent.DestinationPoint == null) return;
+            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
+                .RegisterRecord(new UndoToggle(destinationPointToggle, selectedAgent.DestinationPoint.IsActive,
+                    SetDestinationPoint));
+            SetDestinationPoint(active);
+        }
+
+        /// <summary>
+        /// Sets destination point as active or inactive if it is supported by selected agent
+        /// </summary>
+        /// <param name="active">Should the destination point be active</param>
+        private void SetDestinationPoint(bool active)
+        {
+            selectedAgent.DestinationPoint.SetActive(active);
+            activeDestinationPointPanel.SetActive(active);
+        }
+
+        /// <summary>
+        /// Moves the scenario camera to the destination point
+        /// </summary>
+        public void MoveCameraToDestinationPoint()
+        {
+            var inputManager = ScenarioManager.Instance.GetExtension<InputManager>();
+            var raycastHitsInCenter =
+                inputManager.RaycastAll(inputManager.ScenarioCamera.ViewportPointToRay(new Vector3(0.35f, 0.5f, 0.5f)));
+            if (raycastHitsInCenter.Length == 0)
+                return;
+            var furthestHit = inputManager.GetFurthestHit(raycastHitsInCenter, raycastHitsInCenter.Length, true);
+            if (!furthestHit.HasValue)
+                return;
+            var cameraTransform = inputManager.ScenarioCamera.transform;
+            var destinationPointPosition = selectedAgent.DestinationPoint.transform.position;
+            var offset = furthestHit.Value.point - cameraTransform.position;
+            inputManager.ForceCameraReposition(destinationPointPosition - offset, cameraTransform.rotation.eulerAngles);
+            ScenarioManager.Instance.SelectedElement = selectedAgent.DestinationPoint;
         }
 
         /// <inheritdoc/>

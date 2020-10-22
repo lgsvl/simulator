@@ -9,7 +9,7 @@ namespace Simulator.ScenarioEditor.Agents
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Elements.Agent;
+    using Elements.Agents;
     using Input;
     using Managers;
     using Undo;
@@ -96,11 +96,11 @@ namespace Simulator.ScenarioEditor.Agents
         /// <inheritdoc/>
         public override ScenarioAgent GetAgentInstance(AgentVariant variant)
         {
-            var agentsManager = ScenarioManager.Instance.GetExtension<ScenarioAgentsManager>();
             var newGameObject = new GameObject(ElementTypeName);
-            newGameObject.transform.SetParent(agentsManager.transform);
+            newGameObject.transform.SetParent(transform);
             var scenarioAgent = newGameObject.AddComponent<ScenarioAgent>();
             scenarioAgent.Setup(this, variant);
+            scenarioAgent.PathRenderer.material = waypointsMaterial;
             return scenarioAgent;
         }
 

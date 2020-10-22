@@ -7,14 +7,11 @@
 
 namespace Simulator.ScenarioEditor.Elements
 {
-    using System;
     using System.Collections.Generic;
-    using Agent;
     using Agents;
-    using Agents.Triggers;
     using Managers;
+    using ScenarioEditor.Agents.Triggers;
     using UnityEngine;
-    using Utilities;
 
     /// <remarks>
     /// Scenario trigger data

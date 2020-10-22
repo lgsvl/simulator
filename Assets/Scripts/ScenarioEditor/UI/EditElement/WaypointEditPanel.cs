@@ -10,7 +10,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
     using Agents;
     using Data.Serializer;
     using Elements;
-    using Elements.Agent;
+    using Elements.Agents;
     using Input;
     using Managers;
     using ScenarioEditor.Utilities;

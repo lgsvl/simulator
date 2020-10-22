@@ -148,9 +148,10 @@ namespace Simulator.ScenarioEditor.Elements
         /// <summary>
         /// Unity Start method
         /// </summary>
-        protected virtual void Start()
+        protected virtual void Awake()
         {
-            inputManager = ScenarioManager.Instance.GetExtension<InputManager>();
+            if (inputManager == null)
+                inputManager = ScenarioManager.Instance.GetExtension<InputManager>();
         }
 
         /// <summary>
@@ -165,6 +166,13 @@ namespace Simulator.ScenarioEditor.Elements
         /// Method called when the element is selected by the user
         /// </summary>
         public virtual void Selected()
+        {
+        }
+
+        /// <summary>
+        /// Method called when the element was deselected by another element
+        /// </summary>
+        public virtual void Deselected()
         {
         }
 
@@ -193,10 +201,23 @@ namespace Simulator.ScenarioEditor.Elements
         /// Method called after this element is instantiated using copied element
         /// </summary>
         /// <param name="origin">Origin element from which copy was created</param>
-        public virtual void CopyProperties(ScenarioElement origin)
+        public abstract void CopyProperties(ScenarioElement origin);
+
+        /// <summary>
+        /// Moves this element along Y-axis so it stays on the ground
+        /// </summary>
+        public void RepositionOnGround()
         {
-            Debug.LogError(
-                $"Error while copying an object {gameObject.name}, copying scenario element of type {GetType()} is not implemented.");
+            if (inputManager == null)
+                inputManager = ScenarioManager.Instance.GetExtension<InputManager>();
+            var pos = TransformToMove.position;
+            pos.y += 100.0f;
+            var ray = new Ray(pos, Vector3.down);
+            var hits = inputManager.RaycastAll(ray);
+            var furthestHit = inputManager.GetFurthestHit(hits, hits.Length, true);
+            if (!furthestHit.HasValue)
+                return;
+            ForceMove(furthestHit.Value.point);
         }
 
         /// <summary>

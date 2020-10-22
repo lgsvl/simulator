@@ -10,15 +10,25 @@ namespace Simulator.ScenarioEditor.Agents
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Elements;
-    using Elements.Agent;
+    using Elements.Agents;
     using Input;
     using Managers;
+    using UnityEngine;
 
     /// <summary>
     /// Scenario agent type source used to instantiate and handle new agents in the scenario
     /// </summary>
     public abstract class ScenarioAgentSource : ScenarioElementSource, IDragHandler
     {
+        //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
+#pragma warning disable 0649
+        /// <summary>
+        /// Material used for waypoints renderers
+        /// </summary>
+        [SerializeField]
+        protected Material waypointsMaterial;
+#pragma warning restore 0649
+        
         /// <summary>
         /// Agent variant that is currently selected
         /// </summary>
@@ -33,6 +43,11 @@ namespace Simulator.ScenarioEditor.Agents
         /// Parameter type of agents handled by this source
         /// </summary>
         public abstract string ParameterType { get; }
+
+        /// <summary>
+        /// Material used for waypoints renderers
+        /// </summary>
+        public Material WaypointsMaterial => waypointsMaterial;
 
         /// <summary>
         /// Agent type this source handles

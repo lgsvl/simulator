@@ -1,5 +1,6 @@
 ﻿Shader "Simulator/ColorPicker/HueBlock" {
     Properties {
+        _MainTex ("Base (RGB)", 2D) = "white" {}
         _Hue ("Hue", Range (0.0, 1.0)) = 0.0
     }
     SubShader {

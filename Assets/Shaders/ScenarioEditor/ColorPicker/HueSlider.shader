@@ -1,4 +1,7 @@
 ﻿Shader "Simulator/ColorPicker/HueSlider" {
+    Properties {
+        _MainTex ("Base (RGB)", 2D) = "white" {}
+    }
     SubShader {
         Pass {
 

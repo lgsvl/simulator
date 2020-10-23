@@ -1,5 +1,6 @@
 ﻿Shader "Simulator/ColorPicker/RedSlider" {
     Properties {
+        _MainTex ("Base (RGB)", 2D) = "white" {}
         _Green ("Green", Range (0.0, 1.0)) = 0.0
         _Blue ("Blue", Range (0.0, 1.0)) = 0.0
     }

@@ -34,7 +34,14 @@ namespace Simulator.Network.Master
         /// </summary>
         public class ClientConnection
         {
+            /// <summary>
+            /// Peer data of this client
+            /// </summary>
             public IPeerManager Peer { get; set; }
+            
+            /// <summary>
+            /// Current state of this client simulation
+            /// </summary>
             public SimulationState State { get; set; }
         }
 

@@ -15,8 +15,8 @@ namespace Simulator.Network.Core.Connection
     using System.Net.Sockets;
     using LiteNetLib;
     using LiteNetLib.Utils;
+    using Messaging;
     using Messaging.Data;
-    using Simulator.Network.Core.Messaging;
 
     /// <summary>
     /// The server's connection manager using LiteNetLib
@@ -147,6 +147,12 @@ namespace Simulator.Network.Core.Connection
                 peers.Add(peer.EndPoint, peerManager);
             }
 
+            if (peerManager == null)
+            {
+                peerManager = new LiteNetLibPeerManager(peer);
+                peers[peer.EndPoint] = peerManager;
+            }
+
             PeerConnected?.Invoke(peerManager);
         }
 
@@ -222,6 +228,7 @@ namespace Simulator.Network.Core.Connection
 
             Log.Info(
                 $"{GetType().Name} received and accepted a connection request from address '{request.RemoteEndPoint.Address}', current UTC time: {DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)}.");
+            peers.Add(request.RemoteEndPoint, null);
             request.Accept();
         }
 

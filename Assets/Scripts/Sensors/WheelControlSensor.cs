@@ -24,8 +24,12 @@ namespace Simulator.Sensors
         private float steer = 0f;
         private float accel = 0f;
         private float brake = 0f;
+
+        [AnalysisMeasurement(MeasurementType.Input)]
         private float MaxSteer = 0f;
+        [AnalysisMeasurement(MeasurementType.Input)]
         private float MaxAccel = 0f;
+        [AnalysisMeasurement(MeasurementType.Input)]
         private float MaxBrake = 0f;
 
         private SimulatorControls controls;
@@ -242,28 +246,6 @@ namespace Simulator.Sensors
                 {"Velocity", dynamics.RB.velocity}
             };
             visualizer.UpdateGraphValues(graphData);
-        }
-
-        public override void SetAnalysisData()
-        {
-            SensorAnalysisData = new List<AnalysisReportItem>
-            {
-                new AnalysisReportItem {
-                    name = "Max Steer",
-                    type = "input",
-                    value = MaxSteer
-                },
-                new AnalysisReportItem {
-                    name = "Max Accel",
-                    type = "input",
-                    value = MaxAccel
-                },
-                new AnalysisReportItem {
-                    name = "Max Brake",
-                    type = "input",
-                    value = MaxBrake
-                },
-            };
         }
 
         public override void OnVisualizeToggle(bool state)

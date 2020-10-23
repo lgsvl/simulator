@@ -28,6 +28,8 @@ namespace Simulator.Sensors
         public float SteerInput { get; private set; } = 0f;
         public float AccelInput { get; private set; } = 0f;
         public float BrakeInput { get; private set; } = 0f;
+
+        [AnalysisMeasurement(MeasurementType.velocity)]
         private float MaxSpeed = 0;
 
         public override SensorDistributionType DistributionType => SensorDistributionType.LowLoad;
@@ -49,7 +51,7 @@ namespace Simulator.Sensors
 
             MaxSpeed = Mathf.Max(MaxSpeed, dynamics.RB.velocity.magnitude);
         }
-        
+
         public override void OnBridgeSetup(BridgeInstance bridge)
         {
             // TODO new base class?
@@ -73,18 +75,6 @@ namespace Simulator.Sensors
                 {"Velocity", dynamics.RB.velocity}
             };
             visualizer.UpdateGraphValues(graphData);
-        }
-
-        public override void SetAnalysisData()
-        {
-            SensorAnalysisData = new List<AnalysisReportItem>
-            {
-                new AnalysisReportItem {
-                    name = "Max Speed",
-                    type = "velocity",
-                    value = MaxSpeed
-                },
-            };
         }
 
         public override void OnVisualizeToggle(bool state)

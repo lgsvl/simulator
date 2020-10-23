@@ -40,11 +40,15 @@ namespace Simulator.Sensors
         private VehicleActions Actions;
         private VehicleLane Lane;
 
+        [AnalysisMeasurement(MeasurementType.distance)]
         private float Distance = 0f;
         private Vector3 PrevPos = new Vector3(0f, 0f, 0f);
 
+        [AnalysisMeasurement(MeasurementType.velocity)]
         private float SpeedMin = float.MaxValue;
+        [AnalysisMeasurement(MeasurementType.velocity)]
         private float SpeedMax = 0f;
+        [AnalysisMeasurement(MeasurementType.velocity)]
         private float SpeedAvg = 0f;
         private float SpeedTotal = 0f;
         private float PrevSpeed = 0f;
@@ -59,17 +63,26 @@ namespace Simulator.Sensors
         private float AngularVelocity = 0f;
         private float AngularAcceleration = 0f;
         private float Slip = 0f;
+        [AnalysisMeasurement(MeasurementType.acceleration)]
         private float AccelLongMin = float.MaxValue;
+        [AnalysisMeasurement(MeasurementType.acceleration)]
         private float AccelLongMax = 0f;
+        [AnalysisMeasurement(MeasurementType.acceleration)]
         private float AccelLatMin = float.MaxValue;
+        [AnalysisMeasurement(MeasurementType.acceleration)]
         private float AccelLatMax = 0f;
 
         private Vector3 Jerk = new Vector3(0f, 0f, 0f);
+        [AnalysisMeasurement(MeasurementType.jerk)]
         private float JerkLongMin = float.MaxValue;
+        [AnalysisMeasurement(MeasurementType.jerk)]
         private float JerkLongMax = 0f;
+        [AnalysisMeasurement(MeasurementType.jerk)]
         private float JerkLatMin = float.MaxValue;
+        [AnalysisMeasurement(MeasurementType.jerk)]
         private float JerkLatMax = 0f;
 
+        [AnalysisMeasurement(MeasurementType.angle)]
         private float SteerAngleMax = 0f;
         private float SteerAngle = 0f;
         private float PrevSteerAngle = 0f;
@@ -86,7 +99,11 @@ namespace Simulator.Sensors
         private float StuckTime;
         private bool EgoIsStuck = false;
 
+        [AnalysisMeasurement(MeasurementType.rightHandPos)]
         private Vector3 StartPosition;
+
+        [AnalysisMeasurement(MeasurementType.rightHandPos)]
+        private Vector3 EndPosition => transform.position;
 
         private MapLane SpeedViolationLane;
         private float SpeedViolationCount = 0f;
@@ -175,88 +192,6 @@ namespace Simulator.Sensors
         public override void OnAnalyze()
         {
             CalculateAnalysisValues();
-        }
-
-        public override void SetAnalysisData()
-        {
-            SensorAnalysisData = new List<AnalysisReportItem>
-            {
-                new AnalysisReportItem {
-                    name = "Distance",
-                    type = "distance",
-                    value = Distance
-                },
-                new AnalysisReportItem {
-                    name = "SpeedMin",
-                    type = "velocity",
-                    value = SpeedMin
-                },
-                new AnalysisReportItem {
-                    name = "SpeedMax",
-                    type = "velocity",
-                    value = SpeedMax
-                },
-                new AnalysisReportItem {
-                    name = "SpeedAvg",
-                    type = "velocity",
-                    value = SpeedAvg
-                },
-                new AnalysisReportItem {
-                    name = "AccelLongMin",
-                    type = "acceleration",
-                    value = AccelLongMin
-                },
-                new AnalysisReportItem {
-                    name = "AccelLongMax",
-                    type = "acceleration",
-                    value = AccelLongMax
-                },
-                new AnalysisReportItem {
-                    name = "AccelLatMin",
-                    type = "acceleration",
-                    value = AccelLatMin
-                },
-                new AnalysisReportItem {
-                    name = "AccelLatMax",
-                    type = "acceleration",
-                    value = AccelLatMax
-                },
-                new AnalysisReportItem {
-                    name = "JerkLongMin",
-                    type = "jerk",
-                    value = JerkLongMin
-                },
-                new AnalysisReportItem {
-                    name = "JerkLongMax",
-                    type = "jerk",
-                    value = JerkLongMax
-                },
-                new AnalysisReportItem {
-                    name = "JerkLatMin",
-                    type = "jerk",
-                    value = JerkLatMin
-                },
-                new AnalysisReportItem {
-                    name = "JerkLatMax",
-                    type = "jerk",
-                    value = JerkLatMax
-                },
-                new AnalysisReportItem {
-                    name = "SteerAngleMax",
-                    type = "angle",
-                    value = SteerAngleMax
-                },
-                new AnalysisReportItem {
-                    name = "StartPosition",
-                    type = "rightHandPos",
-                    value = StartPosition
-                },
-                new AnalysisReportItem {
-                    name = "EndPosition",
-                    type = "rightHandPos",
-                    value = transform.position
-                },
-            };
         }
 
         private void CalculateAnalysisValues()

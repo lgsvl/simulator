@@ -37,6 +37,8 @@ namespace Simulator.Sensors
 
         private Dictionary<uint, Tuple<Detected3DObject, Collider>> Detected;
         private HashSet<uint> CurrentIDs;
+
+        [AnalysisMeasurement(MeasurementType.count)]
         private int MaxTracked = -1;
 
         public override SensorDistributionType DistributionType => SensorDistributionType.HighLoad;
@@ -260,18 +262,6 @@ namespace Simulator.Sensors
         public override bool CheckVisible(Bounds bounds)
         {
             return Vector3.Distance(transform.position, bounds.center) < MaxDistance;
-        }
-
-        public override void SetAnalysisData()
-        {
-            SensorAnalysisData = new List<AnalysisReportItem>
-            {
-                new AnalysisReportItem {
-                    name = "Maximum Objects Tracked",
-                    type = "count",
-                    value = MaxTracked
-                },
-            };
         }
 
         void OnDestroy()

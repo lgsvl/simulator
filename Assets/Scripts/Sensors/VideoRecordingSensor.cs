@@ -286,7 +286,7 @@ namespace Simulator.Sensors
                 {
                     new AnalysisReportItem {
                         name = "VideoCapture",
-                        type = "filepath",
+                        type = MeasurementType.filePath,
                         value = Path.Combine(GetOutdir(), GetFileName())
                     },
                 };

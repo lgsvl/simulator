@@ -38,6 +38,7 @@ namespace Simulator.Sensors
         private Dictionary<Collider, DetectedRadarObject> Detected = new Dictionary<Collider, DetectedRadarObject>();
         private Dictionary<Collider, Box> Visualized = new Dictionary<Collider, Box>();
 
+        [AnalysisMeasurement(MeasurementType.count)]
         private int MaxTracked = -1;
         
         public override SensorDistributionType DistributionType => SensorDistributionType.HighLoad;
@@ -316,18 +317,6 @@ namespace Simulator.Sensors
                     break;
             }
             return visible;
-        }
-
-        public override void SetAnalysisData()
-        {
-            SensorAnalysisData = new List<AnalysisReportItem>
-            {
-                new AnalysisReportItem {
-                    name = "Maximum Objects Tracked",
-                    type = "count",
-                    value = MaxTracked
-                },
-            };
         }
     }
 }

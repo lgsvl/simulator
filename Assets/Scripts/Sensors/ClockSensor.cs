@@ -141,22 +141,11 @@ namespace Simulator.Sensors
             IsFirstFixedUpdate = true;
         }
 
-        public override void SetAnalysisData()
-        {
-            SensorAnalysisData = new List<AnalysisReportItem>
-            {
-                new AnalysisReportItem {
-                    name = "Simulation Duration",
-                    type = "duration",
-                    value = SimulatorManager.Instance.CurrentTime - SimulatorManager.Instance.SessionStartTime
-                },
-                new AnalysisReportItem {
-                    name = "Realtime Duration",
-                    type = "duration",
-                    value = Time.time - realTimeStart
-                },
-            };
-        }
+        [AnalysisMeasurement(MeasurementType.duration)]
+        public double SimulationDuration => SimulatorManager.Instance.CurrentTime - SimulatorManager.Instance.SessionStartTime;
+
+        [AnalysisMeasurement(MeasurementType.duration)]
+        public double RealtimeDuration => Time.time - realTimeStart;
 
         public override void OnVisualize(Visualizer visualizer)
         {

@@ -45,17 +45,30 @@ namespace Simulator.Sensors
 
         Rigidbody RigidBody;
         Vector3 LastVelocity;
+
+        [AnalysisMeasurement(MeasurementType.distance)]
         float minX;
+        [AnalysisMeasurement(MeasurementType.distance)]
         float maxX;
+        [AnalysisMeasurement(MeasurementType.angle)]
         float minGyroX;
+        [AnalysisMeasurement(MeasurementType.angle)]
         float maxGyroX;
+        [AnalysisMeasurement(MeasurementType.distance)]
         float minY;
+        [AnalysisMeasurement(MeasurementType.distance)]
         float maxY;
+        [AnalysisMeasurement(MeasurementType.angle)]
         float minGyroY;
+        [AnalysisMeasurement(MeasurementType.angle)]
         float maxGyroY;
+        [AnalysisMeasurement(MeasurementType.distance)]
         float minZ;
+        [AnalysisMeasurement(MeasurementType.distance)]
         float maxZ;
+        [AnalysisMeasurement(MeasurementType.angle)]
         float minGyroZ;
+        [AnalysisMeasurement(MeasurementType.angle)]
         float maxGyroZ;
 
         ImuData latestData;
@@ -252,73 +265,6 @@ namespace Simulator.Sensors
         public override void OnVisualizeToggle(bool state)
         {
             //
-        }
-
-        public override void SetAnalysisData()
-        {
-            SensorAnalysisData = new List<AnalysisReportItem>
-            {
-                new AnalysisReportItem {
-                    name = "Min X",
-                    type = "rightHandPos",
-                    value = minX
-                },
-                new AnalysisReportItem {
-                    name = "Max X",
-                    type = "rightHandPos",
-                    value = maxX
-                },
-                new AnalysisReportItem {
-                    name = "Min Gyro X",
-                    type = "angle",
-                    value = minGyroX
-                },
-                new AnalysisReportItem {
-                    name = "Max Gyro X",
-                    type = "angle",
-                    value = maxGyroX
-                },
-                new AnalysisReportItem {
-                    name = "Min Y",
-                    type = "rightHandPos",
-                    value = minY
-                },
-                new AnalysisReportItem {
-                    name = "Max Y",
-                    type = "rightHandPos",
-                    value = maxY
-                },
-                new AnalysisReportItem {
-                    name = "Min Gyro Y",
-                    type = "angle",
-                    value = minGyroY
-                },
-                new AnalysisReportItem {
-                    name = "Max Gyro Y",
-                    type = "angle",
-                    value = maxGyroY
-                },
-                new AnalysisReportItem {
-                    name = "Min Z",
-                    type = "rightHandPos",
-                    value = minZ
-                },
-                new AnalysisReportItem {
-                    name = "Max Z",
-                    type = "rightHandPos",
-                    value = maxZ
-                },
-                new AnalysisReportItem {
-                    name = "Min Gyro Z",
-                    type = "angle",
-                    value = minGyroZ
-                },
-                new AnalysisReportItem {
-                    name = "Max Gyro Z",
-                    type = "angle",
-                    value = maxGyroZ
-                },
-            };
         }
     }
 }

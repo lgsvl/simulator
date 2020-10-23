@@ -25,6 +25,7 @@ namespace Simulator.Sensors
 
         WireframeBoxes WireframeBoxes;
 
+        [AnalysisMeasurement(MeasurementType.count)]
         private int MaxTracked = -1;
 
         public override SensorDistributionType DistributionType => SensorDistributionType.HighLoad;
@@ -73,18 +74,6 @@ namespace Simulator.Sensors
         public override void OnVisualizeToggle(bool state)
         {
             //
-        }
-
-        public override void SetAnalysisData()
-        {
-            SensorAnalysisData = new List<AnalysisReportItem>
-            {
-                new AnalysisReportItem {
-                    name = "Maximum Objects Tracked",
-                    type = "count",
-                    value = MaxTracked
-                },
-            };
         }
     }
 }

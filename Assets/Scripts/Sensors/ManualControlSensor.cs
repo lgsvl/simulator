@@ -25,8 +25,14 @@ namespace Simulator.Sensors
         public float SteerInput { get; private set; } = 0f;
         public float AccelInput { get; private set; } = 0f;
         public float BrakeInput { get; private set; } = 0f;
+
+        [AnalysisMeasurement(MeasurementType.Input)]
         private float MaxSteer = 0;
+
+        [AnalysisMeasurement(MeasurementType.Input)]
         private float MaxAccel = 0;
+
+        [AnalysisMeasurement(MeasurementType.Input)]
         private float MaxBrake = 0;
 
         private Vector2 keyboardInput = Vector2.zero;
@@ -214,28 +220,6 @@ namespace Simulator.Sensors
                 {"Velocity", dynamics.RB.velocity}
             };
             visualizer.UpdateGraphValues(graphData);
-        }
-
-        public override void SetAnalysisData()
-        {
-            SensorAnalysisData = new List<AnalysisReportItem>
-            {
-                new AnalysisReportItem {
-                    name = "Max Steer",
-                    type = "input",
-                    value = MaxSteer
-                },
-                new AnalysisReportItem {
-                    name = "Max Accel",
-                    type = "input",
-                    value = MaxAccel
-                },
-                new AnalysisReportItem {
-                    name = "Max Brake",
-                    type = "input",
-                    value = MaxBrake
-                },
-            };
         }
 
         public override void OnVisualizeToggle(bool state)

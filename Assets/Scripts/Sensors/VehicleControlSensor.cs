@@ -30,8 +30,14 @@ namespace Simulator.Sensors
         public float SteerInput { get; private set; } = 0f;
         public float AccelInput { get; private set; } = 0f;
         public float BrakeInput { get; private set; } = 0f;
+
+        [AnalysisMeasurement(MeasurementType.Input)]
         private float MaxSteer = 0f;
+
+        [AnalysisMeasurement(MeasurementType.Input)]
         private float MaxAccel = 0f;
+
+        [AnalysisMeasurement(MeasurementType.Input)]
         private float MaxBrake = 0f;
 
         float ADAccelInput = 0f;
@@ -239,28 +245,6 @@ namespace Simulator.Sensors
         public override void OnVisualizeToggle(bool state)
         {
             //
-        }
-
-        public override void SetAnalysisData()
-        {
-            SensorAnalysisData = new List<AnalysisReportItem>
-            {
-                new AnalysisReportItem {
-                        name = "Max Steer",
-                        type = "input",
-                        value = MaxSteer
-                    },
-                new AnalysisReportItem {
-                    name = "Max Accel",
-                    type = "input",
-                    value = MaxAccel
-                },
-                new AnalysisReportItem {
-                    name = "Max Brake",
-                    type = "input",
-                    value = MaxBrake
-                },
-            };
         }
     }
 }

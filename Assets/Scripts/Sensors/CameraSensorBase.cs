@@ -132,6 +132,7 @@ namespace Simulator.Sensors
 
         #region FPSCalculation
         [SensorParameter]
+       [AnalysisMeasurement(MeasurementType.fps)]
         public float MinFPS = 10f;
         [SensorParameter]
         public float MinFPSTime = 5f;
@@ -139,7 +140,9 @@ namespace Simulator.Sensors
         private float DeltaTime = 0.0f;
         private float MS = 0f;
         private float FPS = 0f;
+       [AnalysisMeasurement(MeasurementType.fps)]
         private float AveFPS = 0f;
+       [AnalysisMeasurement(MeasurementType.fps)]
         private float LowestFPS = float.MaxValue;
         private bool LowFPS = false;
         #endregion
@@ -578,28 +581,6 @@ namespace Simulator.Sensors
                     LowFPS = true;
                 }
             }
-        }
-
-        public override void SetAnalysisData()
-        {
-            SensorAnalysisData = new List<AnalysisReportItem>
-            {
-                new AnalysisReportItem {
-                    name = "Average FPS",
-                    type = "fps",
-                    value = AveFPS
-                },
-                new AnalysisReportItem {
-                    name = "Lowest FPS",
-                    type = "fps",
-                    value = LowestFPS
-                },
-                new AnalysisReportItem {
-                    name = "Target FPS",
-                    type = "fps",
-                    value = MinFPS
-                },
-            };
         }
 
         private void LowFPSEvent(uint id)

@@ -219,67 +219,66 @@ namespace Simulator.Sensors
             var startLocation = MapOrigin.GetGpsLocation(startPosition, IgnoreMapOrigin);
             var location = MapOrigin.GetGpsLocation(transform.position, IgnoreMapOrigin);
 
-
             SensorAnalysisData = new List<AnalysisReportItem>
             {
                 new AnalysisReportItem {
                     name = "Start Latitude",
-                    type = "latitude",
+                    type = MeasurementType.Latitude,
                     value = startLocation.Latitude
                 },
                 new AnalysisReportItem {
                     name = "Start Longitude",
-                    type = "longitude",
+                    type = MeasurementType.Longitude,
                     value = startLocation.Longitude
                 },
                 new AnalysisReportItem {
                     name = "Start Altitude",
-                    type = "altitude",
+                    type = MeasurementType.altitude,
                     value = startLocation.Altitude
                 },
                 new AnalysisReportItem {
                     name = "Start Northing",
-                    type = "northing",
+                    type = MeasurementType.northing,
                     value = startLocation.Northing
                 },
                 new AnalysisReportItem {
                     name = "Start Easting",
-                    type = "easting",
+                    type = MeasurementType.easting,
                     value = startLocation.Easting
                 },
                 new AnalysisReportItem {
                     name = "Start Map Url",
-                    type = "mapUrl",
+                    type = MeasurementType.mapURL,
                     value =  $"https://www.google.com/maps/search/?api=1&query={startLocation.Latitude},{startLocation.Longitude}"
                 },
                 new AnalysisReportItem {
                     name = "Latitude",
-                    type = "latitude",
+                    type = MeasurementType.Latitude,
                     value = location.Latitude
                 },
                 new AnalysisReportItem {
                     name = "Longitude",
-                    type = "longitude",
+                    type = MeasurementType.Longitude,
                     value = location.Longitude
                 },
                 new AnalysisReportItem {
                     name = "Altitude",
-                    type = "altitude",
+                    type = MeasurementType.altitude,
                     value = location.Altitude
                 },
                 new AnalysisReportItem {
                     name = "Northing",
-                    type = "northing",
+                    type = MeasurementType.northing,
                     value = location.Northing
                 },
                 new AnalysisReportItem {
                     name = "Easting",
-                    type = "easting",
+                    type = MeasurementType.easting,
                     value = location.Easting
                 },
                 new AnalysisReportItem {
                     name = "Map Url",
-                    type = "mapUrl",
+                    type = MeasurementType.mapURL,
                     value =  $"https://www.google.com/maps/search/?api=1&query={location.Latitude},{location.Longitude}"
                 },
             };

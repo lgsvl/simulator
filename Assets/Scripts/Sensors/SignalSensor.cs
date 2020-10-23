@@ -41,7 +41,11 @@ namespace Simulator.Sensors
         private MapManager MapManager;
         private WireframeBoxes WireframeBoxes;
 
+        [AnalysisMeasurement(MeasurementType.misc)]
         List<string> DetectedStates = new List<string>();
+
+        [AnalysisMeasurement(MeasurementType.count)]
+        public int SignalsDetected => DetectedSignals.Count;
 
         public override SensorDistributionType DistributionType => SensorDistributionType.LowLoad;
 
@@ -165,23 +169,6 @@ namespace Simulator.Sensors
 
                 WireframeBoxes.Draw(signal.gameObject.transform.localToWorldMatrix, signal.boundOffsets, signal.boundScale, color);
             }
-        }
-        
-        public override void SetAnalysisData()
-        {
-            SensorAnalysisData = new List<AnalysisReportItem>
-            {
-                new AnalysisReportItem {
-                    name = "States Detected",
-                    type = "misc",
-                    value = DetectedStates
-                },
-                new AnalysisReportItem {
-                    name = "Signals Detected",
-                    type = "count",
-                    value = DetectedSignals.Count
-                },
-            };
         }
 
         public override void OnVisualizeToggle(bool state) {}

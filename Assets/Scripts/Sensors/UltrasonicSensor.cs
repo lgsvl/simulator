@@ -59,7 +59,10 @@ namespace Simulator.Sensors
         Publisher<UltrasonicData> Publish;
         uint Sequence;
 
+        [AnalysisMeasurement(MeasurementType.distance)]
         private float minRecorded;
+        
+        [AnalysisMeasurement(MeasurementType.distance)]
         private float maxRecorded;
 
         const int MaxJpegSize = 4 * 1024 * 1024; // 4MB
@@ -337,23 +340,6 @@ namespace Simulator.Sensors
         {
             var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(SensorCamera);
             return GeometryUtility.TestPlanesAABB(activeCameraPlanes, bounds);
-        }
-
-        public override void SetAnalysisData()
-        {
-            SensorAnalysisData = new List<AnalysisReportItem>
-            {
-                new AnalysisReportItem {
-                    name = "Minimum Distance Recorded",
-                    type = "distance",
-                    value = minRecorded
-                },
-                new AnalysisReportItem {
-                    name = "Maximum Distance Recorded",
-                    type = "distance",
-                    value = maxRecorded
-                },
-            };
         }
     }
 }

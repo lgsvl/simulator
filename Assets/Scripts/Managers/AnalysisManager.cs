@@ -18,6 +18,9 @@ using System.Threading.Tasks;
 using Simulator.Network.Core.Connection;
 using Simulator.Network.Core.Messaging;
 using Simulator.Network.Core.Messaging.Data;
+using System.Reflection;
+using System.Linq;
+using Simulator.Utilities;
 
 namespace Simulator.Analysis
 {
@@ -59,7 +62,7 @@ namespace Simulator.Analysis
         public string Key { get; } = "AnalysisManager";
 
         private int ReceivedClientsSensors = 0;
-        
+
         private Dictionary<uint, JObject> ClientsSensorsData = new Dictionary<uint, JObject>();
         #endregion
 
@@ -184,13 +187,13 @@ namespace Simulator.Analysis
                 if (Loader.Instance.Network.IsMaster)
                 {
                     var clientsCount = Loader.Instance.Network.ClientsCount;
-                    var timeout = Loader.Instance.Network.Settings.Timeout/1000;
+                    var timeout = Loader.Instance.Network.Settings.Timeout / 1000;
                     var startTime = Time.unscaledTime;
-                    while (ReceivedClientsSensors<clientsCount && 
-                           Loader.Instance.Network.Master.Clients.Count>0 && 
-                           Time.unscaledTime-startTime<timeout)
+                    while (ReceivedClientsSensors < clientsCount &&
+                           Loader.Instance.Network.Master.Clients.Count > 0 &&
+                           Time.unscaledTime - startTime < timeout)
                         await Task.Delay(100);
-                    if (ReceivedClientsSensors<clientsCount)
+                    if (ReceivedClientsSensors < clientsCount)
                         Debug.LogWarning($"{GetType().Name} received {ReceivedClientsSensors} analysis reports from {clientsCount} clients.");
                 }
                 else if (Loader.Instance.Network.IsClient)
@@ -243,7 +246,7 @@ namespace Simulator.Analysis
                 agentJO.Add("Name", agent.Name);
                 agentJO.Add("id", agent.GTID);
                 JArray sensorsJO = GetSensorsData(agent, agentJO);
-                
+
                 //Add sensors data from clients
                 if (Loader.Instance != null && Loader.Instance.Network.IsMaster)
                 {
@@ -287,18 +290,47 @@ namespace Simulator.Analysis
         private JArray GetSensorsData(AgentConfig agent, JObject agentJO)
         {
             var sensorsJO = new JArray();
-            Array.ForEach(agent.AgentGO.GetComponentsInChildren<SensorBase>(), sensorBase =>
+            foreach (var sensorBase in agent.AgentGO.GetComponentsInChildren<SensorBase>())
             {
                 sensorBase.SetAnalysisData();
-                if (sensorBase.SensorAnalysisData != null)
+                List<AnalysisReportItem> report = sensorBase.SensorAnalysisData;
+                if(report == null)
                 {
-                    var sData = JsonConvert.SerializeObject(new {
-                        items = sensorBase.SensorAnalysisData,
-                        Type = sensorBase.GetType().ToString() }, SerializerSettings);
-                    JToken token = JToken.Parse(sData);
-                    sensorsJO.Add(token);
+                    report = new List<AnalysisReportItem>();
                 }
-            });
+
+                foreach (var info in sensorBase.GetType().GetRuntimeProperties().Where(prop => prop.IsDefined(typeof(AnalysisMeasurement), true)))
+                {
+                    var attr = info.GetCustomAttribute<AnalysisMeasurement>();
+                    var measurement = new AnalysisReportItem
+                    {
+                        name = String.IsNullOrEmpty(attr.Name) ? info.Name : attr.Name,
+                        type = attr.Type,
+                        value = info.GetValue(sensorBase)
+                    };
+                    report.Add(measurement);
+                }
+
+                foreach (var info in sensorBase.GetType().GetRuntimeFields().Where(field => field.IsDefined(typeof(AnalysisMeasurement), true)))
+                {
+                    var attr = info.GetCustomAttribute<AnalysisMeasurement>();
+                    var measurement = new AnalysisReportItem
+                    {
+                        name = String.IsNullOrEmpty(attr.Name) ? info.Name : attr.Name,
+                        type = attr.Type,
+                        value = info.GetValue(sensorBase)
+                    };
+                    report.Add(measurement);
+                }
+
+                var sData = JsonConvert.SerializeObject(new
+                {
+                    items = report,
+                    Type = sensorBase.GetType().ToString()
+                }, SerializerSettings);
+                JToken token = JToken.Parse(sData);
+                sensorsJO.Add(token);
+            }
 
             return sensorsJO;
         }
@@ -400,7 +432,7 @@ namespace Simulator.Analysis
             }
         }
 
-#region network
+        #region network
         void IMessageReceiver.ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
         {
             var network = Loader.Instance.Network;
@@ -411,7 +443,7 @@ namespace Simulator.Analysis
             foreach (var agentDataToken in agentsData.Children())
             {
                 var agentData = agentDataToken as JObject;
-                if (agentData==null)
+                if (agentData == null)
                     continue;
                 var agentId = agentData["id"].Value<uint>();
                 var sensorsJson = agentData["Sensors"] as JObject;
@@ -443,12 +475,13 @@ namespace Simulator.Analysis
         {
             //Nothing to send
         }
-#endregion
+        #endregion
     }
 
     public struct AnalysisReportItem
     {
-        public string type;
+        [JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
+        public MeasurementType type;
         public string name;
         public object value;
     }

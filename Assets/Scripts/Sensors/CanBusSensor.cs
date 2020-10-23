@@ -27,11 +27,21 @@ namespace Simulator.Sensors
         uint SendSequence;
         float NextSend;
 
+        [AnalysisMeasurement(MeasurementType.velocity)]
         private float MaxSpeed = 0;
+
+        [AnalysisMeasurement(MeasurementType.Input)]
         private float MaxThrottle = 0;
+
+        [AnalysisMeasurement(MeasurementType.Input)]
         private float MaxBrake = 0;
+
+        [AnalysisMeasurement(MeasurementType.angle)]
         private float MaxSteering = 0;
-        private float GearUsed;
+
+        [AnalysisMeasurement(MeasurementType.gear)]
+        private int GearUsed => Mathf.RoundToInt(Dynamics.CurrentGear);
+
         BridgeInstance Bridge;
         Publisher<CanBusData> Publish;
 
@@ -166,38 +176,6 @@ namespace Simulator.Sensors
         public override void OnVisualizeToggle(bool state)
         {
             //
-        }
-
-        public override void SetAnalysisData()
-        {
-            SensorAnalysisData = new List<AnalysisReportItem>
-            {
-                new AnalysisReportItem {
-                    name = "Max Speed",
-                    type = "input",
-                    value = MaxSpeed
-                },
-                new AnalysisReportItem {
-                    name = "Max Throttle",
-                    type = "input",
-                    value = MaxThrottle
-                },
-                new AnalysisReportItem {
-                    name = "Max Brake",
-                    type = "input",
-                    value = MaxBrake
-                },
-                new AnalysisReportItem {
-                    name = "Max Steering",
-                    type = "input",
-                    value = MaxSteering
-                },
-                new AnalysisReportItem {
-                    name = "Gear Used",
-                    type = "gear",
-                    value = Mathf.RoundToInt(Dynamics.CurrentGear)
-                },
-            };
         }
     }
 }

@@ -24,4 +24,42 @@ namespace Simulator.Utilities
     public class SensorParameter : Attribute
     {
     }
+
+    public enum MeasurementType
+    {
+        distance,
+        velocity,
+        acceleration,
+        jerk,
+        angle,
+        rightHandPos,
+        leftHandPos,
+        count,
+        fps,
+        Input,
+        gear,
+        Longitude,
+        Latitude,
+        altitude,
+        northing,
+        easting,
+        mapURL,
+        filePath,
+        duration,
+        misc,
+    }
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+    public class AnalysisMeasurement : Attribute
+    {
+        public AnalysisMeasurement(MeasurementType type, string name) {
+            Type = type;
+            Name = name;
+        }
+        public AnalysisMeasurement(MeasurementType type) {
+            Type = type;
+            Name = null;
+        }
+        public string Name { get; private set; }
+        public MeasurementType Type { get; private set; }
+    }
 }

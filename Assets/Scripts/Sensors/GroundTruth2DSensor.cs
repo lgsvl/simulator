@@ -69,6 +69,7 @@ namespace Simulator.Sensors
 
         private Camera Camera;
 
+        [AnalysisMeasurement(MeasurementType.count)]
         private int MaxTracked = -1;
         
         public override SensorDistributionType DistributionType => SensorDistributionType.HighLoad;
@@ -360,18 +361,6 @@ namespace Simulator.Sensors
         {
             var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(Camera);
             return GeometryUtility.TestPlanesAABB(activeCameraPlanes, bounds);
-        }
-
-        public override void SetAnalysisData()
-        {
-            SensorAnalysisData = new List<AnalysisReportItem>
-            {
-                new AnalysisReportItem {
-                    name = "Maximum Objects Tracked",
-                    type = "count",
-                    value = MaxTracked
-                },
-            };
         }
     }
 }

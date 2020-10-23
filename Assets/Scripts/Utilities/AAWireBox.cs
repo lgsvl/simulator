@@ -13,6 +13,7 @@ using UnityEngine.Rendering;
 
 namespace Simulator.Utilities
 {
+    // TODO: rename it to GroundTruthOverlay
     public class AAWireBox : MonoBehaviour
     {
         public struct Box
@@ -49,44 +50,151 @@ namespace Simulator.Utilities
             Destroy(Material);
         }
 
-        // min/max is in (0,0) - (width,height) coordinates
-        public void Draw(Vector2 min, Vector2 max, Color color)
+       private void DrawLineCamera(Vector2 a, Vector2 b, Color color)
         {
-            min = 2f * min * new Vector2(1f / Camera.pixelWidth, 1f / Camera.pixelHeight) - Vector2.one;
-            max = 2f * max * new Vector2(1f / Camera.pixelWidth, 1f / Camera.pixelHeight) - Vector2.one;
+            var dir = (b - a).normalized;
+            var normal = new Vector2(-dir.y, dir.x);
 
             var width = LineWidth * Utility.GetDpiScale();
             var size = new Vector2(width / Camera.pixelWidth, width / Camera.pixelHeight);
 
+            dir *= size;
+            normal *= size;
+
+            var v0 = a - dir + normal;
+            var v1 = a - dir - normal;
+            var v2 = b + dir + normal;
+            var v3 = b + dir - normal;
+
+            Vertices.Add(new Vertex() { Position = v0, Color = (Vector4)color });
+            Vertices.Add(new Vertex() { Position = v1, Color = (Vector4)color });
+            Vertices.Add(new Vertex() { Position = v2, Color = (Vector4)color });
+
+            Vertices.Add(new Vertex() { Position = v0, Color = (Vector4)color });
+            Vertices.Add(new Vertex() { Position = v2, Color = (Vector4)color });
+            Vertices.Add(new Vertex() { Position = v3, Color = (Vector4)color });
+        }
+
+        // min/max is in (0,0) - (width,height) coordinates
+        public void DrawBox(Vector2 min, Vector2 max, Color color)
+        {
+            min = 2f * min * new Vector2(1f / Camera.pixelWidth, 1f / Camera.pixelHeight) - Vector2.one;
+            max = 2f * max * new Vector2(1f / Camera.pixelWidth, 1f / Camera.pixelHeight) - Vector2.one;
+
             var p0 = new Vector2(min.x, max.y);
             var p1 = new Vector2(max.x, min.y);
 
-            Action<Vector2, Vector2> line = (Vector2 a, Vector2 b) =>
+            DrawLineCamera(min, p0, color);
+            DrawLineCamera(p0, max, color);
+            DrawLineCamera(max, p1, color);
+            DrawLineCamera(p1, min, color);
+        }
+
+        // this function gives the maximum
+        private float maxi(float[] arr, int n)
+        {
+            float m = 0;
+            for (int i = 0; i < n; ++i)
+                if (m < arr[i])
+                    m = arr[i];
+            return m;
+        }
+
+        // this function gives the minimum
+        private float mini(float[] arr, int n)
+        {
+            float m = 1;
+            for (int i = 0; i < n; ++i)
+                if (m > arr[i])
+                    m = arr[i];
+            return m;
+        }
+
+        // start-end will be clipped by (0,0) - (width,height) window
+        public void DrawClippedLine(Vector2 start, Vector2 end, Color color)
+        {
+            //Debug.Log("start: " + start.ToString() + ", end: " + end.ToString());
+            // defining variables
+            float p1 = -(end.x - start.x);
+            float p2 = -p1;
+            float p3 = -(end.y - start.y);
+            float p4 = -p3;
+
+            float q1 = start.x;
+            float q2 = Camera.pixelWidth - start.x;
+            float q3 = start.y;
+            float q4 = Camera.pixelHeight - start.y;
+
+            float[] posarr = new float[5];
+            float[] negarr = new float[5];
+            int posind = 1, negind = 1;
+            posarr[0] = 1;
+            negarr[0] = 0;
+
+            if ((p1 == 0 && q1 < 0) || (p2 == 0 && q2 < 0) || (p3 == 0 && q3 < 0) || (p4 == 0 && q4 < 0))
             {
-                var dir = (b - a).normalized;
-                var normal = new Vector2(-dir.y, dir.x);
+                // Line is parallel to clipping window and is outside
+                return;
+            }
+            if (p1 != 0)
+            {
+                float r1 = q1 / p1;
+                float r2 = q2 / p2;
+                if (p1 < 0)
+                {
+                    negarr[negind++] = r1; // for negative p1, add it to negative array
+                    posarr[posind++] = r2; // and add p2 to positive array
+                }
+                else
+                {
+                    negarr[negind++] = r2;
+                    posarr[posind++] = r1;
+                }
+            }
+            if (p3 != 0)
+            {
+                float r3 = q3 / p3;
+                float r4 = q4 / p4;
+                if (p3 < 0)
+                {
+                    negarr[negind++] = r3;
+                    posarr[posind++] = r4;
+                }
+                else
+                {
+                    negarr[negind++] = r4;
+                    posarr[posind++] = r3;
+                }
+            }
 
-                dir *= size;
-                normal *= size;
+            float xn1, yn1, xn2, yn2;
+            float rn1, rn2;
+            rn1 = maxi(negarr, negind); // maximum of negative array
+            rn2 = mini(posarr, posind); // minimum of positive array
 
-                var v0 = a - dir + normal;
-                var v1 = a - dir - normal;
-                var v2 = b + dir + normal;
-                var v3 = b + dir - normal;
+            if (rn1 > rn2)
+            { // reject
+                // Line is outside the clipping window!
+                return;
+            }
 
-                Vertices.Add(new Vertex() { Position = v0, Color = (Vector4)color });
-                Vertices.Add(new Vertex() { Position = v1, Color = (Vector4)color });
-                Vertices.Add(new Vertex() { Position = v2, Color = (Vector4)color });
+            xn1 = start.x + p2 * rn1;
+            yn1 = start.y + p4 * rn1; // computing new points
 
-                Vertices.Add(new Vertex() { Position = v0, Color = (Vector4)color });
-                Vertices.Add(new Vertex() { Position = v2, Color = (Vector4)color });
-                Vertices.Add(new Vertex() { Position = v3, Color = (Vector4)color });
-            };
+            xn2 = start.x + p2 * rn2;
+            yn2 = start.y + p4 * rn2;
 
-            line(min, p0);
-            line(p0, max);
-            line(max, p1);
-            line(p1, min);
+            //Debug.Log("clipped start: (" + xn1 + ", " + yn1 + "), clipped end: (" + xn2 + ", " + yn2 + ")");
+            DrawLine(new Vector2(xn1, yn1), new Vector2(xn2, yn2), color); // the drawing the new line
+        }
+
+        // start/end is in (0,0) - (width,height) coordinates
+        public void DrawLine(Vector2 start, Vector2 end, Color color)
+        {
+            start = 2f * start * new Vector2(1f / Camera.pixelWidth, 1f / Camera.pixelHeight) - Vector2.one;
+            end = 2f * end * new Vector2(1f / Camera.pixelWidth, 1f / Camera.pixelHeight) - Vector2.one;
+
+            DrawLineCamera(start, end, color);
         }
 
         void LateUpdate()

@@ -117,7 +117,7 @@ namespace Simulator.Sensors
                 // relRot.Set(-relRot.y, relRot.z, relRot.x, relRot.w);
 
                 var transform = Matrix4x4.TRS(detected.Position, Quaternion.identity, Vector3.one);
-                SolidAABox.Draw(detected.Position - detected.Scale / 2, detected.Position + detected.Scale / 2, color);
+                SolidAABox.DrawBox(detected.Position - detected.Scale / 2, detected.Position + detected.Scale / 2, color);
             }
             visualizer.UpdateRenderTexture(activeRT, Camera.aspect);
         }

@@ -150,6 +150,30 @@ namespace Simulator.Sensors.Postprocessing
             var sorted = dataToEffectDict.OrderBy(kvp =>
                 (kvp.Value.GetCustomAttribute(typeof(PostProcessOrderAttribute)) as PostProcessOrderAttribute)?.Order ?? 0);
 
+            var allSensors = UnityEngine.Object.FindObjectsOfType<SensorBase>();
+            var additionalRequiredPassTypes = new List<Type>();
+
+            foreach (var sensor in allSensors)
+            {
+                var attr = sensor.GetType().GetCustomAttribute(typeof(RequireCustomPassAttribute)) as RequireCustomPassAttribute;
+                if (attr == null)
+                    continue;
+
+                var type = attr.RequiredPassType;
+
+                if (type == null || additionalRequiredPassTypes.Contains(type))
+                    continue;
+
+                if (!typeof(CustomPass).IsAssignableFrom(type))
+                {
+                    Debug.LogError($"Type {type.Name} is not derived from {nameof(CustomPass)}.");
+                    continue;
+                }
+
+                if (type != null && !additionalRequiredPassTypes.Contains(type))
+                    additionalRequiredPassTypes.Add(type);
+            }
+
             postProcessingPasses.Clear();
             sensorSwaps.Clear();
             lastTarget.Clear();
@@ -162,6 +186,15 @@ namespace Simulator.Sensors.Postprocessing
             customPassVolumeObject = new GameObject(VolumeObjectName);
             var customPassVolume = customPassVolumeObject.AddComponent<CustomPassVolume>();
             customPassVolume.injectionPoint = CustomPassInjectionPoint.AfterPostProcess;
+
+            // Add all passes explicitly requested by sensors
+            foreach (var type in additionalRequiredPassTypes)
+            {
+                customPassVolume.AddPassOfType(type);
+                var pass = customPassVolume.customPasses[customPassVolume.customPasses.Count - 1];
+                pass.targetColorBuffer = CustomPass.TargetBuffer.Camera;
+                pass.targetDepthBuffer = CustomPass.TargetBuffer.Camera;
+            }
 
             // Add all used passes to volume
             foreach (var kvp in sorted)

@@ -42,7 +42,7 @@ namespace Simulator.Sensors
 
         [SensorParameter]
         [Range(0.01f, 2000.0f)]
-        public float MaxDistance = 1000.0f;
+        public float MaxDistance = 2000.0f;
 
         public RangeTrigger cameraRangeTrigger;
 
@@ -345,7 +345,7 @@ namespace Simulator.Sensors
                     color = Color.yellow;
                 }
 
-                AAWireBoxes.Draw(min, max, color);
+                AAWireBoxes.DrawBox(min, max, color);
             }
             visualizer.UpdateRenderTexture(Camera.activeTexture, Camera.aspect);
         }

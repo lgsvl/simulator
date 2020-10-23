@@ -490,6 +490,22 @@ namespace Simulator.Bridge.Cyber
             };
         }
 
+        public static apollo.perception.PerceptionLanes ConvertFrom(LaneLineData data)
+        {
+            return new apollo.perception.PerceptionLanes()
+            {
+                header = new apollo.common.Header()
+                {
+                    sequence_num = data.Sequence,
+                    frame_id = data.Frame,
+                    timestamp_sec = data.Time,
+                },
+
+                //ins_status = data.Status,
+                //pos_type = data.PositionType,
+            };
+        }
+
         public static Detected3DObjectArray ConvertTo(apollo.common.Detection3DArray data)
         {
             return new Detected3DObjectArray()

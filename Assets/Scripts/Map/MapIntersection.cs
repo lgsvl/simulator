@@ -124,6 +124,13 @@ namespace Simulator.Map
             }
         }
 
+        public List<MapLane> GetIntersectionLanes()
+        {
+            var intersectionLanes = new List<MapLane>();
+            intersectionLanes.AddRange(transform.GetComponentsInChildren<MapLane>());
+            return intersectionLanes;
+        }
+
         public void SetTriggerAndState()
         {
             // trigger

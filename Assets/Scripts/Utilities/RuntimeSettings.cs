@@ -31,6 +31,9 @@ namespace Simulator.Utilities
         [Tooltip("Shader to use for drawing wireframe boxes")]
         public Shader WireframeBoxShader;
 
+        [Tooltip("Shader to use for drawing lines")]
+        public Shader LineShader;
+
         [Tooltip("Shader to use for drawing point cloud for lidar")]
         public Shader PointCloudShader;
 

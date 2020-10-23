@@ -18,6 +18,8 @@ public class MapManager : MonoBehaviour
     [System.NonSerialized]
     public List<MapIntersection> intersections = new List<MapIntersection>();
     [System.NonSerialized]
+    public List<MapLane> allLanes = new List<MapLane>();
+    [System.NonSerialized]
     public List<MapPedestrian> pedestrianLanes = new List<MapPedestrian>();
 
     private MapManagerData mapData;
@@ -42,11 +44,46 @@ public class MapManager : MonoBehaviour
         intersections = mapData.GetIntersections();
         pedestrianLanes = mapData.GetPedestrianLanes();
 
+        allLanes = trafficLanes;
+        foreach (MapIntersection itersection in intersections)
+        {
+            allLanes.AddRange(itersection.GetIntersectionLanes());
+        }
+
         trafficLanes.ForEach(trafficLane => trafficLane.SetTrigger());
         intersections.ForEach(intersection => intersection.SetTriggerAndState());
     }
 
-    // npc and api
+    // GetClosestLane only checks traffic lanes.
+    // This function check all lanes.
+    public MapLane GetClosestLaneAll(Vector3 position)
+    {
+        MapLane result = null;
+        float minDist = float.PositiveInfinity;
+
+        // TODO: this should be optimized
+        foreach (var lane in allLanes)
+        {
+            if (lane.mapWorldPositions.Count >= 2)
+            {
+                for (int i = 0; i < lane.mapWorldPositions.Count - 1; i++)
+                {
+                    var p0 = lane.mapWorldPositions[i];
+                    var p1 = lane.mapWorldPositions[i + 1];
+
+                    float d = Utility.SqrDistanceToSegment(p0, p1, position);
+                    if (d < minDist)
+                    {
+                        minDist = d;
+                        result = lane;
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    // npc and api traffic lanes only
     public MapLane GetClosestLane(Vector3 position)
     {
         MapLane result = null;

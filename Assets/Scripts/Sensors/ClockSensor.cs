@@ -147,12 +147,12 @@ namespace Simulator.Sensors
             {
                 new AnalysisReportItem {
                     name = "Simulation Duration",
-                    type = "time",
+                    type = "duration",
                     value = SimulatorManager.Instance.CurrentTime - SimulatorManager.Instance.SessionStartTime
                 },
                 new AnalysisReportItem {
                     name = "Realtime Duration",
-                    type = "time",
+                    type = "duration",
                     value = Time.time - realTimeStart
                 },
             };

@@ -248,12 +248,12 @@ namespace Simulator.Sensors
                 },
                 new AnalysisReportItem {
                     name = "StartPosition",
-                    type = "position",
+                    type = "rightHandPos",
                     value = StartPosition
                 },
                 new AnalysisReportItem {
                     name = "EndPosition",
-                    type = "position",
+                    type = "rightHandPos",
                     value = transform.position
                 },
             };

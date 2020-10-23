@@ -268,7 +268,7 @@ namespace Simulator.Sensors
             {
                 new AnalysisReportItem {
                     name = "Maximum Objects Tracked",
-                    type = "distance",
+                    type = "count",
                     value = MaxTracked
                 },
             };

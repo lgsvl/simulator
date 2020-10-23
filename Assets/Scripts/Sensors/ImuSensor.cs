@@ -260,12 +260,12 @@ namespace Simulator.Sensors
             {
                 new AnalysisReportItem {
                     name = "Min X",
-                    type = "position",
+                    type = "rightHandPos",
                     value = minX
                 },
                 new AnalysisReportItem {
                     name = "Max X",
-                    type = "position",
+                    type = "rightHandPos",
                     value = maxX
                 },
                 new AnalysisReportItem {
@@ -280,12 +280,12 @@ namespace Simulator.Sensors
                 },
                 new AnalysisReportItem {
                     name = "Min Y",
-                    type = "position",
+                    type = "rightHandPos",
                     value = minY
                 },
                 new AnalysisReportItem {
                     name = "Max Y",
-                    type = "position",
+                    type = "rightHandPos",
                     value = maxY
                 },
                 new AnalysisReportItem {
@@ -300,12 +300,12 @@ namespace Simulator.Sensors
                 },
                 new AnalysisReportItem {
                     name = "Min Z",
-                    type = "position",
+                    type = "rightHandPos",
                     value = minZ
                 },
                 new AnalysisReportItem {
                     name = "Max Z",
-                    type = "position",
+                    type = "rightHandPos",
                     value = maxZ
                 },
                 new AnalysisReportItem {

@@ -187,25 +187,33 @@ namespace Simulator.ScenarioEditor.UI.ColorPicker
             if (isInitialized)
                 return;
             var images = GetComponentsInChildren<Image>();
-            var checkedMaterials = new List<Material>();
+            var matSubs = new Dictionary<Material, Material>();
             foreach (var image in images)
             {
                 var material = image.material;
-                if (material == null || checkedMaterials.Contains(material))
+                if (material == null)
                     continue;
-                if (material.HasProperty(HueShaderProperty))
-                    hueDependentMaterials.Add(material);
-                if (material.HasProperty(SatShaderProperty))
-                    satDependentMaterials.Add(material);
-                if (material.HasProperty(ValShaderProperty))
-                    valDependentMaterials.Add(material);
-                if (material.HasProperty(RedShaderProperty))
-                    redDependentMaterials.Add(material);
-                if (material.HasProperty(GreenShaderProperty))
-                    greenDependentMaterials.Add(material);
-                if (material.HasProperty(BlueShaderProperty))
-                    blueDependentMaterials.Add(material);
-                checkedMaterials.Add(material);
+                if (matSubs.TryGetValue(material, out var materialClone))
+                {
+                    image.material = materialClone;
+                    continue;
+                }
+                //Clone the material, so editing parameters won't change the resource
+                materialClone = new Material(material);
+                if (materialClone.HasProperty(HueShaderProperty))
+                    hueDependentMaterials.Add(materialClone);
+                if (materialClone.HasProperty(SatShaderProperty))
+                    satDependentMaterials.Add(materialClone);
+                if (materialClone.HasProperty(ValShaderProperty))
+                    valDependentMaterials.Add(materialClone);
+                if (materialClone.HasProperty(RedShaderProperty))
+                    redDependentMaterials.Add(materialClone);
+                if (materialClone.HasProperty(GreenShaderProperty))
+                    greenDependentMaterials.Add(materialClone);
+                if (materialClone.HasProperty(BlueShaderProperty))
+                    blueDependentMaterials.Add(materialClone);
+                matSubs.Add(material, materialClone);
+                image.material = materialClone;
             }
 
             hsvColor.HueChanged += OnHueChanged;

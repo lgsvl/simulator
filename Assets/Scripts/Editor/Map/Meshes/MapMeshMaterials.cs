@@ -24,8 +24,19 @@ namespace Simulator.Editor.MapMeshes
         private readonly Dictionary<Color, Material> lineDottedMaterialInstances = new Dictionary<Color, Material>();
         private readonly Dictionary<Color, Material> lineDoubleMaterialInstances = new Dictionary<Color, Material>();
 
+        public void OverrideShader(Shader shader)
+        {
+            road = new Material(road) {shader = shader};
+            lineSolid = new Material(lineSolid) {shader = shader};
+            lineDotted = new Material(lineDotted) {shader = shader};
+            lineDouble = new Material(lineDouble) {shader = shader};
+        }
+        
         public Material GetRoadMaterial(Color color)
         {
+            if (!road.HasProperty(ColorId))
+                return road;
+            
             if (!roadMaterialInstances.ContainsKey(color))
             {
                 var instance = new Material(road);
@@ -38,6 +49,9 @@ namespace Simulator.Editor.MapMeshes
         
         public Material GetSolidLineMaterial(Color color)
         {
+            if (!lineSolid.HasProperty(ColorId))
+                return lineSolid;
+            
             if (!lineSolidMaterialInstances.ContainsKey(color))
             {
                 var instance = new Material(lineSolid);
@@ -50,6 +64,9 @@ namespace Simulator.Editor.MapMeshes
         
         public Material GetDottedLineMaterial(Color color)
         {
+            if (!lineDotted.HasProperty(ColorId))
+                return lineDotted;
+            
             if (!lineDottedMaterialInstances.ContainsKey(color))
             {
                 var instance = new Material(lineDotted);
@@ -62,6 +79,9 @@ namespace Simulator.Editor.MapMeshes
         
         public Material GetDoubleLineMaterial(Color color)
         {
+            if (!lineDouble.HasProperty(ColorId))
+                return lineDouble;
+            
             if (!lineDoubleMaterialInstances.ContainsKey(color))
             {
                 var instance = new Material(lineDouble);

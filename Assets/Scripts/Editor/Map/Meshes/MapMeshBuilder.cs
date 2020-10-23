@@ -240,6 +240,16 @@ namespace Simulator.Editor.MapMeshes
 
         public void BuildMesh(GameObject parentObject, MapMeshMaterials materials)
         {
+            BuildMesh(parentObject, materials, false);
+        }
+
+        public void BuildLinesMesh(GameObject parentObject, MapMeshMaterials materials)
+        {
+            BuildMesh(parentObject, materials, true);
+        }
+
+        private void BuildMesh(GameObject parentObject, MapMeshMaterials materials, bool linesOnly)
+        {
             try
             {
                 EditorUtility.DisplayProgressBar("Building mesh", "Preprocessing HD map data...", 0f);
@@ -286,29 +296,50 @@ namespace Simulator.Editor.MapMeshes
 
                 if (settings.snapLaneEnds)
                     SnapLanes(allLanes);
-
-                if (settings.pushOuterVerts)
-                    CalculateOutVectors(allLanes);
-
-                for (var i = 0; i < lanes.Count; ++i)
+                
+                if (linesOnly)
                 {
-                    EditorUtility.DisplayProgressBar("Building mesh", $"Creating lanes ({i}/{lanes.Count})", (float) i / lanes.Count);
-                    CreateLaneMesh(lanes[i], parentObject, materials);
-                }
+                    var roadsData =
+                        UnityEngine.Object.FindObjectsOfType<MeshCollider>()
+                            .Where(x => x.name.Contains("Road"))
+                            .Select(road => (road.sharedMesh, road.transform.localToWorldMatrix))
+                            .ToList();
 
-                for (var i = 0; i < intersections.Count; ++i)
-                {
-                    EditorUtility.DisplayProgressBar("Building mesh", $"Creating intersections ({i}/{intersections.Count})", (float) i / intersections.Count);
-                    CreateIntersectionMesh(intersections[i], parentObject, materials);
-                }
+                    foreach (var kvp in linesData)
+                        kvp.Value.meshData.AddRange(roadsData);
 
-                if (settings.createRenderers)
-                {
                     var doneLineCount = 0;
                     foreach (var lineData in linesData)
                     {
                         EditorUtility.DisplayProgressBar("Building mesh", $"Creating lane lines ({doneLineCount}/{linesData.Count})", (float) doneLineCount++ / linesData.Count);
                         CreateLineMesh(lineData, parentObject, materials);
+                    }
+                }
+                else
+                {
+                    if (settings.pushOuterVerts)
+                        CalculateOutVectors(allLanes);
+
+                    for (var i = 0; i < lanes.Count; ++i)
+                    {
+                        EditorUtility.DisplayProgressBar("Building mesh", $"Creating lanes ({i}/{lanes.Count})", (float) i / lanes.Count);
+                        CreateLaneMesh(lanes[i], parentObject, materials);
+                    }
+
+                    for (var i = 0; i < intersections.Count; ++i)
+                    {
+                        EditorUtility.DisplayProgressBar("Building mesh", $"Creating intersections ({i}/{intersections.Count})", (float) i / intersections.Count);
+                        CreateIntersectionMesh(intersections[i], parentObject, materials);
+                    }
+
+                    if (settings.createRenderers)
+                    {
+                        var doneLineCount = 0;
+                        foreach (var lineData in linesData)
+                        {
+                            EditorUtility.DisplayProgressBar("Building mesh", $"Creating lane lines ({doneLineCount}/{linesData.Count})", (float) doneLineCount++ / linesData.Count);
+                            CreateLineMesh(lineData, parentObject, materials);
+                        }
                     }
                 }
             }
@@ -471,6 +502,7 @@ namespace Simulator.Editor.MapMeshes
             var mesh = BuildLineMesh(lineData.Key, lineData.Value.shape == LineData.LineShape.Double ? settings.lineWidth * 3 : settings.lineWidth);
 
             var go = new GameObject(lineData.Key.gameObject.name + "_mesh");
+            go.transform.tag = "LaneLine";
             go.transform.SetParent(parentObject.transform);
             var lineTransform = lineData.Key.transform;
             go.transform.rotation = lineTransform.rotation;

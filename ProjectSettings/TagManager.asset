@@ -15,6 +15,7 @@ TagManager:
   - Shoulder
   - Pedestrian
   - Curb
+  - LaneLine
   layers:
   - Default
   - TransparentFX

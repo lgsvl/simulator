@@ -100,6 +100,8 @@ namespace Simulator.Sensors
         private LaneLineCubicCurve LeftCurve;
         private LaneLineCubicCurve RightCurve;
 
+        private bool previewEnabled;
+
         private readonly float[,] coeffMatrix = new float[4, 5];
         private readonly Plane[] frustumPlanes = new Plane[6];
 
@@ -164,7 +166,6 @@ namespace Simulator.Sensors
         private void SamplePointsNew(MapLane egoLane, bool isLeft)
         {
             MapLane currentLane = egoLane;
-            List<Vector3> lanePoints = currentLane.mapWorldPositions;
             var worldPoints = ListPool<Vector3>.Get();
             var distanceTrimmedWorldPoints = ListPool<Vector3>.Get();
             var frustumTrimmedWorldPoints = ListPool<Vector3>.Get();
@@ -180,20 +181,47 @@ namespace Simulator.Sensors
 
             worldPoints.AddRange(isLeft ? currentLane.leftLineBoundry.mapWorldPositions : currentLane.rightLineBoundry.mapWorldPositions);
 
-            if (Vector3.Dot(worldPoints[1] - worldPoints[0], lanePoints[1] - lanePoints[0]) < 0)
+            var min = float.MaxValue;
+            var minIndex = 0;
+            for (var i = 0; i < worldPoints.Count; ++i)
+            {
+                var sqrMag = (worldPoints[i] - transform.position).sqrMagnitude;
+                if (sqrMag < min)
+                {
+                    min = sqrMag;
+                    minIndex = i;
+                }
+            }
+
+            var dirVec = minIndex < worldPoints.Count - 1
+                ? worldPoints[minIndex + 1] - worldPoints[minIndex]
+                : worldPoints[minIndex] - worldPoints[minIndex - 1];
+
+            if (Vector3.Dot(dirVec, transform.forward) < 0)
                 worldPoints.Reverse();
 
             int pointIndex = 0;
             var safety = 0;
+            var prevZ = -1f;
 
             while (safety++ < 5000)
             {
                 var cameraPos = SensorCamera.transform.InverseTransformPoint(worldPoints[pointIndex]);
-                if (cameraPos.z > 2 * DetectionRange)
+                if (prevZ > DetectionRange && cameraPos.z > DetectionRange)
                     break;
 
+                prevZ = cameraPos.z;
+
+                // Point is behind the camera
                 if (cameraPos.z < 0 && distanceTrimmedWorldPoints.Count > 0)
-                    distanceTrimmedWorldPoints.RemoveAt(0);
+                {
+                    // Previous is also behind - remove it, only one point behind is needed for interpolation
+                    if (prevZ < 0)
+                        distanceTrimmedWorldPoints.RemoveAt(distanceTrimmedWorldPoints.Count - 1);
+                    // Road is probably curving further away and goes behind the camera - terminate
+                    else
+                        break;
+                }
 
                 distanceTrimmedWorldPoints.Add(worldPoints[pointIndex]);
 
@@ -207,11 +235,11 @@ namespace Simulator.Sensors
                         currentLane = currentLane.nextConnectedLanes[0];
                         if (!currentLane.isTrafficLane)
                             break;
-                        lanePoints = currentLane.mapWorldPositions;
+
+                        var prevEnd = worldPoints[worldPoints.Count - 1];
                         worldPoints.Clear();
                         worldPoints.AddRange(isLeft ? currentLane.leftLineBoundry.mapWorldPositions : currentLane.rightLineBoundry.mapWorldPositions);
-
-                        if (Vector3.Dot(worldPoints[1] - worldPoints[0], lanePoints[1] - lanePoints[0]) < 0)
+                        if ((prevEnd - worldPoints[0]).sqrMagnitude > (prevEnd - worldPoints[worldPoints.Count - 1]).sqrMagnitude)
                             worldPoints.Reverse();
 
                         pointIndex = 1;
@@ -252,19 +280,19 @@ namespace Simulator.Sensors
                 return;
             }
 
-            // const int samples = 16;
-            var samples = Mathf.Ceil(totalLength / SampleDelta);
-            var step = Mathf.Min(DetectionRange / (samples - 1), totalLength / (samples - 1));
+            var step = SampleDelta;
             var targetList = isLeft ? LeftLanePoints : RightLanePoints;
             var startIndex = 0;
             var startDist = 0f;
 
-            for (var i = 0; i <= samples; ++i)
+            // Hard limit for max samples, but will almost always terminate sooner when reaching max distance
+            for (var i = 0; i <= 8192; ++i)
             {
                 if (startIndex == localPoints.Count - 1)
                 {
                     targetList.Add(localPoints[localPoints.Count - 1]);
-                    continue;
+                    if (targetList.Count >= 2)
+                        break;
                 }
 
                 var floatVal = i * step;
@@ -279,7 +307,7 @@ namespace Simulator.Sensors
                 if (startIndex == localPoints.Count - 1)
                 {
                     targetList.Add(localPoints[localPoints.Count - 1]);
-                    continue;
+                    break;
                 }
 
                 var diff = (nextDist - startDist);
@@ -293,6 +321,9 @@ namespace Simulator.Sensors
                 }
 
                 targetList.Add(pos);
+
+                if (pos.x >= DetectionRange && targetList.Count >= 2)
+                    break;
             }
 
             ReleasePoolItems();
@@ -501,13 +532,16 @@ namespace Simulator.Sensors
 
                 linesToRender.Clear();
 
-                if (isDataValid)
+                if (previewEnabled)
                 {
-                    VisulzeLanePoints(LeftCurve, Color.green);
-                    VisulzeLanePoints(RightCurve, Color.blue);
-                }
+                    if (isDataValid)
+                    {
+                        VisulzeLanePoints(LeftCurve, Color.green);
+                        VisulzeLanePoints(RightCurve, Color.blue);
+                    }
 
-                SensorCamera.Render();
+                    SensorCamera.Render();
+                }
 
                 if (Bridge != null && Bridge.Status == Status.Connected && isDataValid)
                 {
@@ -587,12 +621,13 @@ namespace Simulator.Sensors
 
         public override void OnVisualize(Visualizer visualizer)
         {
-            visualizer.UpdateRenderTexture(SensorCamera.activeTexture, SensorCamera.aspect);
+            if (previewEnabled)
+                visualizer.UpdateRenderTexture(SensorCamera.activeTexture, SensorCamera.aspect);
         }
 
         public override void OnVisualizeToggle(bool state)
         {
-            //
+            previewEnabled = state;
         }
     }
 }

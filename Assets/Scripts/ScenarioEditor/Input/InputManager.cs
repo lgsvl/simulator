@@ -435,6 +435,8 @@ namespace Simulator.ScenarioEditor.Input
         /// <param name="obj">Callback context</param>
         private void MouseScrollOnPerformed(InputAction.CallbackContext obj)
         {
+            if (!ScenarioManager.Instance.IsInitialized)
+                return;
             if (EventSystem.current.IsPointerOverGameObject() || !IsMouseOverGameWindow) return;
 
             var zoomValue = obj.ReadValue<Vector2>().y;
@@ -448,6 +450,8 @@ namespace Simulator.ScenarioEditor.Input
         /// <param name="obj">Callback context</param>
         private void MouseLeftOnPerformed(InputAction.CallbackContext obj)
         {
+            if (!ScenarioManager.Instance.IsInitialized)
+                return;
             leftMouseButtonPressed = obj.ReadValue<float>() > 0.0f;
 
             RaycastHit? furthestHit;
@@ -527,6 +531,8 @@ namespace Simulator.ScenarioEditor.Input
         /// <param name="obj">Callback context</param>
         private void MouseRightOnPerformed(InputAction.CallbackContext obj)
         {
+            if (!ScenarioManager.Instance.IsInitialized)
+                return;
             rightMouseButtonPressed = obj.ReadValue<float>() > 0.0f;
 
             switch (inputState)
@@ -557,6 +563,8 @@ namespace Simulator.ScenarioEditor.Input
         /// <param name="obj">Callback context</param>
         private void MouseMiddleOnPerformed(InputAction.CallbackContext obj)
         {
+            if (!ScenarioManager.Instance.IsInitialized)
+                return;
             middleMouseButtonPressed = obj.ReadValue<float>() > 0.0f;
 
             switch (inputState)

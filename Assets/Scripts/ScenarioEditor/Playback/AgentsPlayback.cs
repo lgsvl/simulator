@@ -75,6 +75,9 @@ namespace Simulator.ScenarioEditor.Playback
                 {
                     var waypoint = agent.Waypoints[i];
                     var speed = waypoint.Speed;
+                    //Agent won't move further after stopping
+                    if (speed <= 0.0f)
+                        break;
                     var position = waypoint.transform.position;
                     pathPositions.Add(position);
                     var distance = Vector3.Distance(previousPosition, position);

@@ -178,6 +178,11 @@ namespace Simulator.ScenarioEditor.Managers
         public bool IsScenarioDirty { get; set; }
 
         /// <summary>
+        /// Is the manager initialized
+        /// </summary>
+        public bool IsInitialized => isInitialized;
+
+        /// <summary>
         /// Event invoked when the scenario is being reset
         /// </summary>
         public event Action ScenarioReset;
@@ -227,7 +232,7 @@ namespace Simulator.ScenarioEditor.Managers
         /// </summary>
         private async Task Initialize()
         {
-            if (isInitialized)
+            if (IsInitialized)
                 return;
             var loadingProcess = loadingPanel.AddProgress();
 
@@ -284,7 +289,7 @@ namespace Simulator.ScenarioEditor.Managers
         /// </summary>
         private void Deinitialize()
         {
-            if (!isInitialized)
+            if (!IsInitialized)
                 return;
             selectedElement = null;
             if (inspector!=null)
@@ -412,9 +417,8 @@ namespace Simulator.ScenarioEditor.Managers
         /// <param name="mapMetaData">The loaded map meta data</param>
         public void OnMapLoaded(ScenarioMapManager.MapMetaData mapMetaData)
         {
-            var cameraTransform = ScenarioCamera.transform;
             var spawnInfo = FindObjectOfType<SpawnInfo>();
-            cameraTransform.position = (spawnInfo == null ? Vector3.zero : spawnInfo.transform.position)+new Vector3(0.0f, 30.0f, 0.0f);
+            ScenarioCamera.transform.position = (spawnInfo == null ? Vector3.zero : spawnInfo.transform.position)+new Vector3(0.0f, 30.0f, 0.0f);
         }
 
         /// <summary>

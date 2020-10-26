@@ -238,7 +238,10 @@ namespace Simulator.ScenarioEditor.Managers
             }
             loadingProcess.Update($"Loading map {mapToLoad.name}.", false);
             await LoadMapAssets(mapToLoad.assetModel, mapToLoad);
-            loadingProcess.Update($"Scenario map manager loaded {mapToLoad.name} map.", true);
+            loadingProcess.Update(
+                CurrentMapName == mapToLoad.name
+                    ? $"Scenario map manager loaded {mapToLoad.name} map."
+                    : $"Loaded {mapToLoad.name} map failed.", true);
         }
 
         /// <summary>
@@ -273,7 +276,7 @@ namespace Simulator.ScenarioEditor.Managers
                     int streamSize = (int) entry.Size;
                     byte[] buffer = new byte[streamSize];
                     streamSize = ms.Read(buffer, 0, streamSize);
-                    manifest = new Deserializer().Deserialize<Manifest>(Encoding.UTF8.GetString(buffer));
+                    manifest = Newtonsoft.Json.JsonConvert.DeserializeObject<Manifest>(Encoding.UTF8.GetString(buffer));
                 }
 
                 if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Environment])
@@ -319,14 +322,12 @@ namespace Simulator.ScenarioEditor.Managers
                     await Task.Delay(100);
                 var scene = SceneManager.GetSceneByName(sceneName);
                 SceneManager.SetActiveScene(scene);
-                SIM.LogAPI(SIM.API.SimulationLoad, sceneName);
                 CurrentMapMetaData = mapMetaData;
 
                 if (Loader.Instance.SimConfig != null)
                     Loader.Instance.SimConfig.MapName = CurrentMapMetaData.name;
 
                 CurrentMapBounds = CalculateMapBounds(scene);
-                //FixShaders(scene);
                 LaneSnapping.Initialize();
                 PlayerPrefs.SetString(MapPersistenceKey, CurrentMapMetaData.name);
                 MapChanged?.Invoke(CurrentMapMetaData);
@@ -360,22 +361,6 @@ namespace Simulator.ScenarioEditor.Managers
             //Add margin to the bounds
             b.size += Vector3.one * 10;
             return b;
-        }
-
-        /// <summary>
-        /// Reapplies shaders in all the renderers, it fixes an uncommon Unity graphics bug
-        /// </summary>
-        /// <param name="scene">Loaded scene</param>
-        private void FixShaders(Scene scene)
-        {
-        	var gameObjectsOnScene = scene.GetRootGameObjects();
-        	for (var i = 0; i < gameObjectsOnScene.Length; i++)
-        	{
-        		var gameObjectOnScene = gameObjectsOnScene[i];
-        		foreach (Renderer r in gameObjectOnScene.GetComponentsInChildren<Renderer>())
-        			foreach (var material in r.materials)
-        				material.shader = Shader.Find(material.shader.name);;
-        	}
         }
     }
 }

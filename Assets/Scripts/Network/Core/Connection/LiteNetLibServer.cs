@@ -141,17 +141,9 @@ namespace Simulator.Network.Core.Connection
         /// <inheritdoc/>
         public void OnPeerConnected(NetPeer peer)
         {
+            //Check if the peer was accepted and initialized
             if (!peers.TryGetValue(peer.EndPoint, out var peerManager))
-            {
-                peerManager = new LiteNetLibPeerManager(peer);
-                peers.Add(peer.EndPoint, peerManager);
-            }
-
-            if (peerManager == null)
-            {
-                peerManager = new LiteNetLibPeerManager(peer);
-                peers[peer.EndPoint] = peerManager;
-            }
+                return;
 
             PeerConnected?.Invoke(peerManager);
         }
@@ -228,8 +220,7 @@ namespace Simulator.Network.Core.Connection
 
             Log.Info(
                 $"{GetType().Name} received and accepted a connection request from address '{request.RemoteEndPoint.Address}', current UTC time: {DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)}.");
-            peers.Add(request.RemoteEndPoint, null);
-            request.Accept();
+            peers.Add(request.RemoteEndPoint, new LiteNetLibPeerManager(request.Accept(), identifier));
         }
 
         /// <inheritdoc/>

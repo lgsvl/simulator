@@ -19,7 +19,7 @@ RUN set -ex \
 # NB. This is overwritten when launched by docker with --gpus=N option
 ENV NVIDIA_VISIBLE_DEVICES all
 # Include "utility" to get nvidia-smi
-ENV NVIDIA_DRIVER_CAPABILITIES graphics,display,utility
+ENV NVIDIA_DRIVER_CAPABILITIES graphics,display,utility,compute,video
 
 ADD "https://gitlab.com/nvidia/container-images/vulkan/raw/master/nvidia_icd.json" /etc/vulkan/icd.d/nvidia_icd.json
 

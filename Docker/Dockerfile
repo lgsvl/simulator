@@ -109,6 +109,19 @@ RUN set -ex \
   && tar -xvf /tmp/libvulkan.tar -C /usr/lib/x86_64-linux-gnu \
   && rm -f /tmp/libvulkan.tar
 
+ARG image_git_describe=(unknown)
+ARG image_uuidgen=(unset)
+
+RUN set -ex \
+  && echo "IMAGE_APP=simulator\n\
+IMAGE_CREATED_BY=Dockerfile\n\
+IMAGE_CREATED_FROM=${image_git_describe}\n\
+IMAGE_CREATED_ON=$(date --iso-8601=seconds --utc)\n\
+# Increment IMAGE_INTERFACE_VERSION whenever changes to the image require that the launcher be updated.\n\
+IMAGE_INTERFACE_VERSION=1\n\
+IMAGE_UUID=${image_uuidgen}"\
+  >> /etc/wise-image-info.source
+
 COPY --from=unzipper /tmp/lgsvlsimulator /opt/simulator
 
 CMD /opt/simulator/simulator

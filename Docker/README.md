@@ -19,6 +19,8 @@ Run the following command to build the container image:
 $ docker build --pull --no-cache [--build-arg simulator_version=<VERSION>|simulator_url=<URL>|simulator_zipfile=<ZIPFILE>] \
                                  [--build-arg base_image=<IMAGE:TAG>] \
                                  [--build-arg vulkan_loader_version=<VL_VERSION>] \
+                                 [--build-arg image_git_describe=$(git describe --always --tags>) \
+                                 [--build-arg image_uuidgen=$(uuidgen)] \
                                  -t lgsvlsimulator[:<VERSION>] .
 ```
 

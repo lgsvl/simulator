@@ -29,7 +29,7 @@ namespace Simulator.Sensors
         public float AccelInput { get; private set; } = 0f;
         public float BrakeInput { get; private set; } = 0f;
 
-        [AnalysisMeasurement(MeasurementType.velocity)]
+        [AnalysisMeasurement(MeasurementType.Velocity)]
         private float MaxSpeed = 0;
 
         public override SensorDistributionType DistributionType => SensorDistributionType.LowLoad;

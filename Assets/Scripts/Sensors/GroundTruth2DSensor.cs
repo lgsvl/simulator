@@ -69,7 +69,7 @@ namespace Simulator.Sensors
 
         private Camera Camera;
 
-        [AnalysisMeasurement(MeasurementType.count)]
+        [AnalysisMeasurement(MeasurementType.Count)]
         private int MaxTracked = -1;
         
         public override SensorDistributionType DistributionType => SensorDistributionType.HighLoad;

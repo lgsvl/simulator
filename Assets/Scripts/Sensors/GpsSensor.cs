@@ -233,22 +233,22 @@ namespace Simulator.Sensors
                 },
                 new AnalysisReportItem {
                     name = "Start Altitude",
-                    type = MeasurementType.altitude,
+                    type = MeasurementType.Altitude,
                     value = startLocation.Altitude
                 },
                 new AnalysisReportItem {
                     name = "Start Northing",
-                    type = MeasurementType.northing,
+                    type = MeasurementType.Northing,
                     value = startLocation.Northing
                 },
                 new AnalysisReportItem {
                     name = "Start Easting",
-                    type = MeasurementType.easting,
+                    type = MeasurementType.Easting,
                     value = startLocation.Easting
                 },
                 new AnalysisReportItem {
                     name = "Start Map Url",
-                    type = MeasurementType.mapURL,
+                    type = MeasurementType.MapURL,
                     value =  $"https://www.google.com/maps/search/?api=1&query={startLocation.Latitude},{startLocation.Longitude}"
                 },
                 new AnalysisReportItem {
@@ -263,22 +263,22 @@ namespace Simulator.Sensors
                 },
                 new AnalysisReportItem {
                     name = "Altitude",
-                    type = MeasurementType.altitude,
+                    type = MeasurementType.Altitude,
                     value = location.Altitude
                 },
                 new AnalysisReportItem {
                     name = "Northing",
-                    type = MeasurementType.northing,
+                    type = MeasurementType.Northing,
                     value = location.Northing
                 },
                 new AnalysisReportItem {
                     name = "Easting",
-                    type = MeasurementType.easting,
+                    type = MeasurementType.Easting,
                     value = location.Easting
                 },
                 new AnalysisReportItem {
                     name = "Map Url",
-                    type = MeasurementType.mapURL,
+                    type = MeasurementType.MapURL,
                     value =  $"https://www.google.com/maps/search/?api=1&query={location.Latitude},{location.Longitude}"
                 },
             };

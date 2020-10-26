@@ -86,13 +86,13 @@ namespace Simulator.Sensors
                 new AnalysisReportItem
                 {
                     name = "Status",
-                    type = MeasurementType.misc,
+                    type = MeasurementType.Misc,
                     value = 3
                 },
                 new AnalysisReportItem
                 {
                     name = "Position Type",
-                    type = MeasurementType.misc,
+                    type = MeasurementType.Misc,
                     value = 56
                 },
             };

@@ -41,10 +41,10 @@ namespace Simulator.Sensors
         private MapManager MapManager;
         private WireframeBoxes WireframeBoxes;
 
-        [AnalysisMeasurement(MeasurementType.misc)]
+        [AnalysisMeasurement(MeasurementType.Misc)]
         List<string> DetectedStates = new List<string>();
 
-        [AnalysisMeasurement(MeasurementType.count)]
+        [AnalysisMeasurement(MeasurementType.Count)]
         public int SignalsDetected => DetectedSignals.Count;
 
         public override SensorDistributionType DistributionType => SensorDistributionType.LowLoad;

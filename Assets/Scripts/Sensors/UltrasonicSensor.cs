@@ -59,10 +59,10 @@ namespace Simulator.Sensors
         Publisher<UltrasonicData> Publish;
         uint Sequence;
 
-        [AnalysisMeasurement(MeasurementType.distance)]
+        [AnalysisMeasurement(MeasurementType.Distance)]
         private float minRecorded;
         
-        [AnalysisMeasurement(MeasurementType.distance)]
+        [AnalysisMeasurement(MeasurementType.Distance)]
         private float maxRecorded;
 
         const int MaxJpegSize = 4 * 1024 * 1024; // 4MB

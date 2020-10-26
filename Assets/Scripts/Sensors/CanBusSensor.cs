@@ -27,7 +27,7 @@ namespace Simulator.Sensors
         uint SendSequence;
         float NextSend;
 
-        [AnalysisMeasurement(MeasurementType.velocity)]
+        [AnalysisMeasurement(MeasurementType.Velocity)]
         private float MaxSpeed = 0;
 
         [AnalysisMeasurement(MeasurementType.Input)]
@@ -36,10 +36,10 @@ namespace Simulator.Sensors
         [AnalysisMeasurement(MeasurementType.Input)]
         private float MaxBrake = 0;
 
-        [AnalysisMeasurement(MeasurementType.angle)]
+        [AnalysisMeasurement(MeasurementType.Angle)]
         private float MaxSteering = 0;
 
-        [AnalysisMeasurement(MeasurementType.gear)]
+        [AnalysisMeasurement(MeasurementType.Gear)]
         private int GearUsed => Mathf.RoundToInt(Dynamics.CurrentGear);
 
         BridgeInstance Bridge;

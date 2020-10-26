@@ -480,7 +480,7 @@ namespace Simulator.Analysis
 
     public struct AnalysisReportItem
     {
-        [JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
+        [JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter), true)]
         public MeasurementType type;
         public string name;
         public object value;

@@ -38,7 +38,7 @@ namespace Simulator.Sensors
         private Dictionary<uint, Tuple<Detected3DObject, Collider>> Detected;
         private HashSet<uint> CurrentIDs;
 
-        [AnalysisMeasurement(MeasurementType.count)]
+        [AnalysisMeasurement(MeasurementType.Count)]
         private int MaxTracked = -1;
 
         public override SensorDistributionType DistributionType => SensorDistributionType.HighLoad;

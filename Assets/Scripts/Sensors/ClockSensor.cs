@@ -141,10 +141,10 @@ namespace Simulator.Sensors
             IsFirstFixedUpdate = true;
         }
 
-        [AnalysisMeasurement(MeasurementType.duration)]
+        [AnalysisMeasurement(MeasurementType.Duration)]
         public double SimulationDuration => SimulatorManager.Instance.CurrentTime - SimulatorManager.Instance.SessionStartTime;
 
-        [AnalysisMeasurement(MeasurementType.duration)]
+        [AnalysisMeasurement(MeasurementType.Duration)]
         public double RealtimeDuration => Time.time - realTimeStart;
 
         public override void OnVisualize(Visualizer visualizer)

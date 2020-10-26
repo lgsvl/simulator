@@ -40,15 +40,15 @@ namespace Simulator.Sensors
         private VehicleActions Actions;
         private VehicleLane Lane;
 
-        [AnalysisMeasurement(MeasurementType.distance)]
+        [AnalysisMeasurement(MeasurementType.Distance)]
         private float Distance = 0f;
         private Vector3 PrevPos = new Vector3(0f, 0f, 0f);
 
-        [AnalysisMeasurement(MeasurementType.velocity)]
+        [AnalysisMeasurement(MeasurementType.Velocity)]
         private float SpeedMin = float.MaxValue;
-        [AnalysisMeasurement(MeasurementType.velocity)]
+        [AnalysisMeasurement(MeasurementType.Velocity)]
         private float SpeedMax = 0f;
-        [AnalysisMeasurement(MeasurementType.velocity)]
+        [AnalysisMeasurement(MeasurementType.Velocity)]
         private float SpeedAvg = 0f;
         private float SpeedTotal = 0f;
         private float PrevSpeed = 0f;
@@ -63,26 +63,26 @@ namespace Simulator.Sensors
         private float AngularVelocity = 0f;
         private float AngularAcceleration = 0f;
         private float Slip = 0f;
-        [AnalysisMeasurement(MeasurementType.acceleration)]
+        [AnalysisMeasurement(MeasurementType.Acceleration)]
         private float AccelLongMin = float.MaxValue;
-        [AnalysisMeasurement(MeasurementType.acceleration)]
+        [AnalysisMeasurement(MeasurementType.Acceleration)]
         private float AccelLongMax = 0f;
-        [AnalysisMeasurement(MeasurementType.acceleration)]
+        [AnalysisMeasurement(MeasurementType.Acceleration)]
         private float AccelLatMin = float.MaxValue;
-        [AnalysisMeasurement(MeasurementType.acceleration)]
+        [AnalysisMeasurement(MeasurementType.Acceleration)]
         private float AccelLatMax = 0f;
 
         private Vector3 Jerk = new Vector3(0f, 0f, 0f);
-        [AnalysisMeasurement(MeasurementType.jerk)]
+        [AnalysisMeasurement(MeasurementType.Jerk)]
         private float JerkLongMin = float.MaxValue;
-        [AnalysisMeasurement(MeasurementType.jerk)]
+        [AnalysisMeasurement(MeasurementType.Jerk)]
         private float JerkLongMax = 0f;
-        [AnalysisMeasurement(MeasurementType.jerk)]
+        [AnalysisMeasurement(MeasurementType.Jerk)]
         private float JerkLatMin = float.MaxValue;
-        [AnalysisMeasurement(MeasurementType.jerk)]
+        [AnalysisMeasurement(MeasurementType.Jerk)]
         private float JerkLatMax = 0f;
 
-        [AnalysisMeasurement(MeasurementType.angle)]
+        [AnalysisMeasurement(MeasurementType.Angle)]
         private float SteerAngleMax = 0f;
         private float SteerAngle = 0f;
         private float PrevSteerAngle = 0f;
@@ -99,10 +99,10 @@ namespace Simulator.Sensors
         private float StuckTime;
         private bool EgoIsStuck = false;
 
-        [AnalysisMeasurement(MeasurementType.rightHandPos)]
+        [AnalysisMeasurement(MeasurementType.RightHandPos)]
         private Vector3 StartPosition;
 
-        [AnalysisMeasurement(MeasurementType.rightHandPos)]
+        [AnalysisMeasurement(MeasurementType.RightHandPos)]
         private Vector3 EndPosition => transform.position;
 
         private MapLane SpeedViolationLane;

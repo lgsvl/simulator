@@ -132,7 +132,7 @@ namespace Simulator.Sensors
 
         #region FPSCalculation
         [SensorParameter]
-       [AnalysisMeasurement(MeasurementType.fps)]
+       [AnalysisMeasurement(MeasurementType.Fps)]
         public float MinFPS = 10f;
         [SensorParameter]
         public float MinFPSTime = 5f;
@@ -140,9 +140,9 @@ namespace Simulator.Sensors
         private float DeltaTime = 0.0f;
         private float MS = 0f;
         private float FPS = 0f;
-       [AnalysisMeasurement(MeasurementType.fps)]
+       [AnalysisMeasurement(MeasurementType.Fps)]
         private float AveFPS = 0f;
-       [AnalysisMeasurement(MeasurementType.fps)]
+       [AnalysisMeasurement(MeasurementType.Fps)]
         private float LowestFPS = float.MaxValue;
         private bool LowFPS = false;
         #endregion

@@ -25,7 +25,7 @@ namespace Simulator.Sensors
 
         WireframeBoxes WireframeBoxes;
 
-        [AnalysisMeasurement(MeasurementType.count)]
+        [AnalysisMeasurement(MeasurementType.Count)]
         private int MaxTracked = -1;
 
         public override SensorDistributionType DistributionType => SensorDistributionType.HighLoad;

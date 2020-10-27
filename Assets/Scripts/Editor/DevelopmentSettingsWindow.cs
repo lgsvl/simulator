@@ -71,6 +71,7 @@ namespace Simulator.Editor
                 DeveloperSimulation = new SimulationData()
                 {
                     Name = "DeveloperSettings",
+                    TimeOfDay = DateTime.Now,
                     Cluster = new ClusterData()
                     {
                         Name = "DeveloperSettingsDummy",

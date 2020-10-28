@@ -5,16 +5,16 @@
  *
  */
 
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+
 namespace Simulator.Sensors.Postprocessing
 {
-    using UnityEngine;
-    using UnityEngine.Rendering;
-    using UnityEngine.Rendering.HighDefinition;
-
-    [PostProcessOrder(1)]
-    public class CameraRainFX : PostProcessPass<Rain>
+    [PostProcessOrder(2)]
+    public sealed class GreyScaleFX : PostProcessPass<GreyScale>
     {
-        private const string ShaderName = "Hidden/Shader/CameraRainFX";
+        private const string ShaderName = "Hidden/Shader/GreyScale";
         private Material material;
         protected override bool IsActive => material != null;
 
@@ -26,7 +26,7 @@ namespace Simulator.Sensors.Postprocessing
             }
             else
             {
-                Debug.LogError($"Unable to find shader {ShaderName}. Post Process Volume {nameof(CameraRainFX)} is unable to load.");
+                Debug.LogError($"Unable to find shader {ShaderName}. Post Process Volume {nameof(GreyScaleFX)} is unable to load.");
             }
         }
 
@@ -35,13 +35,15 @@ namespace Simulator.Sensors.Postprocessing
             CoreUtils.Destroy(material);
         }
 
-        protected override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, Rain data)
+        protected override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, GreyScale data)
         {
-            cmd.SetGlobalFloat("_Intensity", data.intensity);
-            cmd.SetGlobalTexture("_InputTexture", source);
-            cmd.SetGlobalFloat("_Size", data.size);
+            if (material == null)
+                return;
 
+            material.SetFloat("_Intensity", data.intensity);
+            material.SetTexture("_InputTexture", source);
             HDUtils.DrawFullScreen(cmd, material, destination);
         }
     }
 }
+

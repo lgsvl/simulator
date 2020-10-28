@@ -46,7 +46,7 @@ namespace Simulator.Sensors.Postprocessing
 
         /// <summary>
         /// <para>Called when pass is about to be disposed.</para>
-        /// <para>Any resources allocated in <see cref="DoSetup"/> should be released here.</para>
+        /// <para>Any resources allocated in <see cref="DoCleanup"/> should be released here.</para>
         /// </summary>
         protected abstract void DoCleanup();
 

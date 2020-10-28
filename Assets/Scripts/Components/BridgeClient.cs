@@ -41,13 +41,6 @@ namespace Simulator.Components
             ConnectTime = 0;
         }
 
-        public void Disconnect()
-        {
-            Bridge.Disconnect();
-
-            ConnectTime = Stopwatch.GetTimestamp() + reconnectInterval;
-        }
-
         public void Update()
         {
             bool disconnectedStatus = BridgeStatus == Status.Disconnected || BridgeStatus == Status.UnexpectedlyDisconnected;
@@ -69,14 +62,11 @@ namespace Simulator.Components
             }
 
             // do not reconnect in non interactive mode
-            if (BridgeStatus == Status.UnexpectedlyDisconnected
-                && ConnectionManager.instance != null
-                && Loader.Instance.CurrentSimulation.Interactive == false)
+            if (BridgeStatus == Status.UnexpectedlyDisconnected && Loader.Instance.CurrentSimulation.Interactive == false)
             {
-                if (ConnectionManager.instance != null && Loader.Instance.CurrentSimulation.Interactive == false)
-                {
-                    ConnectionManager.instance.UpdateStatus("Error", Loader.Instance.CurrentSimulation.Id, "Bridge socket was unexpectedly disconnected");
-                }
+                Loader.Instance.reportStatus(SimulatorStatus.Error, "Bridge socket was unexpectedly disconnected");
+                Bridge.Disconnect();
+                Disconnected = true;
             }
             else if (disconnectedStatus)
             {
@@ -99,7 +89,7 @@ namespace Simulator.Components
 
         private void OnDestroy()
         {
-            Disconnect();
+            Bridge.Disconnect();
         }
     }
 }

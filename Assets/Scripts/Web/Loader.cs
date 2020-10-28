@@ -129,11 +129,12 @@ namespace Simulator
 
     public enum SimulatorStatus
     {
-        Idle = 0,
-        Loading = 1,
-        Starting = 2,
-        Running = 3,
-        Stopping = 4
+        Idle,
+        Loading,
+        Starting,
+        Running,
+        Error,
+        Stopping
     }
 
     public class Loader : MonoBehaviour
@@ -179,42 +180,44 @@ namespace Simulator
                 case SimulatorStatus.Loading:
                 case SimulatorStatus.Starting: return "Starting";
                 case SimulatorStatus.Running: return "Running";
+                case SimulatorStatus.Error: return "Error";
                 case SimulatorStatus.Stopping: return "Stopping";
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
+        public void reportStatus(SimulatorStatus value, string message = "")
+        {
+            Console.WriteLine($"[LOADER] Update simulation status {status} -> {value}");
+
+            var previous = reportedStatus(status);
+            var newStatus = reportedStatus(value);
+
+            status = value;
+
+            if (previous == newStatus)
+                return;
+
+            if (ConnectionManager.instance != null)
+            {
+                ConnectionManager.instance.UpdateStatus(newStatus, CurrentSimulation.Id, message);
+            }
+
+            if (value == SimulatorStatus.Idle)
+            {
+                currentSimulation = null;
+            }
+
+            if (status == SimulatorStatus.Running)
+            {
+                WindowFlasher.Flash();
+            }
+        }
+
         public SimulatorStatus Status
         {
             get => status;
-            set
-            {
-                Console.WriteLine($"[LOADER] Update simulation status {status} -> {value}");
-
-                var previous = reportedStatus(status);
-                var newStatus = reportedStatus(value);
-
-                status = value;
-
-                if (previous == newStatus)
-                    return;
-
-                if (ConnectionManager.instance != null)
-                {
-                    ConnectionManager.instance.UpdateStatus(newStatus, CurrentSimulation.Id);
-                }
-
-                if (value == SimulatorStatus.Idle)
-                {
-                    currentSimulation = null;
-                }
-
-                if (status == SimulatorStatus.Running)
-                {
-                    WindowFlasher.Flash();
-                }
-            }
         }
 
         private void Start()
@@ -292,7 +295,7 @@ namespace Simulator
                 }
 #endif
                 Instance.currentSimulation = simData;
-                Instance.Status = SimulatorStatus.Loading;
+                Instance.reportStatus(SimulatorStatus.Loading);
                 Instance.Network.Initialize(Config.SimID, simData.Cluster, Instance.NetworkSettings);
                 var downloads = new List<Task>();
                 if (simData.ApiOnly == false)
@@ -337,16 +340,13 @@ namespace Simulator
             {
                 Debug.Log($"Failed to start '{simData.Name}' simulation");
                 Debug.LogException(ex);
-                if (ConnectionManager.instance != null)
-                {
-                    ConnectionManager.instance.UpdateStatus("Error", simData.Id, ex.Message);
-                }
+                Instance.reportStatus(SimulatorStatus.Error, ex.Message);
 
                 if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
                 {
-                    Instance.Status = SimulatorStatus.Stopping;
+                    Instance.reportStatus(SimulatorStatus.Stopping);
                     SceneManager.LoadScene(Instance.LoaderScene);
-                    Instance.Status = SimulatorStatus.Idle;
+                    Instance.reportStatus(SimulatorStatus.Idle);
                 }
             }
 #if UNITY_EDITOR
@@ -364,7 +364,7 @@ namespace Simulator
         {
             Debug.Assert(Instance.Status == SimulatorStatus.Loading);
             Instance.currentSimulation = simulation;
-            Instance.Status = SimulatorStatus.Starting;
+            Instance.reportStatus(SimulatorStatus.Starting);
 
             Instance.Actions.Enqueue(async () =>
             {
@@ -507,16 +507,13 @@ namespace Simulator
                         Debug.Log($"Failed to start '{simulation.Name}' simulation");
                         Debug.LogException(ex);
 
-                        if (ConnectionManager.instance != null)
-                        {
-                            ConnectionManager.instance.UpdateStatus("Error", simulation.Id, ex.Message);
-                        }
+                        Instance.reportStatus(SimulatorStatus.Error, ex.Message);
 
                         if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
                         {
-                            Instance.Status = SimulatorStatus.Stopping;
+                            Instance.reportStatus(SimulatorStatus.Stopping);
                             SceneManager.LoadScene(Instance.LoaderScene);
-                            Instance.Status = SimulatorStatus.Idle;
+                            Instance.reportStatus(SimulatorStatus.Idle);
                         }
 
                         textureBundle?.Unload(false);
@@ -529,18 +526,15 @@ namespace Simulator
                         Debug.Log($"Failed to start '{simulation.Name}' simulation");
                         Debug.LogException(ex);
 
-                        if (ConnectionManager.instance != null)
-                        {
-                            ConnectionManager.instance.UpdateStatus("Error", simulation.Id, ex.Message);
-                        }
+                        Instance.reportStatus(SimulatorStatus.Error, ex.Message);
 
                         if (SceneManager.GetActiveScene().name != Instance.LoaderScene && ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline)
                         {
-                            Instance.Status = SimulatorStatus.Stopping;
+                            Instance.reportStatus(SimulatorStatus.Stopping);
                             SceneManager.LoadScene(Instance.LoaderScene);
                         }
 
-                        Instance.Status = SimulatorStatus.Idle;
+                        Instance.reportStatus(SimulatorStatus.Idle);
                         textureBundle?.Unload(false);
                         mapBundle?.Unload(false);
                         AssetBundle.UnloadAllAssetBundles(true);
@@ -556,14 +550,14 @@ namespace Simulator
                 //Check if simulation scene was initialized
                 if (Instance.Status == SimulatorStatus.Loading)
                 {
-                    Instance.Status = SimulatorStatus.Stopping;
+                    Instance.reportStatus(SimulatorStatus.Stopping);
                     await Instance.Network.Deinitialize();
-                    Instance.Status = SimulatorStatus.Idle;
+                    Instance.reportStatus(SimulatorStatus.Idle);
                     return;
                 }
 
                 if (ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline)
-                    Instance.Status = SimulatorStatus.Stopping;
+                    Instance.reportStatus(SimulatorStatus.Stopping);
 
                 if (SimulatorManager.InstanceAvailable)
                     await SimulatorManager.Instance.AnalysisManager.AnalysisSave();
@@ -594,7 +588,7 @@ namespace Simulator
                             {
                                 AssetBundle.UnloadAllAssetBundles(false);
                                 Instance.ConnectionUI.SetLoaderUIState(ConnectionUI.LoaderUIStateType.START);
-                                Instance.Status = SimulatorStatus.Idle;
+                                Instance.reportStatus(SimulatorStatus.Idle);
                             }
                         };
                     }
@@ -602,7 +596,7 @@ namespace Simulator
                     {
                         Debug.Log($"Failed to stop '{Instance.CurrentSimulation.Name}' simulation");
                         Debug.LogException(ex);
-                        Instance.Status = SimulatorStatus.Idle;
+                        Instance.reportStatus(SimulatorStatus.Idle);
                     }
                 }
             });
@@ -639,7 +633,7 @@ namespace Simulator
 
                 if (Instance.CurrentSimulation != null && ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline)
                 {
-                    Instance.Status = SimulatorStatus.Running;
+                    Instance.reportStatus(SimulatorStatus.Running);
                 }
 
                 // Flash main window to let user know simulation is ready
@@ -649,22 +643,14 @@ namespace Simulator
             {
                 Debug.Log($"Failed to start '{simulation.Name}' simulation - out of date asset bundles");
                 Debug.LogException(ex);
-                if (ConnectionManager.instance != null)
-                {
-                    ConnectionManager.instance.UpdateStatus("Error", simulation.Id, ex.Message);
-                }
-
+                Instance.reportStatus(SimulatorStatus.Error, ex.Message);
                 ResetLoaderScene(simulation);
             }
             catch (Exception ex)
             {
                 Debug.Log($"Failed to start '{simulation.Name}' simulation");
                 Debug.LogException(ex);
-                if (ConnectionManager.instance != null)
-                {
-                    ConnectionManager.instance.UpdateStatus("Error", simulation.Id, ex.Message);
-                }
-
+                Instance.reportStatus(SimulatorStatus.Error, ex.Message);
                 ResetLoaderScene(simulation);
             }
         }
@@ -793,11 +779,12 @@ namespace Simulator
         {
             if (SceneManager.GetActiveScene().name != Instance.LoaderScene && ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline)
             {
-                Instance.Status = SimulatorStatus.Stopping;
+                Instance.reportStatus(SimulatorStatus.Stopping);
+
                 SceneManager.LoadScene(Instance.LoaderScene);
                 AssetBundle.UnloadAllAssetBundles(true);
                 // changing Status requires CurrentSimulation to be valid
-                Instance.Status = SimulatorStatus.Idle;
+                Instance.reportStatus(SimulatorStatus.Idle);
             }
         }
 
@@ -936,7 +923,7 @@ namespace Simulator
             {
                 if (e.Failed)
                 {
-                    ConnectionManager.instance.UpdateStatus("Error", Instance.CurrentSimulation.Id, e.ErrorData);
+                    Instance.reportStatus(SimulatorStatus.Error, e.ErrorData);
                 }
 
                 Console.WriteLine($"[LOADER] Stopping simulation on TestCase process exit");

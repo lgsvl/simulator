@@ -68,13 +68,14 @@ namespace Simulator.Bridge.Ros
 
         public void Disconnect()
         {
-            if (Socket != null)
+            if (Socket != null && Socket.ReadyState == WebSocketState.Open)
             {
-                if (Socket.ReadyState == WebSocketState.Open)
-                {
-                    Status = Status.Disconnecting;
-                    Socket.CloseAsync();
-                }
+                Status = Status.Disconnecting;
+                Socket.CloseAsync();
+            }
+            else
+            {
+                Status = Status.Disconnected;
             }
         }
 

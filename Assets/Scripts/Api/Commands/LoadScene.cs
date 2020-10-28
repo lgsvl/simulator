@@ -107,7 +107,7 @@ namespace Simulator.Api.Commands
 
                 if (Loader.Instance.CurrentSimulation != null && ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline)
                 {
-                    Loader.Instance.Status = SimulatorStatus.Running;
+                    Loader.Instance.reportStatus(SimulatorStatus.Running);
                 }
 
             }

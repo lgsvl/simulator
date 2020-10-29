@@ -16,7 +16,6 @@ namespace Simulator.ScenarioEditor.Controllables
     using Undo;
     using Undo.Records;
     using UnityEngine;
-    using Utilities;
     using Web;
 
     /// <summary>
@@ -91,7 +90,7 @@ namespace Simulator.ScenarioEditor.Controllables
         public ScenarioControllable GetControllableInstance(ControllableVariant variant)
         {
             var newGameObject = new GameObject(ElementTypeName);
-            newGameObject.transform.SetParent(ScenarioManager.Instance.transform);
+            newGameObject.transform.SetParent(transform);
             var scenarioControllable = newGameObject.AddComponent<ScenarioControllable>();
             scenarioControllable.Setup(this, variant);
             return scenarioControllable;

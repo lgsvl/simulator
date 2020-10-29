@@ -89,6 +89,7 @@ namespace Simulator.ScenarioEditor.Agents
             var colliders = instance.GetComponentsInChildren<Collider>();
             foreach (var collider in colliders) collider.isTrigger = true;
             instance.GetComponent<VehicleController>().enabled = false;
+            instance.GetComponent<VehicleSMI>().enabled = false;
             var rigidbody = instance.GetComponent<Rigidbody>();
             rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
             rigidbody.isKinematic = true;

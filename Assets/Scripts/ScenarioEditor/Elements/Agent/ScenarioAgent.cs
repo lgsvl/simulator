@@ -406,8 +406,11 @@ namespace Simulator.ScenarioEditor.Elements.Agents
                 PathRenderer.SetPosition(i + 1, position);
                 waypoints[i].IndexInAgent = i;
             }
-
             PathRenderer.positionCount = waypoints.Count + 1;
+            
+            //Update position after removing an element
+            if (index<waypoints.Count)
+                WaypointPositionChanged(waypoints[index]);
             return index;
         }
 
@@ -425,6 +428,14 @@ namespace Simulator.ScenarioEditor.Elements.Agents
             var previousPosition = PathRenderer.GetPosition(index)-position;
             waypoint.directionTransform.localPosition = previousPosition / 2.0f;
             waypoint.directionTransform.localRotation = Quaternion.LookRotation(-previousPosition);
+
+            if (index + 1 < waypoints.Count)
+            {
+                var nextPosition = position-PathRenderer.GetPosition(index+2);
+                var nextWaypoint = waypoints[index + 1];
+                nextWaypoint.directionTransform.localPosition = nextPosition / 2.0f;
+                nextWaypoint.directionTransform.localRotation = Quaternion.LookRotation(-nextPosition);
+            }
         }
 
         /// <summary>

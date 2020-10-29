@@ -279,7 +279,6 @@ namespace Simulator.ScenarioEditor.Managers
             mapManager.MapChanged += OnMapLoaded;
             await mapManager.LoadMapAsync();
             inspector.Initialize();
-            Time.timeScale = 0.0f;
             isInitialized = true;
             loadingProcess.Update("Scenario manager initialized.", true);
         }
@@ -297,7 +296,6 @@ namespace Simulator.ScenarioEditor.Managers
             foreach (var scenarioManager in scenarioEditorExtensions)
                 scenarioManager.Value.Deinitialize();
             GetExtension<ScenarioMapManager>().MapChanged -= OnMapLoaded;
-            Time.timeScale = 1.0f;
             isInitialized = false;
         }
 

@@ -236,7 +236,7 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
             {
                 var controllableName = controllableNode["name"];
                 var controllablesManager = ScenarioManager.Instance.GetExtension<ScenarioControllablesManager>();
-                var variant = controllablesManager.source.Variants.Find(v => v.Name == controllableName);
+                var variant = controllablesManager.Source.Variants.Find(v => v.Name == controllableName);
                 if (variant == null)
                 {
                     ScenarioManager.Instance.logPanel.EnqueueError(
@@ -251,7 +251,7 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                     continue;
                 }
 
-                var agentInstance = controllablesManager.source.GetControllableInstance(controllableVariant);
+                var agentInstance = controllablesManager.Source.GetControllableInstance(controllableVariant);
                 agentInstance.Uid = controllableNode["uid"];
                 var transformNode = controllableNode["transform"];
                 agentInstance.transform.position = transformNode["position"].ReadVector3();

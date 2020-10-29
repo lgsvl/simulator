@@ -27,7 +27,8 @@ namespace Simulator.ScenarioEditor.Managers
         /// <summary>
         /// Source of the controllable elements
         /// </summary>
-        public ScenarioControllableSource source;
+        [SerializeField]
+        private ScenarioControllableSource source;
 #pragma warning restore 0649
         
         /// <inheritdoc/>
@@ -62,7 +63,7 @@ namespace Simulator.ScenarioEditor.Managers
                 return;
             await ScenarioManager.Instance.WaitForExtension<InputManager>();
             Source = Instantiate(source, transform);
-            await source.Initialize();
+            await Source.Initialize();
             ScenarioManager.Instance.ScenarioReset += InstanceOnScenarioReset;
             IsInitialized = true;
             Debug.Log($"{GetType().Name} scenario editor extension has been initialized.");

@@ -66,7 +66,7 @@ namespace Simulator.ScenarioEditor.UI.AddElement
             //Controllables panels
             var controllablesManager = ScenarioManager.Instance.GetExtension<ScenarioControllablesManager>();
             newPanel = Instantiate(sourcePanelPrefab, contentParent);
-            newPanel.Initialize(controllablesManager.source);
+            newPanel.Initialize(controllablesManager.Source);
             sourcePanels.Add(newPanel);
             UnityUtilities.LayoutRebuild(contentParent as RectTransform);
         }

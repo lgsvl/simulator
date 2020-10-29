@@ -225,6 +225,7 @@ namespace Simulator.Network.Shared
 
             LocalAddresses.Clear();
             MasterAddresses.Clear();
+            Type = ClusterNodeType.NotClusterNode;
             CurrentSimulation = null;
             Log.Info("Deinitialized the Simulation Network data.");
         }

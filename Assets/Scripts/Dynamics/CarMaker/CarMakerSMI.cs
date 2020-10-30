@@ -102,8 +102,8 @@ namespace Simulator.Sensors
         {
             float posRight = AgentPosition.x + CraOffsetZ * Mathf.Sin(AgentHeading * Mathf.Deg2Rad);
             float posForward = AgentPosition.y + CraOffsetZ * Mathf.Cos(AgentHeading * Mathf.Deg2Rad);
-            RB.MovePosition(new Vector3(posRight, AgentPosition.z, posForward));
-            RB.MoveRotation(Quaternion.Euler(AgentRoll, AgentHeading, AgentPitch));
+            RB.transform.position = new Vector3(posRight, AgentPosition.z, posForward);
+            RB.transform.rotation = Quaternion.Euler(AgentRoll, AgentHeading, AgentPitch);
 
             RB.velocity = Vector3.zero;
             RB.angularVelocity = Vector3.zero;

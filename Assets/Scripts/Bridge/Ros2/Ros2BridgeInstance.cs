@@ -56,39 +56,49 @@ namespace Simulator.Bridge.Ros2
 
             Socket.NoDelay = true;
             Status = Status.Connecting;
-            Socket.BeginConnect(address, port, ar =>
+            try
             {
-                try
+                Socket.BeginConnect(address, port, ar =>
                 {
-                    Socket.EndConnect(ar);
-                }
-                catch (SocketException ex)
-                {
-                    Debug.LogException(ex);
-                    Disconnect();
-                    return;
-                }
+                    try
+                    {
+                        Socket.EndConnect(ar);
+                    }
+                    catch (SocketException ex)
+                    {
+                        Debug.LogException(ex);
+                        Status = Status.UnexpectedlyDisconnected;
+                        Socket.Close();
+                        Socket = null;
+                        return;
+                    }
 
-                lock (Setup)
-                {
-                    Setup.ForEach(s => SendAsync(s, null));
-                    Status = Status.Connected;
-                }
+                    lock (Setup)
+                    {
+                        Setup.ForEach(s => SendAsync(s, null));
+                        Status = Status.Connected;
+                    }
 
-                Socket.BeginReceive(ReadBuffer, 0, ReadBuffer.Length, SocketFlags.Partial, OnEndRead, null);
-            }, null);
+                    Socket.BeginReceive(ReadBuffer, 0, ReadBuffer.Length, SocketFlags.Partial, OnEndRead, null);
+                }, null);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+                Status = Status.UnexpectedlyDisconnected;
+                Socket.Close();
+                Socket = null;
+            }
         }
 
         public void Disconnect()
         {
-            if (Socket == null)
-            {
-                return;
-            }
-
             Status = Status.Disconnected;
-            Socket.Close();
-            Socket = null;
+            if (Socket != null)
+            {
+                Socket.Close();
+                Socket = null;
+            }
         }
 
         public void AddPublisher<BridgeType>(string topic)

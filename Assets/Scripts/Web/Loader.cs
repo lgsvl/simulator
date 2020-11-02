@@ -305,9 +305,9 @@ namespace Simulator
                         downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, simData.Map.AssetGuid, simData.Map.Name));
                     }
 
-                    foreach (var vehicle in simData.Vehicles.Where(v => !v.Id.EndsWith(".prefab")))
+                    foreach (var vehicle in simData.Vehicles.Where(v => !v.Id.EndsWith(".prefab")).Select(v => v.AssetGuid).Distinct())
                     {
-                        downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicle.AssetGuid, vehicle.Name));
+                        downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicle, simData.Vehicles.First(v => v.AssetGuid == vehicle).Name));
                     }
                 }
 

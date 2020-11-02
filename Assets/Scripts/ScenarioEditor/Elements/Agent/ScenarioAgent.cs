@@ -387,6 +387,8 @@ namespace Simulator.ScenarioEditor.Elements.Agents
                 waypoints[i].IndexInAgent = i;
             }
 
+            WaypointPositionChanged(waypoint);
+
             return index;
         }
 

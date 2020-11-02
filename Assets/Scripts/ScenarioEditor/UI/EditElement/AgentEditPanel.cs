@@ -216,7 +216,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement
                 agentSource = selectedAgent.Source;
                 variantDropdown.options.Clear();
                 variantDropdown.AddOptions(
-                    agentSource.Variants.Select(variant => variant.Name).ToList());
+                    agentSource.Variants.Where(variant => variant.IsPrepared).Select(variant => variant.Name).ToList());
                 //Setup behaviour
                 behaviourDropdown.options.Clear();
                 if (agentSource.Behaviours != null && agentSource.Behaviours.Count > 0)

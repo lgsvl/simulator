@@ -47,7 +47,7 @@ namespace Simulator.Api.Commands
                 string Message = String.Format("Invalid datetime received. Setting date and time to: {0}", date_time);
                 api.SendError(this, Message);
             }
-            env.ResetTime(date_time);
+            env.SetDateTime(date_time);
             env.CurrentTimeOfDayCycle = args["fixed"].AsBool ? EnvironmentEffectsManager.TimeOfDayCycleTypes.Freeze : EnvironmentEffectsManager.TimeOfDayCycleTypes.Normal;
 
             api.SendResult(this);

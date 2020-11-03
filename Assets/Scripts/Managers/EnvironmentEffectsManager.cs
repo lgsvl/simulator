@@ -341,10 +341,10 @@ public class EnvironmentEffectsManager : MonoBehaviour
             CurrentTimeOfDay = 0f;
         }
 
-        int hour = (int)Mathf.Floor(CurrentTimeOfDay);
+        int hour = (int) Mathf.Floor(CurrentTimeOfDay);
         float minf = ((CurrentTimeOfDay - hour) * 60.0f);
-        int min = (int)minf;
-        int sec = (int)((minf - min) * 60.0f);
+        int min = (int) minf;
+        int sec = (int) ((minf - min) * 60.0f);
         TimeSpan ts = new TimeSpan(hour, min, sec);
         CurrentDateTime = CurrentDateTime.Date + ts;
 

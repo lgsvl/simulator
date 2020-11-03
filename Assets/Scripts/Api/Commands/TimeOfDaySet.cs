@@ -1,11 +1,13 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
  */
 
 using SimpleJSON;
+using System;
+using UnityEngine;
 
 namespace Simulator.Api.Commands
 {

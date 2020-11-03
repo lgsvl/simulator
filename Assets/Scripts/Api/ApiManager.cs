@@ -36,7 +36,13 @@ namespace Simulator.Api
             Result = 1,
             Error = 2
         }
-    
+
+        [NonSerialized]
+        public string CurrentSceneId;
+
+        [NonSerialized]
+        public string CurrentSceneName;
+
         [NonSerialized]
         public string CurrentScene;
 
@@ -575,7 +581,7 @@ namespace Simulator.Api
                     CurrentTime += Time.fixedDeltaTime;
                     CurrentFrame += 1;
 
-                    if (!CurrentScene.IsNullOrEmpty())
+                    if (!CurrentSceneId.IsNullOrEmpty())
                     {
                         SimulatorManager.Instance.PhysicsUpdate();
                     }

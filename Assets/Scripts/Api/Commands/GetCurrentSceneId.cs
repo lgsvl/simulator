@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 LG Electronics, Inc.
+ * Copyright (c) 2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -9,14 +9,14 @@ using SimpleJSON;
 
 namespace Simulator.Api.Commands
 {
-    class GetCurrentScene : ICommand
+    class GetCurrentSceneId : ICommand
     {
-        public string Name => "simulator/current_scene";
+        public string Name => "simulator/current_scene_id";
 
         public void Execute(JSONNode args)
         {
             var api = ApiManager.Instance;
-            var scene = api.CurrentScene;
+            var scene = api.CurrentSceneId;
             if (string.IsNullOrEmpty(scene))
             {
                 api.SendResult(this);

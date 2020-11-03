@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -22,16 +22,16 @@ namespace Simulator.Api.Commands
     {
         public string Name => "simulator/load_scene";
 
-        private async Task LoadMap(JSONNode args, string mapId, int? seed = null)
+        private async Task LoadMap(JSONNode args, string userMapId, int? seed = null)
         {
             var api = ApiManager.Instance;
-            MapDetailData mapData = await ConnectionManager.API.GetByIdOrName<MapDetailData>(mapId);
+            MapDetailData mapData = await ConnectionManager.API.GetByIdOrName<MapDetailData>(userMapId);
 
             var ret = await DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, mapData.AssetGuid, mapData.Name);
-            api.StartCoroutine(LoadMapAssets(this, mapData, ret.LocalPath, seed));
+            api.StartCoroutine(LoadMapAssets(this, mapData, ret.LocalPath, userMapId, seed));
         }
 
-        static IEnumerator LoadMapAssets(LoadScene sourceCommand, MapDetailData map, string localPath, int? seed = null)
+        static IEnumerator LoadMapAssets(LoadScene sourceCommand, MapDetailData map, string localPath, string userMapId, int? seed = null)
         {
             var api = ApiManager.Instance;
 
@@ -121,7 +121,9 @@ namespace Simulator.Api.Commands
             var resetTask = api.Reset();
             while (!resetTask.IsCompleted)
                 yield return null;
-            api.CurrentScene = map.Name;
+            api.CurrentSceneId = map.Id;
+            api.CurrentSceneName = map.Name;
+            api.CurrentScene = userMapId;
             api.ActionsSemaphore.Unlock();
             api.SendResult(sourceCommand);
         }

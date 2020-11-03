@@ -47,6 +47,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
     [Header("TimeOfDay", order = 1)]
     [Range(0,24)]
     public float CurrentTimeOfDay = 12f;
+    public DateTime CurrentDateTime;
     public TimeOfDayCycleTypes CurrentTimeOfDayCycle = TimeOfDayCycleTypes.Freeze;
     public event Action<TimeOfDayStateTypes> TimeOfDayChanged;
 
@@ -173,9 +174,8 @@ public class EnvironmentEffectsManager : MonoBehaviour
         Moon = Instantiate(MoonGO, new Vector3(0f, 50f, 0f), Quaternion.Euler(90f, 0f, 0f)).GetComponent<Light>();
         MoonHD = Moon.gameObject.GetComponent<HDAdditionalLightData>();
 
-        var dt = DateTime.Now;
-        ResetTime(new DateTime(dt.Year, dt.Month, dt.Day, 12, 0, 0));
         Reset();
+
         PostPrecessingVolume = Instantiate(PostProcessingVolumePrefab);
         ActiveProfile = PostPrecessingVolume.profile;
 
@@ -259,36 +259,33 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     public void Reset()
     {
-        if (Config != null)
+        RandomGenerator = new System.Random(Seed);
+
+        if (Config == null)
         {
-            if (SimulatorManager.Instance.IsAPI)
-            {
-                Config.Fog = 0f;
-                Config.Rain = 0f;
-                Config.Wetness = 0f;
-                Config.Cloudiness = 0f;
-                Config.Damage = 0f;
-                Config.TimeOfDay = new DateTime(1980, 3, 24, 12, 0, 0);
-            }
-            Fog = Config.Fog;
-            Rain = Config.Rain;
-            Wet = Config.Wetness;
-            Cloud = Config.Cloudiness;
-            Damage = Config.Damage;
-            var dateTime = Config.TimeOfDay;
-            ResetTime(dateTime);
+            return;
         }
 
-        State.Fog = Fog;
-        State.Rain = Rain;
-        State.Wet = Wet;
-        State.Cloud = Cloud;
-        State.TimeOfDay = CurrentTimeOfDay;
+        if (SimulatorManager.Instance.IsAPI)
+        {
+            Config.Fog = 0f;
+            Config.Rain = 0f;
+            Config.Wetness = 0f;
+            Config.Cloudiness = 0f;
+            Config.Damage = 0f;
+            Config.TimeOfDay = new DateTime(1980, 3, 24, 12, 0, 0);
+        }
 
-        RandomGenerator = new System.Random(Seed);
+        Fog = Config.Fog;
+        Rain = Config.Rain;
+        Wet = Config.Wetness;
+        Cloud = Config.Cloudiness;
+        Damage = Config.Damage;
+        var dateTime = Config.TimeOfDay;
+        ResetTime(dateTime);
     }
 
-    void ResetTime(DateTime dateTime)
+    private void ResetTime(DateTime dateTime)
     {
         var tz = MapOrigin.TimeZone;
 
@@ -297,8 +294,17 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
         SunMoonPosition.GetSunRiseSet(tz, dateTime, GPSLocation.Longitude, GPSLocation.Latitude, out SunRiseBegin, out SunRiseEnd, out SunSetBegin, out SunSetEnd);
 
+        CurrentDateTime = dateTime;
         CurrentTimeOfDay = (float)dateTime.TimeOfDay.TotalHours;
         CurrentTimeOfDayCycle = TimeOfDayCycleTypes.Freeze;
+
+        UpdateDistributedState();
+    }
+
+    public void SetDateTime(DateTime dateTime)
+    {
+        Config.TimeOfDay = dateTime;
+        ResetTime(dateTime);
     }
 
     private void UpdateSunPosition()
@@ -329,10 +335,18 @@ public class EnvironmentEffectsManager : MonoBehaviour
             default:
                 break;
         }
+
         if (CurrentTimeOfDay >= 24)
         {
             CurrentTimeOfDay = 0f;
         }
+
+        int hour = (int)Mathf.Floor(CurrentTimeOfDay);
+        float minf = ((CurrentTimeOfDay - hour) * 60.0f);
+        int min = (int)minf;
+        int sec = (int)((minf - min) * 60.0f);
+        TimeSpan ts = new TimeSpan(hour, min, sec);
+        CurrentDateTime = CurrentDateTime.Date + ts;
 
         float morning = (SunRiseBegin + SunRiseEnd) / 2.0f;
         float evening = (SunSetBegin + SunSetEnd) / 2.0f;
@@ -553,6 +567,15 @@ public class EnvironmentEffectsManager : MonoBehaviour
             Config.Damage = Damage;
             Config.TimeOfDay = Config.TimeOfDay.Date + TimeSpan.FromHours(CurrentTimeOfDay);
         }
+    }
+
+    private void UpdateDistributedState()
+    {
+        State.Fog = Fog;
+        State.Rain = Rain;
+        State.Wet = Wet;
+        State.Cloud = Cloud;
+        State.TimeOfDay = CurrentTimeOfDay;
     }
 
     private void VFXRain() // TODO memory issue with this approach do not use

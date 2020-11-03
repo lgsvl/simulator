@@ -8,6 +8,7 @@
 using System;
 using System.Text;
 using System.Net.Sockets;
+using System.Net;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -58,37 +59,52 @@ namespace Simulator.Bridge.Cyber
             Status = Status.Connecting;
             try
             {
-                Socket.BeginConnect(address, port, ar =>
-                {
-                    try
-                    {
-                        Socket.EndConnect(ar);
-                    }
-                    catch (SocketException ex)
-                    {
-                        Debug.LogException(ex);
-                        Status = Status.UnexpectedlyDisconnected;
-                        Socket.Close();
-                        Socket = null;
-                        return;
-                    }
-
-                    lock (Setup)
-                    {
-                        Setup.ForEach(s => SendAsync(s, null));
-                        Status = Status.Connected;
-                    }
-
-                    Socket.BeginReceive(ReadBuffer, 0, ReadBuffer.Length, SocketFlags.Partial, OnEndRead, null);
-                }, null);
+                Dns.BeginGetHostAddresses(address, OnDnsResolved, null);
             }
             catch (Exception ex)
             {
-                Debug.LogException(ex);
-                Status = Status.UnexpectedlyDisconnected;
-                Socket.Close();
-                Socket = null;
+                ConnectionError(ex);
             }
+
+            void OnDnsResolved(IAsyncResult ar)
+            {
+                try
+                {
+                    var ipAddresses = Dns.EndGetHostAddresses(ar);
+                    Socket.BeginConnect(ipAddresses, port, OnConnectionComplete, null);
+                }
+                catch (Exception ex)
+                {
+                    ConnectionError(ex);
+                }
+            }
+        }
+
+        private void OnConnectionComplete(IAsyncResult ar)
+        {
+            try
+            {
+                Socket.EndConnect(ar);
+                lock (Setup)
+                {
+                    Setup.ForEach(s => SendAsync(s, null));
+                    Status = Status.Connected;
+                }
+
+                Socket.BeginReceive(ReadBuffer, 0, ReadBuffer.Length, SocketFlags.Partial, OnEndRead, null);
+            }
+            catch (SocketException ex)
+            {
+                ConnectionError(ex);
+            }
+        }
+
+        private void ConnectionError(Exception ex)
+        {
+            Debug.LogException(ex);
+            Status = Status.UnexpectedlyDisconnected;
+            Socket.Close();
+            Socket = null;
         }
 
         public void Disconnect()

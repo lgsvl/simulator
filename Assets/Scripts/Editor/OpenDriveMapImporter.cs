@@ -1595,6 +1595,7 @@ namespace Simulator.Editor
             stopLine.lineType = MapData.LineType.STOP;
             stopLine.mapWorldPositions = stopLinePositions;
             stopLine.transform.parent = mapIntersection.transform;
+            stopLine.isStopSign = true;
             ApolloMapImporter.UpdateLocalPositions(stopLine);
 
             var intersectionId = mapIntersection.name.Split('_')[1];
@@ -1919,6 +1920,7 @@ namespace Simulator.Editor
                             Debug.LogError($"No nearest stop line found for mapSignal {mapSignal.name}");
                             throw new Exception();
                         }
+                        stopLine.isStopSign = false;
                         mapSignal.stopLine = stopLine;
                     }
                 }

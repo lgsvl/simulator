@@ -56,9 +56,9 @@ namespace Simulator.Api.Commands
                     va.CurrentWiperState = (VehicleActions.WiperState)state;
                 }
 
-                if (args["control"]["turn_signal_Left"] != null)
+                if (args["control"]["turn_signal_left"] != null)
                 {
-                    bool on = args["control"]["turn_signal_Left"].AsBool;
+                    bool on = args["control"]["turn_signal_left"].AsBool;
                     va.LeftTurnSignal = on;
                 }
 

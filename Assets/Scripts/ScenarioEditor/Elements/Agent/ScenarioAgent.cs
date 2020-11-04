@@ -115,6 +115,9 @@ namespace Simulator.ScenarioEditor.Elements.Agents
                 return pathRenderer;
             }
         }
+        
+        /// <inheritdoc/>
+        public override string ElementType => Variant == null ? "Agent" : Variant.Name;
 
         /// <inheritdoc/>
         public override bool CanBeCopied => true;
@@ -429,14 +432,18 @@ namespace Simulator.ScenarioEditor.Elements.Agents
             //Update waypoint direction indicator
             var previousPosition = PathRenderer.GetPosition(index)-position;
             waypoint.directionTransform.localPosition = previousPosition / 2.0f;
-            waypoint.directionTransform.localRotation = Quaternion.LookRotation(-previousPosition);
+            waypoint.directionTransform.localRotation = previousPosition.sqrMagnitude > 0.0f
+                ? Quaternion.LookRotation(-previousPosition)
+                : Quaternion.Euler(0.0f, 0.0f, 0.0f);
 
             if (index + 1 < waypoints.Count)
             {
                 var nextPosition = position-PathRenderer.GetPosition(index+2);
                 var nextWaypoint = waypoints[index + 1];
                 nextWaypoint.directionTransform.localPosition = nextPosition / 2.0f;
-                nextWaypoint.directionTransform.localRotation = Quaternion.LookRotation(-nextPosition);
+                nextWaypoint.directionTransform.localRotation = nextPosition.sqrMagnitude > 0.0f
+                    ? Quaternion.LookRotation(-nextPosition)
+                    : Quaternion.Euler(0.0f, 0.0f, 0.0f);
             }
         }
 

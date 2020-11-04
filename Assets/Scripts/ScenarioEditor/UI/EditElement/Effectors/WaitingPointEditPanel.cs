@@ -112,8 +112,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         /// <inheritdoc/>
         public override void EffectorRemovedFromTrigger(ScenarioTrigger trigger, TriggerEffector effector)
         {
-            //Do not remove effector object as the Undo feature dispose all the objects when they are no longer needed
-            //trigger.RemoveEffectorObject(effector, ZoneObjectName);
+            trigger.RemoveEffectorObject(effector, zoneVisualization.name);
         }
 
         /// <summary>

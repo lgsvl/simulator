@@ -18,7 +18,7 @@ namespace Simulator.ScenarioEditor.Elements
     /// <remarks>
     /// Scenario element with variant that can be exchanged
     /// </remarks>
-    public class ScenarioElementWithVariant : ScenarioElement
+    public abstract class ScenarioElementWithVariant : ScenarioElement
     {
         /// <summary>
         /// Name for the gameobject containing the model instance

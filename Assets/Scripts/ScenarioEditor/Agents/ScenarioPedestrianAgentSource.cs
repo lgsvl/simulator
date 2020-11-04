@@ -7,7 +7,9 @@
 
 namespace Simulator.ScenarioEditor.Agents
 {
+    using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Elements.Agents;
     using Input;
@@ -46,8 +48,7 @@ namespace Simulator.ScenarioEditor.Agents
         public override List<SourceVariant> Variants { get; } = new List<SourceVariant>();
 
         /// <inheritdoc/>
-#pragma warning disable 1998
-        public override async Task Initialize()
+        public override Task Initialize(IProgress<float> progress)
         {
             inputManager = ScenarioManager.Instance.GetExtension<InputManager>();
             var pedestrianManager = Loader.Instance.SimulatorManagerPrefab.pedestrianManagerPrefab;
@@ -55,11 +56,13 @@ namespace Simulator.ScenarioEditor.Agents
             for (var i = 0; i < pedestriansInSimulation.Count; i++)
             {
                 var pedestrian = pedestriansInSimulation[i];
+                Debug.Log($"Loading pedestrian {pedestrian.name} from the pedestrian manager.");
                 var egoAgent = new AgentVariant(this, pedestrian.name, pedestrian, string.Empty);
                 Variants.Add(egoAgent);
+                progress.Report((float)(i+1)/pedestriansInSimulation.Count);
             }
+            return Task.CompletedTask;
         }
-#pragma warning restore 1998
 
         /// <inheritdoc/>
         public override void Deinitialize()

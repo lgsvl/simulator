@@ -9,6 +9,7 @@ namespace Simulator.ScenarioEditor.Managers
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Agents;
     using Elements.Agents;
@@ -22,23 +23,15 @@ namespace Simulator.ScenarioEditor.Managers
     /// </summary>
     public class ScenarioAgentsManager : MonoBehaviour, IScenarioEditorExtension
     {
-        //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
-#pragma warning disable 0649
         /// <summary>
         /// Available agent sources
         /// </summary>
         public List<ScenarioAgentSource> sources;
-#pragma warning restore 0649
         
         /// <summary>
         /// Prefab for the destination point graphic representation on the map
         /// </summary>
         public GameObject destinationPoint;
-
-        /// <summary>
-        /// Material used for path between agent and destination point
-        /// </summary>
-        public Material destinationPathMaterial;
         
         /// <inheritdoc/>
         public bool IsInitialized { get; private set; }
@@ -70,18 +63,36 @@ namespace Simulator.ScenarioEditor.Managers
         {
             if (IsInitialized)
                 return;
+            var loadingProcess = ScenarioManager.Instance.loadingPanel.AddProgress();
+            loadingProcess.Update("Agents: initializing.");
             await ScenarioManager.Instance.WaitForExtension<InputManager>();
             var tasks = new Task[sources.Count];
+            var sourceProgresses = new Progress<float>[sources.Count];
+            var sourceProgressesValue = new float[sources.Count];
+            var progressUpdate = new Action(() =>
+            {
+                var progressSum = sourceProgressesValue.Sum();
+                progressSum /= sources.Count;
+                loadingProcess.Update($"Agents: loading {progressSum:P}.");
+            });
             for (var i = 0; i < sources.Count; i++)
             {
                 var newSource = Instantiate(sources[i], transform);
                 Sources.Add(newSource);
-                tasks[i] = newSource.Initialize();
+                var sourceId = i;
+                sourceProgresses[i] = new Progress<float>(f =>
+                {
+                    sourceProgressesValue[sourceId] = f;
+                    progressUpdate();
+                });
+                tasks[i] = newSource.Initialize(sourceProgresses[i]);
             }
-            
+
             await Task.WhenAll(tasks);
+            
             ScenarioManager.Instance.ScenarioReset += InstanceOnScenarioReset;
             IsInitialized = true;
+            loadingProcess.NotifyCompletion();
             Debug.Log($"{GetType().Name} scenario editor extension has been initialized.");
         }
 

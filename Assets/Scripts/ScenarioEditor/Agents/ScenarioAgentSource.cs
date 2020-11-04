@@ -7,6 +7,7 @@
 
 namespace Simulator.ScenarioEditor.Agents
 {
+    using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Elements;
@@ -62,7 +63,8 @@ namespace Simulator.ScenarioEditor.Agents
         /// <summary>
         /// Initialization method
         /// </summary>
-        public abstract Task Initialize();
+        /// <param name="progress">Progress value of the initialization</param>
+        public abstract Task Initialize(IProgress<float> progress);
 
         /// <summary>
         /// Deinitialization method

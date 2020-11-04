@@ -129,7 +129,7 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
             ScenarioManager.Instance.RequestResetScenario(() =>
             {
                 var loadingProcess = ScenarioManager.Instance.loadingPanel.AddProgress();
-                loadingProcess.Update($"Switching to the {mapName} map.", false);
+                loadingProcess.Update($"Switching to the {mapName} map.");
                 //Delay selecting map so the loading panel can initialize
                 var nonBlockingTask = DelayedSelectMap(mapName, loadingProcess);
             }, null);
@@ -144,7 +144,8 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
         {
             await Task.Delay(20);
             await ScenarioManager.Instance.GetExtension<ScenarioMapManager>().LoadMapAsync(mapName);
-            loadingProcess.Update($"Switched to the {mapName} map.", true);
+            loadingProcess.Update($"Switched to the {mapName} map.");
+            loadingProcess.NotifyCompletion();
         }
     }
 }

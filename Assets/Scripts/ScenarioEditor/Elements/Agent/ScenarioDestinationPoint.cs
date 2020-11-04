@@ -33,6 +33,9 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         /// Parent agent which includes this destination point
         /// </summary>
         public ScenarioAgent ParentAgent { get; private set; }
+        
+        /// <inheritdoc/>
+        public override string ElementType { get; } = "Destination Point";
 
         /// <inheritdoc/>
         public override bool CanBeRemoved { get; } = false;

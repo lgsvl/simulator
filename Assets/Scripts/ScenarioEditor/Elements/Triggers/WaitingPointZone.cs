@@ -33,6 +33,9 @@ namespace Simulator.ScenarioEditor.Agents.Triggers
         private WaitingPointEffector waitingPointEffector;
 
         /// <inheritdoc/>
+        public override string ElementType { get; } = "Waiting Point Zone";
+
+        /// <inheritdoc/>
         public override bool CanBeRotated => false;
 
         /// <inheritdoc/>
@@ -84,14 +87,16 @@ namespace Simulator.ScenarioEditor.Agents.Triggers
         protected override void OnMoved()
         {
             base.OnMoved();
-            waitingPointEffector.ActivatorPoint = transform.position;
+            if (waitingPointEffector!=null)
+                waitingPointEffector.ActivatorPoint = transform.position;
             Refresh();
         }
 
         protected override void OnResized()
         {
             base.OnResized();
-            waitingPointEffector.PointRadius = transform.localScale.x;
+            if (waitingPointEffector!=null)
+                waitingPointEffector.PointRadius = transform.localScale.x;
             Refresh();
         }
 

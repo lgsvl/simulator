@@ -8,6 +8,7 @@
 namespace Simulator.ScenarioEditor.Elements
 {
     using System.Collections.Generic;
+    using System.Linq;
     using Agents;
     using Managers;
     using ScenarioEditor.Agents.Triggers;
@@ -45,6 +46,11 @@ namespace Simulator.ScenarioEditor.Elements
                 new Dictionary<string, ScenarioEffectorObject>();
 
             /// <summary>
+            /// Checks if there is any object in this scenario effector
+            /// </summary>
+            public bool IsEmpty => !objects.Any();
+
+            /// <summary>
             /// Initialization of the effector
             /// </summary>
             /// <param name="parent">Parent trigger that contains this effector</param>
@@ -79,7 +85,9 @@ namespace Simulator.ScenarioEditor.Elements
             {
                 foreach (var originObject in origin.objects)
                 {
-                    var effectorObject = AddEffectorObject(originObject.Key, originObject.Value.gameObject);
+                    var effectorObject = GetEffectorObject(originObject.Key);
+                    if (effectorObject == null)
+                        effectorObject = AddEffectorObject(originObject.Key, originObject.Value.gameObject);
                     effectorObject.CopyProperties(originObject.Value);
                 }
             }
@@ -239,25 +247,33 @@ namespace Simulator.ScenarioEditor.Elements
         {
             LinkedWaypoint = originTrigger.LinkedWaypoint;
             ClearEffectors();
-            foreach (var effector in originTrigger.Trigger.Effectors)
+            foreach (var effectorObject in originTrigger.effectorsObjects)
             {
-                var clone = effector.Clone() as TriggerEffector;
-                Trigger.AddEffector(clone);
-            }
-
-            foreach (var effector in originTrigger.effectorsObjects)
-            {
-                if (!effectorsObjects.TryGetValue(effector.Key, out var scenarioEffector))
+                if (effectorObject.Value.IsEmpty)
+                    continue;
+                if (!effectorsObjects.TryGetValue(effectorObject.Key, out var scenarioEffector))
                 {
-                    var cloneEffector = Trigger.Effectors.Find((e) => e.TypeName == effector.Key);
+                    var cloneEffector = Trigger.Effectors.Find(e => e.TypeName == effectorObject.Key);
                     if (cloneEffector == null)
-                        continue;
+                    {
+                        var effectorOrigin =
+                            originTrigger.Trigger.Effectors.Find(e => e.TypeName == effectorObject.Key);
+                        cloneEffector = effectorOrigin.Clone() as TriggerEffector;
+                    }
+
                     scenarioEffector = new ScenarioEffector();
-                    effectorsObjects.Add(effector.Key, scenarioEffector);
+                    effectorsObjects.Add(effectorObject.Key, scenarioEffector);
                     scenarioEffector.Initialize(this, cloneEffector);
                 }
 
-                scenarioEffector.CopyProperties(effector.Value);
+                scenarioEffector.CopyProperties(effectorObject.Value);
+            }
+
+            foreach (var effector in originTrigger.Trigger.Effectors)
+            {
+                var cloneEffector = Trigger.Effectors.FirstOrDefault(e => e.TypeName == effector.TypeName) ??
+                                    effector.Clone() as TriggerEffector;
+                Trigger.AddEffector(cloneEffector);
             }
         }
 
@@ -269,7 +285,9 @@ namespace Simulator.ScenarioEditor.Elements
         /// <returns>Effector object inside the trigger</returns>
         public ScenarioEffectorObject GetEffectorObject(TriggerEffector effector, string objectName)
         {
-            return effectorsObjects.TryGetValue(effector.TypeName, out var scenarioEffector) ? scenarioEffector.GetEffectorObject(objectName) : null;
+            return effectorsObjects.TryGetValue(effector.TypeName, out var scenarioEffector)
+                ? scenarioEffector.GetEffectorObject(objectName)
+                : null;
         }
 
         /// <summary>

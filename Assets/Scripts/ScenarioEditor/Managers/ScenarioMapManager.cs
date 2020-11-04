@@ -188,7 +188,7 @@ namespace Simulator.ScenarioEditor.Managers
                 return;
             
             var loadingProcess = ScenarioManager.Instance.loadingPanel.AddProgress();
-            loadingProcess.Update("Loading scenario map manager ...", false);
+            loadingProcess.Update("Loading scenario map manager.");
             
             if (!string.IsNullOrEmpty(loadedSceneName))
                 UnloadMapAsync();
@@ -204,7 +204,7 @@ namespace Simulator.ScenarioEditor.Managers
                 {
                     var map = AvailableMaps[i];
                     if (map.name != name) continue;
-                    loadingProcess.Update($"Downloading {map.name} map.", false);
+                    loadingProcess.Update($"Downloading {map.name} map.");
                     //Download map if it's not available
                     if (map.assetModel == null)
                         map.assetModel =
@@ -230,18 +230,19 @@ namespace Simulator.ScenarioEditor.Managers
                 if (mapToLoad == null)
                 {
                     var map = AvailableMaps[0];
-                    loadingProcess.Update($"Downloading map {map.name}.", false);
+                    loadingProcess.Update($"Downloading map {map.name}.");
                     map.assetModel =
                         await DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, map.assetGuid, map.name);
                     mapToLoad = map;
                 }
             }
-            loadingProcess.Update($"Loading map {mapToLoad.name}.", false);
+            loadingProcess.Update($"Loading map {mapToLoad.name}.");
             await LoadMapAssets(mapToLoad.assetModel, mapToLoad);
             loadingProcess.Update(
                 CurrentMapName == mapToLoad.name
                     ? $"Scenario map manager loaded {mapToLoad.name} map."
-                    : $"Loaded {mapToLoad.name} map failed.", true);
+                    : $"Loaded {mapToLoad.name} map failed.");
+            loadingProcess.NotifyCompletion();
         }
 
         /// <summary>

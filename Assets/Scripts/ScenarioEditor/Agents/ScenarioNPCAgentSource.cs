@@ -7,6 +7,7 @@
 
 namespace Simulator.ScenarioEditor.Agents
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
@@ -49,26 +50,29 @@ namespace Simulator.ScenarioEditor.Agents
         public override List<SourceVariant> Variants { get; } = new List<SourceVariant>();
 
         /// <inheritdoc/>
-#pragma warning disable 1998
-        public override async Task Initialize()
+        public override Task Initialize(IProgress<float> progress)
         {
             inputManager = ScenarioManager.Instance.GetExtension<InputManager>();
             var npcVehiclesInSimulation = Config.NPCVehicles;
+            var npcsCount = npcVehiclesInSimulation.Count;
+            var i = 0;
             foreach (var npcAssetData in npcVehiclesInSimulation)
             {
                 var sb = new StringBuilder();
+                Debug.Log($"Loading NPC {npcAssetData.Value.Name} from the config.");
                 sb.Append("NPC type: ");
                 sb.Append(npcAssetData.Value.NPCType);
                 var npcVariant = new AgentVariant(this, npcAssetData.Value.Name, npcAssetData.Value.Prefab,
                     sb.ToString());
                 Variants.Add(npcVariant);
+                progress.Report((float)++i/npcsCount);
             }
 
             Behaviours = new List<string>();
             var npcsManager = ScenarioManager.Instance.GetExtension<ScenarioNPCsManager>();
             Behaviours.AddRange(npcsManager.AvailableBehaviourTypes.Select(t => t.Name));
+            return Task.CompletedTask;
         }
-#pragma warning restore 1998
 
         /// <inheritdoc/>
         public override void Deinitialize()
@@ -147,7 +151,7 @@ namespace Simulator.ScenarioEditor.Agents
             var agent = GetAgentInstance(selectedVariant);
             agent.TransformToRotate.rotation = draggedInstance.transform.rotation;
             agent.ForceMove(draggedInstance.transform.position);
-            agent.ChangeBehaviour(nameof(NPCWaypointBehaviour));
+            agent.ChangeBehaviour(nameof(NPCWaypointBehaviour), false);
             ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
             ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoAddElement(agent));
             draggedInstance = null;

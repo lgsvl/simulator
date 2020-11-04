@@ -7,6 +7,7 @@
 
 namespace Simulator.ScenarioEditor.Undo
 {
+    using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Managers;
@@ -37,6 +38,7 @@ namespace Simulator.ScenarioEditor.Undo
                 return Task.CompletedTask;
             IsInitialized = true;
             Debug.Log($"{GetType().Name} scenario editor extension has been initialized.");
+            gameObject.SetActive(false);
             return Task.CompletedTask;
         }
 
@@ -72,7 +74,15 @@ namespace Simulator.ScenarioEditor.Undo
             var lastRecord = recordsCache.First?.Value;
             if (lastRecord == null)
                 return;
-            lastRecord.Undo();
+            try
+            {
+                lastRecord.Undo();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Undo failed for a {lastRecord.GetType().Name}. Exception: {ex.Message}");
+            }
+
             recordsCache.RemoveFirst();
             ScenarioManager.Instance.IsScenarioDirty = true;
         }

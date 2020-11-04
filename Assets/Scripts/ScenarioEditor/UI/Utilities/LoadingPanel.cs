@@ -45,18 +45,24 @@ namespace Simulator.ScenarioEditor.UI.Utilities
             public LoadingProcess(Text loadingText)
             {
                 LoadingText = loadingText;
-                Update("", false);
+                Update("");
             }
-
+            
             /// <summary>
             /// Updates the loading process
             /// </summary>
             /// <param name="text">Text that will be displayed</param>
-            /// <param name="isCompleted">Is this loading process completed</param>
-            public void Update(string text, bool isCompleted)
+            public void Update(string text)
             {
                 LoadingText.text = text;
-                IsCompleted = isCompleted;
+            }
+
+            /// <summary>
+            /// Marks progress as completed and notifies listeners
+            /// </summary>
+            public void NotifyCompletion()
+            {
+                IsCompleted = true;
                 if (IsCompleted)
                     Completed?.Invoke();
             }

@@ -42,10 +42,11 @@ namespace Simulator.ScenarioEditor.Undo.Records
         /// <inheritdoc/>
         public override void Undo()
         {
+            var elementType = scenarioElement.ElementType;
             scenarioElement.transform.SetParent(previousParent);
             scenarioElement.gameObject.SetActive(true);
             scenarioElement.UndoRemove();
-            ScenarioManager.Instance.logPanel.EnqueueInfo("Undo applied to rollback removing a scenario element.");
+            ScenarioManager.Instance.logPanel.EnqueueInfo($"Undo applied to rollback removing a scenario element of type: {elementType}.");
         }
 
         /// <inheritdoc/>

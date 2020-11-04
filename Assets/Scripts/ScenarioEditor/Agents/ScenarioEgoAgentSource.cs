@@ -7,6 +7,7 @@
 
 namespace Simulator.ScenarioEditor.Agents
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
@@ -21,6 +22,7 @@ namespace Simulator.ScenarioEditor.Agents
     using UnityEngine;
     using Utilities;
     using Web;
+    using Object = UnityEngine.Object;
 
     /// <inheritdoc/>
     /// <remarks>
@@ -51,7 +53,7 @@ namespace Simulator.ScenarioEditor.Agents
         public override List<SourceVariant> Variants { get; } = new List<SourceVariant>();
 
         /// <inheritdoc/>
-        public override async Task Initialize()
+        public override async Task Initialize(IProgress<float> progress)
         {
             inputManager = ScenarioManager.Instance.GetExtension<InputManager>();
             var library = await ConnectionManager.API.GetLibrary<VehicleDetailData>();
@@ -60,11 +62,13 @@ namespace Simulator.ScenarioEditor.Agents
             var vehiclesInDatabase = assetService.List(BundleConfig.BundleTypes.Vehicle);
             var cachedVehicles = vehiclesInDatabase as AssetModel[] ?? vehiclesInDatabase.ToArray();
 
-            foreach (var vehicleDetailData in library)
+            for (var i = 0; i < library.Length; i++)
             {
+                var vehicleDetailData = library[i];
+                Debug.Log($"Loading ego vehicle {vehicleDetailData.Name} from the library.");
                 var sb = new StringBuilder();
                 sb.Append(vehicleDetailData.Description);
-                var newVehicle = new CloudAgentVariant(this, vehicleDetailData.Name, null, 
+                var newVehicle = new CloudAgentVariant(this, vehicleDetailData.Name, null,
                     sb.ToString(), vehicleDetailData.Id, vehicleDetailData.AssetGuid)
                 {
                     assetModel =
@@ -74,6 +78,7 @@ namespace Simulator.ScenarioEditor.Agents
                     newVehicle.AcquirePrefab();
 
                 Variants.Add(newVehicle);
+                progress.Report((float)(i+1)/library.Length);
             }
         }
 

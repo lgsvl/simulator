@@ -7,7 +7,9 @@
 
 namespace Simulator.ScenarioEditor.Controllables
 {
+    using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Agents;
     using Elements;
@@ -54,18 +56,27 @@ namespace Simulator.ScenarioEditor.Controllables
         /// <summary>
         /// Initialization method
         /// </summary>
+        /// <param name="progress">Progress value of the initialization</param>
         /// <returns>Task</returns>
-        public Task Initialize()
+        public Task Initialize(IProgress<float> progress)
         {
             if (IsInitialized)
+            {
+                progress.Report(1.0f);
                 return Task.CompletedTask;
+            }
+
             inputManager = ScenarioManager.Instance.GetExtension<InputManager>();
             var controllables = Config.Controllables;
+            var controllablesCount = controllables.Count;
+            var i = 0;
             foreach (var controllable in controllables)
             {
                 var variant = new ControllableVariant();
+                Debug.Log($"Loading controllable {controllable.Key} from the config.");
                 variant.Setup(controllable.Key, controllable.Value);
                 Variants.Add(variant);
+                progress.Report((float)++i/controllablesCount);
             }
 
             IsInitialized = true;

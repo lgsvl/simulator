@@ -30,10 +30,10 @@ namespace Simulator.ScenarioEditor.Managers
         [SerializeField]
         private ScenarioControllableSource source;
 #pragma warning restore 0649
-        
+
         /// <inheritdoc/>
         public bool IsInitialized { get; private set; }
-        
+
         /// <summary>
         /// Source of the controllable elements
         /// </summary>
@@ -48,7 +48,7 @@ namespace Simulator.ScenarioEditor.Managers
         /// Event invoked when a new controllable is registered
         /// </summary>
         public event Action<ScenarioControllable> ControllableRegistered;
-        
+
         /// <summary>
         /// Event invoked when controllable is unregistered
         /// </summary>
@@ -61,11 +61,16 @@ namespace Simulator.ScenarioEditor.Managers
         {
             if (IsInitialized)
                 return;
+            var loadingProcess = ScenarioManager.Instance.loadingPanel.AddProgress();
+            loadingProcess.Update("Controllables: initializing.");
             await ScenarioManager.Instance.WaitForExtension<InputManager>();
             Source = Instantiate(source, transform);
-            await Source.Initialize();
+            var sourceProgress = new Progress<float>(f =>
+                loadingProcess.Update($"Controllables: loading {f:P}."));
+            await Source.Initialize(sourceProgress);
             ScenarioManager.Instance.ScenarioReset += InstanceOnScenarioReset;
             IsInitialized = true;
+            loadingProcess.NotifyCompletion();
             Debug.Log($"{GetType().Name} scenario editor extension has been initialized.");
         }
 

@@ -32,9 +32,10 @@ namespace Simulator.ScenarioEditor.Undo.Records
         /// <inheritdoc/>
         public override void Undo()
         {
+            var elementType = scenarioElement.ElementType;
             scenarioElement.RemoveFromMap();
             scenarioElement.Dispose();
-            ScenarioManager.Instance.logPanel.EnqueueInfo("Undo applied to rollback adding a scenario element.");
+            ScenarioManager.Instance.logPanel.EnqueueInfo($"Undo applied to rollback adding a scenario element of type: {elementType}.");
         }
 
         /// <inheritdoc/>

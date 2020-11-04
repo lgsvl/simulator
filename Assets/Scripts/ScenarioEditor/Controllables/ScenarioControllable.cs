@@ -18,6 +18,9 @@ namespace Simulator.ScenarioEditor.Controllables
     public class ScenarioControllable : ScenarioElementWithVariant
     {
         /// <inheritdoc/>
+        public override string ElementType => Variant == null ? "Controllable" : Variant.Name;
+        
+        /// <inheritdoc/>
         public override bool CanBeCopied => true;
         
         /// <summary>

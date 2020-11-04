@@ -239,7 +239,7 @@ namespace Simulator.ScenarioEditor.Managers
             //Initialize all the scenario editor extensions
             var managersTypes = ReflectionCache.FindTypes(type =>
                 typeof(IScenarioEditorExtension).IsAssignableFrom(type) && !type.IsAbstract);
-            loadingProcess.Update($"Initializing {managersTypes.Count} visual scenario managers.", false);
+            loadingProcess.Update("Loading the Visual Scenario Editor.");
             var tasks = new Task[managersTypes.Count];
             var i = 0;
             foreach (var extensionPrefab in extensions)
@@ -280,7 +280,8 @@ namespace Simulator.ScenarioEditor.Managers
             await mapManager.LoadMapAsync();
             inspector.Initialize();
             isInitialized = true;
-            loadingProcess.Update("Scenario manager initialized.", true);
+            loadingProcess.Update("Visual Scenario Editor has been loaded.");
+            loadingProcess.NotifyCompletion();
         }
 
         /// <summary>
@@ -378,7 +379,7 @@ namespace Simulator.ScenarioEditor.Managers
             if (CopiedElement != null)
                 CopiedElement.Dispose();
             CopiedElement = element;
-            CopiedElement = PlaceElementCopy(element.transform.position);
+            CopiedElement = PlaceElementCopy(element.transform.position, false);
             CopiedElement.RemoveFromMap();
             CopiedElement.gameObject.SetActive(false);
         }
@@ -387,14 +388,15 @@ namespace Simulator.ScenarioEditor.Managers
         /// Places an element copy on the map
         /// </summary>
         /// <param name="position">Position where the copy should be placed</param>
-        public ScenarioElement PlaceElementCopy(Vector3 position)
+        /// <param name="registerUndo">Should this operation be registered in the undo manager as add element record</param>
+        public ScenarioElement PlaceElementCopy(Vector3 position, bool registerUndo = true)
         {
             if (CopiedElement == null)
                 return null;
             var copy = prefabsPools.Clone(CopiedElement.gameObject);
             copy.SetActive(true);
             var scenarioElementCopy = copy.GetComponent<ScenarioElement>();
-            if (scenarioElementCopy!=null)
+            if (scenarioElementCopy!=null && registerUndo)
                 GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoAddElement(scenarioElementCopy));
             copy.transform.position = position;
             //Reposition all scenario elements on ground, do not snap while repositioning

@@ -41,6 +41,9 @@ namespace Simulator.ScenarioEditor.Elements
         /// Trigger that is linked to this waypoint
         /// </summary>
         private ScenarioTrigger linkedTrigger;
+        
+        /// <inheritdoc/>
+        public override string ElementType { get; } = "Waypoint";
 
         /// <inheritdoc/>
         public override Transform TransformToRotate => transformToRotate;

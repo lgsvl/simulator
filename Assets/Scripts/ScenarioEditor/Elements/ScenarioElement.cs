@@ -101,6 +101,11 @@ namespace Simulator.ScenarioEditor.Elements
         }
 
         /// <summary>
+        /// Name of this scenario element type
+        /// </summary>
+        public abstract string ElementType { get; }
+
+        /// <summary>
         /// Can this scenario element be copied
         /// </summary>
         public virtual bool CanBeCopied => false;
@@ -226,7 +231,7 @@ namespace Simulator.ScenarioEditor.Elements
         /// <param name="requestedPosition">Position that will be applied</param>
         public virtual void ForceMove(Vector3 requestedPosition)
         {
-            transform.position = requestedPosition;
+            TransformToMove.position = requestedPosition;
             OnMoved();
         }
 
@@ -236,7 +241,7 @@ namespace Simulator.ScenarioEditor.Elements
         /// <param name="requestedRotation">Rotation that will be applied</param>
         public virtual void ForceRotate(Quaternion requestedRotation)
         {
-            transform.rotation = requestedRotation;
+            TransformToRotate.rotation = requestedRotation;
             OnRotated();
         }
 
@@ -246,7 +251,7 @@ namespace Simulator.ScenarioEditor.Elements
         /// <param name="requestedScale">Scale that will be applied</param>
         public virtual void ForceResize(Vector3 requestedScale)
         {
-            transform.localScale = requestedScale;
+            TransformToResize.localScale = requestedScale;
             OnResized();
         }
 

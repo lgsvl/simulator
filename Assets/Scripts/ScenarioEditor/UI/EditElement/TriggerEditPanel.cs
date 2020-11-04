@@ -294,7 +294,12 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// </summary>
         public void CopyEffectors()
         {
-            copiedTrigger = selectedTrigger;
+            if (copiedTrigger!=null)
+                Destroy(copiedTrigger.gameObject);
+            var clonedTriggerObject = Instantiate(selectedTrigger.gameObject, ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>().transform);
+            clonedTriggerObject.SetActive(false);
+            copiedTrigger = clonedTriggerObject.GetComponent<ScenarioTrigger>();
+            copiedTrigger.CopyProperties(selectedTrigger);
             ScenarioManager.Instance.logPanel.EnqueueInfo(
                 $"Copied {selectedTrigger.Trigger.Effectors.Count} trigger effectors.");
         }

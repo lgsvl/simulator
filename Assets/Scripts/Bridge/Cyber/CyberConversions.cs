@@ -490,20 +490,89 @@ namespace Simulator.Bridge.Cyber
             };
         }
 
-        public static apollo.perception.PerceptionLanes ConvertFrom(LaneLineData data)
+        public static apollo.perception.PerceptionLanes ConvertFrom(LaneLinesData data)
         {
-            return new apollo.perception.PerceptionLanes()
+            var result = new apollo.perception.PerceptionLanes()
             {
                 header = new apollo.common.Header()
                 {
                     sequence_num = data.Sequence,
                     frame_id = data.Frame,
                     timestamp_sec = data.Time,
-                },
-
-                //ins_status = data.Status,
-                //pos_type = data.PositionType,
+                }
             };
+
+            foreach (var lineData in data.lineData)
+            {
+                var line = new apollo.perception.camera.CameraLaneLine()
+                {
+                    curve_camera_coord = Convert(lineData.CurveCameraCoord)
+                };
+
+                // Note: Don't cast one enum value to another in case Apollo changes their underlying values
+                switch (lineData.PositionType)
+                {
+                    case LaneLinePositionType.BollardLeft:
+                        line.pos_type = apollo.perception.camera.LaneLinePositionType.BollardLeft;
+                        break;
+                    case LaneLinePositionType.FourthLeft:
+                        line.pos_type = apollo.perception.camera.LaneLinePositionType.FourthLeft;
+                        break;
+                    case LaneLinePositionType.ThirdLeft:
+                        line.pos_type = apollo.perception.camera.LaneLinePositionType.ThirdLeft;
+                        break;
+                    case LaneLinePositionType.AdjacentLeft:
+                        line.pos_type = apollo.perception.camera.LaneLinePositionType.AdjacentLeft;
+                        break;
+                    case LaneLinePositionType.EgoLeft:
+                        line.pos_type = apollo.perception.camera.LaneLinePositionType.EgoLeft;
+                        break;
+                    case LaneLinePositionType.EgoRight:
+                        line.pos_type = apollo.perception.camera.LaneLinePositionType.EgoRight;
+                        break;
+                    case LaneLinePositionType.AdjacentRight:
+                        line.pos_type = apollo.perception.camera.LaneLinePositionType.AdjacentRight;
+                        break;
+                    case LaneLinePositionType.ThirdRight:
+                        line.pos_type = apollo.perception.camera.LaneLinePositionType.ThirdRight;
+                        break;
+                    case LaneLinePositionType.FourthRight:
+                        line.pos_type = apollo.perception.camera.LaneLinePositionType.FourthRight;
+                        break;
+                    case LaneLinePositionType.BollardRight:
+                        line.pos_type = apollo.perception.camera.LaneLinePositionType.BollardRight;
+                        break;
+                    case LaneLinePositionType.Other:
+                        line.pos_type = apollo.perception.camera.LaneLinePositionType.Other;
+                        break;
+                    case LaneLinePositionType.Unknown:
+                        line.pos_type = apollo.perception.camera.LaneLinePositionType.Unknown;
+                        break;
+                }
+
+                // Note: Don't cast one enum value to another in case Apollo changes their underlying values
+                switch (lineData.Type)
+                {
+                    case LaneLineType.WhiteDashed:
+                        line.type = apollo.perception.camera.LaneLineType.WhiteDashed;
+                        break;
+                    case LaneLineType.WhiteSolid:
+                        line.type = apollo.perception.camera.LaneLineType.WhiteSolid;
+                        break;
+                    case LaneLineType.YellowDashed:
+                        line.type = apollo.perception.camera.LaneLineType.YellowDashed;
+                        break;
+                    case LaneLineType.YellowSolid:
+                        line.type = apollo.perception.camera.LaneLineType.YellowSolid;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+                
+                result.camera_laneline.Add(line);
+            }
+
+            return result;
         }
 
         public static Detected3DObjectArray ConvertTo(apollo.common.Detection3DArray data)
@@ -653,6 +722,19 @@ namespace Simulator.Bridge.Cyber
         static apollo.common.Quaternion Convert(Quaternion q)
         {
             return new apollo.common.Quaternion() { qx = q.x, qy = q.y, qz = q.z, qw = q.w };
+        }
+        
+        static apollo.perception.camera.LaneLineCubicCurve Convert(LaneLineCubicCurve c)
+        {
+            return new apollo.perception.camera.LaneLineCubicCurve()
+            {
+                a = c.C0,
+                b = c.C1,
+                c = c.C2,
+                d = c.C3,
+                longitude_max = c.MaxX,
+                longitude_min = c.MinX
+            };
         }
 
         static Vector3 Convert(apollo.common.Point3D p)

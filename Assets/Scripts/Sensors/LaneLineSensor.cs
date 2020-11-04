@@ -109,7 +109,7 @@ namespace Simulator.Sensors
 
         private Camera sensorCamera;
         private BridgeInstance Bridge;
-        private Publisher<LaneLineData> Publish;
+        private Publisher<LaneLinesData> Publish;
 
         private Camera SensorCamera
         {
@@ -155,7 +155,7 @@ namespace Simulator.Sensors
         public override void OnBridgeSetup(BridgeInstance bridge)
         {
             Bridge = bridge;
-            Publish = Bridge.AddPublisher<LaneLineData>(Topic);
+            Publish = Bridge.AddPublisher<LaneLinesData>(Topic);
         }
 
         void OnDestroy()
@@ -554,31 +554,39 @@ namespace Simulator.Sensors
                     SensorCamera.Render();
                 }
 
-                if (Bridge != null && Bridge.Status == Status.Connected)
+                if (Bridge != null && Bridge.Status == Status.Connected && (isLeftValid || isRightValid))
                 {
+                    var linesData = new LaneLinesData()
+                    {
+                        Frame = Frame,
+                        Sequence = SeqId++,
+                        Time = SimulatorManager.Instance.CurrentTime,
+                        lineData = new List<LaneLineData>()
+                    };
+
                     if (isLeftValid)
                     {
-                        Publish(new LaneLineData
+                        linesData.lineData.Add(new LaneLineData()
                         {
-                            Frame = Frame,
-                            Sequence = SeqId,
-                            Time = SimulatorManager.Instance.CurrentTime,
-                            Type = LaneLineType.WHITE_SOLID,
-                            CurveCameraCoord = LeftCurve
+                            CurveCameraCoord = LeftCurve,
+                            LineWidth = 0.1f,
+                            PositionType = LaneLinePositionType.EgoLeft,
+                            Type = LaneLineType.WhiteSolid
+                        });
+                    }
+                    
+                    if (isRightValid)
+                    {
+                        linesData.lineData.Add(new LaneLineData()
+                        {
+                            CurveCameraCoord = RightCurve,
+                            LineWidth = 0.1f,
+                            PositionType = LaneLinePositionType.EgoRight,
+                            Type = LaneLineType.WhiteSolid
                         });
                     }
 
-                    if (isRightValid)
-                    {
-                        Publish(new LaneLineData
-                        {
-                            Frame = Frame,
-                            Sequence = SeqId++,
-                            Time = SimulatorManager.Instance.CurrentTime,
-                            Type = LaneLineType.WHITE_SOLID,
-                            CurveCameraCoord = RightCurve
-                        });
-                    }
+                    Publish(linesData);
                 }
             }
         }

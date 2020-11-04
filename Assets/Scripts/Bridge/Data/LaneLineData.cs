@@ -7,14 +7,31 @@
 
 namespace Simulator.Bridge.Data
 {
+    using System.Collections.Generic;
     using UnityEngine;
 
     public enum LaneLineType
     {
-        WHITE_DASHED = 0,
-        WHITE_SOLID = 1,
-        YELLOW_DASHED = 2,
-        YELLOW_SOLID = 3,
+        WhiteDashed = 0,
+        WhiteSolid = 1,
+        YellowDashed = 2,
+        YellowSolid = 3,
+    }
+    
+    public enum LaneLinePositionType
+    {
+        BollardLeft = -5,
+        FourthLeft = -4,
+        ThirdLeft = -3,
+        AdjacentLeft = -2,
+        EgoLeft = -1,
+        EgoRight = 1,
+        AdjacentRight = 2,
+        ThirdRight = 3,
+        FourthRight = 4,
+        BollardRight = 5,
+        Other = 6,
+        Unknown = 7
     }
 
     public struct LaneLineCubicCurve
@@ -38,14 +55,19 @@ namespace Simulator.Bridge.Data
         }
     }
 
-    public class LaneLineData
+    public class LaneLinesData
     {
         public uint Sequence;
         public string Frame;
         public double Time;
+        public List<LaneLineData> lineData;
+    }
+    
+    public class LaneLineData
+    {
         public float LineWidth = 0;
         public LaneLineType Type;
+        public LaneLinePositionType PositionType;
         public LaneLineCubicCurve CurveCameraCoord;
-        public LaneLineCubicCurve CurveImageCoord;
     }
 }

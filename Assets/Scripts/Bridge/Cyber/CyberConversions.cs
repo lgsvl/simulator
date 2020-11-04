@@ -178,6 +178,16 @@ namespace Simulator.Bridge.Cyber
                     type = apollo.perception.PerceptionObstacle.Type.Pedestrian;
                     subType = apollo.perception.PerceptionObstacle.SubType.StPedestrian;
                 }
+                else if (d.Label == "BoxTruck")
+                {
+                    type = apollo.perception.PerceptionObstacle.Type.Vehicle;
+                    subType = apollo.perception.PerceptionObstacle.SubType.StTruck;
+                }
+                else if (d.Label == "SchoolBus")
+                {
+                    type = apollo.perception.PerceptionObstacle.Type.Vehicle;
+                    subType = apollo.perception.PerceptionObstacle.SubType.StBus;
+                }
                 else
                 {
                     type = apollo.perception.PerceptionObstacle.Type.Vehicle;

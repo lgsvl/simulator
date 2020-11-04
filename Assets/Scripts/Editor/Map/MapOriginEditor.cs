@@ -63,10 +63,12 @@ public class MapOriginEditor : Editor
             }
         }
 
-        GUILayout.Space(10);
+        GUILayout.Space(20);
         EditorGUILayout.LabelField("Map Settings", subtitleLabelStyle, GUILayout.ExpandWidth(true));
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
+        origin.IgnoreVisible = EditorGUILayout.Toggle("Ignore NPC Visible", origin.IgnoreVisible, GUILayout.ExpandWidth(true));
+        origin.IgnoreSpawnable = EditorGUILayout.Toggle("Ignore NPC Spawnable", origin.IgnoreSpawnable, GUILayout.ExpandWidth(true));
         origin.NPCSizeMask = EditorGUILayout.MaskField("NPC Categories", origin.NPCSizeMask, NPCSizes);
         origin.NPCMaxCount = EditorGUILayout.IntSlider("NPC Max Count", origin.NPCMaxCount, 1, 30);
         origin.NPCSpawnBoundSize = EditorGUILayout.IntSlider("NPC Spawn Bounds Size", origin.NPCSpawnBoundSize, 25, 300);
@@ -74,7 +76,7 @@ public class MapOriginEditor : Editor
         origin.PedMaxCount = EditorGUILayout.IntSlider("Ped Max Count", origin.PedMaxCount, 1, 30);
         origin.PedSpawnBoundSize = EditorGUILayout.IntSlider("Ped Spawn Bounds Size", origin.PedSpawnBoundSize, 25, 300);
 
-        GUILayout.Space(10);
+        GUILayout.Space(20);
         EditorGUILayout.LabelField("Map Meta Data", subtitleLabelStyle, GUILayout.ExpandWidth(true));
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 

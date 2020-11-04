@@ -6,9 +6,7 @@
  */
 
 using UnityEngine;
-using UnityEditor;
 using System;
-using System.Collections.Generic;
 using Unity.Mathematics;
 
 namespace Simulator.Map
@@ -52,6 +50,8 @@ namespace Simulator.Map
         public string TimeZoneString;
         public TimeZoneInfo TimeZone => string.IsNullOrEmpty(TimeZoneSerialized) ? TimeZoneInfo.Local : TimeZoneInfo.FromSerializedString(TimeZoneSerialized);
 
+        public bool IgnoreVisible = false;
+        public bool IgnoreSpawnable = false;
         public int NPCSizeMask = 1;
         public int NPCMaxCount = 10;
         public int NPCSpawnBoundSize = 200;

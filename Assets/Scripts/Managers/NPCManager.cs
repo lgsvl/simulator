@@ -309,7 +309,15 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
             if (!InitSpawn)
             {
-                if (!lane.Spawnable)
+                if (!MapOrigin.IgnoreSpawnable) // set from map origin to ignore spawnable checks
+                {
+                    if (!lane.Spawnable)
+                    {
+                        continue;
+                    }
+                }
+
+                if (!MapOrigin.IgnoreVisible) // set from map origin to ignore sensor visible check
                 {
                     if (IsVisible(CurrentPooledNPCs[i].gameObject))
                     {

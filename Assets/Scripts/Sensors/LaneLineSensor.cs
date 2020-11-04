@@ -15,6 +15,7 @@ namespace Simulator.Sensors
     using Simulator.Utilities;
     using Simulator.Sensors.UI;
     using Simulator.Map;
+    using Simulator.Map.LineDetection;
     using Simulator.Sensors.Postprocessing;
     using UnityEngine;
     using UnityEngine.Rendering;
@@ -93,6 +94,7 @@ namespace Simulator.Sensors
         RenderTexture ActiveRT;
 
         private List<MeshCollider> cachedRoadColliders;
+        private LaneLineOverride linesOverride;
 
         private List<Vector2> LeftLanePoints = new List<Vector2>();
         private List<Vector2> RightLanePoints = new List<Vector2>();
@@ -145,6 +147,7 @@ namespace Simulator.Sensors
             hd.hasPersistentHistory = true;
 
             cachedRoadColliders = FindObjectsOfType<MeshCollider>().Where(x => x.name.Contains("Road")).ToList();
+            linesOverride = FindObjectOfType<LaneLineOverride>();
 
             NextCaptureTime = Time.time + 1.0f / Frequency;
         }
@@ -163,7 +166,19 @@ namespace Simulator.Sensors
             }
         }
 
-        private void SamplePointsNew(MapLane egoLane, bool isLeft)
+        private List<Vector3> GetLaneLinePoints(MapLane lane, bool isLeft)
+        {
+            if (linesOverride != null)
+            {
+                var points = linesOverride.GetLaneLineData(lane, isLeft);
+                if (points != null)
+                    return points;
+            }
+
+            return isLeft ? lane.leftLineBoundry.mapWorldPositions : lane.rightLineBoundry.mapWorldPositions;
+        }
+
+        private void SamplePoints(MapLane egoLane, bool isLeft)
         {
             MapLane currentLane = egoLane;
             var worldPoints = ListPool<Vector3>.Get();
@@ -179,7 +194,7 @@ namespace Simulator.Sensors
                 ListPool<Vector2>.Release(localPoints);
             }
 
-            worldPoints.AddRange(isLeft ? currentLane.leftLineBoundry.mapWorldPositions : currentLane.rightLineBoundry.mapWorldPositions);
+            worldPoints.AddRange(GetLaneLinePoints(currentLane, isLeft));
 
             var min = float.MaxValue;
             var minIndex = 0;
@@ -238,7 +253,7 @@ namespace Simulator.Sensors
 
                         var prevEnd = worldPoints[worldPoints.Count - 1];
                         worldPoints.Clear();
-                        worldPoints.AddRange(isLeft ? currentLane.leftLineBoundry.mapWorldPositions : currentLane.rightLineBoundry.mapWorldPositions);
+                        worldPoints.AddRange(GetLaneLinePoints(currentLane, isLeft));
                         if ((prevEnd - worldPoints[0]).sqrMagnitude > (prevEnd - worldPoints[worldPoints.Count - 1]).sqrMagnitude)
                             worldPoints.Reverse();
 
@@ -508,25 +523,22 @@ namespace Simulator.Sensors
 
                 if (egoLane != null && egoLane.isTrafficLane)
                 {
-                    SamplePointsNew(egoLane, true);
-                    SamplePointsNew(egoLane, false);
+                    SamplePoints(egoLane, true);
+                    SamplePoints(egoLane, false);
                 }
 
-                var isDataValid = true;
+                var isLeftValid = LeftLanePoints.Count > 1;
+                var isRightValid = RightLanePoints.Count > 1;
 
-                // Not enough points to calculate the curve - skip sending message
-                if (LeftLanePoints.Count < 2 || RightLanePoints.Count < 2)
-                {
-                    LeftCurve = new LaneLineCubicCurve();
-                    RightCurve = new LaneLineCubicCurve();
-                    isDataValid = false;
-                }
-                else
+                if (isLeftValid)
                 {
                     var leftCoefficients = FitToCubicPolynomial(LeftLanePoints, out var leftMaxX, out var leftMinX);
-                    var rightCoefficients = FitToCubicPolynomial(RightLanePoints, out var rightMaxX, out var rightMinX);
-
                     LeftCurve = new LaneLineCubicCurve(leftMinX, leftMaxX, leftCoefficients);
+                }
+
+                if (isRightValid)
+                {
+                    var rightCoefficients = FitToCubicPolynomial(RightLanePoints, out var rightMaxX, out var rightMinX);
                     RightCurve = new LaneLineCubicCurve(rightMinX, rightMaxX, rightCoefficients);
                 }
 
@@ -534,34 +546,39 @@ namespace Simulator.Sensors
 
                 if (previewEnabled)
                 {
-                    if (isDataValid)
-                    {
+                    if (isLeftValid)
                         VisulzeLanePoints(LeftCurve, Color.green);
+                    if (isRightValid)
                         VisulzeLanePoints(RightCurve, Color.blue);
-                    }
 
                     SensorCamera.Render();
                 }
 
-                if (Bridge != null && Bridge.Status == Status.Connected && isDataValid)
+                if (Bridge != null && Bridge.Status == Status.Connected)
                 {
-                    Publish(new LaneLineData
+                    if (isLeftValid)
                     {
-                        Frame = Frame,
-                        Sequence = SeqId,
-                        Time = SimulatorManager.Instance.CurrentTime,
-                        Type = LaneLineType.WHITE_SOLID,
-                        CurveCameraCoord = LeftCurve
-                    });
+                        Publish(new LaneLineData
+                        {
+                            Frame = Frame,
+                            Sequence = SeqId,
+                            Time = SimulatorManager.Instance.CurrentTime,
+                            Type = LaneLineType.WHITE_SOLID,
+                            CurveCameraCoord = LeftCurve
+                        });
+                    }
 
-                    Publish(new LaneLineData
+                    if (isRightValid)
                     {
-                        Frame = Frame,
-                        Sequence = SeqId++,
-                        Time = SimulatorManager.Instance.CurrentTime,
-                        Type = LaneLineType.WHITE_SOLID,
-                        CurveCameraCoord = RightCurve
-                    });
+                        Publish(new LaneLineData
+                        {
+                            Frame = Frame,
+                            Sequence = SeqId++,
+                            Time = SimulatorManager.Instance.CurrentTime,
+                            Type = LaneLineType.WHITE_SOLID,
+                            CurveCameraCoord = RightCurve
+                        });
+                    }
                 }
             }
         }

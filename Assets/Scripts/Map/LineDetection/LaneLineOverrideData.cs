@@ -7,12 +7,14 @@
 
 namespace Simulator.Map.LineDetection
 {
+    using System;
     using System.Collections.Generic;
     using UnityEngine;
 
-    public class LineDataHolder : MonoBehaviour
+    [Serializable]
+    public class LaneLineOverrideData
     {
-        // TODO: keep segments instead
-        public List<SegmentedLine3D> segments;
+        public List<Vector3> leftLineWorldPositions;
+        public List<Vector3> rightLineWorldPositions;
     }
 }

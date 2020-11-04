@@ -29,32 +29,60 @@ namespace Simulator.Editor.MapLineDetection
         {
             var roadRenderers = GetRoadRenderers();
 
-            foreach (var road in roadRenderers)
+            var correctionNeeded = settings.lineSource == LineDetectionSettings.LineSource.CorrectedHdMap || settings.generateLineSensorData;
+            var corrector = correctionNeeded ? new MapLineAlignmentCorrector(settings) : null;
+
+            // var road = roadRenderers.FirstOrDefault(x => x.name == "ShalunRoad64");
+
+            try
             {
-                var mf = road.GetComponent<MeshFilter>();
-                
-                if (!road.sharedMaterial.HasProperty(AlbedoTexProp))
-                    continue;
-                
-                var tex = road.sharedMaterial.GetTexture(AlbedoTexProp);
-                var imagePath = Path.Combine(Application.dataPath, "..", AssetDatabase.GetAssetPath(tex));
-                var uvToWorldScale = LineUtils.EstimateUvToWorldScale(mf, tex);
-                var lines = DetectLines(imagePath, uvToWorldScale);
+                for (var i = 0; i < roadRenderers.Count; ++i)
+                {
+                    var road = roadRenderers[i];
+                    var progress = (float) i / roadRenderers.Count;
+                    EditorUtility.DisplayProgressBar("Detecting lines", $"Processing road {i + 1} of {roadRenderers.Count}", progress);
 
-                var approximatedLines = ProcessUvLines(lines, settings);
+                    var mf = road.GetComponent<MeshFilter>();
 
-                var worldSpaceSegments = UvToWorldMapper.CalculateWorldSpaceNew(approximatedLines, mf, uvToWorldScale);
-                ProcessWorldLines(worldSpaceSegments, settings);
-                BuildWorldObject(worldSpaceSegments, road.transform, meshParent);
+                    var tex = road.sharedMaterial.GetTexture(AlbedoTexProp);
+                    var imagePath = Path.Combine(Application.dataPath, "..", AssetDatabase.GetAssetPath(tex));
+                    var uvToWorldScale = LineUtils.EstimateUvToWorldScale(mf, tex);
+                    var lines = DetectLines(imagePath, uvToWorldScale);
+
+                    var approximatedLines = ProcessUvLines(lines, settings);
+
+                    var worldSpaceSegments = UvToWorldMapper.CalculateWorldSpaceNew(approximatedLines, mf, uvToWorldScale);
+                    ProcessWorldLines(worldSpaceSegments, settings, out var worldSpaceSnappedSegments);
+                    if (correctionNeeded)
+                        corrector.AddSegments(worldSpaceSegments);
+                    if (settings.lineSource == LineDetectionSettings.LineSource.IntensityMap)
+                        BuildWorldObject(worldSpaceSegments, road.transform, meshParent);
+                }
+
+                if (correctionNeeded)
+                {
+                    var debugCorrectedSegments = corrector.Process();
+                    var lineDataOverride = meshParent.gameObject.AddComponent<LaneLineOverride>();
+                    lineDataOverride.SetData(debugCorrectedSegments);
+                }
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
             }
         }
 
         private static List<MeshRenderer> GetRoadRenderers()
         {
-            var renderers = Object.FindObjectsOfType<MeshRenderer>().Where(x => x.name.Contains("road") || x.name.Contains("Road")).ToList();
+            var renderers =
+                Object.FindObjectsOfType<MeshRenderer>()
+                    .Where(x =>
+                        (x.name.Contains("road") || x.name.Contains("Road")) &&
+                        x.sharedMaterial.HasProperty(AlbedoTexProp))
+                    .ToList();
             return renderers;
         }
-        
+
         private static List<ApproximatedLine> ProcessUvLines(List<Line> lines, LineDetectionSettings settings)
         {
             var approximatedLines = new List<ApproximatedLine>();
@@ -85,6 +113,7 @@ namespace Simulator.Editor.MapLineDetection
                 {
                     throw new Exception("Broken infinite loop");
                 }
+
                 changed = false;
                 for (var i = 0; i < approximatedLines.Count - 1; ++i)
                 {
@@ -97,6 +126,7 @@ namespace Simulator.Editor.MapLineDetection
                             break;
                         }
                     }
+
                     if (changed)
                         break;
                 }
@@ -138,20 +168,21 @@ namespace Simulator.Editor.MapLineDetection
             return approximatedLines;
         }
 
-        private static void ProcessWorldLines(List<SegmentedLine3D> segments, LineDetectionSettings settings)
+        private static void ProcessWorldLines(List<SegmentedLine3D> segments, LineDetectionSettings settings, out List<SegmentedLine3D> connectedSegments)
         {
             var changed = true;
             var safety = 0;
 
             var dist = settings.worldSpaceSnapDistance;
             var angle = settings.worldSpaceSnapAngle;
-            
+
             while (changed)
             {
                 if (safety++ > 20000)
                 {
                     throw new Exception("Broken infinite loop");
                 }
+
                 changed = false;
                 for (var i = 0; i < segments.Count - 1; ++i)
                 {
@@ -164,6 +195,7 @@ namespace Simulator.Editor.MapLineDetection
                             break;
                         }
                     }
+
                     if (changed)
                         break;
                 }
@@ -175,10 +207,15 @@ namespace Simulator.Editor.MapLineDetection
                 segment.color = color;
                 segment.SnapSegments();
             }
+
+            connectedSegments = ConnectSegments(segments, settings);
         }
 
         private static void BuildWorldObject(List<SegmentedLine3D> segments, Transform roadTransform, Transform parent)
         {
+            if (segments.Count == 0)
+                return;
+
             var meshGo = new GameObject(roadTransform.name + "_lines");
             meshGo.transform.SetParent(parent);
             meshGo.transform.tag = "LaneLine";
@@ -187,9 +224,6 @@ namespace Simulator.Editor.MapLineDetection
             meshGo.transform.position = roadTransform.position;
             var mr = meshGo.AddComponent<MeshRenderer>();
             var mf = meshGo.AddComponent<MeshFilter>();
-            var holder = meshGo.AddComponent<LineDataHolder>();
-            holder.segments = new List<SegmentedLine3D>();
-            holder.segments.AddRange(segments);
 
             var verts = new List<Vector3>();
             var indices = new List<int>();
@@ -219,7 +253,7 @@ namespace Simulator.Editor.MapLineDetection
                     indices.Add(count + 3);
                 }
             }
-            
+
             var mesh = new Mesh();
             mesh.SetVertices(verts);
             mesh.SetTriangles(indices, 0);
@@ -232,6 +266,103 @@ namespace Simulator.Editor.MapLineDetection
             mr.sharedMaterial = new Material(Shader.Find("Simulator/SegmentationLine"));
         }
 
+        private static List<SegmentedLine3D> ConnectSegments(List<SegmentedLine3D> originalSegments, LineDetectionSettings settings)
+        {
+            float Angle(Vector2 vecA, Vector2 vecB)
+            {
+                return Mathf.Min(Vector2.Angle(vecA, vecB), Vector2.Angle(vecA, -vecB));
+            }
+
+            var result = originalSegments.Select(x => x.Clone()).ToList();
+            var distanceThreshold = settings.worldDottedLineDistanceThreshold;
+            var angleThreshold = settings.worldSpaceSnapAngle;
+
+            for (var i = 0; i < result.Count; ++i)
+            {
+                var bestMatchIndex = -1;
+                var bestMatchDist = float.MaxValue;
+                var bestMatchUseStartA = false;
+                var bestMatchUseStartB = false;
+
+                for (var j = i + 1; j < result.Count; ++j)
+                {
+                    FindClosestEnds(result[i], result[j], out var useStartA, out var useStartB);
+                    var iPos = useStartA ? result[i].Start : result[i].End;
+                    var jPos = useStartB ? result[j].Start : result[j].End;
+                    var iVec = useStartA ? -result[i].StartVectorXZ : result[i].EndVectorXZ;
+                    var jVec = useStartB ? result[j].StartVectorXZ : -result[j].EndVectorXZ;
+                    var ijDist = Vector3.Distance(iPos, jPos);
+
+                    if (Mathf.Abs(iPos.y - jPos.y) > 2f)
+                        continue;
+
+                    if (ijDist > distanceThreshold || Angle(iVec, jVec) > angleThreshold)
+                        continue;
+
+                    var joinVec = iPos - jPos;
+                    var joinVecXZ = new Vector2(joinVec.x, joinVec.z);
+
+                    if (Angle(joinVecXZ, jVec) > 0.5f * angleThreshold || Angle(joinVecXZ, iVec) > 0.5f * angleThreshold)
+                        continue;
+
+                    if (ijDist < bestMatchDist)
+                    {
+                        bestMatchDist = ijDist;
+                        bestMatchIndex = j;
+                        bestMatchUseStartA = useStartA;
+                        bestMatchUseStartB = useStartB;
+                    }
+                }
+
+                if (bestMatchIndex == -1)
+                    continue;
+
+                if (bestMatchUseStartA)
+                    result[i].Invert();
+
+                if (!bestMatchUseStartB)
+                    result[bestMatchIndex].Invert();
+
+                result[i].lines.Add(new Line3D(result[i].End, result[bestMatchIndex].Start));
+                result[i].lines.AddRange(result[bestMatchIndex].lines);
+                result.RemoveAt(bestMatchIndex);
+
+                i = -1;
+            }
+
+            return result;
+        }
+
+        private static void FindClosestEnds(SegmentedLine3D segA, SegmentedLine3D segB, out bool useStartA, out bool useStartB)
+        {
+            var min = (segA.Start - segB.Start).sqrMagnitude;
+            useStartA = true;
+            useStartB = true;
+
+            var sqrMag = (segA.Start - segB.End).sqrMagnitude;
+            if (sqrMag < min)
+            {
+                min = sqrMag;
+                useStartA = true;
+                useStartB = false;
+            }
+
+            sqrMag = (segA.End - segB.Start).sqrMagnitude;
+            if (sqrMag < min)
+            {
+                min = sqrMag;
+                useStartA = false;
+                useStartB = true;
+            }
+
+            sqrMag = (segA.End - segB.End).sqrMagnitude;
+            if (sqrMag < min)
+            {
+                useStartA = false;
+                useStartB = false;
+            }
+        }
+
         private static Line ParseLine(string line, float uvToWorldScale)
         {
             var noBrackets = line.Substring(1, line.Length - 2);
@@ -242,7 +373,7 @@ namespace Simulator.Editor.MapLineDetection
             {
                 if (tokens[i].Length == 0)
                     continue;
-                
+
                 result[currentItem++] = float.Parse(tokens[i]);
             }
 

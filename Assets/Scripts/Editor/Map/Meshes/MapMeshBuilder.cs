@@ -12,6 +12,7 @@ namespace Simulator.Editor.MapMeshes
     using System.Collections.Generic;
     using System.Linq;
     using Simulator.Map;
+    using Simulator.Map.LineDetection;
     using UnityEditor;
     using UnityEditor.SceneManagement;
     using UnityEngine;
@@ -184,10 +185,18 @@ namespace Simulator.Editor.MapMeshes
             public readonly List<LineVert> worldPoints = new List<LineVert>();
             public readonly List<(Mesh mesh, Matrix4x4 matrix)> meshData = new List<(Mesh mesh, Matrix4x4 matrix)>();
 
-            public LineData(MapLine line)
+            public LineData(MapLine line, List<Vector3> positionsOverride = null)
             {
-                foreach (var pos in line.mapLocalPositions)
-                    worldPoints.Add(new LineVert(line.transform.TransformPoint(pos)));
+                if (positionsOverride != null)
+                {
+                    foreach (var pos in positionsOverride)
+                        worldPoints.Add(new LineVert(pos));
+                }
+                else
+                {
+                    foreach (var pos in line.mapLocalPositions)
+                        worldPoints.Add(new LineVert(line.transform.TransformPoint(pos)));
+                }
 
                 switch (line.lineType)
                 {
@@ -243,12 +252,12 @@ namespace Simulator.Editor.MapMeshes
             BuildMesh(parentObject, materials, false);
         }
 
-        public void BuildLinesMesh(GameObject parentObject, MapMeshMaterials materials)
+        public void BuildLinesMesh(GameObject parentObject, MapMeshMaterials materials, LaneLineOverride lineOverride = null)
         {
-            BuildMesh(parentObject, materials, true);
+            BuildMesh(parentObject, materials, true, lineOverride);
         }
 
-        private void BuildMesh(GameObject parentObject, MapMeshMaterials materials, bool linesOnly)
+        private void BuildMesh(GameObject parentObject, MapMeshMaterials materials, bool linesOnly, LaneLineOverride lineOverride = null)
         {
             try
             {
@@ -268,6 +277,7 @@ namespace Simulator.Editor.MapMeshes
                         allLanes.Add(intLane);
                         if (!linesData.ContainsKey(intLane.leftLineBoundry))
                             linesData[intLane.leftLineBoundry] = new LineData(intLane.leftLineBoundry);
+
                         if (!linesData.ContainsKey(intLane.rightLineBoundry))
                             linesData[intLane.rightLineBoundry] = new LineData(intLane.rightLineBoundry);
                     }
@@ -286,12 +296,18 @@ namespace Simulator.Editor.MapMeshes
                     if (linesData.ContainsKey(lane.leftLineBoundry))
                         linesData[lane.leftLineBoundry].usageCount++;
                     else
-                        linesData[lane.leftLineBoundry] = new LineData(lane.leftLineBoundry) {usageCount = 1};
+                    {
+                        var leftOverride = lineOverride == null ? null : lineOverride.GetLaneLineData(lane, true);
+                        linesData[lane.leftLineBoundry] = new LineData(lane.leftLineBoundry, leftOverride) {usageCount = 1};
+                    }
 
                     if (linesData.ContainsKey(lane.rightLineBoundry))
                         linesData[lane.rightLineBoundry].usageCount++;
                     else
-                        linesData[lane.rightLineBoundry] = new LineData(lane.rightLineBoundry) {usageCount = 1};
+                    {
+                        var rightOverride = lineOverride == null ? null : lineOverride.GetLaneLineData(lane, false);
+                        linesData[lane.rightLineBoundry] = new LineData(lane.rightLineBoundry, rightOverride) {usageCount = 1};
+                    }
                 }
 
                 if (settings.snapLaneEnds)

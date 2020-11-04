@@ -7,10 +7,13 @@
 
 namespace Simulator.Editor
 {
+    using System;
     using Simulator.Editor.MapLineDetection;
     using Simulator.Editor.MapMeshes;
+    using Simulator.Map.LineDetection;
     using UnityEditor;
     using UnityEngine;
+    using UnityEngine.Rendering;
 
     public class LineDetectorWindow : EditorWindow
     {
@@ -26,11 +29,12 @@ namespace Simulator.Editor
 
         private LineDetectionSettings lineDetectionSettings;
         private SerializedObject serializedLineDetectionSettings;
-        
+
         private MapMeshSettings meshBuilderSettings;
         private SerializedObject serializedMeshBuilderSettings;
 
         private SerializedProperty lineSource;
+        private SerializedProperty generateLineSensorData;
         private SerializedProperty lineDistanceThreshold;
         private SerializedProperty lineAngleThreshold;
         private SerializedProperty maxLineSegmentLength;
@@ -39,6 +43,7 @@ namespace Simulator.Editor
         private SerializedProperty minWidthThreshold;
         private SerializedProperty worldSpaceSnapDistance;
         private SerializedProperty worldSpaceSnapAngle;
+        private SerializedProperty worldDottedLineDistanceThreshold;
         private SerializedProperty snapLaneEnds;
         private SerializedProperty snapThreshold;
         private SerializedProperty lineUvUnit;
@@ -54,7 +59,7 @@ namespace Simulator.Editor
                 return serializedLineDetectionSettings;
             }
         }
-        
+
         private SerializedObject SerializedMeshBuilderSettings
         {
             get
@@ -91,7 +96,7 @@ namespace Simulator.Editor
         {
             if (serializedLineDetectionSettings != null)
                 SerializedLineDetectionSettings.Update();
-            
+
             if (serializedMeshBuilderSettings != null)
                 SerializedMeshBuilderSettings.Update();
 
@@ -113,7 +118,7 @@ namespace Simulator.Editor
             }
 
             serializedLineDetectionSettings = new SerializedObject(lineDetectionSettings);
-            
+
             data = EditorPrefs.GetString(MeshBuilderSettingsKey, null);
             meshBuilderSettings = CreateInstance<MapMeshSettings>();
 
@@ -127,7 +132,7 @@ namespace Simulator.Editor
             }
 
             serializedMeshBuilderSettings = new SerializedObject(meshBuilderSettings);
-            
+
             FindProperties();
         }
 
@@ -144,6 +149,7 @@ namespace Simulator.Editor
         private void FindProperties()
         {
             lineSource = serializedLineDetectionSettings.FindProperty(nameof(LineDetectionSettings.lineSource));
+            generateLineSensorData = serializedLineDetectionSettings.FindProperty(nameof(LineDetectionSettings.generateLineSensorData));
             lineDistanceThreshold = serializedLineDetectionSettings.FindProperty(nameof(LineDetectionSettings.lineDistanceThreshold));
             lineAngleThreshold = serializedLineDetectionSettings.FindProperty(nameof(LineDetectionSettings.lineAngleThreshold));
             maxLineSegmentLength = serializedLineDetectionSettings.FindProperty(nameof(LineDetectionSettings.maxLineSegmentLength));
@@ -151,6 +157,7 @@ namespace Simulator.Editor
             jointLineThreshold = serializedLineDetectionSettings.FindProperty(nameof(LineDetectionSettings.jointLineThreshold));
             minWidthThreshold = serializedLineDetectionSettings.FindProperty(nameof(LineDetectionSettings.minWidthThreshold));
             worldSpaceSnapDistance = serializedLineDetectionSettings.FindProperty(nameof(LineDetectionSettings.worldSpaceSnapDistance));
+            worldDottedLineDistanceThreshold = serializedLineDetectionSettings.FindProperty(nameof(LineDetectionSettings.worldDottedLineDistanceThreshold));
             worldSpaceSnapAngle = serializedLineDetectionSettings.FindProperty(nameof(LineDetectionSettings.worldSpaceSnapAngle));
             snapLaneEnds = serializedMeshBuilderSettings.FindProperty(nameof(MapMeshSettings.snapLaneEnds));
             snapThreshold = serializedMeshBuilderSettings.FindProperty(nameof(MapMeshSettings.snapThreshold));
@@ -167,7 +174,7 @@ namespace Simulator.Editor
                 var data = JsonUtility.ToJson(lineDetectionSettings);
                 EditorPrefs.SetString(LineDetectionSettingsKey, data);
             }
-            
+
             if (serializedMeshBuilderSettings != null)
             {
                 SerializedMeshBuilderSettings.ApplyModifiedProperties();
@@ -198,25 +205,55 @@ namespace Simulator.Editor
         private void DrawSettingsSection()
         {
             EditorGUILayout.PropertyField(lineSource);
-            if (lineSource.enumValueIndex == (int) LineDetectionSettings.LineSource.IntensityMap)
+            EditorGUILayout.PropertyField(generateLineSensorData);
+            EditorGUILayout.Space();
+
+            var showDetectionSettings =
+                lineDetectionSettings.lineSource == LineDetectionSettings.LineSource.IntensityMap ||
+                lineDetectionSettings.lineSource == LineDetectionSettings.LineSource.CorrectedHdMap ||
+                lineDetectionSettings.generateLineSensorData;
+
+            var showMapMeshSettings =
+                lineDetectionSettings.lineSource == LineDetectionSettings.LineSource.HdMap ||
+                lineDetectionSettings.lineSource == LineDetectionSettings.LineSource.CorrectedHdMap ||
+                lineDetectionSettings.generateLineSensorData;
+
+            if (showDetectionSettings)
             {
-                EditorGUILayout.PropertyField(lineDistanceThreshold);
-                EditorGUILayout.PropertyField(lineAngleThreshold);
-                EditorGUILayout.PropertyField(maxLineSegmentLength);
-                EditorGUILayout.PropertyField(worstFitThreshold);
-                EditorGUILayout.PropertyField(minWidthThreshold);
-                EditorGUILayout.PropertyField(jointLineThreshold);
-                EditorGUILayout.PropertyField(worldSpaceSnapDistance);
-                EditorGUILayout.PropertyField(worldSpaceSnapAngle);
+                lineDistanceThreshold.isExpanded = EditorGUILayout.Foldout(lineDistanceThreshold.isExpanded, "Line Detection Settings", EditorStyles.foldoutHeader);
+                if (lineDistanceThreshold.isExpanded)
+                {
+                    EditorGUILayout.LabelField("Grouping Settings", EditorStyles.boldLabel);
+                    EditorGUILayout.PropertyField(lineDistanceThreshold);
+                    EditorGUILayout.PropertyField(lineAngleThreshold);
+                    EditorGUILayout.PropertyField(maxLineSegmentLength);
+                    EditorGUILayout.PropertyField(worstFitThreshold);
+                    EditorGUILayout.PropertyField(minWidthThreshold);
+                    EditorGUILayout.PropertyField(jointLineThreshold);
+                    EditorGUILayout.Space();
+                    EditorGUILayout.LabelField("Postprocessing Settings", EditorStyles.boldLabel);
+                    EditorGUILayout.PropertyField(worldSpaceSnapDistance);
+                    EditorGUILayout.PropertyField(worldDottedLineDistanceThreshold);
+                    EditorGUILayout.PropertyField(worldSpaceSnapAngle);
+                }
             }
-            else
+
+            if (showMapMeshSettings)
             {
-                EditorGUI.BeginDisabledGroup(!snapLaneEnds.boolValue);
-                EditorGUILayout.PropertyField(snapThreshold);
-                EditorGUI.EndDisabledGroup();
-                EditorGUILayout.PropertyField(lineUvUnit);
-                EditorGUILayout.PropertyField(lineWidth);
-                EditorGUILayout.PropertyField(lineBump);
+                if (showDetectionSettings)
+                    EditorGUILayout.Space();
+
+                snapLaneEnds.isExpanded = EditorGUILayout.Foldout(snapLaneEnds.isExpanded, "Line Mesh Generation Settings", EditorStyles.foldoutHeader);
+                if (snapLaneEnds.isExpanded)
+                {
+                    EditorGUILayout.PropertyField(snapLaneEnds);
+                    EditorGUI.BeginDisabledGroup(!snapLaneEnds.boolValue);
+                    EditorGUILayout.PropertyField(snapThreshold);
+                    EditorGUI.EndDisabledGroup();
+                    EditorGUILayout.PropertyField(lineUvUnit);
+                    EditorGUILayout.PropertyField(lineWidth);
+                    EditorGUILayout.PropertyField(lineBump);
+                }
             }
         }
 
@@ -231,38 +268,60 @@ namespace Simulator.Editor
             SerializedLineDetectionSettings.ApplyModifiedProperties();
             SerializedMeshBuilderSettings.ApplyModifiedProperties();
 
-            if (lineSource.enumValueIndex == (int) LineDetectionSettings.LineSource.IntensityMap)
+            if (GUILayout.Button("Create"))
             {
-                if (GUILayout.Button("Detect Lines"))
+                var parent = GameObject.Find(ParentObjectName);
+                if (parent != null)
+                    CoreUtils.Destroy(parent);
+
+                parent = new GameObject(ParentObjectName);
+                
+                switch (lineDetectionSettings.lineSource)
                 {
-                    var parent = GameObject.Find(ParentObjectName);
-                    if (parent != null)
-                        DestroyImmediate(parent);
+                    case LineDetectionSettings.LineSource.HdMap:
+                    {
+                        CreateLinesFromHdMap(parent);
+                    }
+                        break;
+                    case LineDetectionSettings.LineSource.IntensityMap:
+                    {
+                        LineDetector.Execute(parent.transform, lineDetectionSettings);
+                    }
+                        break;
+                    case LineDetectionSettings.LineSource.CorrectedHdMap:
+                    {
+                        LineDetector.Execute(parent.transform, lineDetectionSettings);
+                        var linesOverride = parent.GetComponent<LaneLineOverride>();
+                        CreateLinesFromHdMap(parent, linesOverride);
+                    }
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
 
-                    parent = new GameObject(ParentObjectName);
-
-                    LineDetector.Execute(parent.transform, lineDetectionSettings);
+                if (lineDetectionSettings.generateLineSensorData)
+                {
+                    if (parent.GetComponent<LaneLineOverride>() == null)
+                        LineDetector.Execute(parent.transform, lineDetectionSettings);
+                }
+                else
+                {
+                    var overrideData = parent.GetComponent<LaneLineOverride>();
+                    if (overrideData != null)
+                        CoreUtils.Destroy(overrideData);
                 }
             }
-            else
-            {
-                if (GUILayout.Button("Generate Lines"))
-                {
-                    var parent = GameObject.Find(ParentObjectName);
-                    if (parent != null)
-                        DestroyImmediate(parent);
+        }
 
-                    parent = new GameObject(ParentObjectName);
+        private void CreateLinesFromHdMap(GameObject parent, LaneLineOverride linesOverride = null)
+        {
+            var materials = AssetDatabase.LoadAssetAtPath<MapMeshMaterials>("Assets/Resources/Editor/HDMapMaterials.asset");
+            materials = Instantiate(materials);
+            materials.OverrideShader(Shader.Find("Simulator/SegmentationLine"));
 
-                    var materials = AssetDatabase.LoadAssetAtPath<MapMeshMaterials>("Assets/Resources/Editor/HDMapMaterials.asset");
-                    materials = Instantiate(materials);
-                    materials.OverrideShader(Shader.Find("Simulator/SegmentationLine"));
-                    
-                    var builder = new MapMeshBuilder(meshBuilderSettings);
-                    
-                    builder.BuildLinesMesh(parent, materials);
-                }
-            }
+            var builder = new MapMeshBuilder(meshBuilderSettings);
+
+            builder.BuildLinesMesh(parent, materials, linesOverride);
         }
     }
 }

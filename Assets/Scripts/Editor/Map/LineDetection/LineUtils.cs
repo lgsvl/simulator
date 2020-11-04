@@ -335,8 +335,8 @@ namespace Simulator.Editor.MapLineDetection
             {
                 foreach (var ln in line.lines)
                 {
-                    NearestPointOnLine(s, e, ln.Start, out var startDen);
-                    NearestPointOnLine(s, e, ln.End, out var endDen);
+                    NearestPointOnLine(s, e, ln.Start, out _);
+                    NearestPointOnLine(s, e, ln.End, out _);
                 }
             }
 
@@ -349,9 +349,6 @@ namespace Simulator.Editor.MapLineDetection
 
         public static void RemovePastThresholdLines(ApproximatedLine line)
         {
-            var bestFit = line.BestFitLine;
-            var bfS = bestFit.Start;
-            var bfE = bestFit.End;
             var settings = line.Settings;
             var thr = settings.worstFitThreshold;
 

@@ -21,8 +21,12 @@ namespace Simulator.Map.LineDetection
         public Vector3 End => lines[lines.Count - 1].End;
 
         public Vector3 StartVector => lines[0].Vector;
+        
+        public Vector2 StartVectorXZ => new Vector2(lines[0].Vector.x, lines[0].Vector.z);
 
         public Vector3 EndVector => lines[lines.Count - 1].Vector;
+        
+        public Vector2 EndVectorXZ => new Vector2(lines[lines.Count - 1].Vector.x, lines[lines.Count - 1].Vector.z); 
 
         public Color color;
 
@@ -60,6 +64,13 @@ namespace Simulator.Map.LineDetection
             this.lines = lines;
         }
 
+        public SegmentedLine3D Clone()
+        {
+            var result = new SegmentedLine3D(new List<Line3D>(lines));
+            result.color = color;
+            return result;
+        }
+        
         public void Invert()
         {
             var newLines = new List<Line3D>(lines.Count);

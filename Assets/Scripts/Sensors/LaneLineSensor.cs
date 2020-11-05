@@ -178,6 +178,23 @@ namespace Simulator.Sensors
             return isLeft ? lane.leftLineBoundry.mapWorldPositions : lane.rightLineBoundry.mapWorldPositions;
         }
 
+        private LaneLineType GetLineType(MapLane lane, bool isLeft)
+        {
+            var line = isLeft ? lane.leftLineBoundry : lane.rightLineBoundry;
+            switch (line.lineType)
+            {
+                case MapData.LineType.SOLID_YELLOW:
+                case MapData.LineType.DOUBLE_YELLOW:
+                    return LaneLineType.YellowSolid;
+                case MapData.LineType.DOTTED_WHITE:
+                    return LaneLineType.WhiteDashed;
+                case MapData.LineType.DOTTED_YELLOW:
+                    return LaneLineType.YellowDashed;
+                default:
+                    return LaneLineType.WhiteSolid;
+            }
+        }
+
         private void SamplePoints(MapLane egoLane, bool isLeft)
         {
             MapLane currentLane = egoLane;
@@ -571,7 +588,7 @@ namespace Simulator.Sensors
                             CurveCameraCoord = LeftCurve,
                             LineWidth = 0.1f,
                             PositionType = LaneLinePositionType.EgoLeft,
-                            Type = LaneLineType.WhiteSolid
+                            Type = GetLineType(egoLane, true)
                         });
                     }
                     
@@ -582,7 +599,7 @@ namespace Simulator.Sensors
                             CurveCameraCoord = RightCurve,
                             LineWidth = 0.1f,
                             PositionType = LaneLinePositionType.EgoRight,
-                            Type = LaneLineType.WhiteSolid
+                            Type = GetLineType(egoLane, false)
                         });
                     }
 

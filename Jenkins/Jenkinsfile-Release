@@ -16,7 +16,6 @@ pipeline {
   }
 
   parameters {
-    booleanParam(name: "UPLOAD_TO_ECR", defaultValue: false, description: "Enable uploading docker image with build simulator zip to the ECR.")
     string(name: "CLOUD_URL", defaultValue: "${SIMULATOR_WISE_STAGING_URL}", description: "")
     string(name: 'WISE_AWS_ECR_ACCOUNT_ID', defaultValue: '853285614468', description: 'The AWS account ID whose ECR will be used', trim: true)
     string(name: 'WISE_AWS_ECR_REGION', defaultValue: 'us-east-1', description: 'The AWS region where the ECR is located', trim: true)
@@ -275,14 +274,6 @@ pipeline {
     } // Linux
 
     stage("uploadECR") {
-      when {
-        anyOf {
-            buildingTag()
-            branch 'master'
-            environment name: "UPLOAD_TO_ECR", value: "true"
-        }
-      }
-
       steps {
         dir("Jenkins") {
           sh "echo Using credentials ${WISE_AWS_ECR_CREDENTIALS_ID}"

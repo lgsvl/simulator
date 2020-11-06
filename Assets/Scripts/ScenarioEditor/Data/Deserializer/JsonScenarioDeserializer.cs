@@ -148,6 +148,7 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                     agentInstance.DestinationPoint.TransformToRotate.rotation =
                         Quaternion.Euler(destinationPoint["rotation"].ReadVector3());
                     agentInstance.DestinationPoint.SetActive(true);
+                    agentInstance.DestinationPoint.SetVisibility(false);
                     agentInstance.DestinationPoint.Refresh();
                 }
 

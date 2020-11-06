@@ -20,9 +20,7 @@ namespace Simulator.ScenarioEditor.Agents
     using Undo;
     using Undo.Records;
     using UnityEngine;
-    using Utilities;
     using Web;
-    using Object = UnityEngine.Object;
 
     /// <inheritdoc/>
     /// <remarks>
@@ -93,12 +91,18 @@ namespace Simulator.ScenarioEditor.Agents
             var instance = base.GetModelInstance(variant);
             var colliders = instance.GetComponentsInChildren<Collider>();
             foreach (var collider in colliders) collider.isTrigger = true;
-            instance.GetComponent<VehicleController>().enabled = false;
-            instance.GetComponent<VehicleSMI>().enabled = false;
+            
+            //Destroy all the custom components from the ego vehicle
+            var allComponents = instance.GetComponents<MonoBehaviour>();
+            for (var i = 0; i < allComponents.Length; i++)
+            {
+                var component = allComponents[i];
+                DestroyImmediate(component);
+            }
+
             var rigidbody = instance.GetComponent<Rigidbody>();
             rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
             rigidbody.isKinematic = true;
-            Object.DestroyImmediate(instance.GetComponent<VehicleActions>());
             return instance;
         }
 
@@ -122,6 +126,7 @@ namespace Simulator.ScenarioEditor.Agents
             var destinationPoint = destinationPointObject.GetComponent<ScenarioDestinationPoint>();
             destinationPoint.AttachToAgent(scenarioAgent, true);
             destinationPoint.SetActive(false);
+            destinationPoint.SetVisibility(false);
             return scenarioAgent;
         }
 

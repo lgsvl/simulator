@@ -302,12 +302,14 @@ namespace Simulator
                 {
                     if (simData.Map != null)
                     {
-                        downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, simData.Map.AssetGuid, simData.Map.Name));
+                        var progressUpdate = new Progress<Tuple<string,float>> (p => { ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2); });
+                        downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, simData.Map.AssetGuid, simData.Map.Name, progressUpdate));
                     }
 
                     foreach (var vehicle in simData.Vehicles.Where(v => !v.Id.EndsWith(".prefab")).Select(v => v.AssetGuid).Distinct())
                     {
-                        downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicle, simData.Vehicles.First(v => v.AssetGuid == vehicle).Name));
+                        var progressUpdate = new Progress<Tuple<string,float>> (p => { ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2); });
+                        downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicle, simData.Vehicles.First(v => v.AssetGuid == vehicle).Name, progressUpdate));
                     }
                 }
 

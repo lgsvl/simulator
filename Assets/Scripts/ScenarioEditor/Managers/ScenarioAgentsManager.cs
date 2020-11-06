@@ -64,7 +64,7 @@ namespace Simulator.ScenarioEditor.Managers
             if (IsInitialized)
                 return;
             var loadingProcess = ScenarioManager.Instance.loadingPanel.AddProgress();
-            loadingProcess.Update("Agents: initializing.");
+            loadingProcess.Update("Initializing agents.");
             await ScenarioManager.Instance.WaitForExtension<InputManager>();
             var tasks = new Task[sources.Count];
             var sourceProgresses = new Progress<float>[sources.Count];
@@ -73,7 +73,7 @@ namespace Simulator.ScenarioEditor.Managers
             {
                 var progressSum = sourceProgressesValue.Sum();
                 progressSum /= sources.Count;
-                loadingProcess.Update($"Agents: loading {progressSum:P}.");
+                loadingProcess.Update($"Loading agents {progressSum:P}.");
             });
             for (var i = 0; i < sources.Count; i++)
             {

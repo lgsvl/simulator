@@ -27,7 +27,8 @@ namespace Simulator.Api.Commands
             var api = ApiManager.Instance;
             MapDetailData mapData = await ConnectionManager.API.GetByIdOrName<MapDetailData>(userMapId);
 
-            var ret = await DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, mapData.AssetGuid, mapData.Name);
+            var progressUpdate = new Progress<Tuple<string,float>> (p => { ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2); });
+            var ret = await DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, mapData.AssetGuid, mapData.Name, progressUpdate);
             api.StartCoroutine(LoadMapAssets(this, mapData, ret.LocalPath, userMapId, seed));
         }
 

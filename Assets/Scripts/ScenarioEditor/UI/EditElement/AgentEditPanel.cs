@@ -7,6 +7,7 @@
 
 namespace Simulator.ScenarioEditor.UI.EditElement
 {
+    using System;
     using System.Linq;
     using System.Threading.Tasks;
     using Agents;
@@ -277,20 +278,17 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         /// <param name="variantId">Variant identifier in the source</param>
         public void VariantDropdownChanged(int variantId)
         {
-            var nonBlockingTask = ChangeVariant(agentSource.Variants[variantId]);
+            ChangeVariant(agentSource.Variants[variantId]);
         }
 
         /// <summary>
-        /// Changes variant of the selected vehicle, downloads assets if required
+        /// Changes variant of the selected vehicle
         /// </summary>
         /// <param name="variant">Variant that will be applied to the vehicle</param>
         /// <returns>Task</returns>
-        private async Task ChangeVariant(SourceVariant variant)
+        private void ChangeVariant(SourceVariant variant)
         {
             ScenarioManager.Instance.colorPicker.Hide();
-            if (variant is CloudAgentVariant cloudVariant && cloudVariant.Prefab == null)
-                await cloudVariant.DownloadAsset();
-
             selectedAgent.ChangeVariant(variant);
         }
 
@@ -337,20 +335,27 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         public void ToggleSetDestinationPoint(bool active)
         {
             if (selectedAgent.DestinationPoint == null) return;
+            var agent = selectedAgent;
+            var undoCallback = new Action<bool>((undoValue) =>
+            {
+                SetDestinationPoint(agent, undoValue);
+            });
             ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
-                .RegisterRecord(new UndoToggle(destinationPointToggle, selectedAgent.DestinationPoint.IsActive,
-                    SetDestinationPoint));
-            SetDestinationPoint(active);
+                .RegisterRecord(new UndoToggle(destinationPointToggle, selectedAgent.DestinationPoint.IsActive, undoCallback));
+            SetDestinationPoint(selectedAgent, active);
         }
 
         /// <summary>
         /// Sets destination point as active or inactive if it is supported by selected agent
         /// </summary>
+        /// <param name="agent">Agent owning changed destination point</param>
         /// <param name="active">Should the destination point be active</param>
-        private void SetDestinationPoint(bool active)
+        private void SetDestinationPoint(ScenarioAgent agent, bool active)
         {
-            selectedAgent.DestinationPoint.SetActive(active);
-            activeDestinationPointPanel.SetActive(active);
+            agent.DestinationPoint.SetActive(active);
+            var isSelected = agent == selectedAgent;
+            agent.DestinationPoint.SetVisibility(isSelected && active);
+            activeDestinationPointPanel.SetActive(isSelected && active);
         }
 
         /// <summary>

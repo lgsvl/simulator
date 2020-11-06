@@ -64,7 +64,8 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         public override void CopyProperties(ScenarioElement origin)
         {
             TransformToMove.localPosition = origin.TransformToMove.localPosition;
-            SetActive(((ScenarioDestinationPoint) origin).IsActive);
+            var originPoint = (ScenarioDestinationPoint) origin;
+            SetActive(originPoint.IsActive);
             SetVisibility(false);
         }
 
@@ -80,7 +81,6 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         public void SetActive(bool active)
         {
             IsActive = active;
-            gameObject.SetActive(active);
         }
 
         /// <summary>

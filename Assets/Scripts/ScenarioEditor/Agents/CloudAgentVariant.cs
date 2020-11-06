@@ -126,22 +126,22 @@ namespace Simulator.ScenarioEditor.Agents
         /// Downloads required asset from the cloud
         /// </summary>
         /// <returns>Asynchronous task</returns>
-        public async Task DownloadAsset()
+        private async Task DownloadAsset(IProgress<Tuple<string, float>> progress)
         {
             ScenarioManager.Instance.logPanel.EnqueueInfo($"Started a download process of the {name} agent.");
-            assetModel = await DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, assetGuid, name);
+            assetModel = await DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, assetGuid, name, progress);
             AcquirePrefab();
             ScenarioManager.Instance.logPanel.EnqueueInfo($"Agent {name} has been downloaded.");
         }
 
         /// <inheritdoc/>
-        public override async Task Prepare()
+        public override async Task Prepare(IProgress<Tuple<string, float>> progress = null)
         {
             if (IsPrepared || IsBusy)
                 return;
             IsBusy = true;
-            await DownloadAsset();
-            await base.Prepare();
+            await DownloadAsset(progress);
+            await base.Prepare(progress);
             IsBusy = false;
         }
     }

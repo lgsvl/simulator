@@ -7,6 +7,7 @@
 
 namespace Simulator.ScenarioEditor.Controllables
 {
+    using System;
     using System.Text;
     using System.Threading.Tasks;
     using Agents;
@@ -83,8 +84,9 @@ namespace Simulator.ScenarioEditor.Controllables
         }
         
         /// <inheritdoc/>
-        public override Task Prepare()
+        public override Task Prepare(IProgress<Tuple<string, float>> progress = null)
         {
+            progress?.Report(new Tuple<string, float>(Name, 100.0f));
             return Task.CompletedTask;
         }
     }

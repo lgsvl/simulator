@@ -16,6 +16,7 @@ namespace Simulator.ScenarioEditor.Managers
     using Database;
     using ICSharpCode.SharpZipLib.Zip;
     using Database.Services;
+    using UI.Utilities;
     using UnityEngine;
     using UnityEngine.SceneManagement;
     using Web;
@@ -35,17 +36,17 @@ namespace Simulator.ScenarioEditor.Managers
             /// Guid of the map
             /// </summary>
             public readonly string guid;
-            
+
             /// <summary>
             /// User friendly name of the map
             /// </summary>
             public readonly string name;
-            
+
             /// <summary>
             /// Guid of the asset loaded within this map
             /// </summary>
             public readonly string assetGuid;
-            
+
             /// <summary>
             /// Asset model of the downloaded map, null if map is not cached yet
             /// </summary>
@@ -65,17 +66,18 @@ namespace Simulator.ScenarioEditor.Managers
                 assetModel = null;
             }
         }
-        
+
         /// <summary>
         /// Persistence data key for last loaded map
         /// </summary>
         private const string MapPersistenceKey = "Simulator/ScenarioEditor/MapManager/MapName";
-        
+
         /// <summary>
         /// Currently loaded scene name after loading the map
         /// </summary>
         /// 
         private string loadedSceneName;
+
         /// <summary>
         /// Currently loaded map name
         /// </summary>
@@ -90,12 +92,12 @@ namespace Simulator.ScenarioEditor.Managers
         /// Bounds of currently loaded map
         /// </summary>
         public Bounds CurrentMapBounds { get; private set; }
-        
+
         /// <summary>
         /// List of meta data with available maps
         /// </summary>
         public List<MapMetaData> AvailableMaps { get; } = new List<MapMetaData>();
-        
+
         /// <summary>
         /// Handler for snapping positions to the map lanes
         /// </summary>
@@ -118,7 +120,7 @@ namespace Simulator.ScenarioEditor.Managers
             if (IsInitialized)
                 return;
             var library = await ConnectionManager.API.GetLibrary<MapDetailData>();
-            
+
             var assetService = new AssetService();
             var mapsInDatabase = assetService.List(BundleConfig.BundleTypes.Environment);
             var cachedMaps = mapsInDatabase as AssetModel[] ?? mapsInDatabase.ToArray();
@@ -186,10 +188,10 @@ namespace Simulator.ScenarioEditor.Managers
         {
             if (!string.IsNullOrEmpty(CurrentMapName) && CurrentMapName == mapName)
                 return;
-            
+
             var loadingProcess = ScenarioManager.Instance.loadingPanel.AddProgress();
             loadingProcess.Update("Loading scenario map manager.");
-            
+
             if (!string.IsNullOrEmpty(loadedSceneName))
                 UnloadMapAsync();
 
@@ -204,15 +206,12 @@ namespace Simulator.ScenarioEditor.Managers
                 {
                     var map = AvailableMaps[i];
                     if (map.name != name) continue;
-                    loadingProcess.Update($"Downloading {map.name} map.");
                     //Download map if it's not available
                     if (map.assetModel == null)
-                        map.assetModel =
-                            await DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, map.assetGuid, map.name);
+                        await DownloadMap(map, loadingProcess);
                     mapToLoad = map;
                     break;
                 }
-                
             }
 
             if (mapToLoad == null)
@@ -225,17 +224,16 @@ namespace Simulator.ScenarioEditor.Managers
                     mapToLoad = map;
                     break;
                 }
-                
+
                 //Download first map if there are no downloaded maps
                 if (mapToLoad == null)
                 {
                     var map = AvailableMaps[0];
-                    loadingProcess.Update($"Downloading map {map.name}.");
-                    map.assetModel =
-                        await DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, map.assetGuid, map.name);
+                    await DownloadMap(map, loadingProcess);
                     mapToLoad = map;
                 }
             }
+
             loadingProcess.Update($"Loading map {mapToLoad.name}.");
             await LoadMapAssets(mapToLoad.assetModel, mapToLoad);
             loadingProcess.Update(
@@ -243,6 +241,22 @@ namespace Simulator.ScenarioEditor.Managers
                     ? $"Scenario map manager loaded {mapToLoad.name} map."
                     : $"Loaded {mapToLoad.name} map failed.");
             loadingProcess.NotifyCompletion();
+        }
+
+        /// <summary>
+        /// Downloads selected map asynchronously and updates the loading information
+        /// </summary>
+        /// <param name="map">Map to download</param>
+        /// <param name="loadingProcess">Loading process to update with progress</param>
+        /// <returns>Task</returns>
+        private async Task DownloadMap(MapMetaData map, LoadingPanel.LoadingProcess loadingProcess)
+        {
+            var progressUpdate = new Progress<Tuple<string, float>>(p =>
+            {
+                loadingProcess.Update($"Downloading {p.Item1} {p.Item2:F}%.");
+            });
+            map.assetModel =
+                await DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, map.assetGuid, map.name, progressUpdate);
         }
 
         /// <summary>

@@ -40,6 +40,11 @@ namespace Simulator.ScenarioEditor.Agents
         /// Is this source variant currently being prepared
         /// </summary>
         public bool IsBusy { get; protected set; }
+
+        /// <summary>
+        /// Event invoked when this variant became prepared 
+        /// </summary>
+        public event Action Prepared;
         
         /// <summary>
         /// Is this source variant prepared
@@ -60,11 +65,6 @@ namespace Simulator.ScenarioEditor.Agents
         /// Prepares the variant with all the assets
         /// </summary>
         /// <returns>Task</returns>
-        public abstract Task Prepare();
-
-        /// <summary>
-        /// Event invoked when this variant became prepared 
-        /// </summary>
-        public event Action Prepared;
+        public abstract Task Prepare(IProgress<Tuple<string, float>> progress = null);
     }
 }

@@ -7,6 +7,7 @@
 
 namespace Simulator.ScenarioEditor.UI.AddElement
 {
+    using System;
     using System.Collections;
     using Agents;
     using Elements;
@@ -123,7 +124,14 @@ namespace Simulator.ScenarioEditor.UI.AddElement
             }
 
             if (!Variant.IsPrepared)
-                Variant.Prepare();
+            {
+                var progress = new Progress<Tuple<string, float>>(p =>
+                {
+                    if (text!=null && !Variant.IsPrepared)
+                        text.text = $"{p.Item2}% {UnpreparedSign} {variant.Name} {UnpreparedSign}";
+                });
+                Variant.Prepare(progress);
+            }
             else
                 source.OnVariantSelected(Variant);
         }

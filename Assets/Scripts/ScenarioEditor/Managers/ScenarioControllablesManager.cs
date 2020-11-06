@@ -62,11 +62,11 @@ namespace Simulator.ScenarioEditor.Managers
             if (IsInitialized)
                 return;
             var loadingProcess = ScenarioManager.Instance.loadingPanel.AddProgress();
-            loadingProcess.Update("Controllables: initializing.");
+            loadingProcess.Update("Initializing controllables.");
             await ScenarioManager.Instance.WaitForExtension<InputManager>();
             Source = Instantiate(source, transform);
             var sourceProgress = new Progress<float>(f =>
-                loadingProcess.Update($"Controllables: loading {f:P}."));
+                loadingProcess.Update($"Loading controllables {f:P}."));
             await Source.Initialize(sourceProgress);
             ScenarioManager.Instance.ScenarioReset += InstanceOnScenarioReset;
             IsInitialized = true;

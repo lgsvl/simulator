@@ -103,7 +103,8 @@ namespace Simulator.Web
             downloads.Enqueue(new Download(uri, path, update, completed));
         }
 
-        public static Task<AssetModel> GetAsset(BundleConfig.BundleTypes type, string assetGuid, string name = null)
+        public static Task<AssetModel> GetAsset(BundleConfig.BundleTypes type, string assetGuid, string name = null,
+            IProgress<Tuple<string, float>> progressCallback = null)
         {
             Init();
             var assetService = new AssetService();
@@ -129,12 +130,14 @@ namespace Simulator.Web
 
             Uri uri = new Uri(Config.CloudUrl + "/api/v1/assets/download/bundle/" + assetGuid);
 
-            ConnectionUI.instance?.UpdateDownloadProgress(name, 0);
+            var progressState = new Tuple<string, float>(name, 0.0f);
+            progressCallback?.Report(new Tuple<string, float>(name, 0.0f));
             Debug.Log($"{name} Download at 0%");
             var t = new TaskCompletionSource<AssetModel>();
             downloads.Enqueue(new Download(uri, localPath,
-            progress => {
-                ConnectionUI.instance?.UpdateDownloadProgress(name, progress);
+            progress =>
+            {
+                progressCallback?.Report(new Tuple<string, float>(name, progress));
                 Debug.Log($"{name} Download at {progress}%");
             } ,
             (success, ex) => {

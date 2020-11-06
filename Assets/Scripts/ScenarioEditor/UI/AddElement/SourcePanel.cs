@@ -90,7 +90,9 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         /// <param name="source">Scenario element source class which will be used for adding new elements from this panel</param>
         public void Initialize(ScenarioElementSource source)
         {
-            this.source = source ?? throw new ArgumentException("Cannot initialize source panel with null source.");
+            if (source==null)
+                throw new ArgumentException("Cannot initialize source panel with null source.");
+            this.source = source;
             title.text = source.ElementTypeName;
 
             var contentSizeFitter = GetComponent<ContentSizeFitter>();

@@ -21,6 +21,7 @@ using Simulator.Network.Core.Messaging.Data;
 using System.Reflection;
 using System.Linq;
 using Simulator.Utilities;
+using System.Text.RegularExpressions;
 
 namespace Simulator.Analysis
 {
@@ -222,7 +223,8 @@ namespace Simulator.Analysis
             }
 
             var dt = string.Format("Analysis_{0:yyyy-MM-dd_hh-mm-sstt}", DateTime.Now);
-            SimulationPath = Path.Combine(AnalysisPath, SimConfig.Name, dt);
+            var simName = (new Regex(@"[<>:""/\|?*]")).Replace(SimConfig.Name, "");
+            SimulationPath = Path.Combine(AnalysisPath, simName, dt);
             if (!Directory.Exists(SimulationPath))
                 Directory.CreateDirectory(SimulationPath);
 

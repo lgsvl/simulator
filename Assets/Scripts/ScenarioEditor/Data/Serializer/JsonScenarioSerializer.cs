@@ -174,6 +174,7 @@ namespace Simulator.ScenarioEditor.Data.Serializer
             var triggerNode = new JSONObject();
             var effectorsArray = new JSONArray();;
             triggerNode.Add("effectors", effectorsArray);
+            scenarioTrigger.OnBeforeSerialize();
             foreach (var effector in scenarioTrigger.Trigger.Effectors)
             {
                 var effectorNode = new JSONObject();

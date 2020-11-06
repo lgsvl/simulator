@@ -672,9 +672,11 @@ namespace Simulator.ScenarioEditor.Input
         /// </summary>
         private void HandleKeyboardActions()
         {
-            if (Input.GetKeyDown(KeyCode.Delete))
+            if (Input.GetKeyDown(KeyCode.Delete) && EventSystem.current.currentSelectedGameObject==null)
             {
                 var element = ScenarioManager.Instance.SelectedElement;
+                if (element == null)
+                    return;
                 ScenarioManager.Instance.SelectedElement = null;
                 ScenarioManager.Instance.IsScenarioDirty = true;
                 ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoRemoveElement(element));

@@ -48,7 +48,7 @@ namespace Simulator.ScenarioEditor.Undo.Records
         /// <inheritdoc/>
         public override void Dispose()
         {
-            trigger.DisposeEffector(effector);
+
         }
     }
 }

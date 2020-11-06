@@ -182,6 +182,17 @@ namespace Simulator.ScenarioEditor.Elements
                 ScenarioManager.Instance.prefabsPools.ReturnInstance(effectorObject.gameObject);
                 objects.Remove(objectName);
             }
+
+            /// <summary>
+            /// Method invoked before this effector object is serialized
+            /// </summary>
+            public void OnBeforeSerialize()
+            {
+                foreach (var effectorObject in objects)
+                {
+                    effectorObject.Value.OnBeforeSerialize();
+                }
+            }
         }
 
         /// <summary>
@@ -210,6 +221,8 @@ namespace Simulator.ScenarioEditor.Elements
         /// </summary>
         public void Initialize()
         {
+            Trigger.EffectorAdded += OnEffectorAdded;
+            Trigger.EffectorRemoved += OnEffectorRemoved;
         }
 
         /// <summary>
@@ -217,10 +230,38 @@ namespace Simulator.ScenarioEditor.Elements
         /// </summary>
         public void Deinitalize()
         {
+            Trigger.EffectorAdded -= OnEffectorAdded;
+            Trigger.EffectorRemoved -= OnEffectorRemoved;
             ClearEffectors();
 
             for (var i = transform.childCount - 1; i >= 0; i--)
                 Destroy(transform.GetChild(i).gameObject);
+        }
+
+        /// <summary>
+        /// Method invoked when the effector is added to the trigger
+        /// </summary>
+        /// <param name="effector">Added effector</param>
+        private void OnEffectorAdded(TriggerEffector effector)
+        {
+            if (effectorsObjects.ContainsKey(effector.TypeName))
+                return;
+            var scenarioEffector = new ScenarioEffector();
+            scenarioEffector.Initialize(this, effector);
+            effectorsObjects.Add(effector.TypeName, scenarioEffector);
+        }
+
+        /// <summary>
+        /// Method invoked when the effector is removed to the trigger
+        /// </summary>
+        /// <param name="effector">Removed effector</param>
+        private void OnEffectorRemoved(TriggerEffector effector)
+        {
+            effectorsObjects.TryGetValue(effector.TypeName, out var scenarioEffector);
+            if (scenarioEffector == null)
+                return;
+            scenarioEffector.Deinitialize();
+            effectorsObjects.Remove(effector.TypeName);
         }
 
         /// <summary>
@@ -300,12 +341,8 @@ namespace Simulator.ScenarioEditor.Elements
         public ScenarioEffectorObject AddEffectorObject(TriggerEffector effector, string objectName,
             GameObject prefab)
         {
-            if (effectorsObjects.TryGetValue(effector.TypeName, out var scenarioEffector))
-                return scenarioEffector.AddEffectorObject(objectName, prefab);
-            scenarioEffector = new ScenarioEffector();
-            scenarioEffector.Initialize(this, effector);
-            effectorsObjects.Add(effector.TypeName, scenarioEffector);
-            return scenarioEffector.AddEffectorObject(objectName, prefab);
+            OnEffectorAdded(effector);
+            return effectorsObjects[effector.TypeName].AddEffectorObject(objectName, prefab);
         }
 
         /// <summary>
@@ -331,16 +368,14 @@ namespace Simulator.ScenarioEditor.Elements
         }
 
         /// <summary>
-        /// Disposes all the effector objects
+        /// Method invoked before this trigger is serialized
         /// </summary>
-        /// <param name="effector">Effector which was removed and its objects will be disposed</param>
-        public void DisposeEffector(TriggerEffector effector)
+        public void OnBeforeSerialize()
         {
-            effectorsObjects.TryGetValue(effector.TypeName, out var scenarioEffector);
-            if (scenarioEffector == null)
-                return;
-            scenarioEffector.Deinitialize();
-            effectorsObjects.Remove(effector.TypeName);
+            foreach (var scenarioEffector in effectorsObjects)
+            {
+                scenarioEffector.Value.OnBeforeSerialize();
+            }
         }
     }
 }

@@ -75,7 +75,12 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         /// <inheritdoc/>
         public override void FinishEditing()
         {
-            if (this == null || zoneVisualization == null)
+            if (this == null)
+                return;
+            var selected = EventSystem.current.currentSelectedGameObject;
+            if (radiusInputField.gameObject == selected)
+                OnRadiusInputChange(radiusInputField.text);
+            if (zoneVisualization == null)
                 return;
             zoneVisualization.SetActive(false);
             zoneVisualization.transform.SetParent(transform);
@@ -102,7 +107,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
             var zone = trigger.GetEffectorObject(effector, zoneVisualization.name);
             if (zone != null) return;
             zone = trigger.AddEffectorObject(effector, zoneVisualization.name, zoneVisualization);
-            zone.transform.localPosition = waitingPointEffector.ActivatorPoint-trigger.transform.position;
+            zone.transform.position = waitingPointEffector.ActivatorPoint;
             zone.transform.localScale = Vector3.one * waitingPointEffector.PointRadius;
             zone.gameObject.SetActive(true);
             var zoneComponent = zone.GetComponent<WaitingPointZone>();

@@ -86,11 +86,16 @@ namespace Simulator.ScenarioEditor.UI.Utilities
         private Action<float> valueApply;
 
         /// <summary>
+        /// Input field for editing value
+        /// </summary>
+        public InputField UnityInputField => input;
+
+        /// <summary>
         /// Unity OnDisable method
         /// </summary>
         private void OnDisable()
         {
-            input.OnDeselect(new BaseEventData(EventSystem.current));
+            UnityInputField.OnDeselect(new BaseEventData(EventSystem.current));
         }
 
         /// <summary>
@@ -130,7 +135,7 @@ namespace Simulator.ScenarioEditor.UI.Utilities
         {
             currentUnit = unitId;
             PlayerPrefs.SetInt(playerPrefsKey, unitId);
-            input.text = ConvertFromBase(currentValue, currentUnit).ToString("F");
+            UnityInputField.text = ConvertFromBase(currentValue, currentUnit).ToString("F");
         }
 
         /// <summary>
@@ -153,6 +158,14 @@ namespace Simulator.ScenarioEditor.UI.Utilities
         private float ConvertFromBase(float baseValue, int targetUnitIndex)
         {
             return baseValue / unitTypes[targetUnitIndex].factorToBase;
+        }
+
+        /// <summary>
+        /// Changes the value according to currently selected unit type and current text
+        /// </summary>
+        public void OnValueInputApply()
+        {
+            OnValueInputApply(input.text);
         }
 
         /// <summary>
@@ -186,7 +199,7 @@ namespace Simulator.ScenarioEditor.UI.Utilities
         public void ExternalValueChange(float baseValue, bool invokeApply)
         {
             currentValue = baseValue;
-            input.SetTextWithoutNotify(ConvertFromBase(currentValue, currentUnit).ToString("F"));
+            UnityInputField.SetTextWithoutNotify(ConvertFromBase(currentValue, currentUnit).ToString("F"));
             if (invokeApply)
                 valueApply?.Invoke(currentValue);
         }

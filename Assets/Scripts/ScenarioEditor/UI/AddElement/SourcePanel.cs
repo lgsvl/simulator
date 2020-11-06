@@ -151,7 +151,7 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         /// <param name="newPageString">New page number in string</param>
         public void OnPageInputChange(string newPageString)
         {
-            pageNumberInput.SetTextWithoutNotify((variants.CurrentPage-1).ToString());
+            pageNumberInput.SetTextWithoutNotify((variants.CurrentPage+1).ToString());
             if (int.TryParse(newPageString, out var newPage))
                 variants.ChangePage(newPage-1);
         }

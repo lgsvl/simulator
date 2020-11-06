@@ -110,6 +110,18 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         }
 
         /// <summary>
+        /// Submits changed input field value
+        /// </summary>
+        private void SubmitChangedInputs()
+        {
+            var selected = EventSystem.current.currentSelectedGameObject;
+            if (speedInput.UnityInputField.gameObject == selected)
+                speedInput.OnValueInputApply();
+            if (waitTimeInput.gameObject == selected)
+                OnWaypointWaitTimeInputChange(waitTimeInput.text);
+        }
+
+        /// <summary>
         /// Method called when another scenario element has been selected
         /// </summary>
         /// <param name="selectedElement">Scenario element that has been selected</param>
@@ -118,6 +130,9 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             if (isAddingWaypoints)
                 ScenarioManager.Instance.GetExtension<InputManager>().CancelAddingElements(this);
 
+            //Force input apply on deselect
+            if (selectedWaypoint != null)
+                SubmitChangedInputs();
             selectedWaypoint = selectedElement as ScenarioWaypoint;
             selectedAgent = selectedWaypoint != null ? selectedWaypoint.ParentAgent : null;
             //Disable waypoints for ego vehicles

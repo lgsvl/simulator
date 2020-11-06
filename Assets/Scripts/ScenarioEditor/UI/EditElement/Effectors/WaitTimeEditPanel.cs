@@ -58,6 +58,16 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
             editedEffector = (WaitTimeEffector) effector;
             valueInputField.text = editedEffector.Value.ToString("F");
         }
+
+        /// <inheritdoc/>
+        public override void FinishEditing()
+        {
+            if (this == null)
+                return;
+            var selected = EventSystem.current.currentSelectedGameObject;
+            if (valueInputField.gameObject == selected)
+                OnValueInputChange(valueInputField.text);
+        }
         
         /// <inheritdoc/>
         public override void InitializeEffector(ScenarioTrigger trigger, TriggerEffector effector)

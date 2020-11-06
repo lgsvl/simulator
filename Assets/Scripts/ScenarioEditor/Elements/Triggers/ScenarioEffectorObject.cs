@@ -53,5 +53,10 @@ namespace Simulator.ScenarioEditor.Agents.Triggers
         /// Refresh the effector object with current state
         /// </summary>
         public abstract void Refresh();
+
+        /// <summary>
+        /// Method invoked before this effector object is serialized
+        /// </summary>
+        public abstract void OnBeforeSerialize();
     }
 }

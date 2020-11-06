@@ -87,8 +87,6 @@ namespace Simulator.ScenarioEditor.Agents.Triggers
         protected override void OnMoved()
         {
             base.OnMoved();
-            if (waitingPointEffector!=null)
-                waitingPointEffector.ActivatorPoint = transform.position;
             Refresh();
         }
 
@@ -111,6 +109,13 @@ namespace Simulator.ScenarioEditor.Agents.Triggers
             position.y = lineRendererPositionOffset.y / localScale.y;
             position.z /= -localScale.z;
             PathRenderer.SetPosition(1, position);
+        }
+
+        /// <inheritdoc/>
+        public override void OnBeforeSerialize()
+        {
+            waitingPointEffector.ActivatorPoint = transform.position;
+            waitingPointEffector.PointRadius = transform.localScale.x;
         }
     }
 }

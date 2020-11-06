@@ -61,6 +61,16 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         }
 
         /// <inheritdoc/>
+        public override void FinishEditing()
+        {
+            if (this == null)
+                return;
+            var selected = EventSystem.current.currentSelectedGameObject;
+            if (maxDistanceInputField.gameObject == selected)
+                OnMaxDistanceInputChange(maxDistanceInputField.text);
+        }
+
+        /// <inheritdoc/>
         public override void InitializeEffector(ScenarioTrigger trigger, TriggerEffector effector)
         {
             if (!(effector is WaitForDistanceEffector waitForDistanceEffector))

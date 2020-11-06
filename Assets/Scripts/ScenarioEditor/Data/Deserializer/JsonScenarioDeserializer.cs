@@ -128,6 +128,8 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
 
                 await agentVariant.Prepare();
                 var agentInstance = agentSource.GetAgentInstance(agentVariant);
+                //Disable gameobject to delay OnEnable methods
+                agentInstance.gameObject.SetActive(false);
                 agentInstance.Uid = agentNode["uid"];
                 var transformNode = agentNode["transform"];
                 agentInstance.transform.position = transformNode["position"].ReadVector3();
@@ -161,6 +163,7 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
 
                 DeserializeWaypoints(agentNode, agentInstance);
                 agentInstance.WaypointsParent.gameObject.SetActive(agentSource.AgentSupportWaypoints(agentInstance));
+                agentInstance.gameObject.SetActive(true);
             }
         }
 
@@ -185,26 +188,25 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                 waypointInstance.WaitTime = waypointNode["wait_time"];
                 waypointInstance.Speed = waypointNode["speed"];
                 int index = waypointNode["ordinal_number"];
-                var trigger = DeserializeTrigger(waypointNode["trigger"]);
-                waypointInstance.LinkedTrigger.Trigger = trigger;
                 //TODO sort waypoints
                 scenarioAgent.AddWaypoint(waypointInstance, index);
+                DeserializeTrigger(waypointInstance.LinkedTrigger.Trigger, waypointNode["trigger"]);
             }
         }
 
         /// <summary>
         /// Deserializes a trigger from the json data
         /// </summary>
+        /// <param name="trigger">Trigger object to fill with effectors</param>
         /// <param name="triggerNode">Json data with a trigger</param>
-        private static WaypointTrigger DeserializeTrigger(JSONNode triggerNode)
+        private static void DeserializeTrigger(WaypointTrigger trigger, JSONNode triggerNode)
         {
             if (triggerNode == null)
-                return null;
+                return;
             var effectorsNode = triggerNode["effectors"];
 
-            var trigger = new WaypointTrigger();
             if (effectorsNode == null)
-                return trigger;
+                return;
 
             foreach (var effectorNode in effectorsNode.Children)
             {
@@ -218,10 +220,8 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                 }
 
                 effector.DeserializeProperties(effectorNode["parameters"]);
-                trigger.Effectors.Add(effector);
+                trigger.AddEffector(effector);
             }
-
-            return trigger;
         }
 
         /// <summary>

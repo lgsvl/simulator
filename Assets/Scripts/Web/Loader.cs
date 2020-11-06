@@ -226,6 +226,7 @@ namespace Simulator
             var info = Resources.Load<BuildInfo>("BuildInfo");
             SIM.Init(info == null ? "Development" : info.Version);
             SIM.LogSimulation(SIM.Simulation.ApplicationStart);
+            Application.wantsToQuit += CleanupOnExit;
 
             if (Instance != null)
             {
@@ -941,6 +942,23 @@ namespace Simulator
                 Instance.TCManager.OnFinished -= Instance.RemoveVolumesOnTestCaseExit;
                 SimulationConfigUtils.CleanupVolumes(Instance.CurrentSimulation.Id);
             });
+        }
+
+        bool CleanupOnExit()
+        {
+            StopAsync();
+            WaitOnStop();
+            return Instance.status == SimulatorStatus.Idle;
+        }
+
+        async void WaitOnStop()
+        {
+            while(Instance.status != SimulatorStatus.Idle)
+            {
+                await Task.Delay(1000);
+            }
+
+            Application.Quit();
         }
     }
 }

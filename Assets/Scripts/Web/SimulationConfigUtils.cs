@@ -156,7 +156,22 @@ namespace Simulator.Web
                     {
                         // Special case for bool -> 1/0
                         environment.Add(parameter.VariableName, parameter.GetValue<bool>() ? "1" : "0");
-                    } else {
+                    }
+                    else if (parameter.ParameterType == "map")
+                    {
+                        environment.Add(parameter.VariableName, parameter.GetValue<MapData>().Id);
+                    }
+                    else if (parameter.ParameterType == "vehicles")
+                    {
+                        var i = 0;
+                        foreach (var vehicle in parameter.GetValue<VehicleData[]>())
+                        {
+                            environment.Add($"LGSVL__VEHICLE_{i}", vehicle.Id);
+                            i++;
+                        }
+                    }
+                    else
+                    {
                         environment.Add(parameter.VariableName, parameter.GetValue<string>());
                     }
                 }

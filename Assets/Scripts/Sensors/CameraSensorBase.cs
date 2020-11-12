@@ -133,9 +133,9 @@ namespace Simulator.Sensors
         #region FPSCalculation
         [SensorParameter]
         [AnalysisMeasurement(MeasurementType.Fps)]
-        public float MinFPS = 10f;
+        public float TargetFPS = 0f;
         [SensorParameter]
-        public float MinFPSTime = 5f;
+        public float TargetFPSTime = 5f;
         private float LowFPSCalculatedTime = 0f;
         private float DeltaTime = 0.0f;
         private float MS = 0f;
@@ -573,10 +573,10 @@ namespace Simulator.Sensors
             FPS = 1.0f / DeltaTime;
             LowestFPS = Mathf.Min(FPS, LowestFPS);
             AveFPS = Time.frameCount / Time.time;
-            if (FPS < MinFPS)
+            if (FPS < TargetFPS)
             {
                 LowFPSCalculatedTime += Time.deltaTime;
-                if (LowFPSCalculatedTime >= MinFPSTime)
+                if (LowFPSCalculatedTime >= TargetFPSTime)
                 {
                     LowFPSEvent(GetComponentInParent<AgentController>().GTID);
                     LowFPSCalculatedTime = 0f;

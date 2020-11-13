@@ -221,7 +221,7 @@ namespace Simulator.Network.Master
             ConnectionManager.PeerConnected += OnClientConnected;
             ConnectionManager.PeerDisconnected += OnClientDisconnected;
             State = SimulationState.Connecting;
-            Log.Info($"{GetType().Name} started the connection manager.");
+            Log.Info($"{GetType().Name} started the connection manager, current UTC time: {DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)}.");
         }
 
         /// <summary>

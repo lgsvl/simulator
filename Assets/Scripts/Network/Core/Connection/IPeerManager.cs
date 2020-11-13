@@ -7,6 +7,7 @@
 
 namespace Simulator.Network.Core.Connection
 {
+    using System;
     using System.Net;
     using Messaging.Data;
 
@@ -24,6 +25,11 @@ namespace Simulator.Network.Core.Connection
         /// Difference between local time and remote time in ticks count
         /// </summary>
         long RemoteTimeTicksDifference { get; }
+        
+        /// <summary>
+        /// Current UTC time of the remote peer
+        /// </summary>
+        DateTime RemoteUtcTime { get; }
         
         /// <summary>
         /// End point of the connected peer

@@ -14,8 +14,8 @@ namespace Simulator.Network.Core.Connection
     using System.Net.Sockets;
     using LiteNetLib;
     using LiteNetLib.Utils;
+    using Messaging;
     using Messaging.Data;
-    using Simulator.Network.Core.Messaging;
 
     /// <summary>
     /// The client's connection manager using LiteNetLib
@@ -53,7 +53,7 @@ namespace Simulator.Network.Core.Connection
         public int Timeout { get; private set; }
 
         /// <inheritdoc/>
-        public int ConnectedPeersCount => masterPeer == null ? 0 : 1;
+        public int ConnectedPeersCount => MasterPeer == null ? 0 : 1;
 
         /// <summary>
         /// The net manager for this client
@@ -68,11 +68,21 @@ namespace Simulator.Network.Core.Connection
         /// <inheritdoc/>
         public List<string> AcceptableIdentifiers { get; } = new List<string>();
 
+        /// <summary>
+        /// Peer manager for connection with the server
+        /// </summary>
+        public LiteNetLibPeerManager MasterPeer => masterPeer;
+
         /// <inheritdoc/>
         public event Action<IPeerManager> PeerConnected;
 
         /// <inheritdoc/>
         public event Action<IPeerManager> PeerDisconnected;
+
+        /// <summary>
+        /// Event invoked when all active connections have been dropped and none was accepted
+        /// </summary>
+        public event Action DroppedAllConnections;
 
         /// <inheritdoc/>
         public event Action<DistributedMessage> MessageReceived;
@@ -134,8 +144,8 @@ namespace Simulator.Network.Core.Connection
         /// <inheritdoc/>
         public void Unicast(IPEndPoint endPoint, DistributedMessage distributedMessage)
         {
-            if (Equals(masterPeer.PeerEndPoint, endPoint))
-                masterPeer.Send(distributedMessage);
+            if (Equals(MasterPeer.PeerEndPoint, endPoint))
+                MasterPeer.Send(distributedMessage);
             distributedMessage.Release();
         }
 
@@ -160,13 +170,13 @@ namespace Simulator.Network.Core.Connection
         /// <inheritdoc/>
         public IPeerManager GetConnectedPeerManager(IPEndPoint endPoint)
         {
-            return (masterPeer!=null && Equals(masterPeer.PeerEndPoint, endPoint)) ? masterPeer : null;
+            return (MasterPeer!=null && Equals(MasterPeer.PeerEndPoint, endPoint)) ? MasterPeer : null;
         }
 
         /// <inheritdoc/>
         public void OnPeerConnected(NetPeer peer)
         {
-            if (masterPeer != null)
+            if (MasterPeer != null)
             {
                 activeConnections.Remove(peer.EndPoint);
                 return;
@@ -174,21 +184,24 @@ namespace Simulator.Network.Core.Connection
             if (!activeConnections.TryGetValue(peer.EndPoint, out masterPeer))
             {
                 masterPeer = new LiteNetLibPeerManager(peer);
-                activeConnections.Add(peer.EndPoint, masterPeer);
+                activeConnections.Add(peer.EndPoint, MasterPeer);
             }
 
-            PeerConnected?.Invoke(masterPeer);
+            Log.Info($"{GetType().Name} has connected to the master peer '{MasterPeer.PeerEndPoint}'.");
+            PeerConnected?.Invoke(MasterPeer);
         }
 
         /// <inheritdoc/>
         public void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
         {
-            if (masterPeer == null || masterPeer.Peer != peer)
+            if (MasterPeer == null || MasterPeer.Peer != peer)
             {
                 activeConnections.Remove(peer.EndPoint);
+                if (activeConnections.Count==0)
+                    DroppedAllConnections?.Invoke();
                 return;
             }
-            var disconnectedPeer = masterPeer;
+            var disconnectedPeer = MasterPeer;
             masterPeer = null;
             activeConnections.Remove(peer.EndPoint);
             PeerDisconnected?.Invoke(disconnectedPeer);
@@ -197,7 +210,7 @@ namespace Simulator.Network.Core.Connection
         /// <inheritdoc/>
         public void OnNetworkError(IPEndPoint endPoint, SocketError socketError)
         {
-            if (masterPeer!=null && Equals(endPoint.Address, masterPeer.PeerEndPoint.Address))
+            if (MasterPeer!=null && Equals(endPoint.Address, MasterPeer.PeerEndPoint.Address))
                 Log.Error("[Client] Network error: " + socketError);
             else
                 activeConnections.Remove(endPoint);
@@ -212,7 +225,7 @@ namespace Simulator.Network.Core.Connection
             var availableBytes = reader.AvailableBytes;
             var message = MessagesPool.Instance.GetMessage(availableBytes);
             message.Content.PushBytes(reader.RawData, reader.Position, availableBytes);
-            message.Sender = masterPeer;
+            message.Sender = MasterPeer;
             message.Type = GetDeliveryMethod(deliveryMethod);
             MessageReceived?.Invoke(message);
         }

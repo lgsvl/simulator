@@ -7,6 +7,7 @@
 
 namespace Simulator.Network.Core.Connection
 {
+	using System;
 	using System.Net;
 
 	using LiteNetLib;
@@ -31,6 +32,9 @@ namespace Simulator.Network.Core.Connection
 
 		/// <inheritdoc/>
 		public long RemoteTimeTicksDifference => Peer.RemoteTimeDelta;
+
+		/// <inheritdoc/>
+		public DateTime RemoteUtcTime => Peer.RemoteUtcTime;
 
 		/// <inheritdoc/>
 		public bool Connected => Peer.ConnectionState == ConnectionState.Connected;

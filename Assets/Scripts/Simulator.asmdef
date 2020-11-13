@@ -12,7 +12,8 @@
         "Simulator.Network.Core",
         "Unity.Mathematics",
         "Unity.Formats.Fbx.Editor",
-        "Unity.RenderPipelines.HighDefinition.Config.Runtime"
+        "Unity.RenderPipelines.HighDefinition.Config.Runtime",
+        "LiteNetLib"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

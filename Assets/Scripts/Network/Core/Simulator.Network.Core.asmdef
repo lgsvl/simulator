@@ -1,7 +1,7 @@
 {
     "name": "Simulator.Network.Core",
     "references": [
-        "GUID:24027eed2af16be4db845082eb58fdff"
+        "GUID:050fa15d433c14f4bac1bd1ec2d9aa05"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

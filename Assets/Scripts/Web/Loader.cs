@@ -555,7 +555,9 @@ namespace Simulator
                 {
                     Instance.reportStatus(SimulatorStatus.Stopping);
                     await Instance.Network.Deinitialize();
+                    Instance.ConnectionUI.SetLoaderUIState(ConnectionUI.LoaderUIStateType.START);
                     Instance.reportStatus(SimulatorStatus.Idle);
+                    Instance.ConnectionUI.UpdateStatus();
                     return;
                 }
 

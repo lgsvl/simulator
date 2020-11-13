@@ -10,15 +10,16 @@ namespace Simulator.Network.Client
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Net;
     using System.Text;
+    using Core;
     using Core.Configs;
     using Core.Connection;
     using Core.Messaging;
     using Core.Messaging.Data;
     using LiteNetLib.Utils;
     using Shared;
-    using Simulator.Network.Core;
     using UnityEngine;
 
     /// <summary>
@@ -204,6 +205,7 @@ namespace Simulator.Network.Client
         public void OnPeerConnected(IPeerManager peer)
         {
             Debug.Assert(State == SimulationState.Connecting);
+            Connection.DroppedAllConnections -= TryConnectToMasterEndPoints;
             MasterPeer = peer;
 
             Log.Info($"Peer {peer.PeerEndPoint} connected.");
@@ -256,12 +258,26 @@ namespace Simulator.Network.Client
         {
             if (State != SimulationState.Initial)
                 return;
-            
+
             State = SimulationState.Connecting;
-            var masterEndPoints = Loader.Instance.Network.MasterAddresses;
-            var localEndPoints = Loader.Instance.Network.LocalAddresses;
-            var identifier = Loader.Instance.Network.LocalIdentifier;
             Log.Info("Client tries to connect to the master.");
+            Connection.DroppedAllConnections += TryConnectToMasterEndPoints;
+            TryConnectToMasterEndPoints();
+            StartCoroutine(CheckInitialTimeout());
+        }
+
+        /// <summary>
+        /// Tries to connect to any master end point
+        /// </summary>
+        private void TryConnectToMasterEndPoints()
+        {
+            var network = Loader.Instance.Network;
+            //Check if this simulation was not deinitialized
+            if (!network.IsClient)
+                return;
+            var masterEndPoints = network.MasterAddresses;
+            var localEndPoints = network.LocalAddresses;
+            var identifier = network.LocalIdentifier;
             foreach (var masterEndPoint in masterEndPoints)
             {
                 //Check if client is already connected
@@ -270,8 +286,6 @@ namespace Simulator.Network.Client
                 if (!localEndPoints.Contains(masterEndPoint))
                     Connection.Connect(masterEndPoint, identifier);
             }
-
-            StartCoroutine(CheckInitialTimeout());
         }
 
         /// <summary>
@@ -282,37 +296,34 @@ namespace Simulator.Network.Client
         {
             yield return new WaitForSecondsRealtime(settings.Timeout / 1000.0f);
             if (MasterPeer != null) yield break;
+            var network = Loader.Instance.Network;
+            //Check if this simulation was not deinitialized
+            if (!network.IsClient) yield break;
 
             //Could not connect to any master address, log error and stop the simulation
             var localAddressesSb = new StringBuilder();
-            for (var i = 0; i < Loader.Instance.Network.LocalAddresses.Count; i++)
+            for (var i = 0; i < network.LocalAddresses.Count; i++)
             {
-                var ipEndPoint = Loader.Instance.Network.LocalAddresses[i];
+                var ipEndPoint = network.LocalAddresses[i];
                 localAddressesSb.Append(ipEndPoint);
-                if (i+1 < Loader.Instance.Network.LocalAddresses.Count)
+                if (i + 1 < network.LocalAddresses.Count)
                     localAddressesSb.Append(", ");
             }
+
             var masterAddressesSb = new StringBuilder();
-            for (var i = 0; i < Loader.Instance.Network.MasterAddresses.Count; i++)
+            for (var i = 0; i < network.MasterAddresses.Count; i++)
             {
-                var ipEndPoint = Loader.Instance.Network.MasterAddresses[i];
+                var ipEndPoint = network.MasterAddresses[i];
                 masterAddressesSb.Append(ipEndPoint);
-                if (i+1 < Loader.Instance.Network.MasterAddresses.Count)
+                if (i + 1 < network.MasterAddresses.Count)
                     masterAddressesSb.Append(", ");
             }
 
             Log.Error(
-                $"{GetType().Name} could not establish the connection to the master. This client ip addresses: '{localAddressesSb}', master ip addresses: '{masterAddressesSb}'.");
+                $"{GetType().Name} could not establish the connection to the master. This client ip addresses: '{localAddressesSb}', master ip addresses: '{masterAddressesSb}', current UTC time: {DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)}.");
 
-            var simulation = Loader.Instance.Network.CurrentSimulation;
-            if (simulation != null)
-            {
-                ConnectionManager.instance.UpdateStatus("Stopping", simulation.Id);
-            }
-            else
-            {
-                Debug.Log("Cannot send stopping status without simulation");
-            }
+            //Stop the simulation
+            Loader.StopAsync();
         }
 
         /// <summary>
@@ -359,7 +370,8 @@ namespace Simulator.Network.Client
             Debug.Assert(State == SimulationState.Ready);
             Loader.StartAsync(Loader.Instance.Network.CurrentSimulation);
             State = SimulationState.Loading;
-            Log.Info($"{GetType().Name} received run command and started the simulation.");
+            Log.Info(
+                $"{GetType().Name} received run command and started the simulation. Local UTC time: {DateTime.UtcNow}, remote UTC time: {Connection.MasterPeer.RemoteUtcTime}, time difference {Connection.MasterPeer.RemoteTimeTicksDifference}.");
         }
 
         /// <summary>

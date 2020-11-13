@@ -17,7 +17,6 @@ namespace Simulator.Network.Shared
     using Core.Configs;
     using Core.Messaging;
     using Core.Threading;
-    using Database;
     using Master;
     using UnityEngine;
     using Web;

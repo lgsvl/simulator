@@ -44,7 +44,7 @@ public class MapManager : MonoBehaviour
         intersections = mapData.GetIntersections();
         pedestrianLanes = mapData.GetPedestrianLanes();
 
-        allLanes = trafficLanes;
+        allLanes.AddRange(trafficLanes);
         foreach (MapIntersection itersection in intersections)
         {
             allLanes.AddRange(itersection.GetIntersectionLanes());

@@ -52,6 +52,7 @@ namespace Simulator.Map
 
         public bool IgnoreVisible = false;
         public bool IgnoreSpawnable = false;
+        public bool IgnoreBounds = false;
         public int NPCSizeMask = 1;
         public int NPCMaxCount = 10;
         public int NPCSpawnBoundSize = 200;

@@ -69,6 +69,7 @@ public class MapOriginEditor : Editor
 
         origin.IgnoreVisible = EditorGUILayout.Toggle("Ignore NPC Visible", origin.IgnoreVisible, GUILayout.ExpandWidth(true));
         origin.IgnoreSpawnable = EditorGUILayout.Toggle("Ignore NPC Spawnable", origin.IgnoreSpawnable, GUILayout.ExpandWidth(true));
+        origin.IgnoreBounds = EditorGUILayout.Toggle("Ignore NPC Bounds", origin.IgnoreBounds, GUILayout.ExpandWidth(true));
         origin.NPCSizeMask = EditorGUILayout.MaskField("NPC Categories", origin.NPCSizeMask, NPCSizes);
         origin.NPCMaxCount = EditorGUILayout.IntSlider("NPC Max Count", origin.NPCMaxCount, 1, 30);
         origin.NPCSpawnBoundSize = EditorGUILayout.IntSlider("NPC Spawn Bounds Size", origin.NPCSpawnBoundSize, 25, 300);

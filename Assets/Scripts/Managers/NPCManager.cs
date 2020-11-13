@@ -302,9 +302,12 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             var spawnPos = lane.mapWorldPositions[0];
             CurrentPooledNPCs[i].transform.position = spawnPos;
 
-            if (!WithinSpawnArea(spawnPos))
+            if (!MapOrigin.IgnoreBounds)
             {
-                continue;
+                if (!WithinSpawnArea(spawnPos))
+                {
+                    continue;
+                }
             }
 
             if (!InitSpawn)

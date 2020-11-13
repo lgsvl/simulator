@@ -261,7 +261,7 @@ namespace Simulator.Sensors
 
         public override bool CheckVisible(Bounds bounds)
         {
-            return Vector3.Distance(transform.position, bounds.center) < MaxDistance;
+            return Vector3.Distance(transform.position, bounds.center) < MaxDistance / 2;
         }
 
         void OnDestroy()

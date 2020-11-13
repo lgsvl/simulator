@@ -76,6 +76,9 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
 
     protected float stopSignWaitTime = 1f;
     protected float currentStopTime = 0f;
+
+    private NPCController NPCController;
+    private Collider[] MaxHitColliders = new Collider[5];
     #endregion
 
     #region mono
@@ -83,6 +86,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     {
         groundHitBitmask = LayerMask.GetMask("Default");
         carCheckBlockBitmask = LayerMask.GetMask("Agent", "NPC", "Pedestrian");
+        NPCController = this.GetComponent<NPCController>();
     }
 
     public override void PhysicsUpdate()
@@ -366,7 +370,6 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     protected bool IsYieldToIntersectionLane() // TODO stopping car
     {
         var state = false;
-
         if (currentMapLane != null)
         {
             var threshold = Vector3.Distance(currentMapLane.mapWorldPositions[0], currentMapLane.mapWorldPositions[currentMapLane.mapWorldPositions.Count - 1]) / 6;
@@ -430,9 +433,34 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         }
 
         if (prevMapLane != null && prevMapLane.stopLine != null) // light is yellow/red so oncoming traffic should be stopped already if past stopline
+        {
             if (prevMapLane.stopLine.currentState == MapData.SignalLightStateType.Yellow || prevMapLane.stopLine.currentState == MapData.SignalLightStateType.Red)
+            {
                 state = false;
-        
+            }
+        }
+
+        // check for ped in road
+        if (Physics.OverlapSphereNonAlloc(NPCController.frontCenter.position + Vector3.forward, 2f, MaxHitColliders, 1 << LayerMask.NameToLayer("Pedestrian")) > 0)
+        {
+            state = true;
+        }
+
+        // check for ego
+        if (Physics.OverlapSphereNonAlloc(NPCController.frontCenter.position, 1.5f, MaxHitColliders, 1 << LayerMask.NameToLayer("Agent")) > 0)
+        {
+            state = true;
+        }
+
+        // check for npc
+        var currentLayer = gameObject.layer;
+        NPCController.MainCollider.gameObject.layer = 2; // move collider off raycast layer to check
+        if (Physics.OverlapSphereNonAlloc(NPCController.frontCenter.position, 1.5f, MaxHitColliders, 1 << LayerMask.NameToLayer("NPC")) > 0)
+        {
+            state = true;
+        }
+        NPCController.MainCollider.gameObject.layer = currentLayer;
+
         return state;
     }
     #endregion
@@ -462,7 +490,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
             return;
         }
 
-        if(!isLaneDataSet)
+        if (!isLaneDataSet)
         {
             return;
         }

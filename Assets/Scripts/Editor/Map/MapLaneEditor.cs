@@ -37,6 +37,29 @@ public class MapLaneEditor : Editor
             Undo.RecordObject(mapLane, "change builder");
             mapLane.ReversePoints();
         }
+
+        EditorGUILayout.BeginHorizontal();
+        if (GUILayout.Button("Add yield lanes"))
+        {
+            if (Selection.gameObjects != null)
+            {
+                foreach (var obj in Selection.gameObjects)
+                {
+                    var lane = obj.GetComponent<MapLane>();
+                    if (lane == mapLane)
+                        continue;
+                    if (lane != null)
+                    {
+                        mapLane.yieldToLanes.Add(lane);
+                    }
+                }
+            }
+        }
+        if (GUILayout.Button("Clear yield lanes"))
+        {
+            mapLane.yieldToLanes.Clear();
+        }
+        EditorGUILayout.EndHorizontal();
     }
 
     protected virtual void OnSceneGUI()

@@ -16,6 +16,9 @@ namespace Simulator.Map
         public MapAnnotationTool.PedestrianPathType type = MapAnnotationTool.PedestrianPathType.SIDEWALK;
         public int PedVolume { get; set; } = 1;
 
+        [System.NonSerialized]
+        public List<MapSignal> Signals = new List<MapSignal>();
+
         public override void Draw()
         {
             if (mapLocalPositions.Count < 2) return;

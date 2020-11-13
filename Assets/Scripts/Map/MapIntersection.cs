@@ -23,6 +23,9 @@ namespace Simulator.Map
         public List<MapSignal> currentSignalGroup = new List<MapSignal>();
         [System.NonSerialized]
         public List<MapLine> stopLines = new List<MapLine>();
+        [System.NonSerialized]
+        public List<MapPedestrian> PedLines = new List<MapPedestrian>();
+
         public Vector3 triggerBounds; // match to size of intersection so all stop sign queue goes in and out
         public BoxCollider yieldTrigger { get; set; }
 
@@ -40,7 +43,10 @@ namespace Simulator.Map
         {
             var allMapLines = new List<MapLine>();
             stopLines = new List<MapLine>();
+            PedLines = new List<MapPedestrian>();
             allMapLines.AddRange(transform.GetComponentsInChildren<MapLine>());
+            PedLines.AddRange(transform.GetComponentsInChildren<MapPedestrian>());
+
             foreach (var line in allMapLines)
             {
                 if (line.lineType == LineType.STOP)
@@ -107,7 +113,9 @@ namespace Simulator.Map
             }
 
             foreach (var group in signalGroup)
+            {
                 group.SetSignalMeshData();
+            }
 
             foreach (var line in stopLines)
             {
@@ -119,6 +127,19 @@ namespace Simulator.Map
                     {
                         signal.stopLine = line;
                         line.signals.Add(signal);
+                    }
+                }
+            }
+
+            foreach (var ped in PedLines)
+            {
+                ped.Signals.Clear();
+                foreach (var signal in signalGroup)
+                {
+                    float dot = Vector3.Dot(signal.transform.TransformDirection(Vector3.forward), ped.transform.TransformDirection(Vector3.forward));
+                    if (dot < -0.7f || dot > 0.7f)
+                    {
+                        ped.Signals.Add(signal);
                     }
                 }
             }

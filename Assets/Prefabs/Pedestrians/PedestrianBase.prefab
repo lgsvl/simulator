@@ -73,6 +73,12 @@ MonoBehaviour:
   targetRange: 1
   Name: 
   rb: {fileID: 0}
+  CurrentVelocity: {x: 0, y: 0, z: 0}
+  CurrentAcceleration: {x: 0, y: 0, z: 0}
+  CurrentAngularVelocity: {x: 0, y: 0, z: 0}
+  Bounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
 --- !u!136 &6607001734413833196
 CapsuleCollider:
   m_ObjectHideFlags: 0

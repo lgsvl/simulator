@@ -265,7 +265,7 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
         NPCColor = Color.HSVToRGB(h, s, v);
 
         MainCollider = GetComponentInChildren<MeshCollider>();
-        
+
         // wheel collider holder
         wheelColliderHolder = new GameObject("WheelColliderHolder");
         wheelColliderHolder.transform.SetParent(transform.GetChild(0));

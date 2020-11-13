@@ -64,6 +64,7 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
     [HideInInspector]
     public string Name;
     private NavMeshPath Path;
+    private MapPedestrian MapPath;
     private int CurrentWP = 0;
     private float LinearSpeed = 1.0f;
     private float AngularSpeed = 10.0f;
@@ -113,7 +114,7 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
         if (!enable)
         {
             Control = ControlType.Manual;
-            ThisPedState = PedestrianState.None;
+            SetPedState(PedestrianState.None);
             return;
         }
 
@@ -174,6 +175,7 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
         agent = GetComponent<NavMeshAgent>();
         anim = GetComponentInChildren<Animator>();
         rb = GetComponent<Rigidbody>();
+        rb.isKinematic = false;
         Name = transform.GetChild(0).name;
 
         agent.avoidancePriority = 0;
@@ -183,7 +185,7 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
         agent.Warp(data.Position);
         agent.transform.rotation = data.Rotation;
 
-        ThisPedState = PedestrianState.None;
+        SetPedState(PedestrianState.None);
         Control = ControlType.Manual;
     }
 
@@ -204,11 +206,12 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
     }
     #endregion
 
-    public void InitPed(Vector3 position, List<Vector3> pedSpawnerTargets, int seed)
+    public void InitPed(Vector3 position, List<Vector3> pedSpawnerTargets, int seed, MapPedestrian path = null)
     {
         FixedUpdateManager = SimulatorManager.Instance.FixedUpdateManager;
         RandomGenerator = new System.Random(seed);
         Path = new NavMeshPath();
+        MapPath = path;
 
         agent = GetComponent<NavMeshAgent>();
         anim = GetComponentInChildren<Animator>();
@@ -257,53 +260,55 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
         }
     }
 
+    private void SetPedState(PedestrianState state)
+    {
+        ThisPedState = state;
+        switch (state)
+        {
+            case PedestrianState.None:
+                break;
+            case PedestrianState.Idle:
+                CurrentTurn = Vector3.zero;
+                CurrentSpeed = 0f;
+                break;
+            case PedestrianState.Walking:
+                break;
+            case PedestrianState.Crossing:
+                break;
+            default:
+                break;
+        }
+    }
+
     public void PhysicsUpdate()
     {
         if (Control == ControlType.Automatic)
         {
-            if (IsRandomIdle())
+            if (MapPath != null && MapPath.type == MapAnnotationTool.PedestrianPathType.CROSSWALK)
             {
-                Coroutines[(int)CoroutineID.ChangePedState] = FixedUpdateManager.StartCoroutine(ChangePedState());
-            }
-
-            if (ThisPedState == PedestrianState.Idle)
-            {
-                CurrentTurn = Vector3.zero;
-                CurrentSpeed = 0f;
+                if (!EvaluateOnRoad() && EvaluateOnRoadForward() && !EvaluateSignal())
+                {
+                    SetPedState(PedestrianState.Idle);
+                }
+                else
+                {
+                    EvaluateNextTarget();
+                }
             }
             else
             {
-                if (!IsPathReady())
+                if (IsRandomIdle())
                 {
-                    NextTargetPos = GetRandomTargetPosition(NextTargetIndex);
-                    agent.enabled = true;
-                    agent.CalculatePath(NextTargetPos, Path);
-                    agent.enabled = false;
+                    Coroutines[(int)CoroutineID.ChangePedState] = FixedUpdateManager.StartCoroutine(ChangePedState());
                 }
-
-                var corners = Path.corners;
-                Vector3 targetPos = rb.position;
-                if (CurrentWP < corners.Length)
+                if (ThisPedState == PedestrianState.Idle)
                 {
-                    targetPos = new Vector3(corners[CurrentWP].x, rb.position.y, corners[CurrentWP].z);
+                    CurrentTurn = Vector3.zero;
+                    CurrentSpeed = 0f;
                 }
-                Vector3 direction = targetPos - rb.position;
-
-                CurrentTurn = direction;
-                CurrentSpeed = LinearSpeed;
-                MovementSpeed = CurrentSpeed;
-                ThisPedState = PedestrianState.Walking;
-
-                if (direction.magnitude < Accuracy)
+                else
                 {
-                    CurrentWP++;
-                    if (CurrentWP >= corners.Length)
-                    {
-                        Path.ClearCorners();
-                        CurrentTargetIndex = NextTargetIndex;
-                        NextTargetIndex = GetNextTargetIndex(CurrentTargetIndex);
-                        CurrentWP = 0;
-                    }
+                    EvaluateNextTarget();
                 }
             }
             EvaluateDistanceFromFocus();
@@ -321,6 +326,74 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
         PEDTurn();
         PEDMove();
         SetAnimationControllerParameters();
+    }
+
+    private bool EvaluateSignal()
+    {
+        bool go = false;
+        foreach (var signal in MapPath.Signals)
+        {
+            go = signal.CurrentState == "red";
+        }
+        return go;
+    }
+
+    private bool EvaluateOnRoad()
+    {
+        bool onRoad = false;
+        int roadMask = 1 << NavMesh.GetAreaFromName("Road");
+        if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 1f, roadMask))
+        {
+            onRoad = true;
+        }
+        return onRoad;
+    }
+
+    private bool EvaluateOnRoadForward()
+    {
+        bool onRoad = false;
+        int roadMask = 1 << NavMesh.GetAreaFromName("Road");
+        if (NavMesh.SamplePosition(transform.position + transform.forward * 0.5f, out NavMeshHit hit, 1f, roadMask))
+        {
+            onRoad = true;
+        }
+        return onRoad;
+    }
+
+    private void EvaluateNextTarget()
+    {
+        if (!IsPathReady())
+        {
+            NextTargetPos = GetRandomTargetPosition(NextTargetIndex);
+            agent.enabled = true;
+            agent.CalculatePath(NextTargetPos, Path);
+            agent.enabled = false;
+        }
+
+        var corners = Path.corners;
+        Vector3 targetPos = rb.position;
+        if (CurrentWP < corners.Length)
+        {
+            targetPos = new Vector3(corners[CurrentWP].x, rb.position.y, corners[CurrentWP].z);
+        }
+        Vector3 direction = targetPos - rb.position;
+
+        CurrentTurn = direction;
+        CurrentSpeed = LinearSpeed;
+        MovementSpeed = CurrentSpeed;
+        SetPedState(PedestrianState.Walking);
+
+        if (direction.magnitude < Accuracy)
+        {
+            CurrentWP++;
+            if (CurrentWP >= corners.Length)
+            {
+                Path.ClearCorners();
+                CurrentTargetIndex = NextTargetIndex;
+                NextTargetIndex = GetNextTargetIndex(CurrentTargetIndex);
+                CurrentWP = 0;
+            }
+        }
     }
 
     private void EvaluateWaypointTarget()
@@ -351,7 +424,7 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
             CurrentTurn = direction;
             CurrentSpeed = speeds[NextTargetIndex];
             MovementSpeed = CurrentSpeed;
-            ThisPedState = PedestrianState.Walking;
+            SetPedState(PedestrianState.Walking);
 
             if (direction.magnitude < Accuracy)
             {
@@ -374,7 +447,7 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
 
                     if (CurrentTriggerDistance > 0f)
                     {
-                        ThisPedState = PedestrianState.Idle;
+                        SetPedState(PedestrianState.Idle);
                         Coroutines[(int)CoroutineID.WaitForAgent] = FixedUpdateManager.StartCoroutine(EvaluateEgoToTrigger(NextTargetPos, CurrentTriggerDistance));
                     }
 
@@ -386,7 +459,7 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
                         {
                             ThisPedState = previousState;
                         });
-                        ThisPedState = PedestrianState.Idle;
+                        SetPedState(PedestrianState.Idle);
                         Coroutines[(int)CoroutineID.WaitForAgent] = FixedUpdateManager.StartCoroutine(
                             CurrentTrigger.Apply(this, callback));
                     }
@@ -427,7 +500,7 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
                 if (Vector3.Distance(players[i].AgentGO.transform.position, pos) < dist)
                 {
                     CurrentTriggerDistance = 0;
-                    ThisPedState = PedestrianState.Walking;
+                    SetPedState(PedestrianState.Walking);
                     yield break;
                 }
             }
@@ -439,9 +512,13 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
     {
         int frame;
         if (SimulatorManager.Instance.IsAPI)
+        {
             frame = ((ApiManager)FixedUpdateManager).CurrentFrame;
+        }
         else
+        {
             frame = ((SimulatorManager)FixedUpdateManager).CurrentFrame;
+        }
 
         if (frame % i == 0)
         {
@@ -499,11 +576,11 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
             yield break;
         }
 
-        ThisPedState = PedestrianState.Idle;
+        SetPedState(PedestrianState.Idle);
 
         yield return FixedUpdateManager.WaitForFixedSeconds(duration);
 
-        ThisPedState = PedestrianState.Walking;
+        SetPedState(PedestrianState.Walking);
     }
 
     private bool IsRandomIdle()
@@ -533,7 +610,6 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
                     anim.SetFloat("speed", LinearSpeed);
                     break;
             }
-            
         }
         else
         {
@@ -587,7 +663,7 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
         StopPEDCoroutines();
         Path.ClearCorners();
         CurrentWP = 0;
-        ThisPedState = PedestrianState.None;
+        SetPedState(PedestrianState.None);
     }
 
     private void EvaluateDistanceFromFocus()

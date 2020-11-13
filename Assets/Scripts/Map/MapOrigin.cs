@@ -50,9 +50,10 @@ namespace Simulator.Map
         public string TimeZoneString;
         public TimeZoneInfo TimeZone => string.IsNullOrEmpty(TimeZoneSerialized) ? TimeZoneInfo.Local : TimeZoneInfo.FromSerializedString(TimeZoneSerialized);
 
-        public bool IgnoreVisible = false;
-        public bool IgnoreSpawnable = false;
-        public bool IgnoreBounds = false;
+        public bool IgnoreNPCVisible = false;
+        public bool IgnoreNPCSpawnable = false;
+        public bool IgnoreNPCBounds = false;
+        public bool IgnorePedVisible = false;
         public int NPCSizeMask = 1;
         public int NPCMaxCount = 10;
         public int NPCSpawnBoundSize = 200;

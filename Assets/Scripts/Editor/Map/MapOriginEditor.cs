@@ -67,13 +67,14 @@ public class MapOriginEditor : Editor
         EditorGUILayout.LabelField("Map Settings", subtitleLabelStyle, GUILayout.ExpandWidth(true));
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
-        origin.IgnoreVisible = EditorGUILayout.Toggle("Ignore NPC Visible", origin.IgnoreVisible, GUILayout.ExpandWidth(true));
-        origin.IgnoreSpawnable = EditorGUILayout.Toggle("Ignore NPC Spawnable", origin.IgnoreSpawnable, GUILayout.ExpandWidth(true));
-        origin.IgnoreBounds = EditorGUILayout.Toggle("Ignore NPC Bounds", origin.IgnoreBounds, GUILayout.ExpandWidth(true));
+        origin.IgnoreNPCVisible = EditorGUILayout.Toggle("Ignore NPC Visible", origin.IgnoreNPCVisible, GUILayout.ExpandWidth(true));
+        origin.IgnoreNPCSpawnable = EditorGUILayout.Toggle("Ignore NPC Spawnable", origin.IgnoreNPCSpawnable, GUILayout.ExpandWidth(true));
+        origin.IgnoreNPCBounds = EditorGUILayout.Toggle("Ignore NPC Bounds", origin.IgnoreNPCBounds, GUILayout.ExpandWidth(true));
         origin.NPCSizeMask = EditorGUILayout.MaskField("NPC Categories", origin.NPCSizeMask, NPCSizes);
         origin.NPCMaxCount = EditorGUILayout.IntSlider("NPC Max Count", origin.NPCMaxCount, 1, 30);
         origin.NPCSpawnBoundSize = EditorGUILayout.IntSlider("NPC Spawn Bounds Size", origin.NPCSpawnBoundSize, 25, 300);
 
+        origin.IgnorePedVisible = EditorGUILayout.Toggle("Ignore Ped Visible", origin.IgnorePedVisible, GUILayout.ExpandWidth(true));
         origin.PedMaxCount = EditorGUILayout.IntSlider("Ped Max Count", origin.PedMaxCount, 1, 30);
         origin.PedSpawnBoundSize = EditorGUILayout.IntSlider("Ped Spawn Bounds Size", origin.PedSpawnBoundSize, 25, 300);
 

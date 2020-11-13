@@ -223,14 +223,17 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
             if (!InitSpawn)
             {
-                if (IsVisible(CurrentPooledPeds[i].gameObject))
-                    continue;
+                if (!MapOrigin.IgnorePedVisible)
+                {
+                    if (IsVisible(CurrentPooledPeds[i].gameObject))
+                        continue;
+                }
             }
 
             if (Physics.CheckSphere(spawnPos, 3f, PedSpawnCheckBitmask))
                 continue;
 
-            CurrentPooledPeds[i].InitPed(spawnPos, path.mapWorldPositions, PEDSeedGenerator.Next());
+            CurrentPooledPeds[i].InitPed(spawnPos, path.mapWorldPositions, PEDSeedGenerator.Next(), path);
             CurrentPooledPeds[i].gameObject.SetActive(true);
             ActivePedCount++;
         }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using Simulator.Utilities;
 using Simulator.Map;
-using Simulator.Api;
 
 public class MapManager : MonoBehaviour
 {

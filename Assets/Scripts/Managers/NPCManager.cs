@@ -302,7 +302,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             var spawnPos = lane.mapWorldPositions[0];
             CurrentPooledNPCs[i].transform.position = spawnPos;
 
-            if (!MapOrigin.IgnoreBounds)
+            if (!MapOrigin.IgnoreNPCBounds)
             {
                 if (!WithinSpawnArea(spawnPos))
                 {
@@ -312,7 +312,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
             if (!InitSpawn)
             {
-                if (!MapOrigin.IgnoreSpawnable) // set from map origin to ignore spawnable checks
+                if (!MapOrigin.IgnoreNPCSpawnable) // set from map origin to ignore spawnable checks
                 {
                     if (!lane.Spawnable)
                     {
@@ -320,7 +320,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
                     }
                 }
 
-                if (!MapOrigin.IgnoreVisible) // set from map origin to ignore sensor visible check
+                if (!MapOrigin.IgnoreNPCVisible) // set from map origin to ignore sensor visible check
                 {
                     if (IsVisible(CurrentPooledNPCs[i].gameObject))
                     {

@@ -31,7 +31,8 @@ namespace Simulator.Editor.Tools
         {
             Add,
             Replace,
-            ZeroParent
+            ZeroParent,
+            Inject
         }
         public static EditorPrefabTools PrefabTool { get; set; } = EditorPrefabTools.Add;
 
@@ -44,6 +45,7 @@ namespace Simulator.Editor.Tools
         public static EditorComponentTools ComponentTool { get; set; } = EditorComponentTools.Add;
 
         public static bool UseMeshCenter = false;
+        public static bool AddInPosition = false;
 
         // style
         private GUIStyle titleLabelStyle;
@@ -72,6 +74,7 @@ namespace Simulator.Editor.Tools
             new GUIContent { text = "Add", tooltip = "Add prefab to prefab"},
             new GUIContent { text = "Replace", tooltip = "Replace object with new prefab"},
             new GUIContent { text = "ZeroParent", tooltip = "Zero parent transform to child objects"},
+            new GUIContent { text = "Inject", tooltip = "Inject prefab into position rotation"},
             };
 
             editorComponentToolsContent = new GUIContent[] {
@@ -148,8 +151,16 @@ namespace Simulator.Editor.Tools
                             if (GUILayout.Button(new GUIContent("Run", "Run zero parent to child object")))
                                 ZeroParentTool();
                             break;
+                        case EditorPrefabTools.Inject:
+                            EditorGUILayout.LabelField("Inject Tool", subtitleLabelStyle, GUILayout.ExpandWidth(true));
+                            GUILayout.Space(10);
+                            EditorGUILayout.HelpBox("Add prefab to selection position and rotation\nPress Run", MessageType.None, true);
+                            PrefabToReplace = (GameObject)EditorGUILayout.ObjectField(new GUIContent("Prefab to replace", "This is the prefab to inject"), PrefabToReplace, typeof(GameObject), true);
+                            GUILayout.Space(5);
+                            if (GUILayout.Button(new GUIContent("Run", "Run replace prefab")))
+                                InjectPrefabTool();
+                            break;
                     }
-
                     break;
                 case EditorToolsType.Component:
                     EditorGUILayout.LabelField("Component Tools", titleLabelStyle, GUILayout.ExpandWidth(true));
@@ -287,14 +298,19 @@ namespace Simulator.Editor.Tools
                 return;
             }
 
-            var root = PrefabUtility.GetOutermostPrefabInstanceRoot(selection);
-            var assetPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(root);
-
             if (PrefabToAdd == null)
             {
                 Debug.LogError("Need prefab to add");
                 return;
             }
+
+            var root = PrefabUtility.GetOutermostPrefabInstanceRoot(selection);
+            if (root == null)
+            {
+                Debug.LogError("Selection needs to be a prefab", selection.gameObject);
+                return;
+            }
+            var assetPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(root);
 
             var go = (GameObject)PrefabUtility.InstantiatePrefab(PrefabToAdd);
             go.transform.position = UseMeshCenter ? selection.GetComponent<Renderer>().bounds.center : selection.position;
@@ -329,6 +345,35 @@ namespace Simulator.Editor.Tools
                 go.transform.rotation = selection[i].transform.rotation;
                 go.transform.SetParent(root);
                 DestroyImmediate(selection[i]);
+            }
+
+            PrefabToReplace = null;
+            Debug.Log("Replaced selection with prefab");
+            // TODO needs undo, prefab apply won't revert
+        }
+
+        private void InjectPrefabTool()
+        {
+            var selection = Selection.gameObjects;
+            if (selection == null)
+            {
+                Debug.LogError("Must have an object selected in hierarchy");
+                return;
+            }
+
+            if (PrefabToReplace == null)
+            {
+                Debug.LogError("Need prefab to replace");
+                return;
+            }
+
+            for (int i = 0; i < selection.Length; i++)
+            {
+                var root = selection[i].transform.parent;
+                var go = (GameObject)PrefabUtility.InstantiatePrefab(PrefabToReplace);
+                go.transform.position = selection[i].transform.position;
+                go.transform.rotation = selection[i].transform.rotation;
+                go.transform.SetParent(root);
             }
 
             PrefabToReplace = null;

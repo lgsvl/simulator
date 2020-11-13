@@ -13,10 +13,7 @@ using UnityEditor;
 using System.Linq;
 using Simulator.Utilities;
 using Simulator.Controllable;
-using System.Net;
-using Simulator.Network.Core.Connection;
 using Simulator.Network.Core.Messaging;
-using Simulator.Network.Core.Messaging.Data;
 
 namespace Simulator.Map
 {
@@ -30,6 +27,7 @@ namespace Simulator.Map
         public List<SignalData> signalData = new List<SignalData>();
         public MapLine stopLine;
         public Renderer signalLightMesh;
+        public SignalLight CurrentSignalLight;
         public SignalType signalType = SignalType.MIX_3_VERTICAL;
         private Coroutine SignalCoroutine;
         private MessagesManager messagesManager;
@@ -121,13 +119,14 @@ namespace Simulator.Map
 
         public void SetSignalMeshData()
         {
-            var signalMeshes = new List<SignalLight>();
-            signalMeshes.AddRange(FindObjectsOfType<SignalLight>());
-            foreach (var mesh in signalMeshes)
+            var signalLights = new List<SignalLight>();
+            signalLights.AddRange(FindObjectsOfType<SignalLight>());
+            foreach (var light in signalLights)
             {
-                if (Vector3.Distance(transform.position, mesh.transform.position) < 0.1f)
+                if (Vector3.Distance(transform.position, light.transform.position) < 0.1f)
                 {
-                    signalLightMesh = mesh.GetComponent<Renderer>();
+                    signalLightMesh = light.GetComponent<Renderer>(); // TODO this signal mesh is deprecated and will be removed
+                    CurrentSignalLight = light;
                     break;
                 }
             }
@@ -161,27 +160,57 @@ namespace Simulator.Map
                 return;
             }
 
+            bool isOldSignal = signalLightMesh != null; // TODO this signal mesh is deprecated and will be removed
+
             CurrentState = state;
             switch (CurrentState)
             {
                 case "red":
                     stopLine.currentState = SignalLightStateType.Red;
-                    signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0.6666f));
-                    signalLightMesh.material.SetColor("_EmissiveColor", Color.red);
+                    if (isOldSignal)
+                    {
+                        signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0.6666f));
+                        signalLightMesh.material.SetColor("_EmissiveColor", Color.red);
+                    }
+                    else
+                    {
+                        CurrentSignalLight.SetSignalLightState(state);
+                    }
                     break;
                 case "green":
                     stopLine.currentState = SignalLightStateType.Green;
-                    signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0f));
-                    signalLightMesh.material.SetColor("_EmissiveColor", Color.green);
+                    if (isOldSignal)
+                    {
+                        signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0f));
+                        signalLightMesh.material.SetColor("_EmissiveColor", Color.green);
+                    }
+                    else
+                    {
+                        CurrentSignalLight.SetSignalLightState(state);
+                    }
                     break;
                 case "yellow":
                     stopLine.currentState = SignalLightStateType.Yellow;
-                    signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0.3333f));
-                    signalLightMesh.material.SetColor("_EmissiveColor", Color.yellow);
+                    if (isOldSignal)
+                    {
+                        signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0.3333f));
+                        signalLightMesh.material.SetColor("_EmissiveColor", Color.yellow);
+                    }
+                    else
+                    {
+                        CurrentSignalLight.SetSignalLightState(state);
+                    }
                     break;
                 case "black":
                     stopLine.currentState = SignalLightStateType.Black;
-                    signalLightMesh.material.SetColor("_EmissiveColor", Color.black);
+                    if (isOldSignal)
+                    {
+                        signalLightMesh.material.SetColor("_EmissiveColor", Color.black);
+                    }
+                    else
+                    {
+                        CurrentSignalLight.SetSignalLightState(state);
+                    }
                     break;
                 default:
                     break;

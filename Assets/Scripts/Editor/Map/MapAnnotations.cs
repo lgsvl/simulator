@@ -1285,20 +1285,18 @@ public class MapAnnotations : EditorWindow
         var newGo = new GameObject("MapSignal");
         Undo.RegisterCreatedObjectUndo(newGo, newGo.name);
         var signal = newGo.AddComponent<MapSignal>();
-        signal.signalLightMesh = signalMesh.GetComponent<Renderer>();
-
-        if (signal.signalLightMesh == null)
+        var signalLight = signalMesh.GetComponent<SignalLight>();
+        if (signalLight == null)
         {
-            Debug.Log("Signal mesh must have Renderer Component");
-            DestroyImmediate(newGo);
-            return;
+            signalLight = signalMesh.gameObject.AddComponent<SignalLight>();
+            Debug.LogWarning("SignalLight component must have signal light data set", signalMesh.gameObject);
         }
 
         Vector3 targetFwdVec = Vector3.forward;
         Vector3 targetUpVec = Vector3.up;
         tool.signalType += 1;
         signal.signalType = (MapData.SignalType)tool.signalType;
-        switch (signal.signalType)
+        switch (signal.signalType) // TODO access signalLight data for better alignment and support for multiple types
         {
             case MapData.SignalType.UNKNOWN:
                 signal.signalData = new List<MapData.SignalData>();
@@ -1336,31 +1334,41 @@ public class MapAnnotations : EditorWindow
                 break;
         }
 
+        var origRot = signalMesh.rotation;
+        signalMesh.rotation = Quaternion.identity;  // rot to get correct bounds facing identity
+        var bounds = new Bounds(signalMesh.position, Vector3.zero);
+        var renderers = signalMesh.GetComponentsInChildren<Renderer>().ToList();
+        foreach (var r in renderers)
+        {
+            bounds.Encapsulate(r.bounds);
+        }
+        signalMesh.rotation = origRot;
+
         switch (tool.currentSignalForward)
         {
             case 0: // z
                 targetFwdVec = Vector3.forward;
-                signal.boundScale = new Vector3(signal.signalLightMesh.bounds.size.x, signal.signalLightMesh.bounds.size.y, 0f);
+                signal.boundScale = new Vector3(bounds.size.x, bounds.size.y, 0f);
                 break;
             case 1: // -z
                 targetFwdVec = -Vector3.forward;
-                signal.boundScale = new Vector3(signal.signalLightMesh.bounds.size.x, signal.signalLightMesh.bounds.size.y, 0f);
+                signal.boundScale = new Vector3(bounds.size.x, bounds.size.y, 0f);
                 break;
             case 2: // x
                 targetFwdVec = Vector3.right;
-                signal.boundScale = new Vector3(signal.signalLightMesh.bounds.size.z, signal.signalLightMesh.bounds.size.y, 0f);
+                signal.boundScale = new Vector3(bounds.size.z, bounds.size.y, 0f);
                 break;
             case 3: // -x
                 targetFwdVec = -Vector3.right;
-                signal.boundScale = new Vector3(signal.signalLightMesh.bounds.size.z, signal.signalLightMesh.bounds.size.y, 0f);
+                signal.boundScale = new Vector3(bounds.size.z, bounds.size.y, 0f);
                 break;
             case 4: // y
                 targetFwdVec = Vector3.up;
-                signal.boundScale = new Vector3(signal.signalLightMesh.bounds.size.z, signal.signalLightMesh.bounds.size.y, 0f);
+                signal.boundScale = new Vector3(bounds.size.z, bounds.size.y, 0f);
                 break;
             case 5: // -y
                 targetFwdVec = -Vector3.up;
-                signal.boundScale = new Vector3(signal.signalLightMesh.bounds.size.z, signal.signalLightMesh.bounds.size.y, 0f);
+                signal.boundScale = new Vector3(bounds.size.z, bounds.size.y, 0f);
                 break;
         }
         switch (tool.currentSignalUp)
@@ -1389,7 +1397,7 @@ public class MapAnnotations : EditorWindow
         targetUpVec = signalMesh.transform.TransformDirection(targetUpVec).normalized;
         newGo.transform.rotation = Quaternion.LookRotation(targetFwdVec, targetUpVec);
 
-        newGo.transform.position = signal.signalLightMesh.bounds.center;
+        newGo.transform.position = bounds.center;
         newGo.transform.SetParent(tool.parentObj == null ? null : tool.parentObj.transform);
         Selection.activeObject = newGo;
     }

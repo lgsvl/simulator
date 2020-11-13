@@ -930,7 +930,7 @@ namespace Simulator.Editor
             mapSignal.boundScale = new Vector3(0.65f, 1.5f, 0.0f);
             mapSignal.signalType = MapData.SignalType.MIX_3_VERTICAL;
 
-            mapSignal.signalLightMesh = GetSignalMesh(roadId, id, mapIntersectionObj, mapSignal);
+            CreateSignalMesh(roadId, id, mapIntersectionObj, mapSignal);
 
             if (mapIntersectionObj != null)
             {
@@ -1020,14 +1020,11 @@ namespace Simulator.Editor
             return signalPosition;
         }
 
-        Renderer GetSignalMesh(string roadId, string id, GameObject mapIntersectionObj, MapSignal mapSignal)
+        void CreateSignalMesh(string roadId, string id, GameObject mapIntersectionObj, MapSignal mapSignal)
         {
             var mapSignalMesh = UnityEngine.Object.Instantiate(Settings.MapTrafficSignalPrefab, mapSignal.transform.position, mapSignal.transform.rotation);
             SetParent(mapSignalMesh, mapIntersectionObj, roadId);
             mapSignalMesh.name = "MapSignalMeshVertical_" + id;
-            var mapSignalMeshRenderer = mapSignalMesh.AddComponent<SignalLight>().GetComponent<Renderer>();
-
-            return mapSignalMeshRenderer;
         }
 
         void SetParent(GameObject obj, GameObject mapIntersectionObj, string roadId)

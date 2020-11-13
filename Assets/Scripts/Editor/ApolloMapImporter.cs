@@ -1057,17 +1057,14 @@ using apollo.hdmap;
             mapSignal.stopLine = stopLine;
             mapSignal.signalType = MapData.SignalType.MIX_3_VERTICAL;
 
-            mapSignal.signalLightMesh = GetSignalMesh(id, intersection, mapSignal);
+            CreateSignalMesh(id, intersection, mapSignal);
         }
 
-        Renderer GetSignalMesh(string id, MapIntersection intersection, MapSignal mapSignal)
+        void CreateSignalMesh(string id, MapIntersection intersection, MapSignal mapSignal)
         {
             var mapSignalMesh = UnityEngine.Object.Instantiate(Settings.MapTrafficSignalPrefab, mapSignal.transform.position, mapSignal.transform.rotation);
             mapSignalMesh.transform.parent = intersection.transform;
             mapSignalMesh.name = "MapSignalMeshVertical_" + id;
-            var mapSignalMeshRenderer = mapSignalMesh.AddComponent<SignalLight>().GetComponent<Renderer>();
-
-            return mapSignalMeshRenderer;
         }
 
         Vector3 GetSignalPosition(Signal signal)

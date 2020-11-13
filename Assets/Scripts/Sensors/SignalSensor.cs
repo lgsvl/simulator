@@ -14,8 +14,6 @@ using Simulator.Bridge.Data;
 using Simulator.Sensors.UI;
 using Simulator.Utilities;
 using Simulator.Map;
-using System.Collections;
-using Simulator.Analysis;
 
 namespace Simulator.Sensors
 {
@@ -105,7 +103,7 @@ namespace Simulator.Sensors
                             Quaternion relRot = Quaternion.Inverse(egoGO.transform.rotation) * signal.gameObject.transform.rotation;
                             relRot.Set(-relRot.z, relRot.x, -relRot.y, relRot.w);
 
-                            Vector3 size = signal.signalLightMesh.bounds.size;
+                            Vector3 size = signal.CurrentSignalLight.Bounds.size;
                             size.Set(size.z, size.x, size.y);
 
                             string id = signal.id;

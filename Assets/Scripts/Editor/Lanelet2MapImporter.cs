@@ -761,8 +761,6 @@ namespace Simulator.Editor
                                 var trafficLightObj = UnityEngine.Object.Instantiate(Settings.MapTrafficSignalPrefab, mapSignal.transform.position, mapSignal.transform.rotation);
                                 trafficLightObj.transform.parent = intersections.transform;
                                 trafficLightObj.name = "MapSignalTrafficVertical_" + mapSignal.transform.name.Split('_')[1];
-                                trafficLightObj.AddComponent<SignalLight>();
-                                regId2Mesh[signalId] = trafficLightObj;
                             }   
                             stopLine.signals.Add(mapSignal);
                         }

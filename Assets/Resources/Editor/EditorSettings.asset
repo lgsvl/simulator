@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   LidarSensor: {fileID: -6915071163242918046, guid: 74b095570caaa9344b671b1f651ebb06,
     type: 3}
-  MapTrafficSignalPrefab: {fileID: 3756271736546270, guid: f9b66ddc80dcc038d969b320678b3eb3,
+  MapTrafficSignalPrefab: {fileID: 6982896937503574748, guid: 8011c60d82717684fbdac2b4b716f120,
     type: 3}
   MapStopSignPrefab: {fileID: 7782577429279257692, guid: 81e39488fba034ba897b2f39f19a6eb3,
     type: 3}

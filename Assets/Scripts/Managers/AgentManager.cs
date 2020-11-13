@@ -73,7 +73,7 @@ public class AgentManager : MonoBehaviour
             bridgeClient = go.AddComponent<BridgeClient>();
             bridgeClient.Init(config.Bridge);
 
-            if (config.Connection != null)
+            if (!String.IsNullOrEmpty(config.Connection))
             {
                 bridgeClient.Connect(config.Connection);
             }

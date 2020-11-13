@@ -224,6 +224,7 @@ namespace Simulator.Analysis
 
             var dt = string.Format("Analysis_{0:yyyy-MM-dd_hh-mm-sstt}", DateTime.Now);
             var simName = (new Regex(@"[<>:""/\|?*]")).Replace(SimConfig.Name, "");
+            simName = simName.Replace(@"\", "");
             SimulationPath = Path.Combine(AnalysisPath, simName, dt);
             if (!Directory.Exists(SimulationPath))
                 Directory.CreateDirectory(SimulationPath);

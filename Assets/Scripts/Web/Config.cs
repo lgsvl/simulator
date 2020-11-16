@@ -63,7 +63,7 @@ namespace Simulator.Web
 
         public static int DefaultPageSize = 100;
 
-        public static RunOnce RunOnceInstance = null;
+        public static FileStream LockFile;
 
 #if UNITY_EDITOR
         [UnityEditor.InitializeOnLoadMethod]
@@ -79,16 +79,8 @@ namespace Simulator.Web
             if (!Application.isEditor)
             {
                 ParseCommandLine();
+                CreateLockFile();
             }
-
-//#if !UNITY_EDITOR
-//            RunOnceInstance = new RunOnce(Path.Combine(PersistentDataPath, "pid.txt"));
-//            if (RunOnceInstance.AlreadyRunning)
-//            {
-//                Debug.LogError($"!!! Another instance of simulator is already using this data folder: {PersistentDataPath}");
-//                Application.Quit(1); // return non-zero exit code
-//            }
-//#endif
 
             AssetBundle.UnloadAllAssetBundles(false);
             SensorPrefabs = RuntimeSettings.Instance.SensorPrefabs.ToList();
@@ -543,6 +535,21 @@ namespace Simulator.Web
                         Debug.LogError($"Unknown argument {args[i]}, skipping it");
                         break;
                 }
+            }
+        }
+
+        static void CreateLockFile()
+        {
+            try
+            {
+                LockFile = File.Open(Path.Combine(PersistentDataPath, "run.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+                // mono on Linux requires explicit lock
+                LockFile.Lock(0, 0);
+            }
+            catch (IOException ex) when ((short)ex.HResult == 32 || (short)ex.HResult == 33) // 32 = ERROR_SHARING_VIOLATION, 33 = ERROR_LOCK_VIOLATION
+            {
+                Debug.LogError($"!!! Another instance of simulator is already using this data folder: {PersistentDataPath}");
+                Application.Quit(1); // return non-zero exit code
             }
         }
     }

@@ -21,8 +21,6 @@ namespace Simulator.Sensors.Postprocessing
     /// </summary>
     public class SensorPostProcessSystem
     {
-        private const string VolumeObjectName = "_SensorPostProcessVolume";
-
         private readonly Dictionary<Type, CustomPass> postProcessingPasses = new Dictionary<Type, CustomPass>();
         private readonly Dictionary<int, Stack<RTHandle>> rtHandlePools = new Dictionary<int, Stack<RTHandle>>();
         private readonly Dictionary<CameraSensorBase, int> sensorSwaps = new Dictionary<CameraSensorBase, int>();
@@ -121,7 +119,7 @@ namespace Simulator.Sensors.Postprocessing
                 .ToList();
 
             // Create 1 to 1 dictionary of data type to postprocess pass
-            var dataToEffectDict = new Dictionary<Type, Type>();
+            var dataToEffectDict = new Dictionary<Type, (Type effectType, int order)>();
             foreach (var effectType in assignableTypes)
             {
                 if (effectType.BaseType is null)
@@ -138,17 +136,18 @@ namespace Simulator.Sensors.Postprocessing
                 {
                     if (dataToEffectDict.ContainsKey(dataType))
                     {
-                        Debug.LogError($"{dataType.Name} is used by multiple effects - this is not supported. Only {dataToEffectDict[dataType].Name} will be used.");
+                        Debug.LogError($"{dataType.Name} is used by multiple effects - this is not supported. Only {dataToEffectDict[dataType].effectType.Name} will be used.");
                         continue;
                     }
 
-                    dataToEffectDict.Add(dataType, effectType);
+                    var attr = effectType.GetCustomAttribute(typeof(PostProcessOrderAttribute)) as PostProcessOrderAttribute;
+                    var order = attr?.Order ?? 0;
+                    dataToEffectDict.Add(dataType, (effectType, order));
                 }
             }
 
             // Order passes by their declared priority
-            var sorted = dataToEffectDict.OrderBy(kvp =>
-                (kvp.Value.GetCustomAttribute(typeof(PostProcessOrderAttribute)) as PostProcessOrderAttribute)?.Order ?? 0);
+            var sorted = dataToEffectDict.OrderBy(kvp => kvp.Value.order);
 
             var allSensors = UnityEngine.Object.FindObjectsOfType<SensorBase>();
             var additionalRequiredPassTypes = new List<Type>();
@@ -170,39 +169,24 @@ namespace Simulator.Sensors.Postprocessing
                     continue;
                 }
 
-                if (type != null && !additionalRequiredPassTypes.Contains(type))
-                    additionalRequiredPassTypes.Add(type);
+                additionalRequiredPassTypes.Add(type);
             }
 
             postProcessingPasses.Clear();
             sensorSwaps.Clear();
             lastTarget.Clear();
 
-            // Create custom pass volume for postprocessing
-            var customPassVolumeObject = GameObject.Find(VolumeObjectName);
-            if (customPassVolumeObject != null)
-                CoreUtils.Destroy(customPassVolumeObject);
-
-            customPassVolumeObject = new GameObject(VolumeObjectName);
-            var customPassVolume = customPassVolumeObject.AddComponent<CustomPassVolume>();
-            customPassVolume.injectionPoint = CustomPassInjectionPoint.AfterPostProcess;
+            var customPassManager = SimulatorManager.Instance.CustomPassManager;
 
             // Add all passes explicitly requested by sensors
             foreach (var type in additionalRequiredPassTypes)
-            {
-                customPassVolume.AddPassOfType(type);
-                var pass = customPassVolume.customPasses[customPassVolume.customPasses.Count - 1];
-                pass.targetColorBuffer = CustomPass.TargetBuffer.Camera;
-                pass.targetDepthBuffer = CustomPass.TargetBuffer.Camera;
-            }
+                customPassManager.AddPass(type, CustomPassInjectionPoint.AfterPostProcess, -100);
 
             // Add all used passes to volume
             foreach (var kvp in sorted)
             {
-                customPassVolume.AddPassOfType(kvp.Value);
-                var pass = customPassVolume.customPasses[customPassVolume.customPasses.Count - 1];
-                pass.targetColorBuffer = CustomPass.TargetBuffer.Camera;
-                pass.targetDepthBuffer = CustomPass.TargetBuffer.None;
+                var pass = customPassManager.AddPass(kvp.Value.effectType, CustomPassInjectionPoint.AfterPostProcess,
+                    kvp.Value.order, CustomPass.TargetBuffer.Camera, CustomPass.TargetBuffer.None);
                 postProcessingPasses.Add(kvp.Key, pass);
             }
 

@@ -57,6 +57,8 @@ MonoBehaviour:
     type: 3}
   environmentEffectsManagerPrefab: {fileID: 9207118781026612424, guid: d8795d0520e821f44918c827b3009cf4,
     type: 3}
+  customPassManagerPrefab: {fileID: 4168480902466109414, guid: 449da4caeab5bf044a82f81767454681,
+    type: 3}
   cameraManagerPrefab: {fileID: 4458818060005220018, guid: bc6fb6c957e13a2419f15503fd2a9e42,
     type: 3}
   uiManagerPrefab: {fileID: 542173142000818282, guid: 425af55c20d40d345bd393562e313dd3,

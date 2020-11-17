@@ -51,6 +51,7 @@ public class SimulatorManager : MonoBehaviour
     public PedestrianManager pedestrianManagerPrefab;
     public ControllableManager controllableManagerPrefab;
     public EnvironmentEffectsManager environmentEffectsManagerPrefab;
+    public CustomPassManager customPassManagerPrefab;
     public CameraManager cameraManagerPrefab;
     public UIManager uiManagerPrefab;
     public SimulatorControls controls;
@@ -63,6 +64,7 @@ public class SimulatorManager : MonoBehaviour
     public ControllableManager ControllableManager { get; private set; }
     public CameraManager CameraManager { get; private set; }
     public EnvironmentEffectsManager EnvironmentEffectsManager { get; private set; }
+    public CustomPassManager CustomPassManager { get; private set; }
     public UIManager UIManager { get; private set; }
     public SimulatorTimeManager TimeManager { get;  } = new SimulatorTimeManager();
     public SensorsManager Sensors { get; } = new SensorsManager();
@@ -183,6 +185,7 @@ public class SimulatorManager : MonoBehaviour
         PedestrianManager.InitRandomGenerator(RandomGenerator.Next());
         EnvironmentEffectsManager = Instantiate(environmentEffectsManagerPrefab, ManagerHolder.transform);
         EnvironmentEffectsManager.InitRandomGenerator(RandomGenerator.Next());
+        CustomPassManager = Instantiate(customPassManagerPrefab, ManagerHolder.transform);
         UIManager = Instantiate(uiManagerPrefab, ManagerHolder.transform);
 
         if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux && Application.isEditor)

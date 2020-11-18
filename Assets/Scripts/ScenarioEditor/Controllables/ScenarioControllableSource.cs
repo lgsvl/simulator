@@ -104,6 +104,14 @@ namespace Simulator.ScenarioEditor.Controllables
             newGameObject.transform.SetParent(transform);
             var scenarioControllable = newGameObject.AddComponent<ScenarioControllable>();
             scenarioControllable.Setup(this, variant);
+            var rb = scenarioControllable.gameObject.GetComponentInChildren<Rigidbody>();
+            if (rb != null)
+            {
+                rb.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+                rb.isKinematic = true;
+            }
+            var colliders = scenarioControllable.gameObject.GetComponentsInChildren<Collider>();
+            foreach (var col in colliders) col.isTrigger = true;
             return scenarioControllable;
         }
 

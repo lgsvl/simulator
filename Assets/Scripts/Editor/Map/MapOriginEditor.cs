@@ -74,6 +74,7 @@ public class MapOriginEditor : Editor
         origin.NPCMaxCount = EditorGUILayout.IntSlider("NPC Max Count", origin.NPCMaxCount, 1, 30);
         origin.NPCSpawnBoundSize = EditorGUILayout.IntSlider("NPC Spawn Bounds Size", origin.NPCSpawnBoundSize, 25, 300);
 
+        origin.IgnorePedBounds = EditorGUILayout.Toggle("Ignore Ped Bounds", origin.IgnorePedBounds, GUILayout.ExpandWidth(true));
         origin.IgnorePedVisible = EditorGUILayout.Toggle("Ignore Ped Visible", origin.IgnorePedVisible, GUILayout.ExpandWidth(true));
         origin.PedMaxCount = EditorGUILayout.IntSlider("Ped Max Count", origin.PedMaxCount, 1, 30);
         origin.PedSpawnBoundSize = EditorGUILayout.IntSlider("Ped Spawn Bounds Size", origin.PedSpawnBoundSize, 25, 300);

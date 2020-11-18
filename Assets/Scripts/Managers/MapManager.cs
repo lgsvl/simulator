@@ -167,6 +167,17 @@ public class MapManager : MonoBehaviour
         return trafficLanes == null || trafficLanes.Count == 0 ? null : trafficLanes[index];
     }
 
+    public List<MapLane> GetLanesInBounds(Bounds bounds)
+    {
+        List<MapLane> mapLanes = new List<MapLane>();
+        foreach (var lane in trafficLanes)
+        {
+            if (bounds.Contains(lane.transform.position))
+                mapLanes.Add(lane);
+        }
+        return mapLanes;
+    }
+
     public MapPedestrian GetPedPath(int index)
     {
         return pedestrianLanes == null || pedestrianLanes.Count == 0 ? null : pedestrianLanes[index];

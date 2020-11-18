@@ -504,5 +504,51 @@ namespace Simulator.Utilities
             transform.localRotation = Quaternion.identity;
             transform.localPosition = Vector3.zero;
         }
+
+        /// <summary>
+        /// Returns a set of Planes equivalent to the frustum returned by GeometryUtility.CalculateFrustumPlanes(Camera)
+        /// </summary>
+        /// <param name="origin">the point the virtual camera exists at</param>
+        /// <param name="direction">the normalized look-vector to calculate on must be non-parallel to Vector3.up</param>
+        /// <param name="fovRadians">field of view in radians; 1.047 is ~60 degrees</param>
+        /// <param name="viewRatio">width/height ratio camera aspect</param>
+        /// <param name="distance">the far-clip plane, max clip</param>
+        /// <returns>Plane[]</returns>
+        public static Plane[] CalculateFrustum(Vector3 origin, Vector3 direction, float fovRadians = 1.047f, float viewRatio = 1.777778f, float distance = 2000f)
+        {
+            Vector3 nearCenter = origin + direction * 0.3f;
+            Vector3 farCenter = origin + direction * distance;
+            Vector3 camRight = Vector3.Cross(direction, Vector3.up) * -1;
+            Vector3 camUp = Vector3.Cross(direction, camRight);
+            float nearHeight = 2 * Mathf.Tan(fovRadians / 2) * 0.3f;
+            float farHeight = 2 * Mathf.Tan(fovRadians / 2) * distance;
+            float nearWidth = nearHeight * viewRatio;
+            float farWidth = farHeight * viewRatio;
+            Vector3 farTopLeft = farCenter + camUp * (farHeight * 0.5f) - camRight * (farWidth * 0.5f);
+            //not needed; 6 points are sufficient to calculate the frustum
+            Vector3 farTopRight = farCenter + camUp*(farHeight*0.5f) + camRight*(farWidth*0.5f);
+            Vector3 farBottomLeft = farCenter - camUp * (farHeight * 0.5f) - camRight * (farWidth * 0.5f);
+            Vector3 farBottomRight = farCenter - camUp * (farHeight * 0.5f) + camRight * (farWidth * 0.5f);
+            Vector3 nearTopLeft = nearCenter + camUp * (nearHeight * 0.5f) - camRight * (nearWidth * 0.5f);
+            Vector3 nearTopRight = nearCenter + camUp * (nearHeight * 0.5f) + camRight * (nearWidth * 0.5f);
+            //not needed; 6 points are sufficient to calculate the frustum
+            Vector3 nearBottomLeft  = nearCenter - camUp*(nearHeight*0.5f) - camRight*(nearWidth*0.5f);
+            Vector3 nearBottomRight = nearCenter - camUp * (nearHeight * 0.5f) + camRight * (nearWidth * 0.5f);
+
+            List<Vector3> points = new List<Vector3>() { farTopLeft, farTopRight, farBottomLeft, farBottomRight, nearTopLeft, nearTopRight, nearBottomLeft, nearBottomRight};
+            foreach (var item in points)
+            {
+                Debug.DrawLine(origin, item, Color.yellow);
+            }
+
+            Plane[] planes = {
+             new Plane(nearTopLeft,farTopLeft,farBottomLeft),
+             new Plane(nearTopRight,nearBottomRight,farBottomRight),
+             new Plane(farBottomLeft,farBottomRight,nearBottomRight),
+             new Plane(farTopLeft,nearTopLeft,nearTopRight),
+             new Plane(nearBottomRight,nearTopRight,nearTopLeft),
+             new Plane(farBottomRight,farBottomLeft,farTopLeft)};
+            return planes;
+        }
     }
 }

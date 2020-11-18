@@ -53,8 +53,8 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
     private int Seed = new System.Random().Next();
 
     private MapOrigin MapOrigin;
-    private bool InitSpawn = true;
 
+    private CameraManager SimCameraManager;
     private Camera SimulatorCamera;
     private MapManager MapManager;
 
@@ -71,7 +71,8 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         PedSpawnCheckBitmask = LayerMask.GetMask("Pedestrian", "Agent", "NPC");
         SpawnBoundsSize = new Vector3(MapOrigin.PedSpawnBoundSize, 50f, MapOrigin.PedSpawnBoundSize);
         PedMaxCount = MapOrigin.PedMaxCount;
-        SimulatorCamera = SimulatorManager.Instance.CameraManager.SimulatorCamera;
+        SimCameraManager = SimulatorManager.Instance.CameraManager;
+        SimulatorCamera = SimCameraManager.SimulatorCamera;
         MapManager = SimulatorManager.Instance.MapManager;
 
         SpawnInfo[] spawnInfos = FindObjectsOfType<SpawnInfo>();
@@ -207,7 +208,8 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
                 continue;
 
             var path = MapManager.GetPedPath(RandomIndex(MapManager.pedestrianLanes.Count));
-            if (path == null) continue;
+            if (path == null)
+                continue;
 
             if (path.mapWorldPositions == null || path.mapWorldPositions.Count == 0)
                 continue;
@@ -218,16 +220,16 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
             var spawnPos = path.mapWorldPositions[RandomIndex(path.mapWorldPositions.Count)];
             CurrentPooledPeds[i].transform.position = spawnPos;
 
-            if (!WithinSpawnArea(spawnPos))
-                continue;
-
-            if (!InitSpawn)
+            if (!MapOrigin.IgnorePedBounds)
             {
-                if (!MapOrigin.IgnorePedVisible)
-                {
-                    if (IsVisible(CurrentPooledPeds[i].gameObject))
-                        continue;
-                }
+                if (!WithinSpawnArea(spawnPos))
+                    continue;
+            }
+
+            if (!MapOrigin.IgnorePedVisible)
+            {
+                if (IsVisible(CurrentPooledPeds[i].gameObject))
+                    continue;
             }
 
             if (Physics.CheckSphere(spawnPos, 3f, PedSpawnCheckBitmask))
@@ -237,7 +239,6 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
             CurrentPooledPeds[i].gameObject.SetActive(true);
             ActivePedCount++;
         }
-        InitSpawn = false;
     }
 
     public void DespawnPed(PedestrianController ped)
@@ -298,13 +299,17 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         var activeAgentController = SimulatorManager.Instance.AgentManager.CurrentActiveAgentController;
         var pedColliderBounds = ped.GetComponent<Collider>().bounds;
 
-        var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(SimulatorCamera);
-        visible = GeometryUtility.TestPlanesAABB(activeCameraPlanes, pedColliderBounds);
+        if (SimCameraManager.GetCurrentCameraState() == CameraStateType.Cinematic) // only check if in cinematic mode
+        {
+            var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(SimulatorCamera);
+            visible = GeometryUtility.TestPlanesAABB(activeCameraPlanes, pedColliderBounds);
+        }
 
         foreach (var sensor in activeAgentController.AgentSensors)
         {
             visible = sensor.CheckVisible(pedColliderBounds);
-            if (visible) break;
+            if (visible)
+                break;
         }
 
         return visible;

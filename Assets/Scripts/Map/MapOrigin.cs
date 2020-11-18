@@ -53,6 +53,7 @@ namespace Simulator.Map
         public bool IgnoreNPCVisible = false;
         public bool IgnoreNPCSpawnable = false;
         public bool IgnoreNPCBounds = false;
+        public bool IgnorePedBounds = false;
         public bool IgnorePedVisible = false;
         public int NPCSizeMask = 1;
         public int NPCMaxCount = 10;

@@ -73,7 +73,6 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     [System.NonSerialized]
     public double startTime = 0f;
     private MapOrigin MapOrigin;
-    private bool InitSpawn = true;
 
     public bool NPCActive { get; set; } = false;
     [HideInInspector]
@@ -89,8 +88,14 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     private List<NPCController> APINPCs = new List<NPCController>();
     public string Key => "NPCManager"; //Network IMessageSender key
 
+    private CameraManager SimCameraManager;
     private Camera SimulatorCamera;
     private MapManager MapManager;
+
+    private bool InitSpawn = true;
+    private Ray TestRay;
+    private RaycastHit[] RayCastHits = new RaycastHit[1];
+    private LayerMask VisibleLM;
 
     public delegate void DespawnCallbackType(NPCController controller);
     List<DespawnCallbackType> DespawnCallbacks = new List<DespawnCallbackType>();
@@ -126,8 +131,11 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         NPCSpawnCheckBitmask = LayerMask.GetMask("NPC", "Agent");
         SpawnBoundsSize = new Vector3(MapOrigin.NPCSpawnBoundSize, 50f, MapOrigin.NPCSpawnBoundSize);
         NPCMaxCount = MapOrigin.NPCMaxCount;
-        SimulatorCamera = SimulatorManager.Instance.CameraManager.SimulatorCamera;
+        SimCameraManager = SimulatorManager.Instance.CameraManager;
+        SimulatorCamera = SimCameraManager.SimulatorCamera;
         MapManager = SimulatorManager.Instance.MapManager;
+        VisibleLM = LayerMask.GetMask(new string[] { "Default", "Agent" ,"NPC", "Pedestrian", "Obstacle"});
+        InitSpawn = true;
 
         NPCVehicles.Clear();
         if (Loader.Instance.CurrentSimulation.NPCs == null)
@@ -165,7 +173,10 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         {
             SpawnNPCPool();
             if (NPCActive)
+            {
+                //InitSetNPCOnMap();
                 SetNPCOnMap();
+            }
         }
     }
 
@@ -179,7 +190,9 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         if (NPCActive)
         {
             if (ActiveNPCCount < NPCMaxCount)
+            {
                 SetNPCOnMap();
+            }
         }
         else
         {
@@ -278,17 +291,22 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         return pooledNPCs;
     }
 
+    private void InitSetNPCOnMap()
+    {
+        // TODO
+        InitSpawn = false;
+    }
+
     public void SetNPCOnMap()
     {
         for (int i = 0; i < CurrentPooledNPCs.Count; i++)
         {
             if (CurrentPooledNPCs[i].gameObject.activeInHierarchy)
-            {
                 continue;
-            }
 
             var lane = MapManager.GetLane(RandomGenerator.Next(MapManager.trafficLanes.Count));
-            if (lane == null) return;
+            if (lane == null)
+                return;
 
             if (lane.mapWorldPositions == null || lane.mapWorldPositions.Count == 0)
                 continue;
@@ -302,7 +320,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             var spawnPos = lane.mapWorldPositions[0];
             CurrentPooledNPCs[i].transform.position = spawnPos;
 
-            if (!MapOrigin.IgnoreNPCBounds)
+            if (!MapOrigin.IgnoreNPCBounds) // set from map origin to ignore agent bounds checks
             {
                 if (!WithinSpawnArea(spawnPos))
                 {
@@ -310,22 +328,19 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
                 }
             }
 
-            if (!InitSpawn)
+            if (!MapOrigin.IgnoreNPCSpawnable) // set from map origin to ignore spawnable checks
             {
-                if (!MapOrigin.IgnoreNPCSpawnable) // set from map origin to ignore spawnable checks
+                if (!lane.Spawnable)
                 {
-                    if (!lane.Spawnable)
-                    {
-                        continue;
-                    }
+                    continue;
                 }
+            }
 
-                if (!MapOrigin.IgnoreNPCVisible) // set from map origin to ignore sensor visible check
+            if (!MapOrigin.IgnoreNPCVisible) // set from map origin to ignore sensor visible check
+            {
+                if (IsVisible(CurrentPooledNPCs[i].gameObject))
                 {
-                    if (IsVisible(CurrentPooledNPCs[i].gameObject))
-                    {
-                        continue;
-                    }
+                    continue;
                 }
             }
 
@@ -349,7 +364,6 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
                     rb.BroadcastSnapshot(true);
             }
         }
-        InitSpawn = false;
     }
 
     public Transform GetRandomActiveNPC()
@@ -418,6 +432,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         }
 
         ActiveNPCCount = 0;
+        InitSpawn = true;
     }
 
     public void Reset()
@@ -523,9 +538,12 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         var activeAgents = SimulatorManager.Instance.AgentManager.ActiveAgents;
         var npcColliderBounds = npc.GetComponent<NPCController>().MainCollider.bounds;
 
-        var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(SimulatorCamera);
-        if (GeometryUtility.TestPlanesAABB(activeCameraPlanes, npcColliderBounds))
-            return true;
+        if (SimCameraManager.GetCurrentCameraState() == CameraStateType.Cinematic) // only check if in cinematic mode
+        {
+            var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(SimulatorCamera);
+            if (GeometryUtility.TestPlanesAABB(activeCameraPlanes, npcColliderBounds))
+                return true;
+        }
 
         foreach (var activeAgent in activeAgents)
         {
@@ -533,7 +551,17 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             foreach (var sensor in activeAgentController.AgentSensors)
             {
                 if (sensor.CheckVisible(npcColliderBounds))
-                    return true;
+                {
+                    // TODO raycast
+                    //TestRay = new Ray(sensor.transform.position, npcColliderBounds.center - sensor.transform.position);
+                    //if (Physics.RaycastNonAlloc(TestRay,
+                    //                            RayCastHits,
+                    //                            Vector3.Distance(sensor.transform.position, npcColliderBounds.center),
+                    //                            VisibleLM) == 0)
+                    {
+                        return true;
+                    }
+                }
             }
         }
         return false;

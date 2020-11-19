@@ -372,7 +372,9 @@ public class SimulatorManager : MonoBehaviour
     void InitSegmenationColors()
     {
         var renderers = new List<Renderer>(1024);
+        var sharedMaterials = new List<Material>(8);
         var materials = new List<Material>(8);
+        var mapping = new Dictionary<Material, Material>();
 
         foreach (var item in SegmentationColors)
         {
@@ -383,7 +385,45 @@ public class SimulatorManager : MonoBehaviour
                 obj.GetComponentsInChildren(true, renderers);
                 renderers.ForEach(renderer =>
                 {
-                    renderer.GetMaterials(materials);
+                    if (item.IsInstanceSegmenation)
+                        renderer.GetMaterials(materials);
+                    else
+                    {
+                        if (Application.isEditor)
+                        {
+                            renderer.GetSharedMaterials(sharedMaterials);
+                            renderer.GetMaterials(materials);
+
+                            Debug.Assert(sharedMaterials.Count == materials.Count);
+
+                            for (int i = 0; i < materials.Count; i++)
+                            {
+                                if (sharedMaterials[i] == null)
+                                {
+                                    Debug.LogError($"{renderer.gameObject.name} has null material", renderer.gameObject);
+                                }
+                                else
+                                {
+                                    if (mapping.TryGetValue(sharedMaterials[i], out var mat))
+                                    {
+                                        DestroyImmediate(materials[i]);
+                                        materials[i] = mat;
+                                    }
+                                    else
+                                    {
+                                        mapping.Add(sharedMaterials[i], materials[i]);
+                                    }
+                                }
+                            }
+
+                            renderer.materials = materials.ToArray();
+                        }
+                        else
+                        {
+                            renderer.GetSharedMaterials(materials);
+                        }
+                    }
+
                     materials.ForEach(material =>
                     {
                         if (material != null)
@@ -415,7 +455,9 @@ public class SimulatorManager : MonoBehaviour
     public void ResetSegmentationColors()
     {
         var renderers = new List<Renderer>(1024);
+        var sharedMaterials = new List<Material>(8);
         var materials = new List<Material>(8);
+        var mapping = new Dictionary<Material, Material>();
 
         foreach (var item in SegmentationColors)
         {
@@ -450,7 +492,39 @@ public class SimulatorManager : MonoBehaviour
                         }
                         else
                         {
-                            renderer.GetSharedMaterials(materials);
+                            if (Application.isEditor)
+                            {
+                                renderer.GetSharedMaterials(sharedMaterials);
+                                renderer.GetMaterials(materials);
+
+                                Debug.Assert(sharedMaterials.Count == materials.Count);
+
+                                for (int i = 0; i < materials.Count; i++)
+                                {
+                                    if (sharedMaterials[i] == null)
+                                    {
+                                        Debug.LogError($"{renderer.gameObject.name} has null material", renderer.gameObject);
+                                    }
+                                    else
+                                    {
+                                        if (mapping.TryGetValue(sharedMaterials[i], out var mat))
+                                        {
+                                            DestroyImmediate(materials[i]);
+                                            materials[i] = mat;
+                                        }
+                                        else
+                                        {
+                                            mapping.Add(sharedMaterials[i], materials[i]);
+                                        }
+                                    }
+                                }
+
+                                renderer.materials = materials.ToArray();
+                            }
+                            else
+                            {
+                                renderer.GetSharedMaterials(materials);
+                            }
                         }
 
                         materials.ForEach(material =>
@@ -469,7 +543,9 @@ public class SimulatorManager : MonoBehaviour
     public void UpdateSegmentationColors(GameObject obj)
     {
         var renderers = new List<Renderer>(1024);
+        var sharedMaterials = new List<Material>(8);
         var materials = new List<Material>(8);
+        var mapping = new Dictionary<Material, Material>();
 
         foreach (var item in SegmentationColors)
         {
@@ -480,13 +556,45 @@ public class SimulatorManager : MonoBehaviour
                 obj.GetComponentsInChildren(true, renderers);
                 renderers.ForEach(renderer =>
                 {
-                    if (Application.isEditor || item.IsInstanceSegmenation)
+                    if (item.IsInstanceSegmenation)
                     {
                         renderer.GetMaterials(materials);
                     }
                     else
                     {
-                        renderer.GetSharedMaterials(materials);
+                        if (Application.isEditor)
+                        {
+                            renderer.GetSharedMaterials(sharedMaterials);
+                            renderer.GetMaterials(materials);
+
+                            Debug.Assert(sharedMaterials.Count == materials.Count);
+
+                            for (int i = 0; i < materials.Count; i++)
+                            {
+                                if (sharedMaterials[i] == null)
+                                {
+                                    Debug.LogError($"{renderer.gameObject.name} has null material", renderer.gameObject);
+                                }
+                                else
+                                {
+                                    if (mapping.TryGetValue(sharedMaterials[i], out var mat))
+                                    {
+                                        DestroyImmediate(materials[i]);
+                                        materials[i] = mat;
+                                    }
+                                    else
+                                    {
+                                        mapping.Add(sharedMaterials[i], materials[i]);
+                                    }
+                                }
+                            }
+
+                            renderer.materials = materials.ToArray();
+                        }
+                        else
+                        {
+                            renderer.GetSharedMaterials(materials);
+                        }
                     }
 
                     materials.ForEach(material =>

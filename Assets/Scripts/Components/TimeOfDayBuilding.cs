@@ -20,19 +20,53 @@ public class TimeOfDayBuilding : MonoBehaviour
     {
         allRenderers = transform.GetComponentsInChildren<Renderer>();
         var materials = new List<Material>();
+        var sharedMaterials = new List<Material>();
+        var mapping = new Dictionary<Material, Material>();
 
         Array.ForEach(allRenderers, renderer =>
         {
-            renderer.GetMaterials(materials);
-            foreach (var material in materials)
+            if (Application.isEditor)
             {
-                if (!allBuildingMaterials.Contains(material))
+                renderer.GetSharedMaterials(sharedMaterials);
+                renderer.GetMaterials(materials);
+
+                Debug.Assert(sharedMaterials.Count == materials.Count);
+
+                for (int i = 0; i < materials.Count; i++)
                 {
-                    allBuildingMaterials.Add(material);
+                    if (sharedMaterials[i] == null)
+                    {
+                        Debug.LogError($"{renderer.gameObject.name} has null material", renderer.gameObject);
+                    }
+                    else
+                    {
+                        if (mapping.TryGetValue(sharedMaterials[i], out var mat))
+                        {
+                            DestroyImmediate(materials[i]);
+                            materials[i] = mat;
+                        }
+                        else
+                        {
+                            mapping.Add(sharedMaterials[i], materials[i]);
+                        }
+                    }
                 }
+
+                renderer.materials = materials.ToArray();
+            }
+            else
+            {
+                renderer.GetSharedMaterials(materials);
+                materials.ForEach(m =>
+                {
+                    if (!mapping.ContainsKey(m))
+                    {
+                        mapping.Add(m, m);
+                    }
+                });
             }
         });
-
+        allBuildingMaterials.AddRange(mapping.Values);
         if (SimulatorManager.InstanceAvailable)
         {
             SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged += OnTimeOfDayChange;

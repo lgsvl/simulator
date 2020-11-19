@@ -165,26 +165,32 @@ namespace Simulator.Web
                         foreach (var vehicle in parameter.GetValue<VehicleData[]>())
                         {
                             environment.Add($"LGSVL__VEHICLE_{i}", vehicle.Id);
-                            if (vehicle.Bridge != null && !String.IsNullOrEmpty(vehicle.Bridge.ConnectionString) )
+                            if (vehicle.Bridge != null && !String.IsNullOrEmpty(vehicle.Bridge.ConnectionString))
                             {
                                 var parts = vehicle.Bridge.ConnectionString.Split(':');
                                 // ipv6 not supported - ipv6 has many : in the address part so its harder to find the port
                                 // unfortunately we do not have IPEndpoint.TryParse in .net core 2
                                 if (parts.Length == 1)
                                 {
-                                    environment.Add("BRIDGE_HOST", vehicle.Bridge.ConnectionString); // legacy - vse_runner.py only supports one vehicle right now
+                                    if (i == 0)
+                                    {
+                                        environment.Add("BRIDGE_HOST", vehicle.Bridge.ConnectionString); // legacy - vse_runner.py only supports one vehicle right now
+                                    }
                                     environment.Add($"LGSVL__AUTOPILOT_{i}_HOST", vehicle.Bridge.ConnectionString);
                                 }
                                 else if (parts.Length == 2)
                                 {
-                                    environment.Add("BRIDGE_HOST", parts[0]); // legacy
-                                    environment.Add("BRIDGE_PORT", parts[1]); // legacy
+                                    if (i == 0)
+                                    {
+                                        environment.Add("BRIDGE_HOST", parts[0]); // legacy
+                                        environment.Add("BRIDGE_PORT", parts[1]); // legacy
+                                    }
                                     environment.Add($"LGSVL__AUTOPILOT_{i}_HOST", parts[0]);
                                     environment.Add($"LGSVL__AUTOPILOT_{i}_PORT", parts[1]);
                                 }
                                 else
                                 {
-                                    Debug.LogError("malformed ipv4 connection string: "+vehicle.Bridge.ConnectionString);
+                                    Debug.LogError("malformed ipv4 connection string: " + vehicle.Bridge.ConnectionString);
                                 }
                             }
                             i++;

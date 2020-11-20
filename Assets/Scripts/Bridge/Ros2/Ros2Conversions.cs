@@ -388,7 +388,7 @@ namespace Simulator.Bridge.Ros2
             // ratio between -MaxSteeringAngle and MaxSteeringAngle
             var k = (float)(wheelAngle + MaxSteeringAngle) / (MaxSteeringAngle*2);
 
-            // target_wheel_angular_rate, target_gear are not supported on simulator side.
+            // target_gear are not supported on simulator side
 
             return new VehicleControlData()
             {
@@ -396,7 +396,7 @@ namespace Simulator.Bridge.Ros2
                 Acceleration = data.acceleration_pct,
                 Braking = data.braking_pct,
                 SteerAngle = UnityEngine.Mathf.Lerp(-1f, 1f, k),
-
+                SteerInput = data.target_wheel_angular_rate,
             };
         }
 

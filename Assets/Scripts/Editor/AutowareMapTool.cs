@@ -100,6 +100,14 @@ namespace Simulator.Editor
                     FileName = c.GetCustomAttribute<VectorMapCSVAttribute>().FileName,
                 });
             }
+            laneIndex = new SpatialIndex<Lane>(3.0f, (Lane lane) => this.laneBox(lane));
+        }
+
+        private SpatialIndex<Lane> laneIndex;
+        Rect laneBox(Lane lane)
+        {
+            var p = Points[DtLanes[lane.DID - 1].PID - 1];
+            return new Rect((float)p.Bx, (float)p.Ly, 0, 0);
         }
 
         bool Calculate()
@@ -123,6 +131,7 @@ namespace Simulator.Editor
                 allVectorLaneSegments.Add(vectorLaneSegment);
             }
 
+            var squaredProximity = (MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR) * (MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR);
             // Link before and after segment for each lane segment
             foreach (var laneSegment in allVectorLaneSegments)
             {
@@ -147,12 +156,12 @@ namespace Simulator.Editor
                     var firstPt_cmp = laneSegmentCmp.MapWorldPositions[0];
                     var lastPt_cmp = laneSegmentCmp.MapWorldPositions[laneSegmentCmp.MapWorldPositions.Count - 1];
 
-                    if ((firstPt - lastPt_cmp).magnitude < MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
+                    if ((firstPt - lastPt_cmp).sqrMagnitude < squaredProximity)
                     {
                         laneSegment.Befores.Add(laneSegmentCmp);
                     }
 
-                    if ((lastPt - firstPt_cmp).magnitude < MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
+                    if ((lastPt - firstPt_cmp).sqrMagnitude < squaredProximity)
                     {
                         laneSegment.Afters.Add(laneSegmentCmp);
                     }
@@ -193,13 +202,13 @@ namespace Simulator.Editor
                     var firstPt_cmp = lineSegmentCmp.transform.TransformPoint(lineSegmentCmp.mapLocalPositions[0]);
                     var lastPt_cmp = lineSegmentCmp.transform.TransformPoint(lineSegmentCmp.mapLocalPositions[lineSegmentCmp.mapLocalPositions.Count - 1]);
 
-                    if ((firstPt - lastPt_cmp).magnitude < MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
+                    if ((firstPt - lastPt_cmp).sqrMagnitude < squaredProximity)
                     {
                         lineSegmentCmp.mapLocalPositions[lineSegmentCmp.mapLocalPositions.Count - 1] = lineSegmentCmp.transform.InverseTransformPoint(firstPt);
                         lineSegmentCmp.mapWorldPositions[lineSegmentCmp.mapWorldPositions.Count - 1] = firstPt;
                     }
 
-                    if ((lastPt - firstPt_cmp).magnitude < MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
+                    if ((lastPt - firstPt_cmp).sqrMagnitude < squaredProximity)
                     {
                         lineSegmentCmp.mapLocalPositions[0] = lineSegmentCmp.transform.InverseTransformPoint(lastPt);
                         lineSegmentCmp.mapWorldPositions[0] = lastPt;
@@ -406,6 +415,11 @@ namespace Simulator.Editor
             var stoplineLinkIDMapping = new Dictionary<MapLine, List<int>>();
             if (allLineSegments.Count > 0)
             {
+                foreach (var lane in this.Lanes)
+                {
+                    laneIndex.Add(lane);
+                }
+
                 foreach (var lineSegment in allLineSegments)
                 {
                     var lineType = LineType.NONE;
@@ -642,7 +656,6 @@ namespace Simulator.Editor
             if (Calculate())
             {
                 var sb = new StringBuilder();
-
                 foreach (var list in ExportLists)
                 {
                     var csvFilename = list.FileName;
@@ -939,54 +952,43 @@ namespace Simulator.Editor
             }
         }
 
-        //Needs optimization
+        float laneDist(float x, float y, float z, Lane lane)
+        {
+            var p = Points[DtLanes[lane.DID - 1].PID - 1];
+            float dx = (float)p.Bx - x;
+            float dy = (float)p.Ly - y;
+            float dz = (float)p.H - z;
+            return dx * dx + dy * dy + dz * dz;
+        }
+
+        float junctionDist(float x, float y, float z, Lane lane)
+        {
+            // only consider junctions
+            if (lane.FLID2 <= 0) return float.MaxValue;
+            var p = Points[DtLanes[lane.DID - 1].PID - 1];
+            float dx = (float)p.Bx - x;
+            float dy = (float)p.Ly - y;
+            float dz = (float)p.H - z;
+            return dx * dx + dy * dy + dz * dz;
+        }
+
         int FindNearestLaneId(VectorMapPosition refPos, bool preferJunction = false)
         {
-            //find nearest lane set first
             float radius = 6.0f / MapAnnotationTool.EXPORT_SCALE_FACTOR; // reduce 6.0 to increase speed if every map annotation is on the ground.
-            var lnIDs = new List<int>();
-            for (int i = 0; i < Lanes.Count; i++)
-            {
-                var lane = Lanes[i];
-                var p = Points[DtLanes[lane.DID - 1].PID - 1];
-                var dist = Mathf.Sqrt(Mathf.Pow((float)(refPos.Bx - p.Bx), 2.0f) + Mathf.Pow((float)(refPos.Ly - p.Ly), 2.0f) + Mathf.Pow((float)(refPos.H - p.H), 2.0f));
-                if (dist < radius)
-                {
-                    lnIDs.Add(lane.LnID);
-                }
-            }
-
-            float min = float.MaxValue;
-            float jctMin = float.MaxValue;
             int retLnId = 0;
-            int nearestJctLnId = 0;
-            for (int i = 0; i < lnIDs.Count; i++)
+            Lane lane;
+
+            if (laneIndex.nearest((float)refPos.Bx, (float)refPos.Ly, (float)refPos.H, radius, (float x, float y, float z, Lane l) => this.laneDist(x, y, z, l), out lane))
             {
-                bool jct = false;
-                var lane = Lanes[lnIDs[i] - 1];
-
-                if (preferJunction && lane.FLID2 > 0)
-                {
-                    jct = true;
-                }
-
-                var p = Points[DtLanes[lane.DID - 1].PID - 1];
-                var dist = Mathf.Sqrt(Mathf.Pow((float)(refPos.Bx - p.Bx), 2.0f) + Mathf.Pow((float)(refPos.Ly - p.Ly), 2.0f) + Mathf.Pow((float)(refPos.H - p.H), 2.0f));
-                if (dist < min)
-                {
-                    min = dist;
-                    retLnId = lnIDs[i];
-                }
-                if (jct && dist < jctMin)
-                {
-                    jctMin = dist;
-                    nearestJctLnId = lnIDs[i];
-                }
+                retLnId = lane.LnID;
             }
 
-            if (nearestJctLnId != 0)
+            if (preferJunction && lane.FLID2 == 0)
             {
-                retLnId = nearestJctLnId;
+                if (laneIndex.nearest((float)refPos.Bx, (float)refPos.Ly, (float)refPos.H, radius, (float x, float y, float z, Lane l) => this.junctionDist(x, y, z, l), out lane))
+                {
+                    retLnId = lane.LnID;
+                }
             }
 
             return retLnId;

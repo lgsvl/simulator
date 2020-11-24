@@ -71,6 +71,8 @@ public class MapAnnotations : EditorWindow
     private int currentSignUp = 0;
 
     private int pedType = 0;
+    private int pedLineFacing = 0;
+    private GUIContent[] pedLineFacingContent;
     private GUIContent[] pedTypeContent = {
         new GUIContent { text = "Sidewalk", tooltip = "Set sidewalk pedestrian path" },
         new GUIContent { text = "Crosswalk", tooltip = "Set crosswalk pedestrian path" },
@@ -186,6 +188,10 @@ public class MapAnnotations : EditorWindow
             new GUIContent { image = boundryImages[8], tooltip = "Virtual boundry line" },
         };
         stopLineFacingContent = new GUIContent[] {
+            new GUIContent { text = "Forward Right", image = stopLineFacingImages[0], tooltip = "Transform forward vector is right of waypoints direction"},
+            new GUIContent { text = "Forward Left", image = stopLineFacingImages[1], tooltip = "Transform forward vector is left of waypoints direction"},
+        };
+        pedLineFacingContent = new GUIContent[] {
             new GUIContent { text = "Forward Right", image = stopLineFacingImages[0], tooltip = "Transform forward vector is right of waypoints direction"},
             new GUIContent { text = "Forward Left", image = stopLineFacingImages[1], tooltip = "Transform forward vector is left of waypoints direction"},
         };
@@ -557,6 +563,14 @@ public class MapAnnotations : EditorWindow
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = nonProColor;
                 pedType = GUILayout.Toolbar(pedType, pedTypeContent);
+                switch (pedType)
+                {
+                    case (int)MapAnnotationTool.PedestrianPathType.CROSSWALK:
+                        GUILayout.Space(5);
+                        pedLineFacing = GUILayout.SelectionGrid(pedLineFacing, pedLineFacingContent, 2, buttonStyle);
+                        GUILayout.Space(5);
+                        break;
+                }
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = Color.white;
                 GUILayout.Space(5);
@@ -1114,16 +1128,14 @@ public class MapAnnotations : EditorWindow
         Vector3 avePos = Vector3.Lerp(tool.tempWaypoints[0].transform.position, tool.tempWaypoints[tool.tempWaypoints.Count - 1].transform.position, 0.5f);
         newGo.transform.position = avePos;
         var dir = (tool.tempWaypoints[tool.tempWaypoints.Count - 1].transform.position - tool.tempWaypoints[0].transform.position).normalized;
+        newGo.transform.rotation = Quaternion.LookRotation(dir);
         if (tool.createType == 1) // stopline
         {
-            newGo.transform.rotation = Quaternion.LookRotation(dir);
             if (tool.stopLineFacing == 0)
                 newGo.transform.rotation = Quaternion.LookRotation(newGo.transform.TransformDirection(Vector3.right).normalized, newGo.transform.TransformDirection(Vector3.up).normalized);
             else
                 newGo.transform.rotation = Quaternion.LookRotation(newGo.transform.TransformDirection(-Vector3.right).normalized, newGo.transform.TransformDirection(Vector3.up).normalized);
         }
-        else
-            newGo.transform.rotation = Quaternion.LookRotation(dir);
 
         List<Vector3> tempLocalPos = new List<Vector3>();
         if (tool.tempWaypoints.Count == 2)
@@ -1544,6 +1556,23 @@ public class MapAnnotations : EditorWindow
         newGo.transform.position = avePos;
         var dir = (tool.tempWaypoints[1].transform.position - tool.tempWaypoints[0].transform.position).normalized;
         newGo.transform.rotation = Quaternion.LookRotation(dir);
+        switch (tool.pedType)
+        {
+            case (int)MapAnnotationTool.PedestrianPathType.CROSSWALK:
+                if (tool.tempWaypoints.Count != 2)
+                {
+                    Debug.LogError($"Only two temp waypoints are supported for {(MapAnnotationTool.PedestrianPathType)tool.pedType}");
+                    DestroyImmediate(newGo);
+                    tool.tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
+                    tool.tempWaypoints.Clear();
+                    return;
+                }
+                if (tool.pedLineFacing == 0)
+                    newGo.transform.rotation = Quaternion.LookRotation(newGo.transform.TransformDirection(Vector3.right).normalized, newGo.transform.TransformDirection(Vector3.up).normalized);
+                else
+                    newGo.transform.rotation = Quaternion.LookRotation(newGo.transform.TransformDirection(-Vector3.right).normalized, newGo.transform.TransformDirection(Vector3.up).normalized);
+                break;
+        }
 
         for (int i = 0; i < tool.tempWaypoints.Count; i++)
         {

@@ -1,50 +1,134 @@
 fileFormatVersion: 2
 guid: 13e013237ed070a4e87b81c45d7ebcdc
 ModelImporter:
-  serializedVersion: 23
-  fileIDToRecycleName:
-    100000: BoxTruck
-    100002: //RootNode
-    100004: BoxTruckWheelLeftFront
-    100006: BoxTruckWheelLeftRear
-    100008: BoxTruckWheelRightFront
-    100010: BoxTruckWheelRightRear
-    100012: Body
-    400000: BoxTruck
-    400002: //RootNode
-    400004: BoxTruckWheelLeftFront
-    400006: BoxTruckWheelLeftRear
-    400008: BoxTruckWheelRightFront
-    400010: BoxTruckWheelRightRear
-    400012: Body
-    2100000: BoxTruckTires
-    2100002: BoxTruckMetalRoughDark
-    2100004: BoxTruckMetalLightRough
-    2100006: BoxTruckBody
-    2100008: BoxTruckGlass
-    2100010: BoxTruckLightHead
-    2100012: BoxTruckIndicatorReverse
-    2100014: BoxTruckLightBrake
-    2100016: BoxTruckIndicatorLeft
-    2100018: BoxTruckIndicatorRight
-    2300000: BoxTruck
-    2300002: BoxTruckWheelLeftFront
-    2300004: BoxTruckWheelLeftRear
-    2300006: BoxTruckWheelRightFront
-    2300008: BoxTruckWheelRightRear
-    2300010: Body
-    3300000: BoxTruck
-    3300002: BoxTruckWheelLeftFront
-    3300004: BoxTruckWheelLeftRear
-    3300006: BoxTruckWheelRightFront
-    3300008: BoxTruckWheelRightRear
-    3300010: Body
-    4300000: BoxTruckWheelRightFront
-    4300002: BoxTruckWheelRightRear
-    4300004: BoxTruckWheelLeftRear
-    4300006: BoxTruckWheelLeftFront
-    4300008: BoxTruck
-    4300010: Body
+  serializedVersion: 19300
+  internalIDToNameTable:
+  - first:
+      1: 100000
+    second: BoxTruck
+  - first:
+      1: 100002
+    second: //RootNode
+  - first:
+      1: 100004
+    second: BoxTruckWheelLeftFront
+  - first:
+      1: 100006
+    second: BoxTruckWheelLeftRear
+  - first:
+      1: 100008
+    second: BoxTruckWheelRightFront
+  - first:
+      1: 100010
+    second: BoxTruckWheelRightRear
+  - first:
+      1: 100012
+    second: Body
+  - first:
+      4: 400000
+    second: BoxTruck
+  - first:
+      4: 400002
+    second: //RootNode
+  - first:
+      4: 400004
+    second: BoxTruckWheelLeftFront
+  - first:
+      4: 400006
+    second: BoxTruckWheelLeftRear
+  - first:
+      4: 400008
+    second: BoxTruckWheelRightFront
+  - first:
+      4: 400010
+    second: BoxTruckWheelRightRear
+  - first:
+      4: 400012
+    second: Body
+  - first:
+      21: 2100000
+    second: BoxTruckTires
+  - first:
+      21: 2100002
+    second: BoxTruckMetalRoughDark
+  - first:
+      21: 2100004
+    second: BoxTruckMetalLightRough
+  - first:
+      21: 2100006
+    second: BoxTruckBody
+  - first:
+      21: 2100008
+    second: BoxTruckGlass
+  - first:
+      21: 2100010
+    second: BoxTruckLightHead
+  - first:
+      21: 2100012
+    second: BoxTruckIndicatorReverse
+  - first:
+      21: 2100014
+    second: BoxTruckLightBrake
+  - first:
+      21: 2100016
+    second: BoxTruckIndicatorLeft
+  - first:
+      21: 2100018
+    second: BoxTruckIndicatorRight
+  - first:
+      23: 2300000
+    second: BoxTruck
+  - first:
+      23: 2300002
+    second: BoxTruckWheelLeftFront
+  - first:
+      23: 2300004
+    second: BoxTruckWheelLeftRear
+  - first:
+      23: 2300006
+    second: BoxTruckWheelRightFront
+  - first:
+      23: 2300008
+    second: BoxTruckWheelRightRear
+  - first:
+      23: 2300010
+    second: Body
+  - first:
+      33: 3300000
+    second: BoxTruck
+  - first:
+      33: 3300002
+    second: BoxTruckWheelLeftFront
+  - first:
+      33: 3300004
+    second: BoxTruckWheelLeftRear
+  - first:
+      33: 3300006
+    second: BoxTruckWheelRightFront
+  - first:
+      33: 3300008
+    second: BoxTruckWheelRightRear
+  - first:
+      33: 3300010
+    second: Body
+  - first:
+      43: 4300000
+    second: BoxTruckWheelRightFront
+  - first:
+      43: 4300002
+    second: BoxTruckWheelRightRear
+  - first:
+      43: 4300004
+    second: BoxTruckWheelLeftRear
+  - first:
+      43: 4300006
+    second: BoxTruckWheelLeftFront
+  - first:
+      43: 4300008
+    second: BoxTruck
+  - first:
+      43: 4300010
+    second: Body
   externalObjects:
   - first:
       type: UnityEngine:Material
@@ -97,7 +181,7 @@ ModelImporter:
       name: BoxTruckTires
     second: {fileID: 2100000, guid: f14e9570066ab274ab0d0687a55bf346, type: 2}
   materials:
-    importMaterials: 1
+    materialImportMode: 1
     materialName: 0
     materialSearch: 1
     materialLocation: 1
@@ -130,6 +214,7 @@ ModelImporter:
     meshCompression: 0
     addColliders: 0
     useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
     importVisibility: 1
     importBlendShapes: 1
     importCameras: 1
@@ -137,18 +222,19 @@ ModelImporter:
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
-    optimizeMeshForGPU: 1
     keepQuads: 0
     weldVertices: 1
     preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
     secondaryUVPackMargin: 4
     useFileScale: 1
-    previousCalculatedGlobalScale: 1
-    hasPreviousCalculatedGlobalScale: 0
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0
@@ -157,10 +243,10 @@ ModelImporter:
     legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
     blendShapeNormalImportMode: 1
     normalSmoothingSource: 0
-  importAnimation: 1
-  copyAvatar: 0
+  referencedClips: []
+  importAnimation: 0
   humanDescription:
-    serializedVersion: 2
+    serializedVersion: 3
     human: []
     skeleton: []
     armTwist: 0.5
@@ -170,13 +256,16 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
+    globalScale: 1
     rootMotionBoneName: 
     hasTranslationDoF: 0
     hasExtraRoot: 0
     skeletonHasParents: 1
   lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 0
   humanoidOversampling: 1
+  avatarSetup: 0
   additionalBone: 0
   userData: 
   assetBundleName: 

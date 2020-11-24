@@ -1,46 +1,122 @@
 fileFormatVersion: 2
 guid: 146fd18fab3ad9848b09d2e5a428b930
 ModelImporter:
-  serializedVersion: 23
-  fileIDToRecycleName:
-    100000: Body
-    100002: //RootNode
-    100004: WheelLeftFront
-    100006: WheelLeftRear
-    100008: WheelRightFront
-    100010: WheelRightRear
-    400000: Body
-    400002: //RootNode
-    400004: WheelLeftFront
-    400006: WheelLeftRear
-    400008: WheelRightFront
-    400010: WheelRightRear
-    2100000: JeepIndicatorRight
-    2100002: JeepIndicatorLeft
-    2100004: JeepLightBrake
-    2100006: JeepLightHead
-    2100008: JeepMetalRough
-    2100010: JeepPlasticRough
-    2100012: JeepBody
-    2100014: JeepMetalSmooth
-    2100016: JeepGlass
-    2100018: JeepTires
-    2100020: JeepIndicatorReverse
-    2300000: Body
-    2300002: WheelLeftFront
-    2300004: WheelLeftRear
-    2300006: WheelRightFront
-    2300008: WheelRightRear
-    3300000: Body
-    3300002: WheelLeftFront
-    3300004: WheelLeftRear
-    3300006: WheelRightFront
-    3300008: WheelRightRear
-    4300000: Body
-    4300002: WheelRightFront
-    4300004: WheelRightRear
-    4300006: WheelLeftRear
-    4300008: WheelLeftFront
+  serializedVersion: 19300
+  internalIDToNameTable:
+  - first:
+      1: 100000
+    second: Body
+  - first:
+      1: 100002
+    second: //RootNode
+  - first:
+      1: 100004
+    second: WheelLeftFront
+  - first:
+      1: 100006
+    second: WheelLeftRear
+  - first:
+      1: 100008
+    second: WheelRightFront
+  - first:
+      1: 100010
+    second: WheelRightRear
+  - first:
+      4: 400000
+    second: Body
+  - first:
+      4: 400002
+    second: //RootNode
+  - first:
+      4: 400004
+    second: WheelLeftFront
+  - first:
+      4: 400006
+    second: WheelLeftRear
+  - first:
+      4: 400008
+    second: WheelRightFront
+  - first:
+      4: 400010
+    second: WheelRightRear
+  - first:
+      21: 2100000
+    second: JeepIndicatorRight
+  - first:
+      21: 2100002
+    second: JeepIndicatorLeft
+  - first:
+      21: 2100004
+    second: JeepLightBrake
+  - first:
+      21: 2100006
+    second: JeepLightHead
+  - first:
+      21: 2100008
+    second: JeepMetalRough
+  - first:
+      21: 2100010
+    second: JeepPlasticRough
+  - first:
+      21: 2100012
+    second: JeepBody
+  - first:
+      21: 2100014
+    second: JeepMetalSmooth
+  - first:
+      21: 2100016
+    second: JeepGlass
+  - first:
+      21: 2100018
+    second: JeepTires
+  - first:
+      21: 2100020
+    second: JeepIndicatorReverse
+  - first:
+      23: 2300000
+    second: Body
+  - first:
+      23: 2300002
+    second: WheelLeftFront
+  - first:
+      23: 2300004
+    second: WheelLeftRear
+  - first:
+      23: 2300006
+    second: WheelRightFront
+  - first:
+      23: 2300008
+    second: WheelRightRear
+  - first:
+      33: 3300000
+    second: Body
+  - first:
+      33: 3300002
+    second: WheelLeftFront
+  - first:
+      33: 3300004
+    second: WheelLeftRear
+  - first:
+      33: 3300006
+    second: WheelRightFront
+  - first:
+      33: 3300008
+    second: WheelRightRear
+  - first:
+      43: 4300000
+    second: Body
+  - first:
+      43: 4300002
+    second: WheelRightFront
+  - first:
+      43: 4300004
+    second: WheelRightRear
+  - first:
+      43: 4300006
+    second: WheelLeftRear
+  - first:
+      43: 4300008
+    second: WheelLeftFront
   externalObjects:
   - first:
       type: UnityEngine:Material
@@ -98,7 +174,7 @@ ModelImporter:
       name: JeepTires
     second: {fileID: 2100000, guid: a26738678e0bf144da00e8d9b120df20, type: 2}
   materials:
-    importMaterials: 1
+    materialImportMode: 1
     materialName: 0
     materialSearch: 1
     materialLocation: 1
@@ -131,6 +207,7 @@ ModelImporter:
     meshCompression: 0
     addColliders: 0
     useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
     importVisibility: 1
     importBlendShapes: 1
     importCameras: 1
@@ -138,18 +215,19 @@ ModelImporter:
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
-    optimizeMeshForGPU: 1
     keepQuads: 0
     weldVertices: 1
     preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
     secondaryUVPackMargin: 4
     useFileScale: 1
-    previousCalculatedGlobalScale: 1
-    hasPreviousCalculatedGlobalScale: 0
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0
@@ -158,10 +236,10 @@ ModelImporter:
     legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
     blendShapeNormalImportMode: 1
     normalSmoothingSource: 0
-  importAnimation: 1
-  copyAvatar: 0
+  referencedClips: []
+  importAnimation: 0
   humanDescription:
-    serializedVersion: 2
+    serializedVersion: 3
     human: []
     skeleton: []
     armTwist: 0.5
@@ -171,13 +249,16 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
+    globalScale: 1
     rootMotionBoneName: 
     hasTranslationDoF: 0
     hasExtraRoot: 0
     skeletonHasParents: 1
   lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 0
   humanoidOversampling: 1
+  avatarSetup: 0
   additionalBone: 0
   userData: 
   assetBundleName: 

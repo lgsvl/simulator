@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using UnityEngine;
@@ -242,11 +243,11 @@ namespace Simulator.Editor
                 .ToDictionary(element => element[0].Trim(), element => element[1].Trim());
 
             if (!items.ContainsKey("proj") || items["proj"] != "tmerc" ||
-                    items.ContainsKey("lon_0") || items.ContainsKey("lat_0")) return false;
+                    !items.ContainsKey("lon_0") || !items.ContainsKey("lat_0")) return false;
 
             double latitude, longitude;
-            longitude = float.Parse(items["lon_0"]);
-            latitude = float.Parse(items["lat_0"]);
+            longitude = float.Parse(items["lon_0"], CultureInfo.InvariantCulture);
+            latitude = float.Parse(items["lat_0"], CultureInfo.InvariantCulture);
 
             mapOrigin.UTMZoneId = MapOrigin.GetZoneNumberFromLatLon(latitude, longitude);
             double northing, easting;

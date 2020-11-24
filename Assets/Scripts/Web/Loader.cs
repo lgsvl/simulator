@@ -797,12 +797,14 @@ namespace Simulator
         {
             if (SimulatorManager.InstanceAvailable || ApiManager.Instance)
             {
+                Instance.ConnectionUI.UpdateStatusText("Cannot enter Scenario Editor during a simulation.");
                 Debug.LogError("Cannot enter Scenario Editor during a simulation.");
                 return;
             }
 
             if (ConnectionManager.Status != ConnectionManager.ConnectionStatus.Online)
             {
+                Instance.ConnectionUI.UpdateStatusText("Cannot enter Scenario Editor when connection is not established.");
                 Debug.LogError("Cannot enter Scenario Editor when connection is not established.");
                 return;
             }
@@ -810,6 +812,7 @@ namespace Simulator
             var maps = await ConnectionManager.API.GetLibrary<MapDetailData>();
             if (maps.Length == 0)
             {
+                Instance.ConnectionUI.UpdateStatusText("Scenario Editor requires at least one map added to the library.");
                 Debug.LogError("Scenario Editor requires at least one map added to the library.");
                 return;
             }
@@ -817,6 +820,7 @@ namespace Simulator
             var egos = await ConnectionManager.API.GetLibrary<VehicleDetailData>();
             if (egos.Length == 0)
             {
+                Instance.ConnectionUI.UpdateStatusText("Scenario Editor requires at least one ego vehicle added to the library.");
                 Debug.LogError("Scenario Editor requires at least one ego vehicle added to the library.");
                 return;
             }

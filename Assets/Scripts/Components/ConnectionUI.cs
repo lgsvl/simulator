@@ -137,6 +137,11 @@ namespace Simulator.Web
             }
         }
 
+        public void UpdateStatusText(string text)
+        {
+            statusText.text = text;
+        }
+
         public void UpdateDropdown()
         {
             simulationData = simulationService.List().ToList();

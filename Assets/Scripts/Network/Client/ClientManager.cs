@@ -38,9 +38,9 @@ namespace Simulator.Network.Client
         private ClientObjectsRoot objectsRoot;
 
         /// <summary>
-        /// Downloads that are currently in progress
+        /// Timeout coroutine, that stops the simulator if connecting fails
         /// </summary>
-        private List<string> processedDownloads = new List<string>();
+        private IEnumerator timeoutCoroutine;
 
         /// <summary>
         /// Current state of the simulation
@@ -195,6 +195,12 @@ namespace Simulator.Network.Client
             Connection.PeerDisconnected -= OnPeerDisconnected;
             Connection.Stop();
             MessagesManager.UnregisterObject(this);
+            if (timeoutCoroutine != null)
+            {
+                StopCoroutine(timeoutCoroutine);
+                timeoutCoroutine = null;
+            }
+
             Log.Info($"{GetType().Name} stopped the connection manager.");
         }
 
@@ -263,7 +269,10 @@ namespace Simulator.Network.Client
             Log.Info("Client tries to connect to the master.");
             Connection.DroppedAllConnections += TryConnectToMasterEndPoints;
             TryConnectToMasterEndPoints();
-            StartCoroutine(CheckInitialTimeout());
+            if (timeoutCoroutine!=null)
+                StopCoroutine(timeoutCoroutine);
+            timeoutCoroutine = CheckInitialTimeout();
+            StartCoroutine(timeoutCoroutine);
         }
 
         /// <summary>

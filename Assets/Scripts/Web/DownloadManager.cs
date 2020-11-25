@@ -47,9 +47,10 @@ namespace Simulator.Web
                     Debug.LogException(args.Error);
                 }
 
-                if (ExpectedBytes != BytesReceived)
+                if (ExpectedBytes != BytesReceived || ExpectedBytes <= 0)
                 {
-                    completed?.Invoke(false, new Exception($"Download incomplete, received {BytesReceived} of {ExpectedBytes}"));
+                    if (!cancelled)
+                        completed?.Invoke(false, new Exception($"Download incomplete, received {BytesReceived} of {ExpectedBytes}"));
                     // TODO continue partial download with range header.
                     // needs rewrite to use WebRequest here and needs range support on WISE asset service side
                 }
@@ -57,6 +58,7 @@ namespace Simulator.Web
                 {
                     completed?.Invoke(args.Error == null && !args.Cancelled, args.Error);
                 }
+                
 
                 client.DownloadProgressChanged -= Update;
                 client.DownloadFileCompleted -= Completed;
@@ -154,7 +156,7 @@ namespace Simulator.Web
                         };
                         assetService.Add(model);
                         Debug.Log($"{name} Download Complete.");
-                        ConnectionUI.instance?.UpdateDownloadProgress(name, 100);
+                        progressCallback?.Report(new Tuple<string, float>(name, 100));
                         t.TrySetResult(model);
                     }
                     catch (Exception e)
@@ -168,6 +170,12 @@ namespace Simulator.Web
                 }
             }));
             return t.Task;
+        }
+
+        public static void StopAssetDownload(string assetGuid)
+        {
+            var uri = new Uri(Config.CloudUrl + "/api/v1/assets/download/bundle/" + assetGuid);
+            StopDownload(uri.OriginalString);
         }
 
         public static void StopDownload(string url)
@@ -226,8 +234,12 @@ namespace Simulator.Web
                 {
                     File.Delete(download.path);
                 }
-                Debug.LogException(ex);
-                throw ex;
+
+                if (!(ex is WebException webException) || webException.Status != WebExceptionStatus.RequestCanceled)
+                {
+                    Debug.LogException(ex);
+                    throw ex;
+                }
             }
         }
 

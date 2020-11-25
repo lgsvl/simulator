@@ -168,6 +168,7 @@ namespace Simulator
         public static Loader Instance { get; private set; }
         private System.Diagnostics.Stopwatch stopWatch = new System.Diagnostics.Stopwatch();
         private SimulatorStatus status = SimulatorStatus.Idle;
+        private ConcurrentDictionary<Task, string> assetDownloads = new ConcurrentDictionary<Task, string>();
 
         public bool EditorLoader { get; set; } = false;
 
@@ -304,13 +305,19 @@ namespace Simulator
                     if (simData.Map != null)
                     {
                         var progressUpdate = new Progress<Tuple<string,float>> (p => { ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2); });
-                        downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, simData.Map.AssetGuid, simData.Map.Name, progressUpdate));
+                        var task = DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, simData.Map.AssetGuid,
+                            simData.Map.Name, progressUpdate);
+                        downloads.Add(task);
+                        Instance.assetDownloads.TryAdd(task, simData.Map.AssetGuid);
                     }
 
                     foreach (var vehicle in simData.Vehicles.Where(v => !v.Id.EndsWith(".prefab")).Select(v => v.AssetGuid).Distinct())
                     {
                         var progressUpdate = new Progress<Tuple<string,float>> (p => { ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2); });
-                        downloads.Add(DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicle, simData.Vehicles.First(v => v.AssetGuid == vehicle).Name, progressUpdate));
+                        var task = DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicle,
+                            simData.Vehicles.First(v => v.AssetGuid == vehicle).Name, progressUpdate);
+                        downloads.Add(task);
+                        Instance.assetDownloads.TryAdd(task, vehicle);
                     }
                 }
 
@@ -321,7 +328,11 @@ namespace Simulator
                 }
 
                 await Task.WhenAll(downloads);
-
+                foreach (var download in downloads)
+                {
+                    Instance.assetDownloads.TryRemove(download, out _);
+                }
+                
                 if (!string.IsNullOrEmpty(simData.Id))
                 {
                     SimulationService simService = new SimulationService();
@@ -553,6 +564,15 @@ namespace Simulator
                 //Check if simulation scene was initialized
                 if (Instance.Status == SimulatorStatus.Loading)
                 {
+                    foreach (var download in Instance.assetDownloads)
+                    {
+                        if (!download.Key.IsCompleted)
+                        {
+                            DownloadManager.StopAssetDownload(download.Value);
+                        }
+                    }
+                    
+                    Instance.assetDownloads.Clear();
                     Instance.reportStatus(SimulatorStatus.Stopping);
                     await Instance.Network.Deinitialize();
                     Instance.ConnectionUI.SetLoaderUIState(ConnectionUI.LoaderUIStateType.START);
@@ -562,10 +582,14 @@ namespace Simulator
                 }
 
                 if (ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline)
+                {
                     Instance.reportStatus(SimulatorStatus.Stopping);
+                }
 
                 if (SimulatorManager.InstanceAvailable)
+                {
                     await SimulatorManager.Instance.AnalysisManager.AnalysisSave();
+                }
 
                 await Instance.Network.Deinitialize();
 

@@ -161,6 +161,16 @@ namespace Simulator.ScenarioEditor.Input
         private Vector2 directionInput;
 
         /// <summary>
+        /// Mouse axis delta in this frame
+        /// </summary>
+        private Vector3 mouseAxisDelta;
+
+        /// <summary>
+        /// Mouse axis in the last frame
+        /// </summary>
+        private Vector2 lastMouseAxis;
+
+        /// <summary>
         /// Tilt value for the camera rotation
         /// </summary>
         private float rotationTilt;
@@ -254,7 +264,7 @@ namespace Simulator.ScenarioEditor.Input
         /// Inputs semaphore that allows disabling all the keyboard and mouse processing
         /// </summary>
         public LockingSemaphore InputSemaphore { get; } = new LockingSemaphore();
-        
+
         /// <summary>
         /// Semaphore that allows disabling selecting scenario elements
         /// </summary>
@@ -429,6 +439,7 @@ namespace Simulator.ScenarioEditor.Input
         }
 
         #region Input System Events
+
         /// <summary>
         /// Callback on camera mouse scroll
         /// </summary>
@@ -598,6 +609,9 @@ namespace Simulator.ScenarioEditor.Input
         {
             if (InputSemaphore.IsLocked)
                 return;
+            mouseAxisDelta = new Vector3(-(lastMouseAxis.x - Input.mousePosition.x) * 0.1f,
+                -(lastMouseAxis.y - Input.mousePosition.y) * 0.1f, Input.GetAxis("Mouse ScrollWheel"));
+            lastMouseAxis = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
             RaycastAll();
             if (ElementSelectingSemaphore.IsUnlocked)
                 HandleKeyboardActions();
@@ -623,7 +637,7 @@ namespace Simulator.ScenarioEditor.Input
         /// <param name="hits">Prealocated raycast hits array</param>
         public int RaycastAll(Ray ray, RaycastHit[] hits)
         {
-           return Physics.RaycastNonAlloc(ray, hits, raycastDistance, raycastLayerMask);
+            return Physics.RaycastNonAlloc(ray, hits, raycastDistance, raycastLayerMask);
         }
 
         /// <summary>
@@ -634,7 +648,7 @@ namespace Simulator.ScenarioEditor.Input
         {
             return Physics.RaycastAll(ray, raycastDistance, raycastLayerMask);
         }
-        
+
         /// <summary>
         /// Selects the furthest hit from the current raycast hits
         /// </summary>
@@ -672,17 +686,19 @@ namespace Simulator.ScenarioEditor.Input
         /// </summary>
         private void HandleKeyboardActions()
         {
-            if (Input.GetKeyDown(KeyCode.Delete) && EventSystem.current.currentSelectedGameObject==null)
+            if (Input.GetKeyDown(KeyCode.Delete) && EventSystem.current.currentSelectedGameObject == null)
             {
                 var element = ScenarioManager.Instance.SelectedElement;
                 if (element == null)
                     return;
                 ScenarioManager.Instance.SelectedElement = null;
                 ScenarioManager.Instance.IsScenarioDirty = true;
-                ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoRemoveElement(element));
+                ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
+                    .RegisterRecord(new UndoRemoveElement(element));
                 element.RemoveFromMap();
                 return;
             }
+
             if (Input.GetKey(KeyCode.LeftControl))
             {
                 if (Input.GetKeyDown(KeyCode.Z))
@@ -691,7 +707,7 @@ namespace Simulator.ScenarioEditor.Input
                     return;
                 }
 
-                if (Input.GetKeyDown(KeyCode.C) && 
+                if (Input.GetKeyDown(KeyCode.C) &&
                     ScenarioManager.Instance.SelectedElement != null &&
                     ScenarioManager.Instance.SelectedElement.CanBeCopied)
                 {
@@ -770,8 +786,8 @@ namespace Simulator.ScenarioEditor.Input
             {
                 if (rightMouseButtonPressed)
                 {
-                    rotationLook += Input.GetAxis("Mouse X") * RotationFactor * xRotationInversion;
-                    rotationTilt += Input.GetAxis("Mouse Y") * RotationFactor * yRotationInversion;
+                    rotationLook += mouseAxisDelta.x * RotationFactor * xRotationInversion;
+                    rotationTilt += mouseAxisDelta.y * RotationFactor * yRotationInversion;
                     rotationTilt = Mathf.Clamp(rotationTilt, -90, 90);
                     cameraTransform.rotation = Quaternion.Euler(rotationTilt, rotationLook, 0f);
                     rotationDirty = true;
@@ -814,7 +830,7 @@ namespace Simulator.ScenarioEditor.Input
             this.dragHandler = dragHandler;
             RaycastAll();
             var furthestHit = GetFurthestHit();
-            if (furthestHit!=null)
+            if (furthestHit != null)
                 MouseRaycastPosition = furthestHit.Value.point;
             MouseViewportPosition = scenarioCamera.ScreenToViewportPoint(Input.mousePosition);
             this.dragHandler.DragStarted();
@@ -834,7 +850,7 @@ namespace Simulator.ScenarioEditor.Input
 
             RaycastAll();
             var furthestHit = GetFurthestHit();
-            if (furthestHit!=null)
+            if (furthestHit != null)
                 MouseRaycastPosition = furthestHit.Value.point;
             this.dragHandler.DragCancelled();
             this.dragHandler = null;

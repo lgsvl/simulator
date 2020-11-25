@@ -1,0 +1,210 @@
+﻿/**
+* Copyright (c) 2020 LG Electronics, Inc.
+*
+* This software contains code licensed as described in LICENSE.
+*
+*/
+
+// NOTE: Texture blur and parallel reduction are based on HDRP color pyramid and exposure correction shaders.
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+#pragma only_renderers d3d11 vulkan metal
+#pragma kernel TextureOcclusion
+#pragma kernel BlurTextureOcclusion
+#pragma kernel AngleOcclusion
+#pragma kernel BlurAngleOcclusion
+#pragma kernel ReduceTextureOcclusion
+
+#define ANGLE_SAMPLES 8
+#define DEG_TO_RAD 0.0174532925
+
+CBUFFER_START(cb0)
+    float4 _DepthTexSize;           // Depth texture resolution: x: width-1, y: height-1, z: 1/width, w: 1/height
+    float4 _OcclusionTexSize;       // Occlusion texture resolution: x: width-1, y: height-1, z: 1/width, w: 1/height
+    float4 _SunViewPos;             // Sun data: xy: screen pos, z: diameter
+CBUFFER_END
+
+TEXTURE2D_X(_DepthTex);
+RWTexture2D<float> _OcclusionTexOut;
+Texture2D<float> _OcclusionTexIn;
+RW_TEXTURE2D_X(float4, _ColorTex);
+RWStructuredBuffer<float> _AngleOcclusion;
+
+SamplerState sampler_LinearClamp;
+
+groupshared uint gs_cacheR[128];
+groupshared float4 gs_luminances[256];
+
+float BlurPixels(float a, float b, float c, float d, float e, float f, float g, float h, float i)
+{
+    return 0.27343750 * e + 0.21875000 * (d + f) + 0.10937500 * (c + g) + 0.03125000 * (b + h) + 0.00390625 * (a + i);
+}
+
+void Store2Pixels(uint index, float pixel1, float pixel2)
+{
+    gs_cacheR[index] = f32tof16(pixel1) | f32tof16(pixel2) << 16;
+}
+
+void Load2Pixels(uint index, out float pixel1, out float pixel2)
+{
+    uint rr = gs_cacheR[index];
+    pixel1 = f16tof32(rr);
+    pixel2 = f16tof32(rr >> 16);
+}
+
+void Store1Pixel(uint index, float pixel)
+{
+    gs_cacheR[index] = asuint(pixel);
+}
+
+void Load1Pixel(uint index, out float pixel)
+{
+    pixel = asfloat(gs_cacheR[index]);
+}
+
+void BlurHorizontally(uint outIndex, uint leftMostIndex)
+{
+    float s0, s1, s2, s3, s4, s5, s6, s7, s8, s9;
+    Load2Pixels(leftMostIndex + 0, s0, s1);
+    Load2Pixels(leftMostIndex + 1, s2, s3);
+    Load2Pixels(leftMostIndex + 2, s4, s5);
+    Load2Pixels(leftMostIndex + 3, s6, s7);
+    Load2Pixels(leftMostIndex + 4, s8, s9);
+
+    Store1Pixel(outIndex, BlurPixels(s0, s1, s2, s3, s4, s5, s6, s7, s8));
+    Store1Pixel(outIndex + 1, BlurPixels(s1, s2, s3, s4, s5, s6, s7, s8, s9));
+}
+
+void BlurVertically(uint2 pixelCoord, uint topMostIndex)
+{
+    float s0, s1, s2, s3, s4, s5, s6, s7, s8;
+    Load1Pixel(topMostIndex, s0);
+    Load1Pixel(topMostIndex +  8, s1);
+    Load1Pixel(topMostIndex + 16, s2);
+    Load1Pixel(topMostIndex + 24, s3);
+    Load1Pixel(topMostIndex + 32, s4);
+    Load1Pixel(topMostIndex + 40, s5);
+    Load1Pixel(topMostIndex + 48, s6);
+    Load1Pixel(topMostIndex + 56, s7);
+    Load1Pixel(topMostIndex + 64, s8);
+
+    float blurred = BlurPixels(s0, s1, s2, s3, s4, s5, s6, s7, s8);
+    blurred *= all(pixelCoord < (uint2(_OcclusionTexSize.xy) + uint2(1u, 1u)));
+    _OcclusionTexOut[pixelCoord] = blurred;
+}
+
+[numthreads(8,8,1)]
+void TextureOcclusion (uint3 id : SV_DispatchThreadID)
+{
+    float aspectRatio = _DepthTexSize.y / _DepthTexSize.x;
+    float2 uvStart = _SunViewPos.xy;
+    uvStart.x -= 0.05 * aspectRatio;
+    uvStart.y -= 0.05;
+    float2 uv = uvStart;
+    uv.x += 0.1 * _OcclusionTexSize.z * id.x * aspectRatio;
+    uv.y += 0.1 * _OcclusionTexSize.w * id.y;
+
+    float depthSample = SAMPLE_TEXTURE2D_X_LOD(_DepthTex, sampler_LinearClamp, uv, 0).r;
+    float depth = Linear01Depth(depthSample, _ZBufferParams);
+    float binDepth = step(0.99, depth);
+
+    _OcclusionTexOut[id.xy] = binDepth;
+}
+
+[numthreads(64,1,1)]
+void AngleOcclusion (uint3 id : SV_DispatchThreadID)
+{
+    float angle = (float) id.x / 128.0 * 360 * DEG_TO_RAD;
+    float2 vec = 0.5 * normalize(float2(cos(angle), sin(angle)));
+    float result = 0;
+
+    [unroll(ANGLE_SAMPLES)]
+    for (uint i = 0; i < ANGLE_SAMPLES; ++i)
+    {
+        float2 uvPos = float2(0.5, 0.5) + vec * (float) (i + 1) / (ANGLE_SAMPLES + 1);
+        result += SAMPLE_TEXTURE2D_LOD(_OcclusionTexIn, sampler_LinearClamp, uvPos, 0);
+    }
+
+    result /= ANGLE_SAMPLES;
+    _AngleOcclusion[id.x] = result;
+}
+
+[numthreads(64,1,1)]
+void BlurAngleOcclusion (uint3 id : SV_DispatchThreadID)
+{
+    float result = 0;
+    
+    [unroll(7)]
+    for (uint i = 0; i < 7; ++i)
+    {
+        int index = ((id.x + i - 3) % 128 + 128) % 128;
+        result += _AngleOcclusion[index];
+    }
+    
+    result /= 7;
+    _AngleOcclusion[id.x] = result;
+}
+
+[numthreads(8, 8, 1)]
+void BlurTextureOcclusion(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    int2 threadUL = (groupThreadId << 1) + (groupId << 3) - 4;
+
+    uint2 uthreadUL = uint2(max(0, threadUL));
+    float p00 = _OcclusionTexIn[min(uthreadUL + uint2(0u, 0u), _OcclusionTexSize.xy)];
+    float p10 = _OcclusionTexIn[min(uthreadUL + uint2(1u, 0u),  _OcclusionTexSize.xy)];
+    float p11 = _OcclusionTexIn[min(uthreadUL + uint2(1u, 1u),  _OcclusionTexSize.xy)];
+    float p01 = _OcclusionTexIn[min(uthreadUL + uint2(0u, 1u),  _OcclusionTexSize.xy)];
+    uint destIdx = groupThreadId.x + (groupThreadId.y << 4u);
+    Store2Pixels(destIdx, p00, p10);
+    Store2Pixels(destIdx + 8u, p01, p11);
+
+    GroupMemoryBarrierWithGroupSync();
+    uint row = groupThreadId.y << 4u;
+    BlurHorizontally(row + (groupThreadId.x << 1u), row + groupThreadId.x + (groupThreadId.x & 4u));
+
+    GroupMemoryBarrierWithGroupSync();
+    BlurVertically(dispatchThreadId.xy, (groupThreadId.y << 3u) + groupThreadId.x);
+}
+
+[numthreads(16, 16, 1)]
+void ReduceTextureOcclusion(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID)
+{
+    // NOTE: this uses scarce sampling - only 1/4 of all pixels will be evaluated
+    uint threadIdx = groupThreadId.y * 16 + groupThreadId.x;
+    uint2 sampleIdx = (groupId.xy * 16 + groupThreadId.xy) * 4u;
+
+    float p1 = _OcclusionTexIn[sampleIdx + uint2(0u, 0u)];
+    float p2 = _OcclusionTexIn[sampleIdx + uint2(1u, 0u)];
+    float p3 = _OcclusionTexIn[sampleIdx + uint2(0u, 1u)];
+    float p4 = _OcclusionTexIn[sampleIdx + uint2(1u, 1u)];
+
+    float4 smp = float4(p1, p2, p3, p4);
+
+    gs_luminances[threadIdx] = smp;
+
+    GroupMemoryBarrierWithGroupSync();
+
+    UNITY_UNROLL
+    for(uint s = 256 / 2u; s > 0u; s >>= 1u)
+    {
+        if(threadIdx < s)
+            gs_luminances[threadIdx] += gs_luminances[threadIdx + s];
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    if(threadIdx == 0u)
+    {
+        float avgLuminance = dot(gs_luminances[0], 0.25);
+
+        if (IsNaN(avgLuminance) || IsInf(avgLuminance))
+            avgLuminance = 1.0;
+
+        avgLuminance /= 256;
+        
+        _OcclusionTexOut[groupId.xy] = avgLuminance;
+    }
+}

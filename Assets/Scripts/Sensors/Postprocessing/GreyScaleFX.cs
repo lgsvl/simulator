@@ -11,7 +11,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace Simulator.Sensors.Postprocessing
 {
-    [PostProcessOrder(2)]
+    [PostProcessOrder(100)]
     public sealed class GreyScaleFX : PostProcessPass<GreyScale>
     {
         private const string ShaderName = "Hidden/Shader/GreyScale";

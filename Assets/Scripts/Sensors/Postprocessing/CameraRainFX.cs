@@ -11,7 +11,7 @@ namespace Simulator.Sensors.Postprocessing
     using UnityEngine.Rendering;
     using UnityEngine.Rendering.HighDefinition;
 
-    [PostProcessOrder(1)]
+    [PostProcessOrder(10)]
     public class CameraRainFX : PostProcessPass<Rain>
     {
         private const string ShaderName = "Hidden/Shader/CameraRainFX";

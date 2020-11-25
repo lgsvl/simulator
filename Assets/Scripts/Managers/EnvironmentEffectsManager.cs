@@ -60,7 +60,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
     public GameObject TireSprayPrefab;
 
     // Sun moon
-    private Light Sun;
+    public Light Sun { get; private set; }
     private HDAdditionalLightData SunHD;
     private Light Moon;
     private HDAdditionalLightData MoonHD;

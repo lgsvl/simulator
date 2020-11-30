@@ -30,6 +30,7 @@ pipeline {
     BUILD_BUNDLES = "true"
     PYTHONUNBUFFERED = "1"
     DISPLAY = ":0"
+    JENKINS_BUILD_ID = "${BUILD_ID}"
     GIT_TAG = "${GIT_TAG}"
     CODE_SIGNING_FILE = "/dev/urandom"
     FORCE_REBUILD = "${FORCE_REBUILD}"
@@ -282,7 +283,7 @@ pipeline {
               DOCKER_REGISTRY="${WISE_AWS_ECR_ACCOUNT_ID}.dkr.ecr.${WISE_AWS_ECR_REGION}.amazonaws.com"
               DOCKER_REPO="wise/simulator"
               GIT_TAG_FOR_ECR=`echo ${GIT_TAG} | tr / -  | tr [:upper:] [:lower:]`
-              DOCKER_TAG="version__\$GIT_TAG_FOR_ECR"
+              DOCKER_TAG="version__\${GIT_TAG_FOR_ECR}_${JENKINS_BUILD_ID}"
 
               docker-compose pull aws-cli
               if ! UID=`id -u` docker-compose run --rm aws-cli ecr get-login-password --region $WISE_AWS_ECR_REGION | docker login --username AWS --password-stdin \$DOCKER_REGISTRY; then

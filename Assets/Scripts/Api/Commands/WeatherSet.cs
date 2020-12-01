@@ -6,6 +6,7 @@
  */
 
 using SimpleJSON;
+using UnityEngine;
 
 namespace Simulator.Api.Commands
 {
@@ -23,11 +24,11 @@ namespace Simulator.Api.Commands
                 return;
             }
 
-            env.Rain = args["rain"].AsFloat;
-            env.Fog = args["fog"].AsFloat;
-            env.Wet = args["wetness"].AsFloat;
-            env.Cloud = args["cloudiness"].AsFloat;
-            env.Damage = args["damage"].AsFloat;
+            env.Rain = Mathf.Clamp01(args["rain"].AsFloat);
+            env.Fog = Mathf.Clamp01(args["fog"].AsFloat);
+            env.Wet = Mathf.Clamp01(args["wetness"].AsFloat);
+            env.Cloud = Mathf.Clamp01(args["cloudiness"].AsFloat);
+            env.Damage = Mathf.Clamp01(args["damage"].AsFloat);
 
             api.SendResult(this);
         }

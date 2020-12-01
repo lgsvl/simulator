@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2020 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -10,8 +10,6 @@ using Simulator.Bridge;
 using Simulator.Utilities;
 using Simulator.Sensors.UI;
 using System.Collections.Generic;
-using System.Collections;
-using Simulator.Analysis;
 
 namespace Simulator.Sensors
 {
@@ -91,21 +89,33 @@ namespace Simulator.Sensors
 
         private void ShiftFirstPerformed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
         {
+            if (!AgentController.Active)
+                return;
+
             dynamics.ShiftFirstGear();
         }
 
         private void ShiftReversePerformed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
         {
+            if (!AgentController.Active)
+                return;
+
             dynamics.ShiftReverse();
         }
 
         private void ParkingBrakePerformed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
         {
+            if (!AgentController.Active)
+                return;
+
             dynamics.ToggleHandBrake();
         }
 
         private void IgnitionPerformed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
         {
+            if (!AgentController.Active)
+                return;
+
             dynamics.ToggleIgnition();
         }
 

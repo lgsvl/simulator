@@ -82,6 +82,7 @@ namespace Simulator.Sensors
         const int MaxJpegSize = 4 * 1024 * 1024; // 4MB
 
         private float NextCaptureTime;
+        private float PreviousCaptureTime = -1f;
         protected Camera sensorCamera;
 
         protected Camera SensorCamera
@@ -137,9 +138,8 @@ namespace Simulator.Sensors
         [SensorParameter]
         public float TargetFPSTime = 5f;
         private float LowFPSCalculatedTime = 0f;
-        private float DeltaTime = 0.0f;
-        private float MS = 0f;
-        private float FPS = 0f;
+        private int TotalFrames;
+        private float AveDelta;
 
         [AnalysisMeasurement(MeasurementType.Fps)]
         public float AveFPS = 0f;
@@ -227,8 +227,6 @@ namespace Simulator.Sensors
             ProcessReadbackRequests();
 
             SizeChanged = false;
-
-            CalculateFPS();
         }
 
         void CheckDistortion()
@@ -407,6 +405,7 @@ namespace Simulator.Sensors
         {
             if (Time.time >= NextCaptureTime)
             {
+                CalculateFPS();
                 RenderCamera();
 
                 NativeArray<byte> gpuData;
@@ -431,7 +430,13 @@ namespace Simulator.Sensors
                 //capture.Request = AsyncGPUReadback.RequestIntoNativeArray(ref capture.GpuData, Distorted ? DistortedTexture : SensorCamera.targetTexture, 0, TextureFormat.RGBA32);
                 CaptureList.Add(capture);
 
-                NextCaptureTime = Time.time + (1.0f / Frequency);
+                TotalFrames++;
+                PreviousCaptureTime = Time.time;
+
+                if (NextCaptureTime < Time.time - Time.deltaTime)
+                    NextCaptureTime = Time.time + 1.0f / Frequency;
+                else
+                    NextCaptureTime += 1.0f / Frequency;
             }
         }
 
@@ -568,32 +573,37 @@ namespace Simulator.Sensors
             if (LowFPS)
                 return;
 
-            DeltaTime += (Time.unscaledDeltaTime - DeltaTime) * 0.1f;
-            MS = DeltaTime * 1000.0f;
-            FPS = 1.0f / DeltaTime;
-            LowestFPS = Mathf.Min(FPS, LowestFPS);
-            AveFPS = Time.frameCount / Time.time;
-            if (FPS < TargetFPS)
+            if (PreviousCaptureTime < 0f)
+                return;
+
+            var delta = (Time.time - PreviousCaptureTime);
+            var fps = 1.0f / delta;
+            LowestFPS = Mathf.Min(fps, LowestFPS);
+            AveDelta = (AveDelta * (TotalFrames - 1) + delta) / (TotalFrames);
+            AveFPS = 1f / AveDelta;
+            if (fps < TargetFPS)
             {
-                LowFPSCalculatedTime += Time.deltaTime;
+                LowFPSCalculatedTime += delta;
                 if (LowFPSCalculatedTime >= TargetFPSTime)
                 {
-                    LowFPSEvent(GetComponentInParent<AgentController>().GTID);
+                    LowFPSEvent(GetComponentInParent<AgentController>().GTID, delta, fps);
                     LowFPSCalculatedTime = 0f;
                     LowFPS = true;
                 }
             }
+            else
+                LowFPSCalculatedTime = 0f;
         }
 
-        private void LowFPSEvent(uint id)
+        private void LowFPSEvent(uint id, float ms, float fps)
         {
             Hashtable data = new Hashtable
             {
                 { "Id", id },
                 { "Type", "LowFPS" },
                 { "Time", SimulatorManager.Instance.GetSessionElapsedTimeSpan().ToString() },
-                { "MS", MS },
-                { "FPS", FPS },
+                { "MS", ms },
+                { "FPS", fps },
                 { "Average FPS", AveFPS },
                 { "Status", AnalysisManager.AnalysisStatusType.Failed },
             };

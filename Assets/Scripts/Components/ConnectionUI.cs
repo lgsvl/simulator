@@ -39,6 +39,7 @@ namespace Simulator.Web
         public Button offlineStopButton;
         public Text CloudTypeText;
         public Button VSEButton;
+        public CacheControlWindow CacheControlWindow;
 
         public enum LoaderUIStateType { START, PROGRESS, READY };
         public LoaderUIStateType LoaderUIState = LoaderUIStateType.START;
@@ -64,7 +65,10 @@ namespace Simulator.Web
             linkButton.onClick.AddListener(OnLinkButtonClicked);
             offlineStartButton.onClick.AddListener(OnOfflineStartButtonClicked);
             offlineStopButton.onClick.AddListener(OnOfflineStopButtonClicked);
-            clearAssetCacheButton.onClick.AddListener(OnClearAssetCacheButtonClicked);
+            clearAssetCacheButton.onClick.AddListener(()=>
+            {
+                CacheControlWindow.gameObject.SetActive(true);
+            });
             unlinkButton.onClick.AddListener(OnUnlinkButtonClicked);
             quitButton.onClick.AddListener(OnQuitButtonClicked);
             UpdateDropdown();
@@ -166,29 +170,6 @@ namespace Simulator.Web
             bool active = !statusMenuRoot.gameObject.activeSelf;
             statusMenuRoot.SetActive(active);
             dropdownArrow.transform.localScale = new Vector3(1, active ? 1 : -1, 1);
-        }
-
-        public void OnClearAssetCacheButtonClicked()
-        {
-            AssetService service = new AssetService();
-            foreach(BundleConfig.BundleTypes btype in Enum.GetValues(typeof(BundleConfig.BundleTypes)))
-            {
-                service.DeleteCategory(btype);
-            }
-
-            DirectoryInfo di = new DirectoryInfo(Path.Combine(Config.PersistentDataPath, "Environments"));
-
-            foreach (FileInfo file in di.GetFiles())
-            {
-                file.Delete();
-            }
-
-            di = new DirectoryInfo(Path.Combine(Config.PersistentDataPath, "Vehicles"));
-
-            foreach (FileInfo file in di.GetFiles())
-            {
-                file.Delete();
-            }
         }
 
         public void OnQuitButtonClicked()

@@ -48,7 +48,7 @@ public class CacheCategory : MonoBehaviour
     public void DeleteOption()
     {
         string assetGuid = CategoryAssets[CategoryDropdown.value].AssetGuid;
-        string assetPath = Path.Combine(Config.PersistentDataPath, CategoryType.ToString(), assetGuid);
+        string assetPath = Path.Combine(Config.PersistentDataPath, CategoryType.ToString() + "s", assetGuid); // TODO align types with path
         Service.Delete(assetGuid);
         if (File.Exists(assetPath))
         {
@@ -60,9 +60,9 @@ public class CacheCategory : MonoBehaviour
     public void DeleteCategory()
     {
         Service.DeleteCategory(CategoryType);
-        if (Directory.Exists(Path.Combine(Config.PersistentDataPath, CategoryType.ToString())))
+        if (Directory.Exists(Path.Combine(Config.PersistentDataPath, CategoryType.ToString() + "s")))
         {
-            DirectoryInfo di = new DirectoryInfo(Path.Combine(Config.PersistentDataPath, CategoryType.ToString()));
+            DirectoryInfo di = new DirectoryInfo(Path.Combine(Config.PersistentDataPath, CategoryType.ToString() + "s"));
             foreach (FileInfo file in di.GetFiles())
             {
                 file.Delete();

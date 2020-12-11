@@ -188,6 +188,8 @@ namespace Simulator.Map
 
         public void StartTrafficLightLoop()
         {
+            if (Loader.Instance.Network.IsClient)
+                return;
             foreach (var signal in signalGroup)
             {
                 List<ControlAction> controlActions = signal.ParseControlPolicy(signal.DefaultControlPolicy, out string errorMsg);

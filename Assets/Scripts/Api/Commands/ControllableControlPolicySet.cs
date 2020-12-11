@@ -13,17 +13,18 @@ using Simulator.Network.Core.Identification;
 
 namespace Simulator.Api.Commands
 {
-    class ControllableControlPolicySet : IDistributedCommand
+    class ControllableControlPolicySet : ICommand
     {
         public string Name => "controllable/control_policy/set";
 
         public void Execute(JSONNode args)
         {
             var api = ApiManager.Instance;
+            var manager = SimulatorManager.Instance.ControllableManager;
             var uid = args["uid"].Value;
             var controlPolicy = args["control_policy"].Value;
 
-            if (api.Controllables.TryGetValue(uid, out IControllable controllable))
+            if (manager.TryGetControllable(uid, out IControllable controllable))
             {
                 List<ControlAction> controlActions = controllable.ParseControlPolicy(controlPolicy, out string errorMsg);
                 if (controlActions == null)

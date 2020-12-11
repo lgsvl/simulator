@@ -36,7 +36,7 @@ namespace Simulator.Network.Core.Messaging
 		/// <summary>
 		/// Identifiers manager for all identified objects
 		/// </summary>
-		private readonly IIdManager idManager = new SimpleIdManager();
+		private readonly IIdManager idManager;
 
 		/// <summary>
 		/// Dictionary for a quick lookup which object is bound to an identifier
@@ -82,7 +82,7 @@ namespace Simulator.Network.Core.Messaging
 			ByteCompression.RequiredBytes<IdsRegisterCommandType>();
 
 		/// <inheritdoc/>
-		public string Key { get; } = "IdsRegister";
+		public string Key { get;}
 
 		/// <summary>
 		/// Date time of binding internal id
@@ -103,11 +103,15 @@ namespace Simulator.Network.Core.Messaging
 		/// Constructor
 		/// </summary>
 		/// <param name="messagesManager"><see cref="MessagesManager"/> where internal messages will be forwarded</param>
+		/// <param name="idManager">Identifiers manager for all identified objects</param>
 		/// <param name="assignIds">Should this register assigns ids if checked object has no identifier</param>
-		public IdsRegister(MessagesManager messagesManager, bool assignIds)
+		/// <param name="key">Identifier of this ids register</param>
+		public IdsRegister(MessagesManager messagesManager, IIdManager idManager, bool assignIds, string key)
 		{
 			this.messagesManager = messagesManager;
+			this.idManager = idManager;
 			this.assignIds = assignIds;
+			Key = key;
 		}
 
 		/// <summary>
@@ -479,7 +483,7 @@ namespace Simulator.Network.Core.Messaging
 		}
 
 		/// <summary>
-		/// Pushes to the message identifier bound to address key in the message
+		/// Pushes to the message identifier bound to address key into this message
 		/// </summary>
 		/// <param name="distributedMessage">Message where identifier will be pushed</param>
 		/// <exception cref="ArgumentException">Cannot resolve identifier for this address key</exception>
@@ -493,6 +497,23 @@ namespace Simulator.Network.Core.Messaging
 				throw new ArgumentException(
 					$"Cannot resolve identifier for address key {distributedMessage.AddressKey}. Check if key is bound to identifier calling this method.");
 
+			distributedMessage.Content.PushInt(id.Value, BytesPerId);
+		}
+
+		/// <summary>
+		/// Pushes the identifier bound to passed object into this message
+		/// </summary>
+		/// <param name="distributedMessage">Message where identifier will be pushed</param>
+		/// <param name="identifiedObject">Identified object which identifier will be pushed</param>
+		/// <exception cref="ArgumentException">Cannot resolve identifier for this address key</exception>
+		public void PushId(DistributedMessage distributedMessage, IIdentifiedObject identifiedObject)
+		{
+			var id = ResolveId(identifiedObject);
+			if (!id.HasValue)
+			{
+				Log.Error($"Cannot push identifier of an unregistered object {identifiedObject} with key {identifiedObject.Key}.");
+				return;
+			}
 			distributedMessage.Content.PushInt(id.Value, BytesPerId);
 		}
 

@@ -19,8 +19,9 @@ namespace Simulator.Api.Commands
         {
             var uid = args["uid"].Value;
             var api = ApiManager.Instance;
+            var manager = SimulatorManager.Instance.ControllableManager;
 
-            if (api.Controllables.TryGetValue(uid, out IControllable obj))
+            if (manager.TryGetControllable(uid, out IControllable obj))
             {
                 SimulatorManager.Instance.ControllableManager.RemoveControllable(uid, obj);
                 api.SendResult(this);

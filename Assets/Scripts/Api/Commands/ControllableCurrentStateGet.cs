@@ -18,9 +18,10 @@ namespace Simulator.Api.Commands
         public void Execute(JSONNode args)
         {
             var api = ApiManager.Instance;
+            var manager = SimulatorManager.Instance.ControllableManager;
             var uid = args["uid"].Value;
 
-            if (api.Controllables.TryGetValue(uid, out IControllable controllable))
+            if (manager.TryGetControllable(uid, out IControllable controllable))
             {
                 JSONObject result = new JSONObject();
                 result.Add("state", controllable.CurrentState);

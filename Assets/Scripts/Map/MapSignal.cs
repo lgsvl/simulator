@@ -230,6 +230,7 @@ namespace Simulator.Map
                 {
                     case "state":
                         SetSignalState(value);
+                        SimulatorManager.Instance.ControllableManager.DistributeCommand(this, controlActions[i]);
                         break;
                     case "trigger":
                         if (!float.TryParse(value, out float threshold) || threshold < 0f)

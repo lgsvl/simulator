@@ -83,7 +83,7 @@ namespace Simulator.Network.Core.Messaging
         public MessagesManager(IConnectionManager connectionManager)
         {
             this.connectionManager = connectionManager;
-            idsRegister = new IdsRegister(this, connectionManager.IsServer);
+            idsRegister = new IdsRegister(this, new SimpleIdManager(), connectionManager.IsServer, "MessagesIdsRegister");
             senders.Add(idsRegister);
             if (idsRegister.AssignIds)
             {

@@ -17,10 +17,10 @@ namespace Simulator.Api.Commands
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
+            var manager = SimulatorManager.Instance.ControllableManager;
             var api = ApiManager.Instance;
-            var controlManager = SimulatorManager.Instance.ControllableManager;
 
-            if (api.Controllables.TryGetValue(uid, out var controllable))
+            if (manager.TryGetControllable(uid, out var controllable))
             {
                 var result = new JSONObject();
 

@@ -20,10 +20,11 @@ namespace Simulator.Api.Commands
         public void Execute(JSONNode args)
         {
             var api = ApiManager.Instance;
+            var manager = SimulatorManager.Instance.ControllableManager;
             var position = args["position"].ReadVector3();
             var controlType = args["control_type"].Value;
 
-            var controllables = api.Controllables.Values.ToList();
+            var controllables = manager.Controllables;
             if (!string.IsNullOrEmpty(controlType))
             {
                 controllables = controllables.FindAll(c => c.ControlType == controlType);
@@ -35,7 +36,7 @@ namespace Simulator.Api.Commands
                 api.SendError(this, $"Controllable object not found with '{position}'");
             }
 
-            api.ControllablesUID.TryGetValue(controllable, out string uid);
+            var uid = controllable.UID;
 
             JSONArray validActions = new JSONArray();
             if (controllable.ValidStates != null)

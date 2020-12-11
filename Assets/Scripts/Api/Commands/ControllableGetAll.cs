@@ -20,9 +20,10 @@ namespace Simulator.Api.Commands
         public void Execute(JSONNode args)
         {
             var api = ApiManager.Instance;
+            var manager = SimulatorManager.Instance.ControllableManager;
             var controlType = args["control_type"].Value;
 
-            var controllables = api.Controllables.Values.ToList();
+            var controllables = manager.Controllables;
             if (!string.IsNullOrEmpty(controlType))
             {
                 controllables = controllables.FindAll(c => c.ControlType == controlType);
@@ -32,7 +33,7 @@ namespace Simulator.Api.Commands
 
             foreach (var controllable in controllables)
             {
-                if (api.ControllablesUID.TryGetValue(controllable, out string uid))
+                if (string.IsNullOrEmpty(controllable.UID))
                 {
                     JSONArray validActions = new JSONArray();
                     if (controllable.ValidStates != null)
@@ -52,7 +53,7 @@ namespace Simulator.Api.Commands
                     }
 
                     JSONObject j = new JSONObject();
-                    j.Add("uid", uid);
+                    j.Add("uid", controllable.UID);
                     j.Add("position", controllable.transform.position);
                     j.Add("rotation", controllable.transform.rotation.eulerAngles);
                     j.Add("type", controllable.ControlType);

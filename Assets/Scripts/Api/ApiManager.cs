@@ -65,9 +65,6 @@ namespace Simulator.Api
 
         public Dictionary<string, GameObject> Agents = new Dictionary<string, GameObject>();
         public Dictionary<GameObject, string> AgentUID = new Dictionary<GameObject, string>();
-
-        public Dictionary<string, IControllable> Controllables = new Dictionary<string, IControllable>();
-        public Dictionary<IControllable, string> ControllablesUID = new Dictionary<IControllable, string>();
         
         private List<GameObject> AgentFollowingWaypoints = new List<GameObject>();
 
@@ -312,8 +309,6 @@ namespace Simulator.Api
             AgentUID.Clear();
             if (SimulatorManager.InstanceAvailable)
                 SimulatorManager.Instance.Sensors.ClearSensorsRegistry();
-            Controllables.Clear();
-            ControllablesUID.Clear();
             AgentFollowingWaypoints.Clear();
 
             Collisions.Clear();

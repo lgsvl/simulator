@@ -19,7 +19,8 @@ namespace Simulator.PointCloud.Trees
         /// </summary>
         /// <param name="pathOnDisk">Path under which data for this tree is stored. Must exist.</param>
         /// <param name="loadedPointsLimit">Maximum amount of points that can be loaded into memory at once.</param>
-        public Octree(string pathOnDisk, int loadedPointsLimit) : base(pathOnDisk, loadedPointsLimit)
+        /// <param name="zipData">Data about environment zip file (if applicable).</param>
+        public Octree(string pathOnDisk, int loadedPointsLimit, ZipTreeData zipData = null) : base(pathOnDisk, loadedPointsLimit, zipData)
         {
         }
 

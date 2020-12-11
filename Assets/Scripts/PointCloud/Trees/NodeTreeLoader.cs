@@ -8,7 +8,8 @@
 namespace Simulator.PointCloud.Trees
 {
     using System.IO;
-    using Simulator.Utilities;
+    using System.Linq;
+    using Utilities;
     using UnityEngine;
     using UnityEngine.Rendering;
     using Utilities.Attributes;
@@ -46,6 +47,7 @@ namespace Simulator.PointCloud.Trees
         private bool verboseLoad;
 
         private string lastUsedDataPath;
+        private string dataHash;
         
         private NodeTree tree;
 
@@ -61,7 +63,7 @@ namespace Simulator.PointCloud.Trees
                 
                 if (tree == null && !corrupted && !string.IsNullOrEmpty(dataPath))
                 {
-                    if (!NodeTree.TryLoadFromDisk(dataPath, pointLimit, out tree))
+                    if (!NodeTree.TryLoadFromDisk(dataPath, pointLimit, dataHash, out tree))
                     {
                         var notBundleScene = Application.isPlaying && gameObject.scene.buildIndex != -1 || !Application.isPlaying;
                         if (verboseLoad || notBundleScene)
@@ -98,6 +100,15 @@ namespace Simulator.PointCloud.Trees
             Cleanup();
             verboseLoad = true;
             dataPath = newDataPath;
+            dataHash = null;
+        }
+
+        public void UpdateData(string newDataPath, string newDataHash)
+        {
+            Cleanup();
+            verboseLoad = true;
+            dataPath = newDataPath;
+            dataHash = newDataHash;
         }
 
         private void OnDisable()
@@ -126,8 +137,14 @@ namespace Simulator.PointCloud.Trees
         private void LoadMeshes()
         {
             ClearMeshes();
-            
-            var files = Directory.GetFiles(GetFullDataPath(), $"*{TreeUtility.MeshFileExtension}");
+
+            var useZip = tree.ZipData != null;
+            var fullDataPath = GetFullDataPath();
+
+            var files = useZip
+                ? tree.ZipData.EnumerateFiles.Where(x => x.EndsWith(TreeUtility.MeshFileExtension)).ToArray()
+                : Directory.GetFiles(fullDataPath, $"*{TreeUtility.MeshFileExtension}");
+
             if (files.Length == 0)
                 return;
 
@@ -137,7 +154,11 @@ namespace Simulator.PointCloud.Trees
 
             foreach (var file in files)
             {
-                var data = MeshData.LoadFromFile(file);
+                var fileName = useZip ? fullDataPath : file;
+                var offset = useZip ? tree.ZipData.GetEntryOffset(file) : 0;
+                var size = useZip ? tree.ZipData.GetEntrySize(file) : new FileInfo(file).Length;
+                
+                var data = MeshData.LoadFromFile(fileName, offset, size);
                 var meshes = data.GenerateMeshes();
                 foreach (var mesh in meshes)
                 {

@@ -233,7 +233,7 @@ namespace Simulator.PointCloud.Trees
         /// <returns>True if load was successful, false otherwise.</returns>
         private bool ProcessLoad(Node node)
         {
-            var nodePath = Path.Combine(owner.PathOnDisk, node.Identifier + TreeUtility.NodeFileExtension);
+            owner.GetNodeData(node, out var nodePath, out var offset, out var size);
             
             if (!File.Exists(nodePath))
             {
@@ -243,7 +243,6 @@ namespace Simulator.PointCloud.Trees
 
             try
             {
-                var size = new FileInfo(nodePath).Length;
                 var itemSize = UnsafeUtility.SizeOf<PointCloudPoint>();
                 var expectedPointCount = owner.NodeRecords[node.Identifier].PointCount;
                 
@@ -252,10 +251,10 @@ namespace Simulator.PointCloud.Trees
                     Debug.LogError($"Mismatch between declared ({expectedPointCount}) and actual ({size/itemSize}) point count for node {node.Identifier}.");
                     return false;
                 }
-                
-                using (var mmf = MemoryMappedFile.CreateFromFile(nodePath, FileMode.Open))
+
+                using (var mmf = MemoryMappedFile.CreateFromFile(File.Open(nodePath, FileMode.Open, FileAccess.Read, FileShare.Read), null, 0L, MemoryMappedFileAccess.Read, HandleInheritability.None, false))
                 {
-                    using (var accessor = mmf.CreateViewAccessor(0, size))
+                    using (var accessor = mmf.CreateViewAccessor(offset, size, MemoryMappedFileAccess.Read))
                     {
                         unsafe
                         {

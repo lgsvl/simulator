@@ -112,7 +112,8 @@ namespace Simulator.PointCloud
 
         protected override void Cleanup()
         {
-            RenderPipeline.OnRenderShadowMap -= RenderShadows;
+            if (RenderPipeline != null)
+                RenderPipeline.OnRenderShadowMap -= RenderShadows;
             pointCloudRenderers = null;
             
             base.Cleanup();

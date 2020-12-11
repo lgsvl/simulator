@@ -19,17 +19,16 @@ namespace Simulator.PointCloud.Trees
         public List<Vector3> verts = new List<Vector3>();
         public List<int> indices = new List<int>();
 
-        public static MeshData LoadFromFile(string filePath)
+        public static MeshData LoadFromFile(string filePath, long offset, long size)
         {
             if (!File.Exists(filePath))
                 throw new FileNotFoundException($"Mesh file under {filePath} not found.");
 
-            var size = new FileInfo(filePath).Length;
             var data = new MeshData();
 
-            using (var mmf = MemoryMappedFile.CreateFromFile(filePath, FileMode.Open))
+            using (var mmf = MemoryMappedFile.CreateFromFile(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read), null, 0L, MemoryMappedFileAccess.Read, HandleInheritability.None, false))
             {
-                using (var accessor = mmf.CreateViewAccessor(0, size))
+                using (var accessor = mmf.CreateViewAccessor(offset, size, MemoryMappedFileAccess.Read))
                 {
                     accessor.Read(0, out int vertCount);
                     accessor.Read(sizeof(int), out int indicesCount);

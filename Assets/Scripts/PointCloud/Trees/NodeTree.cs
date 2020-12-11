@@ -23,7 +23,7 @@ namespace Simulator.PointCloud.Trees
         /// <summary>
         /// Path on hard drive under which data is stored.
         /// </summary>
-        public string PathOnDisk { get; }
+        private string pathOnDisk;
 
         /// <summary>
         /// Metadata of all nodes present in the tree.
@@ -36,6 +36,11 @@ namespace Simulator.PointCloud.Trees
         public NodeLoader NodeLoader { get; }
 
         /// <summary>
+        /// Reference to ZIP file storing point cloud data. Only available for environment bundles.
+        /// </summary>
+        public ZipTreeData ZipData { get; }
+
+        /// <summary>
         /// World space bounds of this tree.
         /// </summary>
         public Bounds Bounds { get; private set; }
@@ -45,9 +50,11 @@ namespace Simulator.PointCloud.Trees
         /// </summary>
         /// <param name="pathOnDisk">Path under which data for this tree is stored. Must exist.</param>
         /// <param name="loadedPointsLimit">Maximum amount of points that can be loaded into memory at once.</param>
-        protected NodeTree(string pathOnDisk, int loadedPointsLimit)
+        /// <param name="zipData">Environment archive metadata (only applicable to ZIP files).</param>
+        protected NodeTree(string pathOnDisk, int loadedPointsLimit, ZipTreeData zipData = null)
         {
-            PathOnDisk = pathOnDisk;
+            this.pathOnDisk = pathOnDisk;
+            ZipData = zipData;
             NodeLoader = new NodeLoader(this, loadedPointsLimit);
         }
 
@@ -77,29 +84,48 @@ namespace Simulator.PointCloud.Trees
         /// </summary>
         /// <param name="path">Directory under which tree data is stored.</param>
         /// <param name="pointLimit">Maximum amount of points that tree can store in memory at once.</param>
+        /// <param name="dataHash">Hash of the point cloud data (only applicable to ZIP files).</param>
         /// <param name="instance">Newly created instance of the node tree.</param>
         /// <returns>True if load was successful, false otherwise.</returns>
-        public static bool TryLoadFromDisk(string path, int pointLimit, out NodeTree instance)
+        public static bool TryLoadFromDisk(string path, int pointLimit, string dataHash, out NodeTree instance)
         {
             var fullPath = Utility.GetFullPath(path);
-            var indexPath = Path.Combine(fullPath, "index" + TreeUtility.IndexFileExtension);
+            string indexPath;
+            long offset, size;
+            ZipTreeData zipData = null;
 
-            if (!File.Exists(indexPath))
+            if (dataHash != null)
             {
-                instance = null;
-                return false;
+                indexPath = fullPath;
+                zipData = new ZipTreeData(indexPath, dataHash);
+                const string indexName = "index" + TreeUtility.IndexFileExtension;
+                size = zipData.GetEntrySize(indexName);
+                offset = zipData.GetEntryOffset(indexName);
+            }
+            else
+            {
+                indexPath = Path.Combine(fullPath, "index" + TreeUtility.IndexFileExtension);
+
+                if (!File.Exists(indexPath))
+                {
+                    instance = null;
+                    return false;
+                }
+                
+                size = new FileInfo(indexPath).Length;
+                offset = 0;
             }
 
             NodeTree result = null;
 
             try
             {
-                var indexData = IndexData.ReadFromFile(indexPath);
+                var indexData = IndexData.ReadFromFile(indexPath, offset, size);
 
                 if (indexData.TreeType == TreeType.Octree)
-                    result = new Octree(fullPath, pointLimit);
+                    result = new Octree(fullPath, pointLimit, zipData);
                 else
-                    result = new Quadtree(fullPath, pointLimit);
+                    result = new Quadtree(fullPath, pointLimit, zipData);
                 
                 foreach (var nodeMetaData in indexData.Data)
                 {
@@ -117,6 +143,30 @@ namespace Simulator.PointCloud.Trees
                 result?.Dispose();
                 instance = null;
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// Finds and returns file data for given node.
+        /// </summary>
+        /// <param name="node">Node for which data should be found.</param>
+        /// <param name="path">Path to the file storing data.</param>
+        /// <param name="offset">Byte offset at which data for the node starts.</param>
+        /// <param name="size">Byte size of data for the node.</param>
+        public void GetNodeData(Node node, out string path, out long offset, out long size)
+        {
+            if (ZipData != null)
+            {
+                path = pathOnDisk;
+                var nodeName = node.Identifier + TreeUtility.NodeFileExtension;
+                offset = ZipData.GetEntryOffset(nodeName);
+                size = ZipData.GetEntrySize(nodeName);
+            }
+            else
+            {
+                path =  Path.Combine(pathOnDisk, node.Identifier + TreeUtility.NodeFileExtension);
+                offset = 0;
+                size = new FileInfo(path).Length;
             }
         }
 

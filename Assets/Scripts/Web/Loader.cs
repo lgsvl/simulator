@@ -439,22 +439,6 @@ namespace Simulator
                                     throw new Exception("Out of date AssetBundle, rebuild or download latest AssetBundle.");
                                 }
 
-                                if (manifest.attachments != null)
-                                {
-                                    foreach (string key in manifest.attachments.Keys)
-                                    {
-                                        if (key.Contains("pointcloud"))
-                                        {
-                                            if (!Directory.Exists(Path.Combine(Application.persistentDataPath, manifest.assetGuid)))
-                                            {
-                                                Directory.CreateDirectory(Path.Combine(Application.persistentDataPath, manifest.assetGuid));
-                                                FastZip fastZip = new FastZip();
-                                                fastZip.ExtractZip(mapBundlePath, Path.Combine(Application.persistentDataPath, manifest.assetGuid), ".*\\.(pcnode|pcindex|pcmesh)$");
-                                            }
-                                        }
-                                    }
-                                }
-
                                 if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Environment])
                                 {
                                     zip.Close();
@@ -503,7 +487,7 @@ namespace Simulator
                                         NodeTreeLoader[] loaders = FindObjectsOfType<NodeTreeLoader>();
                                         foreach (NodeTreeLoader l in loaders)
                                         {
-                                            l.UpdateData(Path.Combine(Application.persistentDataPath, manifest.assetGuid, $"pointcloud_{Utilities.Utility.StringToGUID(l.GetDataPath())}".ToString()));
+                                            l.UpdateData(mapBundlePath, Utility.StringToGUID(l.GetDataPath()).ToString());
                                         }
 
                                         SetupScene(simulation);

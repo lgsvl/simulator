@@ -666,11 +666,12 @@ Group.
 
 -----------------------------------------------------------------------------
                         The Apache License
-        applies to: 
+        applies to:
         - Petapoco, Copyright (c) 2011-2011 Topten Software (contact@toptensoftware.com)
         - Protobuf .NET implementation, Copyright (c) 2008 Marc Gravell
         - Google Analytics Plugin for Unity (beta), Copyright (c) 2014 Google Inc. All rights reserved.
         - OdrSpiral.cs, Copyright 2010 VIRES Simulationstechnologie GmbH
+        - xviz, Copyright 2019 Uber Technologies, Inc.
 -----------------------------------------------------------------------------
 
                                  Apache License
@@ -887,6 +888,7 @@ Group.
         - LiteNetLib, Copyright (c) 2019 Ruslan Pyrch
         - SharpZipLib, Copyright (c) 2010-2018 SharpZipLib Contributors
         - JsonDotNet, Copyright (c) 2007 James Newton-King
+        - streetscape.gl, Copyright (c) 2019 Uber Technologies, Inc.
 
 -----------------------------------------------------------------------------
 

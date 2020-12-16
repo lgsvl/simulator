@@ -29,7 +29,7 @@ namespace Simulator.ScenarioEditor.Agents.Triggers
         {
             base.RemoveFromMap();
             if (trigger != null)
-                trigger.Trigger.RemoveEffector(effector.TypeName);
+                trigger.Trigger.RemoveEffector(effector);
         }
 
         /// <inheritdoc/>

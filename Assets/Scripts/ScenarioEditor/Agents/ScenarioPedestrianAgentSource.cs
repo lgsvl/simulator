@@ -148,6 +148,7 @@ namespace Simulator.ScenarioEditor.Agents
         /// <inheritdoc/>
         public override void DragCancelled()
         {
+            ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
             draggedInstance = null;
         }
     }

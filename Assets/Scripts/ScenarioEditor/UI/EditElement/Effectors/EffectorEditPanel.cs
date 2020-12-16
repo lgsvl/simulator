@@ -22,6 +22,11 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         public abstract Type EditedEffectorType { get; }
 
         /// <summary>
+        /// Should multiple instances of this effector be allowed in one trigger
+        /// </summary>
+        public virtual bool AllowMany { get; } = false;
+
+        /// <summary>
         /// Initializes panel for editing the selected effector
         /// </summary>
         /// <param name="triggerPanel">Parent trigger panel</param>

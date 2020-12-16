@@ -54,7 +54,8 @@ namespace Simulator.ScenarioEditor.UI.Utilities
             /// <param name="text">Text that will be displayed</param>
             public void Update(string text)
             {
-                LoadingText.text = text;
+                if (LoadingText!=null)
+                    LoadingText.text = text;
             }
 
             /// <summary>

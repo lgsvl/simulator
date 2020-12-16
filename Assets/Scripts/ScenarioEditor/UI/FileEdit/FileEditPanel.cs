@@ -115,12 +115,12 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         private async Task LoadScenarioFromJson(string path)
         {
             var loadingProcess = ScenarioManager.Instance.loadingPanel.AddProgress();
-            loadingProcess.Update("Loading a scenario from a JSON file.");
+            loadingProcess.Update("Loading the scenario.");
             LoadPath.Value = path;
             var json = JSONNode.Parse(File.ReadAllText(path));
             if (json != null && json.IsObject)
                 await JsonScenarioDeserializer.DeserializeScenario(json);
-            loadingProcess.Update("Scenario has been loaded from a JSON file.");
+            loadingProcess.Update("Scenario has been loaded.");
             loadingProcess.NotifyCompletion();
             ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().ClearRecords();
         }
@@ -170,7 +170,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
                 popupData.ConfirmCallback += () =>
                 {
                     var loadingProcess = ScenarioManager.Instance.loadingPanel.AddProgress();
-                    loadingProcess.Update("Saving changes before exiting the visual scenario editor.");
+                    loadingProcess.Update("Deinitializing before exiting the visual scenario editor.");
                     //Delay exiting editor so the loading panel can initialize
                     StartCoroutine(DelayedExitEditor(loadingProcess));
                 };
@@ -180,7 +180,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
             else
             {
                 var loadingProcess = ScenarioManager.Instance.loadingPanel.AddProgress();
-                loadingProcess.Update("Saving changes before exiting the visual scenario editor.");
+                loadingProcess.Update("Deinitializing before exiting the visual scenario editor.");
                 //Delay exiting editor so the loading panel can initialize
                 StartCoroutine(DelayedExitEditor(loadingProcess));
             }
@@ -193,7 +193,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         private IEnumerator DelayedExitEditor(LoadingPanel.LoadingProcess loadingProcess)
         {
             yield return null;
-            loadingProcess.Update("Visual scenario editor changes were saved, exiting the editor.");
+            loadingProcess.Update("Exiting the visual scenario editor.");
             Loader.ExitScenarioEditor();
             //Do not turn off loading process - loading panel will be destroyed within the scene
             //loadingProcess.Update("Exited Visual scenario editor.", true);

@@ -272,7 +272,7 @@ namespace Simulator.ScenarioEditor.Elements
             for (var i = Trigger.Effectors.Count - 1; i >= 0; i--)
             {
                 var effector = Trigger.Effectors[i];
-                Trigger.RemoveEffector(effector.TypeName);
+                Trigger.RemoveEffector(effector);
             }
 
             foreach (var effector in effectorsObjects)
@@ -288,23 +288,21 @@ namespace Simulator.ScenarioEditor.Elements
         {
             LinkedWaypoint = originTrigger.LinkedWaypoint;
             ClearEffectors();
+            var effectorsAdded = new List<TriggerEffector>();
             foreach (var effectorObject in originTrigger.effectorsObjects)
             {
                 if (effectorObject.Value.IsEmpty)
                     continue;
                 if (!effectorsObjects.TryGetValue(effectorObject.Key, out var scenarioEffector))
                 {
-                    var cloneEffector = Trigger.Effectors.Find(e => e.TypeName == effectorObject.Key);
-                    if (cloneEffector == null)
-                    {
-                        var effectorOrigin =
-                            originTrigger.Trigger.Effectors.Find(e => e.TypeName == effectorObject.Key);
-                        cloneEffector = effectorOrigin.Clone() as TriggerEffector;
-                    }
-
+                    var effectorOrigin =
+                        originTrigger.Trigger.Effectors.Find(e => e.TypeName == effectorObject.Key);
+                    var cloneEffector = effectorOrigin.Clone() as TriggerEffector;
                     scenarioEffector = new ScenarioEffector();
                     effectorsObjects.Add(effectorObject.Key, scenarioEffector);
                     scenarioEffector.Initialize(this, cloneEffector);
+                    Trigger.AddEffector(cloneEffector);
+                    effectorsAdded.Add(effectorOrigin);
                 }
 
                 scenarioEffector.CopyProperties(effectorObject.Value);
@@ -312,8 +310,9 @@ namespace Simulator.ScenarioEditor.Elements
 
             foreach (var effector in originTrigger.Trigger.Effectors)
             {
-                var cloneEffector = Trigger.Effectors.FirstOrDefault(e => e.TypeName == effector.TypeName) ??
-                                    effector.Clone() as TriggerEffector;
+                if (effectorsAdded.Contains(effector))
+                    continue;
+                var cloneEffector = effector.Clone() as TriggerEffector;
                 Trigger.AddEffector(cloneEffector);
             }
         }

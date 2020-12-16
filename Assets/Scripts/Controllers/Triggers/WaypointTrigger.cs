@@ -35,17 +35,12 @@ public class WaypointTrigger
 
     public void AddEffector(TriggerEffector effector)
     {
-        if (Effectors.Find(t => t.TypeName == effector.TypeName) != null)
-            return;
         Effectors.Add(effector);
         EffectorAdded?.Invoke(effector);
     }
 
-    public void RemoveEffector(string effectorTypeName)
+    public void RemoveEffector(TriggerEffector effector)
     {
-        var effector = Effectors.Find(t => t.TypeName == effectorTypeName);
-        if (effector == null)
-            return;
         Effectors.Remove(effector);
         EffectorRemoved?.Invoke(effector);
     }

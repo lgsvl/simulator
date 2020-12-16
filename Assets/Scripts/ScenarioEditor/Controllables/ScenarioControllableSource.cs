@@ -104,6 +104,7 @@ namespace Simulator.ScenarioEditor.Controllables
             newGameObject.transform.SetParent(transform);
             var scenarioControllable = newGameObject.AddComponent<ScenarioControllable>();
             scenarioControllable.Setup(this, variant);
+            scenarioControllable.Policy = variant.controllable.DefaultControlPolicy;
             var rb = scenarioControllable.gameObject.GetComponentInChildren<Rigidbody>();
             if (rb != null)
             {
@@ -153,6 +154,7 @@ namespace Simulator.ScenarioEditor.Controllables
         /// <inheritdoc/>
         public void DragCancelled()
         {
+            ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
             draggedInstance = null;
         }
     }

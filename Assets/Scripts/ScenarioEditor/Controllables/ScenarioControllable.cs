@@ -28,6 +28,11 @@ namespace Simulator.ScenarioEditor.Controllables
         /// </summary>
         public ControllableVariant Variant => variant as ControllableVariant;
         
+        /// <summary>
+        /// Currently set policy for this controllable
+        /// </summary>
+        public string Policy { get; set; }
+        
         /// <inheritdoc/>
         public override void Setup(ScenarioElementSource source, SourceVariant variant)
         {
@@ -53,6 +58,10 @@ namespace Simulator.ScenarioEditor.Controllables
         public override void CopyProperties(ScenarioElement origin)
         {
             base.CopyProperties(origin);
+            if (origin is ScenarioControllable originControllable)
+            {
+                Policy = originControllable.Policy;
+            }
             ScenarioManager.Instance.GetExtension<ScenarioControllablesManager>().RegisterControllable(this);
         }
     }

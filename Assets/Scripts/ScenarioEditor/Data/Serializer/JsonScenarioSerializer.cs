@@ -198,6 +198,7 @@ namespace Simulator.ScenarioEditor.Data.Serializer
             data.Add(controllableNode);
             controllableNode.Add("uid", new JSONString(controllable.Uid));
             controllableNode.Add("name", new JSONString(controllable.Variant.Name));
+            controllableNode.Add("policy", new JSONString(controllable.Policy));
             var transform = new JSONObject();
             controllableNode.Add("transform", transform);
             var position = new JSONObject().WriteVector3(controllable.TransformToMove.position);

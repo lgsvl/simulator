@@ -11,6 +11,7 @@ namespace Simulator.ScenarioEditor.Managers
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Agents;
+    using Controllable;
     using Controllables;
     using Input;
     using Simulator.Utilities;
@@ -53,6 +54,16 @@ namespace Simulator.ScenarioEditor.Managers
         /// Event invoked when controllable is unregistered
         /// </summary>
         public event Action<ScenarioControllable> ControllableUnregistered;
+
+        /// <summary>
+        /// <see cref="IControllable"/> that is the target of copied policy
+        /// </summary>
+        private IControllable copiedPolicyTarget;
+
+        /// <summary>
+        /// Copied controllable policy
+        /// </summary>
+        private string copiedPolicy;
 
         /// <summary>
         /// Initialization method
@@ -121,6 +132,35 @@ namespace Simulator.ScenarioEditor.Managers
         {
             Controllables.Remove(controllable);
             ControllableUnregistered?.Invoke(controllable);
+        }
+
+        /// <summary>
+        /// Copies policy value and required target
+        /// </summary>
+        /// <param name="target">Target controllable required for copied policy</param>
+        /// <param name="policy">Copied policy value</param>
+        public void CopyPolicy(IControllable target, string policy)
+        {
+            copiedPolicy = policy;
+            copiedPolicyTarget = target;
+        }
+
+        /// <summary>
+        /// Gets the copied policy, returns false if target controllable is different than copied one
+        /// </summary>
+        /// <param name="target">Target controllable required for copied policy</param>
+        /// <param name="policy">Copied policy value, empty if target is different than copied one</param>
+        /// <returns>True if target is the same as copied one, false otherwise</returns>
+        public bool GetCopiedPolicy(IControllable target, out string policy)
+        {
+            if (target == copiedPolicyTarget)
+            {
+                policy = copiedPolicy;
+                return true;
+            }
+
+            policy = "";
+            return false;
         }
     }
 }

@@ -8,6 +8,7 @@
 namespace Simulator.ScenarioEditor.Utilities
 {
     using System.Collections;
+    using System.Collections.Generic;
     using Managers;
     using UnityEngine;
     using UnityEngine.UI;
@@ -26,20 +27,13 @@ namespace Simulator.ScenarioEditor.Utilities
             if (transformToRebuild == null)
                 return;
             //Layout rebuild is required after one frame when content changes size
-            ScenarioManager.Instance.StartCoroutine(DelayedLayoutRebuild(transformToRebuild));
-        }
-
-        /// <summary>
-        /// Method that rebuilds the UI layout after two frame update
-        /// </summary>
-        /// <param name="transformToRebuild">Transform that will be rebuilt</param>
-        /// <returns>IEnumerator</returns>
-        private static IEnumerator DelayedLayoutRebuild(RectTransform transformToRebuild)
-        {
-            var wait = new WaitForEndOfFrame();
             LayoutRebuilder.ForceRebuildLayoutImmediate(transformToRebuild);
-            yield return wait;
-            LayoutRebuilder.ForceRebuildLayoutImmediate(transformToRebuild);
+            while (transformToRebuild != null)
+            {
+                transformToRebuild = transformToRebuild.parent as RectTransform;
+                if (transformToRebuild != null && (transformToRebuild.GetComponent<ContentSizeFitter>() != null || transformToRebuild.GetComponent<LayoutGroup>() !=null))
+                    LayoutRebuilder.ForceRebuildLayoutImmediate(transformToRebuild);
+            }
         }
     }
 }

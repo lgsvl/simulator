@@ -221,10 +221,8 @@ namespace Simulator.ScenarioEditor.Managers
         /// </summary>
         private void OnDestroy()
         {
-            if (Instance != this) return;
-
             Deinitialize();
-            Instance = null;
+            if (Instance == this) Instance = null;
         }
 
         /// <summary>
@@ -234,6 +232,7 @@ namespace Simulator.ScenarioEditor.Managers
         {
             if (IsInitialized)
                 return;
+            isInitialized = true;
             var loadingProcess = loadingPanel.AddProgress();
 
             //Initialize all the scenario editor extensions
@@ -279,7 +278,6 @@ namespace Simulator.ScenarioEditor.Managers
             mapManager.MapChanged += OnMapLoaded;
             await mapManager.LoadMapAsync();
             inspector.Initialize();
-            isInitialized = true;
             loadingProcess.Update("Visual Scenario Editor has been loaded.");
             loadingProcess.NotifyCompletion();
         }

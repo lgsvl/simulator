@@ -25,19 +25,36 @@ namespace Simulator.ScenarioEditor.Input
     public class InputManager : MonoBehaviour, IScenarioEditorExtension
     {
         /// <summary>
-        /// Input state type that determines input behaviour
+        /// Data used for cursor setup
         /// </summary>
-        private enum InputState
+        [Serializable]
+        public struct CursorData
+        {
+            /// <summary>
+            /// Texture used for this cursor
+            /// </summary>
+            public Texture2D texture;
+            
+            /// <summary>
+            /// Mode applied while using this cursor
+            /// </summary>
+            public CursorMode cursorMode;
+            
+            /// <summary>
+            /// Position of the cursor on the texture
+            /// </summary>
+            public Vector2 hotSpot;
+        }
+        
+        /// <summary>
+        /// Input mode type that determines input behaviour
+        /// </summary>
+        private enum InputModeType
         {
             /// <summary>
             /// Input is idle and allow basic map movement and element selecting
             /// </summary>
             Idle,
-
-            /// <summary>
-            /// Input allows map and camera movement
-            /// </summary>
-            MovingCamera,
 
             /// <summary>
             /// Input allows dragging element and limited camera movement
@@ -47,7 +64,12 @@ namespace Simulator.ScenarioEditor.Input
             /// <summary>
             /// Input allows adding element and limited camera movement
             /// </summary>
-            AddingElement
+            AddingElement,
+
+            /// <summary>
+            /// Input allows marking elements that are already in the scenario
+            /// </summary>
+            MarkingElements
         }
 
         /// <summary>
@@ -127,6 +149,15 @@ namespace Simulator.ScenarioEditor.Input
         /// </summary>
         private static string YRotationInversionKey = "Simulator/ScenarioEditor/InputManager/YRotationInversion";
 
+        //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
+#pragma warning disable 0649
+        /// <summary>
+        /// Cursor settings used while input is marking elements
+        /// </summary>
+        [SerializeField]
+        private CursorData markingCursor;
+#pragma warning restore 0649
+
         /// <inheritdoc/>
         public bool IsInitialized { get; private set; }
 
@@ -191,6 +222,11 @@ namespace Simulator.ScenarioEditor.Input
         private CameraModeType cameraMode;
 
         /// <summary>
+        /// Starting position of the camera movement event
+        /// </summary>
+        private Vector3? cameraMoveStart;
+
+        /// <summary>
         /// X rotation inversion value. -1 - inverted rotation, 1 - uninverted rotation
         /// </summary>
         private int xRotationInversion;
@@ -221,9 +257,9 @@ namespace Simulator.ScenarioEditor.Input
         private int raycastHitsCount;
 
         /// <summary>
-        /// Current input state type determining input behaviour
+        /// Current input mode type determining input behaviour
         /// </summary>
-        private InputState inputState;
+        private InputModeType mode;
 
         /// <summary>
         /// Can the drag event finish over UI elements, cancel is called if it's not allowed
@@ -261,6 +297,11 @@ namespace Simulator.ScenarioEditor.Input
         private IAddElementsHandler addElementsHandler;
 
         /// <summary>
+        /// Cached currently managed mark elements handler
+        /// </summary>
+        private IMarkElementsHandler markElementsHandler;
+
+        /// <summary>
         /// Inputs semaphore that allows disabling all the keyboard and mouse processing
         /// </summary>
         public LockingSemaphore InputSemaphore { get; } = new LockingSemaphore();
@@ -294,17 +335,18 @@ namespace Simulator.ScenarioEditor.Input
                 switch (cameraMode)
                 {
                     case CameraModeType.TopDown:
-                        scenarioCamera.transform.rotation = Quaternion.Euler(90.0f, 0.0f, 0f);
+                        rotationTilt = 90.0f;
                         break;
                     case CameraModeType.Leaned45:
-                        scenarioCamera.transform.rotation = Quaternion.Euler(45.0f, 0.0f, 0f);
+                        rotationTilt = 45.0f;
                         break;
                     case CameraModeType.Free:
-                        scenarioCamera.transform.rotation = Quaternion.Euler(rotationTilt, rotationLook, 0f);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
+
+                scenarioCamera.transform.rotation = Quaternion.Euler(rotationTilt, rotationLook, 0f);
             }
         }
 
@@ -373,6 +415,35 @@ namespace Simulator.ScenarioEditor.Input
         /// Maximum raycast distance
         /// </summary>
         public float RaycastDistance => raycastDistance;
+
+        /// <summary>
+        /// Current input state type determining input behaviour
+        /// </summary>
+        private InputModeType Mode
+        {
+            get => mode;
+            set
+            {
+                mode = value;
+                switch (mode)
+                {
+                    case InputModeType.Idle:
+                        Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+                        break;
+                    case InputModeType.DraggingElement:
+                        Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+                        break;
+                    case InputModeType.AddingElement:
+                        Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+                        break;
+                    case InputModeType.MarkingElements:
+                        Cursor.SetCursor(markingCursor.texture, markingCursor.hotSpot, markingCursor.cursorMode);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+        }
 
         /// <inheritdoc/>
         public Task Initialize()
@@ -466,9 +537,9 @@ namespace Simulator.ScenarioEditor.Input
             leftMouseButtonPressed = obj.ReadValue<float>() > 0.0f;
 
             RaycastHit? furthestHit;
-            switch (inputState)
+            switch (Mode)
             {
-                case InputState.Idle:
+                case InputModeType.Idle:
                     if (leftMouseButtonPressed && ElementSelectingSemaphore.IsUnlocked &&
                         !EventSystem.current.IsPointerOverGameObject())
                     {
@@ -483,18 +554,13 @@ namespace Simulator.ScenarioEditor.Input
                             if (element == null) continue;
 
                             ScenarioManager.Instance.SelectedElement = element;
-                            //Override furthest hit with selected element hit
-                            furthestHit = raycastHits[i];
                             break;
                         }
-
-                        lastHitPosition = furthestHit.Value.point;
                     }
-
                     break;
-                case InputState.DraggingElement:
+                case InputModeType.DraggingElement:
                     //Check for drag finish
-                    if (!leftMouseButtonPressed)
+                    if (!leftMouseButtonPressed && !EventSystem.current.IsPointerOverGameObject())
                     {
                         if (cancelMode == CancelMode.CancelOnClick)
                         {
@@ -515,23 +581,37 @@ namespace Simulator.ScenarioEditor.Input
                         }
 
                         dragHandler = null;
-                        inputState = InputState.Idle;
+                        Mode = InputModeType.Idle;
                     }
-
                     break;
-                case InputState.AddingElement:
-                    if (leftMouseButtonPressed)
+                case InputModeType.AddingElement:
+                    if (leftMouseButtonPressed && !EventSystem.current.IsPointerOverGameObject())
                     {
                         //Apply current adding state
                         furthestHit = GetFurthestHit(true);
                         if (furthestHit == null)
                             break;
                         var furthestPoint = furthestHit.Value.point;
-                        lastHitPosition = furthestPoint;
                         ScenarioManager.Instance.IsScenarioDirty = true;
                         addElementsHandler.AddElement(furthestPoint);
                     }
+                    break;
+                case InputModeType.MarkingElements:
+                    if (leftMouseButtonPressed && ElementSelectingSemaphore.IsUnlocked &&
+                        !EventSystem.current.IsPointerOverGameObject())
+                    {
+                        furthestHit = GetFurthestHit();
+                        if (furthestHit == null)
+                            return;
 
+                        ScenarioElement element = null;
+                        for (int i = 0; i < raycastHitsCount; i++)
+                        {
+                            element = raycastHits[i].collider.gameObject.GetComponentInParent<ScenarioElement>();
+                            if (element != null) break;
+                        }
+                        markElementsHandler.MarkElement(element);
+                    }
                     break;
             }
         }
@@ -546,24 +626,23 @@ namespace Simulator.ScenarioEditor.Input
                 return;
             rightMouseButtonPressed = obj.ReadValue<float>() > 0.0f;
 
-            switch (inputState)
+            switch (Mode)
             {
-                case InputState.Idle:
+                case InputModeType.Idle:
                     if (rightMouseButtonPressed)
                         ScenarioManager.Instance.SelectedElement = null;
                     break;
-                case InputState.DraggingElement:
+                case InputModeType.DraggingElement:
                     //Right mouse button cancels action
-                    MouseRaycastPosition = lastHitPosition;
-                    MouseViewportPosition = scenarioCamera.ScreenToViewportPoint(Input.mousePosition);
-                    dragHandler.DragCancelled();
-                    dragHandler = null;
-                    inputState = InputState.Idle;
+                    CancelDraggingElement(dragHandler);
                     break;
-                case InputState.AddingElement:
+                case InputModeType.AddingElement:
                     //Right mouse button cancels action
-                    addElementsHandler.AddingCancelled(lastHitPosition);
-                    inputState = InputState.Idle;
+                    CancelAddingElements(addElementsHandler);
+                    break;
+                case InputModeType.MarkingElements:
+                    //Right mouse button cancels action
+                    CancelMarkingElements(markElementsHandler);
                     break;
             }
         }
@@ -577,26 +656,12 @@ namespace Simulator.ScenarioEditor.Input
             if (!ScenarioManager.Instance.IsInitialized)
                 return;
             middleMouseButtonPressed = obj.ReadValue<float>() > 0.0f;
-
-            switch (inputState)
+            if (!middleMouseButtonPressed || EventSystem.current.IsPointerOverGameObject())
+                cameraMoveStart = null;
+            else
             {
-                case InputState.Idle:
-                    if (middleMouseButtonPressed &&
-                        !EventSystem.current.IsPointerOverGameObject())
-                    {
-                        var furthestHit = GetFurthestHit();
-                        if (furthestHit == null)
-                            return;
-
-                        inputState = InputState.MovingCamera;
-
-                        lastHitPosition = furthestHit.Value.point;
-                    }
-
-                    break;
-                case InputState.MovingCamera:
-                    if (!middleMouseButtonPressed) inputState = InputState.Idle;
-                    break;
+                var furthestHit = GetFurthestHit(true);
+                cameraMoveStart = furthestHit?.point;
             }
         }
 
@@ -734,71 +799,72 @@ namespace Simulator.ScenarioEditor.Input
         private void HandleMapInput()
         {
             Transform cameraTransform = scenarioCamera.transform;
-            RaycastHit? furthestHit;
-            Vector3 furthestPoint;
-            switch (inputState)
-            {
-                case InputState.MovingCamera:
-                    if (IsMouseOverGameWindow && mouseMoved && raycastHitsCount > 0)
-                    {
-                        furthestHit = GetFurthestHit(true);
-                        if (furthestHit == null)
-                            return;
-                        var cameraPosition = cameraTransform.position;
-                        var deltaPosition = lastHitPosition - furthestHit.Value.point;
-                        deltaPosition.y = 0.0f;
-                        MoveCameraTo(cameraPosition + deltaPosition);
-                    }
+            var furthestHit = GetFurthestHit(true);
+            Vector3? furthestPoint = null;
+            if (furthestHit != null)
+                furthestPoint = furthestHit.Value.point;
 
-                    break;
-                case InputState.DraggingElement:
-                    //Apply current drag state
-                    furthestHit = GetFurthestHit(true);
-                    if (furthestHit == null)
+            //Move camera with the mouse and key inputs 
+            if (cameraMoveStart != null && IsMouseOverGameWindow && mouseMoved && raycastHitsCount > 0 &&
+                furthestHit != null)
+            {
+                var cameraPosition = cameraTransform.position;
+                var deltaPosition = cameraMoveStart.Value - furthestHit.Value.point;
+                deltaPosition.y = 0.0f;
+                MoveCameraTo(cameraPosition + deltaPosition);
+            }
+
+            if (EventSystem.current.currentSelectedGameObject == null)
+                MoveCameraTo(cameraTransform.position +
+                             cameraTransform.forward * (KeyMoveFactor * Time.unscaledDeltaTime * directionInput.y) +
+                             cameraTransform.right * (KeyMoveFactor * Time.unscaledDeltaTime * directionInput.x));
+
+            //Check the element adding and dragging events
+            switch (Mode)
+            {
+                case InputModeType.DraggingElement:
+                    if (furthestPoint == null)
                         break;
-                    furthestPoint = furthestHit.Value.point;
-                    lastHitPosition = furthestPoint;
-                    MouseRaycastPosition = lastHitPosition;
+                    MouseRaycastPosition = furthestPoint.Value;
                     MouseViewportPosition = scenarioCamera.ScreenToViewportPoint(Input.mousePosition);
                     if (mouseMoved)
                         dragHandler.DragMoved();
                     break;
 
-                case InputState.AddingElement:
-                    //Apply current adding state
-                    furthestHit = GetFurthestHit(true);
-                    if (furthestHit == null)
+                case InputModeType.AddingElement:
+                    if (furthestPoint == null)
                         break;
-                    furthestPoint = furthestHit.Value.point;
-                    lastHitPosition = furthestPoint;
-
                     if (mouseMoved)
-                        addElementsHandler.AddingMoved(furthestPoint);
+                        addElementsHandler.AddingMoved(furthestPoint.Value);
                     break;
             }
 
-            MoveCameraTo(cameraTransform.position +
-                         cameraTransform.forward * (KeyMoveFactor * Time.unscaledDeltaTime * directionInput.y) +
-                         cameraTransform.right * (KeyMoveFactor * Time.unscaledDeltaTime * directionInput.x));
-
-            if (CameraMode == CameraModeType.Free && !EventSystem.current.IsPointerOverGameObject() &&
-                IsMouseOverGameWindow)
+            //Rotate the camera
+            if (!EventSystem.current.IsPointerOverGameObject() && IsMouseOverGameWindow)
             {
                 if (rightMouseButtonPressed)
                 {
                     rotationLook += mouseAxisDelta.x * RotationFactor * xRotationInversion;
-                    rotationTilt += mouseAxisDelta.y * RotationFactor * yRotationInversion;
-                    rotationTilt = Mathf.Clamp(rotationTilt, -90, 90);
+                    if (CameraMode == CameraModeType.Free)
+                    {
+                        rotationTilt += mouseAxisDelta.y * RotationFactor * yRotationInversion;
+                        rotationTilt = Mathf.Clamp(rotationTilt, -90, 90);
+                    }
+
                     cameraTransform.rotation = Quaternion.Euler(rotationTilt, rotationLook, 0f);
                     rotationDirty = true;
                 }
                 else if (rotationDirty)
                 {
-                    PlayerPrefs.SetFloat(RotationLookKey, rotationLook);
+                    if (CameraMode == CameraModeType.Free)
+                        PlayerPrefs.SetFloat(RotationLookKey, rotationLook);
                     PlayerPrefs.SetFloat(RotationTiltKey, rotationTilt);
                     rotationDirty = false;
                 }
             }
+
+            if (furthestPoint != null)
+                lastHitPosition = furthestPoint.Value;
         }
 
         /// <summary>
@@ -823,10 +889,10 @@ namespace Simulator.ScenarioEditor.Input
         public void StartDraggingElement(IDragHandler dragHandler, bool canFinishOverUI = false,
             CancelMode cancelMode = CancelMode.CancelOnRelease)
         {
-            if (inputState != InputState.Idle) return;
+            if (Mode != InputModeType.Idle) return;
             canDragFinishOverUI = canFinishOverUI;
             this.cancelMode = cancelMode;
-            inputState = InputState.DraggingElement;
+            Mode = InputModeType.DraggingElement;
             this.dragHandler = dragHandler;
             RaycastAll();
             var furthestHit = GetFurthestHit();
@@ -854,19 +920,19 @@ namespace Simulator.ScenarioEditor.Input
                 MouseRaycastPosition = furthestHit.Value.point;
             this.dragHandler.DragCancelled();
             this.dragHandler = null;
-            inputState = InputState.Idle;
+            Mode = InputModeType.Idle;
         }
 
         /// <summary>
         /// Requests adding new elements by the handler, can be ignored if <see cref="InputManager"/> is not idle
         /// </summary>
-        /// <param name="addElementsHandler">Add elements handler that will be begin adding</param>
+        /// <param name="addElementsHandler">Add elements handler that will add elements</param>
         public bool StartAddingElements(IAddElementsHandler addElementsHandler,
             CancelMode cancelMode = CancelMode.CancelOnClick)
         {
-            if (inputState != InputState.Idle) return false;
+            if (Mode != InputModeType.Idle) return false;
             this.cancelMode = cancelMode;
-            inputState = InputState.AddingElement;
+            Mode = InputModeType.AddingElement;
             this.addElementsHandler = addElementsHandler;
             RaycastAll();
             var furthestHit = GetFurthestHit();
@@ -890,7 +956,40 @@ namespace Simulator.ScenarioEditor.Input
             var furthestHit = GetFurthestHit();
             this.addElementsHandler.AddingCancelled(furthestHit?.point ?? Vector3.zero);
             this.addElementsHandler = null;
-            inputState = InputState.Idle;
+            Mode = InputModeType.Idle;
+            return true;
+        }
+
+        /// <summary>
+        /// Requests marking scenario elements by the handler, can be ignored if <see cref="InputManager"/> is not idle
+        /// </summary>
+        /// <param name="markElementsHandler">Mark elements handler that will handle the marking</param>
+        public bool StartMarkingElements(IMarkElementsHandler markElementsHandler,
+            CancelMode cancelMode = CancelMode.CancelOnClick)
+        {
+            if (Mode != InputModeType.Idle) return false;
+            this.cancelMode = cancelMode;
+            Mode = InputModeType.MarkingElements;
+            this.markElementsHandler = markElementsHandler;
+            this.markElementsHandler.MarkingStarted();
+            return true;
+        }
+
+        /// <summary>
+        /// Requests to cancel marking elements, ignored if requested element is not actively adding 
+        /// </summary>
+        /// <param name="markElementsHandler">Mark elements handler which marking will be canceled</param>
+        public bool CancelMarkingElements(IMarkElementsHandler markElementsHandler)
+        {
+            if (this.markElementsHandler != markElementsHandler)
+            {
+                Debug.LogError("Cannot cancel marking elements as passed element is currently not handled.");
+                return false;
+            }
+
+            this.markElementsHandler.MarkingCancelled();
+            this.markElementsHandler = null;
+            Mode = InputModeType.Idle;
             return true;
         }
 
@@ -905,11 +1004,12 @@ namespace Simulator.ScenarioEditor.Input
             if (CameraMode == CameraModeType.Free)
             {
                 rotationTilt = rotation.x;
-                rotationLook = rotation.y;
                 PlayerPrefs.SetFloat(RotationLookKey, rotationLook);
-                PlayerPrefs.SetFloat(RotationTiltKey, rotationTilt);
-                scenarioCamera.transform.rotation = Quaternion.Euler(rotationTilt, rotationLook, 0f);
             }
+
+            rotationLook = rotation.y;
+            PlayerPrefs.SetFloat(RotationTiltKey, rotationTilt);
+            scenarioCamera.transform.rotation = Quaternion.Euler(rotationTilt, rotationLook, 0f);
         }
     }
 }

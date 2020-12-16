@@ -136,7 +136,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             selectedWaypoint = selectedElement as ScenarioWaypoint;
             selectedAgent = selectedWaypoint != null ? selectedWaypoint.ParentAgent : null;
             //Disable waypoints for ego vehicles
-            if (selectedAgent == null || selectedAgent.Source.AgentTypeId == 1)
+            if (selectedAgent == null || !selectedAgent.Source.AgentSupportWaypoints(selectedAgent))
             {
                 gameObject.SetActive(false);
             }

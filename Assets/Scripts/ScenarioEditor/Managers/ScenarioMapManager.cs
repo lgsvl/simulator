@@ -20,7 +20,6 @@ namespace Simulator.ScenarioEditor.Managers
     using UnityEngine;
     using UnityEngine.SceneManagement;
     using Web;
-    using YamlDotNet.Serialization;
 
     /// <summary>
     /// Manager for calculating the map's meta-data, loading other maps and caching last loaded map
@@ -75,8 +74,12 @@ namespace Simulator.ScenarioEditor.Managers
         /// <summary>
         /// Currently loaded scene name after loading the map
         /// </summary>
-        /// 
         private string loadedSceneName;
+
+        /// <summary>
+        /// Map GUID which is currently being downloaded
+        /// </summary>
+        private string mapBeingDownloaded;
 
         /// <summary>
         /// Currently loaded map name
@@ -143,6 +146,12 @@ namespace Simulator.ScenarioEditor.Managers
         {
             if (!IsInitialized)
                 return;
+            if (!string.IsNullOrEmpty(mapBeingDownloaded))
+            {
+                DownloadManager.StopAssetDownload(mapBeingDownloaded);
+                mapBeingDownloaded = null;
+            }
+
             UnloadMapAsync();
             IsInitialized = false;
             Debug.Log($"{GetType().Name} scenario editor extension has been deinitialized.");
@@ -197,15 +206,14 @@ namespace Simulator.ScenarioEditor.Managers
 
             await Initialize();
 
-            var name = string.IsNullOrEmpty(mapName) ? PlayerPrefs.GetString(MapPersistenceKey, null) : mapName;
             MapMetaData mapToLoad = null;
-            if (!string.IsNullOrEmpty(name))
+            if (!string.IsNullOrEmpty(mapName))
             {
                 //Try to load named map
                 for (var i = 0; i < AvailableMaps.Count; i++)
                 {
                     var map = AvailableMaps[i];
-                    if (map.name != name) continue;
+                    if (map.name != mapName) continue;
                     //Download map if it's not available
                     if (map.assetModel == null)
                         await DownloadMap(map, loadingProcess);
@@ -216,13 +224,20 @@ namespace Simulator.ScenarioEditor.Managers
 
             if (mapToLoad == null)
             {
+                var preferedMapName = PlayerPrefs.GetString(MapPersistenceKey, null);
                 //Loads first downloaded map, or downloads first map in AvailableMaps
                 for (var i = 0; i < AvailableMaps.Count; i++)
                 {
                     var map = AvailableMaps[i];
                     if (map.assetModel == null) continue;
+                    //Force prefered map if it is already downloaded
+                    if (map.name == preferedMapName)
+                    {
+                        mapToLoad = map;
+                        break;
+                    }
+
                     mapToLoad = map;
-                    break;
                 }
 
                 //Download first map if there are no downloaded maps
@@ -251,12 +266,14 @@ namespace Simulator.ScenarioEditor.Managers
         /// <returns>Task</returns>
         private async Task DownloadMap(MapMetaData map, LoadingPanel.LoadingProcess loadingProcess)
         {
+            mapBeingDownloaded = map.assetGuid;
             var progressUpdate = new Progress<Tuple<string, float>>(p =>
             {
-                loadingProcess.Update($"Downloading {p.Item1} {p.Item2:F}%.");
+                loadingProcess?.Update($"Downloading {p.Item1} {p.Item2:F}%.");
             });
             map.assetModel =
                 await DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, map.assetGuid, map.name, progressUpdate);
+            mapBeingDownloaded = null;
         }
 
         /// <summary>

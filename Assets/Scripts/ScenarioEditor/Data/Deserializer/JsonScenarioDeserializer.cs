@@ -252,11 +252,12 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                     continue;
                 }
 
-                var agentInstance = controllablesManager.Source.GetControllableInstance(controllableVariant);
-                agentInstance.Uid = controllableNode["uid"];
+                var scenarioControllable = controllablesManager.Source.GetControllableInstance(controllableVariant);
+                scenarioControllable.Uid = controllableNode["uid"];
+                scenarioControllable.Policy = controllableNode["policy"];
                 var transformNode = controllableNode["transform"];
-                agentInstance.transform.position = transformNode["position"].ReadVector3();
-                agentInstance.TransformToRotate.rotation = Quaternion.Euler(transformNode["rotation"].ReadVector3());
+                scenarioControllable.transform.position = transformNode["position"].ReadVector3();
+                scenarioControllable.TransformToRotate.rotation = Quaternion.Euler(transformNode["rotation"].ReadVector3());
             }
         }
     }

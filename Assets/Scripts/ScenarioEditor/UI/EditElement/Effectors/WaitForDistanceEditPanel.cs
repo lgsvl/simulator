@@ -117,8 +117,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         /// <param name="maxDistance">Max distance that should be set to the effector</param>
         public void SetMaxDistance(float maxDistance)
         {
-            ScenarioManager.Instance.IsScenarioDirty = true;
             editedEffector.MaxDistance = maxDistance;
+            ScenarioManager.Instance.IsScenarioDirty = true;
         }
     }
 }

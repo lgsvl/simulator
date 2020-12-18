@@ -28,7 +28,7 @@ namespace Simulator.Web
 
         public static string ApiHost = "localhost";
         public static int ApiPort = 8181;
-        
+
         public static string CloudUrl = "https://wise.lgsvlsimulator.com";
         public static string SessionGUID;
         public static string SimID;
@@ -103,10 +103,10 @@ namespace Simulator.Web
                 return;
             }
 
+            BridgePlugins.Load();
             LoadBuiltinAssets();
             LoadExternalAssets();
             Sensors = SensorTypes.ListSensorFields(SensorPrefabs);
-            BridgePlugins.Load();
 
             DatabaseManager.Init();
 
@@ -464,7 +464,7 @@ namespace Simulator.Web
             if (config == null)
             {
                 return;
-            }            
+            }
 
             ApiHost = config.api_hostname ?? "localhost";
             ApiPort = config.api_port;
@@ -477,7 +477,7 @@ namespace Simulator.Web
             {
                 CloudUrl = cloudUrl;
             }
-            
+
             Headless = config.headless;
         }
 

@@ -8,6 +8,8 @@
 using SimpleJSON;
 using UnityEngine;
 using Simulator.Sensors;
+using System.Reflection;
+using Simulator.Utilities;
 
 namespace Simulator.Api.Commands
 {
@@ -25,11 +27,12 @@ namespace Simulator.Api.Commands
                 sensor = SimulatorManager.Instance.Sensors.GetSensor(uid);
             if (sensor!=null)
             {
-                if (sensor is LidarSensor lidar)
+                var sensorType = sensor.GetType().GetCustomAttribute<SensorType>();
+                if (sensorType.Name == "Lidar")
                 {
                     var path = args["path"].Value;
 
-                    var result = lidar.Save(path);
+                    var result = (bool)sensor.GetType().GetMethod("Save").Invoke(sensor, new object[] { path });
                     api.SendResult(this, result);
                 }
                 else

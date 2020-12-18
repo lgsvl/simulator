@@ -8,6 +8,8 @@
 using SimpleJSON;
 using UnityEngine;
 using Simulator.Sensors;
+using System.Reflection;
+using Simulator.Utilities;
 
 namespace Simulator.Api.Commands
 {
@@ -35,11 +37,10 @@ namespace Simulator.Api.Commands
                 sensor = SimulatorManager.Instance.Sensors.GetSensor(uid);
             if (sensor!=null)
             {
-                if (sensor is GpsSensor)
+                var sensorType = sensor.GetType().GetCustomAttribute<SensorType>();
+                if (sensorType.Name == "GPS Device")
                 {
-                    var gps = sensor as GpsSensor;
-
-                    var data = gps.GetData();
+                    var data = (GpsData) sensor.GetType().GetMethod("GetData").Invoke(sensor, null);
 
                     var result = new JSONObject();
                     result.Add("latitude", data.Latitude);

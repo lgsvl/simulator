@@ -8,6 +8,8 @@
 using SimpleJSON;
 using UnityEngine;
 using Simulator.Sensors;
+using System.Reflection;
+using Simulator.Utilities;
 
 namespace Simulator.Api.Commands
 { 
@@ -25,20 +27,19 @@ namespace Simulator.Api.Commands
                 sensor = SimulatorManager.Instance.Sensors.GetSensor(uid);
             if (sensor!=null)
             {
+                var sensorType = sensor.GetType().GetCustomAttribute<SensorType>();
                 var path = args["path"].Value;
                 var quality = args["quality"].AsInt;
                 var compression = args["compression"].AsInt;
 
-                if (sensor is ColorCameraSensor)
+                if (sensorType.Name == "Color Camera")
                 {
-                    var camera = sensor as ColorCameraSensor;
-                    bool result = camera.Save(path, quality, compression);
+                    bool result = (bool)sensor.GetType().GetMethod("Save").Invoke(sensor, new object[] { path, quality, compression});
                     api.SendResult(this, result);
                 }
-                else if (sensor is SegmentationCameraSensor)
+                else if (sensorType.Name == "Segmentation Camera")
                 {
-                    var camera = sensor as SegmentationCameraSensor;
-                    bool result = camera.Save(path, quality, compression);
+                    bool result = (bool)sensor.GetType().GetMethod("Save").Invoke(sensor, new object[] { path, quality, compression });
                     api.SendResult(this, result);
                 }
                 else

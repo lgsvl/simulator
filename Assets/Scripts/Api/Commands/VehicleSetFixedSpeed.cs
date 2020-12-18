@@ -8,6 +8,9 @@
 using SimpleJSON;
 using UnityEngine;
 using Simulator.Sensors;
+using System.Linq;
+using System.Reflection;
+using Simulator.Utilities;
 
 namespace Simulator.Api.Commands
 {
@@ -23,14 +26,15 @@ namespace Simulator.Api.Commands
 
             if (api.Agents.TryGetValue(uid, out GameObject obj))
             {
-                var ccs = obj.GetComponentInChildren<CruiseControlSensor>();
+                var sensors = obj.GetComponentsInChildren<SensorBase>();
+                var ccs = sensors.FirstOrDefault(s => s.GetType().GetCustomAttribute<SensorType>().Name == "Cruise Control");
                 if (ccs == null)
                 {
                     api.SendError(this, $"Agent '{uid}' does not have CruiseControlSensor");
                     return;
                 }
 
-                ccs.CruiseSpeed = isCruise ? args["speed"].AsFloat : 0.0f;
+                ccs.GetType().GetField("CruiseSpeed").SetValue(ccs, isCruise ? args["speed"].AsFloat : 0.0f);
 
                 api.SendResult(this);
             }

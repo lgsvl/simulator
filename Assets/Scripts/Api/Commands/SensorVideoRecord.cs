@@ -7,6 +7,8 @@
 
 using SimpleJSON;
 using Simulator.Sensors;
+using Simulator.Utilities;
+using System.Reflection;
 
 namespace Simulator.Api.Commands
 {
@@ -30,17 +32,18 @@ namespace Simulator.Api.Commands
                 var isStart = args["is_start"].AsBool;
                 var filename = args["filename"].Value;
 
-                if (sensor is VideoRecordingSensor recorder)
+                var sensorType = sensor.GetType().GetCustomAttribute<SensorType>();
+                if (sensorType.Name == "Video Recording")
                 {
                     bool result;
 
                     if (isStart)
                     {
-                        result = recorder.StartRecording(filename);
+                        result = (bool)sensor.GetType().GetMethod("StartRecording").Invoke(sensor, new object[] { filename });
                     }
                     else
                     {
-                        result = recorder.StopRecording();
+                        result = (bool)sensor.GetType().GetMethod("StopRecording").Invoke(sensor, null);
                     }
 
                     api.SendResult(this, result);

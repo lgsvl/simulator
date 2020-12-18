@@ -1,6 +1,9 @@
 namespace Simulator.Sensors
 {
     using Simulator.Utilities;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Reflection;
     using Unity.Collections.LowLevel.Unsafe;
     using UnityEngine;
     using UnityEngine.Rendering;
@@ -45,16 +48,17 @@ namespace Simulator.Sensors
 
         protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult)
         {
-            var sensor = hdCamera.camera.GetComponent<LaneLineSensor>();
+            var sensors = hdCamera.camera.GetComponents<SensorBase>();
+            var sensor = sensors.FirstOrDefault<SensorBase>(s => s.GetType().GetCustomAttribute<SensorType>().Name == "LaneLineSensor");
             if (sensor == null)
                 return;
-            
-            var lineCount = sensor.linesToRender.Count;
+
+            var lineCount = ((List<Line>)sensor.GetType().GetField("linesToRender").GetValue(sensor)).Count;
             if (lineCount == 0)
                 return;
 
             VerifyBuffer(lineCount);
-            buffer.SetData(sensor.linesToRender, 0, 0, lineCount);
+            buffer.SetData((List<Line>)sensor.GetType().GetField("linesToRender").GetValue(sensor), 0, 0, lineCount);
             SetCameraRenderTarget(cmd);
             cmd.DrawProcedural(Matrix4x4.identity, lineMaterial, 0, MeshTopology.Points, lineCount);
         }

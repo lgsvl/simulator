@@ -10,6 +10,8 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using Simulator.Sensors;
+using System.Reflection;
+using Simulator.Utilities;
 
 namespace Simulator.Api.Commands
 {
@@ -30,120 +32,112 @@ namespace Simulator.Api.Commands
                 for (int i = 0; i < sensors.Count; i++)
                 {
                     var sensor = sensors[i];
-
+                    var sensorType = sensor.GetType().GetCustomAttribute<SensorType>();
                     JSONObject j = null;
+                    switch (sensorType.Name)
+                    {
+                        case "Color Camera":
+                            j = new JSONObject();
+                            j.Add("type", "camera");
+                            j.Add("name", sensor.Name);
+                            j.Add("frequency", (int)sensor.GetType().GetField("Frequency").GetValue(sensor));
+                            j.Add("width", (int)sensor.GetType().GetField("Width").GetValue(sensor));
+                            j.Add("height", (int)sensor.GetType().GetField("Height").GetValue(sensor));
+                            j.Add("fov", (int)sensor.GetType().GetField("FieldOfView").GetValue(sensor));
+                            j.Add("near_plane", (int)sensor.GetType().GetField("MinDistance").GetValue(sensor));
+                            j.Add("far_plane", (int)sensor.GetType().GetField("MaxDistance").GetValue(sensor));
+                            j.Add("format", "RGB");
+                            break;
+                        case "Depth Camera":
+                            j = new JSONObject();
+                            j.Add("type", "camera");
+                            j.Add("name", sensorType.Name);
+                            j.Add("frequency", (int)sensor.GetType().GetField("Frequency").GetValue(sensor));
+                            j.Add("width", (int)sensor.GetType().GetField("Width").GetValue(sensor));
+                            j.Add("height", (int)sensor.GetType().GetField("Height").GetValue(sensor));
+                            j.Add("fov", (int)sensor.GetType().GetField("FieldOfView").GetValue(sensor));
+                            j.Add("near_plane", (int)sensor.GetType().GetField("MinDistance").GetValue(sensor));
+                            j.Add("far_plane", (int)sensor.GetType().GetField("MaxDistance").GetValue(sensor));
+                            j.Add("format", "DEPTH");
+                            break;
+                        case "Segmentation Camera":
+                            j = new JSONObject();
+                            j.Add("type", "camera");
+                            j.Add("name", sensorType.Name);
+                            j.Add("frequency", (int)sensor.GetType().GetField("Frequency").GetValue(sensor));
+                            j.Add("width", (int)sensor.GetType().GetField("Width").GetValue(sensor));
+                            j.Add("height", (int)sensor.GetType().GetField("Height").GetValue(sensor));
+                            j.Add("fov", (int)sensor.GetType().GetField("FieldOfView").GetValue(sensor));
+                            j.Add("near_plane", (int)sensor.GetType().GetField("MinDistance").GetValue(sensor));
+                            j.Add("far_plane", (int)sensor.GetType().GetField("MaxDistance").GetValue(sensor));
+                            j.Add("format", "SEGMENTATION");
+                            break;
+                        case "Lidar":
+                            j = new JSONObject();
+                            j.Add("type", "lidar");
+                            j.Add("name", sensorType.Name);
+                            j.Add("min_distance", (int)sensor.GetType().GetField("MinDistance").GetValue(sensor));
+                            j.Add("max_distance", (int)sensor.GetType().GetField("MaxDistance").GetValue(sensor));
+                            j.Add("rays", (int)sensor.GetType().GetField("LaserCount").GetValue(sensor));
+                            j.Add("rotations", (int)sensor.GetType().GetField("RotationFrequency").GetValue(sensor));
+                            j.Add("measurements", (int)sensor.GetType().GetField("MeasurementsPerRotation").GetValue(sensor));
+                            j.Add("fov", (int)sensor.GetType().GetField("FieldOfView").GetValue(sensor));
+                            j.Add("angle", (int)sensor.GetType().GetField("CenterAngle").GetValue(sensor));
+                            j.Add("compensated", (int)sensor.GetType().GetField("Compensated").GetValue(sensor));
+                            break;
+                        case "IMU":
+                            j = new JSONObject();
+                            j.Add("type", "imu");
+                            j.Add("name", sensorType.Name);
+                            break;
+                        case "GPS":
+                            j = new JSONObject();
+                            j.Add("type", "gps");
+                            j.Add("name", sensor.Name);
+                            j.Add("frequency", (int)sensor.GetType().GetField("Frequency").GetValue(sensor));
+                            break;
+                        case "Radar":
+                            j = new JSONObject();
+                            j.Add("type", "radar");
+                            j.Add("name", sensor.Name);
+                            break;
+                        case "CanBus":
+                            j = new JSONObject();
+                            j.Add("type", "canbus");
+                            j.Add("name", sensor.Name);
+                            j.Add("frequency", (int)sensor.GetType().GetField("Frequency").GetValue(sensor));
+                            break;
+                        case "Video Recording":
+                            j = new JSONObject();
+                            j.Add("type", "camera");
+                            j.Add("name", sensor.Name);
+                            j.Add("width", (int)sensor.GetType().GetField("Width").GetValue(sensor));
+                            j.Add("height", (int)sensor.GetType().GetField("Height").GetValue(sensor));
+                            j.Add("framerate", (int)sensor.GetType().GetField("Framerate").GetValue(sensor));
+                            j.Add("fov", (int)sensor.GetType().GetField("FieldOfView").GetValue(sensor));
+                            j.Add("near_plane", (int)sensor.GetType().GetField("MinDistance").GetValue(sensor));
+                            j.Add("far_plane", (int)sensor.GetType().GetField("MaxDistance").GetValue(sensor));
+                            j.Add("bitrate", (int)sensor.GetType().GetField("Bitrate").GetValue(sensor));
+                            j.Add("max_bitrate", (int)sensor.GetType().GetField("MaxBitrate").GetValue(sensor));
+                            j.Add("quality", (int)sensor.GetType().GetField("Quality").GetValue(sensor));
+                            break;
+                        case "Analysis":
+                            j = new JSONObject();
+                            j.Add("type", "analysis");
+                            j.Add("name", sensor.Name);
+                            j.Add("stucktravelthreshold", (int)sensor.GetType().GetField("StuckTravelThreshold").GetValue(sensor));
+                            j.Add("stucktimethreshold", (int)sensor.GetType().GetField("StuckTimeThreshold").GetValue(sensor));
+                            j.Add("stoplinethreshold", (int)sensor.GetType().GetField("StopLineThreshold").GetValue(sensor));
+                break;
+            }
 
-                    if (sensor is ColorCameraSensor colorCameraSensor)
-                    {
-                        j = new JSONObject();
-                        j.Add("type", "camera");
-                        j.Add("name", colorCameraSensor.Name);
-                        j.Add("frequency", colorCameraSensor.Frequency);
-                        j.Add("width", colorCameraSensor.Width);
-                        j.Add("height", colorCameraSensor.Height);
-                        j.Add("fov", colorCameraSensor.FieldOfView);
-                        j.Add("near_plane", colorCameraSensor.MinDistance);
-                        j.Add("far_plane", colorCameraSensor.MaxDistance);
-                        j.Add("format", "RGB");
-                    }
-                    else if (sensor is DepthCameraSensor depthCameraSensor)
-                    {
-                        j = new JSONObject();
-                        j.Add("type", "camera");
-                        j.Add("name", depthCameraSensor.Name);
-                        j.Add("frequency", depthCameraSensor.Frequency);
-                        j.Add("width", depthCameraSensor.Width);
-                        j.Add("height", depthCameraSensor.Height);
-                        j.Add("fov", depthCameraSensor.FieldOfView);
-                        j.Add("near_plane", depthCameraSensor.MinDistance);
-                        j.Add("far_plane", depthCameraSensor.MaxDistance);
-                        j.Add("format", "DEPTH");
-                    }
-                    else if (sensor is SegmentationCameraSensor segmentationCameraSensor)
-                    {
-                        j = new JSONObject();
-                        j.Add("type", "camera");
-                        j.Add("name", segmentationCameraSensor.Name);
-                        j.Add("frequency", segmentationCameraSensor.Frequency);
-                        j.Add("width", segmentationCameraSensor.Width);
-                        j.Add("height", segmentationCameraSensor.Height);
-                        j.Add("fov", segmentationCameraSensor.FieldOfView);
-                        j.Add("near_plane", segmentationCameraSensor.MinDistance);
-                        j.Add("far_plane", segmentationCameraSensor.MaxDistance);
-                        j.Add("format", "SEGMENTATION");
-                    }
-                    else if (sensor is LidarSensor lidar)
-                    {
-                        j = new JSONObject();
-                        j.Add("type", "lidar");
-                        j.Add("name", lidar.Name);
-                        j.Add("min_distance", lidar.MinDistance);
-                        j.Add("max_distance", lidar.MaxDistance);
-                        j.Add("rays", lidar.LaserCount);
-                        j.Add("rotations", lidar.RotationFrequency);
-                        j.Add("measurements", lidar.MeasurementsPerRotation);
-                        j.Add("fov", lidar.FieldOfView);
-                        j.Add("angle", lidar.CenterAngle);
-                        j.Add("compensated", lidar.Compensated);
-                    }
-                    else if (sensor is ImuSensor imu)
-                    {
-                        j = new JSONObject();
-                        j.Add("type", "imu");
-                        j.Add("name", imu.Name);
-                    }
-                    else if (sensor is GpsSensor gps)
-                    {
-                        j = new JSONObject();
-                        j.Add("type", "gps");
-                        j.Add("name", gps.Name);
-                        j.Add("frequency", new JSONNumber(gps.Frequency));
-                    }
-                    else if (sensor is RadarSensor radar)
-                    {
-                        j = new JSONObject();
-                        j.Add("type", "radar");
-                        j.Add("name", radar.Name);
-                    }
-                    else if (sensor is CanBusSensor canbus)
-                    {
-                        j = new JSONObject();
-                        j.Add("type", "canbus");
-                        j.Add("name", canbus.Name);
-                        j.Add("frequency", new JSONNumber(canbus.Frequency));
-                    }
-                    else if (sensor is VideoRecordingSensor recorder)
-                    {
-                        j = new JSONObject();
-                        j.Add("type", "recorder");
-                        j.Add("name", recorder.Name);
-                        j.Add("width", new JSONNumber(recorder.Width));
-                        j.Add("height", new JSONNumber(recorder.Height));
-                        j.Add("framerate", new JSONNumber(recorder.Framerate));
-                        j.Add("fov", new JSONNumber(recorder.FieldOfView));
-                        j.Add("near_plane", new JSONNumber(recorder.MinDistance));
-                        j.Add("far_plane", new JSONNumber(recorder.MaxDistance));
-                        j.Add("bitrate", new JSONNumber(recorder.Bitrate));
-                        j.Add("max_bitrate", new JSONNumber(recorder.MaxBitrate));
-                        j.Add("quality", new JSONNumber(recorder.Quality));
-                    }
-                    else if (sensor is AnalysisSensor analysis)
-                    {
-                        j = new JSONObject();
-                        j.Add("type", "analysis");
-                        j.Add("name", analysis.Name);
-                        j.Add("stucktravelthreshold", new JSONNumber(analysis.StuckTravelThreshold));
-                        j.Add("stucktimethreshold", new JSONNumber(analysis.StuckTimeThreshold));
-                        j.Add("stoplinethreshold", new JSONNumber(analysis.StopLineThreshold));
-                    }
-
-                    if (j != null)
-                    {
-                        if (SimulatorManager.InstanceAvailable)
-                            j.Add("uid", SimulatorManager.Instance.Sensors.GetSensorUid(sensor));
-                        result.Add(j);
-                    }
-                }
+            if (j != null)
+            {
+                if (SimulatorManager.InstanceAvailable)
+                    j.Add("uid", SimulatorManager.Instance.Sensors.GetSensorUid(sensor));
+                result.Add(j);
+            }
+        }
 
                 api.SendResult(this, result);
             }

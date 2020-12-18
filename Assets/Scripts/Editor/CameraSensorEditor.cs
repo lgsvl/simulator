@@ -54,7 +54,7 @@ namespace Simulator.Editor
             Fisheye = serializedObject.FindProperty(nameof(CameraSensorBase.Fisheye));
             Xi = serializedObject.FindProperty(nameof(CameraSensorBase.Xi));
             CubemapSize = serializedObject.FindProperty(nameof(CameraSensorBase.CubemapSize));
-            InstanceSegmentationTags = serializedObject.FindProperty(nameof(SegmentationCameraSensor.InstanceSegmentationTags));
+            //InstanceSegmentationTags = serializedObject.FindProperty(nameof(SegmentationCameraSensor.InstanceSegmentationTags));
         }
 
         public override void OnInspectorGUI()

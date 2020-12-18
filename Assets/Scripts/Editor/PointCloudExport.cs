@@ -153,20 +153,20 @@ namespace Simulator.Editor
         {
             var settings = EditorSettings.Load();
 
-            var lidar = Instantiate(settings.LidarSensor);
-            lidar.Init();
-            lidar.TemplateIndex = LidarTemplate;
-            lidar.LaserCount = LidarLaserCount;
-            lidar.MinDistance = LidarMinDistance;
-            lidar.MaxDistance = LidarMaxDistance;
-            lidar.RotationFrequency = LidarRotationFrequency;
-            lidar.RotationFrequency = LidarRotationFrequency;
-            lidar.MeasurementsPerRotation = LidarMeasurementsPerRotation;
-            lidar.RotationFrequency = LidarRotationFrequency;
-            lidar.FieldOfView = LidarFieldOfView;
-            lidar.CenterAngle = LidarCenterAngle;
-            lidar.ApplyTemplate();
-            lidar.Reset();
+            //var lidar = Instantiate(settings.LidarSensor);
+            //lidar.Init();
+            //lidar.TemplateIndex = LidarTemplate;
+            //lidar.LaserCount = LidarLaserCount;
+            //lidar.MinDistance = LidarMinDistance;
+            //lidar.MaxDistance = LidarMaxDistance;
+            //lidar.RotationFrequency = LidarRotationFrequency;
+            //lidar.RotationFrequency = LidarRotationFrequency;
+            //lidar.MeasurementsPerRotation = LidarMeasurementsPerRotation;
+            //lidar.RotationFrequency = LidarRotationFrequency;
+            //lidar.FieldOfView = LidarFieldOfView;
+            //lidar.CenterAngle = LidarCenterAngle;
+            //lidar.ApplyTemplate();
+            //lidar.Reset();
 
             int mapLayerMask = LayerMask.GetMask("Default");
 
@@ -206,19 +206,19 @@ namespace Simulator.Editor
                                     {
                                         var position = p0 + delta * c + hit.normal * Height;
 
-                                        lidar.transform.position = position;
+                                        //lidar.transform.position = position;
 
-                                        var points = lidar.Capture();
+                                        //var points = lidar.Capture();
 
-                                        for (int p = 0; p < points.Length; p++)
-                                        {
-                                            var point = points[p];
-                                            if (point != Vector4.zero && Random.value < Ratio)
-                                            {
-                                                var pt = point;
-                                                writer.Write(new Vector3(pt.z, -pt.x, pt.y), point.w);  // Converting to right-handed xyz
-                                            }
-                                        };
+                                        //for (int p = 0; p < points.Length; p++)
+                                        //{
+                                        //    var point = points[p];
+                                        //    if (point != Vector4.zero && Random.value < Ratio)
+                                        //    {
+                                        //        var pt = point;
+                                        //        writer.Write(new Vector3(pt.z, -pt.x, pt.y), point.w);  // Converting to right-handed xyz
+                                        //    }
+                                        //};
                                     }
                                 }
 
@@ -230,9 +230,9 @@ namespace Simulator.Editor
             }
             finally
             {
-                EditorUtility.ClearProgressBar();
-                lidar.OnDestroy();
-                DestroyImmediate(lidar.gameObject);
+                //EditorUtility.ClearProgressBar();
+                //lidar.OnDestroy();
+                //DestroyImmediate(lidar.gameObject);
             }
         }
     }

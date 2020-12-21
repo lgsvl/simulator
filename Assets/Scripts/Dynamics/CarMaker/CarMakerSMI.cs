@@ -8,10 +8,10 @@
  * This software contains code licensed as described in LICENSE.
  */
 
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace Simulator.Sensors
 {
@@ -50,31 +50,32 @@ namespace Simulator.Sensors
 
         public delegate void CarMakerDynamicsEventHandler(object sender, CarMakerDynamicsSensorEventArgs e);
         public event CarMakerDynamicsEventHandler CarMakerDynamicsEvent;
-        
+
+        private bool IsPose = false;
+
         private Vector3 AgentPosition = Vector3.zero;
         public float AgentHeading = 0;
         public float AgentRoll = 0;
         public float AgentPitch = 0;
         public float AgentSpeed = 0;
-        public bool EnableVehicleOnGround = false;
 
         private void Start()
         {
             InitVehicleSMI();
         }
 
-        public void Update()
+        private void Update()
+        {
+            GetInput();
+        }
+
+        private void FixedUpdate()
         {
             if (!IsInitVehicleSMI)
                 return;
 
             CarMakerMove();
-            if (RB.isKinematic && EnableVehicleOnGround)
-            {
-                PutEgoOnGround();
-            }
-
-            GetInput();
+            PutEgoOnGround();
             SendDataToSensor();
         }
         
@@ -83,10 +84,7 @@ namespace Simulator.Sensors
             Vector3[] aUpVector = {AgentTires[0].transform.up, AgentTires[1].transform.up, AgentTires[2].transform.up, AgentTires[3].transform.up};
             float[] aZValue = {AgentTires[0].transform.position.y, AgentTires[1].transform.position.y, AgentTires[2].transform.position.y, AgentTires[3].transform.position.y};
 
-            CarMakerDynamicsEvent?.Invoke(this, new CarMakerDynamicsSensorEventArgs() { UpVector = aUpVector,
-                                                                                        ZValue = aZValue,
-                                                                                        SteerInput = SteerInput,
-                                                                                        AccellInput = AccellInput });
+            CarMakerDynamicsEvent?.Invoke(this, new CarMakerDynamicsSensorEventArgs() { UpVector = aUpVector, ZValue = aZValue, SteerInput = SteerInput, AccellInput = AccellInput });
         }
 
         public void SetVehiclePose(Vector3 aPos, float aHeading, float aRoll, float aPitch, float aSpeed)
@@ -96,12 +94,22 @@ namespace Simulator.Sensors
             AgentRoll = aRoll;
             AgentPitch = aPitch;
             AgentSpeed = aSpeed;
+            IsPose = true;
         }
 
         private void CarMakerMove()
         {
+            if (!IsPose)
+                return;
+
             float posRight = AgentPosition.x + CraOffsetZ * Mathf.Sin(AgentHeading * Mathf.Deg2Rad);
             float posForward = AgentPosition.y + CraOffsetZ * Mathf.Cos(AgentHeading * Mathf.Deg2Rad);
+
+            // smooth too slow
+            //var targetDir = (new Vector3(posRight, AgentPosition.z, posForward) - RB.position).normalized;
+            //RB.MovePosition(RB.position + (targetDir * Time.fixedDeltaTime));
+            //RB.MoveRotation(Quaternion.Euler(new Vector3(AgentRoll, AgentHeading, AgentPitch)));
+
             RB.transform.position = new Vector3(posRight, AgentPosition.z, posForward);
             RB.transform.rotation = Quaternion.Euler(AgentRoll, AgentHeading, AgentPitch);
 
@@ -112,6 +120,7 @@ namespace Simulator.Sensors
         private void InitVehicleSMI()
         {
             RB = GetComponent<Rigidbody>();
+            RB.isKinematic = true;
             VehicleController = GetComponent<VehicleController>();
 
             var wheelColliders = GetComponentsInChildren<WheelCollider>().ToList();
@@ -134,6 +143,11 @@ namespace Simulator.Sensors
                     AgentTires[3] = wc;
                 }
             }
+            var tireSpray = GetComponentsInChildren<VisualEffect>();
+            foreach (var item in tireSpray)
+            {
+                item.enabled = false;
+            }
             IsInitVehicleSMI = true;
         }
 
@@ -149,7 +163,7 @@ namespace Simulator.Sensors
             {
                 var tire = AgentTires[i];
                 Ray tireRay = new Ray(tire.transform.position, -tire.transform.up);
-                bool isHit = Physics.Raycast(tireRay, out hit,  100f, layerMask, QueryTriggerInteraction.Ignore);
+                bool isHit = Physics.Raycast(tireRay, out hit, 100f, layerMask, QueryTriggerInteraction.Ignore);
                 if (isHit)
                 {
                     hitPoints[i] = hit.point;
@@ -175,12 +189,9 @@ namespace Simulator.Sensors
             RB.transform.rotation = Quaternion.LookRotation(egoNewForward, egoNewUp);
             RB.transform.localPosition = new Vector3(egoPos.x, avgPoint.y / 4f + 0.05f, egoPos.z);
 
-            Vector3[] upVector = {AgentTires[0].transform.up, AgentTires[1].transform.up, AgentTires[2].transform.up, AgentTires[3].transform.up};
-            float[] zValue = {AgentTires[0].transform.position.y, AgentTires[1].transform.position.y, AgentTires[2].transform.position.y, AgentTires[3].transform.position.y};
-
             return true;
         }
-        
+
         private void GetInput()
         {
             if (VehicleController != null)

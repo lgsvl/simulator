@@ -364,11 +364,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   SignalLightDatas:
-  - SignalColor: {r: 0.745283, g: 0, b: 0, a: 1}
+  - SignalColor: {r: 0.5294118, g: 0, b: 0, a: 1}
     SignalColorName: red
-  - SignalColor: {r: 0.7075472, g: 0.62746066, b: 0.0033374948, a: 1}
+  - SignalColor: {r: 0.50980395, g: 0.4509804, b: 0, a: 1}
     SignalColorName: yellow
-  - SignalColor: {r: 0.030838363, g: 0.7264151, b: 0.07175468, a: 1}
+  - SignalColor: {r: 0, g: 0.5019608, b: 0.02745098, a: 1}
     SignalColorName: green
   Bounds:
     m_Center: {x: 0, y: 0, z: 0}

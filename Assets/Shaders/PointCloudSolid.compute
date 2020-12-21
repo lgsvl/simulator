@@ -86,21 +86,20 @@ CBUFFER_END
 
 SamplerState sampler_LinearClamp;
 
-float2 PackRGB(float3 rgb)
+float2 PackRGBA(float4 rgba)
 {
     // TODO: Either pack or unpack loses R channel data when B is exactly zero - fix
-    rgb.b = max(rgb.b, 0.0001);
-    rgb = saturate(rgb);
-    // NOTE: green channel is left as is because there is enough space and it can be used to
-    //       debug throughout the pipeline
-    return float2(asfloat(f32tof16(rgb.r) | f32tof16(rgb.b) << 16), rgb.g);
+    rgba = max(rgba, 0.0001);
+    rgba = saturate(rgba);
+    return float2(asfloat(f32tof16(rgba.r) | f32tof16(rgba.g) << 16), asfloat(f32tof16(rgba.b) | f32tof16(rgba.w) << 16));
 }
 
-float3 UnpackRGB(float2 packed)
+float4 UnpackRGBA(float2 packed)
 {
     uint r = asuint(packed.r);
-    float3 rgb = float3(f16tof32(r), packed.g, f16tof32(r >> 16));
-    return rgb;
+    uint b = asuint(packed.g);
+    float4 rgba = float4(f16tof32(r), f16tof32(r >> 16), f16tof32(b), f16tof32(b >> 16));
+    return rgba;
 }
 
 // ============================================================================================
@@ -129,8 +128,9 @@ void SETUP_COPY(uint3 id : SV_DispatchThreadID)
     float4 projPos = float4(x, y, pos, 1.0f);
     float4 viewPos = mul(_InverseProj, projPos);
     viewPos /= viewPos.w;
-
     viewPos.z = -viewPos.z;
+
+    float skyVal = 1;
     if (color.w == 0 && id.x <= (uint) _TexSize.x && id.y <= (uint) _TexSize.y)
     {
         viewPos.z = _FarPlane;
@@ -138,6 +138,7 @@ void SETUP_COPY(uint3 id : SV_DispatchThreadID)
             float2 skyUv = uv * _InverseSRMulVec.x + _InverseSRMulVec.yz;
             float3 sky = SAMPLE_TEXTURE2D_X_LOD(_PostSkyPreRenderColorTexture, sampler_LinearClamp, skyUv, 0).rgb;
             color.rgb = sky;
+            skyVal = 0;
         #endif
     }
 
@@ -155,7 +156,7 @@ void SETUP_COPY(uint3 id : SV_DispatchThreadID)
         color.w = 1;
 
     float weight = min(color.w, 1);
-    float2 weightedColor = PackRGB(color.rgb * weight);
+    float2 weightedColor = PackRGBA(float4(color.rgb, skyVal) * weight);
 
     _SetupCopyPosition[id.xy] = float4(viewPos.xyz, 0);
     _SetupCopyColor[id.xy] = float4(weightedColor, weight, pos);
@@ -239,7 +240,7 @@ void REMOVE_HIDDEN(uint3 id : SV_DispatchThreadID)
 {
     float4 pix = _RemoveHiddenPosition.Load(int3(id.xy, 0));
     float4 packed = _RemoveHiddenColor.Load(id.xy);
-    float3 col = UnpackRGB(packed.rg);
+    float4 col = UnpackRGBA(packed.rg);
 
     int maxlevel;
     if (_RemoveHiddenLevel == 0)
@@ -269,18 +270,17 @@ void REMOVE_HIDDEN(uint3 id : SV_DispatchThreadID)
     {
         // col = float4(1,1,1,0);
         // TODO: this might not be needed, check
-        col = float3(0, 0, 0);
-        _RemoveHiddenColor[id.xy] = float4(PackRGB(col), 0, 0);
+        col = float4(0, 0, 0, 0);
+        _RemoveHiddenColor[id.xy] = float4(PackRGBA(col), 0, 0);
         // pix.z = 0;
-        
     }
 #if DEBUG_CASCADES
     else
     {
         float ratio = (float) maxlevel / (_RemoveHiddenLevelCount - 1);
         float3 debugColor = lerp(float3(0, 0, 1), float3(0, 1, 0), ratio);
-        col = lerp(col * debugColor, debugColor, 0.5);
-        packed.rg = PackRGB(col);
+        col.rgb = lerp(col * debugColor, debugColor, 0.5);
+        packed.rg = PackRGBA(col);
         _RemoveHiddenColor[id.xy] = packed;
     }
 #endif
@@ -306,8 +306,8 @@ void RemoveHiddenDepthPrepass(uint3 id : SV_DispatchThreadID)
 
     if (offset > threshold)
     {
-        float3 col = float3(0, 0, 0);//
-        _RemoveHiddenColor[id.xy] = float4(PackRGB(col), 0, 0);
+        float4 col = float4(0, 0, 0, 0);//
+        _RemoveHiddenColor[id.xy] = float4(PackRGBA(col), 0, 0);
     }
 }
 
@@ -404,6 +404,7 @@ groupshared float gs_cacheG[TILE_SIZE*TILE_SIZE];
 groupshared float gs_cacheB[TILE_SIZE*TILE_SIZE];
 groupshared float gs_cacheA[TILE_SIZE*TILE_SIZE];
 groupshared float gs_cacheD[TILE_SIZE*TILE_SIZE];
+groupshared float gs_cacheS[TILE_SIZE*TILE_SIZE];
 
 static const uint SAMPLE_COUNT = 12;
 // Sampling pattern:
@@ -457,26 +458,27 @@ int PullFlatten(int2 coord)
   return coord.x + coord.y * TILE_SIZE;
 }
 
-void StorePixel(uint index, float4 pixel, float depth)
+void StorePixel(uint index, float4 pixel, float depth, float sky)
 {
     gs_cacheR[index] = pixel.r;
     gs_cacheG[index] = pixel.g;
     gs_cacheB[index] = pixel.b;
     gs_cacheA[index] = pixel.a;
     gs_cacheD[index] = depth;
+    gs_cacheS[index] = sky;
 }
 
-void LoadPixel(uint index, out float4 pixel, out float depth)
+void LoadPixel(uint index, out float4 pixel, out float depth, out float sky)
 {
     float4 p;
     p.r = gs_cacheR[index];
     p.g = gs_cacheG[index];
     p.b = gs_cacheB[index];
     p.a = gs_cacheA[index];
-    float d = gs_cacheD[index];
 
     pixel = p;
-    depth = d;
+    depth = gs_cacheD[index];
+    sky = gs_cacheS[index];
 }
 
 [numthreads(BLOCKSIZE, BLOCKSIZE, 1)]
@@ -499,20 +501,24 @@ void PullKernel(uint3 id : SV_DispatchThreadID, uint2 groupId : SV_GroupID, uint
         
         float4 rgbw;
         float depth;
+        float sky;
 
         if (input.x < 0 || input.y < 0 || input.x > size.x || input.y > size.y)
         {
             rgbw = float4(0,0,0,0);
             depth = 0.0;
+            sky = 0.0;
         }
         else
         {
             float4 packed = _PullColorInput.Load(pos);
-            rgbw = float4(UnpackRGB(packed.rg), packed.b);
+            float4 unpacked = UnpackRGBA(packed.rg);
+            rgbw = float4(unpacked.rgb, packed.b);
             depth = packed.w;
+            sky = unpacked.w;
             // depth = _PullDepthBufferInput.Load(pos).w;
         }
-        StorePixel(t, rgbw, depth);
+        StorePixel(t, rgbw, depth, sky);
     }
 
     GroupMemoryBarrierWithGroupSync();
@@ -523,7 +529,7 @@ void PullKernel(uint3 id : SV_DispatchThreadID, uint2 groupId : SV_GroupID, uint
 
     uint p00 = PullFlatten(TILE_BORDER + gtId.xy * 2 + int2(0, -1));
     float wn = 0;
-    float3 sum = 0;
+    float4 sum = 0;
     float dsum = 0;
 
     [unroll(SAMPLE_COUNT)]
@@ -531,27 +537,32 @@ void PullKernel(uint3 id : SV_DispatchThreadID, uint2 groupId : SV_GroupID, uint
     {
         float4 p;
         float d;
-        LoadPixel(p00 + SAMPLE_OFFSETS[i], p, d);
+        float s;
+        LoadPixel(p00 + SAMPLE_OFFSETS[i], p, d, s);
         p *= SAMPLE_WEIGHTS[i];
         d *= SAMPLE_WEIGHTS[i];
+        s *= SAMPLE_WEIGHTS[i];
         wn += p.w;
-        sum += p.rgb;
+        sum.rgb += p.rgb;
+        sum.w += s;
         dsum += d;
     }
 
     float wwn = 1 - pow(abs(1 - wn), _PullFilterParam);
 
     float4 col = float4(0, 0, 0, 0);
+    float fw = 0;
     float depth = 0;
 
     if (wn > 0)
     {
         float w = (_PullSkipWeightMul == 1 ? 1 : wwn) / wn;
-        col = float4(w * sum, wwn);
+        col = w * sum;
+        fw = wwn;
         depth = w * dsum;
     }
 
-    _PullColorOutput[id.xy] = float4(PackRGB(col.rgb), col.w, depth);
+    _PullColorOutput[id.xy] = float4(PackRGBA(col), fw, depth);
     // _PullDepthBufferOutput[id.xy] = float4(0, 0, 0, depth);
 }
 
@@ -571,20 +582,22 @@ RWTexture2D<float4> _PushColorOutput;
 RWTexture2D<float4> _PushDepthBufferOutput;
 
 #ifdef SHADER_API_VULKAN
-float4 SampleInBounds(Texture2D<float4> tex, int3 coord, int2 maxPos, float weight, inout float weightSum)
+float4 SampleInBounds(Texture2D<float4> tex, int3 coord, int2 maxPos, float weight, inout float weightSum, out float depth)
 #else
-float4 SampleInBounds(RWTexture2D<float4> tex, int2 coord, int2 maxPos, float weight, inout float weightSum)
+float4 SampleInBounds(RWTexture2D<float4> tex, int2 coord, int2 maxPos, float weight, inout float weightSum, out float depth)
 #endif
 {
     if (coord.x < 0 || coord.y < 0 || coord.x > maxPos.x || coord.y > maxPos.y)
     {
         weightSum -= weight;
+        depth = 0;
         return float4(0, 0, 0, 0);
     }
     else
     {
         float4 packed = tex.Load(coord);
-        return weight * float4(UnpackRGB(packed.rg), packed.w);
+        depth = weight * packed.w;
+        return weight * UnpackRGBA(packed.rg);
     }
 }
 
@@ -601,10 +614,6 @@ void PushKernel(uint3 id : SV_DispatchThreadID)
     int3 offset = int3(mod2 * 2 - int2(1, 1), 0);
 
     float4 x = _PushColorOutput.Load(id.xy);
-    // float baseWeight = x.b;
-    // float4 xUnpacked = float4(UnpackRGB(x.rg), x.w);
-    // float4 n = _PushDepthBufferOutput.Load(id.xy);
-
     float4 weights = float4(9.0/16.0, 3.0/16.0, 3.0/16.0, 1.0/16.0);
 
     #ifdef SHADER_API_VULKAN
@@ -620,42 +629,32 @@ void PushKernel(uint3 id : SV_DispatchThreadID)
     #endif
 
     float weightSum = 1.0;
+    float da, db, dc, dd;
 
-    float4 a = SampleInBounds(_PushColorInput, sampleA, maxPos, weights.r, weightSum);
-    float4 b = SampleInBounds(_PushColorInput, sampleB, maxPos, weights.g, weightSum);
-    float4 c = SampleInBounds(_PushColorInput, sampleC, maxPos, weights.b, weightSum);
-    float4 d = SampleInBounds(_PushColorInput, sampleD, maxPos, weights.a, weightSum);
-
-    // float na = SampleInBounds(_PushDepthBufferInput, sampleA, maxPos, weights.r).w;
-    // float nb = SampleInBounds(_PushDepthBufferInput, sampleB, maxPos, weights.g).w;
-    // float nc = SampleInBounds(_PushDepthBufferInput, sampleC, maxPos, weights.b).w;
-    // float nd = SampleInBounds(_PushDepthBufferInput, sampleD, maxPos, weights.a).w;
+    float4 a = SampleInBounds(_PushColorInput, sampleA, maxPos, weights.r, weightSum, da);
+    float4 b = SampleInBounds(_PushColorInput, sampleB, maxPos, weights.g, weightSum, db);
+    float4 c = SampleInBounds(_PushColorInput, sampleC, maxPos, weights.b, weightSum, dc);
+    float4 d = SampleInBounds(_PushColorInput, sampleD, maxPos, weights.a, weightSum, dd);
 
     float4 ni = a + b + c + d;
+    float dni = da + db + dc + dd;
     if (weightSum > 0)
+    {
         ni /= weightSum;
+        dni /= weightSum;
+    }
     else
+    {
         ni = float4(0,0,0,0);
+        dni = 0;
+    }
 
-    // float4 nn = ni * (1 - baseWeight) + xUnpacked;
-    float4 xUnpacked = float4(UnpackRGB(x.rg), x.w);
+    float4 xUnpacked = UnpackRGBA(x.rg);
     float4 xn = ni * (1 - x.b) + xUnpacked;
-    // n.w = dn;
-
-    /*
-    float3 ni = a.rgb + b.rgb + c.rgb + d.rgb;
-    ni /= weightSum;
-    float di = na + nb + nc + nd;
-    di /= weightSum;
-
-    float3 xn = ni * (1 - x.w) + x.rgb;
-    float dn = di * (1 - x.w) + n.w;
-    n.w = dn;
-    */
+    float dxn = dni * (1 - x.b) + x.w;
 
     // TODO: verify weight pushed here
-    _PushColorOutput[id.xy] = float4(PackRGB(xn.rgb), x.b, xn.w);
-    // _PushDepthBufferOutput[id.xy] = n;
+    _PushColorOutput[id.xy] = float4(PackRGBA(xn), x.b, dxn);
 }
 
 // ============================================================================================

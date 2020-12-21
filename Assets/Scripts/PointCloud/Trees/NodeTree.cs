@@ -94,7 +94,7 @@ namespace Simulator.PointCloud.Trees
             long offset, size;
             ZipTreeData zipData = null;
 
-            if (dataHash != null)
+            if (!string.IsNullOrEmpty(dataHash))
             {
                 indexPath = fullPath;
                 zipData = new ZipTreeData(indexPath, dataHash);

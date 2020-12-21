@@ -67,10 +67,12 @@ Shader "Simulator/PointCloud/HDRP/Compose"
         return enc.xyz;
     }
 
-    float3 UnpackRGB(float2 packed)
+    float4 UnpackRGBA(float2 packed)
     {
         uint r = asuint(packed.r);
-        return float3(f16tof32(r), packed.g, f16tof32(r >> 16));
+        uint b = asuint(packed.g);
+        float4 rgba = float4(f16tof32(r), f16tof32(r >> 16), f16tof32(b), f16tof32(b >> 16));
+        return rgba;
     }
 
     float3 SampleSH9(float3 normal)
@@ -120,7 +122,8 @@ Shader "Simulator/PointCloud/HDRP/Compose"
             discard;
         
         depth = eyeDepth;
-        float3 color = UnpackRGB(pcPacked.rg);
+        float4 unpacked = UnpackRGBA(pcPacked.rg);
+        float3 color = unpacked.rgb;
 
         #ifndef _PC_TARGET_GBUFFER
 
@@ -144,7 +147,7 @@ Shader "Simulator/PointCloud/HDRP/Compose"
             float3 fogColor;
             float3 fogAlpha;
             EvaluateAtmosphericScattering(posInput, V, fogColor, fogAlpha);
-            outColor.rgb = lerp(color, fogColor, fogAlpha.r);
+            outColor.rgb = lerp(color, fogColor, fogAlpha.r * unpacked.w);
             outColor.a = 1;
         #else
             NormalData nData;
@@ -193,7 +196,7 @@ Shader "Simulator/PointCloud/HDRP/Compose"
         float3 positionWS = ComputeWorldSpacePosition(positionNDC, eyeDepth, UNITY_MATRIX_I_VP);
         float lidarDepth = length(GetPrimaryCameraPosition() - positionWS);
 
-        float4 pcColor = float4(UnpackRGB(pcPacked.rg), 1);
+        float4 pcColor = UnpackRGBA(pcPacked.rg);
         float intensity = (pcColor.r + pcColor.g + pcColor.b) / 3;
 
         outColor = float4(EncodeFloatRGB(lidarDepth * _ProjectionParams.w), intensity);
@@ -244,9 +247,9 @@ Shader "Simulator/PointCloud/HDRP/Compose"
         float4 pcColor = _ColorTex.Load(int3((uint2)insetSS, 0));
         // pcColor.rgb = float3(pcColor.w, pcColor.w, pcColor.w);
         // outColor = pcColor;
-        float3 rgb = UnpackRGB(pcColor.rg);
+        float4 rgbs = UnpackRGBA(pcColor.rg);
         // float3 rgb = float3(pcColor.rg, 0);
-        outColor = float4(rgb, 1);
+        outColor = float4(rgbs.rgb, 1);
     }
 
     ENDHLSL

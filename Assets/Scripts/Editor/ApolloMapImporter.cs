@@ -76,7 +76,10 @@ using apollo.hdmap;
             }
 
             var mapName = "Map" + "_" + Encoding.UTF8.GetString(ApolloMap.header.vendor) + "_" + Encoding.UTF8.GetString(ApolloMap.header.district);
-            if (!CreateMapHolders(filePath, mapName)) return false;
+            if (!CreateMapHolders(filePath, mapName))
+            {
+                return false;
+            }
 
             MapOrigin = MapOrigin.Find(); // get or create a map origin
             if (!CreateOrUpdateMapOrigin(ApolloMap, MapOrigin))
@@ -111,6 +114,13 @@ using apollo.hdmap;
             if (GameObject.Find(mapName))
             {
                 Debug.LogError("A map with same name exists, cancelling map importing.");
+                return false;
+            }
+
+            var holder = GameObject.FindObjectOfType<MapHolder>();
+            if (holder != null)
+            {
+                Debug.LogError($"MapHolder exists in scene, please delete {holder.name} to import", holder);
                 return false;
             }
 
@@ -210,7 +220,6 @@ using apollo.hdmap;
             // Update child local positions after parent position changed
             UpdateLocalPositions(mapDataPoints);
         }
-
 
         void ImportLaneRelations()
         {
@@ -572,7 +581,6 @@ using apollo.hdmap;
                 var rightLine = Id2RightLineBoundary[laneId];
                 rightLine.transform.parent = mapLaneSection.transform;
                 UpdateObjPosAndLocalPos(rightLine.transform, rightLine);
-
             }
             // Update mapLaneSection transform based on all lanes and update all lane's positions
             mapLaneSection.transform.position = Lanelet2MapImporter.GetAverage(lanePositions);
@@ -630,7 +638,12 @@ using apollo.hdmap;
                 segment.afters.Clear();
 
                 if (typeof(T) == typeof(MapLine))
-                    if ((segment as MapLine).lineType == MapData.LineType.STOP) continue;
+                {
+                    if ((segment as MapLine).lineType == MapData.LineType.STOP)
+                    {
+                        continue;
+                    }
+                }
 
                 // Each segment must have at least 2 waypoints for calculation, otherwise exit
                 while (segment.mapLocalPositions.Count < 2)
@@ -650,7 +663,12 @@ using apollo.hdmap;
                         continue;
                     }
                     if (typeof(T) == typeof(MapLine))
-                        if ((segmentCmp as MapLine).lineType == MapData.LineType.STOP) continue;
+                    {
+                        if ((segmentCmp as MapLine).lineType == MapData.LineType.STOP)
+                        {
+                            continue;
+                        }
+                    }
 
                     var firstPt_cmp = segmentCmp.transform.TransformPoint(segmentCmp.mapLocalPositions[0]);
                     var lastPt_cmp = segmentCmp.transform.TransformPoint(segmentCmp.mapLocalPositions[segmentCmp.mapLocalPositions.Count - 1]);
@@ -765,7 +783,6 @@ using apollo.hdmap;
 
                 CheckSignLineDistance(mapStopSign, stopLine);
             }
-
             Debug.Log($"Imported {ApolloMap.stop_sign.Count} Stop Signs.");
         }
 
@@ -824,7 +841,10 @@ using apollo.hdmap;
             foreach (var lane in lanes)
             {
                 var laneId = GetLaneId(lane.name);
-                if (LaneId2JunctionId.ContainsKey(laneId)) return LaneId2JunctionId[laneId];
+                if (LaneId2JunctionId.ContainsKey(laneId))
+                {
+                    return LaneId2JunctionId[laneId];
+                }
             }
 
             return null;
@@ -865,8 +885,14 @@ using apollo.hdmap;
             }
 
             // left == right + 1
-            if (right < 0) return left;
-            else if (left == listOfS.Count) return right;
+            if (right < 0)
+            {
+                return left;
+            }
+            else if (left == listOfS.Count)
+            {
+                return right;
+            }
             return (listOfS[left] - s) < (s - listOfS[right]) ? left : right;
         }
 
@@ -888,7 +914,10 @@ using apollo.hdmap;
             mapSign.boundScale = new Vector3(0.95f, 0.95f, 0f);
 
             // Create stop sign mesh
-            if (IsMeshNeeded) CreateStopSignMesh(id, intersection, mapSign);
+            if (IsMeshNeeded)
+            {
+                CreateStopSignMesh(id, intersection, mapSign);
+            }
 
             return mapSign;
         }
@@ -995,7 +1024,10 @@ using apollo.hdmap;
                 }
             }
 
-            if (nearestIdx > 0) return (lanePositions[nearestIdx] - lanePositions[nearestIdx - 1]).normalized;
+            if (nearestIdx > 0)
+            {
+                return (lanePositions[nearestIdx] - lanePositions[nearestIdx - 1]).normalized;
+            }
             return (lanePositions[nearestIdx + 1] - lanePositions[nearestIdx]).normalized;
         }
 
@@ -1028,13 +1060,15 @@ using apollo.hdmap;
                 stopLine.transform.parent = Id2MapIntersection[intersectionId].transform;
                 UpdateLocalPositions(stopLine);
             }
-
             Debug.Log($"Imported {ApolloMap.signal.Count} Signals.");
         }
 
         void CreateSignal(Signal signal, string intersectionId)
         {
-            if (signal.type != Signal.Type.Mix3Vertical) Debug.LogError("Simulator currently only support Mix3Vertical signals.");
+            if (signal.type != Signal.Type.Mix3Vertical)
+            {
+                Debug.LogError("Simulator currently only support Mix3Vertical signals.");
+            }
 
             var id = signal.id.id.ToString();
             var intersection = Id2MapIntersection[intersectionId];
@@ -1084,7 +1118,6 @@ using apollo.hdmap;
             {
                 var id = pair.Key;
                 var mapIntersection = pair.Value;
-
                 var direction = FindADirection(mapIntersection); // find any straight line as the major direction of intersection
 
                 GetBoundsPoints(mapIntersection, direction, out Vector3 leftBottom, out Vector3 rightBottom, out Vector3 rightTop, out Vector3 leftTop);
@@ -1257,7 +1290,10 @@ using apollo.hdmap;
                     var normalDir = Vector3.Cross(laneDir, Vector3.up).normalized;
                     var halfLaneWidth = 2;
                     newStopLinePositions.Add(endPoint + normalDir * halfLaneWidth - laneDir * 0.5f);
-                    if (i == endPoints.Count - 1) newStopLinePositions.Add(endPoint - normalDir * halfLaneWidth - laneDir * 0.5f);
+                    if (i == endPoints.Count - 1)
+                    {
+                        newStopLinePositions.Add(endPoint - normalDir * halfLaneWidth - laneDir * 0.5f);
+                    }
                 }
                 // Update stop line mapWorldPositions with new computed points
                 stopLine.mapWorldPositions = newStopLinePositions;
@@ -1295,7 +1331,10 @@ using apollo.hdmap;
             {
                 Debug.LogWarning($"stopLine {stopLine.name} have no intersecting lanes", stopLine.gameObject);
             }
-            else if (intersectingLanes.Count == 1) return intersectingLanes;
+            else if (intersectingLanes.Count == 1)
+            {
+                return intersectingLanes;
+            }
             else
             {
                 intersectingLanes = OrderLanes(intersectingLanes);
@@ -1338,7 +1377,5 @@ using apollo.hdmap;
         {
             return new double3(point.x, point.y, point.z);
         }
-
-
     }
 }

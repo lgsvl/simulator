@@ -147,7 +147,10 @@ namespace Simulator.Editor
                 }
 
                 // Create Map object
-                if (!CreateMapHolder(filePath, mapName)) return false;
+                if (!CreateMapHolder(filePath, mapName))
+                {
+                    return false;
+                }
 
                 MapOrigin = MapOrigin.Find(); // get or create a map origin
                 if (!CreateOrUpdateMapOrigin(OpenDRIVEMap, MapOrigin))
@@ -159,10 +162,12 @@ namespace Simulator.Editor
                 ImportJunctions();
                 UpdateAllLanesBeforesAfters();
 
-                if (IsConnectLanes) ConnectLanes();
+                if (IsConnectLanes)
+                {
+                    ConnectLanes();
+                }
                 CleanUp();
                 LinkSignalsWithStopLines();
-
                 UpdateMapIntersectionPositions();
             }
             finally
@@ -196,7 +201,9 @@ namespace Simulator.Editor
                 {
                     child.transform.position -= mapIntersection.transform.position;
                     if (child.GetComponent<MapDataPoints>() != null)
+                    {
                         ApolloMapImporter.UpdateLocalPositions(child.GetComponent<MapDataPoints>());
+                    }
                 }
             }
         }
@@ -210,6 +217,14 @@ namespace Simulator.Editor
             if (GameObject.Find(mapName))
             {
                 Debug.LogError("A map with same name exists, cancelling map importing.");
+                File.Delete(filePath);
+                return false;
+            }
+
+            var holder = GameObject.FindObjectOfType<MapHolder>();
+            if (holder != null)
+            {
+                Debug.LogError($"MapHolder exists in scene, please delete {holder.name} to import", holder);
                 File.Delete(filePath);
                 return false;
             }
@@ -236,14 +251,19 @@ namespace Simulator.Editor
         {
             var header = openDRIVEMap.header;
             var geoReference = header.geoReference;
-            if (geoReference == null) return false;
+            if (geoReference == null)
+            {
+                return false;
+            }
             var items = geoReference.Split('+')
                 .Select(s => s.Split('='))
                 .Where(s => s.Length > 1)
                 .ToDictionary(element => element[0].Trim(), element => element[1].Trim());
 
-            if (!items.ContainsKey("proj") || items["proj"] != "tmerc" ||
-                    !items.ContainsKey("lon_0") || !items.ContainsKey("lat_0")) return false;
+            if (!items.ContainsKey("proj") || items["proj"] != "tmerc" || !items.ContainsKey("lon_0") || !items.ContainsKey("lat_0"))
+            {
+                return false;
+            }
 
             double latitude, longitude;
             longitude = float.Parse(items["lon_0"], CultureInfo.InvariantCulture);
@@ -261,7 +281,10 @@ namespace Simulator.Editor
         // Calculate elevation at the specific length along the reference path
         public double GetElevation(double l, OpenDRIVERoadElevationProfile elevationProfile)
         {
-            if (l < 0) l = 0;
+            if (l < 0)
+            {
+                l = 0;
+            }
             double elevation = 0;
             if (elevationProfile == null || elevationProfile.elevation == null)
             {
@@ -517,7 +540,10 @@ namespace Simulator.Editor
                 ImportRoadSpeed(road);
                 var laneSections = lanes.laneSection;
                 var junctionId = road.junction;
-                if (junctionId != "-1") RoadId2IntersectionId[roadId] = junctionId;
+                if (junctionId != "-1")
+                {
+                    RoadId2IntersectionId[roadId] = junctionId;
+                }
 
                 List<Vector3> referenceLinePoints = new List<Vector3>();
                 ReferenceLinePointSValue.Clear();
@@ -528,21 +554,22 @@ namespace Simulator.Editor
                 for (int i = 0; i < road.planView.Length; i++)
                 {
                     var geometry = road.planView[i];
-                    if (geometry.length < GeometrySkipLength) continue; // skip if it is too short
+                    if (geometry.length < GeometrySkipLength)
+                    {
+                        continue; // skip if it is too short
+                    }
 
                     var affectedIdxStart = sectionsPointsIdx.Count;
                     var dists = GetDists(ref sectionsS, ref sectionIdx, geometry, sectionsPointsIdx, referenceLinePoints);
                     var affectedIdxEnd = sectionsPointsIdx.Count;
-                    // Line
-                    if (geometry.Items[0] is OpenDRIVERoadGeometryLine)
+
+                    if (geometry.Items[0] is OpenDRIVERoadGeometryLine) // Line
                     {
                         List<Tuple<Vector3, double>> pointsAndS = CalculateLinePoints(geometry, elevationProfile, dists);
                         UpdateReferenceLinePoint2s(referenceLinePoints.Count, pointsAndS, ReferenceLinePointSValue);
                         referenceLinePoints.AddRange(pointsAndS.Select(entry => entry.Item1).ToList());
                     }
-                    else
-                    // Spiral
-                    if (geometry.Items[0] is OpenDRIVERoadGeometrySpiral)
+                    else if (geometry.Items[0] is OpenDRIVERoadGeometrySpiral) // Spiral
                     {
                         OpenDRIVERoadGeometrySpiral spi = geometry.Items[0] as OpenDRIVERoadGeometrySpiral;
                         if (spi.curvStart == 0)
@@ -577,25 +604,19 @@ namespace Simulator.Editor
                             referenceLinePoints.AddRange(pointsAndS.Select(entry => entry.Item1).ToList());
                         }
                     }
-                    else
-                    // Arc
-                    if (geometry.Items[0] is OpenDRIVERoadGeometryArc)
+                    else if (geometry.Items[0] is OpenDRIVERoadGeometryArc) // Arc
                     {
                         List<Tuple<Vector3, double>> pointsAndS = CalculateArcPoints(geometry, elevationProfile, dists);
                         UpdateReferenceLinePoint2s(referenceLinePoints.Count, pointsAndS, ReferenceLinePointSValue);
                         referenceLinePoints.AddRange(pointsAndS.Select(entry => entry.Item1).ToList());
                     }
-                    else
-                    // Poly3
-                    if (geometry.Items[0] is OpenDRIVERoadGeometryPoly3)
+                    else if (geometry.Items[0] is OpenDRIVERoadGeometryPoly3) // Poly3
                     {
                         List<Tuple<Vector3, double>> pointsAndS = CalculatePoly3Points(geometry, elevationProfile, dists);
                         UpdateReferenceLinePoint2s(referenceLinePoints.Count, pointsAndS, ReferenceLinePointSValue);
                         referenceLinePoints.AddRange(pointsAndS.Select(entry => entry.Item1).ToList());
                     }
-                    else
-                    // ParamPoly3
-                    if (geometry.Items[0] is OpenDRIVERoadGeometryParamPoly3)
+                    else if (geometry.Items[0] is OpenDRIVERoadGeometryParamPoly3) // ParamPoly3
                     {
                         List<Tuple<Vector3, double>> pointsAndS = CalculateParamPoly3Points(geometry, elevationProfile, dists);
                         UpdateReferenceLinePoint2s(referenceLinePoints.Count, pointsAndS, ReferenceLinePointSValue);
@@ -648,17 +669,32 @@ namespace Simulator.Editor
                     if (laneSectionsLength[i] < LaneSectionSkipLength)
                     {
                         Debug.LogWarning($"Road {roadId} laneSection {i} is too short, skipped importing");
-                        if (RoadId2laneSections.ContainsKey(roadId)) RoadId2laneSections[roadId].Add(i);
-                        else RoadId2laneSections[roadId] = new List<int> {i};
+                        if (RoadId2laneSections.ContainsKey(roadId))
+                        {
+                            RoadId2laneSections[roadId].Add(i);
+                        }
+                        else
+                        {
+                            RoadId2laneSections[roadId] = new List<int> { i };
+                        }
                         continue;
                     }
 
                     var startIdx = sectionsPointsIdx[i];
                     int endIdx;
-                    if (i == laneSections.Length - 1) endIdx = referenceLinePointsOffset.Count;
-                    else  endIdx = sectionsPointsIdx[i+1];
+                    if (i == laneSections.Length - 1)
+                    {
+                        endIdx = referenceLinePointsOffset.Count;
+                    }
+                    else
+                    {
+                        endIdx = sectionsPointsIdx[i + 1];
+                    }
 
-                    if (endIdx == startIdx) continue;
+                    if (endIdx == startIdx)
+                    {
+                        continue;
+                    }
 
                     var sectionRefPointsOffset = new List<Vector3>(referenceLinePointsOffset.GetRange(startIdx, endIdx - startIdx));
                     var sectionRefPoints = new List<Vector3>(referenceLinePoints.GetRange(startIdx, endIdx - startIdx));
@@ -673,7 +709,10 @@ namespace Simulator.Editor
                     CreateMapLanes(roadId, i, laneSections[i], sectionRefPointsOffset, sectionRefPoints);
                 }
 
-                if (road.signals != null) ImportSignals(road, road.signals, referenceLinePointsOffset);
+                if (road.signals != null)
+                {
+                    ImportSignals(road, road.signals, referenceLinePointsOffset);
+                }
             }
         }
 
@@ -682,17 +721,31 @@ namespace Simulator.Editor
             if (road.type != null && road.type[0].speed != null)
             {
                 var speed = road.type[0].speed; // only use 1st type's speed if road has multiple types
-                if (speed.max == "no limit" || speed.max == "undefined") return;
-                if (!float.TryParse(speed.max, out float speedLimit) || speedLimit < 0) return;
+                if (speed.max == "no limit" || speed.max == "undefined")
+                {
+                    return;
+                }
+
+                if (!float.TryParse(speed.max, out float speedLimit) || speedLimit < 0)
+                {
+                    return;
+                }
+
                 var speedUnit = speed.unit;
-                if (!speed.unitSpecified || !ConvertSpeed(speedUnit, ref speedLimit)) return;
+                if (!speed.unitSpecified || !ConvertSpeed(speedUnit, ref speedLimit))
+                {
+                    return;
+                }
                 RoadId2Speed[road.id] = speedLimit;
             }
         }
 
         bool ConvertSpeed(unit speedUnit, ref float speedLimit)
         {
-            if (speedUnit == unit.ms) return true;
+            if (speedUnit == unit.ms)
+            {
+                return true;
+            }
             if (speedUnit == unit.kmh)
             {
                 speedLimit *= 0.277778f;
@@ -746,7 +799,10 @@ namespace Simulator.Editor
             {
                 dists.Add(i);
             }
-            if (geometry.length - 0.1 >= 0) dists.Add(geometry.length - 0.1);
+            if (geometry.length - 0.1 >= 0)
+            {
+                dists.Add(geometry.length - 0.1);
+            }
 
             // separate dists at least 1 meter except for the two points around lanesection idx
             if (dists.Count > 1 && (dists.Last() - dists[dists.Count - 2]) < 0.1)
@@ -899,7 +955,11 @@ namespace Simulator.Editor
                 }
             }
 
-            if (intersectionId != null) return CreateMapIntersection(intersectionId).gameObject;
+            if (intersectionId != null)
+            {
+                return CreateMapIntersection(intersectionId).gameObject;
+            }
+
             return null;
         }
 
@@ -949,7 +1009,10 @@ namespace Simulator.Editor
                 return;
             }
 
-            if (mapIntersectionObj == null) Debug.LogWarning($"Cannot find associated intersection for the stop sign {roadSignal.id}.");
+            if (mapIntersectionObj == null)
+            {
+                Debug.LogWarning($"Cannot find associated intersection for the stop sign {roadSignal.id}.");
+            }
 
             var stopSignLocation = GetSignalPositionRotation(roadSignal, referenceLinePoints, out Quaternion rotation);
 
@@ -965,13 +1028,22 @@ namespace Simulator.Editor
             mapSign.boundScale = new Vector3(0.95f, 0.95f, 0f);
 
             // Create stop sign mesh
-            if (IsMeshNeeded) CreateStopSignMesh(roadId, id, mapIntersectionObj, mapSign);
+            if (IsMeshNeeded)
+            {
+                CreateStopSignMesh(roadId, id, mapIntersectionObj, mapSign);
+            }
 
             if (mapIntersectionObj != null)
             {
                 var intersectionId = mapIntersectionObj.name.Split('_')[1];
-                if (IntersectionId2MapSigns.ContainsKey(intersectionId)) IntersectionId2MapSigns[intersectionId].Add(mapSign);
-                else IntersectionId2MapSigns[intersectionId] = new List<MapSign>(){mapSign};
+                if (IntersectionId2MapSigns.ContainsKey(intersectionId))
+                {
+                    IntersectionId2MapSigns[intersectionId].Add(mapSign);
+                }
+                else
+                {
+                    IntersectionId2MapSigns[intersectionId] = new List<MapSign>() { mapSign };
+                }
             }
         }
 
@@ -979,7 +1051,10 @@ namespace Simulator.Editor
         {
             GameObject stopSignPrefab = Settings.MapStopSignPrefab;
             var stopSignObj = UnityEngine.Object.Instantiate(stopSignPrefab, mapSign.transform.position + mapSign.boundOffsets, mapSign.transform.rotation);
-            if (mapIntersectionObj != null) stopSignObj.transform.parent = mapIntersectionObj.transform;
+            if (mapIntersectionObj != null)
+            {
+                stopSignObj.transform.parent = mapIntersectionObj.transform;
+            }
             SetParent(stopSignObj, mapIntersectionObj, roadId);
             stopSignObj.name = "MapStopSignMesh_" + id;
         }
@@ -988,7 +1063,10 @@ namespace Simulator.Editor
         {
             for (int i = 0; i < ReferenceLinePointSValue.Count; i++)
             {
-                if ((s - ReferenceLinePointSValue[i]) < 0.5) return i;
+                if ((s - ReferenceLinePointSValue[i]) < 0.5)
+                {
+                    return i;
+                }
             }
             return ReferenceLinePointSValue.Count - 1;
         }
@@ -1011,7 +1089,10 @@ namespace Simulator.Editor
             var tDirection = Vector3.Cross((p2 - p1), Vector3.up).normalized;
             signalPosition += tDirection * (float)roadSignal.t;
             var signalDirection = p2 - p1;
-            if (roadSignal.orientation == orientation.Item1) signalDirection = -signalDirection;
+            if (roadSignal.orientation == orientation.Item1)
+            {
+                signalDirection = -signalDirection;
+            }
             if (roadSignal.hOffsetSpecified == true)
             {
                 signalDirection = Quaternion.AngleAxis((float)roadSignal.hOffset * Mathf.Rad2Deg, Vector3.up) * signalDirection;
@@ -1030,8 +1111,14 @@ namespace Simulator.Editor
 
         void SetParent(GameObject obj, GameObject mapIntersectionObj, string roadId)
         {
-            if (mapIntersectionObj != null) obj.transform.parent = mapIntersectionObj.transform;
-            else UngroupedObject2RoadId[obj] = roadId;
+            if (mapIntersectionObj != null)
+            {
+                obj.transform.parent = mapIntersectionObj.transform;
+            }
+            else
+            {
+                UngroupedObject2RoadId[obj] = roadId;
+            }
         }
 
         void CreateMapLanes(string roadId, int laneSectionId,
@@ -1052,7 +1139,10 @@ namespace Simulator.Editor
             refMapLine.transform.parent = parentObj.transform;
             ApolloMapImporter.UpdateLocalPositions(refMapLine);
             // Update parent object position if it is a MapLaneSection
-            if (parentObj != SingleLaneRoads) UpdateMapLaneSectionPosition(parentObj);
+            if (parentObj != SingleLaneRoads)
+            {
+                UpdateMapLaneSectionPosition(parentObj);
+            }
         }
 
         void DownSampleLaneLines(string roadId, int laneSectionId)
@@ -1117,7 +1207,10 @@ namespace Simulator.Editor
                 parentObj.transform.parent = TrafficLanes.transform;
                 parentObj.AddComponent<MapLaneSection>();
             }
-            else parentObj = SingleLaneRoads;
+            else
+            {
+                parentObj = SingleLaneRoads;
+            }
 
             return parentObj;
         }
@@ -1170,13 +1263,19 @@ namespace Simulator.Editor
                 {
                     Debug.LogError($"Not able to get correct lane points, skip importing lane {id} (roadId: {roadId})");
                 }
-                if (isLeft) lanePoints.Reverse();
+                if (isLeft)
+                {
+                    lanePoints.Reverse();
+                }
 
                 CreateLane(roadId, laneSectionId, curLane, lanePoints, parentObj);
 
                 curLeftBoundaryPoints = new List<Vector3>(curRightBoundaryPoints);
 
-                if (isLeft) curRightBoundaryPoints.Reverse();
+                if (isLeft)
+                {
+                    curRightBoundaryPoints.Reverse();
+                }
                 mapLine.mapWorldPositions = curRightBoundaryPoints;
                 mapLine.transform.position = Lanelet2MapImporter.GetAverage(curRightBoundaryPoints);
 
@@ -1325,17 +1424,19 @@ namespace Simulator.Editor
                 laneSpeed = RoadId2Speed[roadId];
             }
 
-            if (laneSpeed != null) mapLane.speedLimit = laneSpeed.Value;
+            if (laneSpeed != null)
+            {
+                mapLane.speedLimit = laneSpeed.Value;
+            }
 
             var mapLine = Id2MapLine[$"MapLine_{roadIdLaneSectionId}_{laneId}"];
             mapLane.rightLineBoundry = mapLine;
-            // Left lanes
-            if (laneId > 0)
+            
+            if (laneId > 0) // Left lanes
             {
                 mapLine = Id2MapLine[$"MapLine_{roadIdLaneSectionId}_{laneId - 1}"];
             }
-            // Right lanes
-            else
+            else // Right lanes
             {
                 mapLine = Id2MapLine[$"MapLine_{roadIdLaneSectionId}_{laneId + 1}"];
             }
@@ -1350,8 +1451,14 @@ namespace Simulator.Editor
         {
             var speed = curLane.speed[0]; // currently we don't support multiple speed limit for same lane
             speedLimit = (float)speed.max;
-            if (speedLimit < 0) return false;
-            if (ConvertSpeed(speed.unit, ref speedLimit)) return true;
+            if (speedLimit < 0)
+            {
+                return false;
+            }
+            if (ConvertSpeed(speed.unit, ref speedLimit))
+            {
+                return true;
+            }
             return false;
         }
 
@@ -1359,21 +1466,45 @@ namespace Simulator.Editor
         {
             if (roadMarkType == roadmarkType.solid)
             {
-                if (roadMarkColor == color.white || roadMarkColor == color.standard) return MapData.LineType.SOLID_WHITE;
-                else if (roadMarkColor == color.yellow) return MapData.LineType.SOLID_YELLOW;
+                if (roadMarkColor == color.white || roadMarkColor == color.standard)
+                {
+                    return MapData.LineType.SOLID_WHITE;
+                }
+                else if (roadMarkColor == color.yellow)
+                {
+                    return MapData.LineType.SOLID_YELLOW;
+                }
             }
             else if (roadMarkType == roadmarkType.broken)
             {
-                if (roadMarkColor == color.white || roadMarkColor == color.standard) return MapData.LineType.DOTTED_WHITE;
-                else if (roadMarkColor == color.yellow) return MapData.LineType.DOTTED_YELLOW;
+                if (roadMarkColor == color.white || roadMarkColor == color.standard)
+                {
+                    return MapData.LineType.DOTTED_WHITE;
+                }
+                else if (roadMarkColor == color.yellow)
+                {
+                    return MapData.LineType.DOTTED_YELLOW;
+                }
             }
             else if (roadMarkType == roadmarkType.solidsolid)
             {
-                if (roadMarkColor == color.white || roadMarkColor == color.standard) return MapData.LineType.DOUBLE_WHITE;
-                else if (roadMarkColor == color.yellow) return MapData.LineType.DOUBLE_YELLOW;
+                if (roadMarkColor == color.white || roadMarkColor == color.standard)
+                {
+                    return MapData.LineType.DOUBLE_WHITE;
+                }
+                else if (roadMarkColor == color.yellow)
+                {
+                    return MapData.LineType.DOUBLE_YELLOW;
+                }
             }
-            else if (roadMarkType == roadmarkType.curb) return MapData.LineType.CURB;
-            else if (roadMarkType == roadmarkType.none) return MapData.LineType.VIRTUAL;
+            else if (roadMarkType == roadmarkType.curb)
+            {
+                return MapData.LineType.CURB;
+            }
+            else if (roadMarkType == roadmarkType.none)
+            {
+                return MapData.LineType.VIRTUAL;
+            }
 
             Debug.LogWarning("Not supported road mark and color, using default dotted white line type.");
             return MapData.LineType.DOTTED_WHITE;
@@ -1419,8 +1550,14 @@ namespace Simulator.Editor
                         connectingId2MapLane = connectingLaneSections.Last();
                     }
 
-                    if (!IncomingRoadId2leftLanes.ContainsKey(incomingRoadId)) IncomingRoadId2leftLanes[incomingRoadId] = new HashSet<MapLane>();
-                    if (!IncomingRoadId2rightLanes.ContainsKey(incomingRoadId)) IncomingRoadId2rightLanes[incomingRoadId] = new HashSet<MapLane>();
+                    if (!IncomingRoadId2leftLanes.ContainsKey(incomingRoadId))
+                    {
+                        IncomingRoadId2leftLanes[incomingRoadId] = new HashSet<MapLane>();
+                    }
+                    if (!IncomingRoadId2rightLanes.ContainsKey(incomingRoadId))
+                    {
+                        IncomingRoadId2rightLanes[incomingRoadId] = new HashSet<MapLane>();
+                    }
                     MapLane incomingLane, connectingLane;
                     if (connection.laneLink.Length == 0)
                     {
@@ -1431,15 +1568,23 @@ namespace Simulator.Editor
                             incomingLane = incomingId2MapLane[laneId];
                             connectingLane = connectingId2MapLane[laneId];
                             UpdateBeforesAfters(contactPoint, connectingLane, incomingLane);
-                            if (laneId > 0 && Lane2LaneType[incomingLane] == laneType.driving) IncomingRoadId2leftLanes[incomingRoadId].Add(incomingLane);
-                            if (laneId < 0 && Lane2LaneType[incomingLane] == laneType.driving) IncomingRoadId2rightLanes[incomingRoadId].Add(incomingLane);
+                            if (laneId > 0 && Lane2LaneType[incomingLane] == laneType.driving)
+                            {
+                                IncomingRoadId2leftLanes[incomingRoadId].Add(incomingLane);
+                            }
+                            if (laneId < 0 && Lane2LaneType[incomingLane] == laneType.driving)
+                            {
+                                IncomingRoadId2rightLanes[incomingRoadId].Add(incomingLane);
+                            }
                         }
                     }
                     else
                     {
                         // Update incomingId2MapLane if two roads directions are opposite
-                        if (connection.laneLink[0].from * connection.laneLink[0].to < 0) incomingId2MapLane =
-                            contactPoint == contactPoint.start ? incomingLaneSections.First() : incomingLaneSections.Last();
+                        if (connection.laneLink[0].from * connection.laneLink[0].to < 0)
+                        {
+                            incomingId2MapLane = contactPoint == contactPoint.start ? incomingLaneSections.First() : incomingLaneSections.Last();
+                        }
                         foreach (var laneLink in connection.laneLink)
                         {
                             var incomingLaneId = laneLink.from;
@@ -1457,15 +1602,24 @@ namespace Simulator.Editor
                             }
                             connectingLane = connectingId2MapLane[laneLink.to];
                             UpdateBeforesAfters(contactPoint, incomingLane, connectingLane);
-                            if (incomingLaneId > 0 && Lane2LaneType[incomingLane] == laneType.driving) IncomingRoadId2leftLanes[incomingRoadId].Add(incomingLane);
-                            if (incomingLaneId < 0 && Lane2LaneType[incomingLane] == laneType.driving) IncomingRoadId2rightLanes[incomingRoadId].Add(incomingLane);
+                            if (incomingLaneId > 0 && Lane2LaneType[incomingLane] == laneType.driving)
+                            {
+                                IncomingRoadId2leftLanes[incomingRoadId].Add(incomingLane);
+                            }
+                            if (incomingLaneId < 0 && Lane2LaneType[incomingLane] == laneType.driving)
+                            {
+                                IncomingRoadId2rightLanes[incomingRoadId].Add(incomingLane);
+                            }
                         }
                     }
 
                     RoadId2IntersectionId[connectingRoadId] = junction.id;
                     MoveConnectingLanesUnderIntersection(mapIntersection, connectingId2MapLane.Values.ToList()); // intersection position is 0, 0, 0 here
                 }
-                if (IsCreateStopLines) CreateStopLines(incomingRoadIds, mapIntersection);
+                if (IsCreateStopLines)
+                {
+                    CreateStopLines(incomingRoadIds, mapIntersection);
+                }
             }
         }
 
@@ -1474,7 +1628,10 @@ namespace Simulator.Editor
         {
             foreach (var roadId in incomingRoadIds)
             {
-                if (!Roads.ContainsKey(roadId)) continue;
+                if (!Roads.ContainsKey(roadId))
+                {
+                    continue;
+                }
                 var isLeftLanes = isLeftLanesConnected(roadId, mapIntersection);
                 if (isLeftLanes)
                 {
@@ -1506,7 +1663,10 @@ namespace Simulator.Editor
             }
 
             var firstLanePositions = firstLane.mapWorldPositions.ToList();
-            if (isLeft) firstLanePositions.Reverse();
+            if (isLeft)
+            {
+                firstLanePositions.Reverse();
+            }
 
             MapDataPoints anyLaneLine = null;
             foreach (Transform child in mapIntersection.transform)
@@ -1527,7 +1687,10 @@ namespace Simulator.Editor
             // check is left lanes or right lanes connected with the intersection
             var roadStart2Intersection = (firstLanePositions.First() - intersectionPosition).magnitude;
             var roadEnd2Intersection = (firstLanePositions.Last() - intersectionPosition).magnitude;
-            if (roadStart2Intersection < roadEnd2Intersection) return true;
+            if (roadStart2Intersection < roadEnd2Intersection)
+            {
+                return true;
+            }
             return false;
         }
 
@@ -1542,7 +1705,10 @@ namespace Simulator.Editor
             var section = GetSection(lanes[0].name);
             for (int i = 1; i < lanes.Count; i++)
             {
-                if (GetSection(lanes[i].name) != section) return true;
+                if (GetSection(lanes[i].name) != section)
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -1550,7 +1716,10 @@ namespace Simulator.Editor
 
         private void CreateStopLine(MapIntersection mapIntersection, string roadId, HashSet<MapLane> mapLanes)
         {
-            if (mapLanes.Count == 0 || HaveDiffLanesSections(mapLanes)) return;
+            if (mapLanes.Count == 0 || HaveDiffLanesSections(mapLanes))
+            {
+                return;
+            }
 
             var firstMapLanePositions = GetOnlyItemFromSet(mapLanes).mapWorldPositions;
             var laneDir = (firstMapLanePositions.Last() - firstMapLanePositions[firstMapLanePositions.Count - 2]).normalized;
@@ -1597,8 +1766,14 @@ namespace Simulator.Editor
             ApolloMapImporter.UpdateLocalPositions(stopLine);
 
             var intersectionId = mapIntersection.name.Split('_')[1];
-            if (IntersectionId2StopLines.ContainsKey(intersectionId)) IntersectionId2StopLines[intersectionId].Add(stopLine);
-            else IntersectionId2StopLines[intersectionId] = new List<MapLine>() { stopLine };
+            if (IntersectionId2StopLines.ContainsKey(intersectionId))
+            {
+                IntersectionId2StopLines[intersectionId].Add(stopLine);
+            }
+            else
+            {
+                IntersectionId2StopLines[intersectionId] = new List<MapLine>() { stopLine };
+            }
         }
 
         private static void GetStopLinePositions(List<Vector3> firstMapLanePositions, Vector3 laneDir, List<Vector3> stopLinePositions, int halfLaneWidth)
@@ -1695,11 +1870,18 @@ namespace Simulator.Editor
 
         void CheckExistence(MapLane lane)
         {
-            if (!Lane2BeforesAfters.ContainsKey(lane)) Lane2BeforesAfters[lane] = new BeforesAfters();
+            if (!Lane2BeforesAfters.ContainsKey(lane))
+            {
+                Lane2BeforesAfters[lane] = new BeforesAfters();
+            }
         }
+
         MapIntersection CreateMapIntersection(string id)
         {
-            if (Id2MapIntersection.ContainsKey(id)) return Id2MapIntersection[id];
+            if (Id2MapIntersection.ContainsKey(id))
+            {
+                return Id2MapIntersection[id];
+            }
             var mapIntersectionObj = new GameObject("MapIntersection_" + id);
             var mapIntersection = mapIntersectionObj.AddComponent<MapIntersection>();
             mapIntersection.transform.parent = Intersections.transform;
@@ -1719,7 +1901,10 @@ namespace Simulator.Editor
                 for (int i = 0; i < lanes.laneSection.Length; i++)
                 {
                     var Id2MapLane = Roads[road.id][i];
-                    if (Id2MapLane.Count == 0) continue; // Skip empty laneSection
+                    if (Id2MapLane.Count == 0)
+                    {
+                        continue; // Skip empty laneSection
+                    }
 
                     // Default values if not on the first or last laneSection
                     var preLaneSectionId = i - 1;
@@ -1775,8 +1960,14 @@ namespace Simulator.Editor
         int GetLaneSectionId(string linkedRoadId, contactPoint? contactPoint)
         {
             int laneSectionId;
-            if (contactPoint == Schemas.contactPoint.start) laneSectionId = 0;
-            else laneSectionId = Roads[linkedRoadId].Count - 1;
+            if (contactPoint == Schemas.contactPoint.start)
+            {
+                laneSectionId = 0;
+            }
+            else
+            {
+                laneSectionId = Roads[linkedRoadId].Count - 1;
+            }
             return laneSectionId;
         }
 
@@ -1787,7 +1978,10 @@ namespace Simulator.Editor
             foreach (var lane in lanes)
             {
                 var link = lane.link;
-                if (link == null) continue;
+                if (link == null)
+                {
+                    continue;
+                }
 
                 var curLane = curId2MapLane[lane.id];
 
@@ -1801,7 +1995,10 @@ namespace Simulator.Editor
                     }
                     var preLaneId = lanePredecessor.id;
                     var preLane = GetLaneFromRoads(preRoadId, preLaneSectionId, preLaneId);
-                    if (preLane != null) UpdateBeforesAfters(preContactPoint, curLane, preLane);
+                    if (preLane != null)
+                    {
+                        UpdateBeforesAfters(preContactPoint, curLane, preLane);
+                    }
                 }
 
                 var laneSuccessor = link.successor;
@@ -1814,7 +2011,10 @@ namespace Simulator.Editor
                     }
                     var sucLaneId = laneSuccessor.id;
                     var sucLane = GetLaneFromRoads(sucRoadId, sucLaneSectionId, sucLaneId);
-                    if (sucLane != null) UpdateBeforesAfters(sucContactPoint, curLane, sucLane);
+                    if (sucLane != null)
+                    {
+                        UpdateBeforesAfters(sucContactPoint, curLane, sucLane);
+                    }
                 }
             }
         }
@@ -1823,8 +2023,14 @@ namespace Simulator.Editor
         {
             var laneSections = Roads[roadId];
             Dictionary<int, MapLane> Id2MapLane = laneSections[laneSectionId];
-            if (Id2MapLane.ContainsKey(laneId)) return Id2MapLane[laneId];
-            else return null; // in case too short lanes are not created
+            if (Id2MapLane.ContainsKey(laneId))
+            {
+                return Id2MapLane[laneId];
+            }
+            else
+            {
+                return null; // in case too short lanes are not created
+            }
         }
 
         // Connect lanes by adjusting starting/ending points
@@ -1844,9 +2050,18 @@ namespace Simulator.Editor
                     foreach (var beforeLane in befores)
                     {
                         var belowThreshold = (positions[0] - beforeLane.mapWorldPositions.Last()).magnitude < ConnectLaneThreshold;
-                        if (belowThreshold) mapLane.befores.Add(beforeLane);
-                        else Debug.LogWarning($"{mapLane.name} is far away from its before lane {beforeLane.name}, skipping connecting them.");
-                        if (!visitedLaneIdsEnd.Contains(beforeLane.name) && belowThreshold) AdjustStartOrEndPoint(positions, beforeLane, true);
+                        if (belowThreshold)
+                        {
+                            mapLane.befores.Add(beforeLane);
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"{mapLane.name} is far away from its before lane {beforeLane.name}, skipping connecting them.");
+                        }
+                        if (!visitedLaneIdsEnd.Contains(beforeLane.name) && belowThreshold)
+                        {
+                            AdjustStartOrEndPoint(positions, beforeLane, true);
+                        }
                         visitedLaneIdsEnd.Add(beforeLane.name);
                     }
                 }
@@ -1856,9 +2071,18 @@ namespace Simulator.Editor
                     foreach (var afterLane in afters)
                     {
                         var belowThreshold = (positions.Last() - afterLane.mapWorldPositions.First()).magnitude < ConnectLaneThreshold;
-                        if (belowThreshold) mapLane.afters.Add(afterLane);
-                        else Debug.LogWarning($"{mapLane.name} is far away from its after lane {afterLane.name}, skipping connecting them.");
-                        if (!visitedLaneIdsStart.Contains(afterLane.name) && belowThreshold) AdjustStartOrEndPoint(positions, afterLane, false);
+                        if (belowThreshold)
+                        {
+                            mapLane.afters.Add(afterLane);
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"{mapLane.name} is far away from its after lane {afterLane.name}, skipping connecting them.");
+                        }
+                        if (!visitedLaneIdsStart.Contains(afterLane.name) && belowThreshold)
+                        {
+                            AdjustStartOrEndPoint(positions, afterLane, false);
+                        }
                         visitedLaneIdsStart.Add(afterLane.name);
                     }
                 }
@@ -1991,7 +2215,10 @@ namespace Simulator.Editor
                     foreach (var laneEntry in Roads[roadId][laneSectionId])
                     {
                         var lane = laneEntry.Value;
-                        if (Lane2LaneType[lane] != laneType.driving) continue; // already removed.
+                        if (Lane2LaneType[lane] != laneType.driving)
+                        {
+                            continue; // already removed.
+                        }
 
                         linesToRemove.Add(lane.leftLineBoundry);
                         linesToRemove.Add(lane.rightLineBoundry);
@@ -2023,7 +2250,10 @@ namespace Simulator.Editor
 
             MoveSingleLaneSections();
             RemoveEmptyLaneSections();
-            if (SingleLaneRoads.transform.childCount == 0) UnityEngine.Object.DestroyImmediate(SingleLaneRoads);
+            if (SingleLaneRoads.transform.childCount == 0)
+            {
+                UnityEngine.Object.DestroyImmediate(SingleLaneRoads);
+            }
 
             // Move ungrouped objects to correct intersection
             foreach (var entry in UngroupedObject2RoadId)
@@ -2039,15 +2269,27 @@ namespace Simulator.Editor
                     if (obj.GetComponent<MapSignal>() != null)
                     {
                         var mapSignal = obj.GetComponent<MapSignal>();
-                        if (IntersectionId2MapSignals.ContainsKey(intersectionId)) IntersectionId2MapSignals[intersectionId].Add(mapSignal);
-                        else IntersectionId2MapSignals[intersectionId] = new List<MapSignal>(){mapSignal};
+                        if (IntersectionId2MapSignals.ContainsKey(intersectionId))
+                        {
+                            IntersectionId2MapSignals[intersectionId].Add(mapSignal);
+                        }
+                        else
+                        {
+                            IntersectionId2MapSignals[intersectionId] = new List<MapSignal>() { mapSignal };
+                        }
                     }
                     // if sign
                     if (obj.GetComponent<MapSign>() != null)
                     {
                         var mapSign = obj.GetComponent<MapSign>();
-                        if (IntersectionId2MapSigns.ContainsKey(intersectionId)) IntersectionId2MapSigns[intersectionId].Add(mapSign);
-                        else IntersectionId2MapSigns[intersectionId] = new List<MapSign>(){mapSign};
+                        if (IntersectionId2MapSigns.ContainsKey(intersectionId))
+                        {
+                            IntersectionId2MapSigns[intersectionId].Add(mapSign);
+                        }
+                        else
+                        {
+                            IntersectionId2MapSigns[intersectionId] = new List<MapSign>() { mapSign };
+                        }
                     }
                 }
                 else
@@ -2070,7 +2312,10 @@ namespace Simulator.Editor
                 {
                     lanes[0].transform.parent = SingleLaneRoads.transform;
                     var lines = new List<MapLine>(mapLaneSection.GetComponentsInChildren<MapLine>());
-                    foreach (var line in lines) line.transform.parent = SingleLaneRoads.transform;
+                    foreach (var line in lines)
+                    {
+                        line.transform.parent = SingleLaneRoads.transform;
+                    }
                 }
             }
         }
@@ -2080,7 +2325,10 @@ namespace Simulator.Editor
             var mapLaneSections = new List<MapLaneSection>(MapAnnotationData.GetData<MapLaneSection>());
             foreach (var mapLaneSection in mapLaneSections)
             {
-                if (mapLaneSection.transform.childCount == 0) UnityEngine.Object.DestroyImmediate(mapLaneSection.gameObject);
+                if (mapLaneSection.transform.childCount == 0)
+                {
+                    UnityEngine.Object.DestroyImmediate(mapLaneSection.gameObject);
+                }
             }
         }
 
@@ -2091,8 +2339,14 @@ namespace Simulator.Editor
                 var afters = lane.afters;
                 foreach (var before in lane.befores)
                 {
-                    if (before.afters.Contains(lane)) before.afters.Remove(lane);
-                    if (updateBeforeAfter && afters.Count > 0) before.afters.AddRange(afters);
+                    if (before.afters.Contains(lane))
+                    {
+                        before.afters.Remove(lane);
+                    }
+                    if (updateBeforeAfter && afters.Count > 0)
+                    {
+                        before.afters.AddRange(afters);
+                    }
                 }
             }
 
@@ -2101,8 +2355,14 @@ namespace Simulator.Editor
                 var befores = lane.befores;
                 foreach (var after in lane.afters)
                 {
-                    if (after.befores.Contains(lane)) after.befores.Remove(lane);
-                    if (updateBeforeAfter && befores.Count > 0) after.befores.AddRange(befores);
+                    if (after.befores.Contains(lane))
+                    {
+                        after.befores.Remove(lane);
+                    }
+                    if (updateBeforeAfter && befores.Count > 0)
+                    {
+                        after.befores.AddRange(befores);
+                    }
                 }
             }
         }
@@ -2196,6 +2456,4 @@ namespace Simulator.Editor
                 .All(b => b);
         }
     }
-
-
 }

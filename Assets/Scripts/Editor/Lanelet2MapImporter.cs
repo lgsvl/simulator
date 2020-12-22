@@ -192,7 +192,7 @@ namespace Simulator.Editor
             using (var fileStream = new FileInfo(@filePath).OpenRead())
             {
                 var source = new OsmSharp.Streams.XmlOsmStreamSource(fileStream);
-                
+
                 // filter all ways and keep all nodes.
                 var filtered = from osmGeo in source
                 where osmGeo.Type == OsmSharp.OsmGeoType.Node || 
@@ -207,6 +207,13 @@ namespace Simulator.Editor
                 if (GameObject.Find(mapName)) 
                 {
                     Debug.LogError("A map with same name exists, cancelling map importing.");
+                    return false;
+                }
+
+                var holder = GameObject.FindObjectOfType<MapHolder>();
+                if (holder != null)
+                {
+                    Debug.LogError($"MapHolder exists in scene, please delete {holder.name} to import", holder);
                     return false;
                 }
 
@@ -387,7 +394,6 @@ namespace Simulator.Editor
                             shortLanesId.Add(element.Id.Value);
                         }
 
-
                         // Create MapLane based on center line, MapLine based on two ways
                         GameObject mapLaneObj = new GameObject("MapLane_" + element.Id);
                         MapLane mapLane = mapLaneObj.AddComponent<MapLane>();
@@ -412,7 +418,7 @@ namespace Simulator.Editor
                         // // Fill left/right boundryLine          
                         mapLane.leftLineBoundry = LineId2GameObject[leftLineStringId].GetComponent<MapLine>();
                         mapLane.rightLineBoundry = LineId2GameObject[rightLineStringId].GetComponent<MapLine>();
-                        
+
                         MapLaneId2GameObject[element.Id.Value] = mapLaneObj;
 
                         // Make temp laneSection
@@ -458,14 +464,14 @@ namespace Simulator.Editor
                         updatelaneId2LaneSectionLaneIds(existingLaneSectionLaneIds);
                         notSeen = false;
                     }
-                    
+
                     if (notSeen)
                     {
                         laneId2LaneSectionLaneIds[laneId1] = tempLaneSectionLaneIds;
                         laneId2LaneSectionLaneIds[laneId2] = tempLaneSectionLaneIds;
                         uniqueLaneSections.Add(tempLaneSectionLaneIds);
                     }
-                    
+
                     visitedLanes.Add(laneId1);
                     visitedLanes.Add(laneId2);
                 }
@@ -540,7 +546,7 @@ namespace Simulator.Editor
                         var mapLine = LineId2GameObject[lineStringId].GetComponent<MapLine>();
                         var worldPositions = mapLine.mapWorldPositions;
                         worldPositions[worldPositions.Count-1] = LineId2GameObject[boundaryLineStringId].GetComponent<MapLine>().mapWorldPositions.Last();
-                        
+
                         var localPositions = mapLine.mapLocalPositions;
                         localPositions[localPositions.Count-1] = mapLine.transform.InverseTransformPoint(worldPositions[worldPositions.Count-1]);
                         foreach (var laneId in lineId2LaneIdList[lineStringId])
@@ -560,7 +566,10 @@ namespace Simulator.Editor
 
                     while (true)
                     {
-                        if (idx == laneIds.Count) break;
+                        if (idx == laneIds.Count)
+                        {
+                            break;
+                        }
 
                         if (!isShort)
                         {
@@ -598,7 +607,6 @@ namespace Simulator.Editor
                     linesToDestroy.Add(leftLineStringId);
                     linesToDestroy.Add(rightLineStringId);
 
-
                     // BruteForce to find preceding lanes and following lanes
                     var worldPositions = mapLane.mapWorldPositions;
                     foreach (var otherLaneId in MapLaneId2GameObject.Keys)
@@ -615,7 +623,7 @@ namespace Simulator.Editor
                         }
                     }
 
-                    lanesToDestroy.Add(laneId);      
+                    lanesToDestroy.Add(laneId);
                 }
 
                 foreach (var lineId in linesToDestroy)
@@ -639,7 +647,7 @@ namespace Simulator.Editor
                         return false; 
                     }
                 }
-                
+
                 // Destroy empty LaneSection objects
                 foreach (var mapLaneSectionId in mapLaneSectionId2Object.Keys)
                 {
@@ -673,7 +681,7 @@ namespace Simulator.Editor
                     {
                         vistedRegulatoryElementIds.Add(regId);
                     }
-                    
+
                     long stopLineId = long.MaxValue;
                     if (tags.GetValue("subtype") == "traffic_light")
                     {
@@ -755,7 +763,7 @@ namespace Simulator.Editor
                             mapSignal.stopLine = stopLine;
                             var signalId = long.Parse(mapSignal.name.Split('_')[1]);
                             mapSignal.transform.rotation = Quaternion.LookRotation(signalDirection);
-                            
+
                             if (IsMeshNeeded)
                             {
                                 var trafficLightObj = UnityEngine.Object.Instantiate(Settings.MapTrafficSignalPrefab, mapSignal.transform.position, mapSignal.transform.rotation);
@@ -849,7 +857,7 @@ namespace Simulator.Editor
                             return false;
                             // TODO: stop line is optional, if not given, we should hint a stop line by the end of the lanelet.
                         }
-                        
+
                         {
                             var signDirection = GetDirectionFromStopLine(stopLineId);
                             var mapSign = mapSigns[0]; // We only use the 1st stop sign
@@ -885,9 +893,8 @@ namespace Simulator.Editor
                     {
                         regId2StopLineId[regId] = stopLineId;
                     }
-                    
                 }
-                
+
                 /////////// Group signs / signals based on their corresponding stop lines. //////////
                 // Compute nearest stop line pairs, one stopline + nearest stopline with opposite signal direction.
                 // Combine pairs if they are close and have perpendicular directions.
@@ -909,7 +916,7 @@ namespace Simulator.Editor
                 {
                     obj.transform.position -= parent.transform.position;
                 };
-                
+
                 // Find out related lanes to each stop line that has a signal/sign, laneId -> regId -> stopLineId
                 foreach (var pair in laneId2RegIds)
                 {
@@ -917,7 +924,7 @@ namespace Simulator.Editor
                     var regIds = pair.Value;
 
                     var regId = regIds[0]; // Assume one lane only has 1 corresponding stop line, so we only use the 1st signal/sign.
-                    
+
                     var stopLineId = regId2StopLineId[regId];
                     if (StopLineId2laneIds.ContainsKey(stopLineId))
                     {
@@ -1022,7 +1029,7 @@ namespace Simulator.Editor
                         mapIntersection.triggerBounds.y = 10;
 
                         mapIntersectionObj.transform.parent = intersections.transform;
-                 
+
                         var stopLineCenterPositions = new List<Vector3>();
                         foreach (var idx in group)
                         {
@@ -1136,7 +1143,7 @@ namespace Simulator.Editor
                 Debug.DrawLine(ToVector3(otherStartingPoint), ToVector3(otherVirtualEndingPoint), Color.red, 60f);
                 Debug.DrawLine(ToVector3(otherStartingPoint), ToVector3(virtualEndingPoint), Color.red, 60f);
             }
-            
+
             var initialQueue = GetInitialQueueFromReferencedLanes(referencedLanes);
             var otherInitialQueue = GetInitialQueueFromReferencedLanes(otherReferencedLanes);
             // Go through all intersection lanes, update yield lanes for left turn lane
@@ -1160,10 +1167,10 @@ namespace Simulator.Editor
                 // Go through all intersection lanes, update yield lanes for left turn lane
                 intersectionLanes = GetIntersectionLanes(initialQueue, otherVirtualEndingPoint, startingPoint, virtualEndingPoint, otherStartingPoint);
                 otherIntersectionLanes = GetIntersectionLanes(otherInitialQueue, virtualEndingPoint, otherStartingPoint, otherVirtualEndingPoint, startingPoint);
-            
+
                 MoveLanesUnderMapIntersection(mapIntersection, intersectionLanes);
                 MoveLanesUnderMapIntersection(mapIntersection, otherIntersectionLanes);
-                
+
                 SetYieldLanesForLeftTurn(intersectionLanes, otherIntersectionLanes);
                 SetYieldLanesForLeftTurn(otherIntersectionLanes, intersectionLanes);
             }
@@ -1179,7 +1186,6 @@ namespace Simulator.Editor
             }
         }
 
-
         // Get intersecting lanes with given stopline's starting and ending points, return offset starting position
         Queue<Tuple<long, Vector2, Vector2>> GetInitialQueue(Vector2 startingPoint, Vector2 endingPoint)
         {
@@ -1191,10 +1197,9 @@ namespace Simulator.Editor
                 var worldPositions = pair.Value.GetComponent<MapLane>().mapWorldPositions;
                 var pFirst = ToVector2(worldPositions[0]);
                 var pLast = ToVector2(worldPositions[worldPositions.Count-1]);
-                
+
                 // if intersect and have correct direction
-                Vector2 intersectPos;
-                if (Utility.LineSegementsIntersect(startingPoint, endingPoint, pFirst, pLast, out intersectPos))
+                if (Utility.LineSegementsIntersect(startingPoint, endingPoint, pFirst, pLast, out Vector2 intersectPos))
                 {
                     var laneDir = (pLast - pFirst).normalized;
                     if (Vector2.Dot(laneDir, normal) > 0)
@@ -1209,7 +1214,7 @@ namespace Simulator.Editor
 
             return initialQueue;
         }
-        
+
         // Set yield lanes for left_turn lanes
         void SetYieldLanesForLeftTurn(List<long> intersectionLanes, List<long> otherIntersectionLanes)
         {
@@ -1267,7 +1272,7 @@ namespace Simulator.Editor
 
                     var offsetStartPos = ToVector2(startPos + offset * dir);
                     queue.Enqueue(Tuple.Create(followingLaneId, offsetStartPos, ToVector2(endPos)));
-                };                               
+                };
             }
             return queue;
         }
@@ -1275,7 +1280,7 @@ namespace Simulator.Editor
         // Find out intersection lanes starting from the stop line, and compute the turn type for them. Using 2D coordinates
         // Use BFS to visit all possible intersection lanes
         List<long> GetIntersectionLanes(Queue<Tuple<long, Vector2, Vector2>> initialQueue, Vector2 startPosStopLine, Vector2 endPosStopLine, Vector2 otherStartPosStopLine, Vector2 otherEndPosStopLine)
-        {          
+        {
             List<long> intersectionLanes = new List<long>();
             Queue<Tuple<long, Vector2, Vector2>> queue = new Queue<Tuple<long, Vector2, Vector2>>(initialQueue); // <laneId, startPos, endPos>
 
@@ -1312,7 +1317,6 @@ namespace Simulator.Editor
                 // paired virtual stop line
 
                 MapData.LaneTurnType? laneTurnType = null;
-
                 if (Utility.LineSegementsIntersect(startPosLane, endPosLane, otherStartPosStopLine, otherEndPosStopLine, out intersectPoint))
                 {
                     // straight
@@ -1412,10 +1416,9 @@ namespace Simulator.Editor
         Vector3 GetDirectionFromStopLine(long stopLineId)
         {
             var stopLine = LineId2GameObject[stopLineId].GetComponent<MapLine>();
-
             return -stopLine.transform.forward;
         }
-        
+
         // Return following lanes for a given laneId
         List<long> GetFollowingLanes(long laneId)
         {
@@ -1432,7 +1435,6 @@ namespace Simulator.Editor
                     followingLaneIds.Add(otherLaneId);
                 }
             }
-
             return followingLaneIds;
         }
 

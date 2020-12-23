@@ -670,8 +670,8 @@ namespace Simulator.Bridge.Cyber
 
                 imu = new apollo.localization.Pose()
                 {
-                    linear_acceleration = ConvertToPoint(new Vector3(data.Acceleration.x, data.Acceleration.y, data.Acceleration.z)),
-                    angular_velocity = ConvertToPoint(new Vector3(data.AngularVelocity.x, data.AngularVelocity.y, data.AngularVelocity.z)),
+                    linear_acceleration = ConvertToPoint(new Vector3(data.GlobalAcceleration.x, data.GlobalAcceleration.y, data.GlobalAcceleration.z)),
+                    angular_velocity = ConvertToPoint(new Vector3(data.GlobalAngularVelocity.x, data.GlobalAngularVelocity.y, data.GlobalAngularVelocity.z)),
                     heading = yaw,
                     euler_angles = new apollo.common.Point3D()
                     {

@@ -41,5 +41,7 @@ namespace Simulator.Bridge.Data
         public Vector3 Acceleration;
         public Vector3 LinearVelocity;
         public Vector3 AngularVelocity;
+        public Vector3 GlobalAcceleration;
+        public Vector3 GlobalAngularVelocity;
     }
 }

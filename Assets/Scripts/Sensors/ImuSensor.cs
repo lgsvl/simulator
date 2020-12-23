@@ -45,6 +45,7 @@ namespace Simulator.Sensors
 
         Rigidbody RigidBody;
         Vector3 LastVelocity;
+        Vector3 LastGlobalVelocity;
 
         [AnalysisMeasurement(MeasurementType.Distance)]
         float minX;
@@ -168,8 +169,17 @@ namespace Simulator.Sensors
             var localGravity = transform.InverseTransformDirection(Physics.gravity);
             acceleration -= new Vector3(localGravity.z, -localGravity.x, localGravity.y);
 
-            var angularVelocity = RigidBody.angularVelocity;
+            var globalVelocity = RigidBody.velocity;
+            globalVelocity.Set(globalVelocity.z, -globalVelocity.x, globalVelocity.y);
+            var globalAcceleration = (globalVelocity - LastGlobalVelocity) / Time.fixedDeltaTime;
+            LastGlobalVelocity = globalVelocity;
+            globalAcceleration -= new Vector3(Physics.gravity.z, -Physics.gravity.x, Physics.gravity.y);
+
+            var angularVelocity = transform.InverseTransformDirection(RigidBody.angularVelocity);
             angularVelocity.Set(-angularVelocity.z, angularVelocity.x, -angularVelocity.y); // converting to right handed xyz
+
+            var globalAngularVelocity = RigidBody.angularVelocity;
+            globalAngularVelocity.Set(-globalAngularVelocity.z, globalAngularVelocity.x, -globalAngularVelocity.y);
 
             var orientation = transform.rotation;
             orientation.Set(-orientation.z, orientation.x, -orientation.y, orientation.w); // converting to right handed xyz
@@ -214,6 +224,8 @@ namespace Simulator.Sensors
                 Acceleration = acceleration,
                 LinearVelocity = velocity,
                 AngularVelocity = angularVelocity,
+                GlobalAcceleration = globalAcceleration,
+                GlobalAngularVelocity = globalAngularVelocity,
             };
 
             if (Bridge == null || Bridge.Status != Status.Connected)

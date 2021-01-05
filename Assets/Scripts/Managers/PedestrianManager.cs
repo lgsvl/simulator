@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -183,19 +183,20 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         ped.SetActive(spawnData.Active);
 
         pedController.GUID = spawnData.GenId;
-        pedController.GTID = ++SimulatorManager.Instance.GTIDs;
         CurrentPooledPeds.Add(pedController);
 
         SimulatorManager.Instance.UpdateSegmentationColors(ped);
 
         if (spawnData.API)
         {
-            pedController.InitManual(spawnData);
+            pedController.InitAPIPed(spawnData);
         }
 
         //Add required components for distributing rigidbody from master to clients
         if (Loader.Instance.Network.IsClusterSimulation)
+        {
             ClusterSimulationUtilities.AddDistributedComponents(ped);
+        }
 
         return pedController;
     }
@@ -217,7 +218,8 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
             if (path.mapWorldPositions.Count < 2)
                 continue;
 
-            var spawnPos = path.mapWorldPositions[RandomIndex(path.mapWorldPositions.Count)];
+            var index = RandomIndex(path.mapWorldPositions.Count);
+            var spawnPos = path.mapWorldPositions[index];
             CurrentPooledPeds[i].transform.position = spawnPos;
 
             if (!MapOrigin.IgnorePedBounds)
@@ -235,9 +237,12 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
             if (Physics.CheckSphere(spawnPos, 3f, PedSpawnCheckBitmask))
                 continue;
 
-            CurrentPooledPeds[i].InitPed(spawnPos, path.mapWorldPositions, PEDSeedGenerator.Next(), path);
-            CurrentPooledPeds[i].gameObject.SetActive(true);
-            ActivePedCount++;
+            if (NavMesh.SamplePosition(spawnPos, out NavMeshHit hit, 1f, NavMesh.AllAreas))
+            {
+                CurrentPooledPeds[i].InitPed(hit.position, index, path.mapWorldPositions, PEDSeedGenerator.Next(), path);
+                CurrentPooledPeds[i].gameObject.SetActive(true);
+                ActivePedCount++;
+            }
         }
     }
 
@@ -339,7 +344,6 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
     #endregion
 
     #region network
-
     private DistributedMessage GetSpawnMessage(PedSpawnData data)
     {
         var message = MessagesPool.Instance.GetMessage(
@@ -369,10 +373,10 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         pedController.SetGroundTruthBox();
         var model = pedModels[modelIndex];
         Instantiate(model, ped.transform);
-        pedController.Control = PedestrianController.ControlType.Manual;
+        pedController.Control = PedestrianController.ControlType.None;
         pedController.enabled = false;
         //Force distributed component initialization, as gameobject will stay disabled
-        pedController.InitPed(position, new List<Vector3>(), 0);
+        pedController.InitPed(position, 0, new List<Vector3>(), 0);
         pedController.Initialize();
         CurrentPooledPeds.Add(pedController);
     }
@@ -420,6 +424,5 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
     {
         //TODO support reconnection - send instantiation messages to the peer
     }
-
     #endregion
 }

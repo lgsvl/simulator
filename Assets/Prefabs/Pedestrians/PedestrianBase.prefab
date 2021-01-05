@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: -3920974097751634312}
   - component: {fileID: 6607001734413833196}
   - component: {fileID: 6150082762713833470}
+  - component: {fileID: 1708595432723229517}
   m_Layer: 11
   m_Name: PedestrianBase
   m_TagString: Pedestrian
@@ -43,19 +44,19 @@ NavMeshAgent:
   m_GameObject: {fileID: 968411258855769482}
   m_Enabled: 0
   m_AgentTypeID: 0
-  m_Radius: 0.25
+  m_Radius: 0.5
   m_Speed: 1
   m_Acceleration: 8
   avoidancePriority: 1
   m_AngularSpeed: 200
   m_StoppingDistance: 0
-  m_AutoTraverseOffMeshLink: 1
+  m_AutoTraverseOffMeshLink: 0
   m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 2
   m_BaseOffset: 0
-  m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 2
+  m_WalkableMask: 509
+  m_ObstacleAvoidanceType: 4
 --- !u!114 &-3920974097751634312
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -69,9 +70,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Control: 0
+  targets: []
+  CurrentTargetIndex: 0
+  NextTargetIndex: 0
   idleTime: 3
   targetRange: 1
+  thisPedState: 0
   Name: 
+  CurrentWP: 0
   rb: {fileID: 0}
   CurrentVelocity: {x: 0, y: 0, z: 0}
   CurrentAcceleration: {x: 0, y: 0, z: 0}
@@ -79,6 +85,7 @@ MonoBehaviour:
   Bounds:
     m_Center: {x: 0, y: 0, z: 0}
     m_Extent: {x: 0, y: 0, z: 0}
+  corners: []
 --- !u!136 &6607001734413833196
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -109,3 +116,19 @@ Rigidbody:
   m_Interpolate: 1
   m_Constraints: 80
   m_CollisionDetection: 0
+--- !u!208 &1708595432723229517
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 968411258855769482}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 0
+  m_Extents: {x: 0.5, y: 1, z: 0.5}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 1
+  m_Center: {x: 0, y: 1, z: 0}
+  m_TimeToStationary: 0.5

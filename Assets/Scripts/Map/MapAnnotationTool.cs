@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -33,7 +33,6 @@ namespace Simulator.Map
         {
             SIDEWALK,
             CROSSWALK,
-            JAYWALK
         };
 
         public static bool TOOL_ACTIVE { get; set; } = false;

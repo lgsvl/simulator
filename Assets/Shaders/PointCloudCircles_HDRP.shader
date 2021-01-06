@@ -1,5 +1,5 @@
 ﻿/**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -280,16 +280,12 @@ Shader "Simulator/PointCloud/HDRP/Circles"
                 if (dot(Input.TexCoord, Input.TexCoord) > 1)
                     discard;
 
-                float uvlen = Input.TexCoord.x * Input.TexCoord.x + Input.TexCoord.y * Input.TexCoord.y;
                 float3 view = Input.ViewPos;
-                view.z += (1 - sqrt(uvlen)) * _Size;
-
                 float4 pos = mul(UNITY_MATRIX_P, float4(view, 1));
                 pos /= pos.w;
                 float depth = pos.z;
                 outDepth = depth;
-                
-                outColor = float4(1,1,1,1);
+                outColor = float4(0, 0, 0, 0);
             }
 
             ENDHLSL

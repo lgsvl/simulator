@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -7,8 +7,9 @@
 
 namespace Simulator.PointCloud
 {
+    using System;
     using System.Collections.Generic;
-    using Simulator.Utilities;
+    using Utilities;
     using UnityEngine;
     using UnityEngine.Experimental.Rendering;
     using UnityEngine.Rendering;
@@ -47,13 +48,15 @@ namespace Simulator.PointCloud
         public class PointCloudKernels
         {
             public readonly int Setup;
-            public readonly int SetupFF;
-            public readonly int SetupLinearDepth;
-            public readonly int SetupLinearDepthFF;
-            public readonly int SetupSky;
-            public readonly int SetupFFSky;
-            public readonly int SetupLinearDepthSky;
-            public readonly int SetupLinearDepthFFSky;
+            
+            public readonly int SkyBlend;
+            public readonly int SkyBlendDepth;
+            public readonly int SkyBlendDepthSkip;
+            public readonly int SkyBlendHorizon;
+            public readonly int SkyBlendHorizonSkip;
+            public readonly int SkyBlendSkip;
+            
+            public readonly int FillRoughDepth;
 
             public readonly int Downsample;
 
@@ -65,23 +68,24 @@ namespace Simulator.PointCloud
             public readonly int Push;
 
             public readonly int CalculateNormals;
-            public readonly int CalculateNormalsLinearDepth;
 
             public readonly int SmoothNormals;
-            public readonly int SmoothNormalsLinearDepth;
             public readonly int SmoothNormalsDebug;
-            public readonly int SmoothNormalsLinearDepthDebug;
 
             public PointCloudKernels(ComputeShader cs)
             {
                 Setup = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SetupCopy.KernelName);
-                SetupFF = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SetupCopy.KernelNameFF);
-                SetupLinearDepth = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SetupCopy.KernelNameLinearDepth);
-                SetupLinearDepthFF = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SetupCopy.KernelNameLinearDepthFF);
-                SetupSky = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SetupCopy.KernelNameSky);
-                SetupFFSky = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SetupCopy.KernelNameFFSky);
-                SetupLinearDepthSky = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SetupCopy.KernelNameLinearDepthSky);
-                SetupLinearDepthFFSky = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SetupCopy.KernelNameLinearDepthFFSky);
+                
+                SkyBlend = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SkyBlend.KernelName);
+                SkyBlendDepth = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SkyBlend.KernelNameDepth);
+                SkyBlendDepthSkip = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SkyBlend.KernelNameDepthSkip);
+                SkyBlendHorizon = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SkyBlend.KernelNameHorizon);
+                SkyBlendHorizonSkip = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SkyBlend.KernelNameHorizonSkip);
+                SkyBlendSkip = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SkyBlend.KernelNameSkip);
+                
+                FillRoughDepth = cs.FindKernel(PointCloudShaderIDs.SolidCompute.FillRoughHoles.KernelName);
+
+                Downsample = cs.FindKernel(PointCloudShaderIDs.SolidCompute.FillRoughHoles.KernelName);
 
                 Downsample = cs.FindKernel(PointCloudShaderIDs.SolidCompute.Downsample.KernelName);
 
@@ -93,29 +97,23 @@ namespace Simulator.PointCloud
                 Push = cs.FindKernel(PointCloudShaderIDs.SolidCompute.PushKernel.KernelName);
 
                 CalculateNormals = cs.FindKernel(PointCloudShaderIDs.SolidCompute.CalculateNormals.KernelName);
-                CalculateNormalsLinearDepth = cs.FindKernel(PointCloudShaderIDs.SolidCompute.CalculateNormals.KernelNameLinearDepth);
 
                 SmoothNormals = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SmoothNormals.KernelName);
                 SmoothNormalsDebug = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SmoothNormals.DebugKernelName);
-                SmoothNormalsLinearDepth = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SmoothNormals.KernelNameLinearDepth);
-                SmoothNormalsLinearDepthDebug = cs.FindKernel(PointCloudShaderIDs.SolidCompute.SmoothNormals.DebugKernelNameLinearDepth);
             }
 
-            public int GetSetupKernel(bool linearDepth, bool forceFill, bool blendSky)
+            public int GetSkyBlendKernel(PointCloudRenderer.ForcedFillMode fillMode, bool blendSky)
             {
-                if (linearDepth)
+                switch (fillMode)
                 {
-                    if (blendSky)
-                        return forceFill ? SetupLinearDepthFFSky : SetupLinearDepthSky;
-                    else
-                        return forceFill ? SetupLinearDepthFF : SetupLinearDepth;
-                }
-                else
-                {
-                    if (blendSky)
-                        return forceFill ? SetupFFSky : SetupSky;
-                    else
-                        return forceFill ? SetupFF : Setup;
+                    case PointCloudRenderer.ForcedFillMode.None:
+                        return blendSky ? SkyBlend : SkyBlendSkip;
+                    case PointCloudRenderer.ForcedFillMode.Horizon:
+                        return blendSky ? SkyBlendHorizon : SkyBlendHorizonSkip;
+                    case PointCloudRenderer.ForcedFillMode.HorizonAndDepth:
+                        return blendSky ? SkyBlendDepth : SkyBlendDepthSkip;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(fillMode), fillMode, null);
                 }
             }
 
@@ -124,17 +122,9 @@ namespace Simulator.PointCloud
                 return debug ? RemoveHiddenDebug : RemoveHidden;
             }
 
-            public int GetCalculateNormalsKernel(bool linearDepth)
+            public int GetSmoothNormalsKernel(bool debug)
             {
-                return linearDepth ? CalculateNormalsLinearDepth : CalculateNormals;
-            }
-
-            public int GetSmoothNormalsKernel(bool linearDepth, bool debug)
-            {
-                if (linearDepth)
-                    return debug ? SmoothNormalsLinearDepthDebug : SmoothNormalsLinearDepth;
-                else
-                    return debug ? SmoothNormalsDebug : SmoothNormals;
+                return debug ? SmoothNormalsDebug : SmoothNormals;
             }
         }
 
@@ -233,6 +223,13 @@ namespace Simulator.PointCloud
                 depthBufferBits: DepthBits.Depth32,
                 name: "PC_Depth",
                 wrapMode: TextureWrapMode.Clamp);
+            
+            handles[(int) RTUsage.DepthBuffer2] = RTHandles.Alloc(
+                Vector2.one,
+                colorFormat: GraphicsFormat.R32_UInt,
+                depthBufferBits: DepthBits.Depth32,
+                name: "PC_Depth",
+                wrapMode: TextureWrapMode.Clamp);
 
             handles[(int) RTUsage.Generic0] = RTHandles.Alloc(
                 Vector2.one,
@@ -318,7 +315,7 @@ namespace Simulator.PointCloud
             CirclesMaterial.SetInt(PointCloudShaderIDs.PointsRender.StencilMask, HDRenderPipeline.StencilWriteMaskGBuffer);
 
             // Solid
-            SolidComputeShader = Object.Instantiate(RuntimeSettings.Instance.PointCloudSolid);
+            SolidComputeShader = UnityEngine.Object.Instantiate(RuntimeSettings.Instance.PointCloudSolid);
 
             SolidRenderMaterial = new Material(RuntimeSettings.Instance.PointCloudSolidRender);
             SolidRenderMaterial.hideFlags = HideFlags.DontSave;

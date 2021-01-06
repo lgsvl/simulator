@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -43,6 +43,13 @@ namespace Simulator.PointCloud
         {
             ScreenSpace,
             DepthPrepass
+        }
+
+        public enum ForcedFillMode
+        {
+            None,
+            Horizon,
+            HorizonAndDepth
         }
 
         [Flags]
@@ -118,7 +125,8 @@ namespace Simulator.PointCloud
         public float ReprojectionRatio = 1.1f;
 
         public int DebugSolidBlitLevel;
-        public bool DebugForceFill = true;
+
+        public ForcedFillMode ForcedFill = ForcedFillMode.Horizon;
 
         [Range(-0.4f, 0.2f)]
         public float DebugFillThreshold = -0.2f;
@@ -128,7 +136,6 @@ namespace Simulator.PointCloud
         public int DebugSolidFixedLevel;
         public bool DebugShowRemoveHiddenCascades;
         public bool DebugShowSmoothNormalsCascades;
-        public bool DebugUseLinearDepth;
         public bool DebugBlendSky = true;
 
         private Matrix4x4 previousViewInv;
@@ -330,7 +337,7 @@ namespace Simulator.PointCloud
             CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer);
             CoreUtils.DrawFullScreen(cmd, Resources.SolidComposeMaterial, shaderPassId: lidarComposePass);
         }
-        
+
         private void RenderDepthSolid(CommandBuffer cmd, HDCamera targetCamera, RTHandle colorBuffer, RTHandle depthBuffer)
         {
             // This value changes multiple times per frame, so it has to be set through command buffer, hence global
@@ -389,13 +396,12 @@ namespace Simulator.PointCloud
 
         private void RenderSolidCore(CommandBuffer cmd, HDCamera targetCamera, RTHandle cameraColorBuffer, bool calculateNormals, bool smoothNormals)
         {
-            CoreUtils.SetKeyword(cmd, PointCloudShaderIDs.SolidCompose.LinearDepthKeyword, DebugUseLinearDepth);
-
             var rt = Resources.GetRTHandle(RTUsage.PointRender);
             var rt1 = Resources.GetRTHandle(RTUsage.Generic0);
             var rt2 = Resources.GetRTHandle(RTUsage.Generic1);
             var rtColor = Resources.GetRTHandle(RTUsage.ColorBuffer);
             var rtDepth = Resources.GetRTHandle(RTUsage.DepthBuffer);
+            var rtDepth2 = Resources.GetRTHandle(RTUsage.DepthBuffer2);
 
             var width = targetCamera.actualWidth;
             var height = targetCamera.actualHeight;
@@ -415,17 +421,7 @@ namespace Simulator.PointCloud
                 maxLevel++;
             }
 
-            CoreUtils.SetRenderTarget(cmd, rt, rtDepth);
-            CoreUtils.ClearRenderTarget(cmd, ClearFlag.All, Color.clear);
-
-            CalculateMatrices(targetCamera, out var projMatrix, out var invProjMatrix, out var invViewProjMatrix, out var solidRenderMvp);
-
-            cmd.SetGlobalBuffer(PointCloudShaderIDs.Shared.Buffer, GetBufferForCamera(targetCamera));
-            cmd.SetGlobalInt(PointCloudShaderIDs.Shared.Colorize, (int)Colorize);
-            cmd.SetGlobalFloat(PointCloudShaderIDs.Shared.MinHeight, Bounds.min.y);
-            cmd.SetGlobalFloat(PointCloudShaderIDs.Shared.MaxHeight, Bounds.max.y);
-            cmd.SetGlobalMatrix(PointCloudShaderIDs.SolidRender.MVPMatrix, solidRenderMvp);
-            cmd.DrawProcedural(Matrix4x4.identity, Resources.SolidRenderMaterial, 0, MeshTopology.Points, GetPointCountForCamera(targetCamera));
+            CalculateMatrices(targetCamera, out var projMatrix, out var invProjMatrix, out var invViewMatrix, out var invViewProjMatrix, out var solidRenderMvp);
 
             var cs = Resources.SolidComputeShader;
 
@@ -434,19 +430,75 @@ namespace Simulator.PointCloud
             cmd.SetComputeFloatParam(cs, PointCloudShaderIDs.SolidCompute.FarPlane, targetCamera.camera.farClipPlane);
             cmd.SetComputeMatrixParam(cs, PointCloudShaderIDs.SolidCompute.ProjectionMatrix, projMatrix);
             cmd.SetComputeMatrixParam(cs, PointCloudShaderIDs.SolidCompute.InverseProjectionMatrix, invProjMatrix);
+            cmd.SetComputeMatrixParam(cs, PointCloudShaderIDs.SolidCompute.InverseViewMatrix, invViewMatrix);
             cmd.SetComputeMatrixParam(cs, PointCloudShaderIDs.SolidCompute.InverseVPMatrix, invViewProjMatrix);
             cmd.SetComputeVectorParam(cs, PointCloudShaderIDs.SolidCompute.InverseReprojectionVector, GetInverseUvFovReprojectionVector(targetCamera.camera));
+            
+            cmd.SetGlobalBuffer(PointCloudShaderIDs.Shared.Buffer, GetBufferForCamera(targetCamera));
+            cmd.SetGlobalInt(PointCloudShaderIDs.Shared.Colorize, (int)Colorize);
+            cmd.SetGlobalFloat(PointCloudShaderIDs.Shared.MinHeight, Bounds.min.y);
+            cmd.SetGlobalFloat(PointCloudShaderIDs.Shared.MaxHeight, Bounds.max.y);
+            cmd.SetGlobalMatrix(PointCloudShaderIDs.SolidRender.MVPMatrix, solidRenderMvp);
 
-            var blendSky = DebugBlendSky && cameraColorBuffer != null;
-            var setupCopy = Resources.Kernels.GetSetupKernel(DebugUseLinearDepth, DebugForceFill, blendSky);
-            cmd.SetComputeTextureParam(cs, setupCopy, PointCloudShaderIDs.SolidCompute.SetupCopy.InputColor, rt, 0);
+            if (ForcedFill == ForcedFillMode.HorizonAndDepth || SolidRemoveHidden && HiddenPointRemoval == HprMode.DepthPrepass)
+            {
+                SetCirclesMaterialProperties(cmd, targetCamera);
+                CoreUtils.SetRenderTarget(cmd, rt2, rtDepth2);
+                CoreUtils.ClearRenderTarget(cmd, ClearFlag.All, Color.clear);
+                var pass = Resources.Passes.circlesDepthPrepass;
+                cmd.DrawProcedural(Matrix4x4.identity, Resources.CirclesMaterial, pass, MeshTopology.Points, GetPointCountForCamera(targetCamera));
+            }
+
+            if (ForcedFill == ForcedFillMode.HorizonAndDepth)
+            {
+                var setupCopyFill = Resources.Kernels.Setup;
+                cmd.SetComputeTextureParam(cs, setupCopyFill, PointCloudShaderIDs.SolidCompute.SetupCopy.InputPosition, rtDepth2, 0);
+                cmd.SetComputeTextureParam(cs, setupCopyFill, PointCloudShaderIDs.SolidCompute.SetupCopy.OutputPosition, rt1, 0);
+                cmd.DispatchCompute(cs, setupCopyFill, GetGroupSize(width, 8), GetGroupSize(height, 8), 1);
+
+                // Prepare rough depth with hole fixing
+                var downsample = Resources.Kernels.Downsample;
+                // TODO: only go down to MIP3
+                for (var i = 1; i <= maxLevel + 3; i++)
+                {
+                    GetMipData(resolution, i - 1, out var mipRes, out var mipVec);
+                    cmd.SetComputeVectorParam(cs, PointCloudShaderIDs.SolidCompute.MipTextureSize, mipVec);
+                    cmd.SetComputeTextureParam(cs, downsample, PointCloudShaderIDs.SolidCompute.Downsample.InputPosition, rt1, i - 1);
+                    cmd.SetComputeTextureParam(cs, downsample, PointCloudShaderIDs.SolidCompute.Downsample.OutputPosition, rt1, i);
+                    cmd.DispatchCompute(cs, downsample, GetGroupSize(mipRes.x, 16), GetGroupSize(mipRes.y, 16), 1);
+                }
+
+                var fillHolesKernel = Resources.Kernels.FillRoughDepth;
+                GetMipData(resolution, 4, out var gmipRes, out var higherMipVec);
+                GetMipData(resolution, 4 - 1, out _, out var gmipVec);
+                cmd.SetComputeVectorParam(cs, PointCloudShaderIDs.SolidCompute.MipTextureSize, gmipVec);
+                cmd.SetComputeVectorParam(cs, PointCloudShaderIDs.SolidCompute.HigherMipTextureSize, higherMipVec);
+                cmd.SetComputeTextureParam(cs, fillHolesKernel, PointCloudShaderIDs.SolidCompute.FillRoughHoles.TexIn, rt1);
+                cmd.SetComputeTextureParam(cs, fillHolesKernel, PointCloudShaderIDs.SolidCompute.FillRoughHoles.TexOut, rt2, 4);
+                cmd.DispatchCompute(cs, fillHolesKernel, GetGroupSize(gmipRes.x, 8), GetGroupSize(gmipRes.y, 8), 1);
+            }
+
+            CoreUtils.SetRenderTarget(cmd, rt, rtDepth);
+            CoreUtils.ClearRenderTarget(cmd, ClearFlag.All, Color.clear);
+
+            cmd.DrawProcedural(Matrix4x4.identity, Resources.SolidRenderMaterial, 0, MeshTopology.Points, GetPointCountForCamera(targetCamera));
+
+            var setupCopy = Resources.Kernels.Setup;
             cmd.SetComputeTextureParam(cs, setupCopy, PointCloudShaderIDs.SolidCompute.SetupCopy.InputPosition, rtDepth, 0);
             cmd.SetComputeTextureParam(cs, setupCopy, PointCloudShaderIDs.SolidCompute.SetupCopy.OutputPosition, rt1, 0);
-            cmd.SetComputeTextureParam(cs, setupCopy, PointCloudShaderIDs.SolidCompute.SetupCopy.OutputColor, rtColor, 0);
-            if (blendSky)
-                cmd.SetComputeTextureParam(cs, setupCopy, PointCloudShaderIDs.SolidCompute.SetupCopy.PostSkyPreRenderTexture, cameraColorBuffer, 0);
-            cmd.SetComputeFloatParam(cs, PointCloudShaderIDs.SolidCompute.SetupCopy.HorizonThreshold, DebugFillThreshold);
             cmd.DispatchCompute(cs, setupCopy, GetGroupSize(width, 8), GetGroupSize(height, 8), 1);
+
+            var blendSky = DebugBlendSky && cameraColorBuffer != null;
+            var skyBlend = Resources.Kernels.GetSkyBlendKernel(ForcedFill, blendSky);
+            cmd.SetComputeTextureParam(cs, skyBlend, PointCloudShaderIDs.SolidCompute.SkyBlend.ViewPos, rt1, 0);
+            cmd.SetComputeTextureParam(cs, skyBlend, PointCloudShaderIDs.SolidCompute.SkyBlend.ColorIn, rt, 0);
+            cmd.SetComputeTextureParam(cs, skyBlend, PointCloudShaderIDs.SolidCompute.SkyBlend.ColorOut, rtColor, 0);
+            if (blendSky)
+                cmd.SetComputeTextureParam(cs, skyBlend, PointCloudShaderIDs.SolidCompute.SkyBlend.PostSkyPreRenderTexture, cameraColorBuffer, 0);
+            if (ForcedFill == ForcedFillMode.HorizonAndDepth)
+                cmd.SetComputeTextureParam(cs, skyBlend, PointCloudShaderIDs.SolidCompute.SkyBlend.RoughDepth, rt2, 0);
+            cmd.SetComputeFloatParam(cs, PointCloudShaderIDs.SolidCompute.SkyBlend.HorizonThreshold, DebugFillThreshold);
+            cmd.DispatchCompute(cs, skyBlend, GetGroupSize(width, 8), GetGroupSize(height, 8), 1);
 
             if (SolidRemoveHidden)
             {
@@ -471,6 +523,7 @@ namespace Simulator.PointCloud
 
                         cmd.SetComputeIntParam(cs, PointCloudShaderIDs.SolidCompute.RemoveHidden.LevelCount, maxLevel);
                         cmd.SetComputeTextureParam(cs, removeHidden, PointCloudShaderIDs.SolidCompute.RemoveHidden.Position, rt1);
+                        cmd.SetComputeTextureParam(cs, removeHidden, PointCloudShaderIDs.SolidCompute.RemoveHidden.PositionRough, rt1);
                         cmd.SetComputeTextureParam(cs, removeHidden, PointCloudShaderIDs.SolidCompute.RemoveHidden.Color, rtColor, 0);
                         cmd.SetComputeFloatParam(cs, PointCloudShaderIDs.SolidCompute.RemoveHidden.CascadesOffset, removeHiddenMagic);
                         cmd.SetComputeFloatParam(cs, PointCloudShaderIDs.SolidCompute.RemoveHidden.CascadesSize, RemoveHiddenCascadeSize);
@@ -480,14 +533,9 @@ namespace Simulator.PointCloud
                         break;
                     case HprMode.DepthPrepass:
                     {
-                        SetCirclesMaterialProperties(cmd, targetCamera);
-                        CoreUtils.SetRenderTarget(cmd, rt2, rtDepth);
-                        var pass = Resources.Passes.circlesDepthPrepass;
-                        cmd.DrawProcedural(Matrix4x4.identity, Resources.CirclesMaterial, pass, MeshTopology.Points, GetPointCountForCamera(targetCamera));
-
                         var removeHidden = Resources.Kernels.RemoveHiddenDepthPrepass;
                         cmd.SetComputeTextureParam(cs, removeHidden, PointCloudShaderIDs.SolidCompute.RemoveHidden.Position, rt1);
-                        cmd.SetComputeTextureParam(cs, removeHidden, PointCloudShaderIDs.SolidCompute.RemoveHidden.EarlyDepth, rtDepth, 0);
+                        cmd.SetComputeTextureParam(cs, removeHidden, PointCloudShaderIDs.SolidCompute.RemoveHidden.EarlyDepth, rtDepth2, 0);
                         cmd.SetComputeTextureParam(cs, removeHidden, PointCloudShaderIDs.SolidCompute.RemoveHidden.Color, rtColor, 0);
                         cmd.SetComputeFloatParam(cs, PointCloudShaderIDs.SolidCompute.RemoveHidden.PointScale, AbsoluteSize);
                         cmd.DispatchCompute(cs, removeHidden, GetGroupSize(width, 8), GetGroupSize(height, 8), 1);
@@ -532,7 +580,7 @@ namespace Simulator.PointCloud
 
                 if (calculateNormals)
                 {
-                    var calculateNormalsKernel = Resources.Kernels.GetCalculateNormalsKernel(DebugUseLinearDepth);
+                    var calculateNormalsKernel = Resources.Kernels.CalculateNormals;
                     var normalsTarget = smoothNormals ? rt2 : rt1;
 
                     for (var i = 0; i < maxLevel; ++i)
@@ -547,7 +595,7 @@ namespace Simulator.PointCloud
 
                     if (smoothNormals)
                     {
-                        var smoothNormalsKernel = Resources.Kernels.GetSmoothNormalsKernel(DebugUseLinearDepth, DebugShowSmoothNormalsCascades);
+                        var smoothNormalsKernel = Resources.Kernels.GetSmoothNormalsKernel(DebugShowSmoothNormalsCascades);
                         var smoothNormalsMagic = SmoothNormalsCascadeOffset * height * 0.5f / Mathf.Tan(0.5f * fov * Mathf.Deg2Rad);
 
                         cmd.SetComputeTextureParam(cs, smoothNormalsKernel, PointCloudShaderIDs.SolidCompute.SmoothNormals.Input, rt2);
@@ -696,6 +744,7 @@ namespace Simulator.PointCloud
             HDCamera targetCamera,
             out Matrix4x4 proj,
             out Matrix4x4 invProj,
+            out Matrix4x4 invView,
             out Matrix4x4 invViewProj,
             out Matrix4x4 solidRenderMvp)
         {
@@ -711,6 +760,7 @@ namespace Simulator.PointCloud
             }
 
             invProj = proj.inverse;
+            invView = cameraView.inverse;
             invViewProj = (proj * cameraView).inverse;
 
             var m = transform.localToWorldMatrix;

@@ -1,5 +1,5 @@
 ﻿/**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -15,29 +15,25 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #pragma only_renderers d3d11 vulkan metal
 
-#pragma kernel SetupCopy                        SETUP_COPY=SetupCopy
-#pragma kernel SetupCopyLinearDepth             SETUP_COPY=SetupCopyLinearDepth                     PC_LINEAR_DEPTH
-#pragma kernel SetupCopyFF                      SETUP_COPY=SetupCopyFF                                                  FORCE_FILL
-#pragma kernel SetupCopyLinearDepthFF           SETUP_COPY=SetupCopyLinearDepthFF                   PC_LINEAR_DEPTH     FORCE_FILL
-#pragma kernel SetupCopySky                     SETUP_COPY=SetupCopySky                                                                 BLEND_SKY
-#pragma kernel SetupCopyLinearDepthSky          SETUP_COPY=SetupCopyLinearDepthSky                  PC_LINEAR_DEPTH                     BLEND_SKY
-#pragma kernel SetupCopyFFSky                   SETUP_COPY=SetupCopyFFSky                                               FORCE_FILL      BLEND_SKY
-#pragma kernel SetupCopyLinearDepthFFSky        SETUP_COPY=SetupCopyLinearDepthFFSky                PC_LINEAR_DEPTH     FORCE_FILL      BLEND_SKY
+#pragma kernel SetupCopy
+#pragma kernel SkyBlend                         SKY_BLEND=SkyBlend
+#pragma kernel SkyBlendDepth                    SKY_BLEND=SkyBlendDepth                 FILL_DEPTH
+#pragma kernel SkyBlendDepthSkip                SKY_BLEND=SkyBlendDepthSkip             FILL_DEPTH         SKIP_SKY
+#pragma kernel SkyBlendHorizon                  SKY_BLEND=SkyBlendHorizon               FILL_HORIZON
+#pragma kernel SkyBlendHorizonSkip              SKY_BLEND=SkyBlendHorizonSkip           FILL_HORIZON       SKIP_SKY
+#pragma kernel SkyBlendSkip                     SKY_BLEND=SkyBlendSkip                                     SKIP_SKY
 #pragma kernel Downsample
+#pragma kernel FillRoughHoles
 #pragma kernel RemoveHidden                     REMOVE_HIDDEN=RemoveHidden
-#pragma kernel RemoveHiddenDebug                REMOVE_HIDDEN=RemoveHiddenDebug                                         DEBUG_CASCADES
-#pragma kernel RemoveHiddenDepthPrepass                                                                                 DEPTH_PREPASS
+#pragma kernel RemoveHiddenDebug                REMOVE_HIDDEN=RemoveHiddenDebug         DEBUG_CASCADES
+#pragma kernel RemoveHiddenDepthPrepass                                                 DEPTH_PREPASS
 #pragma kernel ApplyPreviousFrame
 #pragma kernel PullKernel
 #pragma kernel PushKernel
 #pragma kernel CalculateNormals                 CALCULATE_NORMALS=CalculateNormals
-#pragma kernel CalculateNormalsLinearDepth      CALCULATE_NORMALS=CalculateNormalsLinearDepth       PC_LINEAR_DEPTH
-#pragma kernel CalculateNormalsMS               CALCULATE_NORMALS=CalculateNormalsMS                                    MULTI_SAMPLE
-#pragma kernel CalculateNormalsLinearDepthMS    CALCULATE_NORMALS=CalculateNormalsLinearDepthMS     PC_LINEAR_DEPTH     MULTI_SAMPLE
+#pragma kernel CalculateNormalsMS               CALCULATE_NORMALS=CalculateNormalsMS    MULTI_SAMPLE
 #pragma kernel SmoothNormals                    SMOOTH_NORMALS=SmoothNormals
-#pragma kernel SmoothNormalsLinearDepth         SMOOTH_NORMALS=SmoothNormalsLinearDepth             PC_LINEAR_DEPTH
-#pragma kernel SmoothNormalsDebug               SMOOTH_NORMALS=SmoothNormalsDebug                                       DEBUG_CASCADES
-#pragma kernel SmoothNormalsLinearDepthDebug    SMOOTH_NORMALS=SmoothNormalsLinearDepthDebug        PC_LINEAR_DEPTH     DEBUG_CASCADES
+#pragma kernel SmoothNormalsDebug               SMOOTH_NORMALS=SmoothNormalsDebug       DEBUG_CASCADES
 
 static const uint BLOCKSIZE = 8;
 
@@ -50,7 +46,8 @@ CBUFFER_START(cb0)
     float _FarPlane;                // Camera's far plane value
     float4x4 _Proj;                 // Projection matrix
     float4x4 _InverseProj;          // Inverse projection matrix
-    float4x4 _InverseVP;            // Inevrse VP matrix (note: ignores camera-relative rendering)
+    float4x4 _InverseView;          // Inverse view matrix (note: ignores camera-relative rendering)
+    float4x4 _InverseVP;            // Inverse VP matrix (note: ignores camera-relative rendering)    // TODO: Add on C# side
 
     // Copy/setup params
     float _HorizonThreshold = -0.2;
@@ -106,20 +103,16 @@ float4 UnpackRGBA(float2 packed)
 // COPY
 // ============================================================================================
 
-Texture2D<float4> _SetupCopyInput;
 Texture2D<float> _SetupCopyInputPos;
 RWTexture2D<float4> _SetupCopyPosition;
-RWTexture2D<float4> _SetupCopyColor;
-TEXTURE2D_X(_PostSkyPreRenderColorTexture);
 
 [numthreads(BLOCKSIZE, BLOCKSIZE, 1)]
-void SETUP_COPY(uint3 id : SV_DispatchThreadID)
+void SetupCopy(uint3 id : SV_DispatchThreadID)
 {
     if (id.x > (uint) _TexSize.x || id.y > (uint) _TexSize.y)
         return;
 
     uint3 input = uint3(id.xy, 0);
-    float4 color = _SetupCopyInput.Load(input);
     float pos = _SetupCopyInputPos.Load(input);
 
     float2 uv = id.xy * _TexSize.zw + 0.5 * _TexSize.zw;
@@ -129,37 +122,68 @@ void SETUP_COPY(uint3 id : SV_DispatchThreadID)
     float4 viewPos = mul(_InverseProj, projPos);
     viewPos /= viewPos.w;
     viewPos.z = -viewPos.z;
+    // viewPos.z /= _FarPlane;
+
+    _SetupCopyPosition[id.xy] = float4(viewPos.xyz, pos);
+}
+
+// ============================================================================================
+// SKY BLENDING
+// ============================================================================================
+
+Texture2D<float4> _SkyBlendViewPos;
+Texture2D<float4> _SkyBlendRoughDepth;
+Texture2D<float4> _SkyBlendColorIn;
+RWTexture2D<float4> _SkyBlendColorOut;
+TEXTURE2D_X(_PostSkyPreRenderColorTexture);
+
+[numthreads(BLOCKSIZE, BLOCKSIZE, 1)]
+void SKY_BLEND(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x > (uint) _TexSize.x || id.y > (uint) _TexSize.y)
+        return;
+
+    uint3 input = uint3(id.xy, 0);
+    float4 color = _SkyBlendColorIn.Load(input);
+    float4 viewPosFull = _SkyBlendViewPos.Load(input);
+    float4 viewPos = float4(viewPosFull.xyz, 1);
+
+    #ifdef FILL_DEPTH
+    const int depthLevel = 4;
+    float z = _SkyBlendRoughDepth.Load(int3(id.xy >> depthLevel, depthLevel)).z;
+    #endif
+
+    float2 uv = id.xy * _TexSize.zw + 0.5 * _TexSize.zw;
 
     float skyVal = 1;
     if (color.w == 0 && id.x <= (uint) _TexSize.x && id.y <= (uint) _TexSize.y)
     {
         viewPos.z = _FarPlane;
-        #ifdef BLEND_SKY
-            float2 skyUv = uv * _InverseSRMulVec.x + _InverseSRMulVec.yz;
-            float3 sky = SAMPLE_TEXTURE2D_X_LOD(_PostSkyPreRenderColorTexture, sampler_LinearClamp, skyUv, 0).rgb;
-            color.rgb = sky;
-            skyVal = 0;
+        #ifndef SKIP_SKY
+        float2 skyUv = uv * _InverseSRMulVec.x + _InverseSRMulVec.yz;
+        float3 sky = SAMPLE_TEXTURE2D_X_LOD(_PostSkyPreRenderColorTexture, sampler_LinearClamp, skyUv, 0).rgb;
+        color.rgb = sky;
         #endif
+        skyVal = 0;
     }
 
-    #ifdef PC_LINEAR_DEPTH
-    pos = 1.0 - Linear01Depth(pos, _ZBufferParams);
-    #endif
-
-    float3 positionWS = mul(_InverseVP, projPos).xyz;
+    #if defined(FILL_DEPTH) || defined(FILL_HORIZON)
+    // Fill holes below horizon line that have far plane rough depth
+    viewPos.z = -viewPos.z;
+    float3 positionWS = mul(_InverseView, viewPos).xyz;
     float3 worldDir = normalize(positionWS - GetPrimaryCameraPosition());
-
-    #ifdef FORCE_FILL
-    // Always fill holes below horizon line
+    #ifdef FILL_DEPTH
+    if (worldDir.y > _HorizonThreshold || z > _FarPlane * 0.99)
+    #else
     if (worldDir.y > _HorizonThreshold)
+    #endif    
     #endif
-        color.w = 1;
+    color.w = 1;
 
     float weight = min(color.w, 1);
     float2 weightedColor = PackRGBA(float4(color.rgb, skyVal) * weight);
 
-    _SetupCopyPosition[id.xy] = float4(viewPos.xyz, 0);
-    _SetupCopyColor[id.xy] = float4(weightedColor, weight, pos);
+    _SkyBlendColorOut[id.xy] = float4(weightedColor, weight, viewPosFull.w);
 }
 
 // ============================================================================================
@@ -193,10 +217,75 @@ void Downsample(uint3 id : SV_DispatchThreadID)
 }
 
 // ============================================================================================
+// FILL ROUGH DEPTH HOLES
+// ============================================================================================
+
+Texture2D<float4> _FillRoughIn;
+RWTexture2D<float4> _FillRoughOut;
+
+float GetRoughDepth(uint2 base, int2 delta, out float bin)
+{
+    const int2 maxPos = (int2)_MipTexSize.xy;
+    int2 pos = base + delta;
+
+    if (pos.x >= maxPos.x || pos.y >= maxPos.y || pos.x < 0 || pos.y < 0)
+        return 0.0;
+
+    const float4 lSample = _FillRoughIn.Load(int3(pos, 4));
+    bin = lSample.z > _FarPlane * 0.99 ? 0.0 : 1.0;
+
+    return lSample.z;
+}
+
+[numthreads(BLOCKSIZE, BLOCKSIZE, 1)]
+void FillRoughHoles(uint3 id : SV_DispatchThreadID)
+{
+    const uint2 size = (uint2) _MipTexSize.xy;
+    
+    if (id.x > (uint) size.x || id.y > (uint) size.y)
+        return;
+
+    const uint3 input = uint3(id.xy, 4);
+    float4 base = _FillRoughIn.Load(input);
+
+    if (base.z < _FarPlane * 0.99)
+    {
+        _FillRoughOut[id.xy] = base;
+        return;
+    }
+
+    // TODO: this can use GS cache
+    float avg = 0;
+    float bin = 0;
+    float lBin = 0;
+    avg += GetRoughDepth(id.xy, int2(-1, -1), lBin);
+    bin += lBin;
+    avg += GetRoughDepth(id.xy, int2(0, -1), lBin);
+    bin += lBin;
+    avg += GetRoughDepth(id.xy, int2(1, -1), lBin);
+    bin += lBin;
+    avg += GetRoughDepth(id.xy, int2(-1, 0), lBin);
+    bin += lBin;
+    avg += GetRoughDepth(id.xy, int2(1, 0), lBin);
+    bin += lBin;
+    avg += GetRoughDepth(id.xy, int2(-1, 1), lBin);
+    bin += lBin;
+    avg += GetRoughDepth(id.xy, int2(0, 1), lBin);
+    bin += lBin;
+    avg += GetRoughDepth(id.xy, int2(1, 1), lBin);
+    bin += lBin;
+
+    float z = bin >= 5.0 ? (avg / bin) : base.z;
+
+    _FillRoughOut[id.xy] = float4(base.xy, z, 0);
+}
+
+// ============================================================================================
 // REMOVE HIDDEN
 // ============================================================================================
 
 Texture2D<float4> _RemoveHiddenPosition;
+Texture2D<float4> _RemoveHiddenPositionRough;
 Texture2D<float> _RemoveHiddenEarlyDepth;
 RWTexture2D<float4> _RemoveHiddenColor;
 
@@ -246,7 +335,7 @@ void REMOVE_HIDDEN(uint3 id : SV_DispatchThreadID)
     if (_RemoveHiddenLevel == 0)
     {
         int depthLevel = 4;
-        float z = _RemoveHiddenPosition.Load(int3(id.xy >> depthLevel, depthLevel)).z;
+        float z = _RemoveHiddenPositionRough.Load(int3(id.xy >> depthLevel, depthLevel)).z;
         maxlevel = (int)(log2(_RemoveHiddenCascadesOffset / z) / _RemoveHiddenCascadesSize);
     }
     else

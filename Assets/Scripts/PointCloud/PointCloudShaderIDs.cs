@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -43,7 +43,6 @@ namespace Simulator.PointCloud
         {
             public const string TargetGBufferKeyword = "_PC_TARGET_GBUFFER";
             public const string UnlitShadowsKeyword = "_PC_UNLIT_SHADOWS";
-            public const string LinearDepthKeyword = "_PC_LINEAR_DEPTH";
             public static readonly int ColorTexture = Shader.PropertyToID("_ColorTex");
             public static readonly int NormalTexture = Shader.PropertyToID("_NormalDepthTex");
             public static readonly int OriginalDepth = Shader.PropertyToID("_OriginalDepth");
@@ -60,6 +59,7 @@ namespace Simulator.PointCloud
             public static readonly int FarPlane = Shader.PropertyToID("_FarPlane");
             public static readonly int ProjectionMatrix = Shader.PropertyToID("_Proj");
             public static readonly int InverseProjectionMatrix = Shader.PropertyToID("_InverseProj");
+            public static readonly int InverseViewMatrix = Shader.PropertyToID("_InverseView");
             public static readonly int InverseVPMatrix = Shader.PropertyToID("_InverseVP");
             public static readonly int InverseReprojectionVector = Shader.PropertyToID("_InverseSRMulVec");
 
@@ -80,6 +80,29 @@ namespace Simulator.PointCloud
                 public static readonly int PostSkyPreRenderTexture = Shader.PropertyToID("_PostSkyPreRenderColorTexture");
                 public static readonly int HorizonThreshold = Shader.PropertyToID("_HorizonThreshold");
             }
+            
+            public static class SkyBlend
+            {
+                public const string KernelName = "SkyBlend";
+                public const string KernelNameDepth = "SkyBlendDepth";
+                public const string KernelNameDepthSkip = "SkyBlendDepthSkip";
+                public const string KernelNameHorizon = "SkyBlendHorizon";
+                public const string KernelNameHorizonSkip = "SkyBlendHorizonSkip";
+                public const string KernelNameSkip = "SkyBlendSkip";
+                public static readonly int ColorIn = Shader.PropertyToID("_SkyBlendColorIn");
+                public static readonly int ColorOut = Shader.PropertyToID("_SkyBlendColorOut");
+                public static readonly int ViewPos = Shader.PropertyToID("_SkyBlendViewPos");
+                public static readonly int RoughDepth = Shader.PropertyToID("_SkyBlendRoughDepth");
+                public static readonly int PostSkyPreRenderTexture = Shader.PropertyToID("_PostSkyPreRenderColorTexture");
+                public static readonly int HorizonThreshold = Shader.PropertyToID("_HorizonThreshold");
+            }
+            
+            public static class FillRoughHoles
+            {
+                public const string KernelName = "FillRoughHoles";
+                public static readonly int TexIn = Shader.PropertyToID("_FillRoughIn");
+                public static readonly int TexOut = Shader.PropertyToID("_FillRoughOut");
+            }
 
             public static class Downsample
             {
@@ -95,6 +118,7 @@ namespace Simulator.PointCloud
                 public const string DepthPrepassKernelName = "RemoveHiddenDepthPrepass";
                 public static readonly int LevelCount = Shader.PropertyToID("_RemoveHiddenLevelCount");
                 public static readonly int Position = Shader.PropertyToID("_RemoveHiddenPosition");
+                public static readonly int PositionRough = Shader.PropertyToID("_RemoveHiddenPositionRough");
                 public static readonly int Color = Shader.PropertyToID("_RemoveHiddenColor");
                 public static readonly int EarlyDepth = Shader.PropertyToID("_RemoveHiddenEarlyDepth");
                 public static readonly int CascadesOffset = Shader.PropertyToID("_RemoveHiddenCascadesOffset");

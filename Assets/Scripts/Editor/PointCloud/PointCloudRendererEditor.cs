@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -49,8 +49,8 @@ namespace Simulator.Editor.PointCloud
             public static readonly GUIContent DebugBlendSkyContent = new GUIContent(
                 "Blend sky", "If true, sky will be sampled for background color.");
             
-            public static readonly GUIContent DebugForceFillContent = new GUIContent("Force fill",
-                "Always fill holes below the horizon line.");
+            public static readonly GUIContent DebugForceFillContent = new GUIContent("Forced Fill",
+                "Defines if and how holes below horizon line are filled.");
 
             public static readonly GUIContent DebugFillThresholdContent = new GUIContent(
                 "Fill threshold", "Describes how high the horizon for auto-fill is.");
@@ -92,8 +92,7 @@ namespace Simulator.Editor.PointCloud
         private SerializedProperty PixelSize;
         private SerializedProperty AbsoluteSize;
         private SerializedProperty MinPixelSize;
-        private SerializedProperty DebugUseLinearDepth;
-        private SerializedProperty DebugForceFill;
+        private SerializedProperty ForcedFill;
         private SerializedProperty DebugBlendSky;
         private SerializedProperty DebugFillThreshold;
         private SerializedProperty DebugSolidBlitLevel;
@@ -135,8 +134,7 @@ namespace Simulator.Editor.PointCloud
             MinPixelSize = serializedObject.FindProperty(nameof(PointCloudRenderer.MinPixelSize));
             DebugSolidBlitLevel = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidBlitLevel));
             DebugFillThreshold = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugFillThreshold));
-            DebugUseLinearDepth = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugUseLinearDepth));
-            DebugForceFill = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugForceFill));
+            ForcedFill = serializedObject.FindProperty(nameof(PointCloudRenderer.ForcedFill));
             DebugBlendSky = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugBlendSky));
             SolidRemoveHidden = serializedObject.FindProperty(nameof(PointCloudRenderer.SolidRemoveHidden));
             DebugSolidPullPush = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidPullPush));
@@ -219,9 +217,7 @@ namespace Simulator.Editor.PointCloud
                         if (DebugSolidBlitLevel.isExpanded)
                         {
                             EditorGUI.indentLevel++;
-                            EditorGUILayout.PropertyField(DebugUseLinearDepth, Styles.DebugUseLinearDepthContent);
-                            EditorGUILayout.PropertyField(DebugForceFill, Styles.DebugForceFillContent);
-                            EditorGUILayout.PropertyField(DebugFillThreshold, Styles.DebugFillThresholdContent);
+                            DrawForcedFillContent();
                             EditorGUILayout.PropertyField(DebugBlendSky, Styles.DebugBlendSkyContent);
                             EditorGUILayout.PropertyField(DebugSolidBlitLevel, Styles.DebugSolidBlitLevelContent);
                             EditorGUILayout.PropertyField(SolidRemoveHidden, Styles.DebugSolidRemoveHiddenContent);
@@ -410,6 +406,41 @@ namespace Simulator.Editor.PointCloud
             }
 
             EditorGUI.indentLevel = indentLevel;
+        }
+
+        private void DrawForcedFillContent()
+        {
+            EditorGUILayout.PropertyField(ForcedFill, Styles.DebugForceFillContent);
+
+            switch (ForcedFill.enumValueIndex)
+            {
+                case (int) PointCloudRenderer.ForcedFillMode.Horizon:
+                {
+                    EditorGUILayout.PropertyField(DebugFillThreshold, Styles.DebugFillThresholdContent);
+                }
+                    break;
+                case (int) PointCloudRenderer.ForcedFillMode.HorizonAndDepth:
+                {
+                    var rect = CreateBox(4);
+
+                    var indentLevel = EditorGUI.indentLevel;
+                    EditorGUI.indentLevel = 0;
+
+                    EditorGUI.LabelField(rect, "Forced Fill Settings", EditorStyles.boldLabel);
+                    
+                    rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                    EditorGUI.PropertyField(rect, DebugFillThreshold, Styles.DebugFillThresholdContent);
+
+                    rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                    EditorGUI.PropertyField(rect, AbsoluteSize);
+
+                    rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                    EditorGUI.PropertyField(rect, MinPixelSize);
+
+                    EditorGUI.indentLevel = indentLevel;
+                }
+                    break;
+            }
         }
 
         private Rect CreateBox(int lineCount)

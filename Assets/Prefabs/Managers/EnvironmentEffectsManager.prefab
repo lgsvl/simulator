@@ -50,6 +50,8 @@ MonoBehaviour:
   SunGO: {fileID: 5489468262300979065, guid: b06b1e4ae1fc6af418eb69d11ed9c664, type: 3}
   MoonGO: {fileID: 6842651896552845496, guid: 0c39e739af3bbeb4693cdc34600a5823, type: 3}
   RainPfx: {fileID: 8043753324636774091, guid: a83827b2838f9b8439f8cc0622795953, type: 3}
+  VFXRainPrefab: {fileID: 8923071515730875223, guid: 64cc8f80cc2aa374d941d898231a2625,
+    type: 3}
   CloudPrefab: {fileID: 7254588568927184557, guid: 043a03688fcd3a54a848a197092491db,
     type: 3}
   TireSprayPrefab: {fileID: 1588866602428135717, guid: 6ed2208efe1e41948899971498878610,

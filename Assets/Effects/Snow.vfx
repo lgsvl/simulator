@@ -86,7 +86,7 @@ VisualEffectResource:
       VFX_USE_POSITION_CURRENT 1\n#define VFX_USE_PARTICLEID_CURRENT 1\n#define VFX_USE_VELOCITY_CURRENT
       1\n#define VFX_USE_ALIVE_CURRENT 1\n#define VFX_USE_ANGLEZ_CURRENT 1\n#define
       VFX_USE_AGE_CURRENT 1\n#define VFX_WORLD_SPACE 1\n#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXDefines.hlsl\"\n\n\r\nCBUFFER_START(parameters)\n   
-      float4 AngularVelocity_b;\n    float uniform_c;\n    uint3 PADDING_0;\nCBUFFER_END\n\nstruct
+      float4 AngularVelocity_b;\n    float uniform_a;\n    uint3 PADDING_0;\nCBUFFER_END\n\nstruct
       Attributes\n{\n    float lifetime;\n    uint seed;\n    float angularVelocityZ;\n   
       float scaleX;\n    float scaleY;\n    float scaleZ;\n    float3 position;\n   
       uint particleId;\n    float3 velocity;\n    bool alive;\n    float angleZ;\n   
@@ -169,7 +169,7 @@ VisualEffectResource:
       float3(0.0500000007, 0.0500000007, 0.0500000007));\n        }\n        {\n           
       PositionAABox_18D( /*inout */attributes.position,  /*inout */attributes.seed,
       float3(0, 0, 0), float3(10, 5, 10));\n        }\n        {\n            uint
-      tmp_bc = attributes.particleId ^ asuint(uniform_c);\n            float tmp_bd
+      tmp_bc = attributes.particleId ^ asuint(uniform_a);\n            float tmp_bd
       = FixedRand(tmp_bc);\n            float tmp_bf = tmp_bd * (float)3;\n           
       float tmp_bg = (float)1 + tmp_bf;\n            float3 tmp_bh = float3(tmp_bg,
       tmp_bg, tmp_bg);\n            SetAttribute_DC8A9868( /*inout */attributes.scaleX, 
@@ -198,7 +198,7 @@ VisualEffectResource:
       VFX_USE_VELOCITY_CURRENT 1\n#define VFX_USE_MASS_CURRENT 1\n#define VFX_USE_ALIVE_CURRENT
       1\n#define VFX_USE_ANGLEZ_CURRENT 1\n#define VFX_USE_AGE_CURRENT 1\n#define
       VFX_WORLD_SPACE 1\n#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXDefines.hlsl\"\n\n\r\nCBUFFER_START(parameters)\n   
-      float uniform_b;\n    float deltaTime_a;\n    uint2 PADDING_0;\nCBUFFER_END\n\nstruct
+      float uniform_a;\n    float deltaTime_a;\n    uint2 PADDING_0;\nCBUFFER_END\n\nstruct
       Attributes\n{\n    float lifetime;\n    float angularVelocityZ;\n    float3
       position;\n    uint particleId;\n    float3 velocity;\n    float mass;\n   
       bool alive;\n    float angleZ;\n    float age;\n};\n\nstruct SourceAttributes\n{\n};\n\n\n\r\n\r\n#define
@@ -243,12 +243,12 @@ VisualEffectResource:
       = attributes.position;\r\n#endif\r\n#if HAS_STRIPS\r\n            const StripData
       stripData = GetStripDataFromParticleIndex(index, PARTICLE_PER_STRIP_COUNT);\r\n           
       InitStripAttributes(index, attributes, stripData);\r\n#endif\r\n\t\t\t\r\n\t\t\t{\n\t\t\t   
-      uint tmp_bd = attributes.particleId ^ asuint(uniform_b);\n\t\t\t    float tmp_be
+      uint tmp_bd = attributes.particleId ^ asuint(uniform_a);\n\t\t\t    float tmp_be
       = FixedRand(tmp_bd);\n\t\t\t    float tmp_bf = tmp_be * (float)-0.25;\n\t\t\t   
       float tmp_bg = (float)-0.25 + tmp_bf;\n\t\t\t    float3 tmp_bh = float3((float)0,
       tmp_bg, (float)0);\n\t\t\t    Gravity( /*inout */attributes.velocity, tmp_bh,
       deltaTime_a);\n\t\t\t}\n\t\t\t{\n\t\t\t    uint tmp_bc = attributes.particleId
-      ^ asuint(uniform_b);\n\t\t\t    float tmp_bd = FixedRand(tmp_bc);\n\t\t\t   
+      ^ asuint(uniform_a);\n\t\t\t    float tmp_bd = FixedRand(tmp_bc);\n\t\t\t   
       Turbulence_18D(attributes.position,  /*inout */attributes.velocity, attributes.mass,
       float4x4(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1), float4x4(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1),
       tmp_bd, (float)1, (float)1, (int)1, (float)0.5, (float)2, deltaTime_a);\n\t\t\t}\n\t\t\tEulerIntegration(
@@ -285,12 +285,12 @@ VisualEffectResource:
       = attributes.position;\r\n#endif\r\n#if HAS_STRIPS\r\n        const StripData
       stripData = GetStripDataFromParticleIndex(index, PARTICLE_PER_STRIP_COUNT);\r\n       
       InitStripAttributes(index, attributes, stripData);\r\n#endif\r\n\t\t\r\n\t\t{\n\t\t   
-      uint tmp_bd = attributes.particleId ^ asuint(uniform_b);\n\t\t    float tmp_be
+      uint tmp_bd = attributes.particleId ^ asuint(uniform_a);\n\t\t    float tmp_be
       = FixedRand(tmp_bd);\n\t\t    float tmp_bf = tmp_be * (float)-0.25;\n\t\t   
       float tmp_bg = (float)-0.25 + tmp_bf;\n\t\t    float3 tmp_bh = float3((float)0,
       tmp_bg, (float)0);\n\t\t    Gravity( /*inout */attributes.velocity, tmp_bh,
       deltaTime_a);\n\t\t}\n\t\t{\n\t\t    uint tmp_bc = attributes.particleId ^
-      asuint(uniform_b);\n\t\t    float tmp_bd = FixedRand(tmp_bc);\n\t\t    Turbulence_18D(attributes.position, 
+      asuint(uniform_a);\n\t\t    float tmp_bd = FixedRand(tmp_bc);\n\t\t    Turbulence_18D(attributes.position, 
       /*inout */attributes.velocity, attributes.mass, float4x4(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1),
       float4x4(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1), tmp_bd, (float)1, (float)1, (int)1,
       (float)0.5, (float)2, deltaTime_a);\n\t\t}\n\t\tEulerIntegration( /*inout */attributes.position,
@@ -326,7 +326,7 @@ VisualEffectResource:
       VFX_BLENDMODE_ADD 1\n\t\t#define USE_FLIPBOOK 1\n\t\t#define VFX_BYPASS_EXPOSURE
       1\n\t\t#define VFX_PRIMITIVE_QUAD 1\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t#define
       VFX_WORLD_SPACE 1\n\t\t#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t   
-      float uniform_b;\n\t\t    float Color_c;\n\t\t    uint2 PADDING_0;\n\t\tCBUFFER_END\n\t\t\n\t\tstruct
+      float uniform_a;\n\t\t    float Color_c;\n\t\t    uint2 PADDING_0;\n\t\tCBUFFER_END\n\t\t\n\t\tstruct
       Attributes\n\t\t{\n\t\t    float lifetime;\n\t\t    float scaleX;\n\t\t   
       float scaleY;\n\t\t    float scaleZ;\n\t\t    float3 position;\n\t\t    uint
       particleId;\n\t\t    float3 color;\n\t\t    float alpha;\n\t\t    bool alive;\n\t\t   
@@ -334,7 +334,7 @@ VisualEffectResource:
       angleX;\n\t\t    float angleY;\n\t\t    float angleZ;\n\t\t    float pivotX;\n\t\t   
       float pivotY;\n\t\t    float pivotZ;\n\t\t    float size;\n\t\t    float texIndex;\n\t\t   
       float age;\n\t\t};\n\t\t\n\t\tstruct SourceAttributes\n\t\t{\n\t\t};\n\t\t\n\t\tTexture2D
-      mainTexture;\n\t\tSamplerState samplermainTexture;\n\t\tfloat4 mainTexture_TexelSize;\n\t\t\n\n\t\t\n\t\t#define
+      mainTexture;\n\t\tSamplerState samplermainTexture;\n\t\tfloat4 mainTexture_TexelSize;\n\t\t\n\t\t\n\n\t\t\n\t\t#define
       VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t#if
       HAS_STRIPS\n\t\t#define VFX_OPTIONAL_INTERPOLATION \n\t\t#else\n\t\t#define
       VFX_OPTIONAL_INTERPOLATION nointerpolation\n\t\t#endif\n\t\t\n\t\tByteAddressBuffer
@@ -457,7 +457,7 @@ VisualEffectResource:
       = asfloat(attributeBuffer.Load((index * 0x8 + 0x3938705) << 2));\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t//
       Initialize built-in needed attributes\n\t\t\t\t\t\t#if HAS_STRIPS\n\t\t\t\t\t\tInitStripAttributes(index,
       attributes, stripData);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t   
-      uint tmp_bc = attributes.particleId ^ asuint(uniform_b);\n\t\t\t\t    float
+      uint tmp_bc = attributes.particleId ^ asuint(uniform_a);\n\t\t\t\t    float
       tmp_bd = FixedRand(tmp_bc);\n\t\t\t\t    float tmp_bf = tmp_bd * (float)4;\n\t\t\t\t   
       SetAttribute_CA10063D( /*inout */attributes.texIndex, tmp_bf);\n\t\t\t\t}\n\t\t\t\tOrient_4(
       /*inout */attributes.axisX,  /*inout */attributes.axisY,  /*inout */attributes.axisZ);\n\t\t\t\tAttributeFromCurve_48A86161(
@@ -674,7 +674,7 @@ VisualEffectResource:
       = asfloat(attributeBuffer.Load((index * 0x8 + 0x3938705) << 2));\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t//
       Initialize built-in needed attributes\n\t\t\t\t\t\t#if HAS_STRIPS\n\t\t\t\t\t\tInitStripAttributes(index,
       attributes, stripData);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t   
-      uint tmp_bc = attributes.particleId ^ asuint(uniform_b);\n\t\t\t\t    float
+      uint tmp_bc = attributes.particleId ^ asuint(uniform_a);\n\t\t\t\t    float
       tmp_bd = FixedRand(tmp_bc);\n\t\t\t\t    float tmp_bf = tmp_bd * (float)4;\n\t\t\t\t   
       SetAttribute_CA10063D( /*inout */attributes.texIndex, tmp_bf);\n\t\t\t\t}\n\t\t\t\tOrient_4(
       /*inout */attributes.axisX,  /*inout */attributes.axisY,  /*inout */attributes.axisZ);\n\t\t\t\tAttributeFromCurve_48A86161(
@@ -1312,7 +1312,7 @@ VisualEffectResource:
       values:
       - nameId: AngularVelocity_b
         index: 25
-      - nameId: uniform_c
+      - nameId: uniform_a
         index: 2
       params:
       - nameId: bounds_center
@@ -1329,7 +1329,7 @@ VisualEffectResource:
         index: 2
       temporaryBuffers: []
       values:
-      - nameId: uniform_b
+      - nameId: uniform_a
         index: 2
       - nameId: deltaTime_a
         index: 28
@@ -1342,7 +1342,7 @@ VisualEffectResource:
         index: 0
       temporaryBuffers: []
       values:
-      - nameId: uniform_b
+      - nameId: uniform_a
         index: 2
       - nameId: Color_c
         index: 14

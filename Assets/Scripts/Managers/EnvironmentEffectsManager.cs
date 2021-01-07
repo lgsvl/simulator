@@ -11,6 +11,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using Simulator;
+using Simulator.Components;
 using Simulator.Map;
 using Simulator.Network.Core.Messaging;
 using Simulator.Network.Shared;
@@ -56,6 +57,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
     public GameObject SunGO;
     public GameObject MoonGO;
     public ParticleSystem RainPfx;
+    public VFXRain VFXRainPrefab;
     public GameObject CloudPrefab;
     public GameObject TireSprayPrefab;
 
@@ -83,6 +85,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
     private float PrevRain = 0f;
     private List<RainVolume> RainVolumes = new List<RainVolume>();
     private List<ParticleSystem> RainPfxs = new List<ParticleSystem>();
+    private VFXRain VFXRain;
 
     [Range(0f, 1f)]
     public float Fog = 0f;
@@ -184,10 +187,22 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
         CloudRenderer = Instantiate(CloudPrefab, new Vector3(0f, 0f, 0f), Quaternion.identity).GetComponentInChildren<Renderer>();
 
-        RainVolumes.AddRange(FindObjectsOfType<RainVolume>());
-        foreach (var volume in RainVolumes)
+        // RainVolumes.AddRange(FindObjectsOfType<RainVolume>());
+        // foreach (var volume in RainVolumes)
+        // {
+        //     RainPfxs.Add(volume.Init(RainPfx, RandomGenerator.Next()));
+        // }
+
+        VFXRain = Instantiate(VFXRainPrefab);
+        var origin = MapOrigin.Find();
+        var trans = VFXRain.transform;
+        var pos = trans.position;
+        pos.y += origin.transform.position.y;
+        trans.position = pos;
+        var agents = SimulatorManager.Instance.AgentManager.ActiveAgents;
+        foreach (var agent in agents)
         {
-            RainPfxs.Add(volume.Init(RainPfx, RandomGenerator.Next()));
+            VFXRain.RegisterTrackedEntity(agent.AgentGO.transform);
         }
 
         WetObjects.AddRange(GameObject.FindGameObjectsWithTag("Road"));
@@ -409,6 +424,8 @@ public class EnvironmentEffectsManager : MonoBehaviour
     {
         if (Rain != PrevRain)
         {
+            VFXRain.SetIntensity(Rain);
+            
             foreach (var pfx in RainPfxs)
             {
                 var emit = pfx.emission;
@@ -576,64 +593,5 @@ public class EnvironmentEffectsManager : MonoBehaviour
         State.Wet = Wet;
         State.Cloud = Cloud;
         State.TimeOfDay = CurrentTimeOfDay;
-    }
-
-    private void VFXRain() // TODO memory issue with this approach do not use
-    {
-        //using UnityEngine.VFX;
-
-        // var
-        //[Space(5, order = 0)]
-        //[Header("Rain", order = 1)]
-        //public GameObject RainEffectPrefab;
-        //private float RainAmountMax = 100000f;
-        //private GameObject RainEffect;
-        //private List<VisualEffect> ActiveRainVfxs = new List<VisualEffect>();
-
-        // init
-        //RainEffect = Instantiate(RainEffectPrefab, Vector3.zero, Quaternion.identity);
-        //ActiveRainVfxs.AddRange(RainEffect.GetComponentsInChildren<VisualEffect>());
-
-        //RaycastHit hit;
-        //var seed = Convert.ToUInt32(RandomGenerator.Next());
-        //for (int i = 0; i < ActiveRainVfxs.Count; i++)
-        //{
-        //    ActiveRainVfxs[i].SetFloat("_RainfallAmount", 0f);
-        //    ActiveRainVfxs[i].startSeed = seed;
-        //    var fxBounds = ActiveRainVfxs[i].GetVector3("_RainfallFXBounds");
-        //    var wp = ActiveRainVfxs[i].transform.position;
-        //    Vector3[] boundsToCheck =
-        //    {
-        //        new Vector3(wp.x + fxBounds.x/2f, fxBounds.y, wp.z + fxBounds.z/2f),
-        //        new Vector3(wp.x + fxBounds.x/2f, fxBounds.y, wp.z - fxBounds.z/2f),
-        //        new Vector3(wp.x - fxBounds.x/2f, fxBounds.y, wp.z - fxBounds.z/2f),
-        //        new Vector3(wp.x - fxBounds.x/2f, fxBounds.y, wp.z + fxBounds.z/2f)
-        //    };
-
-        //    bool isHit = false;
-        //    foreach (var pt in boundsToCheck)
-        //    {
-        //        if (Physics.Raycast(pt, ActiveRainVfxs[i].transform.TransformDirection(Vector3.down), out hit, Mathf.Infinity))
-        //        {
-        //            isHit = true;
-        //            continue;
-        //        }
-        //    }
-
-        //    if (!isHit)
-        //    {
-        //        ActiveRainVfxs[i].Stop();
-        //        ActiveRainVfxs[i].enabled = false;
-        //    }
-        //}
-
-        // UpdateRain
-        //if (rain != prevRain)
-        //{
-        //    foreach (var vfx in ActiveRainVfxs)
-        //    {
-        //        vfx.SetFloat("_RainfallAmount", Mathf.Lerp(0f, RainAmountMax, rain));
-        //    }
-        //}
     }
 }

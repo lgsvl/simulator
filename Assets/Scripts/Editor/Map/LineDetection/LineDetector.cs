@@ -10,10 +10,11 @@ namespace Simulator.Editor.MapLineDetection
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Text.RegularExpressions;
-    using Simulator.Map.LineDetection;
+    using Map.LineDetection;
     using UnityEditor;
     using UnityEngine;
     using UnityEngine.Rendering;
@@ -31,8 +32,6 @@ namespace Simulator.Editor.MapLineDetection
 
             var correctionNeeded = settings.lineSource == LineDetectionSettings.LineSource.CorrectedHdMap || settings.generateLineSensorData;
             var corrector = correctionNeeded ? new MapLineAlignmentCorrector(settings) : null;
-
-            // var road = roadRenderers.FirstOrDefault(x => x.name == "ShalunRoad64");
 
             try
             {
@@ -374,7 +373,7 @@ namespace Simulator.Editor.MapLineDetection
                 if (tokens[i].Length == 0)
                     continue;
 
-                result[currentItem++] = float.Parse(tokens[i]);
+                result[currentItem++] = float.Parse(tokens[i], CultureInfo.InvariantCulture);
             }
 
             result.y = 1.0f - result.y;

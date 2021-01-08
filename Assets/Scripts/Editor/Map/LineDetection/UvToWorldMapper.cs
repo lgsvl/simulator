@@ -319,7 +319,7 @@ namespace Simulator.Editor.MapLineDetection
             }
 
             nextTriangleStart = -1;
-            intersection = default;
+            intersection = uvStart;
 
             var uv1 = uv[tris[triangleStart]];
             var uv2 = uv[tris[triangleStart + 1]];

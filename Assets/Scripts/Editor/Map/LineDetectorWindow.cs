@@ -215,8 +215,7 @@ namespace Simulator.Editor
 
             var showMapMeshSettings =
                 lineDetectionSettings.lineSource == LineDetectionSettings.LineSource.HdMap ||
-                lineDetectionSettings.lineSource == LineDetectionSettings.LineSource.CorrectedHdMap ||
-                lineDetectionSettings.generateLineSensorData;
+                lineDetectionSettings.lineSource == LineDetectionSettings.LineSource.CorrectedHdMap;
 
             if (showDetectionSettings)
             {

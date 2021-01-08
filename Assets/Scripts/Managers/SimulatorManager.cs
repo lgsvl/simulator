@@ -614,6 +614,9 @@ public class SimulatorManager : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (Time.timeScale == 0) // prevents random frames during init
+            return;
+
         CurrentTime += Time.fixedDeltaTime;
         CurrentFrame += 1;
 

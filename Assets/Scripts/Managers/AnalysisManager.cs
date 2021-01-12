@@ -282,6 +282,7 @@ namespace Simulator.Analysis
             iterationInfo.Add("StartTime", AnalysisStart);
             iterationInfo.Add("StopTime", DateTime.Now);
             iterationInfo.Add("Version", "0.2");
+            iterationInfo.Add("Status", Status.ToString());
 
             resultRoot.Add("Agents", agentsJA);
             resultRoot.Add("simulationConfig", configJO);

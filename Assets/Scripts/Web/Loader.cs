@@ -197,6 +197,11 @@ namespace Simulator
 
             status = value;
 
+            if (value == SimulatorStatus.Error)
+            {
+                SimulatorManager.Instance.AnalysisManager.AddErrorEvent(message);
+            }
+
             if (previous == newStatus)
                 return;
 

@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace Simulator.Map
 {
-    public class MapPedestrian : MapLaneBase
+    public class MapPedestrianLane : MapLane
     {
         public MapAnnotationTool.PedestrianPathType type = MapAnnotationTool.PedestrianPathType.SIDEWALK;
         public int PedVolume { get; set; } = 1;

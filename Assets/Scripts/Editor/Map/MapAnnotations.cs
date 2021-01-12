@@ -1112,7 +1112,7 @@ public class MapAnnotations : EditorWindow
         {
             case 0:
                 newGo.name = "MapLane";
-                newGo.AddComponent<MapLane>();
+                newGo.AddComponent<MapTrafficLane>();
                 break;
             case 1:
                 newGo.name = "MapLineStop";
@@ -1164,7 +1164,7 @@ public class MapAnnotations : EditorWindow
         switch (tool.createType)
         {
             case 0: // lane
-                var lane = newGo.GetComponent<MapLane>();
+                var lane = newGo.GetComponent<MapTrafficLane>();
                 foreach (var pos in tempLocalPos)
                     lane.mapLocalPositions.Add(newGo.transform.InverseTransformPoint(pos));
                 lane.laneTurnType = (MapData.LaneTurnType)tool.laneTurnType + 1;
@@ -1214,7 +1214,7 @@ public class MapAnnotations : EditorWindow
         {
             case 0:
                 newGo.name = "MapLane";
-                newGo.AddComponent<MapLane>();
+                newGo.AddComponent<MapTrafficLane>();
                 break;
             case 1:
                 newGo.name = "MapLineStop";
@@ -1249,11 +1249,11 @@ public class MapAnnotations : EditorWindow
         switch (tool.createType)
         {
             case 0: // lane
-                var lane = newGo.GetComponent<MapLane>();
+                var lane = newGo.GetComponent<MapTrafficLane>();
                 foreach (var pos in tempLocalPos)
                     lane.mapLocalPositions.Add(newGo.transform.InverseTransformPoint(pos));
-                newGo.GetComponent<MapLane>().laneTurnType = (MapData.LaneTurnType)tool.laneTurnType + 1;
-                newGo.GetComponent<MapLane>().speedLimit = tool.laneSpeedLimit;
+                newGo.GetComponent<MapTrafficLane>().laneTurnType = (MapData.LaneTurnType)tool.laneTurnType + 1;
+                newGo.GetComponent<MapTrafficLane>().speedLimit = tool.laneSpeedLimit;
                 break;
             case 1: // stopline
                 var line = newGo.GetComponent<MapLine>();
@@ -1550,7 +1550,7 @@ public class MapAnnotations : EditorWindow
 
         var newGo = new GameObject("MapPedestrian");
         Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
-        var ped = newGo.AddComponent<MapPedestrian>();
+        var ped = newGo.AddComponent<MapPedestrianLane>();
 
         Vector3 avePos = Vector3.Lerp(tool.tempWaypoints[0].transform.position, tool.tempWaypoints[tool.tempWaypoints.Count - 1].transform.position, 0.5f);
         newGo.transform.position = avePos;
@@ -1887,7 +1887,7 @@ public class MapAnnotations : EditorWindow
         }
     }
 
-    private int GetLaneNumber(MapLane lane)
+    private int GetLaneNumber(MapTrafficLane lane)
     {
         var laneName = lane.name;
         var laneNumber = Regex.Match(laneName, @"\d+").Value;
@@ -1895,7 +1895,7 @@ public class MapAnnotations : EditorWindow
         return lane.GetInstanceID();
     }
 
-    private string RenameLine(MapLane lane, MapLane otherLane)
+    private string RenameLine(MapTrafficLane lane, MapTrafficLane otherLane)
     {
         var newName = new List<string>(){"MapLine"};
         var otherLaneNumber = GetLaneNumber(otherLane);
@@ -1914,7 +1914,7 @@ public class MapAnnotations : EditorWindow
             mapDataPoints.mapWorldPositions.Add(mapDataPoints.transform.TransformPoint(localPos));
     }
 
-    private void AddWorldPositions(List<MapLane> lanes)
+    private void AddWorldPositions(List<MapTrafficLane> lanes)
     {
         foreach (var lane in lanes)
         {
@@ -1926,10 +1926,10 @@ public class MapAnnotations : EditorWindow
         }
     }
 
-    private void FindAndRemoveExtraLines(List<MapLane> lanes)
+    private void FindAndRemoveExtraLines(List<MapTrafficLane> lanes)
     {
-        var visitedLanesLeft = new HashSet<MapLane>();
-        var visitedLanesRight = new HashSet<MapLane>();
+        var visitedLanesLeft = new HashSet<MapTrafficLane>();
+        var visitedLanesRight = new HashSet<MapTrafficLane>();
         var threshold = 1.0;
 
         foreach (var lane in lanes)
@@ -1958,7 +1958,7 @@ public class MapAnnotations : EditorWindow
         return closestPoint;
     }
 
-    private bool isSameDirection(MapLane lane, MapLine line)
+    private bool isSameDirection(MapTrafficLane lane, MapLine line)
     {
         var laneVec = lane.mapWorldPositions.Last() - lane.mapWorldPositions.First();
         var lineVec = line.mapWorldPositions.Last() - line.mapWorldPositions.First();
@@ -1966,7 +1966,7 @@ public class MapAnnotations : EditorWindow
         return Vector3.Dot(laneVec, lineVec) > 0;
     }
 
-    private void CheckLeftLine(List<MapLane> lanes, HashSet<MapLane> visitedLanesLeft, HashSet<MapLane> visitedLanesRight, double threshold, MapLane lane)
+    private void CheckLeftLine(List<MapTrafficLane> lanes, HashSet<MapTrafficLane> visitedLanesLeft, HashSet<MapTrafficLane> visitedLanesRight, double threshold, MapTrafficLane lane)
     {
         var leftLine = lane.leftLineBoundry;
         var leftStartPoint = leftLine.mapWorldPositions.First();
@@ -2027,7 +2027,7 @@ public class MapAnnotations : EditorWindow
         }
     }
 
-    private void CheckRightLine(List<MapLane> lanes, HashSet<MapLane> visitedLanesLeft, HashSet<MapLane> visitedLanesRight, double threshold, MapLane lane)
+    private void CheckRightLine(List<MapTrafficLane> lanes, HashSet<MapTrafficLane> visitedLanesLeft, HashSet<MapTrafficLane> visitedLanesRight, double threshold, MapTrafficLane lane)
     {
         var rightLine = lane.rightLineBoundry;
         var rightStartPoint = rightLine.mapWorldPositions.First();
@@ -2088,16 +2088,16 @@ public class MapAnnotations : EditorWindow
         }
     }
 
-    private void AlignLineEndPoints(List<MapLane> mapLanes)
+    private void AlignLineEndPoints(List<MapTrafficLane> mapLanes)
     {
-        foreach (MapLane lane in mapLanes)
+        foreach (MapTrafficLane lane in mapLanes)
         {
             AlignLineEndPoints(lane, lane.leftLineBoundry, true);
             AlignLineEndPoints(lane, lane.rightLineBoundry, false);
         }
     }
 
-    private void AlignLineEndPoints(MapLane lane, MapLine line, bool isLeft)
+    private void AlignLineEndPoints(MapTrafficLane lane, MapLine line, bool isLeft)
     {
         var sameDirection = isSameDirection(lane, line);
         if (lane.befores.Count > 0)
@@ -2131,12 +2131,12 @@ public class MapAnnotations : EditorWindow
         var mapLaneSections = mapAnnotationData.GetLaneSections();
 
         ExtraLinesCnt = 0;
-        var allLanes = new HashSet<MapLane>(mapAnnotationData.GetData<MapLane>());
+        var allLanes = new HashSet<MapTrafficLane>(mapAnnotationData.GetData<MapTrafficLane>());
         AddWorldPositions(allLanes.ToList());
         ApolloMapImporter.LinkSegments(allLanes);
         foreach (var mapLaneSection in mapLaneSections)
         {
-            var mapLanes = new List<MapLane>(mapLaneSection.GetComponentsInChildren<MapLane>());
+            var mapLanes = new List<MapTrafficLane>(mapLaneSection.GetComponentsInChildren<MapTrafficLane>());
             FindAndRemoveExtraLines(mapLanes);
         }
         if (showMsg) Debug.Log($"Removed {ExtraLinesCnt} extra boundary lines from MapLaneSections.");
@@ -2145,7 +2145,7 @@ public class MapAnnotations : EditorWindow
         ExtraLinesCnt = 0;
         foreach (var mapIntersection in mapIntersections)
         {
-            var mapLanes = new List<MapLane>(mapIntersection.GetComponentsInChildren<MapLane>());
+            var mapLanes = new List<MapTrafficLane>(mapIntersection.GetComponentsInChildren<MapTrafficLane>());
             AlignLineEndPoints(mapLanes);
             FindAndRemoveExtraLines(mapLanes);
         }
@@ -2197,7 +2197,7 @@ public class MapAnnotations : EditorWindow
         Record(mapAnnotationData, out UnityEngine.GameObject root,
             out string assetPath, out bool isPrefab, "Create fake boundary lines");
 
-        var laneSegments = new HashSet<MapLane>(mapAnnotationData.GetData<MapLane>());
+        var laneSegments = new HashSet<MapTrafficLane>(mapAnnotationData.GetData<MapTrafficLane>());
         var fakeBoundaryLineList = new List<MapLine>();
         var changed = false;
         if (!Lanelet2MapExporter.AreAllLanesWithBoundaries(laneSegments))

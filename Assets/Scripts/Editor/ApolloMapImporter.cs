@@ -33,7 +33,7 @@ using apollo.hdmap;
         MapOrigin MapOrigin;
         Map ApolloMap;
         Dictionary<string, MapIntersection> Id2MapIntersection = new Dictionary<string, MapIntersection>();
-        Dictionary<string, MapLane> Id2Lane = new Dictionary<string, MapLane>();
+        Dictionary<string, MapTrafficLane> Id2Lane = new Dictionary<string, MapTrafficLane>();
         Dictionary<string, Lane> Id2ApolloLane = new Dictionary<string, Lane>();
         Dictionary<string, MapLine> Id2LeftLineBoundary = new Dictionary<string, MapLine>();
         Dictionary<string, MapLine> Id2RightLineBoundary = new Dictionary<string, MapLine>();
@@ -359,7 +359,7 @@ using apollo.hdmap;
 
             GameObject mapLaneObj = new GameObject("MapLane_" + id);
 
-            MapLane mapLane = mapLaneObj.AddComponent<MapLane>();
+            MapTrafficLane mapLane = mapLaneObj.AddComponent<MapTrafficLane>();
             mapLane.mapWorldPositions = ConvertUTMFromDouble3(lanePoints);
             UpdateObjPosAndLocalPos(mapLaneObj.transform, mapLane);
 
@@ -484,7 +484,7 @@ using apollo.hdmap;
 
         void CheckLeftLines(List<string> laneIds, HashSet<string> visitedLanesLeft, HashSet<string> visitedLanesRight)
         {
-            MapLane otherLane;
+            MapTrafficLane otherLane;
 
             foreach (var laneId in laneIds)
             {
@@ -525,7 +525,7 @@ using apollo.hdmap;
 
         void CheckRightLines(List<string> laneIds, HashSet<string> visitedLanesLeft, HashSet<string> visitedLanesRight)
         {
-            MapLane otherLane;
+            MapTrafficLane otherLane;
 
             foreach (var laneId in laneIds)
             {
@@ -625,7 +625,7 @@ using apollo.hdmap;
                 }
             }
             // Update each lane's befores/afters manually since the imported map might miss some connections.
-            LinkSegments(new HashSet<MapLane>(Id2Lane.Values));
+            LinkSegments(new HashSet<MapTrafficLane>(Id2Lane.Values));
         }
 
         // Link before and after lanes/lines
@@ -695,7 +695,7 @@ using apollo.hdmap;
         // Make current lane's start/end point same as predecessor/successor lane's end/start point
         void AdjustStartOrEndPoint(List<Vector3> positions, string connectLaneId, bool adjustEndPoint)
         {
-            MapLane connectLane = Id2Lane[connectLaneId];
+            MapTrafficLane connectLane = Id2Lane[connectLaneId];
             var connectLaneWorldPositions = connectLane.mapWorldPositions;
             var connectLaneLocalPositions = connectLane.mapLocalPositions;
             if (adjustEndPoint)
@@ -836,7 +836,7 @@ using apollo.hdmap;
             return preJunctionId != null ? preJunctionId : sucJunctionId;
         }
 
-        string GetJunctionId(List<MapLane> lanes)
+        string GetJunctionId(List<MapTrafficLane> lanes)
         {
             foreach (var lane in lanes)
             {
@@ -1215,7 +1215,7 @@ using apollo.hdmap;
             var maxProduct = 0f;
             foreach (Transform child in mapIntersection.transform)
             {
-                var mapLane = child.GetComponent<MapLane>();
+                var mapLane = child.GetComponent<MapTrafficLane>();
                 if (mapLane != null)
                 {
                     // Check if the lane is a straight lane
@@ -1302,10 +1302,10 @@ using apollo.hdmap;
             }
         }
 
-        List<MapLane> GetOrderedIntersectingLanes(MapLine stopLine)
+        List<MapTrafficLane> GetOrderedIntersectingLanes(MapLine stopLine)
         {
             var stopLinePositions = stopLine.mapWorldPositions;
-            var intersectingLanes = new List<MapLane>();
+            var intersectingLanes = new List<MapTrafficLane>();
             foreach (var entry in Id2Lane)
             {
                 var mapLane = entry.Value;
@@ -1343,7 +1343,7 @@ using apollo.hdmap;
             return intersectingLanes;
         }
 
-        List<MapLane> OrderLanes(List<MapLane> intersectingLanes)
+        List<MapTrafficLane> OrderLanes(List<MapTrafficLane> intersectingLanes)
         {
             // Pick any lane, compute normal direction, get distance to the lane and order lanes
             var theLane = intersectingLanes[0];
@@ -1352,7 +1352,7 @@ using apollo.hdmap;
             var dir = p2 - p1;
             var rightNormalDir = new Vector2(dir.y, -dir.x);
 
-            var distance2mapLane = new Dictionary<float, MapLane>();
+            var distance2mapLane = new Dictionary<float, MapTrafficLane>();
             foreach (var lane in intersectingLanes)
             {
                 var endPoint = lane.mapWorldPositions.Last();

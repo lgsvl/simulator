@@ -55,22 +55,22 @@ namespace Simulator.Editor
 
     public class LaneData : PositionsData, ILaneLineDataCommon<LaneData>
     {
-        public MapLane mapLane = null;
-        public static Dictionary<MapLane, LaneData> Lane2LaneData = new Dictionary<MapLane, LaneData>();
+        public MapTrafficLane mapLane = null;
+        public static Dictionary<MapTrafficLane, LaneData> Lane2LaneData = new Dictionary<MapTrafficLane, LaneData>();
         public List<LaneData> befores { get; set; } = new List<LaneData>();
         public List<LaneData> afters { get; set; } = new List<LaneData>();
         public LineData leftLineData = null;
         public LineData rightLineData = null;
         public laneType type = laneType.driving;
         public float speedLimit = 20f;
-        public LaneData(MapLane lane) : base(lane)
+        public LaneData(MapTrafficLane lane) : base(lane)
         {
             mapLane = lane;
             Lane2LaneData[lane] = this;
             speedLimit = lane.speedLimit;
         }
 
-        public LaneData(MapPedestrian mapPedestrian) : base(mapPedestrian)
+        public LaneData(MapPedestrianLane mapPedestrianLane) : base(mapPedestrianLane)
         {
             type = laneType.sidewalk;
             speedLimit = 6.7056f; // 15 mph
@@ -106,7 +106,7 @@ namespace Simulator.Editor
             }
 
             MapAnnotationData = new MapManagerData();
-            var allLanes = new HashSet<MapLane>(MapAnnotationData.GetData<MapLane>());
+            var allLanes = new HashSet<MapTrafficLane>(MapAnnotationData.GetData<MapTrafficLane>());
             var areAllLanesWithBoundaries = Lanelet2MapExporter.AreAllLanesWithBoundaries(allLanes, true);
             if (!areAllLanesWithBoundaries) return false;
 
@@ -114,12 +114,12 @@ namespace Simulator.Editor
             MapAnnotationData.GetTrafficLanes();
 
             // Initial collection
-            var laneSegments= new HashSet<MapLane>(MapAnnotationData.GetData<MapLane>());
+            var laneSegments= new HashSet<MapTrafficLane>(MapAnnotationData.GetData<MapTrafficLane>());
             var lineSegments = new HashSet<MapLine>(MapAnnotationData.GetData<MapLine>());
             var signalLights = new List<MapSignal>(MapAnnotationData.GetData<MapSignal>());
             var crossWalkList = new List<MapCrossWalk>(MapAnnotationData.GetData<MapCrossWalk>());
             var mapSignList = new List<MapSign>(MapAnnotationData.GetData<MapSign>());
-            var mapPedestrianPaths = new List<MapPedestrian>(MapAnnotationData.GetData<MapPedestrian>());
+            var mapPedestrianPaths = new List<MapPedestrianLane>(MapAnnotationData.GetData<MapPedestrianLane>());
 
             foreach (var mapSign in mapSignList)
             {
@@ -173,7 +173,7 @@ namespace Simulator.Editor
             return true;
         }
 
-        void CreateFakeLaneDataForPedPaths(List<MapPedestrian> mapPedestrianPaths)
+        void CreateFakeLaneDataForPedPaths(List<MapPedestrianLane> mapPedestrianPaths)
         {
             foreach (var mapPedestrianPath in mapPedestrianPaths)
             {
@@ -200,7 +200,7 @@ namespace Simulator.Editor
             }
         }
 
-        public static HashSet<LaneData> GetLanesData(HashSet<MapLane> laneSegments)
+        public static HashSet<LaneData> GetLanesData(HashSet<MapTrafficLane> laneSegments)
         {
             LaneData.Lane2LaneData.Clear();
             var lanesData = new HashSet<LaneData>();
@@ -282,7 +282,7 @@ namespace Simulator.Editor
             return true;
         }
 
-        public static bool CheckNeighborLanes(HashSet<MapLane> LaneSegments)
+        public static bool CheckNeighborLanes(HashSet<MapTrafficLane> LaneSegments)
         {
             // Check validity of lane segment builder relationship but it won't warn you if have A's right lane to be null or B's left lane to be null
             foreach (var laneSegment in LaneSegments)
@@ -620,7 +620,7 @@ namespace Simulator.Editor
                     id = junctionId.ToString(),
                     name = "",
                 };
-                var intersectionLanes = mapIntersection.transform.GetComponentsInChildren<MapLane>();
+                var intersectionLanes = mapIntersection.transform.GetComponentsInChildren<MapTrafficLane>();
                 var updatedRoadIds = new HashSet<uint>();
 
                 // Tuple: (incomingRoadId, connectingRoadId, contactPoint)

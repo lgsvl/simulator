@@ -36,13 +36,13 @@ namespace Simulator.Editor.MapLineDetection
             segments.AddRange(newSegments);
         }
 
-        public Dictionary<MapLane, LaneLineOverrideData> Process()
+        public Dictionary<MapTrafficLane, LaneLineOverrideData> Process()
         {
             var mapManagerData = new MapManagerData();
             var lanes = mapManagerData.GetTrafficLanes();
 
             var lineDict = new Dictionary<MapLine, SegmentedLine3D>();
-            var laneDict = new Dictionary<MapLane, LaneLineSegments>();
+            var laneDict = new Dictionary<MapTrafficLane, LaneLineSegments>();
 
             foreach (var lane in lanes)
             {
@@ -111,7 +111,7 @@ namespace Simulator.Editor.MapLineDetection
                 EditorUtility.ClearProgressBar();
             }
 
-            var result = new Dictionary<MapLane, LaneLineOverrideData>();
+            var result = new Dictionary<MapTrafficLane, LaneLineOverrideData>();
 
             foreach (var kvp in laneDict)
             {

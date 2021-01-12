@@ -241,7 +241,7 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
         }
     }
 
-    public void InitLaneData(MapLane lane)
+    public void InitLaneData(MapTrafficLane lane)
     {
         if (_ActiveBehaviour)
         {
@@ -1024,7 +1024,7 @@ public abstract class NPCBehaviourBase : MonoBehaviour
     protected NPCManager NPCManager {get => controller.NPCManager; }
     
     public abstract void PhysicsUpdate();
-    public abstract void InitLaneData(MapLane lane);
+    public abstract void InitLaneData(MapTrafficLane lane);
     public abstract void Init(int seed);
     public abstract void OnAgentCollision(GameObject go);
 }

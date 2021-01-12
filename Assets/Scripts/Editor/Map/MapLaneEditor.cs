@@ -11,13 +11,13 @@ using UnityEngine;
 using UnityEditor;
 using Simulator.Map;
 
-[CustomEditor(typeof(MapLane)), CanEditMultipleObjects]
+[CustomEditor(typeof(MapTrafficLane)), CanEditMultipleObjects]
 public class MapLaneEditor : Editor
 {
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();
-        MapLane mapLane = (MapLane)target;
+        MapTrafficLane mapLane = (MapTrafficLane)target;
 
 
         if (mapLane.leftLineBoundry != null)
@@ -45,7 +45,7 @@ public class MapLaneEditor : Editor
             {
                 foreach (var obj in Selection.gameObjects)
                 {
-                    var lane = obj.GetComponent<MapLane>();
+                    var lane = obj.GetComponent<MapTrafficLane>();
                     if (lane == mapLane)
                         continue;
                     if (lane != null)
@@ -64,7 +64,7 @@ public class MapLaneEditor : Editor
 
     protected virtual void OnSceneGUI()
     {
-        MapLane vmMapLane = (MapLane)target;
+        MapTrafficLane vmMapLane = (MapTrafficLane)target;
         if (vmMapLane.mapLocalPositions.Count < 1)
             return;
 

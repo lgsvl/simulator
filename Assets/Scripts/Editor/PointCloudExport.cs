@@ -135,7 +135,7 @@ namespace Simulator.Editor
                 return;
             }
 
-            var lanes = mapHolder.trafficLanesHolder.transform.parent.GetComponentsInChildren<MapLane>();
+            var lanes = mapHolder.trafficLanesHolder.transform.parent.GetComponentsInChildren<MapTrafficLane>();
             if (lanes.Length == 0)
             {
                 EditorUtility.DisplayDialog("Error", "No lane annotations found on map!", "OK");
@@ -149,7 +149,7 @@ namespace Simulator.Editor
             Debug.Log($"Point Cloud generated in {(int)elapsed.TotalMinutes} min {elapsed.Seconds} sec");
         }
 
-        void Generate(MapLane[] lanes)
+        void Generate(MapTrafficLane[] lanes)
         {
             var settings = EditorSettings.Load();
 

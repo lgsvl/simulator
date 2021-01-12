@@ -9,18 +9,18 @@ using UnityEngine;
 using UnityEditor;
 using Simulator.Map;
 
-[CustomEditor(typeof(MapPedestrian)), CanEditMultipleObjects]
+[CustomEditor(typeof(MapPedestrianLane)), CanEditMultipleObjects]
 public class MapPedestrianEditor : Editor
 {
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();
-        MapPedestrian mapLane = (MapPedestrian)target;
+        MapPedestrianLane mapLane = (MapPedestrianLane)target;
     }
 
     protected virtual void OnSceneGUI()
     {
-        MapPedestrian vmMapPed = (MapPedestrian)target;
+        MapPedestrianLane vmMapPed = (MapPedestrianLane)target;
         if (vmMapPed.mapLocalPositions.Count < 1)
             return;
 

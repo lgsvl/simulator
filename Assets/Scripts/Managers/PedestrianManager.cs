@@ -213,7 +213,7 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
             if (spawnPoint == null)
                 return;
 
-            var pedLane = spawnPoint.lane as MapPedestrian;
+            var pedLane = spawnPoint.lane as MapPedestrianLane;
             if (pedLane==null)
                 continue;
             

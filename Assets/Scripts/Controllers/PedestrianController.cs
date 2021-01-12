@@ -69,7 +69,7 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
     private System.Random RandomGenerator;
     private MonoBehaviour FixedUpdateManager;
     private NavMeshPath Path;
-    private MapPedestrian MapPath;
+    private MapPedestrianLane MapPath;
     private int CurrentWP = 0;
     private float LinearSpeed = 1.0f;
     private float AngularSpeed = 10.0f;
@@ -214,7 +214,7 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
     }
 
     #region random
-    public void InitPed(Vector3 position, int spawnIndex, List<Vector3> pedSpawnerTargets, int seed, MapPedestrian mapPath = null)
+    public void InitPed(Vector3 position, int spawnIndex, List<Vector3> pedSpawnerTargets, int seed, MapPedestrianLane mapPath = null)
     {
         FixedUpdateManager = SimulatorManager.Instance.FixedUpdateManager;
         RandomGenerator = new System.Random(seed);
@@ -376,7 +376,7 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
         Agent.avoidancePriority = RandomGenerator.Next(1, 100);
 
         var position = Agent.transform.position;
-        MapPedestrian closest = null;
+        MapPedestrianLane closest = null;
         float closestDistance = float.MaxValue;
         int closestIndex = 0;
 

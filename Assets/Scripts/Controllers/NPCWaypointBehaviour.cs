@@ -72,7 +72,7 @@ public class NPCWaypointBehaviour : NPCBehaviourBase
         // api sends init data
     }
 
-    public override void InitLaneData(MapLane lane)
+    public override void InitLaneData(MapTrafficLane lane)
     {
         // Maplane data void in waypoint behavior
     }

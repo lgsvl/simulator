@@ -12,7 +12,7 @@ namespace Simulator
 {
     public class VehicleLane : MonoBehaviour
     {
-        public MapLane CurrentMapLane { get; private set; }
+        public MapTrafficLane CurrentMapLane { get; private set; }
         private LayerMask LaneLayer;
 
         private void Start()
@@ -25,7 +25,7 @@ namespace Simulator
         {
             if (other.gameObject.layer == LaneLayer)
             {
-                CurrentMapLane = other.GetComponentInParent<MapLane>();
+                CurrentMapLane = other.GetComponentInParent<MapTrafficLane>();
             }
         }
 

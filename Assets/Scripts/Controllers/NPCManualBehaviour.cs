@@ -14,7 +14,7 @@ public class NPCManualBehaviour : NPCBehaviourBase
     {
     }
 
-    public override void InitLaneData(MapLane lane)
+    public override void InitLaneData(MapTrafficLane lane)
     {
     }
 

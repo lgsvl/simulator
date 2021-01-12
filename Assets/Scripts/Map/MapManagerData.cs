@@ -26,14 +26,14 @@ namespace Simulator.Map
             }
         }
 
-        public List<MapLane> GetTrafficLanes()
+        public List<MapTrafficLane> GetTrafficLanes()
         {
             var trafficLanesHolder = MapHolder.trafficLanesHolder;
 
-            var lanes = new List<MapLane>(trafficLanesHolder.transform.parent.GetComponentsInChildren<MapLane>());
+            var lanes = new List<MapTrafficLane>(trafficLanesHolder.transform.parent.GetComponentsInChildren<MapTrafficLane>());
             ProcessLaneData(lanes);
 
-            var trafficLanes = new List<MapLane>(trafficLanesHolder.GetComponentsInChildren<MapLane>());
+            var trafficLanes = new List<MapTrafficLane>(trafficLanesHolder.GetComponentsInChildren<MapTrafficLane>());
             foreach (var lane in trafficLanes)
                 lane.isTrafficLane = true;
 
@@ -57,9 +57,9 @@ namespace Simulator.Map
             return intersections;
         }
 
-        public List<MapPedestrian> GetPedestrianLanes()
+        public List<MapPedestrianLane> GetPedestrianLanes()
         {
-            var pedLanes = new List<MapPedestrian>(GameObject.FindObjectsOfType<MapPedestrian>());
+            var pedLanes = new List<MapPedestrianLane>(GameObject.FindObjectsOfType<MapPedestrianLane>());
             ProcessPedestrianData(pedLanes);
             return pedLanes;
         }
@@ -96,7 +96,7 @@ namespace Simulator.Map
             return data;
         }
 
-        private void ProcessLaneData(List<MapLane> lanes)
+        private void ProcessLaneData(List<MapTrafficLane> lanes)
         {
             foreach (var lane in lanes) // convert local to world pos
             {
@@ -127,7 +127,7 @@ namespace Simulator.Map
             }
         }
 
-        private void ProcessPedestrianData(List<MapPedestrian> pedLanes)
+        private void ProcessPedestrianData(List<MapPedestrianLane> pedLanes)
         {
             foreach (var ped in pedLanes) // convert local to world pos
             {
@@ -209,7 +209,7 @@ namespace Simulator.Map
             }
         }
 
-        public static float GetTotalLaneDistance(List<MapLane> lanes)
+        public static float GetTotalLaneDistance(List<MapTrafficLane> lanes)
         {
             Debug.Assert(lanes != null);
             var totalLaneDist = 0f;
@@ -219,7 +219,7 @@ namespace Simulator.Map
             return totalLaneDist;
         }
 
-        public static float GetTotalPedDistance(List<MapPedestrian> peds)
+        public static float GetTotalPedDistance(List<MapPedestrianLane> peds)
         {
             Debug.Assert(peds != null);
             var pedDist = 0f;
@@ -235,7 +235,7 @@ namespace Simulator.Map
                 section.SetLaneData();
         }
 
-        private void ProcessLineData(List<MapLine> allMapLines, List<MapLane> lanes)
+        private void ProcessLineData(List<MapLine> allMapLines, List<MapTrafficLane> lanes)
         {
             foreach (var line in allMapLines) // convert local to world pos
             {

@@ -28,8 +28,8 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     protected bool atStopTarget;
 
     // map data
-    public MapLane currentMapLane;
-    public MapLane prevMapLane;
+    public MapTrafficLane currentMapLane;
+    public MapTrafficLane prevMapLane;
     public List<Vector3> laneData;
 
     // targeting
@@ -125,7 +125,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         ResetData();
     }
 
-    public override void InitLaneData(MapLane lane)
+    public override void InitLaneData(MapTrafficLane lane)
     {
         ResetData();
         laneSpeedLimit = lane.speedLimit;

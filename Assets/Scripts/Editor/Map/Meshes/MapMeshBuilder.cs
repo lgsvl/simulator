@@ -24,7 +24,7 @@ namespace Simulator.Editor.MapMeshes
         {
             private readonly Dictionary<MapLine, LineData> linesData;
             private int cIndex;
-            private MapLane cLane;
+            private MapTrafficLane cLane;
 
             public CornerMask CurrentMask
             {
@@ -48,7 +48,7 @@ namespace Simulator.Editor.MapMeshes
                 this.linesData = linesData;
             }
 
-            public IEnumerable<LineVert> Enumerate(MapLane lane)
+            public IEnumerable<LineVert> Enumerate(MapTrafficLane lane)
             {
                 cIndex = -1;
                 cLane = lane;
@@ -265,13 +265,13 @@ namespace Simulator.Editor.MapMeshes
 
                 var mapManagerData = new MapManagerData();
                 var lanes = mapManagerData.GetTrafficLanes();
-                var allLanes = new List<MapLane>();
+                var allLanes = new List<MapTrafficLane>();
                 allLanes.AddRange(lanes);
                 var intersections = mapManagerData.GetIntersections();
 
                 foreach (var intersection in intersections)
                 {
-                    var intLanes = intersection.GetComponentsInChildren<MapLane>();
+                    var intLanes = intersection.GetComponentsInChildren<MapTrafficLane>();
                     foreach (var intLane in intLanes)
                     {
                         allLanes.Add(intLane);
@@ -366,7 +366,7 @@ namespace Simulator.Editor.MapMeshes
             }
         }
 
-        private List<List<Vertex>> CreateLanePoly(MapLane lane, out List<List<Vertex>> pushedMesh)
+        private List<List<Vertex>> CreateLanePoly(MapTrafficLane lane, out List<List<Vertex>> pushedMesh)
         {
             var name = lane.gameObject.name;
             var poly = BuildLanePoly(lane, out var roadsideMesh, true);
@@ -374,7 +374,7 @@ namespace Simulator.Editor.MapMeshes
             return MeshUtils.OptimizePoly(poly, name);
         }
 
-        private void CreateLaneMesh(MapLane lane, GameObject parentObject, MapMeshMaterials materials)
+        private void CreateLaneMesh(MapTrafficLane lane, GameObject parentObject, MapMeshMaterials materials)
         {
             var name = lane.gameObject.name;
             var poly = CreateLanePoly(lane, out var pushedMesh);
@@ -450,7 +450,7 @@ namespace Simulator.Editor.MapMeshes
         private List<List<Vertex>> CreateIntersectionPoly(MapIntersection intersection)
         {
             var name = intersection.gameObject.name;
-            var intersectionLanes = intersection.GetComponentsInChildren<MapLane>();
+            var intersectionLanes = intersection.GetComponentsInChildren<MapTrafficLane>();
 
             var optimizedLanePolys = new List<List<Vertex>>();
 
@@ -488,7 +488,7 @@ namespace Simulator.Editor.MapMeshes
             go.transform.position = intersectionTransform.position;
 
             var localToWorldMatrix = go.transform.localToWorldMatrix;
-            var intersectionLanes = intersection.GetComponentsInChildren<MapLane>();
+            var intersectionLanes = intersection.GetComponentsInChildren<MapTrafficLane>();
             foreach (var lane in intersectionLanes)
             {
                 linesData[lane.leftLineBoundry].meshData.Add((mesh, localToWorldMatrix));
@@ -543,7 +543,7 @@ namespace Simulator.Editor.MapMeshes
             }
         }
 
-        private List<List<Vertex>> BuildLanePoly(MapLane lane, out List<List<Vertex>> pushedMesh, bool worldSpace = false, bool alwaysMerge = false)
+        private List<List<Vertex>> BuildLanePoly(MapTrafficLane lane, out List<List<Vertex>> pushedMesh, bool worldSpace = false, bool alwaysMerge = false)
         {
             var leftPoints = ListPool<LineVert>.Get();
             var rightPoints = ListPool<LineVert>.Get();
@@ -630,7 +630,7 @@ namespace Simulator.Editor.MapMeshes
             }
         }
 
-        private void GetLinesOrientation(MapLane lane, out bool leftReversed, out bool rightReversed)
+        private void GetLinesOrientation(MapTrafficLane lane, out bool leftReversed, out bool rightReversed)
         {
             var leftPoints = linesData[lane.leftLineBoundry].worldPoints;
             var rightPoints = linesData[lane.rightLineBoundry].worldPoints;
@@ -682,7 +682,7 @@ namespace Simulator.Editor.MapMeshes
             }
         }
 
-        private void CalculateOutVectors(List<MapLane> lanes)
+        private void CalculateOutVectors(List<MapTrafficLane> lanes)
         {
             foreach (var lane in lanes)
             {
@@ -883,11 +883,11 @@ namespace Simulator.Editor.MapMeshes
             return mesh;
         }
 
-        private void SnapLanes(List<MapLane> lanes)
+        private void SnapLanes(List<MapTrafficLane> lanes)
         {
             var validPoints = new List<LineVert>();
             var linkedPoints = new List<LineVert>();
-            var connectedLanes = new List<MapLane>();
+            var connectedLanes = new List<MapTrafficLane>();
             var pointsToProcess = new List<LineVert>();
             var ptpMasks = new List<CornerMask>();
             var directConnections = new List<bool>();

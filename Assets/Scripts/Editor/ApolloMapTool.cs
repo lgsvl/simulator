@@ -76,10 +76,10 @@ namespace Simulator.Editor
         public string selfReverseLaneId;
 
         public static Dictionary<string, ADMapLane> id2ADMapLane = new Dictionary<string, ADMapLane>();
-        public static Dictionary<string, MapLane> id2MapLane = new Dictionary<string, MapLane>();
+        public static Dictionary<string, MapTrafficLane> id2MapLane = new Dictionary<string, MapTrafficLane>();
         public ADMapLane() {}
 
-        public ADMapLane(MapLane lane)
+        public ADMapLane(MapTrafficLane lane)
         {
             Id = lane.id;
 
@@ -104,7 +104,7 @@ namespace Simulator.Editor
             mapWorldPositions = new List<Vector3>(lane.mapWorldPositions);
         }
 
-        public void BoundaryLineConversion(MapLane lane, out ApolloBoundaryType leftBoundaryType, out ApolloBoundaryType rightBoundaryType)
+        public void BoundaryLineConversion(MapTrafficLane lane, out ApolloBoundaryType leftBoundaryType, out ApolloBoundaryType rightBoundaryType)
         {
             if (lane.leftLineBoundry == null)
             {
@@ -533,7 +533,7 @@ namespace Simulator.Editor
         {
             MapAnnotationData = new MapManagerData();
 
-            var allLanes = new HashSet<MapLane>(MapAnnotationData.GetData<MapLane>());
+            var allLanes = new HashSet<MapTrafficLane>(MapAnnotationData.GetData<MapTrafficLane>());
             var areAllLanesWithBoundaries = Lanelet2MapExporter.AreAllLanesWithBoundaries(allLanes, true);
             if (!areAllLanesWithBoundaries) return false;
 
@@ -598,7 +598,7 @@ namespace Simulator.Editor
             ADMapLane.id2MapLane.Clear();
             ADMapLane.id2ADMapLane.Clear();
             // Copy annotation(eg. lane, parking space, etc.) into ad container with id, which can be key.
-            GetMapData<MapLane, ADMapLane, LaneOverlapInfo>("lane", MapAnnotationData, adMapLanes, laneOverlapsInfo, mapLane => new ADMapLane(mapLane));
+            GetMapData<MapTrafficLane, ADMapLane, LaneOverlapInfo>("lane", MapAnnotationData, adMapLanes, laneOverlapsInfo, mapLane => new ADMapLane(mapLane));
             CopyLaneRelations();
 
             GetMapData<MapParkingSpace, ADMapParkingSpace, ParkingSpaceOverlapInfo>("PS", MapAnnotationData, adMapParkingSpaces, parkingSpaceOverlapsInfo, mapParkingSpace => new ADMapParkingSpace(mapParkingSpace));
@@ -1670,7 +1670,7 @@ namespace Simulator.Editor
                     }
 
                     // LaneSegment
-                    var laneList = intersection.transform.GetComponentsInChildren<MapLane>().ToList();
+                    var laneList = intersection.transform.GetComponentsInChildren<MapTrafficLane>().ToList();
                     foreach (var lane in laneList)
                     {
                         string laneId = null;
@@ -1740,7 +1740,7 @@ namespace Simulator.Editor
                     var junctionOverlapIds_string = new List<HD.Id>();
 
                     // LaneSegment
-                    var laneList = intersection.transform.GetComponentsInChildren<MapLane>().ToList();
+                    var laneList = intersection.transform.GetComponentsInChildren<MapTrafficLane>().ToList();
                     foreach (var lane in laneList)
                     {
                         string laneId = null;
@@ -2286,7 +2286,7 @@ namespace Simulator.Editor
             var laneSections = MapAnnotationData.GetLaneSections();
             foreach(var laneSection in laneSections)
             {
-                var lanes = laneSection.GetComponentsInChildren<MapLane>();
+                var lanes = laneSection.GetComponentsInChildren<MapTrafficLane>();
 
                 if (lanes.Count() != 2)
                     continue;

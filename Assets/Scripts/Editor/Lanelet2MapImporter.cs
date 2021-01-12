@@ -396,7 +396,7 @@ namespace Simulator.Editor
 
                         // Create MapLane based on center line, MapLine based on two ways
                         GameObject mapLaneObj = new GameObject("MapLane_" + element.Id);
-                        MapLane mapLane = mapLaneObj.AddComponent<MapLane>();
+                        MapTrafficLane mapLane = mapLaneObj.AddComponent<MapTrafficLane>();
                         mapLane.mapWorldPositions = centerLinePoints;
 
                         // Set transform of the line as the middle of first and last positions
@@ -499,7 +499,7 @@ namespace Simulator.Editor
                     // Update children maplanes to have correct position
                     foreach (var id in laneSectionLaneIds)
                     {
-                        MapLane tempLane = MapLaneId2GameObject[id].GetComponent<MapLane>();
+                        MapTrafficLane tempLane = MapLaneId2GameObject[id].GetComponent<MapTrafficLane>();
                         tempLane.transform.position = tempLane.transform.position - mapLaneSectionObj.transform.position;
 
                         // Update localpositions after lane position update due to mapLaneSection
@@ -598,7 +598,7 @@ namespace Simulator.Editor
                 var linesToDestroy = new HashSet<long>();
                 foreach (var laneId in shortLanesId)
                 {
-                    var mapLane = MapLaneId2GameObject[laneId].GetComponent<MapLane>();
+                    var mapLane = MapLaneId2GameObject[laneId].GetComponent<MapTrafficLane>();
                     long leftLineStringId = long.Parse(mapLane.leftLineBoundry.name.Split('_')[1]); // Get lineString id from mapLine name
                     long rightLineStringId = long.Parse(mapLane.rightLineBoundry.name.Split('_')[1]);
 
@@ -612,7 +612,7 @@ namespace Simulator.Editor
                     foreach (var otherLaneId in MapLaneId2GameObject.Keys)
                     {
                         if (laneId == otherLaneId) continue;
-                        var otherMapLane = MapLaneId2GameObject[otherLaneId].GetComponent<MapLane>();
+                        var otherMapLane = MapLaneId2GameObject[otherLaneId].GetComponent<MapTrafficLane>();
                         var otherWorldPositions = otherMapLane.mapWorldPositions;
 
                         if ((worldPositions[0] - otherWorldPositions[otherWorldPositions.Count-1]).magnitude < 0.001)
@@ -1208,7 +1208,7 @@ namespace Simulator.Editor
         {
             foreach (var laneId in intersectionLanes)
             {
-                var mapLane = MapLaneId2GameObject[laneId].GetComponent<MapLane>();
+                var mapLane = MapLaneId2GameObject[laneId].GetComponent<MapTrafficLane>();
                 mapLane.transform.parent = mapIntersection.transform;
                 ApolloMapImporter.UpdateLocalPositions(mapLane);
             }
@@ -1223,7 +1223,7 @@ namespace Simulator.Editor
 
             foreach (var pair in MapLaneId2GameObject)
             {
-                var worldPositions = pair.Value.GetComponent<MapLane>().mapWorldPositions;
+                var worldPositions = pair.Value.GetComponent<MapTrafficLane>().mapWorldPositions;
                 var pFirst = ToVector2(worldPositions[0]);
                 var pLast = ToVector2(worldPositions[worldPositions.Count-1]);
 
@@ -1254,7 +1254,7 @@ namespace Simulator.Editor
         {
             foreach (var laneId in intersectionLanes)
             {
-                var mapLane = MapLaneId2GameObject[laneId].GetComponent<MapLane>();
+                var mapLane = MapLaneId2GameObject[laneId].GetComponent<MapTrafficLane>();
                 var positions = mapLane.mapWorldPositions;
 
                 // Update MapLine type to be VIRTUAL
@@ -1266,7 +1266,7 @@ namespace Simulator.Editor
                     // loop through lanes in otherIntersectionLanes
                     foreach (var otherLaneId in otherIntersectionLanes)
                     {
-                        var otherMapLane = MapLaneId2GameObject[otherLaneId].GetComponent<MapLane>();
+                        var otherMapLane = MapLaneId2GameObject[otherLaneId].GetComponent<MapTrafficLane>();
                         otherMapLane.leftLineBoundry.lineType = MapData.LineType.VIRTUAL;
                         otherMapLane.rightLineBoundry.lineType = MapData.LineType.VIRTUAL;
                         var otherPositions = otherMapLane.mapWorldPositions;
@@ -1292,7 +1292,7 @@ namespace Simulator.Editor
                 {
                     // move start position by an offset for initial lanes since some initial lanes intersect with stop line
                     // we want to start with lanes that inside intersection, otherwise, this lane will be classified as U-TURN
-                    var positions = MapLaneId2GameObject[followingLaneId].GetComponent<MapLane>().mapWorldPositions;
+                    var positions = MapLaneId2GameObject[followingLaneId].GetComponent<MapTrafficLane>().mapWorldPositions;
                     var startPos = positions.First();
                     var endPos = positions.Last();
                     var dir = (positions[1] - startPos).normalized;
@@ -1321,12 +1321,12 @@ namespace Simulator.Editor
             // Given a found left turn lane, recursively set all previous lanes within intersection as left turn as well
             void FindPrecedingLanesAndSetLeftTurn(long laneId)
             {
-                var firstPosLane = MapLaneId2GameObject[laneId].GetComponent<MapLane>().mapWorldPositions[0];
+                var firstPosLane = MapLaneId2GameObject[laneId].GetComponent<MapTrafficLane>().mapWorldPositions[0];
                 foreach (var intersectionLaneId in intersectionLanes)
                 {
                     if (laneId == intersectionLaneId) continue;
 
-                    var mapLane = MapLaneId2GameObject[intersectionLaneId].GetComponent<MapLane>();
+                    var mapLane = MapLaneId2GameObject[intersectionLaneId].GetComponent<MapTrafficLane>();
                     var lastPosIntersectionLane = mapLane.mapWorldPositions.Last();
 
                     if ((firstPosLane - lastPosIntersectionLane).magnitude < 0.001f)
@@ -1341,7 +1341,7 @@ namespace Simulator.Editor
             while (queue.Any())
             {
                 var (laneId, startPosLane, endPosLane) = queue.Dequeue();
-                var mapLane = MapLaneId2GameObject[laneId].GetComponent<MapLane>();
+                var mapLane = MapLaneId2GameObject[laneId].GetComponent<MapTrafficLane>();
                 Vector2 intersectPoint;
                 // For example                                  endPosStopLine   otherStartPosStopLine
                 //                        |<---        ->                    |   |
@@ -1444,7 +1444,7 @@ namespace Simulator.Editor
                 long closestLaneLast = 0;
                 foreach (var pair in MapLaneId2GameObject)
                 {
-                    var worldPositions = pair.Value.GetComponent<MapLane>().mapWorldPositions;
+                    var worldPositions = pair.Value.GetComponent<MapTrafficLane>().mapWorldPositions;
                     var pLast = worldPositions.Last();
 
                     var d = Utility.SqrDistanceToSegment(stopLine.mapWorldPositions[0], stopLine.mapWorldPositions.Last(), pLast);
@@ -1462,7 +1462,7 @@ namespace Simulator.Editor
                 closestLanesLast.Add(closestLaneLast);
 
                 var laneId = closestLanesLast[0]; // pick first one
-                var positions = MapLaneId2GameObject[laneId].GetComponent<MapLane>().mapWorldPositions;
+                var positions = MapLaneId2GameObject[laneId].GetComponent<MapTrafficLane>().mapWorldPositions;
                 var direction = (positions.Last() - positions[positions.Count-2]).normalized; // Use last two points to compute direction.
 
                 // Set direction as the rotation of the stop line
@@ -1481,14 +1481,14 @@ namespace Simulator.Editor
         // Return following lanes for a given laneId
         List<long> GetFollowingLanes(long laneId)
         {
-            var lastPoint = MapLaneId2GameObject[laneId].GetComponent<MapLane>().mapWorldPositions.Last();
+            var lastPoint = MapLaneId2GameObject[laneId].GetComponent<MapTrafficLane>().mapWorldPositions.Last();
             List<long> followingLaneIds = new List<long>();
             foreach (var pair in MapLaneId2GameObject)
             {
                 var otherLaneId = pair.Key;
                 if (otherLaneId == laneId) continue;
 
-                var otherFirstPoint = MapLaneId2GameObject[otherLaneId].GetComponent<MapLane>().mapWorldPositions.First();
+                var otherFirstPoint = MapLaneId2GameObject[otherLaneId].GetComponent<MapTrafficLane>().mapWorldPositions.First();
                 if ((lastPoint - otherFirstPoint).magnitude < 0.001)
                 {
                     followingLaneIds.Add(otherLaneId);

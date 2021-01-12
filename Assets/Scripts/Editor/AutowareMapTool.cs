@@ -31,7 +31,7 @@ namespace Simulator.Editor
             public float SpeedLimit;
 
 
-            public void copyFromMapLane(MapLane lane)
+            public void copyFromMapLane(MapTrafficLane lane)
             {
                 this.MapWorldPositions.Clear();
                 this.MapWorldPositions.AddRange(lane.mapWorldPositions);
@@ -113,11 +113,11 @@ namespace Simulator.Editor
         bool Calculate()
         {
             // Initial collection
-            var laneSegments = new List<MapLane>();
+            var laneSegments = new List<MapTrafficLane>();
             var lineSegments = new List<MapLine>();
             var signalLightPoles = new List<MapPole>();
 
-            laneSegments.AddRange(MapAnnotationData.GetData<MapLane>());
+            laneSegments.AddRange(MapAnnotationData.GetData<MapTrafficLane>());
             lineSegments.AddRange(MapAnnotationData.GetData<MapLine>());
             signalLightPoles.AddRange(MapAnnotationData.GetData<MapPole>());
 

@@ -15,29 +15,29 @@ namespace Simulator.Map.LineDetection
     public class LaneLineOverride : MonoBehaviour
     {
         [SerializeField]
-        private List<MapLane> keys;
+        private List<MapTrafficLane> keys;
 
         [SerializeField]
         private List<LaneLineOverrideData> values;
 
-        private Dictionary<MapLane, LaneLineOverrideData> dict;
+        private Dictionary<MapTrafficLane, LaneLineOverrideData> dict;
 
         private void Start()
         {
-            dict = new Dictionary<MapLane, LaneLineOverrideData>();
+            dict = new Dictionary<MapTrafficLane, LaneLineOverrideData>();
 
             for (var i = 0; i < keys.Count; ++i)
                 dict.Add(keys[i], values[i]);
         }
 
-        public void SetData(Dictionary<MapLane, LaneLineOverrideData> data)
+        public void SetData(Dictionary<MapTrafficLane, LaneLineOverrideData> data)
         {
             dict = data;
             keys = data.Keys.ToList();
             values = data.Values.ToList();
         }
 
-        public List<Vector3> GetLaneLineData(MapLane lane, bool isLeft)
+        public List<Vector3> GetLaneLineData(MapTrafficLane lane, bool isLeft)
         {
             if (dict == null)
                 return null;

@@ -13,19 +13,19 @@ namespace Simulator.Map
     public class MapLaneSection : MapData
     {
         [System.NonSerialized]
-        public List<MapLane> lanes = new List<MapLane>();
+        public List<MapTrafficLane> lanes = new List<MapTrafficLane>();
         [System.NonSerialized]
-        public List<MapLane> lanesForward = new List<MapLane>();
+        public List<MapTrafficLane> lanesForward = new List<MapTrafficLane>();
         [System.NonSerialized]
-        public List<MapLane> lanesReverse = new List<MapLane>();
+        public List<MapTrafficLane> lanesReverse = new List<MapTrafficLane>();
         private bool? isOneWay;
 
         public void SetLaneData()
         {
-            lanes = new List<MapLane>();
-            lanes.AddRange(GetComponentsInChildren<MapLane>());
-            lanesForward = new List<MapLane>();
-            lanesReverse = new List<MapLane>();
+            lanes = new List<MapTrafficLane>();
+            lanes.AddRange(GetComponentsInChildren<MapTrafficLane>());
+            lanesForward = new List<MapTrafficLane>();
+            lanesReverse = new List<MapTrafficLane>();
 
             // for laneSections with branching lanes, all lanes should have at least 3 waypoints
             for (var i = 0; i < lanes.Count; i++)
@@ -132,9 +132,9 @@ namespace Simulator.Map
             int wayCount = isOneWay.Value ? 1 : 2;
             for (int i = 0; i < wayCount; i++)
             {
-                MapLane currentLane = null;
-                List<MapLane> edited = new List<MapLane>();
-                List<MapLane> currentLanes = i == 0 ? lanesForward : lanesReverse;
+                MapTrafficLane currentLane = null;
+                List<MapTrafficLane> edited = new List<MapTrafficLane>();
+                List<MapTrafficLane> currentLanes = i == 0 ? lanesForward : lanesReverse;
 
                 foreach (var lane in currentLanes)
                 {
@@ -194,7 +194,7 @@ namespace Simulator.Map
             return Vector3.Cross(a, b).magnitude / c.magnitude;
         }
 
-        void VerifyLaneRelations(List<MapLane> lanes)
+        void VerifyLaneRelations(List<MapTrafficLane> lanes)
         {
             foreach (var lane in lanes)
             {
@@ -229,17 +229,17 @@ namespace Simulator.Map
             }
         }
 
-        private static void ShowMsg(MapLane lane, MapLane otherLane)
+        private static void ShowMsg(MapTrafficLane lane, MapTrafficLane otherLane)
         {
             Debug.LogWarning($"Can't determine lane relations between {lane.name} and {otherLane.name}");
             Debug.Log("lane", lane.gameObject);
             Debug.Log("otherLane", otherLane.gameObject);
         }
 
-        public void UpdateLaneRelationsByBoundaryLines(List<MapLane> lanes)
+        public void UpdateLaneRelationsByBoundaryLines(List<MapTrafficLane> lanes)
         {
-            var lineAsLeft2Lanes = new Dictionary<MapLine, List<MapLane>>();
-            var lineAsRight2Lanes = new Dictionary<MapLine, List<MapLane>>();
+            var lineAsLeft2Lanes = new Dictionary<MapLine, List<MapTrafficLane>>();
+            var lineAsRight2Lanes = new Dictionary<MapLine, List<MapTrafficLane>>();
             foreach (var lane in lanes)
             {
                 if (lane.leftLineBoundry) lineAsLeft2Lanes.CreateOrAdd(lane.leftLineBoundry, lane);

@@ -55,7 +55,7 @@ namespace Simulator.Editor
         bool Calculate()
         {
             MapAnnotationData = new MapManagerData();
-            var allLanes = new HashSet<MapLane>(MapAnnotationData.GetData<MapLane>());
+            var allLanes = new HashSet<MapTrafficLane>(MapAnnotationData.GetData<MapTrafficLane>());
             var areAllLanesWithBoundaries = Lanelet2MapExporter.AreAllLanesWithBoundaries(allLanes, true);
             if (!areAllLanesWithBoundaries) return false;
 
@@ -65,7 +65,7 @@ namespace Simulator.Editor
             MapOrigin = MapOrigin.Find();
 
             // Initial collection
-            var laneSegments = new HashSet<MapLane>(MapAnnotationData.GetData<MapLane>());
+            var laneSegments = new HashSet<MapTrafficLane>(MapAnnotationData.GetData<MapTrafficLane>());
             var lineSegments = new HashSet<MapLine>(MapAnnotationData.GetData<MapLine>());
             var signalLights = new List<MapSignal>(MapAnnotationData.GetData<MapSignal>());
             var crossWalks = new List<MapCrossWalk>(MapAnnotationData.GetData<MapCrossWalk>());
@@ -612,19 +612,19 @@ namespace Simulator.Editor
                 var lane = laneData.mapLane;
                 if (lane.isIntersectionLane)
                 {
-                    if (lane.laneTurnType == MapLane.LaneTurnType.NO_TURN)
+                    if (lane.laneTurnType == MapTrafficLane.LaneTurnType.NO_TURN)
                     {
                         lanelet_tags.Add(
                             new Tag("turn_direction", "straight")
                         );
                     }
-                    if (lane.laneTurnType == MapLane.LaneTurnType.RIGHT_TURN)
+                    if (lane.laneTurnType == MapTrafficLane.LaneTurnType.RIGHT_TURN)
                     {
                         lanelet_tags.Add(
                             new Tag("turn_direction", "right")
                         );
                     }
-                    if (lane.laneTurnType == MapLane.LaneTurnType.LEFT_TURN)
+                    if (lane.laneTurnType == MapTrafficLane.LaneTurnType.LEFT_TURN)
                     {
                         lanelet_tags.Add(
                             new Tag("turn_direction", "left")
@@ -1425,7 +1425,7 @@ namespace Simulator.Editor
             return splittedLinePoints;
         }
 
-        public static bool AreAllLanesWithBoundaries(HashSet<MapLane> lanes, bool showError=false)
+        public static bool AreAllLanesWithBoundaries(HashSet<MapTrafficLane> lanes, bool showError=false)
         {
             var areAllLanesWithBoundaries = true;
             foreach (var lane in lanes)
@@ -1449,7 +1449,7 @@ namespace Simulator.Editor
             return areAllLanesWithBoundaries;
         }
 
-        public static List<MapLine> CreateFakeBoundariesFromLanes(HashSet<MapLane> laneSegments)
+        public static List<MapLine> CreateFakeBoundariesFromLanes(HashSet<MapTrafficLane> laneSegments)
         {
             List<MapLine> fakeBoundaryLineList = new List<MapLine>();
             GameObject fakeBoundariesObj = new GameObject("FakeBoundaries");
@@ -1590,7 +1590,7 @@ namespace Simulator.Editor
             return fakeBoundaryLineList;
         }
 
-        static bool HasAdjacentLane(MapLane lane, string side)
+        static bool HasAdjacentLane(MapTrafficLane lane, string side)
         {
             if (side == "left")
             {
@@ -1604,7 +1604,7 @@ namespace Simulator.Editor
             return false;
         }
 
-        static MapLane GetAdjacentLane(MapLane lane, string side)
+        static MapTrafficLane GetAdjacentLane(MapTrafficLane lane, string side)
         {
             if (side == "left")
             {
@@ -1632,7 +1632,7 @@ namespace Simulator.Editor
             return null;
         }
 
-        static bool HasAdjacentLaneBoundaryInBetween(MapLane lane1, MapLane lane2)
+        static bool HasAdjacentLaneBoundaryInBetween(MapTrafficLane lane1, MapTrafficLane lane2)
         {
             if(lane1.leftLaneForward == lane2)
             {
@@ -1654,7 +1654,7 @@ namespace Simulator.Editor
             return false;
         }
 
-        static MapLine GetAdjacentLaneBoundaryInBetween(MapLane lane1, MapLane lane2)
+        static MapLine GetAdjacentLaneBoundaryInBetween(MapTrafficLane lane1, MapTrafficLane lane2)
         {
             if (lane1.leftLaneForward == lane2)
             {

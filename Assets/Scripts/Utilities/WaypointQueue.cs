@@ -18,8 +18,8 @@ namespace Simulator.Utilities
     {
         private Queue<Vector3> Q;
         public stopTarget_t StopTarget;
-        public MapLane currentLane { get; private set; }
-        public MapLane previousLane { get; private set; }
+        public MapTrafficLane currentLane { get; private set; }
+        public MapTrafficLane previousLane { get; private set; }
         private System.Random RandomGenerator;
 
         public struct stopTarget_t
@@ -38,7 +38,7 @@ namespace Simulator.Utilities
             RandomGenerator = new System.Random(seed);
         }
 
-        public void setStartLane(MapLane lane)
+        public void setStartLane(MapTrafficLane lane)
         {
             this.Q.Clear(); // ensure there is nothing left over in the queue (this is the FIRST lane)
             this.currentLane = lane;

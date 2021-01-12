@@ -54,7 +54,7 @@ public class SimulatorCameraController : MonoBehaviour
 
     [Range(1f, 20f)]
     public float cinematicSpeed = 5f;
-    private MapLane currentMapLane;
+    private MapTrafficLane currentMapLane;
     private Vector3 cinematicStart;
     private Vector3 cinematicEnd;
     private Vector3 cinematicOffset = new Vector3(0f, 10f, 0f);
@@ -264,7 +264,7 @@ public class SimulatorCameraController : MonoBehaviour
 
     private void GetCinematicFollowMapLane()
     {
-        var lanesNear = new List<MapLane>();
+        var lanesNear = new List<MapTrafficLane>();
         for (int i = 0; i < SimulatorManager.Instance.MapManager.trafficLanes.Count; i++)
         {
             float dist = Vector3.Distance(SimulatorManager.Instance.MapManager.trafficLanes[i].mapWorldPositions[0], targetObject.position);

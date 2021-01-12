@@ -13,13 +13,13 @@ using Simulator.Map;
 public class MapManager : MonoBehaviour
 {
     [System.NonSerialized]
-    public List<MapLane> trafficLanes = new List<MapLane>();
+    public List<MapTrafficLane> trafficLanes = new List<MapTrafficLane>();
     [System.NonSerialized]
     public List<MapIntersection> intersections = new List<MapIntersection>();
     [System.NonSerialized]
-    public List<MapLane> allLanes = new List<MapLane>();
+    public List<MapTrafficLane> allLanes = new List<MapTrafficLane>();
     [System.NonSerialized]
-    public List<MapPedestrian> pedestrianLanes = new List<MapPedestrian>();
+    public List<MapPedestrianLane> pedestrianLanes = new List<MapPedestrianLane>();
 
     private MapManagerData mapData;
 
@@ -55,9 +55,9 @@ public class MapManager : MonoBehaviour
 
     // GetClosestLane only checks traffic lanes.
     // This function check all lanes.
-    public MapLane GetClosestLaneAll(Vector3 position)
+    public MapTrafficLane GetClosestLaneAll(Vector3 position)
     {
-        MapLane result = null;
+        MapTrafficLane result = null;
         float minDist = float.PositiveInfinity;
 
         // TODO: this should be optimized
@@ -83,9 +83,9 @@ public class MapManager : MonoBehaviour
     }
 
     // npc and api traffic lanes only
-    public MapLane GetClosestLane(Vector3 position)
+    public MapTrafficLane GetClosestLane(Vector3 position)
     {
-        MapLane result = null;
+        MapTrafficLane result = null;
         float minDist = float.PositiveInfinity;
 
         // TODO: this should be optimized
@@ -110,7 +110,7 @@ public class MapManager : MonoBehaviour
         return result;
     }
 
-    public int GetLaneNextIndex(Vector3 position, MapLane lane)
+    public int GetLaneNextIndex(Vector3 position, MapTrafficLane lane)
     {
         float minDist = float.PositiveInfinity;
         int index = -1;
@@ -162,14 +162,14 @@ public class MapManager : MonoBehaviour
         rotation = Quaternion.LookRotation(lane.mapWorldPositions[index + 1] - lane.mapWorldPositions[index], Vector3.up);
     }
 
-    public MapLane GetLane(int index)
+    public MapTrafficLane GetLane(int index)
     {
         return trafficLanes == null || trafficLanes.Count == 0 ? null : trafficLanes[index];
     }
 
-    public List<MapLane> GetLanesInBounds(Bounds bounds)
+    public List<MapTrafficLane> GetLanesInBounds(Bounds bounds)
     {
-        List<MapLane> mapLanes = new List<MapLane>();
+        List<MapTrafficLane> mapLanes = new List<MapTrafficLane>();
         foreach (var lane in trafficLanes)
         {
             if (bounds.Contains(lane.transform.position))
@@ -178,7 +178,7 @@ public class MapManager : MonoBehaviour
         return mapLanes;
     }
 
-    public MapPedestrian GetPedPath(int index)
+    public MapPedestrianLane GetPedPath(int index)
     {
         return pedestrianLanes == null || pedestrianLanes.Count == 0 ? null : pedestrianLanes[index];
     }

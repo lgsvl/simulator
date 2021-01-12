@@ -46,16 +46,16 @@ namespace Simulator.Editor
         Dictionary<string, MapLine> Id2MapLine = new Dictionary<string, MapLine>();
         Dictionary<string, List<string>> Id2PredecessorIds = new Dictionary<string, List<string>>();
         Dictionary<string, List<string>> Id2SuccessorIds = new Dictionary<string, List<string>>();
-        Dictionary<string, List<Dictionary<int, MapLane>>> Roads = new Dictionary<string, List<Dictionary<int, MapLane>>>(); // roadId: laneSectionId: laneId
-        Dictionary<MapLane, BeforesAfters> Lane2BeforesAfters = new Dictionary<MapLane, BeforesAfters>();
-        Dictionary<MapLane, laneType> Lane2LaneType = new Dictionary<MapLane, laneType>();
+        Dictionary<string, List<Dictionary<int, MapTrafficLane>>> Roads = new Dictionary<string, List<Dictionary<int, MapTrafficLane>>>(); // roadId: laneSectionId: laneId
+        Dictionary<MapTrafficLane, BeforesAfters> Lane2BeforesAfters = new Dictionary<MapTrafficLane, BeforesAfters>();
+        Dictionary<MapTrafficLane, laneType> Lane2LaneType = new Dictionary<MapTrafficLane, laneType>();
         Dictionary<string, MapIntersection> Id2MapIntersection = new Dictionary<string, MapIntersection>();
         Dictionary<string, string> RoadId2IntersectionId = new Dictionary<string, string>();
         Dictionary<string, List<int>> RoadId2laneSections = new Dictionary<string, List<int>>(); // Store laneSections to remove
         Dictionary<string, float> RoadId2Speed = new Dictionary<string, float>();
         Dictionary<GameObject, string> UngroupedObject2RoadId = new Dictionary<GameObject, string>();
-        Dictionary<string, HashSet<MapLane>> IncomingRoadId2leftLanes = new Dictionary<string, HashSet<MapLane>>();
-        Dictionary<string, HashSet<MapLane>> IncomingRoadId2rightLanes = new Dictionary<string, HashSet<MapLane>>();
+        Dictionary<string, HashSet<MapTrafficLane>> IncomingRoadId2leftLanes = new Dictionary<string, HashSet<MapTrafficLane>>();
+        Dictionary<string, HashSet<MapTrafficLane>> IncomingRoadId2rightLanes = new Dictionary<string, HashSet<MapTrafficLane>>();
         Dictionary<string, List<MapLine>> IntersectionId2StopLines = new Dictionary<string, List<MapLine>>();
         Dictionary<string, List<MapSignal>> IntersectionId2MapSignals = new Dictionary<string, List<MapSignal>>();
         Dictionary<string, List<MapSign>> IntersectionId2MapSigns = new Dictionary<string, List<MapSign>>();
@@ -64,8 +64,8 @@ namespace Simulator.Editor
 
         class BeforesAfters
         {
-            public HashSet<MapLane> befores = new HashSet<MapLane>();
-            public HashSet<MapLane> afters = new HashSet<MapLane>();
+            public HashSet<MapTrafficLane> befores = new HashSet<MapTrafficLane>();
+            public HashSet<MapTrafficLane> afters = new HashSet<MapTrafficLane>();
         }
 
         public OpenDriveMapImporter(float downSampleDistanceThreshold,
@@ -652,7 +652,7 @@ namespace Simulator.Editor
                     ReferenceLinePointSValue.Add(geometry.s + geometry.length);
                 }
 
-                Roads[roadId] = new List<Dictionary<int, MapLane>>();
+                Roads[roadId] = new List<Dictionary<int, MapTrafficLane>>();
 
                 var referenceLinePointsOffset = new List<Vector3>(referenceLinePoints);
                 if (lanes.laneOffset != null)
@@ -664,7 +664,7 @@ namespace Simulator.Editor
                 var laneSectionsLength = ComputeSectionLength(laneSections, roadLength);
                 for (int i = 0; i < laneSections.Length; i++)
                 {
-                    Roads[roadId].Add(new Dictionary<int, MapLane>());
+                    Roads[roadId].Add(new Dictionary<int, MapTrafficLane>());
 
                     if (laneSectionsLength[i] < LaneSectionSkipLength)
                     {
@@ -1408,7 +1408,7 @@ namespace Simulator.Editor
             int laneId = curLane.id;
 
             var mapLaneObj = new GameObject($"MapLane_{roadIdLaneSectionId}_{laneId}");
-            var mapLane = mapLaneObj.AddComponent<MapLane>();
+            var mapLane = mapLaneObj.AddComponent<MapTrafficLane>();
             mapLane.mapWorldPositions = lanePoints;
             mapLane.transform.position = Lanelet2MapImporter.GetAverage(lanePoints);
             mapLane.transform.parent = parentObj.transform;
@@ -1536,7 +1536,7 @@ namespace Simulator.Editor
                         continue;
                     }
                     var connectingLaneSections = Roads[connectingRoadId];
-                    Dictionary<int, MapLane> incomingId2MapLane, connectingId2MapLane;
+                    Dictionary<int, MapTrafficLane> incomingId2MapLane, connectingId2MapLane;
 
                     // First assume roads are with same directions
                     if (contactPoint == contactPoint.start)
@@ -1552,13 +1552,13 @@ namespace Simulator.Editor
 
                     if (!IncomingRoadId2leftLanes.ContainsKey(incomingRoadId))
                     {
-                        IncomingRoadId2leftLanes[incomingRoadId] = new HashSet<MapLane>();
+                        IncomingRoadId2leftLanes[incomingRoadId] = new HashSet<MapTrafficLane>();
                     }
                     if (!IncomingRoadId2rightLanes.ContainsKey(incomingRoadId))
                     {
-                        IncomingRoadId2rightLanes[incomingRoadId] = new HashSet<MapLane>();
+                        IncomingRoadId2rightLanes[incomingRoadId] = new HashSet<MapTrafficLane>();
                     }
-                    MapLane incomingLane, connectingLane;
+                    MapTrafficLane incomingLane, connectingLane;
                     if (connection.laneLink.Length == 0)
                     {
                         // All incoming lanes are linked to lanes with identical IDs on the connecting road
@@ -1650,7 +1650,7 @@ namespace Simulator.Editor
         private bool isLeftLanesConnected(string roadId, MapIntersection mapIntersection)
         {
             var firstLaneSection = Roads[roadId][0];
-            MapLane firstLane;
+            MapTrafficLane firstLane;
             bool isLeft = true;
             if (firstLaneSection.ContainsKey(-1))
             {
@@ -1699,7 +1699,7 @@ namespace Simulator.Editor
             return laneName.Split('_')[2];
         }
 
-        bool HaveDiffLanesSections(HashSet<MapLane> lanesSet)
+        bool HaveDiffLanesSections(HashSet<MapTrafficLane> lanesSet)
         {
             var lanes = lanesSet.ToList();
             var section = GetSection(lanes[0].name);
@@ -1714,7 +1714,7 @@ namespace Simulator.Editor
             return false;
         }
 
-        private void CreateStopLine(MapIntersection mapIntersection, string roadId, HashSet<MapLane> mapLanes)
+        private void CreateStopLine(MapIntersection mapIntersection, string roadId, HashSet<MapTrafficLane> mapLanes)
         {
             if (mapLanes.Count == 0 || HaveDiffLanesSections(mapLanes))
             {
@@ -1784,9 +1784,9 @@ namespace Simulator.Editor
             stopLinePositions.Add(endPoint - normalDir * halfLaneWidth - laneDir * 1);
         }
 
-        static MapLane GetOnlyItemFromSet(HashSet<MapLane> mapLanes)
+        static MapTrafficLane GetOnlyItemFromSet(HashSet<MapTrafficLane> mapLanes)
         {
-            MapLane mapLane = null;
+            MapTrafficLane mapLane = null;
             foreach (var lane in mapLanes)
             {
                 return lane;
@@ -1794,7 +1794,7 @@ namespace Simulator.Editor
             return mapLane;
         }
 
-        void MoveConnectingLanesUnderIntersection(MapIntersection mapIntersection, List<MapLane> connectingMapLanes)
+        void MoveConnectingLanesUnderIntersection(MapIntersection mapIntersection, List<MapTrafficLane> connectingMapLanes)
         {
             foreach (var lane in connectingMapLanes)
             {
@@ -1823,13 +1823,13 @@ namespace Simulator.Editor
             ApolloMapImporter.UpdateLocalPositions(mapDataPoints);
         }
 
-        void UpdateBeforesAfters(contactPoint contactPoint, MapLane curLane, MapLane linkedLane)
+        void UpdateBeforesAfters(contactPoint contactPoint, MapTrafficLane curLane, MapTrafficLane linkedLane)
         {
             var curLaneId = GetLaneId(curLane.name);
             var linkedLaneId = GetLaneId(linkedLane.name);
             var isOppositeRoads = curLaneId * linkedLaneId < 0; // If the roads of the two lanes are opposite or not
 
-            HashSet<MapLane> curLaneSetToAddTo, linkedLaneSetToAddTo;
+            HashSet<MapTrafficLane> curLaneSetToAddTo, linkedLaneSetToAddTo;
             CheckExistence(curLane);
             CheckExistence(linkedLane);
 
@@ -1868,7 +1868,7 @@ namespace Simulator.Editor
             return int.Parse(name.Split('_').Last());
         }
 
-        void CheckExistence(MapLane lane)
+        void CheckExistence(MapTrafficLane lane)
         {
             if (!Lane2BeforesAfters.ContainsKey(lane))
             {
@@ -1970,7 +1970,7 @@ namespace Simulator.Editor
             return laneSectionId;
         }
 
-        void UpdateLanesBeforesAfters(lane[] lanes, Dictionary<int, MapLane> curId2MapLane,
+        void UpdateLanesBeforesAfters(lane[] lanes, Dictionary<int, MapTrafficLane> curId2MapLane,
             string preRoadId, int preLaneSectionId, string sucRoadId, int sucLaneSectionId,
             contactPoint preContactPoint, contactPoint sucContactPoint)
         {
@@ -2018,10 +2018,10 @@ namespace Simulator.Editor
             }
         }
 
-        MapLane GetLaneFromRoads(string roadId, int laneSectionId, int laneId)
+        MapTrafficLane GetLaneFromRoads(string roadId, int laneSectionId, int laneId)
         {
             var laneSections = Roads[roadId];
-            Dictionary<int, MapLane> Id2MapLane = laneSections[laneSectionId];
+            Dictionary<int, MapTrafficLane> Id2MapLane = laneSections[laneSectionId];
             if (Id2MapLane.ContainsKey(laneId))
             {
                 return Id2MapLane[laneId];
@@ -2089,7 +2089,7 @@ namespace Simulator.Editor
         }
 
         // Make predecessor/successor lane's end/start point same as current lane's start/end point
-        void AdjustStartOrEndPoint(List<Vector3> positions, MapLane connectLane, bool adjustEndPoint)
+        void AdjustStartOrEndPoint(List<Vector3> positions, MapTrafficLane connectLane, bool adjustEndPoint)
         {
             var connectLaneWorldPositions = connectLane.mapWorldPositions;
             var connectLaneLocalPositions = connectLane.mapLocalPositions;
@@ -2188,7 +2188,7 @@ namespace Simulator.Editor
 
             // Destroy nondrivable lanes
             var linesToRemove = new HashSet<MapLine>();
-            var lanesToKeep = new List<MapLane>();
+            var lanesToKeep = new List<MapTrafficLane>();
             foreach (var entry in Lane2LaneType)
             {
                 if (entry.Value != laneType.driving)
@@ -2306,7 +2306,7 @@ namespace Simulator.Editor
             var mapLaneSections = new List<MapLaneSection>(MapAnnotationData.GetData<MapLaneSection>());
             foreach (var mapLaneSection in mapLaneSections)
             {
-                var lanes = new List<MapLane>(mapLaneSection.GetComponentsInChildren<MapLane>());
+                var lanes = new List<MapTrafficLane>(mapLaneSection.GetComponentsInChildren<MapTrafficLane>());
                 if (lanes.Count == 1)
                 {
                     lanes[0].transform.parent = SingleLaneRoads.transform;
@@ -2331,7 +2331,7 @@ namespace Simulator.Editor
             }
         }
 
-        void UpdateLaneBeforeAfterLanes(MapLane lane, bool updateBeforeAfter=false)
+        void UpdateLaneBeforeAfterLanes(MapTrafficLane lane, bool updateBeforeAfter=false)
         {
             if (lane.befores.Count > 0)
             {
@@ -2384,7 +2384,7 @@ namespace Simulator.Editor
             line.mapLocalPositions = lineData.mapLocalPositions;
         }
 
-        HashSet<LaneData> GetLanesData(List<MapLane> laneSegments)
+        HashSet<LaneData> GetLanesData(List<MapTrafficLane> laneSegments)
         {
             LaneData.Lane2LaneData.Clear();
             LineData.Line2LineData.Clear();

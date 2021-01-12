@@ -24,7 +24,7 @@ public class SpawnsManager : MonoBehaviour
         public Vector3 position;
         public int spawnIndex;
         public Vector3 lookAtPoint;
-        public MapLaneBase lane;
+        public MapLane lane;
     }
 
     private const float SightDistanceLimit = 200.0f;
@@ -81,7 +81,7 @@ public class SpawnsManager : MonoBehaviour
         }
     }
 
-    private void CacheLane(MapLaneBase lane)
+    private void CacheLane(MapLane lane)
     {
         if (lane.DenySpawn)
             return;

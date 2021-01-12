@@ -23,7 +23,7 @@ namespace Simulator.Map
         [System.NonSerialized]
         public List<MapLine> stopLines = new List<MapLine>();
         [System.NonSerialized]
-        public List<MapPedestrian> PedLines = new List<MapPedestrian>();
+        public List<MapPedestrianLane> PedLines = new List<MapPedestrianLane>();
 
         public Vector3 triggerBounds = new Vector3(10, 10, 10); // match to size of intersection so all stop sign queue goes in and out
         public BoxCollider yieldTrigger { get; set; }
@@ -42,9 +42,9 @@ namespace Simulator.Map
         {
             var allMapLines = new List<MapLine>();
             stopLines = new List<MapLine>();
-            PedLines = new List<MapPedestrian>();
+            PedLines = new List<MapPedestrianLane>();
             allMapLines.AddRange(transform.GetComponentsInChildren<MapLine>());
-            PedLines.AddRange(transform.GetComponentsInChildren<MapPedestrian>());
+            PedLines.AddRange(transform.GetComponentsInChildren<MapPedestrianLane>());
 
             foreach (var line in allMapLines)
             {
@@ -59,8 +59,8 @@ namespace Simulator.Map
                 }
             }
 
-            var intersectionLanes = new List<MapLane>();
-            intersectionLanes.AddRange(transform.GetComponentsInChildren<MapLane>());
+            var intersectionLanes = new List<MapTrafficLane>();
+            intersectionLanes.AddRange(transform.GetComponentsInChildren<MapTrafficLane>());
             foreach (var lane in intersectionLanes)
             {
                 lane.laneCount = 1;
@@ -144,10 +144,10 @@ namespace Simulator.Map
             }
         }
 
-        public List<MapLane> GetIntersectionLanes()
+        public List<MapTrafficLane> GetIntersectionLanes()
         {
-            var intersectionLanes = new List<MapLane>();
-            intersectionLanes.AddRange(transform.GetComponentsInChildren<MapLane>());
+            var intersectionLanes = new List<MapTrafficLane>();
+            intersectionLanes.AddRange(transform.GetComponentsInChildren<MapTrafficLane>());
             return intersectionLanes;
         }
 

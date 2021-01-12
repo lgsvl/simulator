@@ -307,7 +307,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
             CurrentPooledNPCs[i].transform.position = spawnPoint.position;
             CurrentPooledNPCs[i].transform.LookAt(spawnPoint.lookAtPoint);
-            CurrentPooledNPCs[i].InitLaneData(spawnPoint.lane as MapLane);
+            CurrentPooledNPCs[i].InitLaneData(spawnPoint.lane as MapTrafficLane);
             CurrentPooledNPCs[i].GTID = ++SimulatorManager.Instance.GTIDs;
             CurrentPooledNPCs[i].gameObject.SetActive(true);
             CurrentPooledNPCs[i].enabled = true;

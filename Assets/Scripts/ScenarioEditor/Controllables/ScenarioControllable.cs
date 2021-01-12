@@ -19,14 +19,28 @@ namespace Simulator.ScenarioEditor.Controllables
     {
         /// <inheritdoc/>
         public override string ElementType => Variant == null ? "Controllable" : Variant.Name;
+
+        /// <inheritdoc/>
+        public override bool CanBeMoved => IsEditableOnMap;
+
+        /// <inheritdoc/>
+        public override bool CanBeRotated => IsEditableOnMap;
+
+        /// <inheritdoc/>
+        public override bool CanBeRemoved => IsEditableOnMap;
         
         /// <inheritdoc/>
-        public override bool CanBeCopied => true;
-        
+        public override bool CanBeCopied => IsEditableOnMap;
+
         /// <summary>
         /// This controllable variant
         /// </summary>
         public ControllableVariant Variant => variant as ControllableVariant;
+
+        /// <summary>
+        /// Checks if this scenario controllable object can be edited
+        /// </summary>
+        public bool IsEditableOnMap => Variant.controllable.Spawned;
         
         /// <summary>
         /// Currently set policy for this controllable

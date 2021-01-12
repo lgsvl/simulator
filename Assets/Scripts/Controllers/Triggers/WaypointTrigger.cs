@@ -8,6 +8,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using SimpleJSON;
 using UnityEngine;
 
 public class WaypointTrigger
@@ -43,5 +44,22 @@ public class WaypointTrigger
     {
         Effectors.Remove(effector);
         EffectorRemoved?.Invoke(effector);
+    }
+    
+    public static WaypointTrigger DeserializeTrigger(JSONNode data)
+    {
+        if (data == null)
+            return null;
+        var effectorsNode = data["effectors"].AsArray;
+        var trigger = new WaypointTrigger();
+        for (int i = 0; i < effectorsNode.Count; i++)
+        {
+            var typeName = effectorsNode[i]["type_name"];
+            var newEffector = TriggersManager.GetEffectorOfType(typeName);
+            newEffector.DeserializeProperties(effectorsNode[i]["parameters"]);
+            trigger.AddEffector(newEffector);
+        }
+
+        return trigger;
     }
 }

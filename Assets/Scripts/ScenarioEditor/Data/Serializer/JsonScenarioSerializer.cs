@@ -197,14 +197,17 @@ namespace Simulator.ScenarioEditor.Data.Serializer
             var controllableNode = new JSONObject();
             data.Add(controllableNode);
             controllableNode.Add("uid", new JSONString(controllable.Uid));
-            controllableNode.Add("name", new JSONString(controllable.Variant.Name));
             controllableNode.Add("policy", new JSONString(controllable.Policy));
-            var transform = new JSONObject();
-            controllableNode.Add("transform", transform);
-            var position = new JSONObject().WriteVector3(controllable.TransformToMove.position);
-            transform.Add("position", position);
-            var rotation = new JSONObject().WriteVector3(controllable.TransformToRotate.rotation.eulerAngles);
-            transform.Add("rotation", rotation);
+            if (controllable.IsEditableOnMap)
+            {
+                controllableNode.Add("name", new JSONString(controllable.Variant.Name));
+                var transform = new JSONObject();
+                controllableNode.Add("transform", transform);
+                var position = new JSONObject().WriteVector3(controllable.TransformToMove.position);
+                transform.Add("position", position);
+                var rotation = new JSONObject().WriteVector3(controllable.TransformToRotate.rotation.eulerAngles);
+                transform.Add("rotation", rotation);
+            }
         }
     }
 }

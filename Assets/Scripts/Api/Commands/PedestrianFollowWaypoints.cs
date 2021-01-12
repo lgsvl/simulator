@@ -46,7 +46,7 @@ namespace Simulator.Api.Commands
                         Speed = waypoints[i]["speed"].AsFloat,
                         Idle = waypoints[i]["idle"].AsFloat,
                         TriggerDistance = waypoints[i]["trigger_distance"].AsFloat,
-                        Trigger = DeserializeTrigger(waypoints[i]["trigger"])
+                        Trigger = WaypointTrigger.DeserializeTrigger(waypoints[i]["trigger"])
                     });
                 }
 
@@ -59,23 +59,6 @@ namespace Simulator.Api.Commands
             {
                 api.SendError(this, $"Agent '{uid}' not found");
             }
-        }
-
-        private WaypointTrigger DeserializeTrigger(JSONNode data)
-        {
-            if (data == null)
-                return null;
-            var effectorsNode = data["effectors"].AsArray;
-            var trigger = new WaypointTrigger();
-            for (int i = 0; i < effectorsNode.Count; i++)
-            {
-                var typeName = effectorsNode[i]["type_name"];
-                var newEffector = TriggersManager.GetEffectorOfType(typeName);
-                newEffector.DeserializeProperties(effectorsNode[i]["parameters"]);
-                trigger.AddEffector(newEffector);
-            }
-
-            return trigger;
         }
     }
 }

@@ -1885,7 +1885,6 @@ namespace Simulator.Editor
             var mapIntersectionObj = new GameObject("MapIntersection_" + id);
             var mapIntersection = mapIntersectionObj.AddComponent<MapIntersection>();
             mapIntersection.transform.parent = Intersections.transform;
-            mapIntersection.triggerBounds = new Vector3(0, 10, 0);
             Id2MapIntersection[id] = mapIntersection;
 
             return mapIntersection;

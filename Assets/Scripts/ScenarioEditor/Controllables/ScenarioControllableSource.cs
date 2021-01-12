@@ -74,6 +74,7 @@ namespace Simulator.ScenarioEditor.Controllables
             {
                 var variant = new ControllableVariant();
                 Debug.Log($"Loading controllable {controllable.Key} from the config.");
+                controllable.Value.Spawned = true;
                 variant.Setup(controllable.Key, controllable.Value);
                 Variants.Add(variant);
                 progress.Report((float)++i/controllablesCount);
@@ -105,6 +106,12 @@ namespace Simulator.ScenarioEditor.Controllables
             var scenarioControllable = newGameObject.AddComponent<ScenarioControllable>();
             scenarioControllable.Setup(this, variant);
             scenarioControllable.Policy = variant.controllable.DefaultControlPolicy;
+            SetupNewControllable(scenarioControllable);
+            return scenarioControllable;
+        }
+
+        public void SetupNewControllable(ScenarioControllable scenarioControllable)
+        {
             var rb = scenarioControllable.gameObject.GetComponentInChildren<Rigidbody>();
             if (rb != null)
             {
@@ -113,9 +120,8 @@ namespace Simulator.ScenarioEditor.Controllables
             }
             var colliders = scenarioControllable.gameObject.GetComponentsInChildren<Collider>();
             foreach (var col in colliders) col.isTrigger = true;
-            return scenarioControllable;
         }
-
+        
         /// <inheritdoc/>
         public override void OnVariantSelected(SourceVariant variant)
         {

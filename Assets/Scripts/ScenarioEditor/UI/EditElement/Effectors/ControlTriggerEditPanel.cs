@@ -97,7 +97,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
             for (var i = 0; i < linkedControllables.Count; i++)
             {
                 var controllable = linkedControllables[i];
-                lineRenderer.SetPosition(i+1, controllable.transform.position + LineRendererPositionOffset);
+                lineRenderer.SetPosition(i + 1, controllable.transform.position + LineRendererPositionOffset);
             }
 
             policyEditPanel.Setup(linkedControllables.Count > 0 ? linkedControllables[0].Variant.controllable : null,
@@ -174,7 +174,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
             else
             {
                 var controllable = scenarioControllable.Variant.controllable;
-                if (linkedControllables.Count > 0 && controllable != linkedControllables[0].Variant.controllable)
+                if (linkedControllables.Count > 0 &&
+                    controllable.GetType() != linkedControllables[0].Variant.controllable.GetType())
                 {
                     ScenarioManager.Instance.logPanel.EnqueueWarning(
                         "Cannot link two different controllable variants to one control trigger.");

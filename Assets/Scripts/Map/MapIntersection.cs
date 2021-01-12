@@ -5,7 +5,6 @@
  *
  */
 
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Simulator.Controllable;
@@ -26,7 +25,7 @@ namespace Simulator.Map
         [System.NonSerialized]
         public List<MapPedestrian> PedLines = new List<MapPedestrian>();
 
-        public Vector3 triggerBounds; // match to size of intersection so all stop sign queue goes in and out
+        public Vector3 triggerBounds = new Vector3(10, 10, 10); // match to size of intersection so all stop sign queue goes in and out
         public BoxCollider yieldTrigger { get; set; }
 
         [System.NonSerialized]

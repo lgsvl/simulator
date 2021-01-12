@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -20,17 +20,28 @@ namespace Simulator.Map
     public class MapSignal : MapData, IControllable, IMapType
     {
         public bool Spawned { get; set; } = false;
-        public string UID { get; set; }
         public uint SeqId;
         public Vector3 boundOffsets = new Vector3();
         public Vector3 boundScale = new Vector3();
         public List<SignalData> signalData = new List<SignalData>();
         public MapLine stopLine;
-        public Renderer signalLightMesh;
         public SignalLight CurrentSignalLight;
         public SignalType signalType = SignalType.MIX_3_VERTICAL;
         private Coroutine SignalCoroutine;
         private MessagesManager messagesManager;
+        
+        [SerializeField] private string _UID;
+        public string UID
+        {
+            get { return _UID; }
+            set
+            {
+#if UNITY_EDITOR
+                Undo.RecordObject(this, "Changed signal UID");
+#endif
+                _UID = value;
+            }
+        }
 
         [SerializeField] private string _id;
         public string id
@@ -61,6 +72,10 @@ namespace Simulator.Map
         private void Reset()
         {
             id = "signal_" + (++MaxId);
+            if (string.IsNullOrEmpty(UID))
+            {
+                UID = Guid.NewGuid().ToString();
+            }
         }
 
         [InitializeOnLoadMethod]
@@ -72,19 +87,28 @@ namespace Simulator.Map
         static void OnEditorSceneManagerSceneOpened(UnityEngine.SceneManagement.Scene scene, UnityEditor.SceneManagement.OpenSceneMode mode)
         {
             var mapHolder = UnityEngine.Object.FindObjectOfType<MapHolder>();
-            if (mapHolder == null) return;
+            if (mapHolder == null)
+                return;
 
             var existingSignals = new List<MapSignal>(mapHolder.transform.GetComponentsInChildren<MapSignal>());
             int curMaxId = 0;
             for (int i = 0; i < existingSignals.Count; i++)
             {
-                int curId = getNumber(existingSignals[i].id);
-                if (curId > curMaxId) curMaxId = curId;
+                var signal = existingSignals[i];
+                int curId = GetNumber(signal.id);
+                if (curId > curMaxId)
+                {
+                    curMaxId = curId;
+                }
+                if (string.IsNullOrEmpty(signal.UID)) // if there is no UID set, set a random one
+                {
+                    signal.UID = Guid.NewGuid().ToString();
+                }
             }
             MaxId = curMaxId;
         }
  #endif
-        static int getNumber(string signalId)
+        static int GetNumber(string signalId)
         {
             var splitted = signalId.Split('_');
             if (splitted.Length < 2) return 0;
@@ -110,13 +134,6 @@ namespace Simulator.Map
             Resources.UnloadUnusedAssets();
         }
 
-        private IEnumerator WaitForId(Action callback)
-        {
-            while (string.IsNullOrEmpty(id))
-                yield return null;
-            callback();
-        }
-
         public void SetSignalMeshData()
         {
             var signalLights = new List<SignalLight>();
@@ -125,7 +142,6 @@ namespace Simulator.Map
             {
                 if (Vector3.Distance(transform.position, light.transform.position) < 0.1f)
                 {
-                    signalLightMesh = light.GetComponent<Renderer>(); // TODO this signal mesh is deprecated and will be removed
                     CurrentSignalLight = light;
                     break;
                 }
@@ -160,59 +176,21 @@ namespace Simulator.Map
                 return;
             }
 
-            bool isOldSignal = signalLightMesh != null; // TODO this signal mesh is deprecated and will be removed
-
             CurrentState = state;
+            CurrentSignalLight.SetSignalLightState(state);
             switch (CurrentState)
             {
                 case "red":
                     stopLine.currentState = SignalLightStateType.Red;
-                    if (isOldSignal)
-                    {
-                        signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0.6666f));
-                        signalLightMesh.material.SetColor("_EmissiveColor", Color.red);
-                    }
-                    else
-                    {
-                        CurrentSignalLight.SetSignalLightState(state);
-                    }
                     break;
                 case "green":
                     stopLine.currentState = SignalLightStateType.Green;
-                    if (isOldSignal)
-                    {
-                        signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0f));
-                        signalLightMesh.material.SetColor("_EmissiveColor", Color.green);
-                    }
-                    else
-                    {
-                        CurrentSignalLight.SetSignalLightState(state);
-                    }
                     break;
                 case "yellow":
                     stopLine.currentState = SignalLightStateType.Yellow;
-                    if (isOldSignal)
-                    {
-                        signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0.3333f));
-                        signalLightMesh.material.SetColor("_EmissiveColor", Color.yellow);
-                    }
-                    else
-                    {
-                        CurrentSignalLight.SetSignalLightState(state);
-                    }
                     break;
                 case "black":
                     stopLine.currentState = SignalLightStateType.Black;
-                    if (isOldSignal)
-                    {
-                        signalLightMesh.material.SetColor("_EmissiveColor", Color.black);
-                    }
-                    else
-                    {
-                        CurrentSignalLight.SetSignalLightState(state);
-                    }
-                    break;
-                default:
                     break;
             }
         }
@@ -317,7 +295,8 @@ namespace Simulator.Map
 
         public override void Draw()
         {
-            if (signalData == null || signalData.Count < 1) return;
+            if (signalData == null || signalData.Count < 1)
+                return;
 
             var lightLocalPositions = signalData.Select(x => x.localPosition).ToList();
             var lightCount = lightLocalPositions.Count;
@@ -329,6 +308,7 @@ namespace Simulator.Map
                 UnityEditor.Handles.Label(transform.position, "    SIGNAL");
 #endif
             }
+
             for (int i = 0; i < lightCount; i++)
             {
                 var start = transform.TransformPoint(lightLocalPositions[i]);

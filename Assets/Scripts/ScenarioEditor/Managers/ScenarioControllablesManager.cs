@@ -14,6 +14,7 @@ namespace Simulator.ScenarioEditor.Managers
     using Controllable;
     using Controllables;
     using Input;
+    using Map;
     using Simulator.Utilities;
     using UnityEngine;
     using Utilities;
@@ -75,10 +76,14 @@ namespace Simulator.ScenarioEditor.Managers
             var loadingProcess = ScenarioManager.Instance.loadingPanel.AddProgress();
             loadingProcess.Update("Initializing controllables.");
             await ScenarioManager.Instance.WaitForExtension<InputManager>();
+            await ScenarioManager.Instance.WaitForExtension<ScenarioMapManager>();
+            var mapManager = ScenarioManager.Instance.GetExtension<ScenarioMapManager>();
             Source = Instantiate(source, transform);
             var sourceProgress = new Progress<float>(f =>
                 loadingProcess.Update($"Loading controllables {f:P}."));
             await Source.Initialize(sourceProgress);
+            OnMapChanged(mapManager.CurrentMapMetaData);
+            mapManager.MapChanged += OnMapChanged;
             ScenarioManager.Instance.ScenarioReset += InstanceOnScenarioReset;
             IsInitialized = true;
             loadingProcess.NotifyCompletion();
@@ -97,8 +102,46 @@ namespace Simulator.ScenarioEditor.Managers
             Destroy(Source);
             Source = null;
             Controllables.Clear();
+            var mapManager = ScenarioManager.Instance.GetExtension<ScenarioMapManager>();
+            mapManager.MapChanged -= OnMapChanged;
+            ScenarioManager.Instance.ScenarioReset -= InstanceOnScenarioReset;
             IsInitialized = false;
             Debug.Log($"{GetType().Name} scenario editor extension has been deinitialized.");
+        }
+
+        /// <summary>
+        /// Method called when new map is loaded
+        /// </summary>
+        /// <param name="mapData">Loaded map data</param>
+        private void OnMapChanged(ScenarioMapManager.MapMetaData mapData)
+        {
+            var mapSignals = FindObjectsOfType<MapSignal>();
+            if (mapSignals.Length <= 0) return;
+            foreach (var mapSignal in mapSignals)
+            {
+                var mapSignalVariant = new ControllableVariant();
+                mapSignal.SetSignalMeshData();
+                mapSignalVariant.Setup(nameof(MapSignal), mapSignal);
+                var scenarioControllable = mapSignal.CurrentSignalLight.gameObject.AddComponent<ScenarioControllable>();
+                scenarioControllable.Uid = mapSignal.UID;
+                scenarioControllable.Setup(source, mapSignalVariant);
+                scenarioControllable.Policy = mapSignal.DefaultControlPolicy;
+                var boxCollider = scenarioControllable.gameObject.AddComponent<BoxCollider>();
+                boxCollider.isTrigger = true;
+                var meshRenderers = scenarioControllable.GetComponentsInChildren<MeshRenderer>();
+                //Set a default collider size if no mesh renderers were found
+                if (meshRenderers.Length <= 0)
+                {
+                    boxCollider.center = Vector3.zero;
+                    boxCollider.size = Vector3.one;
+                    continue;
+                }
+                var bounds = meshRenderers[0].bounds;
+                for (var i = 1; i < meshRenderers.Length; i++)
+                    bounds.Encapsulate(meshRenderers[i].bounds);
+                boxCollider.center = bounds.center-scenarioControllable.transform.position;
+                boxCollider.size = bounds.extents*2;
+            }
         }
 
         /// <summary>
@@ -108,9 +151,11 @@ namespace Simulator.ScenarioEditor.Managers
         {
             for (var i = Controllables.Count - 1; i >= 0; i--)
             {
-                var agent = Controllables[i];
-                agent.RemoveFromMap();
-                agent.Dispose();
+                var controllable = Controllables[i];
+                if (!controllable.IsEditableOnMap)
+                    continue;
+                controllable.RemoveFromMap();
+                controllable.Dispose();
             }
         }
 
@@ -135,6 +180,22 @@ namespace Simulator.ScenarioEditor.Managers
         }
 
         /// <summary>
+        /// Searches for a registered controllable that contains given uid
+        /// </summary>
+        /// <param name="uid">Requested controllable uid</param>
+        /// <returns>Controllable with given uid, null if it was not found</returns>
+        public ScenarioControllable FindControllable(string uid)
+        {
+            foreach (var controllable in Controllables)
+            {
+                if (controllable.Uid == uid)
+                    return controllable;
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Copies policy value and required target
         /// </summary>
         /// <param name="target">Target controllable required for copied policy</param>
@@ -153,7 +214,7 @@ namespace Simulator.ScenarioEditor.Managers
         /// <returns>True if target is the same as copied one, false otherwise</returns>
         public bool GetCopiedPolicy(IControllable target, out string policy)
         {
-            if (target == copiedPolicyTarget)
+            if (target.GetType() == copiedPolicyTarget.GetType())
             {
                 policy = copiedPolicy;
                 return true;

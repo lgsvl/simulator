@@ -41,7 +41,7 @@ namespace Simulator.ScenarioEditor.Elements
         protected GameObject modelInstance;
 
         /// <summary>
-        /// All the renderers in the agent model
+        /// All the renderers in the scenario element model
         /// </summary>
         private Renderer[] modelRenderers;
 
@@ -86,12 +86,18 @@ namespace Simulator.ScenarioEditor.Elements
                 DisposeModel();
             }
             variant = newVariant;
-            modelInstance = source.GetModelInstance(variant).gameObject;
-            modelInstance.name = modelObjectName;
-            modelInstance.transform.SetParent(transform);
-            modelInstance.transform.localPosition = position;
-            modelInstance.transform.localRotation = rotation;
+            
+            //Check if variant should spawn a model instance
+            if (newVariant.Prefab != null)
+            {
+                modelInstance = source.GetModelInstance(variant).gameObject;
+                modelInstance.name = modelObjectName;
+                modelInstance.transform.SetParent(transform);
+                modelInstance.transform.localPosition = position;
+                modelInstance.transform.localRotation = rotation;
+            }
             modelRenderers = null;
+
             VariantChanged?.Invoke(variant);
         }
 
@@ -109,7 +115,8 @@ namespace Simulator.ScenarioEditor.Elements
         {
             if (modelInstance != null)
                 DisposeModel();
-            Destroy(gameObject);
+            if (this!=null)
+                Destroy(gameObject);
         }
 
         /// <summary>

@@ -313,8 +313,6 @@ namespace Simulator.Web
             {
                 throw new Exception($"manifest version mismatch, expected {BundleConfig.Versions[BundleConfig.BundleTypes.Controllable]}, got {manifest.assetFormat}");
             }
-            var texStream = dir.Find($"{manifest.assetGuid}_controllable_textures").SeekableStream();
-            var textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
 
             Assembly pluginSource = LoadAssembly(dir, $"{manifest.assetName}.dll");
 
@@ -322,10 +320,18 @@ namespace Simulator.Web
             var pluginStream = dir.Find($"{manifest.assetGuid}_controllable_main_{platform}").SeekableStream();
             AssetBundle pluginBundle = AssetBundle.LoadFromStream(pluginStream);
             var pluginAssets = pluginBundle.GetAllAssetNames();
-            if (!AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
+            
+            var texDir = dir.Find($"{manifest.assetGuid}_controllable_textures");
+            if (texDir != null)
             {
-                textureBundle.LoadAllAssets();
+                var texStream = dir.Find($"{manifest.assetGuid}_controllable_textures").SeekableStream();
+                var textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+                if (!AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
+                {
+                    textureBundle.LoadAllAssets();
+                }
             }
+
             Controllables.Add(manifest.assetName, pluginBundle.LoadAsset<GameObject>(pluginAssets[0]).GetComponent<IControllable>());
         }
 

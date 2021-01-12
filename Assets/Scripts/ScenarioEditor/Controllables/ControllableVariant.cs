@@ -41,7 +41,7 @@ namespace Simulator.ScenarioEditor.Controllables
         public override string Description => description;
 
         /// <inheritdoc/>
-        public override GameObject Prefab => controllable.gameObject;
+        public override GameObject Prefab => controllable.Spawned ? controllable.gameObject : null;
 
         /// <summary>
         /// Setup the controllable variant with the required data

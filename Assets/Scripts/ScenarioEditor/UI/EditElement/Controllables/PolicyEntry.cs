@@ -42,6 +42,11 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
             /// Entry type with manual input value for decimals only
             /// </summary>
             ActionWithDecimalValue = 2,
+            
+            /// <summary>
+            /// Entry type for action without value input
+            /// </summary>
+            ActionWithoutValue = 3,
         }
 
         //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
@@ -220,6 +225,11 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
                     valueDropdown.gameObject.SetActive(false);
                     valueInput.gameObject.SetActive(true);
                     valueInput.contentType = InputField.ContentType.DecimalNumber;
+                    break;
+                case "loop":
+                    valueDropdown.gameObject.SetActive(false);
+                    valueInput.gameObject.SetActive(false);
+                    valueInput.SetTextWithoutNotify("");
                     break;
                 default:
                     entryType = EntryType.Action;

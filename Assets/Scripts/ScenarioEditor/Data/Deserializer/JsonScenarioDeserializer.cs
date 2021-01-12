@@ -235,8 +235,16 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                 return;
             foreach (var controllableNode in controllablesNode.Children)
             {
-                var controllableName = controllableNode["name"];
+                var uid = controllableNode["uid"];
                 var controllablesManager = ScenarioManager.Instance.GetExtension<ScenarioControllablesManager>();
+                var scenarioControllable = controllablesManager.FindControllable(uid);
+                //Check if this controllable is already on the map, if yes just apply the policy
+                if (scenarioControllable != null)
+                {
+                    scenarioControllable.Policy = controllableNode["policy"];
+                    continue;
+                }
+                var controllableName = controllableNode["name"];
                 var variant = controllablesManager.Source.Variants.Find(v => v.Name == controllableName);
                 if (variant == null)
                 {
@@ -252,12 +260,16 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                     continue;
                 }
 
-                var scenarioControllable = controllablesManager.Source.GetControllableInstance(controllableVariant);
-                scenarioControllable.Uid = controllableNode["uid"];
+                scenarioControllable = controllablesManager.Source.GetControllableInstance(controllableVariant);
+                scenarioControllable.Uid = uid;
                 scenarioControllable.Policy = controllableNode["policy"];
-                var transformNode = controllableNode["transform"];
-                scenarioControllable.transform.position = transformNode["position"].ReadVector3();
-                scenarioControllable.TransformToRotate.rotation = Quaternion.Euler(transformNode["rotation"].ReadVector3());
+                if (scenarioControllable.IsEditableOnMap)
+                {
+                    var transformNode = controllableNode["transform"];
+                    scenarioControllable.transform.position = transformNode["position"].ReadVector3();
+                    scenarioControllable.TransformToRotate.rotation =
+                        Quaternion.Euler(transformNode["rotation"].ReadVector3());
+                }
             }
         }
     }

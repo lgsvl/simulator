@@ -46,4 +46,4 @@ MonoBehaviour:
   markingCursor:
     texture: {fileID: 2800000, guid: bc89e2739b730684f9ba200e41937ee3, type: 3}
     cursorMode: 0
-    hotSpot: {x: 256, y: 256}
+    hotSpot: {x: 128, y: 128}

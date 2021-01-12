@@ -108,7 +108,7 @@ namespace Simulator
 
             if (outputData != null)
             {
-                outputData.Append(eventArgs.Data);
+                outputData.AppendLine(eventArgs.Data);
             }
         }
         
@@ -119,7 +119,7 @@ namespace Simulator
 
             if (errorData != null)
             {
-                errorData.Append(eventArgs.Data);
+                errorData.AppendLine(eventArgs.Data);
             }
         }
 

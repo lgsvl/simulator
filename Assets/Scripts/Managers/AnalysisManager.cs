@@ -283,6 +283,11 @@ namespace Simulator.Analysis
             iterationInfo.Add("StopTime", DateTime.Now);
             iterationInfo.Add("Version", "0.2");
             iterationInfo.Add("Status", Status.ToString());
+            if (Status == AnalysisStatusType.Error)
+            {
+                var reasons = AnalysisEvents.Where(e => e.ContainsKey("Error") && e.ContainsKey("Status")).Select(e => e["Error"]);
+                iterationInfo.Add("ErrorReason", String.Join("\n", reasons));
+            }
 
             resultRoot.Add("Agents", agentsJA);
             resultRoot.Add("simulationConfig", configJO);

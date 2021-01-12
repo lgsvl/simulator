@@ -197,7 +197,7 @@ namespace Simulator
 
             status = value;
 
-            if (value == SimulatorStatus.Error)
+            if (value == SimulatorStatus.Error && SimulatorManager.InstanceAvailable)
             {
                 SimulatorManager.Instance.AnalysisManager.AddErrorEvent(message);
             }
@@ -945,7 +945,7 @@ namespace Simulator
             {
                 if (e.Failed)
                 {
-                    Instance.reportStatus(SimulatorStatus.Error, e.ErrorData);
+                    Instance.reportStatus(SimulatorStatus.Error, $"Test case exit code: {e.ExitCode}\nerror data: {e.ErrorData}");
                 }
 
                 Console.WriteLine($"[LOADER] Stopping simulation on TestCase process exit");

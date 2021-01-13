@@ -20,6 +20,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
 using UnityEngine;
+using Simulator.Utilities;
+using System.Text.RegularExpressions;
+using static Simulator.BundleConfig;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -574,14 +577,38 @@ public class CloudAPI
             }
         }
 
+        var buildVersion = "Development";
+        var buildInfo = Resources.Load<BuildInfo>("BuildInfo");
+        if (buildInfo != null)
+        {
+            buildVersion = buildInfo.Version;
+        }
+
+        var macadds = new List<string>();
+        var regex = String.Concat(Enumerable.Repeat("([a-fA-F0-9]{2})", 6));
+        var replace = "$1:$2:$3:$4:$5:$6";
+        var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
+        foreach (var adapter in networkInterfaces)
+        {
+            if (adapter.NetworkInterfaceType != NetworkInterfaceType.Ethernet)
+                continue;
+
+            var address = adapter.GetPhysicalAddress();
+            if (address.ToString() != "")
+            {
+                macadds.Add(Regex.Replace(address.ToString(), regex, replace));
+            }
+        }
+
         return new SimulatorInfo()
         {
             linkToken = Guid.NewGuid().ToString(),
             hostName = Environment.MachineName,
             platform = os.ToString(),
-            version = "2020.05",
+            version = buildVersion,
             ip = ips,
-            macAddress = "00:00:00:00:00:00"
+            macAddresses = macadds,
+            bundleVersions = BundleConfig.Versions,
         };
     }
 }
@@ -593,7 +620,8 @@ public struct SimulatorInfo
     public string platform;
     public string version;
     public List<string> ip;
-    public string macAddress;
+    public List<string> macAddresses;
+    public Dictionary<BundleTypes, string> bundleVersions;
 }
 
 public struct ResultMessage

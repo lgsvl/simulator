@@ -14,7 +14,7 @@ namespace Simulator
         public string assetName;
         public string assetType;
         public string assetGuid;
-        public int assetFormat;
+        public string assetFormat;
         public double[] mapOrigin;
         public double[] baseLink;
         public string description;

@@ -54,7 +54,8 @@ namespace Simulator.Web
             {
                 TemplateParameter parameter;
 
-                if (namedParameters.TryGetValue("SIMULATOR_MAP", out parameter))
+                if (namedParameters.TryGetValue("SIMULATOR_MAP", out parameter) ||
+                   namedParameters.TryGetValue("LGSVL__MAP", out parameter))
                 {
                     simData.Map = parameter.GetValue<MapData>();
                 }
@@ -73,54 +74,64 @@ namespace Simulator.Web
                 }
 
                 // Float/double values
-                if (namedParameters.TryGetValue("SIMULATOR_RAIN", out parameter))
+                if (namedParameters.TryGetValue("SIMULATOR_RAIN", out parameter) ||
+                    namedParameters.TryGetValue("LGSVL__ENVIRONMENT_RAIN", out parameter))
                 {
                     simData.Rain = (float)parameter.GetValue<double>();
                 }
 
-                if (namedParameters.TryGetValue("SIMULATOR_FOG", out parameter))
+                if (namedParameters.TryGetValue("SIMULATOR_FOG", out parameter) ||
+                    namedParameters.TryGetValue("LGSVL__ENVIRONMENT_FOG", out parameter))
                 {
                     simData.Fog = (float)parameter.GetValue<double>();
                 }
 
-                if (namedParameters.TryGetValue("SIMULATOR_WETNESS", out parameter))
+                if (namedParameters.TryGetValue("SIMULATOR_WETNESS", out parameter) ||
+                    namedParameters.TryGetValue("LGSVL__ENVIRONMENT_WETNESS", out parameter))
                 {
                     simData.Wetness = (float)parameter.GetValue<double>();
                 }
 
-                if (namedParameters.TryGetValue("SIMULATOR_CLOUDINESS", out parameter))
+                if (namedParameters.TryGetValue("SIMULATOR_CLOUDINESS", out parameter) ||
+                    namedParameters.TryGetValue("LGSVL__ENVIRONMENT_CLOUDINESS", out parameter))
                 {
                     simData.Cloudiness = (float)parameter.GetValue<double>();
                 }
 
-                if (namedParameters.TryGetValue("SIMULATOR_DAMAGE", out parameter))
+                if (namedParameters.TryGetValue("SIMULATOR_DAMAGE", out parameter) ||
+                    namedParameters.TryGetValue("LGSVL__ENVIRONMENT_DAMAGE", out parameter))
                 {
                     simData.Damage = (float)parameter.GetValue<double>();
                 }
 
                 // Boolean flags
-                if (namedParameters.TryGetValue("SIMULATOR_USE_TRAFFIC", out parameter))
+                if (namedParameters.TryGetValue("SIMULATOR_USE_TRAFFIC", out parameter) ||
+                    namedParameters.TryGetValue("LGSVL__SPAWN_TRAFFIC", out parameter))
                 {
                     simData.UseTraffic = parameter.GetValue<bool>();
                 }
 
-                if (namedParameters.TryGetValue("SIMULATOR_USE_BICYCLISTS", out parameter))
+                if (namedParameters.TryGetValue("SIMULATOR_USE_BICYCLISTS", out parameter) ||
+                    namedParameters.TryGetValue("LGSVL__SPAWN_BICYCLES", out parameter))
                 {
                     simData.UseBicyclists = parameter.GetValue<bool>();
                 }
 
-                if (namedParameters.TryGetValue("SIMULATOR_USE_PEDESTRIANS", out parameter))
+                if (namedParameters.TryGetValue("SIMULATOR_USE_PEDESTRIANS", out parameter) ||
+                    namedParameters.TryGetValue("LGSVL__SPAWN_PEDESTRIANS", out parameter))
                 {
                     simData.UsePedestrians = parameter.GetValue<bool>();
                 }
 
                 // time of day
-                if (namedParameters.TryGetValue("SIMULATOR_TIME_OF_DAY", out parameter))
+                if (namedParameters.TryGetValue("SIMULATOR_TIME_OF_DAY", out parameter) ||
+                    namedParameters.TryGetValue("LGSVL__TIME_OF_DAY", out parameter))
                 {
                     simData.TimeOfDay = parameter.GetValue<DateTime>();
                 }
 
-                if (namedParameters.TryGetValue("SIMULATOR_SEED", out parameter))
+                if (namedParameters.TryGetValue("SIMULATOR_SEED", out parameter) ||
+                    namedParameters.TryGetValue("LGSVL__RANDOM_SEED", out parameter))
                 {
                     var seed = (int)parameter.GetValue<long>();
 
@@ -255,31 +266,16 @@ namespace Simulator.Web
 
             environment.Add("SIMULATOR_TC_RUNTIME", template.Alias);
 
-            String bridgeConnectionString;
-
-            // Explode bridge connection string if provided
-            if (environment.TryGetValue("BRIDGE_CONNECTION_STRING", out bridgeConnectionString))
-            {
-                string[] bridge = bridgeConnectionString.Split(':');
-
-                if (bridge.Length == 2)
-                {
-                    environment.Add("BRIDGE_HOST", bridge[0]);
-                    environment.Add("BRIDGE_PORT", bridge[1]);
-                } else if (bridge.Length == 1)
-                {
-                    environment.Add("BRIDGE_HOST", bridge[1]);
-                }
-            }
-
-            if (!environment.ContainsKey("SIMULATOR_HOST"))
+            if (!environment.ContainsKey("LGSVL__SIMULATOR_HOST"))
             {
                 environment.Add("SIMULATOR_HOST", Config.ApiHost);
+                environment.Add("LGSVL__SIMULATOR_HOST", Config.ApiHost);
             }
 
-            if (!environment.ContainsKey("SIMULATOR_PORT"))
+            if (!environment.ContainsKey("LGSVL__SIMULATOR_PORT"))
             {
                 environment.Add("SIMULATOR_PORT", Config.ApiPort.ToString());
+                environment.Add("LGSVL__SIMULATOR_PORT", Config.ApiPort.ToString());
             }
         }
 

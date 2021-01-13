@@ -255,7 +255,7 @@ namespace Simulator.Editor
             ScrollPos = EditorGUILayout.BeginScrollView(ScrollPos);
             foreach (PropertyInfo prop in typeof(SimulationData).GetProperties())
             {
-                if (prop.Name == "Id" || prop.Name == "UpdatedAt" || prop.Name == "CreatedAt" || prop.Name == "OwnerId")
+                if (prop.Name == "Id" || prop.Name == "UpdatedAt" || prop.Name == "CreatedAt" || prop.Name == "OwnerId" || prop.Name == "TestReportId")
                     continue;
 
                 object value = prop.GetValue(DeveloperSimulation);
@@ -314,7 +314,7 @@ namespace Simulator.Editor
                                 vehicle.Bridge.ConnectionString = EditorGUILayout.TextField("Bridge Connection", vehicle.Bridge.ConnectionString);
 
                                 EditorGUILayout.LabelField("json sensor config");
-                                SensorScratchPad = EditorGUILayout.TextArea(SensorScratchPad, GUILayout.Height(200));
+                                SensorScratchPad = EditorGUILayout.TextArea(SensorScratchPad, GUILayout.ExpandHeight(true));
 
                                 try
                                 {

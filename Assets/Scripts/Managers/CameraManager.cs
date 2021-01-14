@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -37,6 +37,14 @@ public class CameraManager : MonoBehaviour
     public void SetFreeCameraState()
     {
         CameraController.SetFreeCameraState();
+    }
+
+    /// <summary>
+    /// API command to set free camera position and rotation
+    /// </summary>
+    public void SetFreeCameraState(Vector3 pos, Vector3 rot)
+    {
+        CameraController.SetFreeCameraState(pos, rot);
     }
 
     public void ToggleCameraState()

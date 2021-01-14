@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -351,6 +351,21 @@ public class SimulatorCameraController : MonoBehaviour
         targetObject = null;
         transform.position = thisCamera.transform.position;
         transform.rotation = thisCamera.transform.rotation;
+        thisCamera.transform.localRotation = Quaternion.identity;
+        thisCamera.transform.localPosition = Vector3.zero;
+        targetTiltFree = transform.eulerAngles.x;
+        targetLookFree = transform.eulerAngles.y;
+        SimulatorManager.Instance.UIManager?.SetCameraButtonState();
+    }
+
+    public void SetFreeCameraState(Vector3 pos, Vector3 rot)
+    {
+        SimulatorManager.Instance?.UIManager?.ResetCinematicAlpha();
+        transform.SetParent(SimulatorManager.Instance?.CameraManager.transform);
+        CurrentCameraState = CameraStateType.Free;
+        targetObject = null;
+        transform.position = pos;
+        transform.rotation = Quaternion.Euler(rot);
         thisCamera.transform.localRotation = Quaternion.identity;
         thisCamera.transform.localPosition = Vector3.zero;
         targetTiltFree = transform.eulerAngles.x;

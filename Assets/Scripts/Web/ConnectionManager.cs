@@ -607,6 +607,7 @@ public class CloudAPI
             platform = os.ToString(),
             version = buildVersion,
             ip = ips,
+            macAddress = macadds[0] ?? "00:00:00:00:00:00", // TODO need to remove and accept array instead
             macAddresses = macadds,
             bundleVersions = BundleConfig.Versions,
         };
@@ -620,6 +621,7 @@ public struct SimulatorInfo
     public string platform;
     public string version;
     public List<string> ip;
+    public string macAddress;
     public List<string> macAddresses;
     public Dictionary<BundleTypes, string> bundleVersions;
 }

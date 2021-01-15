@@ -643,8 +643,9 @@ namespace Simulator.Editor
 
                             if (manifest.fmuName != "")
                             {
-                                var fmuPathWindows = Path.Combine(sourcePath, manifest.fmuName, "binaries", "win64", $"{manifest.fmuName}.dll");
-                                var fmuPathLinux = Path.Combine(sourcePath, manifest.fmuName, "binaries", "linux64", $"{manifest.fmuName}.so");
+
+                                var fmuPathWindows = Path.Combine(sourcePath, manifest.assetName, manifest.fmuName, "binaries", "win64", $"{manifest.fmuName}.dll");
+                                var fmuPathLinux = Path.Combine(sourcePath, manifest.assetName, manifest.fmuName, "binaries", "linux64", $"{manifest.fmuName}.so");
                                 if (File.Exists(fmuPathWindows))
                                 {
                                     buildArtifacts.Add((fmuPathWindows, $"{manifest.fmuName}_windows.dll"));

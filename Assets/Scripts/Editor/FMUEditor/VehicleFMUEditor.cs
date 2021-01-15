@@ -68,27 +68,13 @@ public class VehicleFMUEditor : Editor
 
     private void ShowAxleInfo(SerializedProperty list)
     {
-        EditorGUILayout.PropertyField(list);
         EditorGUI.indentLevel += 1;
         if (list.isExpanded)
         {
             EditorGUILayout.PropertyField(list.FindPropertyRelative("Array.size"));
             for (int i = 0; i < list.arraySize; i++)
             {
-                var listElement = list.GetArrayElementAtIndex(i);
-                EditorGUILayout.PropertyField(listElement);
-                if (listElement.isExpanded)
-                {
-                    EditorGUI.indentLevel += 1;
-                    EditorGUILayout.PropertyField(listElement.FindPropertyRelative("Left"));
-                    EditorGUILayout.PropertyField(listElement.FindPropertyRelative("Right"));
-                    EditorGUILayout.PropertyField(listElement.FindPropertyRelative("LeftVisual"));
-                    EditorGUILayout.PropertyField(listElement.FindPropertyRelative("RightVisual"));
-                    EditorGUILayout.PropertyField(listElement.FindPropertyRelative("Motor"));
-                    EditorGUILayout.PropertyField(listElement.FindPropertyRelative("Steering"));
-                    EditorGUILayout.PropertyField(listElement.FindPropertyRelative("BrakeBias"));
-                    EditorGUI.indentLevel -= 1;
-                }
+                EditorGUILayout.PropertyField(list.GetArrayElementAtIndex(i));
             }
         }
         EditorGUI.indentLevel -= 1;

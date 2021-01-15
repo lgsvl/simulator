@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -17,7 +17,7 @@ namespace Simulator.Map
         List<T> afters { get; set; }
     }
 
-    public class MapLane : MapDataPoints, IMapLaneLineCommon<MapLane>, IMapType
+    public class MapLane : MapLaneBase, IMapLaneLineCommon<MapLane>
     {
         public bool displayLane = false;
         public bool needSelfReverseLane = false;
@@ -28,12 +28,6 @@ namespace Simulator.Map
 
         public List<MapLane> befores { get; set; } = new List<MapLane>();
         public List<MapLane> afters { get; set; } = new List<MapLane>();
-
-        public string id
-        {
-            get;
-            set;
-        }
 
         [System.NonSerialized]
         public MapLane leftLaneForward = null;
@@ -57,10 +51,6 @@ namespace Simulator.Map
         public List<MapLane> nextConnectedLanes = new List<MapLane>();
         [System.NonSerialized]
         public List<MapLane> prevConnectedLanes = new List<MapLane>();
-
-        [System.NonSerialized]
-        public bool Spawnable = false;
-        public bool DenySpawn = false; // to deny spawns in odd lanes on ramps etc.
 
         public bool isTrafficLane { get; set; } = false;
         public bool isStopSignIntersectionLane { get; set; } = false;

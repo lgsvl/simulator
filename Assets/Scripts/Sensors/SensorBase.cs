@@ -43,6 +43,5 @@ namespace Simulator.Sensors
         public abstract void OnVisualizeToggle(bool state);
         public virtual void OnAnalyze() { }
         public virtual void SetAnalysisData() { }
-        public virtual bool CheckVisible(Bounds bounds) => false;
     }
 }

@@ -79,11 +79,11 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
     private float CurrentSpeed;
     private Vector3 LastRBPosition;
     private Quaternion LastRBRotation;
-    private Bounds Bounds;
     private Vector3[] Corners = new Vector3[] { };
     private NavMeshObstacle NavMeshObstacle;
 
     public Transform AgentTransform => transform;
+    public Bounds Bounds { get; private set; }
     public float MovementSpeed { get; private set; }
     public Vector3 Acceleration => CurrentAcceleration;
     public uint GTID { get; set; }
@@ -198,8 +198,10 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
     public void SetGroundTruthBox()
     {
         var capsule = GetComponent<CapsuleCollider>();
-        Bounds = new Bounds(transform.position, Vector3.zero);
-        Bounds.size = new Vector3(capsule.radius * 2, capsule.height, capsule.radius * 2);
+        Bounds = new Bounds(transform.position, Vector3.zero)
+        {
+            size = new Vector3(capsule.radius * 2, capsule.height, capsule.radius * 2)
+        };
 
         // GroundTruth Box Collider
         var gtBox = new GameObject("GroundTruthBox");
@@ -686,7 +688,7 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
         if (SimulatorManager.Instance.IsAPI)
             return;
 
-        if (!SimulatorManager.Instance.PedestrianManager.WithinSpawnArea(transform.position) && !SimulatorManager.Instance.PedestrianManager.IsVisible(gameObject))
+        if (!SimulatorManager.Instance.PedestrianManager.spawnsManager.WithinSpawnArea(transform.position) && !SimulatorManager.Instance.PedestrianManager.spawnsManager.IsVisible(Bounds))
         {
             SimulatorManager.Instance.PedestrianManager.DespawnPed(this);
         }
@@ -723,10 +725,12 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
     protected override void PushSnapshot(BytesStack messageContent)
     {
         messageContent.PushEnum<PedestrianState>((int)ThisPedState);
+        messageContent.PushEnum<ControlType>((int)Control);
     }
 
     protected override void ApplySnapshot(DistributedMessage distributedMessage)
     {
+        Control = distributedMessage.Content.PopEnum<ControlType>();
         ThisPedState = distributedMessage.Content.PopEnum<PedestrianState>();
         //Validate animator, as snapshot can be received before it is initialized
         if (Anim != null && Anim.isActiveAndEnabled && Anim.runtimeAnimatorController != null)

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -56,6 +56,8 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     // loosely based on ppg 2017 trends https://news.ppg.com/automotive-color-trends/
     public List<NPCColors> NPCColorData = new List<NPCColors>();
 
+    public SpawnsManager spawnsManager;
+
     [Serializable]
     public struct NPCSpawnData
     {
@@ -71,14 +73,12 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     // startTime kept for recording when Simulator starts.
     // Used for deciding when to record log file.
     [System.NonSerialized]
-    public double startTime = 0f;
+    public double StartTime = 0f;
     private MapOrigin MapOrigin;
 
     public bool NPCActive { get; set; } = false;
     [HideInInspector]
     public List<NPCController> CurrentPooledNPCs = new List<NPCController>();
-    private LayerMask NPCSpawnCheckBitmask;
-    private Vector3 SpawnBoundsSize;
     private bool DebugSpawnArea = false;
     private int NPCMaxCount = 0;
     private  int ActiveNPCCount = 0;
@@ -95,7 +95,6 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     private bool InitSpawn = true;
     private Ray TestRay;
     private RaycastHit[] RayCastHits = new RaycastHit[1];
-    private LayerMask VisibleLM;
 
     public delegate void DespawnCallbackType(NPCController controller);
     List<DespawnCallbackType> DespawnCallbacks = new List<DespawnCallbackType>();
@@ -128,13 +127,11 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     private void Start()
     {
         MapOrigin = MapOrigin.Find();
-        NPCSpawnCheckBitmask = LayerMask.GetMask("NPC", "Agent");
-        SpawnBoundsSize = new Vector3(MapOrigin.NPCSpawnBoundSize, 50f, MapOrigin.NPCSpawnBoundSize);
+        spawnsManager = GetComponent<SpawnsManager>();
         NPCMaxCount = MapOrigin.NPCMaxCount;
         SimCameraManager = SimulatorManager.Instance.CameraManager;
         SimulatorCamera = SimCameraManager.SimulatorCamera;
         MapManager = SimulatorManager.Instance.MapManager;
-        VisibleLM = LayerMask.GetMask(new string[] { "Default", "Agent" ,"NPC", "Pedestrian", "Obstacle"});
         InitSpawn = true;
 
         NPCVehicles.Clear();
@@ -142,6 +139,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         {
             Loader.Instance.CurrentSimulation.NPCs = Simulator.Web.Config.NPCVehicles.Values.ToArray();
         }
+
         foreach (var data in Loader.Instance.CurrentSimulation.NPCs)
         {
             if (data.Enabled)
@@ -173,10 +171,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         {
             SpawnNPCPool();
             if (NPCActive)
-            {
-                //InitSetNPCOnMap();
-                SetNPCOnMap();
-            }
+                SetNPCOnMap(true);
         }
     }
 
@@ -241,10 +236,12 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         CurrentPooledNPCs.Add(NPCController);
 
         SimulatorManager.Instance.UpdateSegmentationColors(go);
-        
+
         //Add required components for distributing rigidbody from master to clients
         if (Loader.Instance.Network.IsClusterSimulation)
+        {
             ClusterSimulationUtilities.AddDistributedComponents(go);
+        }
 
         return NPCController;
     }
@@ -286,71 +283,31 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             };
             pooledNPCs.Add(SpawnNPC(spawnData));
             if (Loader.Instance.Network.IsMaster)
+            {
                 BroadcastMessage(GetSpawnMessage(spawnData));
+            }
         }
         return pooledNPCs;
     }
 
-    private void InitSetNPCOnMap()
+    public void SetNPCOnMap(bool isInitialSpawn = false)
     {
-        // TODO
-        InitSpawn = false;
-    }
+        //Wait 1s if spawning failed to limit the raycasting checks
+        if (spawnsManager.FailedSpawnTime + 1.0f > Time.time)
+            return;
 
-    public void SetNPCOnMap()
-    {
         for (int i = 0; i < CurrentPooledNPCs.Count; i++)
         {
             if (CurrentPooledNPCs[i].gameObject.activeInHierarchy)
                 continue;
 
-            var lane = MapManager.GetLane(RandomGenerator.Next(MapManager.trafficLanes.Count));
-            if (lane == null)
+            var spawnPoint = spawnsManager.GetValidSpawnPoint(CurrentPooledNPCs[i].Bounds, !isInitialSpawn);
+            if (spawnPoint == null)
                 return;
 
-            if (lane.mapWorldPositions == null || lane.mapWorldPositions.Count == 0)
-                continue;
-
-            if (lane.mapWorldPositions.Count < 2)
-                continue;
-
-            if (lane.DenySpawn)
-                continue;
-
-            var spawnPos = lane.mapWorldPositions[0];
-            CurrentPooledNPCs[i].transform.position = spawnPos;
-
-            if (!MapOrigin.IgnoreNPCBounds) // set from map origin to ignore agent bounds checks
-            {
-                if (!WithinSpawnArea(spawnPos))
-                {
-                    continue;
-                }
-            }
-
-            if (!MapOrigin.IgnoreNPCSpawnable) // set from map origin to ignore spawnable checks
-            {
-                if (!lane.Spawnable)
-                {
-                    continue;
-                }
-            }
-
-            if (!MapOrigin.IgnoreNPCVisible) // set from map origin to ignore sensor visible check
-            {
-                if (IsVisible(CurrentPooledNPCs[i].gameObject))
-                {
-                    continue;
-                }
-            }
-
-            if (Physics.CheckSphere(spawnPos, 6f, NPCSpawnCheckBitmask))
-            {
-                continue;
-            }
-
-            CurrentPooledNPCs[i].transform.LookAt(lane.mapWorldPositions[1]);
-            CurrentPooledNPCs[i].InitLaneData(lane);
+            CurrentPooledNPCs[i].transform.position = spawnPoint.position;
+            CurrentPooledNPCs[i].transform.LookAt(spawnPoint.lookAtPoint);
+            CurrentPooledNPCs[i].InitLaneData(spawnPoint.lane as MapLane);
             CurrentPooledNPCs[i].GTID = ++SimulatorManager.Instance.GTIDs;
             CurrentPooledNPCs[i].gameObject.SetActive(true);
             CurrentPooledNPCs[i].enabled = true;
@@ -361,14 +318,19 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             {
                 var rb = CurrentPooledNPCs[i].GetComponent<DistributedRigidbody>();
                 if (rb != null)
+                {
                     rb.BroadcastSnapshot(true);
+                }
             }
         }
     }
 
     public Transform GetRandomActiveNPC()
     {
-        if (CurrentPooledNPCs.Count == 0) return transform;
+        if (CurrentPooledNPCs.Count == 0)
+        {
+            return transform;
+        }
 
         int index = RandomGenerator.Next(CurrentPooledNPCs.Count);
         while (!CurrentPooledNPCs[index].gameObject.activeInHierarchy)
@@ -388,7 +350,9 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         npc.enabled = false;
 
         if (NPCActive)
+        {
             ActiveNPCCount--;
+        }
 
         foreach (var callback in DespawnCallbacks)
         {
@@ -410,9 +374,11 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         }
 
         obj.StopNPCCoroutines();
-        
+
         if (obj.currentIntersection != null)
+        {
             obj.currentIntersection.npcsInIntersection.Remove(obj.transform);
+        }
 
         CurrentPooledNPCs.Remove(obj);
         Destroy(obj.gameObject);
@@ -420,7 +386,8 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
     public void DespawnAllNPC()
     {
-        if (ActiveNPCCount == 0) return;
+        if (ActiveNPCCount == 0)
+            return;
 
         for (int i = 0; i < CurrentPooledNPCs.Count; i++)
         {
@@ -471,7 +438,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
     int GetNPCFrequencyWeight(NPCSizeType type)
     {
-        if(NPCFrequencyWeights.ContainsKey(type))
+        if (NPCFrequencyWeights.ContainsKey(type))
         {
             return NPCFrequencyWeights[type];
         }
@@ -525,66 +492,16 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         return false;
     }
 
-    public bool WithinSpawnArea(Vector3 pos)
-    {
-        var spawnT = SimulatorManager.Instance.AgentManager.CurrentActiveAgent?.transform;
-        spawnT = spawnT ?? transform;
-        var spawnBounds = new Bounds(spawnT.position, SpawnBoundsSize);
-        return spawnBounds.Contains(pos);
-    }
-
-    public bool IsVisible(GameObject npc)
-    {
-        var activeAgents = SimulatorManager.Instance.AgentManager.ActiveAgents;
-        var npcColliderBounds = npc.GetComponent<NPCController>().MainCollider.bounds;
-
-        if (SimCameraManager.GetCurrentCameraState() == CameraStateType.Cinematic) // only check if in cinematic mode
-        {
-            var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(SimulatorCamera);
-            if (GeometryUtility.TestPlanesAABB(activeCameraPlanes, npcColliderBounds))
-                return true;
-        }
-
-        foreach (var activeAgent in activeAgents)
-        {
-            var activeAgentController = activeAgent.AgentGO.GetComponent<AgentController>();
-            foreach (var sensor in activeAgentController.AgentSensors)
-            {
-                if (sensor.CheckVisible(npcColliderBounds))
-                {
-                    // TODO raycast
-                    //TestRay = new Ray(sensor.transform.position, npcColliderBounds.center - sensor.transform.position);
-                    //if (Physics.RaycastNonAlloc(TestRay,
-                    //                            RayCastHits,
-                    //                            Vector3.Distance(sensor.transform.position, npcColliderBounds.center),
-                    //                            VisibleLM) == 0)
-                    {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    private void DrawSpawnArea()
-    {
-        var spawnT = SimulatorManager.Instance.AgentManager.CurrentActiveAgent?.transform;
-        spawnT = spawnT ?? transform;
-        Gizmos.matrix = spawnT.localToWorldMatrix;
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireCube(Vector3.zero, SpawnBoundsSize);
-    }
-
     private void OnDrawGizmosSelected()
     {
-        if (!DebugSpawnArea) return;
-        DrawSpawnArea();
+        if (!DebugSpawnArea)
+            return;
+
+        spawnsManager.DrawSpawnArea();
     }
     #endregion
 
     #region network
-
     private DistributedMessage GetSpawnMessage(NPCSpawnData data)
     {
         var message = MessagesPool.Instance.GetMessage(
@@ -668,6 +585,5 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     {
         //TODO support reconnection - send instantiation messages to the peer
     }
-
     #endregion
 }

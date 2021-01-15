@@ -1,17 +1,15 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
  */
 
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace Simulator.Map
 {
-    public class MapPedestrian : MapDataPoints
+    public class MapPedestrian : MapLaneBase
     {
         public MapAnnotationTool.PedestrianPathType type = MapAnnotationTool.PedestrianPathType.SIDEWALK;
         public int PedVolume { get; set; } = 1;

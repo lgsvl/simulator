@@ -247,6 +247,7 @@ namespace Simulator.ScenarioEditor.Managers
                 var scenarioManager = addon.GetComponent<IScenarioEditorExtension>();
                 if (scenarioManager != null)
                 {
+                    Debug.Log($"Loading the VSE extension: {scenarioManager.GetType().Name}.");
                     var type = scenarioManager.GetType();
                     managersTypes.Remove(type);
                     tasks[i++] = scenarioManager.Initialize();
@@ -258,6 +259,7 @@ namespace Simulator.ScenarioEditor.Managers
             {
                 if (scenarioManagerType.IsSubclassOf(typeof(MonoBehaviour)))
                 {
+                    Debug.Log($"Loading the VSE extension: {scenarioManagerType.Name}.");
                     var go = new GameObject(scenarioManagerType.Name, scenarioManagerType);
                     go.transform.SetParent(transform);
                     var scenarioManager = go.GetComponent(scenarioManagerType) as IScenarioEditorExtension;
@@ -266,6 +268,7 @@ namespace Simulator.ScenarioEditor.Managers
                 }
                 else
                 {
+                    Debug.Log($"Loading the VSE extension: {scenarioManagerType.Name}.");
                     var scenarioManager = Activator.CreateInstance(scenarioManagerType) as IScenarioEditorExtension;
                     tasks[i++] = scenarioManager?.Initialize();
                     scenarioEditorExtensions.Add(scenarioManagerType, scenarioManager);

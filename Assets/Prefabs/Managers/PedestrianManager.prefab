@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8811571606677610470}
   - component: {fileID: 7152559145184925812}
+  - component: {fileID: 4763960021422335938}
   m_Layer: 0
   m_Name: PedestrianManager
   m_TagString: Untagged
@@ -56,3 +57,18 @@ MonoBehaviour:
   - {fileID: 5600284615818658777, guid: 627038625183fc048a4fc063d32d0292, type: 3}
   - {fileID: 6253766243615944680, guid: 9276031e203f3a14e8ad57b2507703dd, type: 3}
   CurrentPooledPeds: []
+  spawnsManager: {fileID: 0}
+--- !u!114 &4763960021422335938
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2770205118574158033}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6d663bd3ad996c4c9edf4457690a3b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spawnAreaType: 1
+  spawnRadius: 2

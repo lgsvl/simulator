@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -43,8 +43,10 @@ namespace Simulator.Api.Commands
             }
 
             SIM.LogAPI(SIM.API.SimulationRun, timeLimit.ToString());
-            if (sim.NPCManager.startTime == 0f)
-                sim.NPCManager.startTime = sim.CurrentTime;
+            if (sim.NPCManager.StartTime == 0f)
+            {
+                sim.NPCManager.StartTime = sim.CurrentTime;
+            }
 
             sim.AnalysisManager.AnalysisInit();
         }

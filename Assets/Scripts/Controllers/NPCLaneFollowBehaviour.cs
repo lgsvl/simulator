@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -146,8 +146,8 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     #region spawn
     protected void EvaluateDistanceFromFocus()
     {
-        if (!SimulatorManager.Instance.NPCManager.WithinSpawnArea(transform.position) && 
-            !SimulatorManager.Instance.NPCManager.IsVisible(gameObject) && 
+        if (!SimulatorManager.Instance.NPCManager.spawnsManager.WithinSpawnArea(transform.position) && 
+            !SimulatorManager.Instance.NPCManager.spawnsManager.IsVisible(NPCController.Bounds) && 
             !controller.IsUserSpecified)
         {
             Despawn();

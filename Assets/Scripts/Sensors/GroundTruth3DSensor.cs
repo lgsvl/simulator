@@ -259,13 +259,6 @@ namespace Simulator.Sensors
 
         public override void OnVisualizeToggle(bool state) {}
 
-        public override bool CheckVisible(Bounds bounds)
-        {
-            return Vector3.Distance(transform.position, bounds.center) < 50f;
-            //var activeCameraPlanes = Utility.CalculateFrustum(transform.position, (bounds.center - transform.position).normalized);
-            //return GeometryUtility.TestPlanesAABB(activeCameraPlanes, bounds);
-        }
-
         void OnDestroy()
         {
             StopAllCoroutines();

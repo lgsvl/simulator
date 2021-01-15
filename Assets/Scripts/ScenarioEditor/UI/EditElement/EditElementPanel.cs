@@ -51,6 +51,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             for (var i = 0; i < panelsPrefabs.Count; i++)
             {
                 var prefab = panelsPrefabs[i];
+                if (prefab == null)
+                    continue;
                 var panel = Instantiate(prefab, contentParent);
                 panel.Initialize();
                 panels.Add(panel);

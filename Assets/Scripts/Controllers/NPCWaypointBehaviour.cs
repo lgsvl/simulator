@@ -188,9 +188,14 @@ public class NPCWaypointBehaviour : NPCBehaviourBase
                 if (api != null)
                     api.AgentTraversedWaypoints(gameObject);
                 WaypointState = WaypointDriveState.Despawn;
-                FixedUpdateManager.StopAllCoroutines();
+                if (TriggerCoroutine!=null)
+                    FixedUpdateManager.StopCoroutine(TriggerCoroutine);
                 TriggerCoroutine = null;
+                if (IdleCoroutine!=null)
+                    FixedUpdateManager.StopCoroutine(IdleCoroutine);
                 IdleCoroutine = null;
+                if (MoveCoroutine!=null)
+                    FixedUpdateManager.StopCoroutine(MoveCoroutine);
                 MoveCoroutine = null;
             }
         }

@@ -46,7 +46,8 @@ namespace Simulator.ScenarioEditor.Agents
         /// <param name="description">Description with agent variant details</param>
         /// <param name="guid">Guid of the vehicle</param>
         /// <param name="assetGuid">Guid of the asset loaded within this vehicle</param>
-        public CloudAgentVariant(ScenarioAgentSource source, string name, GameObject prefab, string description, string guid,
+        public CloudAgentVariant(ScenarioAgentSource source, string name, GameObject prefab, string description,
+            string guid,
             string assetGuid) : base(source, name, prefab, description)
         {
             this.guid = guid;
@@ -58,7 +59,7 @@ namespace Simulator.ScenarioEditor.Agents
         /// </summary>
         /// <exception cref="Exception">Generic exception of the database loading process</exception>
         /// <exception cref="ArgumentException">Invalid prefab path in the vehicle model</exception>
-        public void AcquirePrefab()
+        public bool AcquirePrefab()
         {
             var bundlePath = assetModel.LocalPath;
             using (ZipFile zip = new ZipFile(bundlePath))
@@ -75,8 +76,9 @@ namespace Simulator.ScenarioEditor.Agents
 
                 if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Vehicle])
                 {
-                    throw new Exception(
-                        "Out of date Vehicle AssetBundle. Please check content website for updated bundle or rebuild the bundle.");
+                    ScenarioManager.Instance.logPanel.EnqueueError(
+                        $"Out of date Vehicle AssetBundle: {manifest.assetName}. Please check content website for updated bundle or rebuild the bundle.");
+                    return false;
                 }
 
                 AssetBundle textureBundle = null;
@@ -95,7 +97,9 @@ namespace Simulator.ScenarioEditor.Agents
 
                 if (vehicleBundle == null)
                 {
-                    throw new Exception($"Failed to load vehicle {name} from '{bundlePath}' asset bundle");
+                    ScenarioManager.Instance.logPanel.EnqueueError(
+                        $"Failed to load vehicle {name} from '{bundlePath}' asset bundle");
+                    return false;
                 }
 
                 try
@@ -103,7 +107,9 @@ namespace Simulator.ScenarioEditor.Agents
                     var vehicleAssets = vehicleBundle.GetAllAssetNames();
                     if (vehicleAssets.Length != 1)
                     {
-                        throw new Exception($"Unsupported '{bundlePath}' vehicle asset bundle, only 1 asset expected");
+                        ScenarioManager.Instance.logPanel.EnqueueError(
+                            $"Unsupported '{bundlePath}' vehicle asset bundle, only 1 asset expected");
+                        return false;
                     }
 
                     if (!AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
@@ -120,6 +126,8 @@ namespace Simulator.ScenarioEditor.Agents
                     vehicleBundle.Unload(false);
                 }
             }
+
+            return true;
         }
 
         /// <summary>
@@ -130,8 +138,8 @@ namespace Simulator.ScenarioEditor.Agents
         {
             ScenarioManager.Instance.logPanel.EnqueueInfo($"Started a download process of the {name} agent.");
             assetModel = await DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, assetGuid, name, progress);
-            AcquirePrefab();
-            ScenarioManager.Instance.logPanel.EnqueueInfo($"Agent {name} has been downloaded.");
+            if (AcquirePrefab())
+                ScenarioManager.Instance.logPanel.EnqueueInfo($"Agent {name} has been downloaded.");
         }
 
         /// <inheritdoc/>

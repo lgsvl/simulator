@@ -313,8 +313,8 @@ namespace Simulator.ScenarioEditor.Managers
 
                 if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Environment])
                 {
-                    Debug.LogError(
-                        "Out of date Map AssetBundle. Please check content website for updated bundle or rebuild the bundle.");
+                    ScenarioManager.Instance.logPanel.EnqueueError(
+                        $"Out of date Map AssetBundle: {manifest.assetName}. Please check content website for updated bundle or rebuild the bundle.");
                     return;
                 }
 

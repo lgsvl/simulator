@@ -56,7 +56,7 @@ public class SpawnsManager : MonoBehaviour
 
         MapOrigin = MapOrigin.Find();
         SpawnBoundsSize = new Vector3(MapOrigin.NPCSpawnBoundSize, 50f, MapOrigin.NPCSpawnBoundSize);
-        VisibleLM = LayerMask.GetMask(new string[] { "Default", "Agent" , "NPC", "Pedestrian", "Obstacle"});
+        VisibleLM = LayerMask.GetMask("Default", "NPC", "Pedestrian", "Obstacle");
         NPCSpawnCheckBitmask = LayerMask.GetMask("NPC", "Agent", "Pedestrian");
         CacheSpawnPoints();
         IsInitialized = true;
@@ -324,6 +324,6 @@ public class SpawnsManager : MonoBehaviour
             }
         }
 
-        return true;
+        return false;
     }
 }

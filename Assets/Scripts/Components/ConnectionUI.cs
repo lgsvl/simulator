@@ -65,7 +65,7 @@ namespace Simulator.Web
             linkButton.onClick.AddListener(OnLinkButtonClicked);
             offlineStartButton.onClick.AddListener(OnOfflineStartButtonClicked);
             offlineStopButton.onClick.AddListener(OnOfflineStopButtonClicked);
-            clearAssetCacheButton.onClick.AddListener(()=>
+            clearAssetCacheButton.onClick.AddListener(() =>
             {
                 CacheControlWindow.gameObject.SetActive(true);
             });
@@ -115,7 +115,14 @@ namespace Simulator.Web
                 case ConnectionManager.ConnectionStatus.Offline:
                     statusButtonText.text = "Offline";
                     statusMenuButtonText.text = "Go Online";
-                    statusText.text = "Go Online to start new simulation or run previous simulations while being Offline";
+                    if (ConnectionManager.DisconnectReason != null)
+                    {
+                        statusText.text = "Connection error: " + ConnectionManager.DisconnectReason;
+                    }
+                    else
+                    {
+                        statusText.text = "Go Online to start new simulation or run previous simulations while being Offline";
+                    }
                     statusButtonIcon.color = offlineColor;
                     unlinkButton.interactable = true;
                     linkButton.gameObject.SetActive(false);
@@ -153,7 +160,7 @@ namespace Simulator.Web
             offlineDropdown.AddOptions(simulationData.Select(s => s.Name).ToList());
             offlineDropdown.value = 0;
             selectedSim = 0;
-            if(simulationData.Count == 0)
+            if (simulationData.Count == 0)
             {
                 offlineDropdown.gameObject.SetActive(false);
                 offlineStartButton.gameObject.SetActive(false);
@@ -174,11 +181,11 @@ namespace Simulator.Web
 
         public void OnQuitButtonClicked()
         {
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
-            #else
+#else
              Application.Quit();
-            #endif
+#endif
         }
 
         public void OnOfflineStartButtonClicked()

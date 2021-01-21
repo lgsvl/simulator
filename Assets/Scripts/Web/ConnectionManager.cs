@@ -39,6 +39,7 @@ public class ConnectionManager : MonoBehaviour
     }
     
     public static ConnectionStatus Status = ConnectionStatus.Offline;
+    public static string DisconnectReason = null;
     public static ConnectionManager instance;
     public static CloudAPI API;
     public SimulatorInfo simInfo;
@@ -98,6 +99,7 @@ public class ConnectionManager : MonoBehaviour
         {
             simInfo = CloudAPI.GetInfo();
             Status = ConnectionStatus.Connecting;
+            DisconnectReason = null;
             RunOnUnityThread(() =>
             {
                 ConnectionUI.instance.UpdateStatus();
@@ -137,6 +139,7 @@ public class ConnectionManager : MonoBehaviour
                     catch (CloudAPI.NoSuccessException ex)
                     {
                         Debug.Log(ex.Message + ", reconnecting after " + timeOutSequence[timeOutSequence.Length - 1] + " seconds");
+                        DisconnectReason = ex.Message;
                         await Task.Delay(1000 * timeOutSequence[timeOutSequence.Length-1]);
                     }
                 }
@@ -145,15 +148,18 @@ public class ConnectionManager : MonoBehaviour
         catch (CloudAPI.NoSuccessException ex)
         {
             // WISE told us it does not like us, so stop reconnecting
+            DisconnectReason = ex.Message;
             Debug.Log($"WISE backend reported error: {ex.Message}, will not reconnect");
         }
         catch (TaskCanceledException)
         {
             Debug.Log("Linking task canceled.");
+            DisconnectReason = "Linking task canceled.";
         }
         catch (System.Net.Sockets.SocketException se)
         {
             Debug.Log($"Could not reach WISE SSE at {Config.CloudUrl}: {se.Message}");
+            DisconnectReason = $"Could not reach WISE SSE at {Config.CloudUrl}: {se.Message}";
         }
         catch (Exception ex)
         {
@@ -253,6 +259,14 @@ public class ConnectionManager : MonoBehaviour
                             case "Disconnect":
                                 RunOnUnityThread(() =>
                                 {
+                                    DisconnectReason = "Connection closed by WISE";
+                                    Disconnect();
+                                });
+                                break;
+                            case "Timeout":
+                                RunOnUnityThread(() =>
+                                {
+                                    DisconnectReason = "Connectioin closed by WISE due to timeout.";
                                     Disconnect();
                                 });
                                 break;
@@ -404,7 +418,7 @@ public class CloudAPI
         {
             Console.WriteLine("[CONN] Failed to connect to WISE");
             var content = await response.Content.ReadAsStringAsync();
-            throw new NoSuccessException(response.StatusCode.ToString() + " " + content);
+            throw new NoSuccessException($"{content} ({(int)response.StatusCode})");
         }
         Console.WriteLine("[CONN] Connected to WISE.");
         onlineStream = new StreamReader(await response.Content.ReadAsStreamAsync());

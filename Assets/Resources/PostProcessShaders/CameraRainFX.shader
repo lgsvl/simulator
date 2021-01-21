@@ -1,10 +1,10 @@
-﻿Shader "Hidden/Shader/CameraRainFX"
+Shader "Hidden/Shader/CameraRainFX"
 {
     HLSLINCLUDE
 
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
-	
+    #pragma multi_compile LOW MED HGH
 	#define S(a, b, t) smoothstep(a, b, t)
     
 	#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -49,12 +49,12 @@
 		return frac(p.x * p.y);
 	}
 
-
-
 	float3 Layer(float2 UV, float t)
 	{
 		float2 aspect = float2(2, 1);
-		float2 texcoord = UV * _Size * aspect;
+		float clamped = clamp(_Size, 0, 1);
+		float scale = lerp(12, 3, clamped);
+		float2 texcoord = UV * scale * aspect;
 		texcoord.y += t * .25;
 		float2 gv = frac(texcoord) - .5;
 		float2 id = floor(texcoord);
@@ -95,12 +95,24 @@
 		//Create Multiple Rain Drops
 		float t = fmod(_Time.y, 7200);
 		float3 drops = Layer(input.texcoord, t);
-		drops += Layer(input.texcoord * 1.23 + 7.54, t);
-		//drops += Layer(i.uv * 1.35 + 1.54, t);
-		//drops += Layer(i.uv * 1.57 - 7.54, t);
+
+#ifdef LOW
+        drops += Layer(input.texcoord * 1.23 + 7.54, t);
+#endif
+
+#ifdef MED
+        drops += Layer(input.texcoord * 1.23 + 7.54, t);
+        drops += Layer(input.texcoord * 1.35 + 1.54, t);
+#endif
+
+#ifdef HGH
+        drops += Layer(input.texcoord * 1.23 + 7.54, t);
+        drops += Layer(input.texcoord * 1.35 + 1.54, t);
+        drops += Layer(input.texcoord * 1.57 - 7.54, t);
+#endif
 
 		//Lerp the Rain Drops into the post effect
-		float4 outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS + ((drops.xy * -1) * _Intensity) * _ScreenSize.xy);
+		float4 outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS + (drops.xy * -1) * _ScreenSize.xy);
 		return outColor;
 	}
 

@@ -118,8 +118,7 @@ namespace Simulator.Sensors.Postprocessing
             angleOcclusion = null;
         }
 
-        protected override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination,
-            SunFlare data)
+        protected override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, SunFlare data)
         {
             var cam = camera.camera;
             var sunForward = sunTransform.forward;

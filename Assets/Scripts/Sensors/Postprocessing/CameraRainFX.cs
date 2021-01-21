@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -37,10 +37,34 @@ namespace Simulator.Sensors.Postprocessing
 
         protected override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, Rain data)
         {
+            if (Mathf.Approximately(data.intensity, 0f))
+            {
+                HDUtils.BlitCameraTexture(cmd, source, destination);
+                return;
+            }
+
+            if (data.intensity < .35)
+            {
+                cmd.EnableShaderKeyword("LOW");
+                cmd.DisableShaderKeyword("MED");
+                cmd.DisableShaderKeyword("HGH");
+            }
+            else if (data.intensity >= .35 && data.intensity < .7)
+            {
+                cmd.EnableShaderKeyword("MED");
+                cmd.DisableShaderKeyword("LOW");
+                cmd.DisableShaderKeyword("HGH");
+            }
+            else
+            {
+                cmd.EnableShaderKeyword("HGH");
+                cmd.DisableShaderKeyword("LOW");
+                cmd.DisableShaderKeyword("MED");
+            }
+
             cmd.SetGlobalFloat("_Intensity", data.intensity);
             cmd.SetGlobalTexture("_InputTexture", source);
             cmd.SetGlobalFloat("_Size", data.size);
-
             HDUtils.DrawFullScreen(cmd, material, destination);
         }
     }

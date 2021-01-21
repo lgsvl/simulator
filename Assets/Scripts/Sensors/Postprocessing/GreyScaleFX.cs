@@ -37,8 +37,11 @@ namespace Simulator.Sensors.Postprocessing
 
         protected override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, GreyScale data)
         {
-            if (material == null)
+            if (Mathf.Approximately(data.intensity, 0f))
+            {
+                HDUtils.BlitCameraTexture(cmd, source, destination);
                 return;
+            }
 
             material.SetFloat("_Intensity", data.intensity);
             material.SetTexture("_InputTexture", source);

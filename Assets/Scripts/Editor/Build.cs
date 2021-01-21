@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -682,10 +682,10 @@ namespace Simulator.Editor
                                 SensorBase sensor = asset.GetComponent<SensorBase>();
                                 if (sensor != null)
                                 {
-                                    manifest.sensorParams = new Dictionary<string, SensorParam>();
+                                    manifest.sensorParams = new List<SensorParam>();
                                     foreach (SensorParam param in SensorTypes.GetConfig(sensor).Parameters)
                                     {
-                                        manifest.sensorParams.Add(param.Name, param);
+                                        manifest.sensorParams.Add(param);
                                     }
                                     asset = null;
                                 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -20,7 +20,7 @@ namespace Simulator
         public string description;
         public string fmuName;
         public Dictionary<string, object> attachments;
-        public Dictionary<string, Simulator.Utilities.SensorParam> sensorParams;
+        public List<Simulator.Utilities.SensorParam> sensorParams;
         public string[] bridgeDataTypes;
     }
 

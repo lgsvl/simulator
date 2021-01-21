@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -25,7 +25,7 @@ namespace Simulator
         {
             [BundleTypes.Vehicle]     = "com.lgsvlsimulator.3",
             [BundleTypes.Environment] = "com.lgsvlsimulator.2",
-            [BundleTypes.Sensor]      = "com.lgsvlsimulator.2",
+            [BundleTypes.Sensor]      = "com.lgsvlsimulator.3",
             [BundleTypes.Controllable]= "com.lgsvlsimulator.0",
             [BundleTypes.NPC]         = "com.lgsvlsimulator.0",
             [BundleTypes.Bridge]      = "com.lgsvlsimulator.0",

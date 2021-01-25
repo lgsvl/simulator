@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -66,7 +66,6 @@ Shader "Hidden/Shader/SunFlare"
     
     float4 _SunSettings; // x: sun disk intensity, y: halo intensity, z: ghosting intensity, w: angle intensity
     float4 _SunViewPos;
-    float4 _InputTexSize;
     TEXTURE2D_X(_InputTexture);
     sampler2D _OcclusionTexOut;
     sampler2D _OcclusionTexIn;
@@ -148,10 +147,10 @@ Shader "Hidden/Shader/SunFlare"
     float4 CustomPostProcess(Varyings input) : SV_Target
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-        uint2 positionSS = input.texcoord * _InputTexSize.xy;
+        uint2 positionSS = input.texcoord * _ScreenSize.xy;
         float3 inColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS).xyz;
-    	float aspectRatio = _InputTexSize.x * _InputTexSize.w;
-    	uint2 sunPosSS = _SunViewPos.xy * _InputTexSize.xy;
+    	float aspectRatio = _ScreenSize.x * _ScreenSize.w;
+    	uint2 sunPosSS = _SunViewPos.xy * _ScreenSize.xy;
     	float2 uv = input.texcoord - 0.5;
     	float2 pos = _SunViewPos.xy - 0.5;
     	uv.x *= aspectRatio;
@@ -162,6 +161,7 @@ Shader "Hidden/Shader/SunFlare"
 		float3 color = tint * CalcSunFlare(ouv, uv, pos, positionSS, sunPosSS);
     	color *= _SunSettings.w;
 		float4 result = float4(inColor + color ,1.0);
+    	
         return result;
     }
 

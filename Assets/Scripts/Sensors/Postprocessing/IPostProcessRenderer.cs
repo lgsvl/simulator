@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -7,6 +7,7 @@
 
 namespace Simulator.Sensors.Postprocessing
 {
+    using UnityEngine;
     using UnityEngine.Rendering;
     using UnityEngine.Rendering.HighDefinition;
 
@@ -24,6 +25,7 @@ namespace Simulator.Sensors.Postprocessing
         /// <param name="sensor">Sensor that should have postprocessing effects rendered.</param>
         /// <param name="sensorColorBuffer">Color buffer of the sensor's render target.</param>
         /// <param name="data">Data container for postprocessing parameters.</param>
-        void Render(CommandBuffer cmd, HDCamera hdCamera, CameraSensorBase sensor, RTHandle sensorColorBuffer, PostProcessData data);
+        /// <param name="cubemapFace">Specifies target face if cubemap is used.</param>
+        void Render(CommandBuffer cmd, HDCamera hdCamera, CameraSensorBase sensor, RTHandle sensorColorBuffer, PostProcessData data, CubemapFace cubemapFace = CubemapFace.Unknown);
     }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -7,6 +7,7 @@
 
 namespace Simulator.Sensors.Postprocessing
 {
+    using System;
     using UnityEngine;
     using UnityEngine.Rendering;
     using UnityEngine.Rendering.HighDefinition;
@@ -59,18 +60,32 @@ namespace Simulator.Sensors.Postprocessing
             if (sensor == null || sensor.Postprocessing == null || sensor.Postprocessing.Count == 0)
                 return;
 
+            // Late postprocessing queue is always called directly, never executed through volume
+            if (PostProcessSystem.IsLatePostprocess(sensor, typeof(TData)))
+                return;
+
             GetCameraBuffers(out var colorBuffer, out _);
 
             if (!IsActive)
             {
-                PostProcessSystem.Skip(cmd, colorBuffer, sensor, true);
+                PostProcessSystem.Skip(cmd, colorBuffer, sensor, true, false);
                 return;
             }
 
-            if (!(sensor.Postprocessing.Find(x => x.GetType() == typeof(TData)) is TData data))
+            TData data = null;
+            foreach (var sensorData in sensor.Postprocessing)
+            {
+                if (sensorData is TData matchingData)
+                {
+                    data = matchingData;
+                    break;
+                }
+            }
+
+            if (data == null)
                 return;
 
-            PostProcessSystem.GetRTHandles(cmd, colorBuffer, sensor, true, out var source, out var target);
+            PostProcessSystem.GetRTHandles(cmd, colorBuffer, sensor, true, false, out var source, out var target);
 
             Render(cmd, hdCamera, source, target, data);
 
@@ -78,29 +93,34 @@ namespace Simulator.Sensors.Postprocessing
         }
 
         ///<inheritdoc/>
-        public void Render(CommandBuffer cmd, HDCamera hdCamera, CameraSensorBase sensor, RTHandle sensorColorBuffer, PostProcessData data)
+        public void Render(CommandBuffer cmd, HDCamera hdCamera, CameraSensorBase sensor, RTHandle sensorColorBuffer, PostProcessData data, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
             if (PostProcessSystem == null)
                 return;
-            
+
+            var lateQueue = PostProcessSystem.IsLatePostprocess(sensor, typeof(TData));
+
             if (!IsActive)
             {
-                PostProcessSystem.Skip(cmd, sensorColorBuffer, sensor, true);
+                PostProcessSystem.Skip(cmd, sensorColorBuffer, sensor, true, lateQueue);
                 return;
             }
 
             if (!(data is TData tData))
             {
                 Debug.LogError($"Attempting to render postprocess with invalid data type (required {typeof(TData).Name}, got {data.GetType().Name})");
-                PostProcessSystem.Skip(cmd, sensorColorBuffer, sensor, true);
+                PostProcessSystem.Skip(cmd, sensorColorBuffer, sensor, true, lateQueue);
                 return;
             }
 
-            PostProcessSystem.GetRTHandles(cmd, sensorColorBuffer, sensor, false, out var source, out var target);
+            PostProcessSystem.GetRTHandles(cmd, sensorColorBuffer, sensor, false, lateQueue, out var source, out var target, cubemapFace);
 
             Render(cmd, hdCamera, source, target, tData);
 
             PostProcessSystem.RecycleSourceRT(source, sensorColorBuffer, false);
+
+            if (cubemapFace != CubemapFace.Unknown)
+                PostProcessSystem.TryPerformFinalCubemapPass(cmd, sensor, target, sensorColorBuffer, cubemapFace);
         }
 
         /// <summary>

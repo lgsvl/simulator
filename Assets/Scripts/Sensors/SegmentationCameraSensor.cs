@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -69,26 +69,6 @@ namespace Simulator.Sensors
                     SimulatorManager.Instance.SetInstanceColor(tag.ToString());
                 }
                 SimulatorManager.Instance.ResetSegmentationColors();
-            }
-        }
-
-        protected override void RenderToCubemap()
-        {
-            // SensorPassRenderer handles cubemap rendering
-            SensorCamera.Render();
-        }
-
-        protected override void CheckCubemapTexture()
-        {
-            if (renderTarget != null && (!renderTarget.IsCube || !renderTarget.IsValid(CubemapSize, CubemapSize)))
-            {
-                renderTarget.Release();
-                renderTarget = null;
-            }
-            if (renderTarget == null)
-            {
-                renderTarget = SensorRenderTarget.CreateCube(CubemapSize, CubemapSize, faceMask);
-                SensorCamera.targetTexture = null;
             }
         }
 

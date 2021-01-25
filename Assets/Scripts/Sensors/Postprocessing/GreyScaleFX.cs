@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -43,8 +43,8 @@ namespace Simulator.Sensors.Postprocessing
                 return;
             }
 
-            material.SetFloat("_Intensity", data.intensity);
-            material.SetTexture("_InputTexture", source);
+            cmd.SetGlobalFloat("_Intensity", data.intensity);
+            cmd.SetGlobalTexture("_InputTexture", source);
             HDUtils.DrawFullScreen(cmd, material, destination);
         }
     }

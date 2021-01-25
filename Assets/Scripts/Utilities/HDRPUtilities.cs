@@ -1,5 +1,5 @@
-﻿/**
- * Copyright (c) 2019 LG Electronics, Inc.
+/**
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -7,6 +7,7 @@
 
 namespace Simulator.Utilities
 {
+    using System;
     using System.Reflection;
     using UnityEngine;
     using UnityEngine.Rendering;
@@ -61,6 +62,14 @@ namespace Simulator.Utilities
             if (!(bool) pipelineReadyField.GetValue(hdrp))
                 Debug.LogError("Failed to reinitialize HDRP");
 #endif
+        }
+
+        public static void ExecuteAndClearCommandBuffer(CommandBuffer commandBuffer)
+        {
+            if (!SimulatorManager.InstanceAvailable)
+                throw new Exception("Command buffer execution is only available in runtime.");
+            
+            SimulatorManager.Instance.CustomPassManager.ExecuteAndClearCommandBuffer(commandBuffer);
         }
     }
 }

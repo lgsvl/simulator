@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -29,7 +29,6 @@ namespace Simulator.Sensors.Postprocessing
         private static readonly int OcclusionTextureOut = Shader.PropertyToID("_OcclusionTexOut");
         private static readonly int OcclusionTextureIn = Shader.PropertyToID("_OcclusionTexIn");
         private static readonly int DepthTextureRes = Shader.PropertyToID("_DepthTexSize");
-        private static readonly int InputTextureRes = Shader.PropertyToID("_InputTexSize");
         private static readonly int OcclusionTextureRes = Shader.PropertyToID("_OcclusionTexSize");
         private static readonly int AngleOcclusion = Shader.PropertyToID("_AngleOcclusion");
 
@@ -137,16 +136,21 @@ namespace Simulator.Sensors.Postprocessing
 
             if (intensity > 0f)
             {
-                var depthTexRes = new Vector2Int(camera.actualWidth, camera.actualHeight);
-                var occlTexRes = new Vector2Int(OcclusionRes, OcclusionRes);
-                var inputTexRes = source.referenceSize;
                 GetCameraBuffers(out _, out var depthBuffer);
+                var depthTexRes = depthBuffer.referenceSize;
+                var actualCameraSize = new Vector2Int(camera.actualWidth, camera.actualHeight);
+                var occlTexRes = new Vector2Int(OcclusionRes, OcclusionRes);
+
+                var scaleRatio = new Vector2((float) actualCameraSize.x / depthTexRes.x, (float) actualCameraSize.y / depthTexRes.y);
+                var aspectRatio = (float) actualCameraSize.y / actualCameraSize.x;
+                var scaledSun = new Vector4(sunViewPos.x * scaleRatio.x, sunViewPos.y * scaleRatio.y,
+                    0.1f * aspectRatio * scaleRatio.x, 0.1f * scaleRatio.y);
 
                 cmd.SetComputeVectorParam(computeShader, DepthTextureRes,
-                    new Vector4(depthTexRes.x - 1, depthTexRes.y - 1, 1f / depthTexRes.x, 1f / depthTexRes.y));
+                    new Vector4(depthTexRes.x, depthTexRes.y, 1f / depthTexRes.x, 1f / depthTexRes.y));
                 cmd.SetComputeVectorParam(computeShader, OcclusionTextureRes,
-                    new Vector4(occlTexRes.x - 1, occlTexRes.y - 1, 1f / occlTexRes.x, 1f / occlTexRes.y));
-                cmd.SetComputeVectorParam(computeShader, SunViewPos, sunViewPos);
+                    new Vector4(occlTexRes.x, occlTexRes.y, 1f / occlTexRes.x, 1f / occlTexRes.y));
+                cmd.SetComputeVectorParam(computeShader, SunViewPos, scaledSun);
 
                 var kernel = textureOcclusionKernel;
                 cmd.SetComputeTextureParam(computeShader, kernel, DepthTexture, depthBuffer);
@@ -172,7 +176,6 @@ namespace Simulator.Sensors.Postprocessing
                 cmd.SetGlobalVector(SunSettings,
                     new Vector4(data.sunIntensity, data.haloIntensity, data.ghostingIntensity, intensity));
                 cmd.SetGlobalTexture(InputTexture, source);
-                cmd.SetGlobalVector(InputTextureRes, new Vector4(inputTexRes.x, inputTexRes.y, 1.0f / inputTexRes.x, 1.0f / inputTexRes.y));
                 cmd.SetGlobalTexture(OcclusionTextureIn, occlusionTextureA);
                 cmd.SetGlobalTexture(OcclusionTextureOut, occlusionTextureB);
                 cmd.SetGlobalBuffer(AngleOcclusion, angleOcclusion);

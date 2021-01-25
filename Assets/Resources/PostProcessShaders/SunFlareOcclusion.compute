@@ -1,5 +1,5 @@
-﻿/**
-* Copyright (c) 2020 LG Electronics, Inc.
+/**
+* Copyright (c) 2020-2021 LG Electronics, Inc.
 *
 * This software contains code licensed as described in LICENSE.
 *
@@ -21,9 +21,9 @@
 #define DEG_TO_RAD 0.0174532925
 
 CBUFFER_START(cb0)
-    float4 _DepthTexSize;           // Depth texture resolution: x: width-1, y: height-1, z: 1/width, w: 1/height
-    float4 _OcclusionTexSize;       // Occlusion texture resolution: x: width-1, y: height-1, z: 1/width, w: 1/height
-    float4 _SunViewPos;             // Sun data: xy: screen pos, z: diameter
+    float4 _DepthTexSize;           // Depth texture resolution: x: width, y: height, z: 1/width, w: 1/height
+    float4 _OcclusionTexSize;       // Occlusion texture resolution: x: width, y: height, z: 1/width, w: 1/height
+    float4 _SunViewPos;             // Sun data: xy: position, z: width, w: height (all in depth map UV units)
 CBUFFER_END
 
 TEXTURE2D_X(_DepthTex);
@@ -98,13 +98,10 @@ void BlurVertically(uint2 pixelCoord, uint topMostIndex)
 [numthreads(8,8,1)]
 void TextureOcclusion (uint3 id : SV_DispatchThreadID)
 {
-    float aspectRatio = _DepthTexSize.y / _DepthTexSize.x;
     float2 uvStart = _SunViewPos.xy;
-    uvStart.x -= 0.05 * aspectRatio;
-    uvStart.y -= 0.05;
+    uvStart -= 0.5 * _SunViewPos.zw;
     float2 uv = uvStart;
-    uv.x += 0.1 * _OcclusionTexSize.z * id.x * aspectRatio;
-    uv.y += 0.1 * _OcclusionTexSize.w * id.y;
+    uv += _OcclusionTexSize.zw * id.xy * _SunViewPos.zw;
 
     float depthSample = SAMPLE_TEXTURE2D_X_LOD(_DepthTex, sampler_LinearClamp, uv, 0).r;
     float depth = Linear01Depth(depthSample, _ZBufferParams);
@@ -153,10 +150,11 @@ void BlurTextureOcclusion(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_G
     int2 threadUL = (groupThreadId << 1) + (groupId << 3) - 4;
 
     uint2 uthreadUL = uint2(max(0, threadUL));
-    float p00 = _OcclusionTexIn[min(uthreadUL + uint2(0u, 0u), _OcclusionTexSize.xy)];
-    float p10 = _OcclusionTexIn[min(uthreadUL + uint2(1u, 0u),  _OcclusionTexSize.xy)];
-    float p11 = _OcclusionTexIn[min(uthreadUL + uint2(1u, 1u),  _OcclusionTexSize.xy)];
-    float p01 = _OcclusionTexIn[min(uthreadUL + uint2(0u, 1u),  _OcclusionTexSize.xy)];
+    uint2 size = _OcclusionTexSize.xy - 1u;
+    float p00 = _OcclusionTexIn[min(uthreadUL + uint2(0u, 0u), size)];
+    float p10 = _OcclusionTexIn[min(uthreadUL + uint2(1u, 0u), size)];
+    float p11 = _OcclusionTexIn[min(uthreadUL + uint2(1u, 1u), size)];
+    float p01 = _OcclusionTexIn[min(uthreadUL + uint2(0u, 1u), size)];
     uint destIdx = groupThreadId.x + (groupThreadId.y << 4u);
     Store2Pixels(destIdx, p00, p10);
     Store2Pixels(destIdx + 8u, p01, p11);

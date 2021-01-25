@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2021 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -5,7 +12,7 @@ using Random = UnityEngine.Random;
 
 namespace Simulator.Sensors.Postprocessing
 {
-    [PostProcessOrder(90)]
+    [PostProcessOrder(1100)]
     public sealed class VideoArtifactsFX : PostProcessPass<VideoArtifacts>
     {
         static class ShaderIDs

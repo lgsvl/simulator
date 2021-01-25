@@ -163,6 +163,47 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         #endregion
 
+        #region LGSVL
+
+        private int exposureLock; 
+
+        /// <summary>
+        /// If <see cref="ExposureLocked"/> is true, this flag describes whether valid result is already available or not.
+        /// </summary>
+        public bool LockedExposureValid { get; private set; }
+
+        /// <summary>
+        /// If true, dynamic exposure will not be recalculated for this camera. Instead, single valid result will be used.
+        /// </summary>
+        public bool ExposureLocked => exposureLock > 0;
+
+        /// <summary>
+        /// Locks dynamic exposure recalculation until <see cref="UnlockExposure"/> is called.
+        /// </summary>
+        public void LockExposure()
+        {
+            exposureLock++;
+            LockedExposureValid = false;
+        }
+
+        /// <summary>
+        /// Unlocks dynamic exposure recalculation.
+        /// </summary>
+        public void UnlockExposure()
+        {
+            exposureLock--;
+        }
+
+        /// <summary>
+        /// Confirms that valid dynamic exposure result is available for this camera.
+        /// </summary>
+        public void MarkExposureValid()
+        {
+            LockedExposureValid = true;
+        }
+
+        #endregion
+
         #region Internal API
         internal struct ShadowHistoryUsage
         {

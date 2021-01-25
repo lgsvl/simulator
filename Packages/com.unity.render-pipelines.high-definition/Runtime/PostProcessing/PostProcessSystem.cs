@@ -840,6 +840,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
             GrabExposureHistoryTextures(camera, out var prevExposure, out var nextExposure);
 
+            // === LGSVL ===
+            // Exposure has been locked - first valid result will be kept until it's unlocked
+            if (camera.ExposureLocked)
+            {
+                // Exposure is valid, as it was calculated at least once since lock - just copy last result directly
+                if (camera.LockedExposureValid)
+                {
+                    cmd.CopyTexture(prevExposure, nextExposure);
+                    return;
+                }
+
+                // Exposure not yet valid - mark as such and continue with proper calculation
+                camera.MarkExposureValid();
+            }
+            // =============
+
             // Setup variants
             var adaptationMode = m_Exposure.adaptationMode.value;
 

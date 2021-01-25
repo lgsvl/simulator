@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -7,7 +7,7 @@
 
 namespace Simulator.Utilities
 {
-    using Simulator.Sensors;
+    using Sensors;
     using UnityEngine;
     using UnityEngine.Rendering;
     using UnityEngine.Rendering.HighDefinition;
@@ -21,10 +21,17 @@ namespace Simulator.Utilities
         private static readonly int ViewProjMatrix = Shader.PropertyToID("_ViewProjMatrix");
         private static readonly int CameraViewProjMatrix = Shader.PropertyToID("_CameraViewProjMatrix");
         private static readonly int InvViewProjMatrix = Shader.PropertyToID("_InvViewProjMatrix");
+        private static readonly int ScreenSize = Shader.PropertyToID("_ScreenSize");
 
         private static readonly Matrix4x4 CubeProj = Matrix4x4.Perspective(90.0f, 1.0f, 0.1f, 1000.0f);
 
-        private static void SetupGlobalParamsForCubemap(CommandBuffer cmd, Matrix4x4 view)
+        private static readonly int[] CubemapFaceOrder =
+        {
+            (int) CubemapFace.PositiveZ, (int) CubemapFace.NegativeZ, (int) CubemapFace.PositiveX,
+            (int) CubemapFace.NegativeX, (int) CubemapFace.PositiveY, (int) CubemapFace.NegativeY
+        };
+
+        private static void SetupGlobalParamsForCubemap(CommandBuffer cmd, Matrix4x4 view, int cubemapSize)
         {
             var gpuView = view;
             if (ShaderConfig.s_CameraRelativeRendering != 0)
@@ -39,7 +46,7 @@ namespace Simulator.Utilities
             cmd.SetGlobalMatrix(ViewProjMatrix, vp);
             cmd.SetGlobalMatrix(InvViewProjMatrix, vp.inverse);
             cmd.SetGlobalMatrix(CameraViewProjMatrix, vp);
-            // Screen size update might be required here too if any shader uses it
+            cmd.SetGlobalVector(ScreenSize, new Vector4(cubemapSize, cubemapSize, 1f / cubemapSize, 1f / cubemapSize));
         }
 
         /// <summary>
@@ -70,16 +77,22 @@ namespace Simulator.Utilities
             var originalProj = hd.camera.projectionMatrix;
             hd.camera.projectionMatrix = CubeProj;
 
+            var sensor = hd.camera.GetComponent<CameraSensorBase>();
+            var renderPostprocess = sensor != null && sensor.Postprocessing != null && sensor.Postprocessing.Count > 0;
+
             for (var i = 0; i < 6; ++i)
             {
-                if ((target.CubeFaceMask & (1 << i)) == 0)
+                // Custom face order is used for dynamic exposure - this way it will be based on forward cube face
+                var faceIndex = CubemapFaceOrder[i]; 
+
+                if ((target.CubeFaceMask & (1 << faceIndex)) == 0)
                     continue;
 
-                transform.localRotation = Quaternion.LookRotation(CoreUtils.lookAtList[i], CoreUtils.upVectorList[i]);
+                transform.localRotation = Quaternion.LookRotation(CoreUtils.lookAtList[faceIndex], CoreUtils.upVectorList[faceIndex]);
                 var view = hd.camera.worldToCameraMatrix;
-                SetupGlobalParamsForCubemap(cmd, view);
+                SetupGlobalParamsForCubemap(cmd, view, target.ColorHandle.rt.width);
 
-                CoreUtils.SetRenderTarget(cmd, target.ColorHandle, target.DepthHandle, ClearFlag.None, 0, (CubemapFace) i);
+                CoreUtils.SetRenderTarget(cmd, target.ColorHandle, target.DepthHandle, ClearFlag.None, 0, (CubemapFace) faceIndex);
                 cmd.ClearRenderTarget(true, true, clearColor);
 
                 context.ExecuteCommandBuffer(cmd);
@@ -94,6 +107,7 @@ namespace Simulator.Utilities
                     var filter = new FilteringSettings(RenderQueueRange.all);
                     // NOTE: This should flip culling, not hard-set it to front. SRP API does not provide this option
                     //       currently. Expected issues with front-culled geometry.
+                    // TODO: investigate HDAdditionalCameraData.FlipYMode.ForceFlipY, it might be a way to solve this
                     var stateBlock = new RenderStateBlock(RenderStateMask.Raster)
                     {
                         rasterState = new RasterState
@@ -102,7 +116,16 @@ namespace Simulator.Utilities
                         }
                     };
                     context.DrawRenderers(cull, ref drawing, ref filter, ref stateBlock);
+
+                    if (renderPostprocess)
+                        SimulatorManager.Instance.Sensors.PostProcessSystem.RenderForSensor(cmd, hd, sensor, target.ColorHandle, (CubemapFace) i);
                 }
+            }
+
+            if (renderPostprocess)
+            {
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
             }
 
             transform.rotation = r;
@@ -130,7 +153,7 @@ namespace Simulator.Utilities
 
                 context.DrawRenderers(cull, ref drawing, ref filter);
             }
-            
+
             var sensor = hd.camera.GetComponent<CameraSensorBase>();
             if (sensor != null && sensor.Postprocessing != null && sensor.Postprocessing.Count > 0)
             {

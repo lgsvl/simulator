@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -10,6 +10,7 @@ namespace Simulator.Sensors
     using UnityEngine;
     using UnityEngine.Experimental.Rendering;
     using UnityEngine.Rendering;
+    using UnityEngine.Rendering.HighDefinition;
 
     /// <summary>
     /// <para>Class wrapping render target management for camera-based sensors.</para>
@@ -18,8 +19,29 @@ namespace Simulator.Sensors
     /// </summary>
     public class SensorRenderTarget
     {
+        /// <summary>
+        /// Struct used to store parameters for final blit from TextureArray to Texture2D.
+        /// </summary>
+        struct BlitParams
+        {
+            public int srcTexArraySlice;
+            public int dstTexArraySlice;
+            public Rect viewport;
+            public Material blitMaterial;
+        }
+
+        private static readonly int BlitTextureProperty = Shader.PropertyToID("_BlitTexture");
+        private static readonly int BlitScaleBiasProperty = Shader.PropertyToID("_BlitScaleBias");
+        private static readonly int BlitMipLevelProperty = Shader.PropertyToID("_BlitMipLevel");
+        private static readonly int BlitTexArraySliceProperty = Shader.PropertyToID("_BlitTexArraySlice");
+
+        private static readonly MaterialPropertyBlock BlitPropertyBlock = new MaterialPropertyBlock();
+
         private RTHandle colorRt;
         private RTHandle depthRt;
+
+        // This only exists to avoid assertion error when trying to display Tex2DArray on RawImage
+        private RTHandle uiRt;
 
         /// <summary>
         /// Width (in pixels) currently used by allocated resources.
@@ -47,6 +69,11 @@ namespace Simulator.Sensors
         public RenderTexture DepthTexture => depthRt.rt;
 
         /// <summary>
+        /// Texture used for rendering UI.
+        /// </summary>
+        public RenderTexture UiTexture => uiRt.rt;
+
+        /// <summary>
         /// <see cref="RTHandle"/> pointing to color texture.
         /// </summary>
         public RTHandle ColorHandle => colorRt;
@@ -66,7 +93,7 @@ namespace Simulator.Sensors
         /// </summary>
         public int CubeFaceMask { get; private set; }
 
-        private SensorRenderTarget(int width, int height, bool cube, GraphicsFormat colorFormat = GraphicsFormat.R8G8B8A8_UNorm)
+        private SensorRenderTarget(int width, int height, bool cube, GraphicsFormat colorFormat = GraphicsFormat.R8G8B8A8_UNorm, bool uiVisible = false)
         {
             currentWidth = width;
             currentHeight = height;
@@ -75,7 +102,7 @@ namespace Simulator.Sensors
             if (cube)
                 AllocCube();
             else
-                Alloc2D(colorFormat);
+                Alloc2D(colorFormat, uiVisible);
         }
 
         public static implicit operator RenderTexture(SensorRenderTarget target) => target.ColorTexture;
@@ -85,9 +112,10 @@ namespace Simulator.Sensors
         /// </summary>
         /// <param name="width">Width (in pixels) of the texture.</param>
         /// <param name="height">Height (in pixels) of the texture.</param>
-        public static SensorRenderTarget Create2D(int width, int height)
+        /// <param name="uiVisible">Will this texture be displayed on UI elements?</param>
+        public static SensorRenderTarget Create2D(int width, int height, bool uiVisible = false)
         {
-            var instance = new SensorRenderTarget(width, height, false);
+            var instance = new SensorRenderTarget(width, height, false, uiVisible: uiVisible);
             return instance;
         }
 
@@ -96,10 +124,11 @@ namespace Simulator.Sensors
         /// </summary>
         /// <param name="width">Width (in pixels) of the texture.</param>
         /// <param name="height">Height (in pixels) of the texture.</param>
-        /// /// <param name="colorFormat">GraphicsFormat of the color texture.</param>
-        public static SensorRenderTarget Create2D(int width, int height, GraphicsFormat colorFormat)
+        /// <param name="colorFormat">GraphicsFormat of the color texture.</param>
+        /// <param name="uiVisible">Will this texture be displayed on UI elements?</param>
+        public static SensorRenderTarget Create2D(int width, int height, GraphicsFormat colorFormat, bool uiVisible = false)
         {
-            var instance = new SensorRenderTarget(width, height, false, colorFormat);
+            var instance = new SensorRenderTarget(width, height, false, colorFormat, uiVisible);
             return instance;
         }
 
@@ -133,9 +162,27 @@ namespace Simulator.Sensors
         }
 
         /// <summary>
+        /// Performs blit from TextureArray RT to Texture2D RT that can be used for UI or GPU readback.
+        /// </summary>
+        /// <param name="parameters">Blit parameters.</param>
+        /// <param name="source">Blit source (TextureArray <see cref="RTHandle"/>)</param>
+        /// <param name="destination">Blit source (Texture2D <see cref="RTHandle"/>)</param>
+        /// <param name="cmd">Used command buffer.</param>
+        private static void BlitFinalCameraTexture(BlitParams parameters, RTHandle source, RTHandle destination, CommandBuffer cmd)
+        {
+            var scaleBias = new Vector4(parameters.viewport.width / source.rt.width, parameters.viewport.height / source.rt.height, 0.0f, 0.0f);
+
+            BlitPropertyBlock.SetTexture(BlitTextureProperty, source);
+            BlitPropertyBlock.SetVector(BlitScaleBiasProperty, scaleBias);
+            BlitPropertyBlock.SetFloat(BlitMipLevelProperty, 0);
+            BlitPropertyBlock.SetInt(BlitTexArraySliceProperty, parameters.srcTexArraySlice);
+            HDUtils.DrawFullScreen(cmd, parameters.viewport, parameters.blitMaterial, destination, BlitPropertyBlock, 0, parameters.dstTexArraySlice);
+        }
+
+        /// <summary>
         /// Allocates color and depth textures for 2D render target.
         /// </summary>
-        private void Alloc2D(GraphicsFormat colorFormat)
+        private void Alloc2D(GraphicsFormat colorFormat, bool uiVisible)
         {
             colorRt = RTHandles.Alloc(
                 currentWidth,
@@ -143,8 +190,9 @@ namespace Simulator.Sensors
                 1,
                 DepthBits.None,
                 colorFormat,
-                dimension: TextureDimension.Tex2D,
+                dimension: TextureXR.dimension,
                 useDynamicScale: true,
+                enableRandomWrite: true,
                 name: "SRT_Color",
                 wrapMode: TextureWrapMode.Clamp);
 
@@ -158,6 +206,20 @@ namespace Simulator.Sensors
                 useDynamicScale: true,
                 name: "SRT_Depth",
                 wrapMode: TextureWrapMode.Clamp);
+
+            if (uiVisible)
+            {
+                uiRt = RTHandles.Alloc(
+                    currentWidth,
+                    currentHeight,
+                    1,
+                    DepthBits.None,
+                    colorFormat,
+                    dimension: TextureDimension.Tex2D,
+                    useDynamicScale: true,
+                    name: "SRT_UI",
+                    wrapMode: TextureWrapMode.Clamp);
+            }
         }
 
         /// <summary>
@@ -218,6 +280,30 @@ namespace Simulator.Sensors
                 RTHandles.Release(depthRt);
                 depthRt = null;
             }
+
+            if (uiRt != null)
+            {
+                RTHandles.Release(uiRt);
+                uiRt = null;
+            }
+        }
+
+        /// <summary>
+        /// Performs blit from TextureArray RT to Texture2D RT that can be used for UI or GPU readback.
+        /// </summary>
+        /// <param name="cmd">Used command buffer.</param>
+        /// <param name="camera">Camera for which blit is performed.</param>
+        public void BlitTo2D(CommandBuffer cmd, HDCamera camera)
+        {
+            var parameters = new BlitParams
+            {
+                viewport = new Rect(0, 0, currentWidth, currentHeight),
+                srcTexArraySlice = -1,
+                dstTexArraySlice = -1,
+            };
+
+            parameters.blitMaterial = HDUtils.GetBlitMaterial(TextureXR.useTexArray ? TextureDimension.Tex2DArray : TextureDimension.Tex2D, parameters.srcTexArraySlice >= 0);
+            BlitFinalCameraTexture(parameters, colorRt, uiRt, cmd);
         }
     }
 }

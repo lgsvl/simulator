@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -21,18 +21,25 @@ namespace Simulator.Sensors.Postprocessing
     /// </summary>
     public class SensorPostProcessSystem
     {
+        private const int LatePostprocessOrder = 1000;
+        
         private readonly Dictionary<Type, CustomPass> postProcessingPasses = new Dictionary<Type, CustomPass>();
+        private readonly Dictionary<Type, int> postProcessingOrders = new Dictionary<Type, int>();
         private readonly Dictionary<int, Stack<RTHandle>> rtHandlePools = new Dictionary<int, Stack<RTHandle>>();
-        private readonly Dictionary<CameraSensorBase, int> sensorSwaps = new Dictionary<CameraSensorBase, int>();
-        private readonly Dictionary<CameraSensorBase, RTHandle> lastTarget = new Dictionary<CameraSensorBase, RTHandle>();
+
+        private readonly Dictionary<CameraSensorBase, int> preDistortionSensorSwaps = new Dictionary<CameraSensorBase, int>();
+        private readonly Dictionary<CameraSensorBase, RTHandle> preDistortionLastTarget = new Dictionary<CameraSensorBase, RTHandle>();
+        
+        private readonly Dictionary<CameraSensorBase, int> postDistortionSensorSwaps = new Dictionary<CameraSensorBase, int>();
+        private readonly Dictionary<CameraSensorBase, RTHandle> postDistortionLastTarget = new Dictionary<CameraSensorBase, RTHandle>();
 
         private int usedHandleCount;
 
-        private static int GetHandleHashCode(RTHandle handle, bool autoSize)
+        private static int GetHandleHashCode(RTHandle handle, bool autoSize, bool cube)
         {
             // HDRP uses auto-scaled RTHandles, but sensors declare exact resolution for each.
             // Make sure these two are not mixed.
-            var hashCode = autoSize
+            var hashCode = autoSize && !cube
                 ? GetHandleHashCode(
                     handle.scaleFactor.x,
                     handle.scaleFactor.y,
@@ -87,10 +94,10 @@ namespace Simulator.Sensors.Postprocessing
             return hashCode;
         }
 
-        private static void RenderPostProcess<T>(CommandBuffer cmd, HDCamera hdCamera, CameraSensorBase sensor, RTHandle sensorColorBuffer, CustomPass pass, T data) where T : PostProcessData
+        private static void RenderPostProcess<T>(CommandBuffer cmd, HDCamera hdCamera, CameraSensorBase sensor, RTHandle sensorColorBuffer, CustomPass pass, T data, CubemapFace cubemapFace = CubemapFace.Unknown) where T : PostProcessData
         {
             var postProcessPass = pass as IPostProcessRenderer;
-            postProcessPass?.Render(cmd, hdCamera, sensor, sensorColorBuffer, data);
+            postProcessPass?.Render(cmd, hdCamera, sensor, sensorColorBuffer, data, cubemapFace);
         }
 
         public void Initialize()
@@ -173,8 +180,10 @@ namespace Simulator.Sensors.Postprocessing
             }
 
             postProcessingPasses.Clear();
-            sensorSwaps.Clear();
-            lastTarget.Clear();
+            preDistortionSensorSwaps.Clear();
+            preDistortionLastTarget.Clear();
+            postDistortionSensorSwaps.Clear();
+            postDistortionLastTarget.Clear();
 
             var customPassManager = SimulatorManager.Instance.CustomPassManager;
 
@@ -188,6 +197,7 @@ namespace Simulator.Sensors.Postprocessing
                 var pass = customPassManager.AddPass(kvp.Value.effectType, CustomPassInjectionPoint.AfterPostProcess,
                     kvp.Value.order, CustomPass.TargetBuffer.Camera, CustomPass.TargetBuffer.None);
                 postProcessingPasses.Add(kvp.Key, pass);
+                postProcessingOrders.Add(kvp.Key, kvp.Value.order);
             }
 
             // Remove all invalid data types from sensors to keep valid swap count
@@ -198,15 +208,31 @@ namespace Simulator.Sensors.Postprocessing
 
                 for (var i = 0; i < cameraSensor.Postprocessing.Count; ++i)
                 {
-                    if (!postProcessingPasses.ContainsKey(cameraSensor.Postprocessing[i].GetType()))
+                    var postprocessType = cameraSensor.Postprocessing[i].GetType();
+                    if (!postProcessingPasses.ContainsKey(postprocessType))
                         cameraSensor.Postprocessing.RemoveAt(i--);
+
+                    if (!cameraSensor.Distorted)
+                        continue;
+
+                    // Move all post-distortion postprocessing passes to separate queue 
+                    if (postProcessingOrders[postprocessType] >= LatePostprocessOrder)
+                    {
+                        if (cameraSensor.LatePostprocessing == null)
+                            cameraSensor.LatePostprocessing = new List<PostProcessData>();
+                        
+                        cameraSensor.LatePostprocessing.Add(cameraSensor.Postprocessing[i]);
+                        cameraSensor.Postprocessing.RemoveAt(i--);
+                    }
                 }
 
                 // Make sure dictionaries have records for all valid sensors
-                if (cameraSensor.Postprocessing.Count > 0)
+                if (cameraSensor.Postprocessing.Count > 0 || cameraSensor.LatePostprocessing.Count > 0)
                 {
-                    sensorSwaps.Add(cameraSensor, 0);
-                    lastTarget.Add(cameraSensor, null);
+                    preDistortionSensorSwaps.Add(cameraSensor, 0);
+                    preDistortionLastTarget.Add(cameraSensor, null);
+                    postDistortionSensorSwaps.Add(cameraSensor, 0);
+                    postDistortionLastTarget.Add(cameraSensor, null);
                 }
             }
         }
@@ -224,18 +250,19 @@ namespace Simulator.Sensors.Postprocessing
 
         private RTHandle GetPooledHandle(RTHandle colorBuffer, bool autoSize)
         {
-            var hashCode = GetHandleHashCode(colorBuffer, autoSize);
+            var cube = colorBuffer.rt.dimension == TextureDimension.Cube;
+            var hashCode = GetHandleHashCode(colorBuffer, autoSize, cube);
 
             if (rtHandlePools.TryGetValue(hashCode, out var stack) && stack.Count > 0)
                 return stack.Pop();
 
-            var rt = autoSize
+            var rt = autoSize && !cube
                 ? RTHandles.Alloc(
                     colorBuffer.scaleFactor,
                     TextureXR.slices,
                     DepthBits.None,
                     colorBuffer.rt.graphicsFormat,
-                    dimension: colorBuffer.rt.dimension,
+                    dimension: TextureXR.dimension,
                     useMipMap: colorBuffer.rt.useMipMap,
                     enableRandomWrite: true,
                     useDynamicScale: true,
@@ -261,7 +288,7 @@ namespace Simulator.Sensors.Postprocessing
         private void ReturnHandleToPool(RTHandle rt, bool autoSize)
         {
             Assert.IsNotNull(rt);
-            var hashCode = GetHandleHashCode(rt, autoSize);
+            var hashCode = GetHandleHashCode(rt, autoSize, rt.rt.dimension == TextureDimension.Cube);
 
             if (!rtHandlePools.TryGetValue(hashCode, out var stack))
             {
@@ -279,10 +306,12 @@ namespace Simulator.Sensors.Postprocessing
         /// <param name="colorBuffer">Original color buffer of the sensor.</param>
         /// <param name="sensor">Sensor that will have postprocessing effects rendered.</param>
         /// <param name="autoSize">Does the <see cref="colorBuffer"/> use auto-scaling?</param>
+        /// <param name="lateQueue">True if executed after distortion, false otherwise.</param>
         /// <param name="source"><see cref="RTHandle"/> that should be used as a source (can be sampled).</param>
         /// <param name="target"><see cref="RTHandle"/> that should be used as a target (can't be sampled).</param>
+        /// <param name="cubemapFace">Specifies target face if cubemap is used.</param>
         /// <exception cref="Exception">Sensor has no postprocessing effects.</exception>
-        public void GetRTHandles(CommandBuffer cmd, RTHandle colorBuffer, CameraSensorBase sensor, bool autoSize, out RTHandle source, out RTHandle target)
+        public void GetRTHandles(CommandBuffer cmd, RTHandle colorBuffer, CameraSensorBase sensor, bool autoSize, bool lateQueue, out RTHandle source, out RTHandle target, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
             /* NOTE:
              * Each pass requires source texture (to sample from) and target (to render to). Since texture bound as a
@@ -294,46 +323,73 @@ namespace Simulator.Sensors.Postprocessing
              * properties (size, format, dimension etc.).
              */
 
-            var passCount = sensor.Postprocessing?.Count ?? 0;
+            var sensorSwaps = lateQueue ? postDistortionSensorSwaps : preDistortionSensorSwaps;
+            var lastTarget = lateQueue ? postDistortionLastTarget : preDistortionLastTarget;
+            var passCount = lateQueue ? sensor.LatePostprocessing?.Count ?? 0 : sensor.Postprocessing?.Count ?? 0;
+
             if (passCount == 0)
                 throw new Exception("Sensor has no postprocessing passes defined.");
 
             var isLastPass = sensorSwaps[sensor] == passCount - 1;
 
-            if (lastTarget[sensor] == colorBuffer)
+            // Rendering to cubemap is a special case. We never want to force explicit face binding in Render() method,
+            // so postprocessing only exposes intermediate, non-cubemap textures. In the final step, result will be
+            // blit to desired cubemap face, reducing complexity of te Render() method. 
+            if (cubemapFace != CubemapFace.Unknown)
             {
-                // Last pass has to be rendered to color buffer - copy is needed
-                if (isLastPass)
+                // First pass - copy specific face to target with TextureXR format, prepare target with same format
+                if (lastTarget[sensor] == null)
                 {
                     source = GetPooledHandle(colorBuffer, autoSize);
-                    target = colorBuffer;
-                    cmd.CopyTexture(colorBuffer, 0, source, 0);
+                    cmd.CopyTexture(colorBuffer, (int) cubemapFace, 0, 0, 0, colorBuffer.rt.width,
+                        colorBuffer.rt.height, source, 0, 0, 0, 0);
                 }
                 else
                 {
-                    source = colorBuffer;
-                    target = GetPooledHandle(colorBuffer, autoSize);
+                    source = lastTarget[sensor];
                 }
+
+                target = GetPooledHandle(colorBuffer, autoSize);
             }
-            else if (lastTarget[sensor] == null)
-            {
-                // Last pass has to be rendered to color buffer - copy is needed
-                if (isLastPass)
-                {
-                    source = GetPooledHandle(colorBuffer, autoSize);
-                    target = colorBuffer;
-                    cmd.CopyTexture(colorBuffer, 0, source, 0);
-                }
-                else
-                {
-                    source = colorBuffer;
-                    target = GetPooledHandle(colorBuffer, autoSize);
-                }
-            }
+            // Rendering to non-cubemap texture can use color buffer as intermediate target - just make sure that final
+            // pass will be rendered to color buffer, not pooled RT (happens for odd number of passes).
             else
             {
-                source = lastTarget[sensor];
-                target = colorBuffer;
+                if (lastTarget[sensor] == colorBuffer)
+                {
+                    // Last pass has to be rendered to color buffer - copy is needed
+                    if (isLastPass)
+                    {
+                        source = GetPooledHandle(colorBuffer, autoSize);
+                        target = colorBuffer;
+                        cmd.CopyTexture(colorBuffer, 0, source, 0);
+                    }
+                    else
+                    {
+                        source = colorBuffer;
+                        target = GetPooledHandle(colorBuffer, autoSize);
+                    }
+                }
+                else if (lastTarget[sensor] == null)
+                {
+                    // Last pass has to be rendered to color buffer - copy is needed
+                    if (isLastPass)
+                    {
+                        source = GetPooledHandle(colorBuffer, autoSize);
+                        target = colorBuffer;
+                        cmd.CopyTexture(colorBuffer, 0, source, 0);
+                    }
+                    else
+                    {
+                        source = colorBuffer;
+                        target = GetPooledHandle(colorBuffer, autoSize);
+                    }
+                }
+                else
+                {
+                    source = lastTarget[sensor];
+                    target = colorBuffer;
+                }
             }
 
             // This was last pass in this frame - reset counters
@@ -365,6 +421,20 @@ namespace Simulator.Sensors.Postprocessing
             ReturnHandleToPool(source, autoSize);
         }
 
+        public void TryPerformFinalCubemapPass(CommandBuffer cmd, CameraSensorBase sensor, RTHandle source, RTHandle colorBuffer, CubemapFace cubemapFace)
+        {
+            // Cubemap is only used pre-distortion, hence the usage of pre-distortion queue.
+            // This method is always executed after actual render and RT swapping, so if last target is null, the
+            // postprocessing stack for this sensor was finished - this means that we have to copy intermediate texture
+            // to final cubemap face in color buffer.
+            if (preDistortionLastTarget[sensor] == null)
+            {
+                cmd.CopyTexture(source, 0, 0, 0, 0, source.rt.width, source.rt.height, colorBuffer,
+                    (int) cubemapFace, 0, 0, 0);
+                RecycleSourceRT(source, colorBuffer, false);
+            }
+        }
+
         /// <summary>
         /// Skips rendering of a single pass for given sensor, while keeping valid state of the postprocessing stack.
         /// </summary>
@@ -372,10 +442,14 @@ namespace Simulator.Sensors.Postprocessing
         /// <param name="colorBuffer">Original color buffer of the sensor.</param>
         /// <param name="sensor">Sensor that will have postprocessing effects rendered.</param>
         /// <param name="autoSize">Does the <see cref="colorBuffer"/> use auto-scaling?</param>
+        /// <param name="lateQueue">True if executed after distortion, false otherwise.</param>
         /// <exception cref="Exception">Sensor has no postprocessing effects.</exception>
-        public void Skip(CommandBuffer cmd, RTHandle colorBuffer, CameraSensorBase sensor, bool autoSize)
+        public void Skip(CommandBuffer cmd, RTHandle colorBuffer, CameraSensorBase sensor, bool autoSize, bool lateQueue)
         {
-            var passCount = sensor.Postprocessing?.Count ?? 0;
+            var sensorSwaps = lateQueue ? postDistortionSensorSwaps : preDistortionSensorSwaps;
+            var lastTarget = lateQueue ? postDistortionLastTarget : preDistortionLastTarget;
+            var passCount = lateQueue ? sensor.LatePostprocessing?.Count ?? 0 : sensor.Postprocessing?.Count ?? 0;
+
             if (passCount == 0)
                 throw new Exception("Sensor has no postprocessing passes defined.");
 
@@ -402,7 +476,7 @@ namespace Simulator.Sensors.Postprocessing
         }
 
         /// <summary>
-        /// <para>Renders all postprocessing effects declared for given sensor.</para>
+        /// <para>Renders all pre-distortion postprocessing effects declared for given sensor.</para>
         /// <para>
         /// This should only be used on cameras with custom render method. Cameras using HDRP passes will render all
         /// effects automatically.
@@ -412,16 +486,59 @@ namespace Simulator.Sensors.Postprocessing
         /// <param name="hdCamera">HD camera used by the sensor.</param>
         /// <param name="sensor">Sensor that should have postprocessing effects rendered.</param>
         /// <param name="target"><see cref="RTHandle"/> used as target for the sensor.</param>
-        public void RenderForSensor(CommandBuffer cmd, HDCamera hdCamera, CameraSensorBase sensor, RTHandle target)
+        /// <param name="cubemapFace">Specifies target face if cubemap is used.</param>
+        public void RenderForSensor(CommandBuffer cmd, HDCamera hdCamera, CameraSensorBase sensor, RTHandle target, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
-            foreach (var kvp in postProcessingPasses)
+            if (sensor.Postprocessing == null || sensor.Postprocessing.Count == 0)
+                return;
+
+            foreach (var data in sensor.Postprocessing)
             {
-                foreach (var data in sensor.Postprocessing)
+                foreach (var kvp in postProcessingPasses)
+                {
+                    if (data.GetType() == kvp.Key)
+                        RenderPostProcess(cmd, hdCamera, sensor, target, kvp.Value, data, cubemapFace);
+                }
+            }
+        }
+
+        /// <summary>
+        /// <para>Renders all post-distortion postprocessing effects declared for given sensor.</para>
+        /// </summary>
+        /// <param name="cmd">Buffer used to queue commands.</param>
+        /// <param name="hdCamera">HD camera used by the sensor.</param>
+        /// <param name="sensor">Sensor that should have postprocessing effects rendered.</param>
+        /// <param name="target"><see cref="RTHandle"/> used as target for the sensor.</param>
+        public void RenderLateForSensor(CommandBuffer cmd, HDCamera hdCamera, CameraSensorBase sensor, RTHandle target)
+        {
+            if (sensor.LatePostprocessing == null || sensor.LatePostprocessing.Count == 0)
+                return;
+
+            foreach (var data in sensor.LatePostprocessing)
+            {
+                foreach (var kvp in postProcessingPasses)
                 {
                     if (data.GetType() == kvp.Key)
                         RenderPostProcess(cmd, hdCamera, sensor, target, kvp.Value, data);
                 }
             }
+        }
+
+        /// <summary>
+        /// Returns true if postprocessing effect for given data type is in late queue, false otherwise.
+        /// </summary>
+        /// <param name="sensor">Sensor for which check is performed.</param>
+        /// <param name="type">Data type derived from <see cref="PostProcessData"/>.</param>
+        public bool IsLatePostprocess(CameraSensorBase sensor, Type type)
+        {
+            if (!typeof(PostProcessData).IsAssignableFrom(type))
+                throw new Exception($"Order is only stored for types derived from {nameof(PostProcessData)}.");
+
+            // Late queue might be unused even for late-order effects if distortion is not enabled
+            if (sensor.LatePostprocessing == null)
+                return false;
+
+            return postProcessingOrders[type] >= LatePostprocessOrder;
         }
     }
 }

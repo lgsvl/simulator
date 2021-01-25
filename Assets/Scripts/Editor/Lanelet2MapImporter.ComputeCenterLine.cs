@@ -80,22 +80,28 @@ namespace Simulator.Editor
             var leftNodeIds = ((Way)DataSource["Way" + leftLineStringId]).Nodes;
             var rightNodeIds = ((Way)DataSource["Way" + rightLineStringId]).Nodes;
             var leftFirstPoint = GetVector3FromNode((Node)DataSource["Node" + leftNodeIds[0]]);
-            var leftLastPoint = GetVector3FromNode((Node)DataSource["Node" + leftNodeIds[leftNodeIds.Length-1]]);
+            var leftSecondPoint = GetVector3FromNode((Node)DataSource["Node" + leftNodeIds[1]]);
             var rightFirstPoint = GetVector3FromNode((Node)DataSource["Node" + rightNodeIds[0]]);
             var rightLastPoint = GetVector3FromNode((Node)DataSource["Node" + rightNodeIds[rightNodeIds.Length-1]]);
-            var leftDirection = (leftLastPoint - leftFirstPoint).normalized;
-            var rightDirection = (rightLastPoint - rightFirstPoint).normalized;
+            var rightSecondToLastPoint = GetVector3FromNode((Node)DataSource["Node" + rightNodeIds[rightNodeIds.Length-2]]);
+            var leftDirection = (leftSecondPoint - leftFirstPoint).normalized;
+            var rightEndDirection = (rightLastPoint - rightSecondToLastPoint).normalized;
 
-            if (Vector3.Dot(leftDirection, rightDirection) < 0)
+            // Check if right line's first point or last point is closer to left line's first point
+            if (Vector3.SqrMagnitude(leftFirstPoint - rightFirstPoint) > Vector3.SqrMagnitude(leftFirstPoint - rightLastPoint))
             {
-                sameDirection = false;
+                if (Vector3.Dot(leftDirection, rightEndDirection) < 0)
+                {
+                    sameDirection = false;
+                }
             }
+
 
             float resolution = 10; // 10 meters
             List<Vector3> centerLinePoints = new List<Vector3>();
             List<Vector3> leftLinePoints = new List<Vector3>();
             List<Vector3> rightLinePoints = new List<Vector3>();
-            
+
             // Get the length of longer boundary line
             float leftLength = RangedLength(leftLineStringId);
             float rightLength = RangedLength(rightLineStringId);
@@ -106,7 +112,7 @@ namespace Simulator.Editor
                 // For lineStrings whose length is less than resolution
                 partitions = 2; // Make sure every line has at least 2 partitions.
             }
-             
+
             float leftResolution = leftLength / partitions;
             float rightResolution = rightLength / partitions;
 
@@ -128,7 +134,7 @@ namespace Simulator.Editor
             }
 
             // Compare temp centerLine with left line, determine direction
-            var centerDirection = (centerLinePoints[centerLinePoints.Count-1] - centerLinePoints[0]).normalized;
+            var centerDirection = (centerLinePoints[1] - centerLinePoints[0]).normalized;
             var centerToLeftDir = (leftFirstPoint - centerLinePoints[0]).normalized;
             if (Vector3.Cross(centerDirection, centerToLeftDir).y > 0)
             {

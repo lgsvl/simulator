@@ -117,7 +117,7 @@ namespace Simulator.Web
                     statusMenuButtonText.text = "Go Online";
                     if (ConnectionManager.DisconnectReason != null)
                     {
-                        statusText.text = "Connection error: " + ConnectionManager.DisconnectReason;
+                        statusText.text = "Disconnected: " + ConnectionManager.DisconnectReason;
                     }
                     else
                     {

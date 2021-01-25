@@ -259,14 +259,14 @@ public class ConnectionManager : MonoBehaviour
                             case "Disconnect":
                                 RunOnUnityThread(() =>
                                 {
-                                    DisconnectReason = "Connection closed by WISE";
+                                    DisconnectReason = deserialized.GetValue("reason")?.ToString() ?? "unknown reason";
                                     Disconnect();
                                 });
                                 break;
                             case "Timeout":
                                 RunOnUnityThread(() =>
                                 {
-                                    DisconnectReason = "Connectioin closed by WISE due to timeout.";
+                                    DisconnectReason = deserialized.GetValue("reason")?.ToString() ?? "unknown reason";
                                     Disconnect();
                                 });
                                 break;

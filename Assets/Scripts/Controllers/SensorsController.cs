@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using Newtonsoft.Json;
@@ -22,6 +23,7 @@ using Simulator.Sensors;
 using Simulator.Utilities;
 using Simulator.Web;
 using UnityEngine;
+using VirtualFileSystem;
 
 public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
 {
@@ -71,9 +73,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
     }
 
     private string key;
-
     private MessagesManager messagesManager;
-
     private BridgeClient bridgeClient;
 
     private Dictionary<string, SensorInstanceController> sensorsInstances =
@@ -92,7 +92,9 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         get
         {
             if (bridgeClient == null)
+            {
                 bridgeClient = GetComponent<BridgeClient>();
+            }
             return bridgeClient;
         }
     }
@@ -108,7 +110,10 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
     {
         var sensorsManager = SimulatorManager.Instance.Sensors;
         foreach (var sensorInstanceController in sensorsInstances)
+        {
             sensorsManager.UnregisterSensor(sensorInstanceController.Value.Instance);
+        }
+
         MessagesManager?.UnregisterObject(this);
     }
 
@@ -136,9 +141,6 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
 
     private void InstantiateSensors(SensorData[] sensors)
     {
-        var available = Simulator.Web.Config.Sensors.ToDictionary(sensor => sensor.Name);
-        var prefabs = Simulator.Web.Config.SensorPrefabs.ToDictionary(sensor => GetSensorType(sensor));
-
         var parents = new Dictionary<string, GameObject>()
         {
             {string.Empty, gameObject},
@@ -152,7 +154,6 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         {
             // remember how many are still looking to find their parent
             int requestedCount = requested.Count;
-
             for (int i = 0; i < requested.Count(); i++)
             {
                 var item = requested[i];
@@ -161,17 +162,39 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                 if (parents.ContainsKey(parentName))
                 {
                     var parentObject = parents[parentName];
-
                     var name = item.Name;
                     var type = item.Type;
-
-                    SensorConfig config;
-                    if (!available.TryGetValue(type, out config))
+                    GameObject prefab;
+                    if (item.AssetGuid == null)
                     {
-                        throw new Exception($"Unknown sensor type {type} for {gameObject.name} vehicle");
+                        var dict = Config.SensorPrefabs.ToDictionary(s => GetSensorType(s));
+                        if (dict.ContainsKey(type))
+                        {
+                            prefab = dict[type].gameObject;
+                        }
+                        else
+                        {
+                            prefab = null;
+                        }
+                    }
+                    else if (Config.SensorTypeLookup.ContainsKey(item.AssetGuid))
+                    {
+                        prefab = Config.SensorTypeLookup[item.AssetGuid]?.gameObject;
+                    }
+                    else
+                    {
+                        var dir = Path.Combine(Application.persistentDataPath, "Sensors");
+                        var vfs = VfsEntry.makeRoot(dir);
+                        Config.CheckDir(vfs.GetChild(item.AssetGuid), Config.LoadSensorPlugin);
+                        prefab = Config.SensorTypeLookup[item.AssetGuid]?.gameObject;
                     }
 
-                    var sensor = CreateSensor(gameObject, parentObject, prefabs[type].gameObject, item, baseLink);
+                    if (prefab == null)
+                    {
+                       throw new Exception($"Unknown sensor type {type} for {gameObject.name} vehicle");
+                    }
+
+                    var sensor = CreateSensor(gameObject, parentObject, prefab, item, baseLink);
                     var sensorBase = sensor.GetComponent<SensorBase>();
                     sensorBase.Name = name;
                     sensor.name = name;
@@ -186,7 +209,10 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                     i--;
                     var sensorInstanceController = new SensorInstanceController(item, sensorBase);
                     if (SimulatorManager.InstanceAvailable)
+                    {
                         SimulatorManager.Instance.Sensors.RegisterSensor(sensorBase);
+                    }
+
                     sensorInstanceController.Enable();
                     agentController.AgentSensors.Add(sensorBase);
                     sensorsInstances.Add(name, sensorInstanceController);
@@ -196,8 +222,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
             // no sensors found their parent this round, they also won't find it next round
             if (requestedCount == requested.Count)
             {
-                throw new Exception(
-                    $"Failed to create {requested.Count} sensor(s), cannot determine parent-child relationship");
+                throw new Exception($"Failed to create {requested.Count} sensor(s), cannot determine parent-child relationship");
             }
 
             SensorsChanged?.Invoke();
@@ -210,9 +235,9 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         {
             parent = parent == gameObject ? baseLink.gameObject : parent; // replace baselink with the default gameObject parent
         }
+
         var position = parent.transform.position;
         var rotation = parent.transform.rotation;
-
         var transform = item.Transform;
         if (transform != null)
         {
@@ -221,12 +246,13 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         }
 
         var sensor = Instantiate(prefab, position, rotation, agent.transform);
-
         var sb = sensor.GetComponent<SensorBase>();
         sb.ParentTransform = parent.transform;
 
-
-        if (item.@params == null) return sensor;
+        if (item.@params == null)
+        {
+            return sensor;
+        }
 
         var sbType = sb.GetType();
         foreach (var param in item.@params)
@@ -238,8 +264,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
             var field = sbType.GetField(key);
             if (field == null)
             {
-                throw new Exception(
-                    $"Unknown {key} parameter for {item.Name} sensor on {gameObject.name} vehicle");
+                throw new Exception($"Unknown {key} parameter for {item.Name} sensor on {gameObject.name} vehicle");
             }
 
             if (field.FieldType == typeof(System.Int64)
@@ -260,9 +285,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                 }
                 catch (ArgumentException ex)
                 {
-                    throw new Exception(
-                        $"Failed to set {key} field to {value} enum value for {gameObject.name} vehicle, {sb.Name} sensor",
-                        ex);
+                    throw new Exception($"Failed to set {key} field to {value} enum value for {gameObject.name} vehicle, {sb.Name} sensor", ex);
                 }
             }
             else if (field.FieldType == typeof(Color))
@@ -273,8 +296,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                 }
                 else
                 {
-                    throw new Exception(
-                        $"Failed to set {key} field to {value} color for {gameObject.name} vehicle, {sb.Name} sensor");
+                    throw new Exception($"Failed to set {key} field to {value} color for {gameObject.name} vehicle, {sb.Name} sensor");
                 }
             }
             else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition() == typeof(List<>))
@@ -296,10 +318,9 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                         }
                         catch (ArgumentException ex)
                         {
-                            throw new Exception(
-                                $"Failed to set {key} field to {value} enum value for {gameObject.name} vehicle, {sb.Name} sensor",
-                                ex);
+                            throw new Exception($"Failed to set {key} field to {value} enum value for {gameObject.name} vehicle, {sb.Name} sensor", ex);
                         }
+
                         list.Add(elem);
                     }
                 }
@@ -310,14 +331,14 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                 else
                 {
                     List<Type> assignableTypes = null;
-
                     if (type.IsAbstract)
+                    {
                         assignableTypes = type.Assembly.GetTypes().Where(t => t != type && type.IsAssignableFrom(t)).ToList();
+                    }
 
                     foreach (var jtoken in jarray)
                     {
                         object elem;
-
                         if (!type.IsAbstract)
                         {
                             elem = jtoken.ToObject(type);
@@ -325,14 +346,16 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                         else
                         {
                             var typeName = jtoken.Value<string>("type");
-
                             if (typeName == null)
+                            {
                                 throw new Exception($"Type {type.Name} is abstract and does not define `type` field ({gameObject.name} vehicle, {sb.Name} sensor, {key} field)");
+                            }
 
                             var elementType = assignableTypes.FirstOrDefault(t => t.Name == typeName);
-
                             if (elementType == null)
+                            {
                                 throw new Exception($"No {typeName} type derived from {type.Name} for {key} field for {gameObject.name} vehicle, {sb.Name} sensor");
+                            }
 
                             elem = jtoken.ToObject(elementType);
                         }
@@ -345,8 +368,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
             }
             else
             {
-                throw new Exception(
-                    $"Unknown {field.FieldType} type for {key} field for {gameObject.name} vehicle, {sb.Name} sensor");
+                throw new Exception($"Unknown {field.FieldType} type for {key} field for {gameObject.name} vehicle, {sb.Name} sensor");
             }
         }
 
@@ -355,7 +377,10 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
 
     public void RemoveSensor(string name)
     {
-        if (!sensorsInstances.TryGetValue(name, out var sensorInstance)) return;
+        if (!sensorsInstances.TryGetValue(name, out var sensorInstance))
+        {
+            return;
+        }
         GetComponent<AgentController>().AgentSensors.Remove(sensorInstance.Instance);
         Destroy(sensorInstance.Instance.gameObject);
         sensorsInstances.Remove(name);
@@ -367,12 +392,16 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         var master = network.Master;
         var clients = master.Clients;
         if (!network.IsMaster || clients.Count <= 0)
+        {
             return;
+        }
 
         var clientsCount = clients.Count;
         var clientsSensors = new List<SensorData>[clientsCount];
-        for (var i=0; i<clientsSensors.Length; i++)
+        for (var i = 0; i < clientsSensors.Length; i++)
+        {
             clientsSensors[i] = new List<SensorData>();
+        }
 
         //Order sensors by distribution type, so ultra high loads will be handled first
         var sensorsByDistributionType =
@@ -392,26 +421,35 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                 case SensorBase.SensorDistributionType.LowLoad:
                     var lowLoadValue = 0.05f;
                     for (var i = 1; i < clientsCount; i++)
+                    {
                         if (clientsLoad[i] < clientsLoad[lowestLoadIndex])
+                        {
                             lowestLoadIndex = i;
+                        }
+                    }
                     if (masterLoad >= clientsLoad[lowestLoadIndex])
                     {
                         //Sensor will be distributed to lowest load client
                         clientsLoad[lowestLoadIndex] += lowLoadValue;
                         clientsSensors[lowestLoadIndex].Add(sensorData.Configuration);
                         sensorData.Disable();
-                        
                         SimulatorManager.Instance.Sensors.AppendEndPoint(sensorData.Instance, clients[lowestLoadIndex].Peer.PeerEndPoint);
                     }
-                    else 
+                    else
+                    {
                         //Sensor won't be distributed, instance on master is not disabled
                         masterLoad += lowLoadValue;
+                    }
                     break;
                 case SensorBase.SensorDistributionType.HighLoad:
                     var highLoadValue = 0.1f;
                     for (var i = 1; i < clientsCount; i++)
+                    {
                         if (clientsLoad[i] < clientsLoad[lowestLoadIndex])
+                        {
                             lowestLoadIndex = i;
+                        }
+                    }
                     if (masterLoad >= clientsLoad[lowestLoadIndex])
                     {
                         //Sensor will be distributed to lowest load client
@@ -420,19 +458,25 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                         sensorData.Disable();
                         SimulatorManager.Instance.Sensors.AppendEndPoint(sensorData.Instance, clients[lowestLoadIndex].Peer.PeerEndPoint);
                     }
-                    else 
+                    else
+                    {
                         //Sensor won't be distributed, instance on master is not disabled
                         masterLoad += highLoadValue;
+                    }
                     break;
                 case SensorBase.SensorDistributionType.UltraHighLoad:
                     var ultraHighLoadValue = 1.0f;
                     for (var i = 1; i < clientsCount; i++)
+                    {
                         if (clientsLoad[i] < clientsLoad[lowestLoadIndex])
+                        {
                             lowestLoadIndex = i;
+                        }
+                    }
+
                     //Sensor will be distributed to lowest load client
                     clientsLoad[lowestLoadIndex] += ultraHighLoadValue;
                     clientsSensors[lowestLoadIndex].Add(sensorData.Configuration);
-                    
                     SimulatorManager.Instance.Sensors.AppendEndPoint(sensorData.Instance, clients[lowestLoadIndex].Peer.PeerEndPoint);
                     sensorData.Disable();
                     break;
@@ -440,17 +484,22 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                     throw new ArgumentOutOfRangeException();
             }
         }
-        
+
         //Check if any client is overloaded
         var overloadedClients = clientsLoad.Count(load => load > 1.0f);
         if (overloadedClients > 0)
         {
             if (masterLoad > 1.0f)
+            {
                 overloadedClients++;
+            }
+
             Debug.LogWarning($"Running cluster simulation with {overloadedClients} overloaded instances. Decrease sensors count or extend the cluster for best performance.");
         }
         else if (masterLoad > 1.0f)
+        {
             Debug.LogWarning($"Running cluster simulation with overloaded master simulation. Used sensors cannot be distributed to the clients.");
+        }
 
         //Send sensors data to clients
         for (var i = 0; i < clientsCount; i++)
@@ -479,7 +528,9 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
     public void ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
     {
         if (sensorsInstances.Any() || Loader.Instance.Network.IsMaster)
+        {
             return;
+        }
         var sensors = distributedMessage.Content.PopString();
         var parsed = JsonConvert.DeserializeObject<SensorData[]>(sensors);
         InstantiateSensors(parsed);
@@ -489,14 +540,18 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
     public void UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage)
     {
         if (!string.IsNullOrEmpty(Key))
+        {
             MessagesManager?.UnicastMessage(endPoint, distributedMessage);
+        }
     }
 
     /// <inheritdoc/>
     public void BroadcastMessage(DistributedMessage distributedMessage)
     {
         if (!string.IsNullOrEmpty(Key))
+        {
             MessagesManager?.BroadcastMessage(distributedMessage);
+        }
     }
 
     /// <inheritdoc/>

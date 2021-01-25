@@ -17,6 +17,7 @@ namespace Simulator.Utilities
     public class SensorConfig
     {
         public string Name;
+        public string Guid;
         public string[] Types;
         public List<SensorParam> Parameters;
     }

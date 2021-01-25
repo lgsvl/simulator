@@ -26,6 +26,7 @@ using Simulator.FMU;
 using Simulator.PointCloud.Trees;
 using System.Threading.Tasks;
 using Simulator.Database.Services;
+using VirtualFileSystem;
 
 namespace Simulator
 {
@@ -324,6 +325,21 @@ namespace Simulator
                         downloads.Add(task);
                         Instance.assetDownloads.TryAdd(task, vehicle);
                     }
+
+                    foreach(var data in simData.Vehicles)
+                    {
+                        foreach (var plugin in data.Sensors)
+                        {
+                            if (plugin.AssetGuid != null) // TODO remove after WISE update
+                            {
+                                var pluginProgress = new Progress<Tuple<string, float>>(p => { ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2); });
+                                var pluginTask = DownloadManager.GetAsset(BundleConfig.BundleTypes.Sensor, plugin.AssetGuid,
+                                    plugin.Name, pluginProgress);
+                                downloads.Add(pluginTask);
+                                Instance.assetDownloads.TryAdd(pluginTask, plugin.Type);
+                            }
+                        }
+                    }
                 }
 
                 if (ConnectionUI.instance != null)
@@ -337,7 +353,19 @@ namespace Simulator
                 {
                     Instance.assetDownloads.TryRemove(download, out _);
                 }
-                
+                foreach (var vehicle in simData.Vehicles)
+                {
+                    foreach (var sensor in vehicle.Sensors)
+                    {
+                        if (sensor.AssetGuid != null) // TODO remove after WISE update
+                        {
+                            var dir = Path.Combine(Application.persistentDataPath, "Sensors");
+                            var vfs = VfsEntry.makeRoot(dir);
+                            Config.CheckDir(vfs.GetChild(sensor.AssetGuid), Config.LoadSensorPlugin);
+                        }
+                    }
+                }
+
                 if (!string.IsNullOrEmpty(simData.Id))
                 {
                     SimulationService simService = new SimulationService();

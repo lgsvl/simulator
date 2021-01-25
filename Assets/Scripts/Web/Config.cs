@@ -44,6 +44,7 @@ namespace Simulator.Web
 
         public static List<SensorBase> SensorPrefabs;
         public static List<SensorConfig> Sensors;
+        public static Dictionary<string, SensorBase> SensorTypeLookup = new Dictionary<string, SensorBase>();
 
         public static Dictionary<string, IControllable> Controllables = new Dictionary<string, IControllable>();
         public static Dictionary<string, Type> NPCBehaviours = new Dictionary<string, Type>();
@@ -83,6 +84,7 @@ namespace Simulator.Web
             }
 
             AssetBundle.UnloadAllAssetBundles(false);
+            Sensors = new List<SensorConfig>();
             SensorPrefabs = RuntimeSettings.Instance.SensorPrefabs.ToList();
             if (SensorPrefabs.Any(s=> s == null))
             {
@@ -120,7 +122,7 @@ namespace Simulator.Web
 
         public delegate void AssetLoadFunc(Manifest manifest, VfsEntry dir);
 
-        private static void CheckDir(VfsEntry dir, AssetLoadFunc loadFunc)
+        public static void CheckDir(VfsEntry dir, AssetLoadFunc loadFunc)
         {
             if (dir == null)
             {
@@ -233,10 +235,9 @@ namespace Simulator.Web
             }
         }
 
-        private static void LoadExternalAssets()
+        public static void LoadExternalAssets()
         {
             var sw = System.Diagnostics.Stopwatch.StartNew();
-
             var dir = Path.Combine(Application.dataPath, "..", "AssetBundles");
             var vfs = VfsEntry.makeRoot(dir);
 
@@ -281,13 +282,22 @@ namespace Simulator.Web
 
         public static void LoadSensorPlugin(Manifest manifest, VfsEntry dir) 
         {
+            if (SensorTypeLookup.ContainsKey(manifest.assetGuid))
+            {
+                return;
+            }
+
             if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Sensor])
             {
                 throw new Exception($"Manifest version mismatch, expected {BundleConfig.Versions[BundleConfig.BundleTypes.Sensor]}, got {manifest.assetFormat}");
             }
 
-            Assembly pluginSource = LoadAssembly(dir, $"{manifest.assetName}.dll");
+            if (Sensors.FirstOrDefault(s => s.Guid == manifest.assetGuid) != null)
+            {
+                return;
+            }
 
+            Assembly pluginSource = LoadAssembly(dir, $"{manifest.assetName}.dll");
             foreach (Type ty in pluginSource.GetTypes())
             {
                 if (typeof(ISensorBridgePlugin).IsAssignableFrom(ty))
@@ -304,7 +314,15 @@ namespace Simulator.Web
             var pluginStream = dir.Find($"{manifest.assetGuid}_sensor_main_{platform}").SeekableStream();
             AssetBundle pluginBundle = AssetBundle.LoadFromStream(pluginStream);
             var pluginAssets = pluginBundle.GetAllAssetNames();
-            SensorPrefabs.Add(pluginBundle.LoadAsset<GameObject>(pluginAssets[0]).GetComponent<SensorBase>());
+            SensorBase pluginBase = pluginBundle.LoadAsset<GameObject>(pluginAssets[0]).GetComponent<SensorBase>();
+            SensorConfig config = SensorTypes.GetConfig(pluginBase);
+            config.Guid = manifest.assetGuid;
+            Sensors.Add(config);
+            SensorPrefabs.Add(pluginBase);
+            if (!SensorTypeLookup.ContainsKey(manifest.assetGuid))
+            {
+                SensorTypeLookup.Add(manifest.assetGuid, pluginBase);
+            }
         }
 
         public static void LoadControllablePlugin(Manifest manifest, VfsEntry dir) 

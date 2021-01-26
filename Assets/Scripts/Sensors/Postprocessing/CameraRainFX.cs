@@ -17,6 +17,7 @@ namespace Simulator.Sensors.Postprocessing
         private const string ShaderName = "Hidden/Shader/CameraRainFX";
         private Material material;
         protected override bool IsActive => material != null;
+        private EnvironmentEffectsManager EnvironmentEffectsManager => SimulatorManager.Instance.EnvironmentEffectsManager;
 
         protected override void DoSetup()
         {
@@ -37,19 +38,19 @@ namespace Simulator.Sensors.Postprocessing
 
         protected override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, Rain data)
         {
-            if (Mathf.Approximately(data.intensity, 0f))
+            if (Mathf.Approximately(EnvironmentEffectsManager.Rain, 0f))
             {
                 HDUtils.BlitCameraTexture(cmd, source, destination);
                 return;
             }
 
-            if (data.intensity < .35)
+            if (EnvironmentEffectsManager.Rain < .35)
             {
                 cmd.EnableShaderKeyword("LOW");
                 cmd.DisableShaderKeyword("MED");
                 cmd.DisableShaderKeyword("HGH");
             }
-            else if (data.intensity >= .35 && data.intensity < .7)
+            else if (EnvironmentEffectsManager.Rain >= .35 && EnvironmentEffectsManager.Rain < .7)
             {
                 cmd.EnableShaderKeyword("MED");
                 cmd.DisableShaderKeyword("LOW");
@@ -62,7 +63,7 @@ namespace Simulator.Sensors.Postprocessing
                 cmd.DisableShaderKeyword("MED");
             }
 
-            cmd.SetGlobalFloat("_Intensity", data.intensity);
+            cmd.SetGlobalFloat("_Intensity", EnvironmentEffectsManager.Rain);
             cmd.SetGlobalTexture("_InputTexture", source);
             cmd.SetGlobalFloat("_Size", data.size);
             HDUtils.DrawFullScreen(cmd, material, destination);

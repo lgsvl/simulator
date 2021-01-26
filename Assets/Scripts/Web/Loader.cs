@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -353,15 +353,19 @@ namespace Simulator
                 {
                     Instance.assetDownloads.TryRemove(download, out _);
                 }
-                foreach (var vehicle in simData.Vehicles)
+                
+                if (simData.Vehicles != null)
                 {
-                    foreach (var sensor in vehicle.Sensors)
+                    foreach (var vehicle in simData.Vehicles)
                     {
-                        if (sensor.AssetGuid != null) // TODO remove after WISE update
+                        foreach (var sensor in vehicle.Sensors)
                         {
-                            var dir = Path.Combine(Application.persistentDataPath, "Sensors");
-                            var vfs = VfsEntry.makeRoot(dir);
-                            Config.CheckDir(vfs.GetChild(sensor.AssetGuid), Config.LoadSensorPlugin);
+                            if (sensor.AssetGuid != null) // TODO remove after WISE update
+                            {
+                                var dir = Path.Combine(Application.persistentDataPath, "Sensors");
+                                var vfs = VfsEntry.makeRoot(dir);
+                                Config.CheckDir(vfs.GetChild(sensor.AssetGuid), Config.LoadSensorPlugin);
+                            }
                         }
                     }
                 }

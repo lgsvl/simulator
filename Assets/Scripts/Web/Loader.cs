@@ -609,7 +609,14 @@ namespace Simulator
 
                 if (SimulatorManager.InstanceAvailable)
                 {
-                    await SimulatorManager.Instance.AnalysisManager.AnalysisSave();
+                    try
+                    {
+                        await SimulatorManager.Instance.AnalysisManager.AnalysisSave();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogException(ex);
+                    }
                 }
 
                 await Instance.Network.Deinitialize();

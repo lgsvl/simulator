@@ -239,8 +239,15 @@ namespace Simulator.Analysis
             foreach (var agent in agents)
             {
                 var agentObj = agent as JObject;
-                JToken token = JToken.Parse(agent["Sensors"].ToString());
-                agentObj["Sensors"] = token;
+                if(!string.IsNullOrEmpty(agent["Sensors"].ToString()))
+                {
+                    JToken token = JToken.Parse(agent["Sensors"].ToString());
+                    agentObj["Sensors"] = token;
+                }
+                else
+                {
+                    agentObj["Sensors"] = new JArray();
+                }
             }
 
             //JObject resultsJO = new JObject();

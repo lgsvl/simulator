@@ -4,7 +4,7 @@
  * Mozilla Public License, version 2.0.  The full text of the
  * Mozilla Public License is at https://www.mozilla.org/MPL/2.0/
  * 
- * Copyright (c) 2019-2020 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  */
 
 using System.Collections.Generic;
@@ -59,7 +59,19 @@ public class VehicleSMI : MonoBehaviour, IVehicleDynamics
     public float MaxBrakeTorque = 3000f;
 
     [Tooltip("steering range is +-maxSteeringAngle")]
-    public float MaxSteeringAngle = 39.4f;
+    public float _MaxSteeringAngle = 39.4f;
+
+    public float MaxSteeringAngle
+    {
+        get
+        {
+            return _MaxSteeringAngle;
+        }
+        set
+        {
+            _MaxSteeringAngle = value;
+        }
+    }
 
     [Tooltip("idle rpm")]
     public float MinRPM = 800f;

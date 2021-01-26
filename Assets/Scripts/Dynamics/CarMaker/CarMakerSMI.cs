@@ -4,7 +4,7 @@
  * Mozilla Public License, version 2.0.  The full text of the
  * Mozilla Public License is at https://www.mozilla.org/MPL/2.0/
  * 
- * Copyright (c) 2019-2020 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  * This software contains code licensed as described in LICENSE.
  */
 
@@ -36,6 +36,7 @@ namespace Simulator.Sensors
         public bool Reverse { get; set; } = false;
         public float WheelAngle { get; set; } = 0f;
         public float Speed { get => AgentSpeed; }
+        public float MaxSteeringAngle { get; set; } = 39.4f;
         public IgnitionStatus CurrentIgnitionStatus { get; set; } = IgnitionStatus.On;
 
         private VehicleController VehicleController;
@@ -78,7 +79,7 @@ namespace Simulator.Sensors
             PutEgoOnGround();
             SendDataToSensor();
         }
-        
+
         private void SendDataToSensor()
         {
             Vector3[] aUpVector = {AgentTires[0].transform.up, AgentTires[1].transform.up, AgentTires[2].transform.up, AgentTires[3].transform.up};

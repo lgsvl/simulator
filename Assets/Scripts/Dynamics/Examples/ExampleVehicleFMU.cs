@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -47,6 +47,8 @@ namespace Simulator.FMU
                 return 0f;
             }
         }
+        public float MaxSteeringAngle { get; set; } = 39.4f;
+
         public IgnitionStatus CurrentIgnitionStatus { get; set; }
 
         private VehicleController VehicleController;

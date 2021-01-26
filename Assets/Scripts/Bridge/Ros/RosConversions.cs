@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -668,71 +668,14 @@ namespace Simulator.Bridge.Ros
             };
         }
 
-        public static VehicleControlData ConvertTo(Autoware.VehicleCmd data)
-        {
-            var shiftUp = false;
-            var shiftDown = false;
-
-            if (data.gear != 0)
-            {
-                if (data.gear == 64)
-                    shiftUp = true;
-                else
-                    shiftDown = true;
-            }
-
-            return new VehicleControlData()
-            {
-                TimeStampSec = ConvertTime(data.header.stamp),
-                Acceleration = (float)data.ctrl_cmd.linear_acceleration > 0 ? (float)data.ctrl_cmd.linear_acceleration : 0f,
-                Braking = (float)data.ctrl_cmd.linear_acceleration < 0 ? -(float)data.ctrl_cmd.linear_acceleration : 0f,
-                Velocity = (float)data.twist_cmd.twist.linear.x,
-                SteerAngularVelocity = (float)data.twist_cmd.twist.angular.z,
-                SteerAngle = (float)data.ctrl_cmd.steering_angle,
-                ShiftGearUp = shiftUp,
-                ShiftGearDown = shiftDown,
-            };
-        }
-
-        public static VehicleControlData ConvertTo(Autoware.VehicleControlCommand data)
-        {
-            return new VehicleControlData()
-            {
-                TimeStampSec = ConvertTime(data.stamp),
-                Acceleration = data.long_accel_mps2,
-                SteerAngle = data.front_wheel_angle_rad,
-            };
-        }
-
         public static VehicleControlData ConvertTo(Lgsvl.VehicleControlDataRos data)
         {
-            float Deg2Rad = UnityEngine.Mathf.Deg2Rad;
-            float MaxSteeringAngle = 39.4f * Deg2Rad;
-            float wheelAngle = 0f;
-
-            if (data.target_wheel_angle > MaxSteeringAngle)
-            {
-                wheelAngle = MaxSteeringAngle;
-            }
-            else if (data.target_wheel_angle < -MaxSteeringAngle)
-            {
-                wheelAngle = -MaxSteeringAngle;
-            }
-            else
-            {
-                wheelAngle = data.target_wheel_angle;
-            }
-
-            // ratio between -MaxSteeringAngle and MaxSteeringAngle
-            var k = (float)(wheelAngle + MaxSteeringAngle) / (MaxSteeringAngle*2);
-
             // target_gear are not supported on simulator side
             return new VehicleControlData()
             {
                 Acceleration = data.acceleration_pct,
                 Braking = data.braking_pct,
-                SteerAngle = UnityEngine.Mathf.Lerp(-1f, 1f, k),
-                SteerInput = data.target_wheel_angular_rate,
+                SteerAngle = data.target_wheel_angle * UnityEngine.Mathf.Rad2Deg,
             };
         }
 

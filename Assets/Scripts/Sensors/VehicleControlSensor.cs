@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -11,8 +11,6 @@ using Simulator.Utilities;
 using UnityEngine;
 using Simulator.Sensors.UI;
 using System.Collections.Generic;
-using System.Collections;
-using Simulator.Analysis;
 
 namespace Simulator.Sensors
 {
@@ -109,8 +107,25 @@ namespace Simulator.Sensors
                         if (data.ShiftGearUp) Dynamics.GearboxShiftUp();
                         if (data.ShiftGearDown) Dynamics.GearboxShiftDown();
 
-                        ADAccelInput = data.Acceleration.GetValueOrDefault() - data.Braking.GetValueOrDefault(); // converted from lin accel 
-                        ADSteerInput = data.SteerAngle.GetValueOrDefault(); // angle should be in degrees
+                        float wheelAngle = data.SteerAngle.GetValueOrDefault();
+                        wheelAngle = UnityEngine.Mathf.Clamp(wheelAngle, -Dynamics.MaxSteeringAngle, Dynamics.MaxSteeringAngle);
+                        var k = (float)(wheelAngle + Dynamics.MaxSteeringAngle) / (Dynamics.MaxSteeringAngle*2);
+                        ADSteerInput = UnityEngine.Mathf.Lerp(-1f, 1f, k);
+
+                        // This method of control is not accurate because of the hardcoded numbers
+                        // For accurate control an external controller should be used with the Lgsvl control type
+                        float MaxAcceleration = 5.5f;  // m/s^2
+                        float MaxDeceleration = -9f;  // m/s^2
+                        var NetAcceleration = data.Acceleration.GetValueOrDefault() - data.Braking.GetValueOrDefault();
+                        NetAcceleration = UnityEngine.Mathf.Clamp(NetAcceleration, MaxDeceleration, MaxAcceleration);
+                        if (NetAcceleration > 0)
+                        {
+                            ADAccelInput = NetAcceleration / MaxAcceleration;
+                        }
+                        else
+                        {
+                            ADAccelInput = NetAcceleration / MaxDeceleration;
+                        }
                     }
                     else
                     {
@@ -159,16 +174,15 @@ namespace Simulator.Sensors
                         Dynamics.ShiftFirstGear();
                     }
                 }
-                else if (data.SteerInput.HasValue) // lgsvl
+                else if (data.Acceleration.HasValue) // lgsvl
                 {
                     controlType = ControlType.LGSVL;
-                    ADSteerInput = data.SteerInput.GetValueOrDefault();
-                }
-                else if (data.Acceleration.HasValue)
-                {
-                    controlType = ControlType.AutowareAuto;
+                    float wheelAngle = data.SteerAngle.GetValueOrDefault();
+                    wheelAngle = UnityEngine.Mathf.Clamp(wheelAngle, -Dynamics.MaxSteeringAngle, Dynamics.MaxSteeringAngle);
+                    var k = (float)(wheelAngle + Dynamics.MaxSteeringAngle) / (Dynamics.MaxSteeringAngle*2);
+
+                    ADSteerInput = UnityEngine.Mathf.Lerp(-1f, 1f, k);
                     ADAccelInput = data.Acceleration.GetValueOrDefault() - data.Braking.GetValueOrDefault();
-                    ADSteerInput = data.SteerAngle.GetValueOrDefault();
                 }
                 else
                 {
@@ -207,7 +221,7 @@ namespace Simulator.Sensors
                     graphData.Add("Velocity", controlData.Velocity.GetValueOrDefault());
                     graphData.Add("Steer Angle Velocity", controlData.SteerAngularVelocity.GetValueOrDefault());
                     break;
-                case ControlType.AutowareAuto:
+                case ControlType.LGSVL:
                     if (controlData == null)
                     {
                         return;
@@ -227,13 +241,6 @@ namespace Simulator.Sensors
                     graphData.Add("Steer Rate", controlData.SteerRate.GetValueOrDefault());
                     graphData.Add("Steer Target", controlData.SteerTarget.GetValueOrDefault());
                     graphData.Add("Gear", controlData.CurrentGear);
-                    break;
-                case ControlType.LGSVL:
-                    if (controlData == null)
-                    {
-                        return;
-                    }
-                    graphData.Add("Steer Input", controlData.SteerInput.GetValueOrDefault());
                     break;
                 default:
                     break;

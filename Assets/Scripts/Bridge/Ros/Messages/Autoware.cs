@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 LG Electronics, Inc.
+ * Copyright (c) 2018-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -49,6 +49,12 @@ namespace Simulator.Bridge.Ros.Autoware
         public double steering_angle;
     }
 
+    [MessageType("autoware_msgs/gear_cmd")]
+    public class GearCommand
+    {
+        public uint gear;
+    }
+
     [MessageType("autoware_msgs/VehicleCmd")]
     public class VehicleCmd
     {
@@ -57,7 +63,7 @@ namespace Simulator.Bridge.Ros.Autoware
         public accel_cmd _accel_cmd;
         public brake_cmd _brake_cmd;
         public lamp_cmd _lamp_cmd;
-        public uint gear;
+        public GearCommand gear_cmd;
         public uint mode;
         public Ros.TwistStamped twist_cmd;
         public ControlCommand ctrl_cmd;
@@ -82,7 +88,7 @@ namespace Simulator.Bridge.Ros.Autoware
         public Ros.Twist acceleration;
 
         public Ros.PointCloud2 pointcloud;
-        
+
         // public PolygonStamped convex_hull;
         // public LaneArray candidate_trajectories;
 

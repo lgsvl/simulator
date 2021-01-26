@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -23,6 +23,7 @@ public interface IVehicleDynamics
     bool Reverse { get; }
     float WheelAngle { get; }
     float Speed { get; }
+    float MaxSteeringAngle { get; set; }
 
     IgnitionStatus CurrentIgnitionStatus { get; set; }
 

@@ -20,38 +20,7 @@ MonoBehaviour:
   PointCloudSolid: {fileID: 7200000, guid: 48893a9a88818a64697d25090e65c9a4, type: 3}
   AAWireBoxShader: {fileID: 4800000, guid: b1e5437621738c44ca30e61cf15ebdb9, type: 3}
   WireframeBoxShader: {fileID: 4800000, guid: baede0d38d433654eb6da9f35febf7dd, type: 3}
-  WireframeBoxDiagonalShader: {fileID: 4800000, guid: 84553915e5b54d04a9db934ebab77bc8,
-    type: 3}
   LineShader: {fileID: 4800000, guid: 1565f8e4ba17c85428b798b12e7a2b10, type: 3}
   PointCloudShader: {fileID: 4800000, guid: f4f8cf0585f6c5e4f9b9f1ccb82908ee, type: 3}
   LensDistortion: {fileID: 7200000, guid: e4b91d1426a38e147adb9d9901e38273, type: 3}
-  SensorPrefabs:
-  - {fileID: 8467934662373045936, guid: e618f21f22ef0364788fb588f682d093, type: 3}
-  - {fileID: 2783041447292560516, guid: 450bb485b5d0e754c9c26870ebaf1bdf, type: 3}
-  - {fileID: 3894724149368254619, guid: 36b7300ed65543b46ba73080e9dd41e9, type: 3}
-  - {fileID: -6915071163242918046, guid: 74b095570caaa9344b671b1f651ebb06, type: 3}
-  - {fileID: 6435657511017168464, guid: 3f5c340f83695a642b0072d3e421784e, type: 3}
-  - {fileID: 9192961980466913691, guid: 8dec4d3d6171e254b9f9969b38bab929, type: 3}
-  - {fileID: 7137104918729363231, guid: 7ac8eeb04fe26eb42b710b77b3bd3437, type: 3}
-  - {fileID: 327466733414629253, guid: 3478e8e6d14acec4cb722c689a7e1b80, type: 3}
-  - {fileID: 3456451414713215368, guid: 9e81e506d57e5e8459195d8bf0f66420, type: 3}
-  - {fileID: 7715284868972390602, guid: 9397da24250ae5c4282c4b9a954be60f, type: 3}
-  - {fileID: 9176709339769116383, guid: d9b6f16f465eea34e97674b7c5541d24, type: 3}
-  - {fileID: 2318975242363990939, guid: 5f4937b2b1460f246a6fb05aeabd8b91, type: 3}
-  - {fileID: 5863501038009359736, guid: 1b86def11440f9e439144afad5a78256, type: 3}
-  - {fileID: 3805669000543201791, guid: 7409e0cbed0c9924e8bf5fd292e8b8f2, type: 3}
-  - {fileID: 1045925278050730563, guid: 3fd765f74de456f47ab478332f3de7c7, type: 3}
-  - {fileID: -798093424638264352, guid: 23997586206297a40a0c271e9601377b, type: 3}
-  - {fileID: 835172191321637989, guid: fa4d6b8f14144ac4d88488d2d3406f1f, type: 3}
-  - {fileID: 7298661354176162290, guid: 52704b56d3e0f484998cbdee76b4b164, type: 3}
-  - {fileID: 7416276211795438836, guid: 7c43f96e74f176bc19f1929df3221545, type: 3}
-  - {fileID: 8926320593265141670, guid: 823225f8334c708988ff56b6fdf3c722, type: 3}
-  - {fileID: 6798236283089428316, guid: b916b47d1234714418d5d1b2d71d2f8c, type: 3}
-  - {fileID: 3075028223651123413, guid: c14ccc8ff9f29b3438cdd0f4bcebd180, type: 3}
-  - {fileID: 3840905552177509838, guid: e41b78f2c24856c4faa54e1d44f637e2, type: 3}
-  - {fileID: 1914788297095550360, guid: cb991f61c2e0e5d4087b1a10bbfbe9ee, type: 3}
-  - {fileID: 5195529496843511055, guid: 646c54504ce293365a58327a1d3df234, type: 3}
-  - {fileID: 300138083194588022, guid: e3787a95fd2b1014ab5be0827291b9f6, type: 3}
-  - {fileID: 8893500253247778792, guid: bf7717e02e300d74f8f807432dc0f77d, type: 3}
-  - {fileID: 4543625800664472918, guid: c7d52beaa0e33425691662ce577df3d4, type: 3}
-  - {fileID: 5354842297326232499, guid: fcf928e60bba164478f80d3da6d02be0, type: 3}
+  SensorPrefabs: []

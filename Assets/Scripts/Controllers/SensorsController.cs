@@ -164,18 +164,10 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                     var parentObject = parents[parentName];
                     var name = item.Name;
                     var type = item.Type;
-                    GameObject prefab;
+                    GameObject prefab = null;
                     if (item.AssetGuid == null)
                     {
-                        var dict = Config.SensorPrefabs.ToDictionary(s => GetSensorType(s));
-                        if (dict.ContainsKey(type))
-                        {
-                            prefab = dict[type].gameObject;
-                        }
-                        else
-                        {
-                            prefab = null;
-                        }
+                        prefab = Config.SensorPrefabs.FirstOrDefault(s => GetSensorType(s) == type).gameObject;
                     }
                     else if (Config.SensorTypeLookup.ContainsKey(item.AssetGuid))
                     {
@@ -186,7 +178,10 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                         var dir = Path.Combine(Application.persistentDataPath, "Sensors");
                         var vfs = VfsEntry.makeRoot(dir);
                         Config.CheckDir(vfs.GetChild(item.AssetGuid), Config.LoadSensorPlugin);
-                        prefab = Config.SensorTypeLookup[item.AssetGuid]?.gameObject;
+                        if (Config.SensorTypeLookup.ContainsKey(item.AssetGuid))
+                        {
+                            prefab = Config.SensorTypeLookup[item.AssetGuid]?.gameObject;
+                        }
                     }
 
                     if (prefab == null)

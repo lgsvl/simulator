@@ -208,6 +208,9 @@ pipeline {
           not {
             environment name: "SIM_VEHICLES", value: ""
           }
+          not {
+            environment name: "SIM_SENSORS", value: ""
+          }
         }
       }
       steps {
@@ -226,6 +229,9 @@ pipeline {
           }
           not {
             environment name: "SIM_VEHICLES", value: ""
+          }
+          not {
+            environment name: "SIM_SENSORS", value: ""
           }
         }
       }
@@ -247,6 +253,9 @@ pipeline {
           }
           not {
             environment name: "SIM_VEHICLES", value: ""
+          }
+          not {
+            environment name: "SIM_SENSORS", value: ""
           }
         }
       }

@@ -25,6 +25,7 @@ pipeline {
     booleanParam(name: "UPLOAD", defaultValue: true, description: "Upload bundles to S3")
     string(name: "BUILD_SIMULATOR_ENVIRONMENTS", defaultValue: "${SIMULATOR_ENVIRONMENTS}", description: "Environments to build")
     string(name: "BUILD_SIMULATOR_VEHICLES", defaultValue: "${SIMULATOR_VEHICLES}", description: "Vehicles to build")
+    string(name: "BUILD_SIMULATOR_SENSORS", defaultValue: "${SIMULATOR_SENSORS}", description: "Sensors to build")
     string(name: "WISE_URL", defaultValue: "${SIMULATOR_WISE_DEV_URL}", description: "Url to use with wise-cli for uploading assets, CLOUD_URL should be used later, not it's separate to test against dev instead of staging")
     credentials(name: "WISE_CONTENT_UPLOAD_CREDENTIALS_ID", required: true, defaultValue: "WISE_CONTENT_UPLOAD_DEV", description: 'The credentials to be used for uploading asset bundles', credentialType: 'com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl')
     credentials( name: 'S3_CREDENTIALS_ID', required: true, defaultValue: "s3--aws-credentials", description: 'The credentials to be used for uploading to S3 bucket', credentialType: 'com.cloudbees.jenkins.plugins.awscredentials.AWSCredentialsImpl')
@@ -140,6 +141,45 @@ pipeline {
       post {
         success {
             archiveArtifacts "vehicles.txt"
+        }
+      }
+    }
+
+    stage("Checkout Sensors") {
+      when {
+        not {
+            environment name: "BUILD_SIMULATOR_SENSORS", value: ""
+        }
+      }
+      steps {
+        script {
+          def sensors = env.BUILD_SIMULATOR_SENSORS.split(',')
+          for (int i=0; i<sensors.size(); i++) {
+            def sensor = sensors[i]
+            checkout([
+              $class: "GitSCM",
+              branches: [[name: "refs/heads/master"]],
+              browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Sensors/${sensors}", version: env.GITLAB_VERSION],
+              extensions: [
+                [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Sensors/${sensor}"],
+                [$class: "LocalBranch"],
+                [$class: "GitLFSPull"]
+              ],
+              userRemoteConfigs: [[
+                credentialsId: "auto-gitlab",
+                url: "git@${GITLAB_HOST}:HDRP/Sensors/${sensor}.git"
+              ]]
+            ])
+          }
+
+          env.SIM_SENSORS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Sensors ${S3_DOWNLOAD_HOST} sensor 0 ${BUILD_SIMULATOR_SENSORS}").trim()
+        } // script
+
+        sh "printenv SIM_SENSORS | tee sensors.txt"
+      }
+      post {
+        success {
+            archiveArtifacts "sensors.txt"
         }
       }
     }

@@ -79,6 +79,10 @@ if [ ! -z ${SIM_VEHICLES+x} ]; then
   uploadAssets "${SIM_VEHICLES}" Vehicles vehicle vehicle
 fi
 
+if [ ! -z ${SIM_SENSORS+x} ]; then
+  uploadAssets "${SIM_SENSORS}" Sensors sensor sensor
+fi
+
 echo "INFO: ${ASSETS} assets were processed"
 
 if [ "${RESULT}" -ne 0 ] ; then

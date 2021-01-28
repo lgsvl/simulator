@@ -23,8 +23,8 @@ if [ ! -v UNITY_SERIAL ]; then
   exit 1
 fi
 
-if [ -z ${SIM_ENVIRONMENTS+x} ] && [ -z ${SIM_VEHICLES+x} ]; then
-  echo All environments and vehicles are up to date!
+if [ -z ${SIM_ENVIRONMENTS+x} ] && [ -z ${SIM_VEHICLES+x} ] && [ -z ${SIM_SENSORS+x} ]; then
+  echo All environments, vehicles and sensors are up to date!
   exit 0
 fi
 
@@ -64,6 +64,13 @@ if [ ! -z ${SIM_VEHICLES+x} ]; then
   VEHICLES="-buildVehicles ${ASSETS}"
 else
   VEHICLES=
+fi
+
+if [ ! -z ${SIM_SENSORS+x} ]; then
+  getAssets "${SIM_SENSORS}"
+  SENSORS="-buildSensors ${ASSETS}"
+else
+  SENSORS=
 fi
 
 function get_unity_license {
@@ -114,6 +121,7 @@ rm -Rf /mnt/AssetBundles || true
   -buildBundles \
   ${ENVIRONMENTS} \
   ${VEHICLES} \
+  ${SENSORS} \
   -logFile /dev/stdout | tee unity-build-bundles.log
 
 check_unity_log unity-build-bundles.log

@@ -40,6 +40,7 @@ services:
     environment:
       - SIM_ENVIRONMENTS
       - SIM_VEHICLES
+      - SIM_SENSORS
       - JENKINS_BUILD_ID
       - GIT_COMMIT
       - GIT_BRANCH

@@ -80,7 +80,7 @@ if [ ! -z ${SIM_VEHICLES+x} ]; then
 fi
 
 if [ ! -z ${SIM_SENSORS+x} ]; then
-  uploadAssets "${SIM_SENSORS}" Sensors sensor sensor
+  uploadAssets "${SIM_SENSORS}" Sensors sensor plugin
 fi
 
 echo "INFO: ${ASSETS} assets were processed"

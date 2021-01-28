@@ -85,7 +85,7 @@ namespace Simulator.Web
 
             AssetBundle.UnloadAllAssetBundles(false);
             Sensors = new List<SensorConfig>();
-            SensorPrefabs = RuntimeSettings.Instance.SensorPrefabs.ToList();
+            SensorPrefabs = new List<SensorBase>();
             if (SensorPrefabs.Any(s=> s == null))
             {
                 Debug.LogError("!!! Null Sensor Prefab Detected - Check RuntimeSettings SensorPrefabs List for missing Sensor Prefab");

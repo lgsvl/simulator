@@ -38,8 +38,5 @@ namespace Simulator.Utilities
         public Shader PointCloudShader;
 
         public ComputeShader LensDistortion;
-
-        [Tooltip("Prefabs of usable Sensors in Backend API Configuration")]
-        public List<SensorBase> SensorPrefabs;
     }
 }

@@ -65,6 +65,7 @@ services:
     environment:
       - SIM_ENVIRONMENTS
       - SIM_VEHICLES
+      - SIM_SENSORS
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
       - S3_BUCKET_NAME
@@ -80,6 +81,7 @@ services:
     environment:
       - SIM_ENVIRONMENTS
       - SIM_VEHICLES
+      - SIM_SENSORS
       - WISE_USERNAME
       - WISE_PASSWORD
       - WISE_URL

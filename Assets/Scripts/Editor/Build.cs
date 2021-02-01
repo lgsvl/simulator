@@ -594,11 +594,12 @@ namespace Simulator.Editor
 
                                 var assemblies = AppDomain.CurrentDomain.GetAssemblies();
                                 var modules = assemblies.Where(asm =>
-                                    asm.GetName().Name == "UnityEngine" ||
+                                    asm.GetName().Name.Contains("UnityEngine"));/* ||
+                                    asm.GetName().Name == "UnityEngine.InputSystem" ||
                                     asm.GetName().Name == "UnityEngine.JSONSerializeModule" ||
                                     asm.GetName().Name == "UnityEngine.CoreModule" ||
                                     asm.GetName().Name == "UnityEngine.VehiclesModule" ||
-                                    asm.GetName().Name == "UnityEngine.PhysicsModule").ToArray();
+                                    asm.GetName().Name == "UnityEngine.PhysicsModule").ToArray();*/
 
                                 assemblyBuilder.additionalReferences = modules.Select(a => a.Location).ToArray();
 

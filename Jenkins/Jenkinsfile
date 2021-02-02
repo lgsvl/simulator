@@ -139,32 +139,34 @@ pipeline {
           }
 
           def sensors = env.SIMULATOR_SENSORS.split(',')
-          def sim_sensors = []
+          def sensor_names_list = []
 
           for (int i=0; i<sensors.size(); i++) {
             def sensor_git_ref = sensors[i].split(":")
 
-            def sensor = sensor_git_ref[0]
             def git_ref = "refs/heads/master"
 
             if (sensor_git_ref.size() > 1) {
                 git_ref = sensor_git_ref[1]
             }
+            def sensor_path = sensor_git_ref[0]
+            def sensor_path_parts = sensor_path.split('/')
+            def sensor_name = sensor_path_parts.last()
 
-            sim_sensors.add(sensor)
+            sensor_names_list.add(sensor_name)
 
             checkout([
               $class: "GitSCM",
               branches: [[name: "${git_ref}"]],
-              browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Sensors/${sensor}", version: env.GITLAB_VERSION],
+              browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Sensors/${sensor_path}", version: env.GITLAB_VERSION],
               extensions: [
-                [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Sensors/${sensor}"],
+                [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Sensors/${sensor_name}"],
                 [$class: "LocalBranch"],
                 [$class: "GitLFSPull"]
               ],
               userRemoteConfigs: [[
                 credentialsId: "auto-gitlab",
-                url: "git@${GITLAB_HOST}:HDRP/Sensors/${sensor}.git"
+                url: "git@${GITLAB_HOST}:HDRP/Sensors/${sensor_path}.git"
               ]]
             ])
           }
@@ -173,7 +175,7 @@ pipeline {
           env.GIT_COMMIT = sh(returnStdout: true, script: "git rev-parse HEAD").trim()
           env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 1").trim()
           env.SIM_VEHICLES = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 1").trim()
-          env.SIM_SENSORS = sim_sensors.join(",")
+          env.SIM_SENSORS = sensor_names_list.join(",")
         } // script
 
         sh "rm -rf *.zip *.html *.xml *.log"

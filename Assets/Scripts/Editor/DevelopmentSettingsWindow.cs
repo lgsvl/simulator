@@ -318,6 +318,7 @@ namespace Simulator.Editor
 
                                 try
                                 {
+                                    vehicle.Sensors = new SensorData[0];
                                     vehicle.Sensors = JsonConvert.DeserializeObject<SensorData[]>(SensorScratchPad);
                                 }
                                 catch (Exception e)

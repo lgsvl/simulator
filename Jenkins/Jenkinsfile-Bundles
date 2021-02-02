@@ -182,7 +182,7 @@ pipeline {
 
           def sensor_names = sensor_names_list.join(",")
 
-          env.SIM_SENSORS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Sensors ${S3_DOWNLOAD_HOST} sensor 0 ${BUILD_SIMULATOR_SENSORS}").trim()
+          env.SIM_SENSORS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Sensors ${S3_DOWNLOAD_HOST} sensor 0 ${sensor_names}").trim()
         } // script
 
         sh "printenv SIM_SENSORS | tee sensors.txt"

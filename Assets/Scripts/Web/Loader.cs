@@ -326,18 +326,27 @@ namespace Simulator
                         Instance.assetDownloads.TryAdd(task, vehicle);
                     }
 
+                    List<SensorData> sensorsToDownload = new List<SensorData>();
                     foreach(var data in simData.Vehicles)
                     {
                         foreach (var plugin in data.Sensors)
                         {
-                            if (plugin.AssetGuid != null) // TODO remove after WISE update
+                            if (sensorsToDownload.FirstOrDefault(s => s.AssetGuid == plugin.AssetGuid) == null)
                             {
-                                var pluginProgress = new Progress<Tuple<string, float>>(p => { ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2); });
-                                var pluginTask = DownloadManager.GetAsset(BundleConfig.BundleTypes.Sensor, plugin.AssetGuid,
-                                    plugin.Name, pluginProgress);
-                                downloads.Add(pluginTask);
-                                Instance.assetDownloads.TryAdd(pluginTask, plugin.Type);
+                                sensorsToDownload.Add(plugin);
                             }
+                        }
+                    }
+
+                    foreach(var sensor in sensorsToDownload)
+                    {
+                        if (sensor.AssetGuid != null) // TODO remove after WISE update
+                        {
+                            var pluginProgress = new Progress<Tuple<string, float>>(p => { ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2); });
+                            var pluginTask = DownloadManager.GetAsset(BundleConfig.BundleTypes.Sensor, sensor.AssetGuid,
+                                sensor.Name, pluginProgress);
+                            downloads.Add(pluginTask);
+                            Instance.assetDownloads.TryAdd(pluginTask, sensor.Type);
                         }
                     }
                 }

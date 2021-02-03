@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -45,7 +45,26 @@ public class WaypointTrigger
         Effectors.Remove(effector);
         EffectorRemoved?.Invoke(effector);
     }
-    
+
+    public JSONNode SerializeTrigger()
+    {
+        var triggerNode = new JSONObject();
+        var effectorsArray = new JSONArray();
+        ;
+        triggerNode.Add("effectors", effectorsArray);
+        foreach (var effector in Effectors)
+        {
+            var effectorNode = new JSONObject();
+            effectorNode.Add("typeName", new JSONString(effector.TypeName));
+            var parameters = new JSONObject();
+            effectorNode.Add("parameters", parameters);
+            effector.SerializeProperties(parameters);
+            effectorsArray.Add(effectorNode);
+        }
+
+        return triggerNode;
+    }
+
     public static WaypointTrigger DeserializeTrigger(JSONNode data)
     {
         if (data == null)
@@ -54,8 +73,14 @@ public class WaypointTrigger
         var trigger = new WaypointTrigger();
         for (int i = 0; i < effectorsNode.Count; i++)
         {
-            var typeName = effectorsNode[i]["type_name"];
+            var typeName = effectorsNode[i]["typeName"];
             var newEffector = TriggersManager.GetEffectorOfType(typeName);
+            if (newEffector == null)
+            {
+                Debug.LogWarning($"Could not find a trigger effector with type name: {typeName}.");
+                continue;
+            }
+
             newEffector.DeserializeProperties(effectorsNode[i]["parameters"]);
             trigger.AddEffector(newEffector);
         }

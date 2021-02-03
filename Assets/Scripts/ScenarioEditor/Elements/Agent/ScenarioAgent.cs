@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -403,7 +403,6 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         {
             var index = waypoints.IndexOf(waypoint);
             waypoints.Remove(waypoint);
-            waypoint.LinkedTrigger.LinkedWaypoint = null;
             RemoveTrigger(waypoint.LinkedTrigger);
             for (var i = index; i < waypoints.Count; i++)
             {
@@ -454,7 +453,7 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         public void AddTrigger(ScenarioTrigger trigger)
         {
             triggers.Add(trigger);
-            trigger.ParentAgent = this;
+            trigger.TargetAgentType = AgentSource.AgentType;
         }
 
         /// <summary>

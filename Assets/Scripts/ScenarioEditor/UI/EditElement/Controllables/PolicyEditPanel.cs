@@ -1,5 +1,5 @@
 ﻿/**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -63,12 +63,12 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
         /// <summary>
         /// Current policy
         /// </summary>
-        public string Policy { get; private set; }
+        public List<ControlAction> Policy { get; private set; } = new List<ControlAction>();
 
         /// <summary>
         /// Event called when the policy is updated
         /// </summary>
-        public event Action<string> PolicyUpdated;
+        public event Action<List<ControlAction>> PolicyUpdated;
 
         /// <summary>
         /// Submits changed input field value
@@ -84,12 +84,11 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
         /// </summary>
         /// <param name="controllable">Scenario controllable which policy will be edited</param>
         /// <param name="initialPolicy">Policy that will be applied during the setup</param>
-        public void Setup(IControllable controllable, string initialPolicy)
+        public void Setup(IControllable controllable, List<ControlAction> initialPolicy)
         {
             if (BoundControllable != null)
                 SubmitChangedInputs();
             BoundControllable = controllable;
-            Policy = initialPolicy;
             if (BoundControllable == null)
             {
                 gameObject.SetActive(false);
@@ -120,18 +119,20 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
         /// Sets the policy to this panel and initialize editable entries
         /// </summary>
         /// <param name="policy">Policy that will be set</param>
-        private void SetPolicy(string policy)
+        private void SetPolicy(List<ControlAction> policy)
         {
             Policy = policy;
-            var controlActions = BoundControllable.ParseControlPolicy(Policy, out _);
-            if (controlActions != null)
+            if (policy != null)
             {
-                while (entries.Count < controlActions.Count) AddPolicyEntry();
-                while (entries.Count > controlActions.Count) RemovePolicyEntry(entries[0]);
+                while (entries.Count < policy.Count) AddPolicyEntry();
+                while (entries.Count > policy.Count) RemovePolicyEntry(entries[0]);
 
                 for (var i = 0; i < entries.Count; i++)
-                    entries[i].Initialize(this, validActions, validStates, controlActions[i].Action,
-                        controlActions[i].Value);
+                {
+                    entries[i].Deinitialize();
+                    entries[i].Initialize(this, validActions, validStates, policy[i].Action,
+                        policy[i].Value);
+                }
             }
             else
                 while (entries.Count > 0)
@@ -148,19 +149,14 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
         {
             if (BoundControllable == null)
                 return;
-            var sb = new StringBuilder();
+            Policy.Clear();
             for (var i = 0; i < entries.Count; i++)
             {
                 if (!entries[i].IsValid)
                     continue;
-                sb.Append(entries[i].Policy);
-                sb.Append(";");
+                Policy.Add(entries[i].Policy);
             }
 
-            if (sb.EndsWith(';', true))
-                sb.RemoveFromEnd(1);
-
-            Policy = sb.ToString();
             PolicyUpdated?.Invoke(Policy);
             ScenarioManager.Instance.IsScenarioDirty = true;
         }
@@ -223,6 +219,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
         {
             entry.gameObject.SetActive(false);
             entries.Remove(entry);
+            entry.Deinitialize();
             UpdatePolicy();
             UnityUtilities.LayoutRebuild(transform as RectTransform);
         }
@@ -262,11 +259,11 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
                 var pasteAction = new Action(() =>
                 {
                     ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
-                        .RegisterRecord(new GenericUndo<string>(Policy, "Undo pasting policy", SetPolicy));
+                        .RegisterRecord(new GenericUndo<List<ControlAction>>(Policy, "Undo pasting policy", SetPolicy));
                     SetPolicy(policy);
                 });
                 //Do not show confirmation popup if policy is empty
-                if (string.IsNullOrEmpty(Policy))
+                if (Policy == null || Policy.Count == 0)
                 {
                     pasteAction.Invoke();
                     return;

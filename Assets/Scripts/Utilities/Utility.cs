@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -17,6 +17,7 @@ namespace Simulator.Utilities
     using System.IO;
     using System.Security.Cryptography;
     using System.Text;
+    using SimpleJSON;
 
     public static class Utility 
     {
@@ -335,7 +336,51 @@ namespace Simulator.Utilities
             yield return new WaitForFixedUpdate();  // This line is required; it won't work as expected otherwise
         }
 
-        public static List<ControlAction> ParseControlPolicy(this IControllable controllable, string controlPolicy, out string errorMsg)
+        public static JSONArray SerializeControlPolicy(this IControllable controllable)
+        {
+            return SerializeControlPolicy(controllable.CurrentControlPolicy);
+        }
+        
+        public static JSONArray SerializeControlPolicy(List<ControlAction> controlActions)
+        {
+            var controlPolicy = new JSONArray();
+            if (controlActions == null) return controlPolicy;
+            
+            foreach (var action in controlActions)
+            {
+                var node = new JSONObject();
+                node.Add("action", action.Action);
+                node.Add("value", action.Value);
+                controlPolicy.Add(node);
+            }
+            return controlPolicy;
+        }
+
+        public static List<ControlAction> ParseControlPolicy(this IControllable controllable, JSONNode controlPolicy,
+            out string errorMsg)
+        {
+            errorMsg = "";
+            if (controlPolicy.IsArray)
+            {
+                var controlActions = new List<ControlAction>();
+                var controlArray = controlPolicy.AsArray;
+                foreach (var element in controlArray.Children)
+                {
+                    var action = element["action"];
+                    var value = element["value"];
+                    controlActions.Add(new ControlAction{Action = action, Value = value});
+                }
+
+                return controlActions;
+            }
+
+            if (controlPolicy.IsString)
+                return ParseLegacyControlPolicy(controllable, controlPolicy, out errorMsg);
+
+            return null;
+        }
+
+        public static List<ControlAction> ParseLegacyControlPolicy(this IControllable controllable, string controlPolicy, out string errorMsg)
         {
             errorMsg = "";
             int start = 0;
@@ -406,7 +451,7 @@ namespace Simulator.Utilities
                         case "loop":
                             if (value == null)
                             {
-                                controlActions.Add(new ControlAction() { Action=key, Value=value });
+                                controlActions.Add(new ControlAction() { Action=key, Value="" });
                             }
                             else
                             {

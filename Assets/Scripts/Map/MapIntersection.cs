@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -170,7 +170,7 @@ namespace Simulator.Map
             SimulatorManager.Instance.SignalIDs = 0;
             foreach (var signal in facingGroup)
             {
-                var controlPolicy = "green=15;yellow=3;red=22;loop";
+                var controlPolicy = signal.ParseLegacyControlPolicy("green=15;yellow=3;red=22;loop", out _);
                 signal.DefaultControlPolicy = controlPolicy;
                 signal.SetSignalState("green");
                 signal.SeqId = SimulatorManager.Instance.SignalIDs++;
@@ -178,7 +178,7 @@ namespace Simulator.Map
 
             foreach (var signal in oppFacingGroup)
             {
-                var controlPolicy = "red=20;green=15;yellow=3;red=2;loop";
+                var controlPolicy = signal.ParseLegacyControlPolicy("red=20;green=15;yellow=3;red=2;loop", out _);
                 signal.DefaultControlPolicy = controlPolicy;
                 signal.SetSignalState("red");
                 signal.SeqId = SimulatorManager.Instance.SignalIDs++;
@@ -191,9 +191,8 @@ namespace Simulator.Map
                 return;
             foreach (var signal in signalGroup)
             {
-                List<ControlAction> controlActions = signal.ParseControlPolicy(signal.DefaultControlPolicy, out string errorMsg);
                 signal.CurrentControlPolicy = signal.DefaultControlPolicy;
-                signal.Control(controlActions);
+                signal.Control(signal.DefaultControlPolicy);
             }
         }
 

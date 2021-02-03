@@ -1,5 +1,5 @@
 ﻿/**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -23,32 +23,6 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
     /// </summary>
     public class PolicyEntry : MonoBehaviour
     {
-        /// <summary>
-        /// Type of this entry, this type varies entry behaviour
-        /// </summary>
-        private enum EntryType
-        {
-            /// <summary>
-            /// Basic entry type with manual input value
-            /// </summary>
-            Action = 0,
-
-            /// <summary>
-            /// Entry type with dropdown value
-            /// </summary>
-            State = 1,
-
-            /// <summary>
-            /// Entry type with manual input value for decimals only
-            /// </summary>
-            ActionWithDecimalValue = 2,
-            
-            /// <summary>
-            /// Entry type for action without value input
-            /// </summary>
-            ActionWithoutValue = 3,
-        }
-
         //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
 #pragma warning disable 0649
         /// <summary>
@@ -71,11 +45,6 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
 #pragma warning restore 0649
 
         /// <summary>
-        /// Current entry type, changes with selected action
-        /// </summary>
-        private EntryType entryType;
-
-        /// <summary>
         /// Parent policy edit panel, which includes this entry
         /// </summary>
         private PolicyEditPanel parentPanel;
@@ -83,7 +52,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
         /// <summary>
         /// Current policy value for this entry
         /// </summary>
-        public string Policy { get; private set; }
+        public ControlAction Policy { get; private set; }
 
         /// <summary>
         /// Currently selected action for this entry
@@ -99,6 +68,11 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
         /// Is this policy entry valid as an control action
         /// </summary>
         public bool IsValid { get; private set; }
+        
+        /// <summary>
+        /// Is this policy entry initialized
+        /// </summary>
+        public bool IsInitialized { get; private set; }
 
         /// <summary>
         /// Unity OnDisable method
@@ -132,7 +106,6 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
             switch (currentAction)
             {
                 case "state":
-                    entryType = EntryType.State;
                     if (!validStates.Contains(currentValue))
                         currentValue = validStates[0];
                     var valueId = validStates.IndexOf(currentValue);
@@ -140,13 +113,22 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
                     valueDropdown.SetValueWithoutNotify(valueId);
                     break;
                 default:
-                    entryType = EntryType.Action;
                     Value = currentValue;
                     valueInput.SetTextWithoutNotify(currentValue);
                     break;
             }
 
             UpdatePolicy(Value);
+            IsInitialized = true;
+        }
+
+        /// <summary>
+        /// Deinitalizes the policy entry
+        /// </summary>
+        public void Deinitialize()
+        {
+            parentPanel = null;
+            IsInitialized = false;
         }
 
         /// <summary>
@@ -168,11 +150,14 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
             if (parentPanel.BoundControllable == null)
                 return;
             Value = value;
-            Policy = entryType != EntryType.State
-                ? $"{Action}={Value}"
-                : Value;
-            IsValid = Validate(parentPanel.BoundControllable);
-            parentPanel.UpdatePolicy();
+            Policy = new ControlAction
+            {
+                Action = Action,
+                Value = value
+            };
+            IsValid = Validate();
+            if (IsInitialized)
+                parentPanel.UpdatePolicy();
         }
 
         /// <summary>
@@ -214,14 +199,12 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
             switch (action)
             {
                 case "state":
-                    entryType = EntryType.State;
                     valueDropdown.gameObject.SetActive(true);
                     valueInput.gameObject.SetActive(false);
                     Value = valueDropdown.options[valueDropdown.value].text;
                     break;
                 case "wait":
                 case "trigger":
-                    entryType = EntryType.ActionWithDecimalValue;
                     valueDropdown.gameObject.SetActive(false);
                     valueInput.gameObject.SetActive(true);
                     valueInput.contentType = InputField.ContentType.DecimalNumber;
@@ -232,7 +215,6 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
                     valueInput.SetTextWithoutNotify("");
                     break;
                 default:
-                    entryType = EntryType.Action;
                     valueDropdown.gameObject.SetActive(false);
                     valueInput.gameObject.SetActive(true);
                     valueInput.contentType = InputField.ContentType.Alphanumeric;
@@ -281,14 +263,10 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
         /// <summary>
         /// Validate if current policy is valid control action for the given controllable
         /// </summary>
-        /// <param name="controllable">Controllable that validates the policy</param>
         /// <returns>Is policy valid for the given controllable</returns>
-        private bool Validate(IControllable controllable)
+        private bool Validate()
         {
-            if (string.IsNullOrEmpty(Policy))
-                return false;
-            var controlActions = controllable.ParseControlPolicy(Policy, out _);
-            return controlActions != null && controlActions.Count == 1;
+            return !string.IsNullOrEmpty(Policy.Action) && !string.IsNullOrEmpty(Policy.Value);
         }
     }
 }

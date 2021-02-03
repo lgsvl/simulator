@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -10,14 +10,12 @@ namespace Simulator.ScenarioEditor.Managers
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Agents;
     using Controllable;
     using Controllables;
     using Input;
+    using JetBrains.Annotations;
     using Map;
-    using Simulator.Utilities;
     using UnityEngine;
-    using Utilities;
 
     /// <summary>
     /// Manager for caching and handling all the scenario controllables
@@ -64,7 +62,7 @@ namespace Simulator.ScenarioEditor.Managers
         /// <summary>
         /// Copied controllable policy
         /// </summary>
-        private string copiedPolicy;
+        private List<ControlAction> copiedPolicy;
 
         /// <summary>
         /// Initialization method
@@ -115,6 +113,18 @@ namespace Simulator.ScenarioEditor.Managers
         /// <param name="mapData">Loaded map data</param>
         private void OnMapChanged(ScenarioMapManager.MapMetaData mapData)
         {
+            for (var i = Controllables.Count - 1; i >= 0; i--)
+            {
+                var controllable = Controllables[i];
+                controllable.RemoveFromMap();
+                if (!controllable.IsEditableOnMap)
+                    controllable.Dispose();
+            }
+            LoadMapControllables();
+        }
+
+        private void LoadMapControllables()
+        {
             var mapSignals = FindObjectsOfType<MapSignal>();
             if (mapSignals.Length <= 0) return;
             foreach (var mapSignal in mapSignals)
@@ -124,8 +134,7 @@ namespace Simulator.ScenarioEditor.Managers
                 mapSignalVariant.Setup(nameof(MapSignal), mapSignal);
                 var scenarioControllable = mapSignal.CurrentSignalLight.gameObject.AddComponent<ScenarioControllable>();
                 scenarioControllable.Uid = mapSignal.UID;
-                scenarioControllable.Setup(source, mapSignalVariant);
-                scenarioControllable.Policy = mapSignal.DefaultControlPolicy;
+                scenarioControllable.Setup(source, mapSignalVariant, mapSignal.DefaultControlPolicy);
                 var boxCollider = scenarioControllable.gameObject.AddComponent<BoxCollider>();
                 boxCollider.isTrigger = true;
                 var meshRenderers = scenarioControllable.GetComponentsInChildren<MeshRenderer>();
@@ -152,8 +161,7 @@ namespace Simulator.ScenarioEditor.Managers
             for (var i = Controllables.Count - 1; i >= 0; i--)
             {
                 var controllable = Controllables[i];
-                if (!controllable.IsEditableOnMap)
-                    continue;
+                if (!controllable.IsEditableOnMap) continue;
                 controllable.RemoveFromMap();
                 controllable.Dispose();
             }
@@ -200,7 +208,7 @@ namespace Simulator.ScenarioEditor.Managers
         /// </summary>
         /// <param name="target">Target controllable required for copied policy</param>
         /// <param name="policy">Copied policy value</param>
-        public void CopyPolicy(IControllable target, string policy)
+        public void CopyPolicy(IControllable target, List<ControlAction> policy)
         {
             copiedPolicy = policy;
             copiedPolicyTarget = target;
@@ -212,7 +220,7 @@ namespace Simulator.ScenarioEditor.Managers
         /// <param name="target">Target controllable required for copied policy</param>
         /// <param name="policy">Copied policy value, empty if target is different than copied one</param>
         /// <returns>True if target is the same as copied one, false otherwise</returns>
-        public bool GetCopiedPolicy(IControllable target, out string policy)
+        public bool GetCopiedPolicy(IControllable target, out List<ControlAction> policy)
         {
             if (target.GetType() == copiedPolicyTarget.GetType())
             {
@@ -220,7 +228,7 @@ namespace Simulator.ScenarioEditor.Managers
                 return true;
             }
 
-            policy = "";
+            policy = null;
             return false;
         }
     }

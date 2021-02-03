@@ -63,8 +63,8 @@ namespace Simulator.Map
         public string CurrentState { get; set; }
         public string[] ValidStates { get; set; } = new string[] { "green", "yellow", "red", "black" };
         public string[] ValidActions { get; set; } = new string[] { "trigger", "wait", "loop" };
-        public string DefaultControlPolicy { get; set; } = "";
-        public string CurrentControlPolicy { get; set; }
+        public List<ControlAction> DefaultControlPolicy { get; set; } = new List<ControlAction>();
+        public List<ControlAction> CurrentControlPolicy { get; set; }
 
         static int MaxId = -1; // Maximum id of existing signals
 

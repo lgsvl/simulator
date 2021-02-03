@@ -560,7 +560,7 @@ namespace Simulator.ScenarioEditor.Input
                     break;
                 case InputModeType.DraggingElement:
                     //Check for drag finish
-                    if (!leftMouseButtonPressed && !EventSystem.current.IsPointerOverGameObject())
+                    if (!leftMouseButtonPressed)
                     {
                         if (cancelMode == CancelMode.CancelOnClick)
                         {

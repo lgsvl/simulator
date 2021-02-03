@@ -1,5 +1,5 @@
 ﻿/**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -12,9 +12,11 @@ namespace Simulator.ScenarioEditor.Controllables
     using System.Linq;
     using System.Threading.Tasks;
     using Agents;
+    using Controllable;
     using Elements;
     using Input;
     using Managers;
+    using UI.EditElement.Controllables;
     using Undo;
     using Undo.Records;
     using UnityEngine;
@@ -25,15 +27,30 @@ namespace Simulator.ScenarioEditor.Controllables
     /// </summary>
     public class ScenarioControllableSource : ScenarioElementSource, IDragHandler
     {
+        //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
+#pragma warning disable 0649
+        /// <summary>
+        /// Prefabs with controllables prefabs
+        /// </summary>
+        [SerializeField]
+        private List<MonoBehaviour> controllablesPrefabs;
+        
+        /// <summary>
+        /// Prefabs that includes custom edit panels for controllables
+        /// </summary>
+        [SerializeField]
+        private List<MonoBehaviour> customEditPanelsPrefabs;
+#pragma warning restore 0649
+        
         /// <summary>
         /// Cached reference to the scenario editor input manager
         /// </summary>
         private InputManager inputManager;
 
         /// <summary>
-        /// Currently dragged agent instance
+        /// Currently dragged element instance
         /// </summary>
-        private GameObject draggedInstance;
+        private ScenarioControllable draggedInstance;
 
         /// <summary>
         /// Is this source initialized
@@ -47,6 +64,11 @@ namespace Simulator.ScenarioEditor.Controllables
         /// List of available controllable variants
         /// </summary>
         public override List<SourceVariant> Variants { get; } = new List<SourceVariant>();
+
+        /// <summary>
+        /// List of custom edit panels for controllables
+        /// </summary>
+        public List<IControllableEditPanel> CustomEditPanels { get; } = new List<IControllableEditPanel>();
 
         /// <summary>
         /// Controllable variant that is currently selected
@@ -65,19 +87,67 @@ namespace Simulator.ScenarioEditor.Controllables
                 progress.Report(1.0f);
                 return Task.CompletedTask;
             }
-
             inputManager = ScenarioManager.Instance.GetExtension<InputManager>();
+            
+            //Load referenced controllables
+            foreach (var controllablePrefab in controllablesPrefabs)
+            {
+                if (controllablePrefab == null)
+                    continue;
+                var controllable = controllablePrefab.GetComponent<IControllable>();
+                if (controllable == null)
+                    continue;
+                var variant = new ControllableVariant();
+                controllable.Spawned = true;
+                variant.Setup(controllable.GetType().Name, controllable);
+                Variants.Add(variant);
+            }
+            foreach (var editPanelsPrefab in customEditPanelsPrefabs)
+            {
+                if (editPanelsPrefab == null)
+                    continue;
+                var editPanel = editPanelsPrefab.GetComponent<IControllableEditPanel>();
+                if (editPanel == null) continue;
+                editPanel = Instantiate(editPanelsPrefab, transform).GetComponent<IControllableEditPanel>();
+                editPanel.PanelObject.SetActive(false);
+                CustomEditPanels.Add(editPanel);
+            }
+            
+            //Import controllables from config
             var controllables = Config.Controllables;
             var controllablesCount = controllables.Count;
             var i = 0;
             foreach (var controllable in controllables)
             {
+                if (Variants.Any(v => ((ControllableVariant)v).controllable.GetType() == controllable.GetType()))
+                    continue;
                 var variant = new ControllableVariant();
                 Debug.Log($"Loading controllable {controllable.Key} from the config.");
                 controllable.Value.Spawned = true;
                 variant.Setup(controllable.Key, controllable.Value);
                 Variants.Add(variant);
+                var assets = Config.ControllableAssets[controllable.Value];
+                foreach (var asset in assets)
+                {
+                    var editPanel = asset.GetComponent<IControllableEditPanel>();
+                    //Add edit panel if same type is not registered yet
+                    if (editPanel!=null && customEditPanelsPrefabs.Any(panel => panel.GetType() == editPanel.GetType()))
+                        CustomEditPanels.Add(editPanel);
+                }
                 progress.Report((float)++i/controllablesCount);
+            }
+
+            //Let all the custom edit panels edit initialized controllable variants
+            foreach (var variant in Variants)
+            {
+                var controllableVariant = variant as ControllableVariant;
+                if (controllableVariant == null)
+                    continue;
+                foreach (var customEditPanel in CustomEditPanels)
+                {
+                    if (customEditPanel.EditedType == controllableVariant.controllable.GetType())
+                        customEditPanel.InitializeVariant(controllableVariant);
+                }
             }
 
             IsInitialized = true;
@@ -98,15 +168,17 @@ namespace Simulator.ScenarioEditor.Controllables
         /// Method that instantiates new <see cref="ScenarioControllable"/> and initializes it with selected variant
         /// </summary>
         /// <param name="variant">Controllable variant which model should be instantiated</param>
+        /// <param name="initialPolicy">Policy that will be applied to the new instance, default variant policy will be applied if this parameter is null</param>
         /// <returns><see cref="ScenarioControllable"/> initialized with selected variant</returns>
-        public ScenarioControllable GetControllableInstance(ControllableVariant variant)
+        public ScenarioControllable GetControllableInstance(ControllableVariant variant, List<ControlAction> initialPolicy = null)
         {
             var newGameObject = new GameObject(ElementTypeName);
             newGameObject.transform.SetParent(transform);
             var scenarioControllable = newGameObject.AddComponent<ScenarioControllable>();
-            scenarioControllable.Setup(this, variant);
-            scenarioControllable.Policy = variant.controllable.DefaultControlPolicy;
+            if (initialPolicy == null)
+                initialPolicy = variant.controllable.DefaultControlPolicy;
             SetupNewControllable(scenarioControllable);
+            scenarioControllable.Setup(this, variant, initialPolicy);
             return scenarioControllable;
         }
 
@@ -133,7 +205,7 @@ namespace Simulator.ScenarioEditor.Controllables
         /// <inheritdoc/>
         public void DragStarted()
         {
-            draggedInstance = GetModelInstance(selectedVariant);
+            draggedInstance = GetControllableInstance(selectedVariant);
             draggedInstance.transform.SetParent(ScenarioManager.Instance.transform);
             draggedInstance.transform.SetPositionAndRotation(inputManager.MouseRaycastPosition,
                 Quaternion.Euler(0.0f, 0.0f, 0.0f));
@@ -148,10 +220,7 @@ namespace Simulator.ScenarioEditor.Controllables
         /// <inheritdoc/>
         public void DragFinished()
         {
-            var controllable = GetControllableInstance(selectedVariant);
-            controllable.transform.rotation = draggedInstance.transform.rotation;
-            controllable.transform.position = draggedInstance.transform.position;
-            ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
+            var controllable = draggedInstance.GetComponent<ScenarioControllable>();
             ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
                 .RegisterRecord(new UndoAddElement(controllable));
             draggedInstance = null;
@@ -160,7 +229,8 @@ namespace Simulator.ScenarioEditor.Controllables
         /// <inheritdoc/>
         public void DragCancelled()
         {
-            ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
+            draggedInstance.RemoveFromMap();
+            draggedInstance.Dispose();
             draggedInstance = null;
         }
     }

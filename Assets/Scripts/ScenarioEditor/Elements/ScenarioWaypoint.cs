@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -71,7 +71,6 @@ namespace Simulator.ScenarioEditor.Elements
                 go.transform.localPosition = Vector3.zero;
                 go.transform.localRotation = Quaternion.Euler(Vector3.zero);
                 linkedTrigger = go.AddComponent<ScenarioTrigger>();
-                linkedTrigger.LinkedWaypoint = this;
                 linkedTrigger.Initialize();
                 return linkedTrigger;
             }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -18,32 +18,22 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
     using Undo;
     using Undo.Records;
     using UnityEngine;
+    using UnityEngine.Serialization;
     using UnityEngine.UI;
 
     /// <summary>
     /// UI panel which allows editing a selected scenario trigger
     /// </summary>
-    public class TriggerEditPanel : ParameterEditPanel
+    public class TriggerEditPanel : MonoBehaviour
     {
         //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
 #pragma warning disable 0649
         /// <summary>
         /// Dropdown for the agent variant selection
         /// </summary>
+        [FormerlySerializedAs("triggerSelectDropdown")]
         [SerializeField]
-        private Dropdown triggerSelectDropdown;
-
-        /// <summary>
-        /// Sample of the effector panel
-        /// </summary>
-        [SerializeField]
-        private DefaultEffectorEditPanel defaultEffectorEditPanelPanel;
-
-        /// <summary>
-        /// Custom effector edit panels that are build within the VSE
-        /// </summary>
-        [SerializeField]
-        private List<EffectorEditPanel> customEffectorEditPanels;
+        private Dropdown effectorSelectDropdown;
 #pragma warning restore 0649
 
         /// <summary>
@@ -55,6 +45,11 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// Cached prefabs pools
         /// </summary>
         private PrefabsPools prefabsPools;
+
+        /// <summary>
+        /// Default effector edit panel
+        /// </summary>
+        private DefaultEffectorEditPanel defaultEffectorEditPanel;
 
         /// <summary>
         /// Reference to currently selected trigger
@@ -87,15 +82,20 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// </summary>
         private readonly Dictionary<TriggerEffector, EffectorEditPanel> visiblePanels = new Dictionary<TriggerEffector, EffectorEditPanel>();
 
-        /// <inheritdoc/>
-        public override void Initialize()
+        /// <summary>
+        /// Initialization
+        /// </summary>
+        public void Initialize()
         {
             if (isInitialized)
                 return;
 
             prefabsPools = ScenarioManager.Instance.prefabsPools;
+            var manager = ScenarioManager.Instance.GetExtension<ScenarioTriggersManager>();
+            defaultEffectorEditPanel = Instantiate(manager.defaultEffectorEditPanel, transform);
+            defaultEffectorEditPanel.gameObject.SetActive(false);
             var customEffectorPanels = new Dictionary<Type, EffectorEditPanel>();
-            foreach (var customEffectorEditPanel in customEffectorEditPanels)
+            foreach (var customEffectorEditPanel in manager.customEffectorEditPanels)
                 customEffectorPanels.Add(customEffectorEditPanel.EditedEffectorType, customEffectorEditPanel);
             var allEffectorTypes = TriggersManager.GetAllEffectorsTypes();
             for (int i = 0; i < allEffectorTypes.Count; i++)
@@ -105,26 +105,16 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                 InitializeEffectorPanel(customEffectorPanels, effector);
             }
 
-            defaultEffectorEditPanelPanel.gameObject.SetActive(false);
             isInitialized = true;
-
-            ScenarioManager.Instance.SelectedOtherElement += OnSelectedOtherElement;
-            ScenarioManager.Instance.NewScenarioElement += OnNewElementActivation;
-            OnSelectedOtherElement(ScenarioManager.Instance.SelectedElement);
         }
 
-        /// <inheritdoc/>
-        public override void Deinitialize()
+        /// <summary>
+        /// Deinitialization
+        /// </summary>
+        public void Deinitialize()
         {
             if (!isInitialized)
                 return;
-            var scenarioManager = ScenarioManager.Instance;
-            if (scenarioManager != null)
-            {
-                scenarioManager.SelectedOtherElement -= OnSelectedOtherElement;
-                scenarioManager.NewScenarioElement -= OnNewElementActivation;
-            }
-
             if (selectedTrigger != null)
             {
                 selectedTrigger.Trigger.EffectorAdded -= TriggerOnEffectorAdded;
@@ -136,10 +126,10 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         }
 
         /// <summary>
-        /// Method called when another scenario element has been selected
+        /// Method called when another scenario trigger has been selected
         /// </summary>
-        /// <param name="selectedElement">Scenario element that has been selected</param>
-        private void OnSelectedOtherElement(ScenarioElement selectedElement)
+        /// <param name="newTrigger">Scenario trigger that has been selected</param>
+        public void OnSelectedNewTrigger(ScenarioTrigger newTrigger)
         {
             if (selectedTrigger != null)
             {
@@ -156,15 +146,13 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
 
             visiblePanels.Clear();
 
-            var selectedWaypoint = selectedElement as ScenarioWaypoint;
-            gameObject.SetActive(selectedWaypoint != null);
-            if (selectedWaypoint != null)
+            gameObject.SetActive(newTrigger != null);
+            if (newTrigger != null)
             {
-                selectedTrigger = selectedWaypoint.LinkedTrigger;
+                selectedTrigger = newTrigger;
                 selectedTrigger.Trigger.EffectorAdded += TriggerOnEffectorAdded;
                 selectedTrigger.Trigger.EffectorRemoved += TriggerOnEffectorRemoved;
                 var effectors = selectedTrigger.Trigger.Effectors;
-                var agentType = selectedTrigger.ParentAgent.Source.AgentType;
                 //Get available effectors that supports this agent and their instance is not added to the trigger yet
                 availableEffectorTypes =
                     allEffectors.Where(newEffector =>
@@ -172,9 +160,9 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                         (effectorPanelsPrefabs[newEffector.TypeName].AllowMany || effectors.All(addedEffector =>
                             addedEffector.GetType() != newEffector.GetType())) &&
                         //Check if effector is supported for selected agent type
-                        !newEffector.UnsupportedAgentTypes.Contains(agentType)).ToList();
-                triggerSelectDropdown.options.Clear();
-                triggerSelectDropdown.AddOptions(
+                        !newEffector.UnsupportedAgentTypes.Contains(selectedTrigger.TargetAgentType)).ToList();
+                effectorSelectDropdown.options.Clear();
+                effectorSelectDropdown.AddOptions(
                     availableEffectorTypes.Select(effector => effector.TypeName).ToList());
 
                 for (var i = 0; i < effectors.Count; i++)
@@ -193,22 +181,6 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         }
 
         /// <summary>
-        /// Method called when new scenario element has been activated
-        /// </summary>
-        /// <param name="selectedElement">Scenario element that has been activated</param>
-        private void OnNewElementActivation(ScenarioElement selectedElement)
-        {
-            if (!(selectedElement is ScenarioWaypoint waypoint)) return;
-            var trigger = waypoint.LinkedTrigger;
-            var effectors = trigger.Trigger.Effectors;
-            foreach (var effector in effectors)
-            {
-                var effectorPanel = effectorPanelsPrefabs[effector.TypeName];
-                effectorPanel.EffectorAddedToTrigger(trigger, effector);
-            }
-        }
-
-        /// <summary>
         /// Method called when the effector is added to the selected trigger
         /// </summary>
         /// <param name="effector">Effector that was added to the selected trigger</param>
@@ -218,10 +190,10 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                 .GetComponent<EffectorEditPanel>();
             if (!effectorPanel.AllowMany)
             {
-                availableEffectorTypes.RemoveAt(triggerSelectDropdown.value);
-                triggerSelectDropdown.options.RemoveAt(triggerSelectDropdown.value);
-                triggerSelectDropdown.SetValueWithoutNotify(0);
-                triggerSelectDropdown.RefreshShownValue();
+                availableEffectorTypes.RemoveAt(effectorSelectDropdown.value);
+                effectorSelectDropdown.options.RemoveAt(effectorSelectDropdown.value);
+                effectorSelectDropdown.SetValueWithoutNotify(0);
+                effectorSelectDropdown.RefreshShownValue();
             }
 
             effectorPanel.StartEditing(this, selectedTrigger, effector);
@@ -253,8 +225,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             if (!availableEffectorTypes.Contains(effector))
             {
                 availableEffectorTypes.Add(effector);
-                triggerSelectDropdown.options.Add(new Dropdown.OptionData(effector.TypeName));
-                triggerSelectDropdown.RefreshShownValue();
+                effectorSelectDropdown.options.Add(new Dropdown.OptionData(effector.TypeName));
+                effectorSelectDropdown.RefreshShownValue();
             }
         }
 
@@ -267,7 +239,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         private void InitializeEffectorPanel(Dictionary<Type, EffectorEditPanel> customEffectorPanels,
             TriggerEffector effector)
         {
-            var panelPrefab = defaultEffectorEditPanelPanel.GetComponent<EffectorEditPanel>();
+            var panelPrefab = defaultEffectorEditPanel.GetComponent<EffectorEditPanel>();
             if (customEffectorPanels.TryGetValue(effector.GetType(), out var editPanel))
                 panelPrefab = editPanel.GetComponent<EffectorEditPanel>();
             effectorPanelsPrefabs.Add(effector.TypeName, panelPrefab);
@@ -278,13 +250,13 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// </summary>
         public void AddSelectedEffector()
         {
-            if (triggerSelectDropdown.value < 0 || availableEffectorTypes.Count <= triggerSelectDropdown.value)
+            if (effectorSelectDropdown.value < 0 || availableEffectorTypes.Count <= effectorSelectDropdown.value)
                 return;
 
-            var selectedEffectorType = availableEffectorTypes[triggerSelectDropdown.value].GetType();
+            var selectedEffectorType = availableEffectorTypes[effectorSelectDropdown.value].GetType();
             if (!(Activator.CreateInstance(selectedEffectorType) is TriggerEffector effector))
                 throw new ArgumentException(
-                    $"Invalid effector type '{availableEffectorTypes[triggerSelectDropdown.value].GetType()}'.");
+                    $"Invalid effector type '{availableEffectorTypes[effectorSelectDropdown.value].GetType()}'.");
             var effectorPanel = effectorPanelsPrefabs[effector.TypeName];
             effectorPanel.InitializeEffector(selectedTrigger, effector);
             selectedTrigger.Trigger.AddEffector(effector);
@@ -327,6 +299,11 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         {
             if (copiedTrigger == null)
                 return;
+            if (copiedTrigger.TargetAgentType != selectedTrigger.TargetAgentType)
+            {
+                ScenarioManager.Instance.logPanel.EnqueueWarning("Cannot paste trigger effectors. Copied trigger targets different agent type.");
+                return;
+            }
 
             var pasteAction = new Action(() =>
             {

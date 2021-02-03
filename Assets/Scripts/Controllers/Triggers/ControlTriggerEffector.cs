@@ -1,5 +1,5 @@
 ﻿/**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -8,6 +8,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using SimpleJSON;
+using Simulator.Controllable;
 using Simulator.Utilities;
 
 public class ControlTriggerEffector : TriggerEffector
@@ -18,7 +19,7 @@ public class ControlTriggerEffector : TriggerEffector
 
     public readonly List<string> ControllablesUIDs = new List<string>();
 
-    public string ControlPolicy;
+    public List<ControlAction> ControlPolicy;
 
     public override object Clone()
     {
@@ -35,9 +36,7 @@ public class ControlTriggerEffector : TriggerEffector
         foreach (var uid in ControllablesUIDs)
         {
             if (!SimulatorManager.Instance.ControllableManager.TryGetControllable(uid, out var controllable)) continue;
-            var controlActions = controllable.ParseControlPolicy(ControlPolicy, out _);
-            if (controlActions != null)
-                controllable.Control(controlActions);
+            controllable.Control(ControlPolicy);
         }
     }
 
@@ -48,7 +47,7 @@ public class ControlTriggerEffector : TriggerEffector
         if (controllablesNode != null)
             foreach (var nodeChild in controllablesNode.Children)
                 ControllablesUIDs.Add(nodeChild);
-        ControlPolicy = jsonData["controlPolicy"];
+        ControlPolicy = Utility.ParseControlPolicy(null, jsonData["controlPolicy"], out _);
     }
 
     public override void SerializeProperties(JSONNode jsonData)
@@ -57,6 +56,6 @@ public class ControlTriggerEffector : TriggerEffector
         foreach (var uid in ControllablesUIDs)
             controllablesNode.Add(uid);
         jsonData.Add("controllablesUIDs", controllablesNode);
-        jsonData.Add("controlPolicy", ControlPolicy);
+        jsonData.Add("controlPolicy", Utility.SerializeControlPolicy(ControlPolicy));
     }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -19,6 +19,8 @@ using Simulator.Network.Core.Messaging.Data;
 
 namespace Simulator.Controllable
 {
+    using SimpleJSON;
+
     public class ControllableManager : MonoBehaviour, IMessageSender, IMessageReceiver
     {
         private class ControllableController : IIdentifiedObject
@@ -226,7 +228,7 @@ namespace Simulator.Controllable
     public struct ControlAction
     {
         public string Action;
-        public string Value;
+        public JSONNode Value;
     }
 
     public interface IControllable : IGloballyUniquelyIdentified
@@ -242,12 +244,11 @@ namespace Simulator.Controllable
         string[] ValidActions { get; } // Valid actions (i.e., trigger, wait)
 
         // Control policy defines rules for control actions
-        string DefaultControlPolicy { get; set; } // Default control policy
-        string CurrentControlPolicy { get; set; } // Control policy that's currently active
+        List<ControlAction> DefaultControlPolicy { get; set; } // Default control policy
+        List<ControlAction> CurrentControlPolicy { get; set; } // Control policy that's currently active
 
         /// <summary>Control a controllable object with a new control policy</summary>
-        /// <param name="controlPolicy">A new control policy to control this object</param>
-        /// <param name="errorMsg">Error message for invalid control policy</param>
+        /// <param name="controlActions">A new control policy to control this object</param>
         void Control(List<ControlAction> controlActions);
     }
 }

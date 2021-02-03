@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -196,14 +196,9 @@ namespace Simulator.ScenarioEditor.Elements
         }
 
         /// <summary>
-        /// Parent agent which includes this trigger
+        /// Agent type that will be modified with this trigger
         /// </summary>
-        public ScenarioAgent ParentAgent { get; set; }
-
-        /// <summary>
-        /// Waypoint that is linked to this trigger
-        /// </summary>
-        public ScenarioWaypoint LinkedWaypoint { get; set; }
+        public AgentType TargetAgentType { get; set; }
 
         /// <summary>
         /// Effectors that will be invoked on this trigger
@@ -286,7 +281,6 @@ namespace Simulator.ScenarioEditor.Elements
         /// <param name="originTrigger">Origin trigger, properties will be copied from it to this trigger</param>
         public void CopyProperties(ScenarioTrigger originTrigger)
         {
-            LinkedWaypoint = originTrigger.LinkedWaypoint;
             ClearEffectors();
             var effectorsAdded = new List<TriggerEffector>();
             foreach (var effectorObject in originTrigger.effectorsObjects)

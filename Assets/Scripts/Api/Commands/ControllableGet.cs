@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -13,6 +13,8 @@ using System.Linq;
 
 namespace Simulator.Api.Commands
 {
+    using Utilities;
+
     class ControllableGet : ICommand
     {
         public string Name => "controllable/get";
@@ -20,6 +22,13 @@ namespace Simulator.Api.Commands
         public void Execute(JSONNode args)
         {
             var api = ApiManager.Instance;
+
+            if (TryParseUid(args, out var result))
+            {
+                api.SendResult(this, result);
+                return;
+            }
+
             var manager = SimulatorManager.Instance.ControllableManager;
             var position = args["position"].ReadVector3();
             var controlType = args["control_type"].Value;
@@ -36,6 +45,25 @@ namespace Simulator.Api.Commands
                 api.SendError(this, $"Controllable object not found with '{position}'");
             }
 
+            api.SendResult(this, GetResult(controllable));
+        }
+
+        private bool TryParseUid(JSONNode args, out JSONNode result)
+        {
+            if (!args.HasKey("uid"))
+            {
+                result = null;
+                return false;
+            }
+
+            var uid = args["uid"];
+            var manager = SimulatorManager.Instance.ControllableManager;
+            result = manager.TryGetControllable(uid, out var controllable) ? GetResult(controllable) : new JSONString($"Controllable object not found with uid '{uid}'");
+            return true;
+        }
+
+        private JSONNode GetResult(IControllable controllable)
+        {
             var uid = controllable.UID;
 
             JSONArray validActions = new JSONArray();
@@ -61,9 +89,8 @@ namespace Simulator.Api.Commands
             j.Add("rotation", controllable.transform.rotation.eulerAngles);
             j.Add("type", controllable.ControlType);
             j.Add("valid_actions", validActions);
-            j.Add("default_control_policy", controllable.DefaultControlPolicy);
-
-            api.SendResult(this, j);
+            j.Add("default_control_policy", Utility.SerializeControlPolicy(controllable.DefaultControlPolicy));
+            return j;
         }
 
         private IControllable GetClosestControllable(Vector3 targetPos, List<IControllable> controllables)

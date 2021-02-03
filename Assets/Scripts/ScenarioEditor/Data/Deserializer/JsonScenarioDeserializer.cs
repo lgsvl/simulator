@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -10,12 +10,14 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
     using System;
     using System.Threading.Tasks;
     using Agents;
+    using Controllable;
     using Controllables;
     using Elements;
     using Elements.Agents;
     using Input;
     using Managers;
     using SimpleJSON;
+    using Simulator.Utilities;
     using UnityEngine;
 
     /// <summary>
@@ -190,7 +192,7 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                 int index = waypointNode["ordinal_number"];
                 //TODO sort waypoints
                 scenarioAgent.AddWaypoint(waypointInstance, index);
-                DeserializeTrigger(waypointInstance.LinkedTrigger.Trigger, waypointNode["trigger"]);
+                DeserializeTrigger(waypointInstance.LinkedTrigger, waypointNode["trigger"]);
             }
         }
 
@@ -199,29 +201,9 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
         /// </summary>
         /// <param name="trigger">Trigger object to fill with effectors</param>
         /// <param name="triggerNode">Json data with a trigger</param>
-        private static void DeserializeTrigger(WaypointTrigger trigger, JSONNode triggerNode)
+        private static void DeserializeTrigger(ScenarioTrigger trigger, JSONNode triggerNode)
         {
-            if (triggerNode == null)
-                return;
-            var effectorsNode = triggerNode["effectors"];
-
-            if (effectorsNode == null)
-                return;
-
-            foreach (var effectorNode in effectorsNode.Children)
-            {
-                var typeName = effectorNode["typeName"];
-                var effector = TriggersManager.GetEffectorOfType(typeName);
-                if (effector == null)
-                {
-                    ScenarioManager.Instance.logPanel.EnqueueError(
-                        $"Could not deserialize trigger effector as the type '{typeName}' does not implement '{nameof(TriggerEffector)}' interface.");
-                    continue;
-                }
-
-                effector.DeserializeProperties(effectorNode["parameters"]);
-                trigger.AddEffector(effector);
-            }
+            trigger.Trigger = WaypointTrigger.DeserializeTrigger(triggerNode);
         }
 
         /// <summary>
@@ -235,13 +217,27 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                 return;
             foreach (var controllableNode in controllablesNode.Children)
             {
-                var uid = controllableNode["uid"];
                 var controllablesManager = ScenarioManager.Instance.GetExtension<ScenarioControllablesManager>();
-                var scenarioControllable = controllablesManager.FindControllable(uid);
+                IControllable iControllable;
+                ScenarioControllable scenarioControllable;
+                
+                var uid = controllableNode["uid"];
+                bool spawned;
+                if (controllableNode.HasKey("spawned"))
+                    spawned = controllableNode["spawned"].AsBool;
+                else
+                    spawned = controllablesManager.FindControllable(uid) == null;
                 //Check if this controllable is already on the map, if yes just apply the policy
-                if (scenarioControllable != null)
+                if (!spawned)
                 {
-                    scenarioControllable.Policy = controllableNode["policy"];
+                    scenarioControllable = controllablesManager.FindControllable(uid);
+                    if (scenarioControllable == null)
+                    {
+                        ScenarioManager.Instance.logPanel.EnqueueWarning($"Could not load controllable with uid: {uid}.");
+                        continue;
+                    }
+                    iControllable = scenarioControllable.Variant.controllable;
+                    scenarioControllable.Policy = iControllable.ParseControlPolicy(controllableNode["policy"], out _);
                     continue;
                 }
                 var controllableName = controllableNode["name"];
@@ -260,9 +256,9 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                     continue;
                 }
 
-                scenarioControllable = controllablesManager.Source.GetControllableInstance(controllableVariant);
+                var policy = Utility.ParseControlPolicy(null, controllableNode["policy"], out _);
+                scenarioControllable = controllablesManager.Source.GetControllableInstance(controllableVariant, policy);
                 scenarioControllable.Uid = uid;
-                scenarioControllable.Policy = controllableNode["policy"];
                 if (scenarioControllable.IsEditableOnMap)
                 {
                     var transformNode = controllableNode["transform"];

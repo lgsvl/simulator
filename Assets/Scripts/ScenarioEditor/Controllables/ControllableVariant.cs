@@ -42,6 +42,11 @@ namespace Simulator.ScenarioEditor.Controllables
 
         /// <inheritdoc/>
         public override GameObject Prefab => controllable.Spawned ? controllable.gameObject : null;
+        
+        /// <summary>
+        /// True if this controllable variant can be resized
+        /// </summary>
+        public bool CanBeResized { get; set; }
 
         /// <summary>
         /// Setup the controllable variant with the required data

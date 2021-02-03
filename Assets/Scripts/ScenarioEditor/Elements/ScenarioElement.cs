@@ -264,7 +264,7 @@ namespace Simulator.ScenarioEditor.Elements
             if (!CanBeMoved)
                 throw new ArgumentException("Drag movement called for ScenarioElement which does not support moving.");
             currentDragType = DragType.Movement;
-            inputManager.StartDraggingElement(this, true);
+            inputManager.StartDraggingElement(this);
         }
 
         /// <summary>

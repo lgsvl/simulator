@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -47,6 +47,7 @@ namespace Simulator.Web
         public static Dictionary<string, SensorBase> SensorTypeLookup = new Dictionary<string, SensorBase>();
 
         public static Dictionary<string, IControllable> Controllables = new Dictionary<string, IControllable>();
+        public static Dictionary<IControllable, List<GameObject>> ControllableAssets = new Dictionary<IControllable, List<GameObject>>();
         public static Dictionary<string, Type> NPCBehaviours = new Dictionary<string, Type>();
 
         public class NPCAssetData
@@ -350,7 +351,20 @@ namespace Simulator.Web
                 }
             }
 
-            Controllables.Add(manifest.assetName, pluginBundle.LoadAsset<GameObject>(pluginAssets[0]).GetComponent<IControllable>());
+            var prefabName = $"{manifest.assetName}.prefab";
+            //Find a prefab with main asset name ignoring the characters case
+            var mainPrefabName = 
+                pluginAssets.First(name => name.IndexOf(prefabName, StringComparison.InvariantCultureIgnoreCase) >= 0);
+            var controllable = pluginBundle.LoadAsset<GameObject>(mainPrefabName).GetComponent<IControllable>();
+            Controllables.Add(manifest.assetName, controllable);
+            var additionalAssets = new List<GameObject>();
+            foreach (var pluginAsset in pluginAssets)
+            {
+                if (pluginAsset == mainPrefabName)
+                    continue;
+                additionalAssets.Add(pluginBundle.LoadAsset<GameObject>(pluginAsset));
+            }
+            ControllableAssets.Add(controllable, additionalAssets);
         }
 
         private static void LoadNPCAsset(Manifest manifest, VfsEntry dir)
@@ -395,7 +409,10 @@ namespace Simulator.Web
 
                 AssetBundle pluginBundle = AssetBundle.LoadFromStream(pluginEntry.SeekableStream());
                 var pluginAssets = pluginBundle.GetAllAssetNames();
-                GameObject prefab = pluginBundle.LoadAsset<GameObject>(pluginAssets[0]);
+                var prefabName = $"{manifest.assetName}.prefab";
+                var mainPrefabName = 
+                    pluginAssets.First(name => name.IndexOf(prefabName, StringComparison.InvariantCultureIgnoreCase) >= 0);
+                GameObject prefab = pluginBundle.LoadAsset<GameObject>(mainPrefabName);
 
                 Map.NPCSizeType size = Map.NPCSizeType.MidSize;
                 var meta = prefab.GetComponent<NPCMetaData>();

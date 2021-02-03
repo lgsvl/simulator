@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -51,6 +51,12 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// </summary>
         [SerializeField]
         private FloatInputWithUnits speedInput;
+
+        /// <summary>
+        /// Panel for editing waypoint triggers
+        /// </summary>
+        [SerializeField]
+        private TriggerEditPanel triggerEditPanel;
 #pragma warning restore 0649
 
         /// <summary>
@@ -93,6 +99,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                 return;
             ScenarioManager.Instance.SelectedOtherElement += OnSelectedOtherElement;
             speedInput.Initialize(ScenarioPersistenceKeys.SpeedUnitKey, ChangeWaypointSpeed);
+            triggerEditPanel.Initialize();
             isInitialized = true;
             OnSelectedOtherElement(ScenarioManager.Instance.SelectedElement);
         }
@@ -102,6 +109,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         {
             if (!isInitialized)
                 return;
+            triggerEditPanel.Deinitialize();
             speedInput.Deinitialize();
             var scenarioManager = ScenarioManager.Instance;
             if (scenarioManager != null)
@@ -151,6 +159,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                     waitTimeInput.text = selectedWaypoint.WaitTime.ToString("F");
                 }
 
+                triggerEditPanel.OnSelectedNewTrigger(selectedWaypoint.LinkedTrigger);
                 UnityUtilities.LayoutRebuild(transform as RectTransform);
             }
         }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -13,6 +13,7 @@ namespace Simulator.ScenarioEditor.Data.Serializer
     using Elements.Agents;
     using Managers;
     using SimpleJSON;
+    using Simulator.Utilities;
     using UnityEngine;
 
     /// <summary>
@@ -171,19 +172,8 @@ namespace Simulator.ScenarioEditor.Data.Serializer
         /// <param name="scenarioTrigger">Scenario trigger to serialize</param>
         private static void AddTriggerNode(JSONObject data, ScenarioTrigger scenarioTrigger)
         {
-            var triggerNode = new JSONObject();
-            var effectorsArray = new JSONArray();;
-            triggerNode.Add("effectors", effectorsArray);
             scenarioTrigger.OnBeforeSerialize();
-            foreach (var effector in scenarioTrigger.Trigger.Effectors)
-            {
-                var effectorNode = new JSONObject();
-                effectorNode.Add("typeName", new JSONString(effector.TypeName));
-                var parameters = new JSONObject();
-                effectorNode.Add("parameters", parameters);
-                effector.SerializeProperties(parameters);
-                effectorsArray.Add(effectorNode);
-            }
+            var triggerNode = scenarioTrigger.Trigger.SerializeTrigger();
             data.Add("trigger", triggerNode);
         }
         
@@ -197,17 +187,17 @@ namespace Simulator.ScenarioEditor.Data.Serializer
             var controllableNode = new JSONObject();
             data.Add(controllableNode);
             controllableNode.Add("uid", new JSONString(controllable.Uid));
-            controllableNode.Add("policy", new JSONString(controllable.Policy));
-            if (controllable.IsEditableOnMap)
-            {
-                controllableNode.Add("name", new JSONString(controllable.Variant.Name));
-                var transform = new JSONObject();
-                controllableNode.Add("transform", transform);
-                var position = new JSONObject().WriteVector3(controllable.TransformToMove.position);
-                transform.Add("position", position);
-                var rotation = new JSONObject().WriteVector3(controllable.TransformToRotate.rotation.eulerAngles);
-                transform.Add("rotation", rotation);
-            }
+            controllableNode.Add("policy", Utility.SerializeControlPolicy(controllable.Policy));
+            controllableNode.Add("spawned", controllable.IsEditableOnMap);
+            if (!controllable.IsEditableOnMap) return;
+            
+            controllableNode.Add("name", new JSONString(controllable.Variant.Name));
+            var transform = new JSONObject();
+            controllableNode.Add("transform", transform);
+            var position = new JSONObject().WriteVector3(controllable.TransformToMove.position);
+            transform.Add("position", position);
+            var rotation = new JSONObject().WriteVector3(controllable.TransformToRotate.rotation.eulerAngles);
+            transform.Add("rotation", rotation);
         }
     }
 }

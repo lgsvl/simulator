@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -13,6 +13,8 @@ using System.Linq;
 
 namespace Simulator.Api.Commands
 {
+    using Utilities;
+
     class ControllableGetAll : ICommand
     {
         public string Name => "controllable/get/all";
@@ -58,7 +60,7 @@ namespace Simulator.Api.Commands
                     j.Add("rotation", controllable.transform.rotation.eulerAngles);
                     j.Add("type", controllable.ControlType);
                     j.Add("valid_actions", validActions);
-                    j.Add("default_control_policy", controllable.DefaultControlPolicy);
+                    j.Add("default_control_policy", Utility.SerializeControlPolicy(controllable.DefaultControlPolicy));
                     result.Add(j);
                 }
             }

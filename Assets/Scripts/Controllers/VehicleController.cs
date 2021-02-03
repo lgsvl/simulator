@@ -11,7 +11,7 @@ using Simulator;
 using Simulator.Api;
 using System.Linq;
 
-public class VehicleController : AgentController
+public class VehicleController : AgentController, ITriggerAgent
 {
     private IVehicleDynamics dynamics;
     private VehicleActions actions;
@@ -61,6 +61,11 @@ public class VehicleController : AgentController
     private bool sticky = false;
     private float stickySteering;
     private float stickAcceleraton;
+    
+    #region ITriggerAgent
+    Transform ITriggerAgent.AgentTransform => transform;
+    float ITriggerAgent.MovementSpeed => Velocity.magnitude;
+    #endregion
 
     public void Update()
     {

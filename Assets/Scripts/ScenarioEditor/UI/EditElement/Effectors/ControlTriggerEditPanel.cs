@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -10,6 +10,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
     using System;
     using System.Collections.Generic;
     using Agents;
+    using Controllable;
     using Controllables;
     using Elements;
     using Input;
@@ -111,14 +112,14 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
                 return;
             policyEditPanel.PolicyUpdated -= PolicyEditPanelOnPolicyUpdated;
             linkedControllables.Clear();
-            policyEditPanel.Setup(null, "");
+            policyEditPanel.Setup(null, null);
         }
 
         /// <summary>
         /// Method invoked when the policy was changed
         /// </summary>
         /// <param name="policy">Updated policy</param>
-        private void PolicyEditPanelOnPolicyUpdated(string policy)
+        private void PolicyEditPanelOnPolicyUpdated(List<ControlAction> policy)
         {
             editedEffector.ControlPolicy = policy;
         }
@@ -130,8 +131,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
                 throw new ArgumentException(
                     $"{GetType().Name} received effector of invalid type {effector.GetType().Name}.");
             triggerEffector.ControllablesUIDs.Clear();
-            triggerEffector.ControlPolicy = "";
-            policyEditPanel.Setup(null, "");
+            triggerEffector.ControlPolicy = new List<ControlAction>();
+            policyEditPanel.Setup(null, triggerEffector.ControlPolicy);
         }
 
         /// <summary>
@@ -169,7 +170,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
                         linkedControllables[i - 1].transform.position + LineRendererPositionOffset);
                 editedEffector.ControllablesUIDs.Remove(scenarioControllable.Uid);
                 if (linkedControllables.Count == 0)
-                    policyEditPanel.Setup(null, "");
+                    policyEditPanel.Setup(null, null);
             }
             else
             {

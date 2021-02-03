@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -57,8 +57,8 @@ namespace Simulator.ScenarioEditor.Agents
             {
                 var pedestrian = pedestriansInSimulation[i];
                 Debug.Log($"Loading pedestrian {pedestrian.name} from the pedestrian manager.");
-                var egoAgent = new AgentVariant(this, pedestrian.name, pedestrian, string.Empty);
-                Variants.Add(egoAgent);
+                var variant = new AgentVariant(this, pedestrian.name, pedestrian, string.Empty);
+                Variants.Add(variant);
                 progress.Report((float)(i+1)/pedestriansInSimulation.Count);
             }
             return Task.CompletedTask;

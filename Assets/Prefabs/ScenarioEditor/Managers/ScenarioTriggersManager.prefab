@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &257785651293543842
+--- !u!1 &2732822493109924948
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,22 +8,22 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 939897007699080579}
-  - component: {fileID: -1283496071658741896}
+  - component: {fileID: 395828685695777542}
+  - component: {fileID: 7502066263639726535}
   m_Layer: 0
-  m_Name: ControllableSource
+  m_Name: ScenarioTriggersManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &939897007699080579
+--- !u!4 &395828685695777542
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 257785651293543842}
+  m_GameObject: {fileID: 2732822493109924948}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -31,19 +31,22 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &-1283496071658741896
+--- !u!114 &7502066263639726535
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 257785651293543842}
+  m_GameObject: {fileID: 2732822493109924948}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 441733e9c71fb7d4ebb540ecedf786f5, type: 3}
+  m_Script: {fileID: 11500000, guid: 730c16050d7f53b4c962a6c2ea93df67, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  controllablesPrefabs:
-  - {fileID: 7570196598149948260, guid: c780b97c1a74e7f4ea1121fc0c37807a, type: 3}
-  customEditPanelsPrefabs:
-  - {fileID: 7466451912606688660, guid: e11cca4155b09654490dc0b70572bdd5, type: 3}
+  defaultEffectorEditPanel: {fileID: 6395874330789565774, guid: 4b6647c7c0481704e87456a8f264bb98,
+    type: 3}
+  customEffectorEditPanels:
+  - {fileID: 2069073144304504945, guid: fc37f83688da65f45aef90ac10854472, type: 3}
+  - {fileID: 5105052238870940250, guid: 3378416b18a0fce4c91adb88b7b5585f, type: 3}
+  - {fileID: 1165295971152456071, guid: 77a7ed51d508717438e2a081dd9795a2, type: 3}
+  - {fileID: 316833919219690781, guid: 09bf30847475ca243b8ab2b836d3a7bd, type: 3}

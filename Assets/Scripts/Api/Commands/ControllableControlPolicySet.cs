@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -22,18 +22,22 @@ namespace Simulator.Api.Commands
             var api = ApiManager.Instance;
             var manager = SimulatorManager.Instance.ControllableManager;
             var uid = args["uid"].Value;
-            var controlPolicy = args["control_policy"].Value;
 
             if (manager.TryGetControllable(uid, out IControllable controllable))
             {
-                List<ControlAction> controlActions = controllable.ParseControlPolicy(controlPolicy, out string errorMsg);
+                List<ControlAction> controlActions;
+                string errorMsg;
+                if (args["control_policy"].IsArray)
+                    controlActions = controllable.ParseControlPolicy(args["control_policy"].AsArray, out errorMsg);
+                else 
+                    controlActions = controllable.ParseControlPolicy(JSONNode.Parse(args["control_policy"].Value), out errorMsg);
                 if (controlActions == null)
                 {
                     api.SendError(this, errorMsg);
                     return;
                 }
 
-                controllable.CurrentControlPolicy = controlPolicy;
+                controllable.CurrentControlPolicy = controlActions;
                 controllable.Control(controlActions);
 
                 api.SendResult(this);

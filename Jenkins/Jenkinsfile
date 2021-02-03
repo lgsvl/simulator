@@ -67,8 +67,7 @@ pipeline {
 
         sh label:"Cleanup Assets/External/Sensors", script:"""
             cd Assets/External/Sensors
-            find .  -mindepth 1 -maxdepth 1  -type d | xargs rm -rf
-            git clean -xdf .
+            git clean -xdff .
         """
 
         script {

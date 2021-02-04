@@ -227,7 +227,7 @@ namespace Simulator.Sensors.Postprocessing
                 }
 
                 // Make sure dictionaries have records for all valid sensors
-                if (cameraSensor.Postprocessing.Count > 0 || cameraSensor.LatePostprocessing.Count > 0)
+                if (cameraSensor.Postprocessing.Count > 0 || cameraSensor.LatePostprocessing != null && cameraSensor.LatePostprocessing.Count > 0)
                 {
                     preDistortionSensorSwaps.Add(cameraSensor, 0);
                     preDistortionLastTarget.Add(cameraSensor, null);

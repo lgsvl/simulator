@@ -531,23 +531,24 @@ namespace Simulator.Editor
                             AssetDatabase.Refresh();
                             if (!mainAssetIsScript)
                             {
-                                //Add all prefabs and required textures to the bundle
-                                var assetPath = Path.Combine(sourcePath, entry.name);
-                                var assetsInDirectory = AssetDatabase.FindAssets("t:GameObject", new[] {assetPath});
-                                var texturesNames = new List<string>();
-                                var assetsNames = new List<string>();
-                                foreach (var assetGuid in assetsInDirectory)
-                                {
-                                    var asset = AssetDatabase.GUIDToAssetPath(assetGuid);
-                                    if (!asset.EndsWith(".prefab"))
-                                        continue;
-                                    texturesNames.AddRange(AssetDatabase.GetDependencies(asset).Where(a => a.EndsWith(".png") || a.EndsWith(".jpg")));
-                                    assetsNames.Add(asset);
-                                }
+                                ////Add all prefabs and required textures to the bundle
+                                //var assetPath = Path.Combine(sourcePath, entry.name);
+                                //var assetsInDirectory = AssetDatabase.FindAssets("t:GameObject", new[] {assetPath});
+                                //var texturesNames = new List<string>();
+                                //var assetsNames = new List<string>();
+                                //foreach (var assetGuid in assetsInDirectory)
+                                //{
+                                //    var asset = AssetDatabase.GUIDToAssetPath(assetGuid);
+                                //    if (!asset.EndsWith(".prefab"))
+                                //        continue;
+                                //    texturesNames.AddRange(AssetDatabase.GetDependencies(asset).Where(a => a.EndsWith(".png") || a.EndsWith(".jpg")));
+                                //    assetsNames.Add(asset);
+                                //}
                                 var textureBuild = new AssetBundleBuild()
                                 {
                                     assetBundleName = $"{manifest.assetGuid}_{thing}_textures",
-                                    assetNames = texturesNames.ToArray()
+                                    assetNames = AssetDatabase.GetDependencies(entry.mainAssetFile).Where(a => a.EndsWith(".png") || a.EndsWith(".jpg")).ToArray()
+                                    //assetNames = texturesNames.ToArray()
                                 };
 
                                 bool buildTextureBundle = textureBuild.assetNames.Length > 0;
@@ -555,13 +556,15 @@ namespace Simulator.Editor
                                 var windowsBuild = new AssetBundleBuild()
                                 {
                                     assetBundleName = $"{manifest.assetGuid}_{thing}_main_windows",
-                                    assetNames = assetsNames.ToArray()
+                                    assetNames = new[] { entry.mainAssetFile },
+                                    //assetNames = assetsNames.ToArray()
                                 };
 
                                 var linuxBuild = new AssetBundleBuild()
                                 {
                                     assetBundleName = $"{manifest.assetGuid}_{thing}_main_linux",
-                                    assetNames = assetsNames.ToArray()
+                                    assetNames = new[] { entry.mainAssetFile },
+                                    //assetNames = assetsNames.ToArray()
                                 };
 
                                 var builds = new[]

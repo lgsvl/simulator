@@ -531,40 +531,53 @@ namespace Simulator.Editor
                             AssetDatabase.Refresh();
                             if (!mainAssetIsScript)
                             {
-                                ////Add all prefabs and required textures to the bundle
-                                //var assetPath = Path.Combine(sourcePath, entry.name);
-                                //var assetsInDirectory = AssetDatabase.FindAssets("t:GameObject", new[] {assetPath});
-                                //var texturesNames = new List<string>();
-                                //var assetsNames = new List<string>();
-                                //foreach (var assetGuid in assetsInDirectory)
-                                //{
-                                //    var asset = AssetDatabase.GUIDToAssetPath(assetGuid);
-                                //    if (!asset.EndsWith(".prefab"))
-                                //        continue;
-                                //    texturesNames.AddRange(AssetDatabase.GetDependencies(asset).Where(a => a.EndsWith(".png") || a.EndsWith(".jpg")));
-                                //    assetsNames.Add(asset);
-                                //}
+                                var texturesNames = new List<string>();
+                                var assetsNames = new List<string>();
+                                switch (bundleType)
+                                {
+                                    case BundleConfig.BundleTypes.Vehicle:
+                                    case BundleConfig.BundleTypes.Environment:
+                                    case BundleConfig.BundleTypes.Sensor:
+                                    case BundleConfig.BundleTypes.NPC:
+                                    case BundleConfig.BundleTypes.Bridge:
+                                        //Include the main asset only
+                                        texturesNames.AddRange(AssetDatabase.GetDependencies(entry.mainAssetFile).Where(a => a.EndsWith(".png") || a.EndsWith(".jpg")).ToArray());
+                                        assetsNames.Add(entry.mainAssetFile);
+                                        break;
+                                    case BundleConfig.BundleTypes.Controllable:
+                                        //Add all prefabs and required textures to the bundle
+                                        var assetPath = Path.Combine(sourcePath, entry.name);
+                                        var assetsInDirectory = AssetDatabase.FindAssets("t:GameObject", new[] {assetPath});
+                                        foreach (var assetGuid in assetsInDirectory)
+                                        {
+                                            var asset = AssetDatabase.GUIDToAssetPath(assetGuid);
+                                            if (!asset.EndsWith(".prefab"))
+                                                continue;
+                                            texturesNames.AddRange(AssetDatabase.GetDependencies(asset).Where(a => a.EndsWith(".png") || a.EndsWith(".jpg")));
+                                            assetsNames.Add(asset);
+                                        }
+                                        break;
+                                    default:
+                                        throw new ArgumentOutOfRangeException();
+                                }
+
                                 var textureBuild = new AssetBundleBuild()
                                 {
                                     assetBundleName = $"{manifest.assetGuid}_{thing}_textures",
-                                    assetNames = AssetDatabase.GetDependencies(entry.mainAssetFile).Where(a => a.EndsWith(".png") || a.EndsWith(".jpg")).ToArray()
-                                    //assetNames = texturesNames.ToArray()
+                                    assetNames = texturesNames.Distinct().ToArray()
                                 };
-
                                 bool buildTextureBundle = textureBuild.assetNames.Length > 0;
 
                                 var windowsBuild = new AssetBundleBuild()
                                 {
                                     assetBundleName = $"{manifest.assetGuid}_{thing}_main_windows",
-                                    assetNames = new[] { entry.mainAssetFile },
-                                    //assetNames = assetsNames.ToArray()
+                                    assetNames = assetsNames.ToArray()
                                 };
 
                                 var linuxBuild = new AssetBundleBuild()
                                 {
                                     assetBundleName = $"{manifest.assetGuid}_{thing}_main_linux",
-                                    assetNames = new[] { entry.mainAssetFile },
-                                    //assetNames = assetsNames.ToArray()
+                                    assetNames = assetsNames.ToArray()
                                 };
 
                                 var builds = new[]

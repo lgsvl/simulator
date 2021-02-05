@@ -93,7 +93,7 @@ namespace Simulator.Web
     }
 
     [CloudData(ApiPath = "api/v1/vehicles")]
-    public class VehicleDetailData: CloudAssetDetails
+    public class VehicleDetailData : CloudAssetDetails
     {
         public SensorData[] Sensors { get; set; }
         public BridgeData Bridge { get; set; }
@@ -155,8 +155,13 @@ namespace Simulator.Web
         public string Parent;
         public string Type;
         public TransformData Transform;
-        public string AssetGuid;
+        public SensorPlugin Plugin;
         public Dictionary<string, object> @params;
+    }
+
+    public class SensorPlugin
+    {
+        public string AssetGuid;
     }
 
     public class TransformData

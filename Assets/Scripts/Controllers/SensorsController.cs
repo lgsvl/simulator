@@ -165,22 +165,22 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                     var name = item.Name;
                     var type = item.Type;
                     GameObject prefab = null;
-                    if (item.AssetGuid == null)
+                    if (item.Plugin.AssetGuid == null)
                     {
                         prefab = Config.SensorPrefabs.FirstOrDefault(s => GetSensorType(s) == type).gameObject;
                     }
-                    else if (Config.SensorTypeLookup.ContainsKey(item.AssetGuid))
+                    else if (Config.SensorTypeLookup.ContainsKey(item.Plugin.AssetGuid))
                     {
-                        prefab = Config.SensorTypeLookup[item.AssetGuid]?.gameObject;
+                        prefab = Config.SensorTypeLookup[item.Plugin.AssetGuid]?.gameObject;
                     }
                     else
                     {
                         var dir = Path.Combine(Application.persistentDataPath, "Sensors");
                         var vfs = VfsEntry.makeRoot(dir);
-                        Config.CheckDir(vfs.GetChild(item.AssetGuid), Config.LoadSensorPlugin);
-                        if (Config.SensorTypeLookup.ContainsKey(item.AssetGuid))
+                        Config.CheckDir(vfs.GetChild(item.Plugin.AssetGuid), Config.LoadSensorPlugin);
+                        if (Config.SensorTypeLookup.ContainsKey(item.Plugin.AssetGuid))
                         {
-                            prefab = Config.SensorTypeLookup[item.AssetGuid]?.gameObject;
+                            prefab = Config.SensorTypeLookup[item.Plugin.AssetGuid]?.gameObject;
                         }
                     }
 

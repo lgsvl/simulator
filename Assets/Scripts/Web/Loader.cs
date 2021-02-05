@@ -331,7 +331,7 @@ namespace Simulator
                     {
                         foreach (var plugin in data.Sensors)
                         {
-                            if (sensorsToDownload.FirstOrDefault(s => s.AssetGuid == plugin.AssetGuid) == null)
+                            if (sensorsToDownload.FirstOrDefault(s => s.Plugin.AssetGuid == plugin.Plugin.AssetGuid) == null)
                             {
                                 sensorsToDownload.Add(plugin);
                             }
@@ -340,10 +340,10 @@ namespace Simulator
 
                     foreach(var sensor in sensorsToDownload)
                     {
-                        if (sensor.AssetGuid != null) // TODO remove after WISE update
+                        if (sensor.Plugin.AssetGuid != null) // TODO remove after WISE update
                         {
                             var pluginProgress = new Progress<Tuple<string, float>>(p => { ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2); });
-                            var pluginTask = DownloadManager.GetAsset(BundleConfig.BundleTypes.Sensor, sensor.AssetGuid,
+                            var pluginTask = DownloadManager.GetAsset(BundleConfig.BundleTypes.Sensor, sensor.Plugin.AssetGuid,
                                 sensor.Name, pluginProgress);
                             downloads.Add(pluginTask);
                             Instance.assetDownloads.TryAdd(pluginTask, sensor.Type);
@@ -369,11 +369,11 @@ namespace Simulator
                     {
                         foreach (var sensor in vehicle.Sensors)
                         {
-                            if (sensor.AssetGuid != null) // TODO remove after WISE update
+                            if (sensor.Plugin.AssetGuid != null) // TODO remove after WISE update
                             {
                                 var dir = Path.Combine(Application.persistentDataPath, "Sensors");
                                 var vfs = VfsEntry.makeRoot(dir);
-                                Config.CheckDir(vfs.GetChild(sensor.AssetGuid), Config.LoadSensorPlugin);
+                                Config.CheckDir(vfs.GetChild(sensor.Plugin.AssetGuid), Config.LoadSensorPlugin);
                             }
                         }
                     }

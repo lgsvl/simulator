@@ -541,7 +541,7 @@ namespace Simulator.Editor
                                     case BundleConfig.BundleTypes.NPC:
                                     case BundleConfig.BundleTypes.Bridge:
                                         //Include the main asset only
-                                        texturesNames.AddRange(AssetDatabase.GetDependencies(entry.mainAssetFile).Where(a => a.EndsWith(".png") || a.EndsWith(".jpg")).ToArray());
+                                        texturesNames.AddRange(AssetDatabase.GetDependencies(entry.mainAssetFile).Where(a => a.EndsWith(".png") || a.EndsWith(".jpg") || a.EndsWith(".tga")).ToArray());
                                         assetsNames.Add(entry.mainAssetFile);
                                         break;
                                     case BundleConfig.BundleTypes.Controllable:
@@ -553,7 +553,7 @@ namespace Simulator.Editor
                                             var asset = AssetDatabase.GUIDToAssetPath(assetGuid);
                                             if (!asset.EndsWith(".prefab"))
                                                 continue;
-                                            texturesNames.AddRange(AssetDatabase.GetDependencies(asset).Where(a => a.EndsWith(".png") || a.EndsWith(".jpg")));
+                                            texturesNames.AddRange(AssetDatabase.GetDependencies(asset).Where(a => a.EndsWith(".png") || a.EndsWith(".jpg") || a.EndsWith(".tga")));
                                             assetsNames.Add(asset);
                                         }
                                         break;

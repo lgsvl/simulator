@@ -176,7 +176,11 @@ namespace Simulator.ScenarioEditor.Controllables
             newGameObject.transform.SetParent(transform);
             var scenarioControllable = newGameObject.AddComponent<ScenarioControllable>();
             if (initialPolicy == null)
-                initialPolicy = variant.controllable.DefaultControlPolicy;
+            {
+                initialPolicy = new List<ControlAction>();
+                initialPolicy.AddRange(variant.controllable.DefaultControlPolicy);
+            }
+
             SetupNewControllable(scenarioControllable);
             scenarioControllable.Setup(this, variant, initialPolicy);
             return scenarioControllable;

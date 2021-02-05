@@ -7,9 +7,6 @@
 
 namespace Simulator.ScenarioEditor.Utilities
 {
-    using System.Collections;
-    using System.Collections.Generic;
-    using Managers;
     using UnityEngine;
     using UnityEngine.UI;
 
@@ -28,12 +25,13 @@ namespace Simulator.ScenarioEditor.Utilities
                 return;
             //Layout rebuild is required after one frame when content changes size
             LayoutRebuilder.ForceRebuildLayoutImmediate(transformToRebuild);
-            while (transformToRebuild != null)
+            do
             {
                 transformToRebuild = transformToRebuild.parent as RectTransform;
-                if (transformToRebuild != null && (transformToRebuild.GetComponent<ContentSizeFitter>() != null || transformToRebuild.GetComponent<LayoutGroup>() !=null))
+                if (transformToRebuild != null && (transformToRebuild.GetComponent<ContentSizeFitter>() != null ||
+                                                   transformToRebuild.GetComponent<LayoutGroup>() != null))
                     LayoutRebuilder.ForceRebuildLayoutImmediate(transformToRebuild);
-            }
+            } while (transformToRebuild != null);
         }
     }
 }

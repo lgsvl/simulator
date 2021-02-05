@@ -103,8 +103,9 @@ namespace Simulator.ScenarioEditor.Elements
         /// <summary>
         /// Unity OnDisable method
         /// </summary>
-        private void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
             ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>().UnregisterWaypoint(this);
         }
 
@@ -183,9 +184,9 @@ namespace Simulator.ScenarioEditor.Elements
         }
 
         /// <inheritdoc/>
-        protected override void OnMoved()
+        protected override void OnMoved(bool notifyOthers = true)
         {
-            base.OnMoved();
+            base.OnMoved(notifyOthers);
             ParentAgent.WaypointPositionChanged(this);
         }
     }

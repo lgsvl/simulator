@@ -59,7 +59,7 @@ namespace Simulator.ScenarioEditor.Controllables
         /// <summary>
         /// Currently set policy for this controllable
         /// </summary>
-        public List<ControlAction> Policy { get; set; }
+        public List<ControlAction> Policy { get; set; } = new List<ControlAction>();
         
         /// <inheritdoc/>
         public override void Setup(ScenarioElementSource source, SourceVariant variant)
@@ -103,7 +103,8 @@ namespace Simulator.ScenarioEditor.Controllables
             base.CopyProperties(origin);
             if (origin is ScenarioControllable originControllable)
             {
-                Policy = originControllable.Policy;
+                Policy.Clear();
+                Policy.AddRange(originControllable.Policy);
             }
             ScenarioManager.Instance.GetExtension<ScenarioControllablesManager>().RegisterControllable(this);
         }

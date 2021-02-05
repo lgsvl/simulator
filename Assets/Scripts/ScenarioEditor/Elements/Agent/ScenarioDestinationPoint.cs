@@ -110,9 +110,9 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         }
 
         /// <inheritdoc/>
-        protected override void OnMoved()
+        protected override void OnMoved(bool notifyOthers = true)
         {
-            base.OnMoved();
+            base.OnMoved(notifyOthers);
             var mapManager = ScenarioManager.Instance.GetExtension<ScenarioMapManager>();
             switch (ParentAgent.Type)
             {

@@ -84,15 +84,15 @@ namespace Simulator.ScenarioEditor.Agents.Triggers
         }
 
         /// <inheritdoc/>
-        protected override void OnMoved()
+        protected override void OnMoved(bool notifyOthers = true)
         {
-            base.OnMoved();
+            base.OnMoved(notifyOthers);
             Refresh();
         }
 
-        protected override void OnResized()
+        protected override void OnResized(bool notifyOthers = true)
         {
-            base.OnResized();
+            base.OnResized(notifyOthers);
             if (waitingPointEffector!=null)
                 waitingPointEffector.PointRadius = transform.localScale.x;
             Refresh();

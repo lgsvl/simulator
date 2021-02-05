@@ -134,7 +134,8 @@ namespace Simulator.ScenarioEditor.Managers
                 mapSignalVariant.Setup(nameof(MapSignal), mapSignal);
                 var scenarioControllable = mapSignal.CurrentSignalLight.gameObject.AddComponent<ScenarioControllable>();
                 scenarioControllable.Uid = mapSignal.UID;
-                scenarioControllable.Setup(source, mapSignalVariant, mapSignal.DefaultControlPolicy);
+                var policy = new List<ControlAction>(mapSignal.DefaultControlPolicy);
+                scenarioControllable.Setup(source, mapSignalVariant,policy);
                 var boxCollider = scenarioControllable.gameObject.AddComponent<BoxCollider>();
                 boxCollider.isTrigger = true;
                 var meshRenderers = scenarioControllable.GetComponentsInChildren<MeshRenderer>();

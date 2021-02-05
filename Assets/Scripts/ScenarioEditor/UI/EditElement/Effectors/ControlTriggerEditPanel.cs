@@ -49,6 +49,11 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         private TriggerEditPanel parentPanel;
 
         /// <summary>
+        /// Scenario trigger that is currently edited
+        /// </summary>
+        private ScenarioTrigger editedTrigger;
+
+        /// <summary>
         /// Trigger effector type linked to this panel
         /// </summary>
         private ControlTriggerEffector editedEffector;
@@ -71,6 +76,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
             parentPanel = triggerPanel;
             editedEffector = (ControlTriggerEffector) effector;
             policyEditPanel.PolicyUpdated += PolicyEditPanelOnPolicyUpdated;
+            editedTrigger = trigger;
+            editedTrigger.Moved += OnTriggerMoved;
             var manager = ScenarioManager.Instance.GetExtension<ScenarioControllablesManager>();
 
             //Link to scenario controllables
@@ -110,9 +117,19 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         {
             if (this == null)
                 return;
+            editedTrigger.Moved -= OnTriggerMoved;
+            editedTrigger = null;
             policyEditPanel.PolicyUpdated -= PolicyEditPanelOnPolicyUpdated;
             linkedControllables.Clear();
             policyEditPanel.Setup(null, null);
+        }
+
+        /// <summary>
+        /// Method invoked when the edited trigger is moved
+        /// </summary>
+        private void OnTriggerMoved()
+        {
+            lineRenderer.SetPosition(0, editedTrigger.transform.position + LineRendererPositionOffset);
         }
 
         /// <summary>
@@ -188,8 +205,9 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
                 lineRenderer.positionCount = positionCount + 1;
                 lineRenderer.SetPosition(positionCount, scenarioControllable.transform.position);
                 editedEffector.ControllablesUIDs.Add(scenarioControllable.Uid);
-                if (linkedControllables.Count == 1)
-                    policyEditPanel.Setup(controllable, controllable.DefaultControlPolicy);
+                if (linkedControllables.Count != 1) return;
+                var policy = new List<ControlAction>(controllable.DefaultControlPolicy);
+                policyEditPanel.Setup(controllable, policy);
             }
         }
 

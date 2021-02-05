@@ -90,6 +90,21 @@ namespace Simulator.ScenarioEditor.Elements
         /// Uid of this scenario element
         /// </summary>
         private string uid;
+        
+        /// <summary>
+        /// Scenario elements in all the parent game objects
+        /// </summary>
+        private readonly List<ScenarioElement> parentElements = new List<ScenarioElement>();
+        
+        /// <summary>
+        /// Scenario elements in the same game object
+        /// </summary>
+        private readonly List<ScenarioElement> siblingElements = new List<ScenarioElement>();
+        
+        /// <summary>
+        /// Scenario elements in all the child game objects
+        /// </summary>
+        private readonly List<ScenarioElement> childElements = new List<ScenarioElement>();
 
         /// <summary>
         /// Uid of this scenario element
@@ -151,6 +166,22 @@ namespace Simulator.ScenarioEditor.Elements
         public virtual Transform TransformForPlayback => transform;
 
         /// <summary>
+        /// Event called when the scenario element is moved
+        /// </summary>
+        public event Action Moved;
+
+        /// <summary>
+        /// Event called when the scenario element is rotated
+        /// </summary>
+        public event Action Rotated;
+
+        /// <summary>
+        /// Event called when the scenario element is resized
+        /// </summary>
+        public event Action Resized;
+        
+
+        /// <summary>
         /// Unity Start method
         /// </summary>
         protected virtual void Awake()
@@ -164,7 +195,47 @@ namespace Simulator.ScenarioEditor.Elements
         /// </summary>
         protected virtual void OnEnable()
         {
+            var siblings = GetComponents<ScenarioElement>();
+            foreach (var sibling in siblings)
+            {
+                if (sibling==this || siblingElements.Contains(sibling))
+                    continue;
+                sibling.siblingElements.Add(this);
+                this.siblingElements.Add(sibling);
+            }
+            var parents = GetComponentsInParent<ScenarioElement>();
+            foreach (var parent in parents)
+            {
+                if (parent==this || siblingElements.Contains(parent))
+                    continue;
+                parent.childElements.Add(this);
+                this.parentElements.Add(parent);
+            }
+            var children = GetComponentsInChildren<ScenarioElement>();
+            foreach (var child in children)
+            {
+                if (child == this || siblingElements.Contains(child))
+                    continue;
+                child.parentElements.Add(this);
+                this.childElements.Add(child);
+            }
             ScenarioManager.Instance.NewElementActivated(this);
+        }
+
+        /// <summary>
+        /// Unity OnDisable method
+        /// </summary>
+        protected virtual void OnDisable()
+        {
+            foreach (var sibling in siblingElements) 
+                sibling.siblingElements.Remove(this);
+            siblingElements.Clear();
+            foreach (var parent in parentElements)
+                parent.childElements.Remove(this);
+            parentElements.Clear();
+            foreach (var child in childElements)
+                child.parentElements.Remove(this);
+            childElements.Clear();
         }
 
         /// <summary>
@@ -325,7 +396,6 @@ namespace Simulator.ScenarioEditor.Elements
                     break;
                 case DragType.Movement:
                     ForceMove(inputManager.MouseRaycastPosition);
-                    OnMoved();
                     break;
                 case DragType.Rotation:
                     var rotationValue = (inputManager.MouseViewportPosition.x - startViewportPosition.x) *
@@ -411,22 +481,46 @@ namespace Simulator.ScenarioEditor.Elements
         /// <summary>
         /// Method called every time position is updated while dragging
         /// </summary>
-        protected virtual void OnMoved()
+        /// <param name="notifyOthers">Should this call notify siblings and children</param>
+        protected virtual void OnMoved(bool notifyOthers = true)
         {
+            Moved?.Invoke();
+            if (!notifyOthers)
+                return;
+            foreach (var siblingElement in siblingElements)
+                siblingElement.OnMoved(false);
+            foreach (var childElement in childElements)
+                childElement.OnMoved(false);
         }
 
         /// <summary>
         /// Method called every time rotation is updated while rotating
         /// </summary>
-        protected virtual void OnRotated()
+        /// <param name="notifyOthers">Should this call notify siblings and children</param>
+        protected virtual void OnRotated(bool notifyOthers = true)
         {
+            Rotated?.Invoke();
+            if (!notifyOthers)
+                return;
+            foreach (var siblingElement in siblingElements)
+                siblingElement.OnRotated(false);
+            foreach (var childElement in childElements)
+                childElement.OnRotated(false);
         }
 
         /// <summary>
         /// Method called every time scale is updated while resizing
         /// </summary>
-        protected virtual void OnResized()
+        /// <param name="notifyOthers">Should this call notify siblings and children</param>
+        protected virtual void OnResized(bool notifyOthers = true)
         {
+            Resized?.Invoke();
+            if (!notifyOthers)
+                return;
+            foreach (var siblingElement in siblingElements)
+                siblingElement.OnResized(false);
+            foreach (var childElement in childElements)
+                childElement.OnResized(false);
         }
     }
 }

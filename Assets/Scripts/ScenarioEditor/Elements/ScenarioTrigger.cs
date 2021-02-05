@@ -9,7 +9,6 @@ namespace Simulator.ScenarioEditor.Elements
 {
     using System.Collections.Generic;
     using System.Linq;
-    using Agents;
     using Managers;
     using ScenarioEditor.Agents.Triggers;
     using UnityEngine;
@@ -17,7 +16,7 @@ namespace Simulator.ScenarioEditor.Elements
     /// <remarks>
     /// Scenario trigger data
     /// </remarks>
-    public class ScenarioTrigger : MonoBehaviour
+    public class ScenarioTrigger : ScenarioElement
     {
         /// <summary>
         /// Effectors object that is added as addon to this trigger
@@ -195,6 +194,9 @@ namespace Simulator.ScenarioEditor.Elements
             }
         }
 
+        /// <inheritdoc/>
+        public override string ElementType => "ScenarioTrigger";
+
         /// <summary>
         /// Agent type that will be modified with this trigger
         /// </summary>
@@ -208,7 +210,7 @@ namespace Simulator.ScenarioEditor.Elements
         /// <summary>
         /// Effectors objects that are added as addons to this trigger
         /// </summary>
-        public Dictionary<string, ScenarioEffector> effectorsObjects =
+        public readonly Dictionary<string, ScenarioEffector> effectorsObjects =
             new Dictionary<string, ScenarioEffector>();
 
         /// <summary>
@@ -227,8 +229,13 @@ namespace Simulator.ScenarioEditor.Elements
         {
             Trigger.EffectorAdded -= OnEffectorAdded;
             Trigger.EffectorRemoved -= OnEffectorRemoved;
+            Dispose();
+        }
+        
+        /// <inheritdoc/>
+        public override void Dispose()
+        {
             ClearEffectors();
-
             for (var i = transform.childCount - 1; i >= 0; i--)
                 Destroy(transform.GetChild(i).gameObject);
         }
@@ -275,12 +282,17 @@ namespace Simulator.ScenarioEditor.Elements
             effectorsObjects.Clear();
         }
 
-        /// <summary>
-        /// Copies property values from the origin
-        /// </summary>
-        /// <param name="originTrigger">Origin trigger, properties will be copied from it to this trigger</param>
-        public void CopyProperties(ScenarioTrigger originTrigger)
+        /// <inheritdoc/>
+        public override void CopyProperties(ScenarioElement origin)
         {
+            var originTrigger = origin as ScenarioTrigger;
+            if (originTrigger == null)
+            {
+                ScenarioManager.Instance.logPanel.EnqueueWarning($"Cannot copy properties from {origin.ElementType} to {ElementType}.");
+                return;
+            }
+
+            TargetAgentType = originTrigger.TargetAgentType;
             ClearEffectors();
             var effectorsAdded = new List<TriggerEffector>();
             foreach (var effectorObject in originTrigger.effectorsObjects)

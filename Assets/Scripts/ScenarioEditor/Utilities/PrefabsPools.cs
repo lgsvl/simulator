@@ -9,6 +9,7 @@ namespace Simulator.ScenarioEditor.Utilities
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Castle.Core.Internal;
     using Elements;
     using Managers;
     using UnityEngine;
@@ -175,11 +176,12 @@ namespace Simulator.ScenarioEditor.Utilities
                     ValidateClones(originChild, cloneChild);
             }
 
-            var cloneElement = clone.GetComponent<ScenarioElement>();
-            if (cloneElement != null)
+            var clonedElements = clone.GetComponents<ScenarioElement>();
+            var originElements = origin.GetComponents<ScenarioElement>();
+            foreach (var clonedElement in clonedElements)
             {
-                var originElement = origin.GetComponent<ScenarioElement>();
-                cloneElement.CopyProperties(originElement);
+                var originElement = originElements.Find(e => e.GetType() == clonedElement.GetType());
+                clonedElement.CopyProperties(originElement);
             }
         }
 

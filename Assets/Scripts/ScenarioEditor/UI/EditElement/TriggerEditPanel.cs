@@ -147,37 +147,36 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             visiblePanels.Clear();
 
             gameObject.SetActive(newTrigger != null);
-            if (newTrigger != null)
+            if (newTrigger == null) return;
+            
+            selectedTrigger = newTrigger;
+            selectedTrigger.Trigger.EffectorAdded += TriggerOnEffectorAdded;
+            selectedTrigger.Trigger.EffectorRemoved += TriggerOnEffectorRemoved;
+            var effectors = selectedTrigger.Trigger.Effectors;
+            //Get available effectors that supports this agent and their instance is not added to the trigger yet
+            availableEffectorTypes =
+                allEffectors.Where(newEffector =>
+                    //Check if multiple effectors can be added, or there is no effector of this type
+                    (effectorPanelsPrefabs[newEffector.TypeName].AllowMany || effectors.All(addedEffector =>
+                        addedEffector.GetType() != newEffector.GetType())) &&
+                    //Check if effector is supported for selected agent type
+                    !newEffector.UnsupportedAgentTypes.Contains(selectedTrigger.TargetAgentType)).ToList();
+            effectorSelectDropdown.options.Clear();
+            effectorSelectDropdown.AddOptions(
+                availableEffectorTypes.Select(effector => effector.TypeName).ToList());
+
+            for (var i = 0; i < effectors.Count; i++)
             {
-                selectedTrigger = newTrigger;
-                selectedTrigger.Trigger.EffectorAdded += TriggerOnEffectorAdded;
-                selectedTrigger.Trigger.EffectorRemoved += TriggerOnEffectorRemoved;
-                var effectors = selectedTrigger.Trigger.Effectors;
-                //Get available effectors that supports this agent and their instance is not added to the trigger yet
-                availableEffectorTypes =
-                    allEffectors.Where(newEffector =>
-                        //Check if multiple effectors can be added, or there is no effector of this type
-                        (effectorPanelsPrefabs[newEffector.TypeName].AllowMany || effectors.All(addedEffector =>
-                            addedEffector.GetType() != newEffector.GetType())) &&
-                        //Check if effector is supported for selected agent type
-                        !newEffector.UnsupportedAgentTypes.Contains(selectedTrigger.TargetAgentType)).ToList();
-                effectorSelectDropdown.options.Clear();
-                effectorSelectDropdown.AddOptions(
-                    availableEffectorTypes.Select(effector => effector.TypeName).ToList());
-
-                for (var i = 0; i < effectors.Count; i++)
-                {
-                    var effector = effectors[i];
-                    var effectorPanel = prefabsPools.GetInstance(effectorPanelsPrefabs[effector.TypeName].gameObject)
-                        .GetComponent<EffectorEditPanel>();
-                    effectorPanel.StartEditing(this, selectedTrigger, effector);
-                    effectorPanel.transform.SetParent(transform);
-                    effectorPanel.gameObject.SetActive(true);
-                    visiblePanels.Add(effector, effectorPanel);
-                }
-
-                UnityUtilities.LayoutRebuild(transform as RectTransform);
+                var effector = effectors[i];
+                var effectorPanel = prefabsPools.GetInstance(effectorPanelsPrefabs[effector.TypeName].gameObject)
+                    .GetComponent<EffectorEditPanel>();
+                effectorPanel.StartEditing(this, selectedTrigger, effector);
+                effectorPanel.transform.SetParent(transform);
+                effectorPanel.gameObject.SetActive(true);
+                visiblePanels.Add(effector, effectorPanel);
             }
+
+            UnityUtilities.LayoutRebuild(transform as RectTransform);
         }
 
         /// <summary>

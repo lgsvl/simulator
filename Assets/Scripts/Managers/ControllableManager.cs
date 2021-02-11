@@ -112,10 +112,7 @@ namespace Simulator.Controllable
             Vector3 velocity, Vector3 angVelocity)
         {
             var api = ApiManager.Instance;
-            var obj = Instantiate(prefab, pos, rot);
-            obj.transform.SetParent(transform);
-            obj.transform.position = pos;
-            obj.transform.rotation = rot;
+            var obj = Instantiate(prefab, pos, rot, transform);
 
             var rb = obj.gameObject.GetComponent<Rigidbody>();
             if (rb != null)

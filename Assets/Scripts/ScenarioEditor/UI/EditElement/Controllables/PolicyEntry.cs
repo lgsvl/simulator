@@ -196,6 +196,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
         private void ActionChanged(string action)
         {
             Action = action;
+            Text placeholder;
             switch (action)
             {
                 case "state":
@@ -206,8 +207,11 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
                 case "wait":
                 case "trigger":
                     valueDropdown.gameObject.SetActive(false);
-                    valueInput.gameObject.SetActive(true);
+                    placeholder = valueInput.placeholder as Text;
+                    if (placeholder != null)
+                        placeholder.text = 0.0f.ToString("F2");
                     valueInput.contentType = InputField.ContentType.DecimalNumber;
+                    valueInput.gameObject.SetActive(true);
                     break;
                 case "loop":
                     valueDropdown.gameObject.SetActive(false);
@@ -216,8 +220,11 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
                     break;
                 default:
                     valueDropdown.gameObject.SetActive(false);
-                    valueInput.gameObject.SetActive(true);
+                    placeholder = valueInput.placeholder as Text;
+                    if (placeholder != null)
+                        placeholder.text = "Enter text...";
                     valueInput.contentType = InputField.ContentType.Alphanumeric;
+                    valueInput.gameObject.SetActive(true);
                     break;
             }
 

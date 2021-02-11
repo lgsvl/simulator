@@ -6,6 +6,7 @@ RUN set -ex \
   && apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
     ca-certificates \
+    jq \
     libgl1 \
     libgtk2.0-0 \
     libvulkan1 \
@@ -14,6 +15,7 @@ RUN set -ex \
     libxcb1 \
     libxdmcp6 \
     libxext6 \
+    netcat-openbsd \
   && apt-get clean
 
 # NB. This is overwritten when launched by docker with --gpus=N option
@@ -127,7 +129,7 @@ IMAGE_CREATED_BY=Dockerfile\n\
 IMAGE_CREATED_FROM=${image_git_describe}\n\
 IMAGE_CREATED_ON=$(date --iso-8601=seconds --utc)\n\
 # Increment IMAGE_INTERFACE_VERSION whenever changes to the image require that the launcher be updated.\n\
-IMAGE_INTERFACE_VERSION=1\n\
+IMAGE_INTERFACE_VERSION=2\n\
 IMAGE_UUID=${image_uuidgen}"\
   >> /etc/wise-image-info.source
 

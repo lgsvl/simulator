@@ -19,6 +19,7 @@ using VirtualFileSystem;
 using YamlDotNet.Serialization;
 using Simulator.Database;
 using Simulator.Database.Services;
+using UnityEditor;
 
 namespace Simulator.Web
 {
@@ -95,7 +96,6 @@ namespace Simulator.Web
 #else
                 Application.Quit(1); // return non-zero exit code
 #endif
-                return;
             }
 
             BridgePlugins.Load();
@@ -281,8 +281,26 @@ namespace Simulator.Web
             }
         }
 
-        public static void LoadSensorPlugin(Manifest manifest, VfsEntry dir) 
+        public static void LoadSensorPlugin(Manifest manifest, VfsEntry dir)
         {
+            #if UNITY_EDITOR
+            if (EditorPrefs.GetBool("Simulator/Sensor Debug Mode", false) == true)
+            {
+                if (File.Exists(Path.Combine(BundleConfig.ExternalBase, "Sensors", manifest.assetName, $"{manifest.assetName}.prefab")))
+                {
+                    Debug.Log($"Loading {manifest.assetName} in Sensor Debug Mode. If you wish to use this sensor plugin from WISE, disable Sensor Debug Mode in Simulator->Sensor Debug Mode or remove the sensor from Assets/External/Sensors");
+                    var prefab = (GameObject)AssetDatabase.LoadAssetAtPath(Path.Combine(BundleConfig.ExternalBase, "Sensors", manifest.assetName, $"{manifest.assetName}.prefab"), typeof(GameObject));
+                    SensorPrefabs.Add(prefab.GetComponent<SensorBase>());
+                    Sensors.Add(SensorTypes.GetConfig(prefab.GetComponent<SensorBase>()));
+                    if (!SensorTypeLookup.ContainsKey(manifest.assetGuid))
+                    {
+                        SensorTypeLookup.Add(manifest.assetGuid, prefab.GetComponent<SensorBase>());
+                    }
+
+                    return;
+                }
+            }
+            #endif
             if (SensorTypeLookup.ContainsKey(manifest.assetGuid))
             {
                 return;

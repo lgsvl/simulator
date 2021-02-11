@@ -21,7 +21,16 @@ ENV NVIDIA_VISIBLE_DEVICES all
 # Include "utility" to get nvidia-smi
 ENV NVIDIA_DRIVER_CAPABILITIES graphics,display,utility,compute,video
 
-ADD "https://gitlab.com/nvidia/container-images/vulkan/raw/master/nvidia_icd.json" /etc/vulkan/icd.d/nvidia_icd.json
+# Contents of https://gitlab.com/nvidia/container-images/vulkan/-/blob/dc389b0445c788901fda1d85be96fd1cb9410164/nvidia_icd.json
+RUN mkdir -p /etc/vulkan/icd.d/ \
+  && printf '%s\n' \
+'{' \
+'    "file_format_version" : "1.0.0",' \
+'    "ICD": {' \
+'        "library_path": "libGLX_nvidia.so.0",' \
+'        "api_version" : "1.1.99"' \
+'    }' \
+'}' > /etc/vulkan/icd.d/nvidia_icd.json
 
 # Build patched libvulkan1
 ARG base_image=ubuntu:18.04

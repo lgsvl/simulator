@@ -133,10 +133,10 @@ namespace Simulator.Editor
 
         bool updating = false;
 
-       List<(string idOrPath, object data, string display)> VehicleChoices =>
-                            LocalVehicles.Select(g => (idOrPath: g,    data: (object)g, display: "local: " + Path.GetFileName(g))).Concat(
-                            CloudVehicles.Select(v => (idOrPath: v.Id, data: (object)v, display: "cloud: " + v.Name)))
-                            .ToList();
+        List<(string idOrPath, object data, string display)> VehicleChoices =>
+                             LocalVehicles.Select(g => (idOrPath: g, data: (object)g, display: "local: " + Path.GetFileName(g))).Concat(
+                             CloudVehicles.Select(v => (idOrPath: v.Id, data: (object)v, display: "cloud: " + v.Name)))
+                             .ToList();
         async void Refresh()
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode)
@@ -246,7 +246,7 @@ namespace Simulator.Editor
             {
                 API.Disconnect();
             }
-            
+
             if (GUILayout.Button("Refresh"))
             {
                 Refresh();
@@ -403,7 +403,7 @@ namespace Simulator.Editor
 
             if (selection.GetType() == typeof(string))
             {
-                if (previousVehicle != null && (string) selection == previousVehicle.Id)
+                if (previousVehicle != null && (string)selection == previousVehicle.Id)
                 {
                     return previousVehicle;
                 }
@@ -432,25 +432,85 @@ namespace Simulator.Editor
             if (API == null)
                 return;
 
-            if (DeveloperSimulation.Vehicles != null && !DeveloperSimulation.Vehicles[0].Id.EndsWith(".prefab"))
-            try {
-                // vehicle list does not give us sensor data, so we have to get it later.
-                // I do not want to query each vehicle individually and I can't block the UI, so
-                // we do it after a change was made to the settings in this fire and forget async function
-                var data = await API.Get<VehicleDetailData>(DeveloperSimulation.Vehicles[0].Id);
-                // copy previous bridge data as it is not saved with the vehicle
-                if (DeveloperSimulation.Vehicles[0].Bridge != null)
-                {
-                    data.Bridge.ConnectionString = DeveloperSimulation.Vehicles[0].Bridge.ConnectionString;
-                }
-                DeveloperSimulation.Vehicles = new VehicleData[] { data.ToVehicleData() };
+            if (DeveloperSimulation.Vehicles == null) return;
 
-                // splice in fetched data (containing extended data like bridge) for matching id
-                CloudVehicles = CloudVehicles.Select(v => v.Id == DeveloperSimulation.Vehicles[0].Id ? data : v).ToList();
-            }
-            catch(Exception e)
+            if (!DeveloperSimulation.Vehicles[0].Id.EndsWith(".prefab"))
             {
-                Debug.Log($"Failed to get details of vehicle {DeveloperSimulation.Vehicles[0].Id}: {e.Message}");
+                try
+                {
+                    // vehicle list does not give us sensor data, so we have to get it later.
+                    // I do not want to query each vehicle individually and I can't block the UI, so
+                    // we do it after a change was made to the settings in this fire and forget async function
+                    var data = await API.Get<VehicleDetailData>(DeveloperSimulation.Vehicles[0].Id);
+                    // copy previous bridge data as it is not saved with the vehicle
+                    if (DeveloperSimulation.Vehicles[0].Bridge != null)
+                    {
+                        data.Bridge.ConnectionString = DeveloperSimulation.Vehicles[0].Bridge.ConnectionString;
+                    }
+                    DeveloperSimulation.Vehicles = new VehicleData[] { data.ToVehicleData() };
+
+                    // splice in fetched data (containing extended data like bridge) for matching id
+                    CloudVehicles = CloudVehicles.Select(v => v.Id == DeveloperSimulation.Vehicles[0].Id ? data : v).ToList();
+                }
+                catch (Exception e)
+                {
+                    Debug.Log($"Failed to get details of vehicle {DeveloperSimulation.Vehicles[0].Id}: {e.Message}");
+                }
+            }
+
+            if (DeveloperSimulation.Vehicles[0].Sensors != null)
+            {
+                try
+                {
+                    PluginDetailData[] sensorsLibrary = null;
+
+                    foreach (var sensor in DeveloperSimulation.Vehicles[0].Sensors)
+                    {
+                        if (sensor.Plugin == null)
+                        {
+                            sensor.Plugin = new SensorPlugin();
+                        }
+
+                        if (string.IsNullOrEmpty(sensor.Plugin.AssetGuid))
+                        {
+                            if (sensorsLibrary == null)
+                            {
+                                sensorsLibrary = (await API.GetLibrary<PluginDetailData>())
+                                    .Where(p => p.Category == "sensor").ToArray();
+                            }
+                            PluginDetailData candidate = null;
+                            if (!string.IsNullOrEmpty(sensor.Plugin.Id))
+                            {
+                                candidate = sensorsLibrary.FirstOrDefault(p => p.Id == sensor.Plugin.Id);
+                            }
+                            if (!string.IsNullOrEmpty(sensor.Type))
+                            {
+                                candidate = sensorsLibrary.FirstOrDefault(p => p.Type == sensor.Type);
+                            }
+                            if (candidate == null && !string.IsNullOrEmpty(sensor.Name))
+                            {
+                                candidate = sensorsLibrary.FirstOrDefault(p => p.Name == sensor.Name);
+                            }
+
+                            if (candidate != null)
+                            {
+                                sensor.Type = candidate.Type;
+                                sensor.Plugin.Type = candidate.Type;
+                                sensor.Plugin.AssetGuid = candidate.AssetGuid;
+                                Debug.Log($"Updated details for sensor {sensor.Name}: Type: {candidate.Type} (assetguid {candidate.AssetGuid})");
+                            }
+                            else
+                            {
+                                Debug.LogError("Could not find suitable sensor in My Library");
+                            }
+                        }
+                    }
+                    SensorScratchPad = JsonConvert.SerializeObject(DeveloperSimulation.Vehicles[0].Sensors, JsonSettings.camelCasePretty);
+                }
+                catch (Exception e)
+                {
+                    Debug.Log($"Failed update complete sensor configuration: {e.Message}");
+                }
             }
         }
 
@@ -466,7 +526,7 @@ namespace Simulator.Editor
             updating = false;
             Debug.Log("Saved DeveloperSettings.");
         }
-        
+
         private void OnLostFocus()
         {
             UpdateAsset();

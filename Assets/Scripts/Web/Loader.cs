@@ -342,7 +342,10 @@ namespace Simulator
                     {
                         if (sensor.Plugin.AssetGuid != null) // TODO remove after WISE update
                         {
-                            var pluginProgress = new Progress<Tuple<string, float>>(p => { ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2); });
+                            var pluginProgress = ConnectionUI.instance != null ?
+                            new Progress<Tuple<string, float>>(p => ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2) )
+                            : new Progress<Tuple<string, float>>(p => Debug.Log($"Download: {p.Item1}: {p.Item2}"));
+
                             var pluginTask = DownloadManager.GetAsset(BundleConfig.BundleTypes.Sensor, sensor.Plugin.AssetGuid,
                                 sensor.Name, pluginProgress);
                             downloads.Add(pluginTask);
@@ -362,7 +365,7 @@ namespace Simulator
                 {
                     Instance.assetDownloads.TryRemove(download, out _);
                 }
-                
+
                 if (simData.Vehicles != null)
                 {
                     foreach (var vehicle in simData.Vehicles)

@@ -19,10 +19,13 @@ namespace Simulator.Web
     public static class JsonSettings {
         public static JsonSerializerSettings camelCase = new JsonSerializerSettings
         {
-            ContractResolver = new CamelCasePropertyNamesContractResolver(),
-//            Formatting = Formatting.Indented,
+            ContractResolver = new CamelCasePropertyNamesContractResolver()
         };
-
+        public static JsonSerializerSettings camelCasePretty = new JsonSerializerSettings
+        {
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            Formatting = Formatting.Indented
+        };
     }
 
     [AttributeUsage(AttributeTargets.Class)]
@@ -161,6 +164,8 @@ namespace Simulator.Web
 
     public class SensorPlugin
     {
+        public string Id;
+        public string Type;
         public string AssetGuid;
     }
 

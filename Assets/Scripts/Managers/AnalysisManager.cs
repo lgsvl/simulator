@@ -104,6 +104,11 @@ namespace Simulator.Analysis
             await AnalysisSave();
             AnalysisSend();
 
+            if (Directory.Exists(AnalysisPath))
+            {
+                Directory.Delete(AnalysisPath);
+            }
+
             Loader.Instance.Network.MessagesManager?.UnregisterObject(this);
         }
 

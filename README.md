@@ -28,7 +28,7 @@ Check out our [blog](https://www.lgsvlsimulator.com/blog/) and subscribe to our 
 
 LG Electronics America R&D Center has developed an HDRP Unity-based multi-robot simulator for autonomous vehicle developers. 
 We provide an out-of-the-box solution which can meet the needs of developers wishing to focus on testing their autonomous vehicle algorithms. 
-It currently has integration with TierIV's [Autoware](https://github.com/lgsvl/Autoware) and Baidu's [Apollo 5.0](https://github.com/lgsvl/apollo-5.0)
+It currently has integration with [Autoware Foundation](https://www.autoware.org) autonomous driving packages for ROS / ROS 2 and Baidu's [Apollo 5.0](https://github.com/lgsvl/apollo-5.0)
 and [Apollo 3.0](https://github.com/lgsvl/apollo) platforms, can generate HD maps, and can be immediately used for testing and validation of a whole system with little need for custom integrations. 
 We hope to build a collaborative community among robotics and autonomous vehicle developers by open sourcing our efforts. 
 

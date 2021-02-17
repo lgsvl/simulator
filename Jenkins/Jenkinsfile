@@ -360,7 +360,7 @@ pipeline {
 
             dist/install-testcase-runtime.sh \$UNZIP copy
             zip --symlinks -r ../\$UNZIP.zip \$UNZIP
-            rm -rf dist
+            rm -rvf dist \$UNZIP/
             rm -f wise-image-info.source
           """
         }
@@ -411,7 +411,7 @@ pipeline {
                   --build-arg image_uuidgen=\$(uuidgen) \
                   -t \$DOCKER_REGISTRY/\$DOCKER_REPO:\$DOCKER_TAG .
               docker push \$DOCKER_REGISTRY/\$DOCKER_REPO:\$DOCKER_TAG
-              rm -fv *-linux64-${GIT_BRANCH}-${JENKINS_BUILD_ID}.zip
+              rm -fv *-linux64-${GIT_BRANCH}-${JENKINS_BUILD_ID}-norunner.zip
 
               docker image rm \
                 \$DOCKER_REGISTRY/\$DOCKER_REPO:\$DOCKER_TAG

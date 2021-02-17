@@ -66,12 +66,20 @@ namespace Simulator.ScenarioEditor.Agents
                 Debug.Log($"Loading ego vehicle {vehicleDetailData.Name} from the library.");
                 var sb = new StringBuilder();
                 sb.Append(vehicleDetailData.Description);
-                var newVehicle = new CloudAgentVariant(this, vehicleDetailData.Name, null,
+                var newVehicle = new EgoAgentVariant(this, vehicleDetailData.Name, null,
                     sb.ToString(), vehicleDetailData.Id, vehicleDetailData.AssetGuid)
                 {
                     assetModel =
                         cachedVehicles.FirstOrDefault(model => model.AssetGuid == vehicleDetailData.AssetGuid)
                 };
+                foreach (var sensorsConfiguration in vehicleDetailData.SensorsConfigurations)
+                {
+                    newVehicle.SensorsConfigurations.Add(new EgoAgentVariant.SensorsConfiguration
+                    {
+                        Id = sensorsConfiguration.Id,
+                        Name = sensorsConfiguration.Name
+                    });
+                }
                 if (newVehicle.assetModel != null)
                     newVehicle.AcquirePrefab();
 

@@ -143,6 +143,8 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                         agentInstance.BehaviourParameters = behaviourNode["parameters"] as JSONObject;
                     agentInstance.ChangeBehaviour(behaviourNode["name"], false);
                 }
+                if (agentNode.HasKey("sensorsConfigurationId"))
+                    agentInstance.ChangeSensorsConfigurationId(agentNode["sensorsConfigurationId"], false); 
 
                 if (agentInstance.DestinationPoint != null && agentNode.HasKey("destinationPoint"))
                 {

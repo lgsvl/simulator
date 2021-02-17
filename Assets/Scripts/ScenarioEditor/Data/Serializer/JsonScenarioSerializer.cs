@@ -92,6 +92,7 @@ namespace Simulator.ScenarioEditor.Data.Serializer
             data.Add(agentNode);
             if (scenarioAgent.Variant is CloudAgentVariant cloudVariant)
                 agentNode.Add("id", new JSONString(cloudVariant.guid));
+
             agentNode.Add("uid", new JSONString(scenarioAgent.Uid));
             agentNode.Add("variant", new JSONString(scenarioAgent.Variant.Name));
             agentNode.Add("type", new JSONNumber(scenarioAgent.Source.AgentTypeId));
@@ -110,6 +111,8 @@ namespace Simulator.ScenarioEditor.Data.Serializer
                 if (scenarioAgent.BehaviourParameters.Count > 0)
                     behaviour.Add("parameters", scenarioAgent.BehaviourParameters);
             }
+            if (!string.IsNullOrEmpty(scenarioAgent.SensorsConfigurationId))
+                agentNode.Add("sensorsConfigurationId", new JSONString(scenarioAgent.SensorsConfigurationId));
 
             if (scenarioAgent.DestinationPoint != null &&  scenarioAgent.DestinationPoint.IsActive)
             {

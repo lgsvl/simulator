@@ -115,7 +115,7 @@ namespace Simulator.ScenarioEditor.Elements.Agents
                 return pathRenderer;
             }
         }
-        
+
         /// <inheritdoc/>
         public override string ElementType => Variant == null ? "Agent" : Variant.Name;
 
@@ -134,6 +134,11 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         /// Behaviour that will control this agent in the simulation
         /// </summary>
         public string Behaviour { get; private set; }
+
+        /// <summary>
+        /// Sensors configuration that will be applied to this agent
+        /// </summary>
+        public string SensorsConfigurationId { get; private set; }
 
         /// <summary>
         /// Color of this agent if it supports changing the color
@@ -198,6 +203,11 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         public event Action<string> BehaviourChanged;
 
         /// <summary>
+        /// Event invoked when this agent changes the sensors configuration id
+        /// </summary>
+        public event Action<string> SensorsConfigurationIdChanged;
+
+        /// <summary>
         /// Event invoked when this agent changes the color
         /// </summary>
         public event Action<Color> ColorChanged;
@@ -213,6 +223,11 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         public override void ChangeVariant(SourceVariant newVariant, bool registerUndo = true)
         {
             base.ChangeVariant(newVariant, registerUndo);
+            
+            if (newVariant is EgoAgentVariant egoAgentVariant && egoAgentVariant.SensorsConfigurations.Count>0)
+                ChangeSensorsConfigurationId(egoAgentVariant.SensorsConfigurations[0].Id, false);
+            else
+                ChangeSensorsConfigurationId("", false);
 
             foreach (var modelRenderer in ModelRenderers)
             {
@@ -241,12 +256,38 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         /// <param name="registerUndo">If true, this action can be undone</param>
         public void ChangeBehaviour(string newBehaviour, bool registerUndo = true)
         {
+            if (Behaviour == newBehaviour)
+                return;
             if (registerUndo)
                 ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
                     .RegisterRecord(new UndoChangeBehaviour(this));
             Behaviour = newBehaviour;
             WaypointsParent.gameObject.SetActive(Source.AgentSupportWaypoints(this));
             BehaviourChanged?.Invoke(Behaviour);
+        }
+
+        /// <summary>
+        /// Changes the current agent sensors configuration id
+        /// </summary>
+        /// <param name="newId">New sensors configuration id</param>
+        /// <param name="registerUndo">If true, this action can be undone</param>
+        public void ChangeSensorsConfigurationId(string newId, bool registerUndo = true)
+        {
+            if (SensorsConfigurationId == newId)
+                return;
+            if (registerUndo)
+            {
+                var undoAction = new Action<string>(id =>
+                {
+                    ChangeSensorsConfigurationId(id, false);
+                });
+                ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
+                    .RegisterRecord(new GenericUndo<string>(SensorsConfigurationId,
+                        "Undo change of a sensors configuration id.", undoAction));
+            }
+
+            SensorsConfigurationId = newId;
+            SensorsConfigurationIdChanged?.Invoke(SensorsConfigurationId);
         }
 
         /// <inheritdoc/>
@@ -321,8 +362,9 @@ namespace Simulator.ScenarioEditor.Elements.Agents
                     }
                 }
             }
+
             var destinationPoint = GetComponentInChildren<ScenarioDestinationPoint>(true);
-            if (destinationPoint!=null)
+            if (destinationPoint != null)
                 destinationPoint.AttachToAgent(this, false);
 
             ScenarioManager.Instance.GetExtension<ScenarioAgentsManager>().RegisterAgent(this);
@@ -410,10 +452,11 @@ namespace Simulator.ScenarioEditor.Elements.Agents
                 PathRenderer.SetPosition(i + 1, position);
                 waypoints[i].IndexInAgent = i;
             }
+
             PathRenderer.positionCount = waypoints.Count + 1;
-            
+
             //Update position after removing an element
-            if (index<waypoints.Count)
+            if (index < waypoints.Count)
                 WaypointPositionChanged(waypoints[index]);
             return index;
         }
@@ -427,9 +470,9 @@ namespace Simulator.ScenarioEditor.Elements.Agents
             var index = waypoints.IndexOf(waypoint);
             var position = LineRendererPositionOffset + waypoint.transform.transform.localPosition;
             PathRenderer.SetPosition(index + 1, position);
-            
+
             //Update waypoint direction indicator
-            var previousPosition = PathRenderer.GetPosition(index)-position;
+            var previousPosition = PathRenderer.GetPosition(index) - position;
             waypoint.directionTransform.localPosition = previousPosition / 2.0f;
             waypoint.directionTransform.localRotation = previousPosition.sqrMagnitude > 0.0f
                 ? Quaternion.LookRotation(-previousPosition)
@@ -437,7 +480,7 @@ namespace Simulator.ScenarioEditor.Elements.Agents
 
             if (index + 1 < waypoints.Count)
             {
-                var nextPosition = position-PathRenderer.GetPosition(index+2);
+                var nextPosition = position - PathRenderer.GetPosition(index + 2);
                 var nextWaypoint = waypoints[index + 1];
                 nextWaypoint.directionTransform.localPosition = nextPosition / 2.0f;
                 nextWaypoint.directionTransform.localRotation = nextPosition.sqrMagnitude > 0.0f

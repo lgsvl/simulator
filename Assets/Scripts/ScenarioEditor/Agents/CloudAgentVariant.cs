@@ -18,7 +18,7 @@ namespace Simulator.ScenarioEditor.Agents
     using Web;
 
     /// <summary>
-    /// Data describing a single agent variant of the scenario agent type that is available from the clous
+    /// Data describing a single agent variant of the scenario agent type that is available from the cloud
     /// </summary>
     public class CloudAgentVariant : AgentVariant
     {

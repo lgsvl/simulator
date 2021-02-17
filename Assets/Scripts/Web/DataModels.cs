@@ -93,15 +93,25 @@ namespace Simulator.Web
         public string AssetGuid { get; set; }
         public SensorData[] Sensors { get; set; }
         public BridgeData Bridge { get; set; }
+        public SensorsConfiguration[] SensorsConfigurations { get; set; }
+    }
+
+    public class SensorsConfiguration : CloudIdData
+    {
+        public bool IsOwned { get; set; }
+        public string VehicleId { get; set; }
+        public string BridgePluginId { get; set; }
     }
 
     [CloudData(ApiPath = "api/v1/vehicles")]
     public class VehicleDetailData : CloudAssetDetails
     {
         public SensorData[] Sensors { get; set; }
+        public SensorsConfiguration[] SensorsConfigurations { get; set; }
         public BridgeData Bridge { get; set; }
         public string Fmu { get; set; }
         public string BridgePluginId { get; set; }
+        
         public VehicleData ToVehicleData()
         {
             var ret = new VehicleData();
@@ -114,6 +124,7 @@ namespace Simulator.Web
                 AssetGuid = AssetGuid,
                 Bridge = Bridge,
                 Sensors = Sensors,
+                SensorsConfigurations = SensorsConfigurations
             };
         }
     }

@@ -58,6 +58,12 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         private Dropdown behaviourDropdown;
 
         /// <summary>
+        /// Dropdown for the agent sensors configuration selection
+        /// </summary>
+        [SerializeField]
+        private Dropdown sensorsConfigurationDropdown;
+
+        /// <summary>
         /// Panel which contains UI for editing the agent waypoints
         /// </summary>
         [SerializeField]
@@ -151,6 +157,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement
             {
                 selectedAgent.VariantChanged -= SelectedAgentOnVariantChanged;
                 selectedAgent.BehaviourChanged -= SelectedAgentOnBehaviourChanged;
+                selectedAgent.SensorsConfigurationIdChanged -= SelectedAgentOnSensorsConfigurationIdChanged;
                 selectedAgent.ColorChanged -= SelectedAgentOnColorChanged;
 
                 //Hide destination point if agent is deselected and something else is selected
@@ -165,6 +172,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement
                 Show();
                 selectedAgent.VariantChanged += SelectedAgentOnVariantChanged;
                 selectedAgent.BehaviourChanged += SelectedAgentOnBehaviourChanged;
+                selectedAgent.SensorsConfigurationIdChanged += SelectedAgentOnSensorsConfigurationIdChanged;
                 selectedAgent.ColorChanged += SelectedAgentOnColorChanged;
             }
             else
@@ -181,6 +189,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         {
             var variantId = agentSource.Variants.IndexOf(newVariant);
             variantDropdown.SetValueWithoutNotify(variantId);
+            SetupSensorsConfigurationDropdown();
         }
 
         /// <summary>
@@ -193,6 +202,18 @@ namespace Simulator.ScenarioEditor.UI.EditElement
             behaviourDropdown.SetValueWithoutNotify(behaviourId);
             //Disable waypoints panel if waypoints are not supported
             waypointsPanel.SetActive(agentSource.AgentSupportWaypoints(selectedAgent));
+        }
+
+        /// <summary>
+        /// Method invoked when selected agent changes the sensors configuration id
+        /// </summary>
+        /// <param name="newId">Agent new sensors configuration id</param>
+        private void SelectedAgentOnSensorsConfigurationIdChanged(string newId)
+        {
+            if (!(selectedAgent.Variant is EgoAgentVariant egoAgentVariant))
+                return;
+            var configNo = egoAgentVariant.SensorsConfigurations.FindIndex(c => c.Id == newId);
+            sensorsConfigurationDropdown.SetValueWithoutNotify(configNo);
         }
 
         /// <summary>
@@ -210,26 +231,25 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         /// </summary>
         public void Show()
         {
-            //TODO Cache only when the parent EditElementPanel is active
-            if (agentSource != selectedAgent.Source)
+            //Setup variants
+            agentSource = selectedAgent.Source;
+            variantDropdown.options.Clear();
+            variantDropdown.AddOptions(
+                agentSource.Variants.Where(variant => variant.IsPrepared).Select(variant => variant.Name).ToList());
+            //Setup behaviour
+            if (agentSource.Behaviours != null && agentSource.Behaviours.Count > 0)
             {
-                //Setup variants
-                agentSource = selectedAgent.Source;
-                variantDropdown.options.Clear();
-                variantDropdown.AddOptions(
-                    agentSource.Variants.Where(variant => variant.IsPrepared).Select(variant => variant.Name).ToList());
-                //Setup behaviour
                 behaviourDropdown.options.Clear();
-                if (agentSource.Behaviours != null && agentSource.Behaviours.Count > 0)
-                {
-                    behaviourDropdown.gameObject.SetActive(true);
-                    behaviourDropdown.AddOptions(agentSource.Behaviours);
-                }
-                else
-                {
-                    behaviourDropdown.gameObject.SetActive(false);
-                }
+                behaviourDropdown.AddOptions(agentSource.Behaviours);
+                behaviourDropdown.gameObject.SetActive(true);
             }
+            else
+            {
+                behaviourDropdown.gameObject.SetActive(false);
+            }
+
+            //Setup sensors config
+            SetupSensorsConfigurationDropdown();
 
             //Disable waypoints panel if waypoints are not supported
             waypointsPanel.SetActive(agentSource.AgentSupportWaypoints(selectedAgent));
@@ -242,6 +262,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement
                     ? 0
                     : agentSource.Behaviours.IndexOf(selectedAgent.Behaviour);
                 behaviourDropdown.SetValueWithoutNotify(behaviourId);
+                behaviourDropdown.RefreshShownValue();
             }
 
             colorPanel.SetActive(selectedAgent.SupportColors);
@@ -273,6 +294,32 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         }
 
         /// <summary>
+        /// Setups the sensors configuration dropdown basing on the currently selected agent
+        /// </summary>
+        private void SetupSensorsConfigurationDropdown()
+        {
+            if (selectedAgent.Variant is EgoAgentVariant egoAgentVariant && egoAgentVariant.SensorsConfigurations.Count>0)
+            {
+                sensorsConfigurationDropdown.options.Clear();
+                var selectedNo = 0;
+                for (var i = 0; i < egoAgentVariant.SensorsConfigurations.Count; i++)
+                {
+                    var configuration = egoAgentVariant.SensorsConfigurations[i];
+                    sensorsConfigurationDropdown.options.Add(new Dropdown.OptionData(configuration.Name));
+                    if (configuration.Id == selectedAgent.SensorsConfigurationId)
+                        selectedNo = i;
+                }
+                sensorsConfigurationDropdown.SetValueWithoutNotify(selectedNo);
+                sensorsConfigurationDropdown.RefreshShownValue();
+                sensorsConfigurationDropdown.gameObject.SetActive(true);
+            }
+            else
+            {
+                sensorsConfigurationDropdown.gameObject.SetActive(false);
+            }
+        }
+
+        /// <summary>
         /// Method changing the variant of the currently selected scenario agent
         /// </summary>
         /// <param name="variantId">Variant identifier in the source</param>
@@ -299,6 +346,16 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         public void BehaviourDropdownChanged(int behaviourId)
         {
             selectedAgent.ChangeBehaviour(agentSource.Behaviours[behaviourId]);
+        }
+
+        /// <summary>
+        /// Method changing the sensors configuration of the currently selected scenario agent
+        /// </summary>
+        /// <param name="configNo">Order number of the selected sensors configuration</param>
+        public void SensorsConfigurationDropdownChanged(int configNo)
+        {
+            if (selectedAgent.Variant is EgoAgentVariant egoAgentVariant)
+                selectedAgent.ChangeSensorsConfigurationId(egoAgentVariant.SensorsConfigurations[configNo].Id);
         }
 
         /// <summary>
@@ -336,12 +393,10 @@ namespace Simulator.ScenarioEditor.UI.EditElement
         {
             if (selectedAgent.DestinationPoint == null) return;
             var agent = selectedAgent;
-            var undoCallback = new Action<bool>((undoValue) =>
-            {
-                SetDestinationPoint(agent, undoValue);
-            });
+            var undoCallback = new Action<bool>((undoValue) => { SetDestinationPoint(agent, undoValue); });
             ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
-                .RegisterRecord(new UndoToggle(destinationPointToggle, selectedAgent.DestinationPoint.IsActive, undoCallback));
+                .RegisterRecord(new UndoToggle(destinationPointToggle, selectedAgent.DestinationPoint.IsActive,
+                    undoCallback));
             SetDestinationPoint(selectedAgent, active);
         }
 

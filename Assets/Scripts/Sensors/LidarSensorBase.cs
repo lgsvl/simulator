@@ -8,7 +8,6 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using Unity.Jobs;
 using Unity.Profiling;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -106,13 +105,14 @@ namespace Simulator.Sensors
         protected NativeArray<Vector4> Points;
 
         protected ComputeBuffer PointCloudBuffer;
+        protected ComputeBuffer CosLatitudeAnglesBuffer;
+        protected ComputeBuffer SinLatitudeAnglesBuffer;
         int PointCloudLayer;
 
         protected Material PointCloudMaterial;
 
-        private bool updated;
-        protected NativeArray<float> SinLatitudeAngles;
-        protected NativeArray<float> CosLatitudeAngles;
+        protected float[] SinLatitudeAngles;
+        protected float[] CosLatitudeAngles;
         private Camera sensorCamera;
 
         protected Camera SensorCamera
@@ -129,7 +129,6 @@ namespace Simulator.Sensors
         protected struct ReadRequest
         {
             public SensorRenderTarget TextureSet;
-            public AsyncGPUReadbackRequest Readback;
             public int Index;
             public int Count;
             public float AngleStart;
@@ -141,8 +140,6 @@ namespace Simulator.Sensors
         }
 
         protected List<ReadRequest> Active = new List<ReadRequest>();
-        protected List<JobHandle> Jobs = new List<JobHandle>();
-
         protected Stack<SensorRenderTarget> AvailableRenderTextures = new Stack<SensorRenderTarget>();
         protected Stack<Texture2D> AvailableTextures = new Stack<Texture2D>();
 
@@ -157,8 +154,7 @@ namespace Simulator.Sensors
         protected float EndLatitudeAngle;
         protected float SinStartLongitudeAngle;
         protected float CosStartLongitudeAngle;
-        protected float SinDeltaLongitudeAngle;
-        protected float CosDeltaLongitudeAngle;
+        protected float DeltaLongitudeAngle;
 
         // Scales between world coordinates and texture coordinates
         protected float XScale;
@@ -173,6 +169,7 @@ namespace Simulator.Sensors
 
         private SensorRenderTarget activeTarget;
         private ShaderTagId passId;
+        protected ComputeShader cs;
 
         public override SensorDistributionType DistributionType => SensorDistributionType.UltraHighLoad;
 
@@ -198,6 +195,7 @@ namespace Simulator.Sensors
             PointCloudMaterial = new Material(RuntimeSettings.Instance.PointCloudShader);
             PointCloudLayer = LayerMask.NameToLayer("Sensor Effects");
             passId = new ShaderTagId("SimulatorLidarPass");
+            cs = Instantiate(RuntimeSettings.Instance.LidarComputeShader);
 
             Reset();
         }
@@ -229,13 +227,9 @@ namespace Simulator.Sensors
         {
             Active.ForEach(req =>
             {
-                req.Readback.WaitForCompletion();
                 req.TextureSet.Release();
             });
             Active.Clear();
-
-            Jobs.ForEach(job => job.Complete());
-            Jobs.Clear();
         }
 
         public virtual void Update()
@@ -256,50 +250,31 @@ namespace Simulator.Sensors
 
             UpdateMarker.Begin();
 
-            updated = false;
-            while (Jobs.Count > 0 && Jobs[0].IsCompleted)
-            {
-                updated = true;
-                Jobs.RemoveAt(0);
-            }
+            var cmd = CommandBufferPool.Get();
 
-            bool jobsIssued = false;
             foreach (var req in Active)
             {
                 if (!req.TextureSet.IsValid(RenderTextureWidth, RenderTextureHeight))
                 {
                     // lost render texture, probably due to Unity window resize or smth
-                    req.Readback.WaitForCompletion();
                     req.TextureSet.Release();
                 }
-                else if (req.Readback.done)
+                else
                 {
-                    if (req.Readback.hasError)
-                    {
-                        Debug.Log("Failed to read GPU texture");
-                        req.TextureSet.Release();
-                        IgnoreNewRquests = 1.0f;
-                    }
-                    else
-                    {
-                        jobsIssued = true;
-                        var job = EndReadRequest(req, req.Readback.GetData<byte>());
-                        Jobs.Add(job);
-                        AvailableRenderTextures.Push(req.TextureSet);
+                    EndReadRequest(cmd, req);
+                    AvailableRenderTextures.Push(req.TextureSet);
 
-                        if (req.Index + req.Count >= CurrentMeasurementsPerRotation)
-                        {
-                            SendMessage();
-                        }
+                    if (req.Index + req.Count >= CurrentMeasurementsPerRotation)
+                    {
+                        SendMessage();
                     }
                 }
             }
-            Active.RemoveAll(req => req.Readback.done == true);
 
-            if (jobsIssued)
-            {
-                JobHandle.ScheduleBatchedJobs();
-            }
+            HDRPUtilities.ExecuteAndClearCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+
+            Active.Clear();
 
             if (IgnoreNewRquests > 0)
             {
@@ -325,7 +300,6 @@ namespace Simulator.Sensors
                     var req = new ReadRequest();
                     if (BeginReadRequest(count, ref req))
                     {
-                        req.Readback = AsyncGPUReadback.Request((RenderTexture)req.TextureSet.ColorTexture, 0);
                         req.AngleStart = AngleStart;
 
                         DateTime dt = DateTimeOffset.FromUnixTimeMilliseconds((long)(SimulatorManager.Instance.CurrentTime * 1000.0)).UtcDateTime;
@@ -354,11 +328,8 @@ namespace Simulator.Sensors
         {
             Active.ForEach(req =>
             {
-                req.Readback.WaitForCompletion();
                 req.TextureSet.Release();
             });
-
-            Jobs.ForEach(job => job.Complete());
 
             foreach (var tex in AvailableRenderTextures)
             {
@@ -370,6 +341,8 @@ namespace Simulator.Sensors
             }
 
             PointCloudBuffer?.Release();
+            CosLatitudeAnglesBuffer?.Release();
+            SinLatitudeAnglesBuffer?.Release();
 
             if (Points.IsCreated)
             {
@@ -379,15 +352,6 @@ namespace Simulator.Sensors
             if (PointCloudMaterial != null)
             {
                 DestroyImmediate(PointCloudMaterial);
-            }
-
-            if (SinLatitudeAngles.IsCreated)
-            {
-                SinLatitudeAngles.Dispose();
-            }
-            if (CosLatitudeAngles.IsCreated)
-            {
-                CosLatitudeAngles.Dispose();
             }
         }
 
@@ -440,7 +404,7 @@ namespace Simulator.Sensors
             return true;
         }
 
-        protected abstract JobHandle EndReadRequest(ReadRequest req, NativeArray<byte> textureData);
+        protected abstract void EndReadRequest(CommandBuffer cmd, ReadRequest req);
 
         protected abstract void SendMessage();
 
@@ -454,45 +418,9 @@ namespace Simulator.Sensors
 
             float angle = HorizontalAngleLimit / 2.0f;
 
-            var jobs = new NativeArray<JobHandle>(rotationCount, Allocator.Persistent);
-#if ASYNC
-            var active = new ReadRequest[rotationCount];
-
-            try
-            {
-                for (int i = 0; i < rotationCount; i++)
-                {
-                    var rotation = Quaternion.AngleAxis(angle, Vector3.up);
-                    Camera.transform.localRotation = rotation;
-
-                    if (BeginReadRequest(count, angle, HorizontalAngleLimit, ref active[i]))
-                    {
-                        active[i].Readback = AsyncGPUReadback.Request(active[i].RenderTexture, 0);
-                    }
-
-                    angle += HorizontalAngleLimit;
-                    if (angle >= 360.0f)
-                    {
-                        angle -= 360.0f;
-                    }
-                }
-
-                for (int i = 0; i < rotationCount; i++)
-                {
-                    active[i].Readback.WaitForCompletion();
-                    jobs[i] = EndReadRequest(active[i], active[i].Readback.GetData<byte>());
-                }
-
-                JobHandle.CompleteAll(jobs);
-            }
-            finally
-            {
-                Array.ForEach(active, req => AvailableRenderTextures.Push(req.RenderTexture));
-                jobs.Dispose();
-            }
-#else
             var textures = new Texture2D[rotationCount];
 
+            var cmd = CommandBufferPool.Get();
             var rt = RenderTexture.active;
             try
             {
@@ -516,7 +444,7 @@ namespace Simulator.Sensors
                         }
                         texture.ReadPixels(new Rect(0, 0, RenderTextureWidth, RenderTextureHeight), 0, 0);
                         textures[i] = texture;
-                        jobs[i] = EndReadRequest(req, texture.GetRawTextureData<byte>());
+                        EndReadRequest(cmd, req);
 
                         AvailableRenderTextures.Push(req.TextureSet);
                     }
@@ -527,16 +455,17 @@ namespace Simulator.Sensors
                         angle -= 360.0f;
                     }
                 }
-
-                JobHandle.CompleteAll(jobs);
             }
             finally
             {
+                HDRPUtilities.ExecuteAndClearCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
                 RenderTexture.active = rt;
                 Array.ForEach(textures, AvailableTextures.Push);
-                jobs.Dispose();
             }
-#endif
+
+            var readback = AsyncGPUReadback.RequestIntoNativeArray(ref Points, PointCloudBuffer);
+            readback.WaitForCompletion();
 
             return Points;
         }
@@ -550,9 +479,8 @@ namespace Simulator.Sensors
 
             float angle = HorizontalAngleLimit / 2.0f;
 
-            var jobs = new NativeArray<JobHandle>(rotationCount, Allocator.Persistent);
-
             var active = new ReadRequest[rotationCount];
+            var cmd = CommandBufferPool.Get();
 
             try
             {
@@ -561,10 +489,7 @@ namespace Simulator.Sensors
                     var rotation = Quaternion.AngleAxis(angle, Vector3.up);
                     SensorCamera.transform.localRotation = rotation;
 
-                    if (BeginReadRequest(count, ref active[i]))
-                    {
-                        active[i].Readback = AsyncGPUReadback.Request(active[i].TextureSet.ColorTexture, 0);
-                    }
+                    BeginReadRequest(count, ref active[i]);
 
                     angle += HorizontalAngleLimit;
                     if (angle >= 360.0f)
@@ -575,17 +500,18 @@ namespace Simulator.Sensors
 
                 for (int i = 0; i < rotationCount; i++)
                 {
-                    active[i].Readback.WaitForCompletion();
-                    jobs[i] = EndReadRequest(active[i], active[i].Readback.GetData<byte>());
+                    EndReadRequest(cmd, active[i]);
                 }
-
-                JobHandle.CompleteAll(jobs);
             }
             finally
             {
+                HDRPUtilities.ExecuteAndClearCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
                 Array.ForEach(active, req => AvailableRenderTextures.Push(req.TextureSet));
-                jobs.Dispose();
             }
+
+            var readback = AsyncGPUReadback.RequestIntoNativeArray(ref Points, PointCloudBuffer);
+            readback.WaitForCompletion();
 
             var worldToLocal = LidarTransform;
             if (Compensated)
@@ -619,11 +545,6 @@ namespace Simulator.Sensors
         public override void OnVisualize(Visualizer visualizer)
         {
             VisualizeMarker.Begin();
-            if (updated)
-            {
-                PointCloudBuffer.SetData(Points);
-            }
-
             var lidarToWorld = Compensated ? Matrix4x4.identity : transform.localToWorldMatrix;
             PointCloudMaterial.SetMatrix("_LocalToWorld", lidarToWorld);
             PointCloudMaterial.SetFloat("_Size", PointSize * Utility.GetDpiScale());

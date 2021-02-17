@@ -1,0 +1,373 @@
+﻿#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+#pragma kernel LidarCompute                 LIDAR_COMPUTE=LidarCompute
+#pragma kernel LidarComputeComp             LIDAR_COMPUTE=LidarComputeComp                               COMPENSATED
+#pragma kernel VelodyneCompute16            VELODYNE_COMPUTE=VelodyneCompute16               VLP_16
+#pragma kernel VelodyneCompute32C           VELODYNE_COMPUTE=VelodyneCompute32C              VLP_32C
+#pragma kernel VelodyneCompute128           VELODYNE_COMPUTE=VelodyneCompute128              VLS_128
+#pragma kernel VelodyneCompute16_Comp       VELODYNE_COMPUTE=VelodyneCompute16_Comp          VLP_16      COMPENSATED
+#pragma kernel VelodyneCompute32C_Comp      VELODYNE_COMPUTE=VelodyneCompute32C_Comp         VLP_32C     COMPENSATED
+#pragma kernel VelodyneCompute128_Comp      VELODYNE_COMPUTE=VelodyneCompute128_Comp         VLS_128     COMPENSATED
+#pragma kernel DirLidarCompute              DIR_LIDAR_COMPUTE=DirLidarCompute
+#pragma kernel DirLidarComputeComp          DIR_LIDAR_COMPUTE=DirLidarComputeComp                        COMPENSATED
+
+CBUFFER_START(cb0)
+    float _HorizontalAngleLimit;
+    float _CosAngle;
+
+    int _Index;
+    int _Count;
+    int _LaserCount;
+    int _MeasurementsPerRotation;
+    int _TimeStamp;
+    int _DirLidarMaxRayCount;
+    int _DirLidarStartRay;
+
+    float4 _Origin;
+    float4x4 _Transform;
+    float4x4 _CameraToWorld;
+    float4 _ScaleDistance;              // xy: scale, z: distance min, w: distance max
+    float4 _TexSize;
+    float4 _LongitudeAngles;            // x: sin start, y: cos start, z: angle delta3
+    float4 _VelodyneLongitudeAngles;    // x: start longitude, y: delta longitude
+    float4 _DirLidarStart;
+    float4 _DirLidarForward;
+    float4 _DirLidarDeltaX;
+    float4 _DirLidarDeltaY;
+
+CBUFFER_END
+
+TEXTURE2D_X(_Input);
+RWStructuredBuffer<float4> _Output;
+StructuredBuffer<float> _SinLatitudeAngles;
+StructuredBuffer<float> _CosLatitudeAngles;
+
+float DecodeFloatRGB(float3 rgb)
+{
+    return rgb.r + rgb.g / 255.0f + rgb.b / 65025.0f;
+}
+
+[numthreads(8,8,1)]
+void LIDAR_COMPUTE (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= (uint) _Count || id.y >= (uint) _LaserCount)
+        return;
+
+    const float sinLatitudeAngle = _SinLatitudeAngles[id.y];
+    const float cosLatitudeAngle = _CosLatitudeAngles[id.y];
+
+    const int indexOffset = id.y * _MeasurementsPerRotation;
+    const float dy = cosLatitudeAngle;
+    const float rProjected = sinLatitudeAngle;
+
+    const float sinDelta = sin(id.x * 0.01745329 * _LongitudeAngles.z);
+    const float cosDelta = cos(id.x * 0.01745329 * _LongitudeAngles.z);
+    const float sinLongitudeAngle = _LongitudeAngles.x * cosDelta - _LongitudeAngles.y * sinDelta;
+    const float cosLongitudeAngle = _LongitudeAngles.y * cosDelta + _LongitudeAngles.x * sinDelta;
+
+    const float dz = rProjected * sinLongitudeAngle;
+    const float dx = rProjected * cosLongitudeAngle;
+
+    const float scale = _ScaleDistance.z / dz;
+    const float xx = dx * scale;
+    const float yy = dy * scale;
+    const int x = (int) (xx / _ScaleDistance.x + _TexSize.x * 0.5);
+    const int y = (int) (yy / _ScaleDistance.y + _TexSize.y * 0.5);
+
+    const int index = indexOffset + (_Index + id.x) % _MeasurementsPerRotation;
+    
+    if (x < 0 || x >= _TexSize.x || y < 0 || y >= _TexSize.y)
+    {
+        _Output[index] = float4(0, 0, 0, 0);
+    }
+    else
+    {
+        const float4 sample = LOAD_TEXTURE2D_X(_Input, uint2(x, y));
+        const float distance = 2.0f * DecodeFloatRGB(sample.rgb);
+        float intensity = sample.a;
+
+        const float3 dir = mul(_CameraToWorld, float4(xx, yy, -_ScaleDistance.z, 1)).xyz - _Origin.xyz;
+        float3 position = _Origin.xyz + normalize(dir) * distance * _ScaleDistance.w;
+
+        #ifndef COMPENSATED
+        position = mul(_Transform, float4(position, 1)).xyz;
+        #endif
+
+        _Output[index] = float4(position, intensity);
+    }
+}
+
+static const int DATA_PACKET_LENGTH = 1206;
+static const int DATA_PACKET_TIMESTAMP_LENGTH = 4;
+static const int DATA_PACKET_FACTORY_LENGTH = 2;
+static const int DATA_BLOCK_LENGTH = 100;
+static const int DATA_BLOCK_FLAG_LENGTH = 2;
+static const int DATA_BLOCK_AZIMUTH_LENGTH = 2;
+static const int DATA_POINT_LENGTH = 3;
+static const int DATA_MEASUREMENT_LENGTH = DATA_POINT_LENGTH * 16; // Only VLP-16C needs this.
+
+StructuredBuffer<float> _LongitudeOffsetAngles_VLP_32C;
+StructuredBuffer<float> _VerticalRayAngles_VLP_32C;
+StructuredBuffer<float> _LongitudeOffsetAngles_VLS_128;
+StructuredBuffer<float> _VerticalRayAngles_VLS_128;
+
+StructuredBuffer<float> _CosLocalLongitudeOffsetAngles;
+StructuredBuffer<float> _SinLocalLongitudeOffsetAngles;
+
+RWStructuredBuffer<uint> _VelodyneData;
+
+inline void FillInOneByte(uint value, RWStructuredBuffer<uint> data, uint byteIndex)
+{
+    uint actualIndex = byteIndex / 4;
+    // NOTE: Don't do modulo on uint type here - offset will be wrong in very specific case due to Unity bug.
+    //       Float is used because int modulo can be slow; 0.5 is added to avoid precision issues.
+    uint offset = (byteIndex + 0.5) % 4;
+    offset *= 8;
+    const uint mask = 0xFF << offset;
+    const uint maskedValue = value << offset & mask;
+    InterlockedAnd(data[actualIndex], ~mask);
+    InterlockedOr(data[actualIndex], maskedValue);
+}
+
+inline void FillInTwoBytes(uint value, RWStructuredBuffer<uint> data, uint byteIndex)
+{
+    FillInOneByte(value, data, byteIndex);
+    FillInOneByte(value >> 8, data, byteIndex + 1);
+}
+
+inline void FillInFourBytes(uint value, RWStructuredBuffer<uint> data, uint byteIndex)
+{
+    FillInTwoBytes(value, data, byteIndex);
+    FillInTwoBytes(value >> 16, data, byteIndex + 2);
+}
+
+[numthreads(8,8,1)]
+void VELODYNE_COMPUTE (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= (uint) _Count || id.y >= (uint) _LaserCount)
+        return;
+
+    const float sinLatitudeAngle = _SinLatitudeAngles[id.y];
+    const float cosLatitudeAngle = _CosLatitudeAngles[id.y];
+
+    const uint indexOffset = id.y * _MeasurementsPerRotation;
+    const float dy = cosLatitudeAngle;
+    const float rProjected = sinLatitudeAngle;
+
+    // All "angles" with "local" means the angle within the rendering frame,
+    // i.e. from "90.0f + HorizontalAngleLimit / 2.0f" to "90.0f - HorizontalAngleLimit / 2.0f",
+    // decreasing by DeltaLongitudeAngle in each step.
+    const float sinDelta = sin(id.x * 0.01745329 * _LongitudeAngles.z);
+    const float cosDelta = cos(id.x * 0.01745329 * _LongitudeAngles.z);
+    const float sinLocalLongitudeAngle = _LongitudeAngles.x * cosDelta - _LongitudeAngles.y * sinDelta;
+    const float cosLocalLongitudeAngle = _LongitudeAngles.y * cosDelta + _LongitudeAngles.x * sinDelta;
+    float sinOffsetLocalLongitudeAngle;
+    float cosOffsetLocalLongitudeAngle;
+
+    // All "angles" without "local" means global angle, i.e. azimuth angle of Lidar.
+    const float longitudeAngle = _VelodyneLongitudeAngles.x + id.x * _VelodyneLongitudeAngles.y;
+    float offsettedLongitudeAngle;
+    uint offsettedIndex;
+
+    #if defined(VLP_32C) || defined(VLS_128)
+        #ifdef VLP_32C
+            float offsetAngle = -_LongitudeOffsetAngles_VLP_32C[id.y];
+        #else
+            float offsetAngle = -_LongitudeOffsetAngles_VLS_128[id.y];
+        #endif
+
+        int offsetCount = ceil(offsetAngle / _VelodyneLongitudeAngles.y);
+
+        if (offsetAngle < 0)
+        {
+            if ((int) id.x < _Count + offsetCount) // This column is for current rendering section.
+            {
+                offsettedIndex = _Index + id.x - offsetCount;
+                offsettedLongitudeAngle = longitudeAngle - offsetCount * _VelodyneLongitudeAngles.y;
+            }
+            else // This column is for next rendering section.
+            {
+                offsettedIndex = (_Index + _Count) + (id.x - offsetCount - _Count);
+                offsettedLongitudeAngle = longitudeAngle + _HorizontalAngleLimit - (-offsetCount - _Count) * _VelodyneLongitudeAngles.y;
+                if (_Index + _Count >= _MeasurementsPerRotation)
+                {
+                    offsettedIndex -= _MeasurementsPerRotation;
+                    offsettedLongitudeAngle -= 360.0f;
+                }
+            }
+        }
+        else
+        {
+            if ((int) id.x < offsetCount) // This column is for previous rendering section.
+            {
+                offsettedIndex = (_Index - _Count) + (id.x - offsetCount + _Count);
+                offsettedLongitudeAngle = longitudeAngle - _HorizontalAngleLimit - (offsetCount - _Count) * _VelodyneLongitudeAngles.y;
+                if (_Index < _Count)
+                {
+                    offsettedIndex += _MeasurementsPerRotation;
+                    offsettedLongitudeAngle += 360.0f;
+                }
+            }
+            else // This column is for current rendering section.
+            {
+                offsettedIndex = _Index + id.x - offsetCount;
+                offsettedLongitudeAngle = longitudeAngle - offsetCount * _VelodyneLongitudeAngles.y;
+            }
+        }
+        sinOffsetLocalLongitudeAngle = sinLocalLongitudeAngle * _CosLocalLongitudeOffsetAngles[id.y] + cosLocalLongitudeAngle * _SinLocalLongitudeOffsetAngles[id.y];
+        cosOffsetLocalLongitudeAngle = cosLocalLongitudeAngle * _CosLocalLongitudeOffsetAngles[id.y] - sinLocalLongitudeAngle * _SinLocalLongitudeOffsetAngles[id.y];
+    #else
+        offsettedIndex = _Index + id.x;
+        offsettedLongitudeAngle = longitudeAngle;
+        sinOffsetLocalLongitudeAngle = sinLocalLongitudeAngle;
+        cosOffsetLocalLongitudeAngle = cosLocalLongitudeAngle;
+    #endif
+
+    const float dz = rProjected * sinOffsetLocalLongitudeAngle;
+    const float dx = rProjected * cosOffsetLocalLongitudeAngle;
+
+    const float scale = _ScaleDistance.z / dz;
+    float xx = dx * scale;
+    float yy = dy * scale;
+    int x = (int)(xx / _ScaleDistance.x + _TexSize.x * 0.5);
+    int y = (int)(yy / _ScaleDistance.y + _TexSize.y * 0.5);
+
+    float distance;
+    float intensity;
+    if (x < 0 || x >= _TexSize.x || y < 0 || y >= _TexSize.y)
+    {
+        distance = 0;
+        intensity = 0;
+    }
+    else
+    {
+        const float4 sample = LOAD_TEXTURE2D_X(_Input, uint2(x, y));
+        distance = 2.0f * DecodeFloatRGB(sample.rgb);
+        intensity = sample.a;
+    }
+
+    const uint measurementIndex = offsettedIndex % _MeasurementsPerRotation;
+    const uint index = indexOffset + measurementIndex;
+
+    uint packetIndex, measurementInsidePacketIndex, blockIndex, blockOffset, measurementOffset, byteOffset;
+
+    #if defined(VLP_16)
+        packetIndex = measurementIndex / 24;
+        measurementInsidePacketIndex = measurementIndex % 24;
+        blockIndex = measurementInsidePacketIndex / 2;
+        blockOffset = DATA_PACKET_LENGTH * packetIndex + DATA_BLOCK_LENGTH * blockIndex;
+        measurementOffset = blockOffset + DATA_BLOCK_FLAG_LENGTH + DATA_BLOCK_AZIMUTH_LENGTH;
+        if (measurementInsidePacketIndex % 2 == 1)
+        {
+            measurementOffset += DATA_MEASUREMENT_LENGTH;
+        }
+        byteOffset = measurementOffset + id.y * DATA_POINT_LENGTH;
+    #elif defined(VLP_32C)
+        packetIndex = measurementIndex / 12;
+        measurementInsidePacketIndex = measurementIndex % 12;
+        blockIndex = measurementInsidePacketIndex;
+        blockOffset = DATA_PACKET_LENGTH * packetIndex + DATA_BLOCK_LENGTH * blockIndex;
+        measurementOffset = blockOffset + DATA_BLOCK_FLAG_LENGTH + DATA_BLOCK_AZIMUTH_LENGTH;
+        byteOffset = measurementOffset + id.y * DATA_POINT_LENGTH;
+    #else // VLS_128
+        packetIndex = measurementIndex / 3;
+        measurementInsidePacketIndex = measurementIndex % 3;
+        blockIndex = measurementInsidePacketIndex * 4 + id.y / 32;
+        blockOffset = DATA_PACKET_LENGTH * packetIndex + DATA_BLOCK_LENGTH * blockIndex;
+        measurementOffset = blockOffset + DATA_BLOCK_FLAG_LENGTH + DATA_BLOCK_AZIMUTH_LENGTH;
+        byteOffset = measurementOffset + id.y % 32 * DATA_POINT_LENGTH;
+    #endif
+
+    if (measurementInsidePacketIndex == 0)
+    {
+        const int timestampOffset = DATA_PACKET_LENGTH * (packetIndex + 1) - DATA_PACKET_FACTORY_LENGTH - DATA_PACKET_TIMESTAMP_LENGTH;
+        FillInFourBytes(asuint(_TimeStamp), _VelodyneData, timestampOffset);
+    }
+
+    #if defined(VLP_16)
+        // Fill in azimuth if this is the first measurement in the block and this is the first laser ray.
+        if (measurementInsidePacketIndex % 2 == 0 && id.y == 0)
+        {
+            // Convert float longitude angle to an unsigned 16-bit integer in hundredths of a degree.
+            uint azimuth = (uint)(offsettedLongitudeAngle * 100);
+            FillInTwoBytes(azimuth, _VelodyneData, blockOffset + DATA_BLOCK_FLAG_LENGTH);
+        }
+    #elif defined(VLP_32C)
+        // Fill in azimuth if this is the first laser ray.
+        if (id.y == 0)
+        {
+            // Convert float longitude angle to an unsigned 16-bit integer in hundredths of a degree.
+            uint azimuth = (uint)(offsettedLongitudeAngle * 100);
+            FillInTwoBytes(azimuth, _VelodyneData, blockOffset + DATA_BLOCK_FLAG_LENGTH);
+        }
+    #else // VLS_128
+        // Fill in azimuth if this is the first laser ray in the block.
+        if (id.y % 32 == 0)
+        {
+            // Convert float longitude angle to an unsigned 16-bit integer in hundredths of a degree.
+            uint azimuth = (uint)(offsettedLongitudeAngle * 100);
+            FillInTwoBytes(azimuth, _VelodyneData, blockOffset + DATA_BLOCK_FLAG_LENGTH);
+        }
+    #endif
+
+    if (distance == 0)
+    {
+        _Output[index] = float4(0, 0, 0, 0);
+        FillInOneByte(0, _VelodyneData, byteOffset);
+        FillInOneByte(0, _VelodyneData, byteOffset + 1);
+        FillInOneByte(0, _VelodyneData, byteOffset + 2);
+    }
+    else
+    {
+        const float3 dir = mul(_CameraToWorld, float4(xx, yy, -_ScaleDistance.z, 1)).xyz - _Origin.xyz;
+        float3 position = _Origin.xyz + normalize(dir) * distance * _ScaleDistance.w;
+
+        #ifndef COMPENSATED
+        position = mul(_Transform, float4(position, 1)).xyz;
+        #endif
+
+        _Output[index] = float4(position, intensity);
+
+        // Convert float distance to an unsigned 16-bit integer in 2mm granularity.
+        uint convertedDistance = (uint)(distance * _ScaleDistance.w * 500);
+        FillInTwoBytes(convertedDistance, _VelodyneData, byteOffset);
+        FillInOneByte((uint) (intensity * 255), _VelodyneData, byteOffset + 2);
+    }
+}
+
+[numthreads(8,8,1)]
+void DIR_LIDAR_COMPUTE (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= (uint) _Count || id.y >= (uint) _LaserCount)
+        return;
+
+    const float3 dir = _DirLidarStart.xyz + (_DirLidarStartRay + id.y) * _DirLidarDeltaY.xyz + id.x * _DirLidarDeltaX.xyz;
+
+    const int y = (id.y + _DirLidarStartRay) * _TexSize.y / _DirLidarMaxRayCount;
+    const int indexOffset = id.y * _MeasurementsPerRotation;
+
+    const float3 dirNorm = normalize(dir);
+    const int x = id.x * _TexSize.x / _Count;
+
+    const float4 sample = LOAD_TEXTURE2D_X(_Input, uint2(x, y));
+    const float distance = 2.0f * DecodeFloatRGB(sample.rgb);
+
+    const int index = indexOffset + (_Index + id.x) % _MeasurementsPerRotation;
+    if (distance == 0 || dot(dirNorm, _DirLidarForward) < _CosAngle)
+    {
+        _Output[index] = float4(0, 0, 0, 0);
+    }
+    else
+    {
+        const float intensity = sample.a;
+        // distance = 0.2;
+        float3 position = _Origin.xyz + dirNorm * distance * _ScaleDistance.w;
+
+        #ifndef COMPENSATED
+        position = mul(_Transform, float4(position, 1)).xyz;
+        #endif
+
+        _Output[index] = float4(position, intensity);
+    }
+}

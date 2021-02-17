@@ -38,5 +38,7 @@ namespace Simulator.Utilities
         public Shader PointCloudShader;
 
         public ComputeShader LensDistortion;
+
+        public ComputeShader LidarComputeShader;
     }
 }

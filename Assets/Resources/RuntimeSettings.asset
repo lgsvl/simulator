@@ -23,4 +23,4 @@ MonoBehaviour:
   LineShader: {fileID: 4800000, guid: 1565f8e4ba17c85428b798b12e7a2b10, type: 3}
   PointCloudShader: {fileID: 4800000, guid: f4f8cf0585f6c5e4f9b9f1ccb82908ee, type: 3}
   LensDistortion: {fileID: 7200000, guid: e4b91d1426a38e147adb9d9901e38273, type: 3}
-  SensorPrefabs: []
+  LidarComputeShader: {fileID: 7200000, guid: 3453acc130e86ea4cbba2e7ed0a63450, type: 3}

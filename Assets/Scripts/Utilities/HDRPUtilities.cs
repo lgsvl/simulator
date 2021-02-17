@@ -71,5 +71,10 @@ namespace Simulator.Utilities
             
             SimulatorManager.Instance.CustomPassManager.ExecuteAndClearCommandBuffer(commandBuffer);
         }
+
+        public static int GetGroupSize(int threads, int blockCount)
+        {
+            return Math.Max(1, (threads + blockCount - 1) / blockCount);
+        }
     }
 }

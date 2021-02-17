@@ -25,6 +25,7 @@ pipeline {
     booleanParam(name: "UPLOAD", defaultValue: true, description: "Upload bundles to S3")
     string(name: "BUILD_SIMULATOR_ENVIRONMENTS", defaultValue: "${SIMULATOR_ENVIRONMENTS}", description: "Environments to build")
     string(name: "BUILD_SIMULATOR_VEHICLES", defaultValue: "${SIMULATOR_VEHICLES}", description: "Vehicles to build")
+    string(name: "BUILD_SIMULATOR_SENSORS", defaultValue: "${SIMULATOR_SENSORS}", description: "Sensors to build")
     string(name: "WISE_URL", defaultValue: "${SIMULATOR_WISE_BETA_URL}", description: "Url to use with wise-cli for uploading assets, CLOUD_URL should be used later, not it's separate to test against dev instead of staging")
     credentials(name: "WISE_CONTENT_UPLOAD_CREDENTIALS_ID", required: true, defaultValue: "WISE_CONTENT_UPLOAD_BETA", description: 'The credentials to be used for uploading asset bundles', credentialType: 'com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl')
     credentials( name: 'S3_CREDENTIALS_ID', required: true, defaultValue: "s3-release--aws-credentials", description: 'The credentials to be used for uploading to S3 bucket', credentialType: 'com.cloudbees.jenkins.plugins.awscredentials.AWSCredentialsImpl')
@@ -146,6 +147,60 @@ pipeline {
       }
     }
 
+    stage("Checkout Sensors") {
+      when {
+        not {
+            environment name: "BUILD_SIMULATOR_SENSORS", value: ""
+        }
+      }
+      steps {
+        sh label:"Cleanup Assets/External/Sensors", script:"""
+            cd Assets/External/Sensors
+            git clean -xdff .
+        """
+
+        script {
+
+          def sensors = env.BUILD_SIMULATOR_SENSORS.split(',')
+          def sensor_names_list = []
+
+          for (int i=0; i<sensors.size(); i++) {
+            def sensor_path = sensors[i]
+            def sensor_path_parts = sensor_path.split('/')
+            def sensor_name = sensor_path_parts.last()
+
+            sensor_names_list.add(sensor_name)
+
+            checkout([
+              $class: "GitSCM",
+              branches: [[name: "refs/heads/master"]],
+              browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Sensors/${sensor_path}", version: env.GITLAB_VERSION],
+              extensions: [
+                [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Sensors/${sensor_name}"],
+                [$class: "LocalBranch"],
+                [$class: "GitLFSPull"]
+              ],
+              userRemoteConfigs: [[
+                credentialsId: "auto-gitlab",
+                url: "git@${GITLAB_HOST}:HDRP/Sensors/${sensor_path}.git"
+              ]]
+            ])
+          }
+
+          def sensor_names = sensor_names_list.join(",")
+
+          env.SIM_SENSORS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Sensors ${S3_DOWNLOAD_HOST} sensor 0 ${sensor_names}").trim()
+        } // script
+
+        sh "printenv SIM_SENSORS | tee sensors.txt"
+      }
+      post {
+        success {
+            archiveArtifacts "sensors.txt"
+        }
+      }
+    }
+
     stage("Docker") {
       environment {
         DOCKER = credentials("Jenkins-Gitlab")
@@ -170,6 +225,9 @@ pipeline {
           not {
             environment name: "SIM_VEHICLES", value: ""
           }
+          not {
+            environment name: "SIM_SENSORS", value: ""
+          }
         }
       }
       steps {
@@ -188,6 +246,9 @@ pipeline {
           }
           not {
             environment name: "SIM_VEHICLES", value: ""
+          }
+          not {
+            environment name: "SIM_SENSORS", value: ""
           }
         }
       }
@@ -209,6 +270,9 @@ pipeline {
           }
           not {
             environment name: "SIM_VEHICLES", value: ""
+          }
+          not {
+            environment name: "SIM_SENSORS", value: ""
           }
         }
       }

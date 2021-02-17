@@ -32,7 +32,7 @@ pipeline {
     PYTHONUNBUFFERED = "1"
     DISPLAY = ":0"
     JENKINS_BUILD_ID = "${BUILD_ID}"
-    GIT_TAG = "${GIT_TAG}"
+    OUTPUT_SUFFIX = "${sh(script:"echo ${env.GIT_TAG} | sed 's#^refs/tags/##g' | tr / -  | tr [:upper:] [:lower:]", returnStdout: true).trim()}"
     CODE_SIGNING_FILE = "/dev/urandom"
     FORCE_REBUILD = "${FORCE_REBUILD}"
     SIMULATOR_ENVIRONMENTS = "${SIMULATOR_ENVIRONMENTS_RELEASE}"
@@ -49,11 +49,11 @@ pipeline {
     stage("Git") {
       steps {
 
-        mail to: "${SIMULATOR_RELEASE_EMAILS}", subject: "Starting ${GIT_TAG} release build", body: "Starting ${GIT_TAG} release build: ${BUILD_URL}"
+        mail to: "${SIMULATOR_RELEASE_EMAILS}", subject: "Starting ${OUTPUT_SUFFIX} release build", body: "Starting ${OUTPUT_SUFFIX} release build: ${BUILD_URL}"
 
         checkout([
           $class: "GitSCM",
-          branches: [[name: "refs/tags/${GIT_TAG}"]],
+          branches: [[name: "refs/tags/${env.GIT_TAG}"]],
           browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Simulator", version: env.GITLAB_VERSION],
           extensions: [
             [$class: "LocalBranch"],
@@ -224,7 +224,7 @@ pipeline {
       }
       post {
         success {
-          archiveArtifacts "*-check-${GIT_TAG}.html"
+          archiveArtifacts "*-check-${OUTPUT_SUFFIX}.html"
         }
       }
     }
@@ -237,7 +237,7 @@ pipeline {
       }
       post {
         success {
-          xunit([NUnit3(pattern: "*-test-${GIT_TAG}.xml", deleteOutputFiles: true)])
+          xunit([NUnit3(pattern: "*-test-${OUTPUT_SUFFIX}.xml", deleteOutputFiles: true)])
         }
       }
     }
@@ -254,7 +254,7 @@ pipeline {
 
       post {
         success {
-          archiveArtifacts "*-windows64-${GIT_TAG}.zip"
+          archiveArtifacts "*-windows64-${OUTPUT_SUFFIX}.zip"
         }
       }
 
@@ -267,7 +267,7 @@ pipeline {
           sh "UID=`id -u` docker-compose run --rm build-simulator linux"
         }
         sh """
-          ZIP=`basename *-linux64-${GIT_TAG}.zip`
+          ZIP=`basename *-linux64-${OUTPUT_SUFFIX}.zip`
           NORUNNER=`echo \$ZIP | sed 's/\\.zip\$/-norunner.zip/g'`
           mv \$ZIP \$NORUNNER
         """
@@ -275,7 +275,7 @@ pipeline {
 
       post {
         success {
-          archiveArtifacts "*-linux64-${GIT_TAG}-norunner.zip"
+          archiveArtifacts "*-linux64-${OUTPUT_SUFFIX}-norunner.zip"
         }
       }
 
@@ -307,7 +307,7 @@ pipeline {
             docker save ${GITLAB_HOST}:4567/${SCENARIOS_RUNNER_DOCKER_TAG} > dist/docker/lgsvl-simulator-scenarios-runner.tar
             cp scripts/install-testcase-runtime.sh scripts/scenario_runner.sh dist
 
-            ZIP=../*-linux64-${GIT_TAG}-norunner.zip
+            ZIP=../*-linux64-${OUTPUT_SUFFIX}-norunner.zip
 
             unzip -o \$ZIP
             UNZIP=`basename \$ZIP | sed 's/-norunner\\.zip\$//g'`
@@ -323,7 +323,7 @@ pipeline {
       }
       post {
         success {
-          archiveArtifacts "*-linux64-${GIT_TAG}.zip"
+          archiveArtifacts "*-linux64-${OUTPUT_SUFFIX}.zip"
         }
       }
     }
@@ -336,8 +336,7 @@ pipeline {
             sh """
               DOCKER_REGISTRY="${WISE_AWS_ECR_ACCOUNT_ID}.dkr.ecr.${WISE_AWS_ECR_REGION}.amazonaws.com"
               DOCKER_REPO="wise/simulator"
-              GIT_TAG_FOR_ECR=`echo ${GIT_TAG} | tr / -  | tr [:upper:] [:lower:]`
-              DOCKER_TAG="version__\${GIT_TAG_FOR_ECR}_${JENKINS_BUILD_ID}"
+              DOCKER_TAG="version__\${OUTPUT_SUFFIX}_${JENKINS_BUILD_ID}"
 
               docker-compose pull aws-cli
               if ! UID=`id -u` docker-compose run --rm aws-cli ecr get-login-password --region $WISE_AWS_ECR_REGION | docker login --username AWS --password-stdin \$DOCKER_REGISTRY; then
@@ -349,14 +348,14 @@ pipeline {
               fi
 
               cd ../Docker
-              cp -al ../*-linux64-${GIT_TAG}-norunner.zip .
+              cp -al ../*-linux64-${OUTPUT_SUFFIX}-norunner.zip .
               docker build --pull --no-cache \
-                  --build-arg "simulator_zipfile=*-linux64-${GIT_TAG}-norunner.zip" \
+                  --build-arg "simulator_zipfile=*-linux64-${OUTPUT_SUFFIX}-norunner.zip" \
                   --build-arg image_git_describe=\$(git describe --always --tags) \
                   --build-arg image_uuidgen=\$(uuidgen) \
                   -t \$DOCKER_REGISTRY/\$DOCKER_REPO:\$DOCKER_TAG .
               docker push \$DOCKER_REGISTRY/\$DOCKER_REPO:\$DOCKER_TAG
-              rm -fv *-linux64-${GIT_TAG}-norunner.zip
+              rm -fv *-linux64-${OUTPUT_SUFFIX}-norunner.zip
 
               docker image rm \
                 \$DOCKER_REGISTRY/\$DOCKER_REPO:\$DOCKER_TAG
@@ -372,13 +371,13 @@ pipeline {
 
   post {
     failure {
-      mail to: "${SIMULATOR_RELEASE_EMAILS}", subject: "Failed ${GIT_TAG} release build", body: "Failed ${GIT_TAG} release build: ${BUILD_URL}"
+      mail to: "${SIMULATOR_RELEASE_EMAILS}", subject: "Failed ${OUTPUT_SUFFIX} release build", body: "Failed ${OUTPUT_SUFFIX} release build: ${BUILD_URL}"
     }
     success {
-      mail to: "${SIMULATOR_RELEASE_EMAILS}", subject: "Finished ${GIT_TAG} release build", body: "Finished ${GIT_TAG} release build: ${BUILD_URL}"
+      mail to: "${SIMULATOR_RELEASE_EMAILS}", subject: "Finished ${OUTPUT_SUFFIX} release build", body: "Finished ${OUTPUT_SUFFIX} release build: ${BUILD_URL}"
     }
     always {
-        sh script:"zip logs-${GIT_TAG}-${BUILD_ID}.zip *.log || true", label:"Archive log files"
+        sh script:"zip logs-${OUTPUT_SUFFIX}.zip *.log || true", label:"Archive log files"
         archiveArtifacts artifacts:"logs*.zip", allowEmptyArchive:true
     }
   }

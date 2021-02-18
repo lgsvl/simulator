@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -11,7 +11,10 @@ using UnityEngine;
 using Simulator.Sensors;
 using UnityEngine.SceneManagement;
 using Simulator.Web;
-using Simulator.Bridge;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
+using System.Collections.Concurrent;
 
 namespace Simulator.Api.Commands
 {
@@ -85,6 +88,36 @@ namespace Simulator.Api.Commands
                     if (config.Prefab == null)
                     {
                         throw new Exception($"failed to acquire ego prefab");
+                    }
+
+                    var downloads = new List<Task>();
+                    List<SensorData> sensorsToDownload = new List<SensorData>();
+                    ConcurrentDictionary<Task, string> assetDownloads = new ConcurrentDictionary<Task, string>();
+
+                    foreach (var plugin in config.Sensors)
+                    {
+                        if (plugin.Plugin.AssetGuid != null && sensorsToDownload.FirstOrDefault(s => s.Plugin.AssetGuid == plugin.Plugin.AssetGuid) == null)
+                        {
+                            sensorsToDownload.Add(plugin);
+                        }
+                    }
+
+                    foreach (var sensor in sensorsToDownload)
+                    {
+                        var pluginProgress = ConnectionUI.instance != null ?
+                        new Progress<Tuple<string, float>>(p => ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2))
+                        : new Progress<Tuple<string, float>>(p => Debug.Log($"Download: {p.Item1}: {p.Item2}"));
+
+                        var pluginTask = DownloadManager.GetAsset(BundleConfig.BundleTypes.Sensor, sensor.Plugin.AssetGuid,
+                            sensor.Name, pluginProgress);
+                        downloads.Add(pluginTask);
+                        assetDownloads.TryAdd(pluginTask, sensor.Type);
+                    }
+
+                    await Task.WhenAll(downloads);
+                    foreach (var download in downloads)
+                    {
+                        assetDownloads.TryRemove(download, out _);
                     }
 
                     agentGO = agents.SpawnAgent(config);

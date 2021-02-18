@@ -305,14 +305,14 @@ namespace Simulator
                 Instance.currentSimulation = simData;
                 Instance.reportStatus(SimulatorStatus.Loading);
                 Instance.Network.Initialize(Config.SimID, simData.Cluster, Instance.NetworkSettings);
+
                 var downloads = new List<Task>();
                 if (simData.ApiOnly == false)
                 {
                     if (simData.Map != null)
                     {
                         var progressUpdate = new Progress<Tuple<string,float>> (p => { ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2); });
-                        var task = DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, simData.Map.AssetGuid,
-                            simData.Map.Name, progressUpdate);
+                        var task = DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, simData.Map.AssetGuid, simData.Map.Name, progressUpdate);
                         downloads.Add(task);
                         Instance.assetDownloads.TryAdd(task, simData.Map.AssetGuid);
                     }
@@ -320,8 +320,7 @@ namespace Simulator
                     foreach (var vehicle in simData.Vehicles.Where(v => !v.Id.EndsWith(".prefab")).Select(v => v.AssetGuid).Distinct())
                     {
                         var progressUpdate = new Progress<Tuple<string,float>> (p => { ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2); });
-                        var task = DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicle,
-                            simData.Vehicles.First(v => v.AssetGuid == vehicle).Name, progressUpdate);
+                        var task = DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicle, simData.Vehicles.First(v => v.AssetGuid == vehicle).Name, progressUpdate);
                         downloads.Add(task);
                         Instance.assetDownloads.TryAdd(task, vehicle);
                     }
@@ -331,7 +330,7 @@ namespace Simulator
                     {
                         foreach (var plugin in data.Sensors)
                         {
-                            if (sensorsToDownload.FirstOrDefault(s => s.Plugin.AssetGuid == plugin.Plugin.AssetGuid) == null)
+                            if (plugin.Plugin.AssetGuid != null && sensorsToDownload.FirstOrDefault(s => s.Plugin.AssetGuid == plugin.Plugin.AssetGuid) == null)
                             {
                                 sensorsToDownload.Add(plugin);
                             }
@@ -340,17 +339,14 @@ namespace Simulator
 
                     foreach(var sensor in sensorsToDownload)
                     {
-                        if (sensor.Plugin.AssetGuid != null) // TODO remove after WISE update
-                        {
-                            var pluginProgress = ConnectionUI.instance != null ?
-                            new Progress<Tuple<string, float>>(p => ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2) )
+                        var pluginProgress = ConnectionUI.instance != null ?
+                            new Progress<Tuple<string, float>>(p => ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2))
                             : new Progress<Tuple<string, float>>(p => Debug.Log($"Download: {p.Item1}: {p.Item2}"));
 
-                            var pluginTask = DownloadManager.GetAsset(BundleConfig.BundleTypes.Sensor, sensor.Plugin.AssetGuid,
-                                sensor.Name, pluginProgress);
-                            downloads.Add(pluginTask);
-                            Instance.assetDownloads.TryAdd(pluginTask, sensor.Type);
-                        }
+                        var pluginTask = DownloadManager.GetAsset(BundleConfig.BundleTypes.Sensor, sensor.Plugin.AssetGuid,
+                            sensor.Name, pluginProgress);
+                        downloads.Add(pluginTask);
+                        Instance.assetDownloads.TryAdd(pluginTask, sensor.Type);
                     }
                 }
 

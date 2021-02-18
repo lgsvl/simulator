@@ -342,12 +342,12 @@ pipeline {
             fi
             TEMP_CONT=`docker create ${GITLAB_HOST}:4567/\$SCENARIOS_RUNNER_DOCKER_TAG --name scenarios-runner-tmp`
             if ! docker cp \$TEMP_CONT:/usr/share/scenarios-runner/scripts .; then
-              echo "ABORT: ${GITLAB_HOST}:4567/${SCENARIOS_RUNNER_DOCKER_TAG} doesn't have /usr/share/scenarios-runner/scripts directory"
+              echo "ABORT: ${GITLAB_HOST}:4567/\$SCENARIOS_RUNNER_DOCKER_TAG doesn't have /usr/share/scenarios-runner/scripts directory"
               docker rm \$TEMP_CONT
               exit 1
             fi
             if ! docker cp \$TEMP_CONT:/etc/wise-image-info.source .; then
-              echo "ABORT: ${GITLAB_HOST}:4567/${SCENARIOS_RUNNER_DOCKER_TAG} doesn't have /etc/wise-image-info.source file"
+              echo "ABORT: ${GITLAB_HOST}:4567/\$SCENARIOS_RUNNER_DOCKER_TAG doesn't have /etc/wise-image-info.source file"
               docker rm \$TEMP_CONT
               exit 1
             fi
@@ -355,8 +355,18 @@ pipeline {
 
             rm -rf dist
             mkdir -p dist/docker
-            docker save ${GITLAB_HOST}:4567/${SCENARIOS_RUNNER_DOCKER_TAG} > dist/docker/lgsvl-simulator-scenarios-runner.tar
+            DST_TAG="lgsvl/simulator-scenarios-runner:simulator-build__${OUTPUT_SUFFIX}"
+            DST_TARBALL=\$(echo \$DST_TAG | tr ':/' '-')
+
+            docker tag ${GITLAB_HOST}:4567/\$SCENARIOS_RUNNER_DOCKER_TAG \$DST_TAG
+
+            echo "INFO: saving docker image \$DST_TAG to dist/docker/\$DST_TARBALL.tar"
+            docker save \$DST_TAG > dist/docker/\$DST_TARBALL.tar
+
             cp scripts/install-testcase-runtime.sh scripts/scenario_runner.sh dist
+
+            echo "INFO: update the default SCENARIO_RUNNER_IMAGE in scenario_runner.sh from whatever was there (probably "auto-gitlab.lgsvl.net:4567/hdrp/scenarios/runner:dev") to \$DST_TAG"
+            sed -i "s#^SCENARIO_RUNNER_IMAGE_DEFAULT=.*#SCENARIO_RUNNER_IMAGE_DEFAULT=\$DST_TAG#g" dist/scenario_runner.sh
 
             ZIP=../*-linux64-${OUTPUT_SUFFIX}-norunner.zip
 

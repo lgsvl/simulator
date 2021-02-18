@@ -55,6 +55,11 @@ pipeline {
             script {
                 env.GIT_COMMIT = sh(returnStdout: true, script: "git rev-parse HEAD").trim()
             }
+
+            sh label:"Cleanup Assets/External/Sensors", script:"""
+                cd Assets/External/Sensors
+                git clean -xdff .
+            """
         }
     }
 
@@ -153,11 +158,6 @@ pipeline {
         }
       }
       steps {
-        sh label:"Cleanup Assets/External/Sensors", script:"""
-            cd Assets/External/Sensors
-            git clean -xdff .
-        """
-
         script {
 
           def sensors = env.BUILD_SIMULATOR_SENSORS.split(',')

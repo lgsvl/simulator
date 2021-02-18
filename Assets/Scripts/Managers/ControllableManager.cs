@@ -152,8 +152,9 @@ namespace Simulator.Controllable
 
         public void Reset()
         {
-            Controllables.Clear();
-            ControllersByUID.Clear();
+            for (var i = Controllables.Count - 1; i >= 0; i--)
+                UnregisterControllable(Controllables[i]);
+
             var allControllables = FindObjectsOfType<MonoBehaviour>().OfType<IControllable>();
             foreach (var controllable in allControllables)
             {

@@ -88,25 +88,42 @@ pipeline {
 
           if (repo_list) {
             def repos = repo_list.split(',')
+            def repo_names_list = []
+
             for (int i=0; i<repos.size(); i++) {
-              def repo = repos[i]
+              def repo_parts = repos[i].split(":")
+
+              def repo_git_ref = "refs/heads/master"
+              if (repo_parts.size() > 1) {
+                  repo_git_ref = repo_parts[1]
+              }
+
+              def repo_path = repo_parts[0]
+              def repo_path_parts = repo_path.split('/')
+              def repo_name = repo_path_parts.last()
+
+              repo_names_list.add(repo_name)
+              echo "INFO: Checking out ${repo_prefix}: ${repo_name} ref ${repo_git_ref} from HDRP/${repo_prefix}/${repo_path} to Assets/External/${repo_prefix}/${repo_name}"
+
               checkout([
                 $class: "GitSCM",
-                branches: [[name: "refs/heads/master"]],
-                browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/${repo_prefix}/${repo}", version: env.GITLAB_VERSION],
+                branches: [[name: "${repo_git_ref}"]],
+                browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/${repo_prefix}/${repo_path}", version: env.GITLAB_VERSION],
                 extensions: [
-                  [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/${repo_prefix}/${repo}"],
+                  [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/${repo_prefix}/${repo_name}"],
                   [$class: "LocalBranch"],
                   [$class: "GitLFSPull"]
                 ],
                 userRemoteConfigs: [[
                   credentialsId: "auto-gitlab",
-                  url: "git@${GITLAB_HOST}:HDRP/${repo_prefix}/${repo}.git"
+                  url: "git@${GITLAB_HOST}:HDRP/${repo_prefix}/${repo_path}.git"
                 ]]
               ])
             }
+            def repo_names = repo_names_list.join(",")
+            echo "INFO: Checked out following ${repo_prefix}: ${repo_names}"
           } else {
-            echo "INFO: No SIMULATOR_CONTROLLABLES to checkout"
+            echo "INFO: No ${repo_prefix} to checkout"
           }
         }
       }
@@ -120,25 +137,42 @@ pipeline {
 
           if (repo_list) {
             def repos = repo_list.split(',')
+            def repo_names_list = []
+
             for (int i=0; i<repos.size(); i++) {
-              def repo = repos[i]
+              def repo_parts = repos[i].split(":")
+
+              def repo_git_ref = "refs/heads/master"
+              if (repo_parts.size() > 1) {
+                  repo_git_ref = repo_parts[1]
+              }
+
+              def repo_path = repo_parts[0]
+              def repo_path_parts = repo_path.split('/')
+              def repo_name = repo_path_parts.last()
+
+              repo_names_list.add(repo_name)
+              echo "INFO: Checking out ${repo_prefix}: ${repo_name} ref ${repo_git_ref} from HDRP/${repo_prefix}/${repo_path} to Assets/External/${repo_prefix}s/${repo_name}" // Notice extra 's' in 'NPCs'
+
               checkout([
                 $class: "GitSCM",
-                branches: [[name: "refs/heads/master"]],
-                browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/${repo_prefix}/${repo}", version: env.GITLAB_VERSION],
+                branches: [[name: "${repo_git_ref}"]],
+                browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/${repo_prefix}/${repo_path}", version: env.GITLAB_VERSION],
                 extensions: [
-                  [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/${repo_prefix}s/${repo}"], // Notice extra 's' in 'NPCs'
+                  [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/${repo_prefix}s/${repo_name}"], // Notice extra 's' in 'NPCs'
                   [$class: "LocalBranch"],
                   [$class: "GitLFSPull"]
                 ],
                 userRemoteConfigs: [[
                   credentialsId: "auto-gitlab",
-                  url: "git@${GITLAB_HOST}:HDRP/${repo_prefix}/${repo}.git"
+                  url: "git@${GITLAB_HOST}:HDRP/${repo_prefix}/${repo_path}.git"
                 ]]
               ])
             }
+            def repo_names = repo_names_list.join(",")
+            echo "INFO: Checked out following ${repo_prefix}: ${repo_names}"
           } else {
-            echo "INFO: No SIMULATOR_NPCS_REPOS to checkout"
+            echo "INFO: No ${repo_prefix} to checkout"
           }
         }
       }

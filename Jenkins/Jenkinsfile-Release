@@ -35,8 +35,6 @@ pipeline {
     OUTPUT_SUFFIX = "${sh(script:"echo ${env.GIT_TAG} | sed 's#^refs/tags/##g' | tr / -  | tr [:upper:] [:lower:]", returnStdout: true).trim()}"
     CODE_SIGNING_FILE = "/dev/urandom"
     FORCE_REBUILD = "${FORCE_REBUILD}"
-    SIMULATOR_ENVIRONMENTS = "${SIMULATOR_ENVIRONMENTS_RELEASE}"
-    SIMULATOR_SENSORS = "${SIMULATOR_SENSORS_RELEASE}"
   }
 
   stages {
@@ -72,47 +70,6 @@ pipeline {
 
         script {
 
-          def environments = env.SIMULATOR_ENVIRONMENTS.split(',')
-          for (int i=0; i<environments.size(); i++) {
-            def environment_path = environments[i]
-            def environment_path_parts = environment_path.split('/')
-            def environment_name = environment_path_parts.last()
-
-            checkout([
-              $class: "GitSCM",
-              branches: [[name: "refs/heads/master"]],
-              browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Environments/${environment_path}", version: env.GITLAB_VERSION],
-              extensions: [
-                [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Environments/${environment_name}"],
-                [$class: "LocalBranch"],
-                [$class: "GitLFSPull"]
-              ],
-              userRemoteConfigs: [[
-                credentialsId: "auto-gitlab",
-                url: "git@${GITLAB_HOST}:HDRP/Environments/${environment_path}.git"
-              ]]
-            ])
-          }
-
-          def vehicles = env.SIMULATOR_VEHICLES.split(',')
-          for (int i=0; i<vehicles.size(); i++) {
-            def vehicle = vehicles[i]
-            checkout([
-              $class: "GitSCM",
-              branches: [[name: "refs/heads/master"]],
-              browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Vehicles/${vehicle}", version: env.GITLAB_VERSION],
-              extensions: [
-                [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Vehicles/${vehicle}"],
-                [$class: "LocalBranch"],
-                [$class: "GitLFSPull"]
-              ],
-              userRemoteConfigs: [[
-                credentialsId: "auto-gitlab",
-                url: "git@${GITLAB_HOST}:HDRP/Vehicles/${vehicle}.git"
-              ]]
-            ])
-          }
-
           def controllables = env.SIMULATOR_CONTROLLABLES.split(',')
           for (int i=0; i<controllables.size(); i++) {
             def controllable = controllables[i]
@@ -132,44 +89,11 @@ pipeline {
             ])
           }
 
-          def sensors = env.SIMULATOR_SENSORS.split(',')
-          def sensor_names_list = []
-
-          for (int i=0; i<sensors.size(); i++) {
-            def sensor_git_ref = sensors[i].split(":")
-
-            def git_ref = "refs/heads/master"
-
-            if (sensor_git_ref.size() > 1) {
-                git_ref = sensor_git_ref[1]
-            }
-            def sensor_path = sensor_git_ref[0]
-            def sensor_path_parts = sensor_path.split('/')
-            def sensor_name = sensor_path_parts.last()
-
-            sensor_names_list.add(sensor_name)
-
-            checkout([
-              $class: "GitSCM",
-              branches: [[name: "${git_ref}"]],
-              browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Sensors/${sensor_path}", version: env.GITLAB_VERSION],
-              extensions: [
-                [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Sensors/${sensor_name}"],
-                [$class: "LocalBranch"],
-                [$class: "GitLFSPull"]
-              ],
-              userRemoteConfigs: [[
-                credentialsId: "auto-gitlab",
-                url: "git@${GITLAB_HOST}:HDRP/Sensors/${sensor_path}.git"
-              ]]
-            ])
-          }
-
           env.FORCE_REBUILD = "0"
           env.GIT_COMMIT = sh(returnStdout: true, script: "git rev-parse HEAD").trim()
           env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 1").trim()
           env.SIM_VEHICLES = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 1").trim()
-          env.SIM_SENSORS = sensor_names_list.join(",")
+          env.SIM_SENSORS = ""
         } // script
 
         sh "rm -rf *.zip *.html *.xml *.log"

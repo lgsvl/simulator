@@ -370,7 +370,7 @@ namespace Simulator
                         {
                             if (sensor.Plugin.AssetGuid != null) // TODO remove after WISE update
                             {
-                                var dir = Path.Combine(Application.persistentDataPath, "Sensors");
+                                var dir = Path.Combine(Config.PersistentDataPath, "Sensors");
                                 var vfs = VfsEntry.makeRoot(dir);
                                 Config.CheckDir(vfs.GetChild(sensor.Plugin.AssetGuid), Config.LoadSensorPlugin);
                             }
@@ -778,7 +778,7 @@ namespace Simulator
 
                     if (manifest.fmuName != "")
                     {
-                        var fmuDirectory = Path.Combine(Application.persistentDataPath, manifest.assetName);
+                        var fmuDirectory = Path.Combine(Config.PersistentDataPath, manifest.assetName);
                         if (platform == "windows")
                         {
                             var dll = zip.GetEntry($"{manifest.fmuName}_windows.dll");
@@ -791,7 +791,7 @@ namespace Simulator
                             {
                                 byte[] buffer = new byte[4096];
                                 Directory.CreateDirectory(fmuDirectory);
-                                var path = Path.Combine(Application.persistentDataPath, manifest.assetName, $"{manifest.fmuName}.dll");
+                                var path = Path.Combine(Config.PersistentDataPath, manifest.assetName, $"{manifest.fmuName}.dll");
                                 using (FileStream streamWriter = File.Create(path))
                                 {
                                     StreamUtils.Copy(s, streamWriter, buffer);
@@ -811,7 +811,7 @@ namespace Simulator
                             {
                                 byte[] buffer = new byte[4096];
                                 Directory.CreateDirectory(fmuDirectory);
-                                var path = Path.Combine(Application.persistentDataPath, manifest.assetName, $"{manifest.fmuName}.so");
+                                var path = Path.Combine(Config.PersistentDataPath, manifest.assetName, $"{manifest.fmuName}.so");
                                 using (FileStream streamWriter = File.Create(path))
                                 {
                                     StreamUtils.Copy(s, streamWriter, buffer);

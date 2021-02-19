@@ -175,7 +175,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                     }
                     else
                     {
-                        var dir = Path.Combine(Application.persistentDataPath, "Sensors");
+                        var dir = Path.Combine(Config.PersistentDataPath, "Sensors");
                         var vfs = VfsEntry.makeRoot(dir);
                         Config.CheckDir(vfs.GetChild(item.Plugin.AssetGuid), Config.LoadSensorPlugin);
                         if (Config.SensorTypeLookup.ContainsKey(item.Plugin.AssetGuid))

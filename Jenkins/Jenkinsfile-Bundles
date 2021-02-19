@@ -50,15 +50,14 @@ pipeline {
                 git lfs install
                 git lfs pull origin
             """
-            sh "rm -rf *.zip *.html *.xml *.log *.txt"
 
             script {
                 env.GIT_COMMIT = sh(returnStdout: true, script: "git rev-parse HEAD").trim()
             }
 
-            sh label:"Cleanup Assets/External/Sensors", script:"""
-                cd Assets/External/Sensors
+            sh label:"Cleanup the checkout", script:"""
                 git clean -xdff .
+                git reset --hard
             """
         }
     }

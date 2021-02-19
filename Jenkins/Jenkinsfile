@@ -71,9 +71,9 @@ pipeline {
           ]]
         ])
 
-        sh label:"Cleanup Assets/External/Sensors", script:"""
-            cd Assets/External/Sensors
+        sh label:"Cleanup the checkout", script:"""
             git clean -xdff .
+            git reset --hard
         """
 
         script {
@@ -103,8 +103,6 @@ pipeline {
           env.SIM_VEHICLES = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 1").trim()
           env.SIM_SENSORS = ""
         } // script
-
-        sh "rm -rf *.zip *.html *.xml *.log"
 
         sh label:"SIMULATOR env vars", script:"printenv | grep -E 'SIMULATOR|^SIM_' | sort"
       }

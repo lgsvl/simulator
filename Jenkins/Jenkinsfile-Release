@@ -83,22 +83,25 @@ pipeline {
     stage("Checkout Controllables") {
       steps {
         script {
-          if (env.SIMULATOR_CONTROLLABLES) {
-            def controllables = env.SIMULATOR_CONTROLLABLES.split(',')
-            for (int i=0; i<controllables.size(); i++) {
-              def controllable = controllables[i]
+          def repo_list = env.SIMULATOR_CONTROLLABLES
+          def repo_prefix = "Controllables"
+
+          if (repo_list) {
+            def repos = repo_list.split(',')
+            for (int i=0; i<repos.size(); i++) {
+              def repo = repos[i]
               checkout([
                 $class: "GitSCM",
                 branches: [[name: "refs/heads/master"]],
-                browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Controllables/${controllable}", version: env.GITLAB_VERSION],
+                browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/${repo_prefix}/${repo}", version: env.GITLAB_VERSION],
                 extensions: [
-                  [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Controllables/${controllable}"],
+                  [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/${repo_prefix}/${repo}"],
                   [$class: "LocalBranch"],
                   [$class: "GitLFSPull"]
                 ],
                 userRemoteConfigs: [[
                   credentialsId: "auto-gitlab",
-                  url: "git@${GITLAB_HOST}:HDRP/Controllables/${controllable}.git"
+                  url: "git@${GITLAB_HOST}:HDRP/${repo_prefix}/${repo}.git"
                 ]]
               ])
             }
@@ -112,22 +115,25 @@ pipeline {
     stage("Checkout NPCs") {
       steps {
         script {
-          if (env.SIMULATOR_NPCS_REPOS) {
-            def npcs = env.SIMULATOR_NPCS_REPOS.split(',')
-            for (int i=0; i<npcs.size(); i++) {
-              def npc = npcs[i]
+          def repo_list = env.SIMULATOR_NPCS_REPOS
+          def repo_prefix = "NPC"
+
+          if (repo_list) {
+            def repos = repo_list.split(',')
+            for (int i=0; i<repos.size(); i++) {
+              def repo = repos[i]
               checkout([
                 $class: "GitSCM",
                 branches: [[name: "refs/heads/master"]],
-                browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/NPC/${npc}", version: env.GITLAB_VERSION],
+                browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/${repo_prefix}/${repo}", version: env.GITLAB_VERSION],
                 extensions: [
-                  [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/NPCs/${npc}"],
+                  [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/${repo_prefix}s/${repo}"], // Notice extra 's' in 'NPCs'
                   [$class: "LocalBranch"],
                   [$class: "GitLFSPull"]
                 ],
                 userRemoteConfigs: [[
                   credentialsId: "auto-gitlab",
-                  url: "git@${GITLAB_HOST}:HDRP/NPC/${npc}.git"
+                  url: "git@${GITLAB_HOST}:HDRP/${repo_prefix}/${repo}.git"
                 ]]
               ])
             }

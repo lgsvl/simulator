@@ -229,14 +229,26 @@ cp /mnt/LICENSE-3RD-PARTY /tmp/${BUILD_OUTPUT}/LICENSE-3RD-PARTY.txt
 cp /mnt/PRIVACY /tmp/${BUILD_OUTPUT}/PRIVACY.txt
 cp /mnt/README.md /tmp/${BUILD_OUTPUT}/README.txt
 
-mkdir -p /tmp/${BUILD_OUTPUT}/AssetBundles/Controllables
-cp /mnt/AssetBundles/Controllables/controllable_* /tmp/${BUILD_OUTPUT}/AssetBundles/Controllables
+if ls /mnt/AssetBundles/Controllables/controllable_* >/dev/null 2>&1; then
+  mkdir -p /tmp/${BUILD_OUTPUT}/AssetBundles/Controllables
+  cp /mnt/AssetBundles/Controllables/controllable_* /tmp/${BUILD_OUTPUT}/AssetBundles/Controllables
+else
+  echo "No AssetBundles/Controllables/controllable_* to install"
+fi
 
-mkdir -p /tmp/${BUILD_OUTPUT}/AssetBundles/Sensors
-cp /mnt/AssetBundles/Sensors/sensor_* /tmp/${BUILD_OUTPUT}/AssetBundles/Sensors
+if ls /mnt/AssetBundles/Sensors/sensor_* >/dev/null 2>&1; then
+  mkdir -p /tmp/${BUILD_OUTPUT}/AssetBundles/Sensors
+  cp /mnt/AssetBundles/Sensors/sensor_* /tmp/${BUILD_OUTPUT}/AssetBundles/Sensors
+else
+  echo "No AssetBundles/Sensors/sensor_* to install"
+fi
 
-mkdir -p /tmp/${BUILD_OUTPUT}/AssetBundles/NPCs
-cp -R /mnt/AssetBundles/NPCs/* /tmp/${BUILD_OUTPUT}/AssetBundles/NPCs
+if ls /mnt/AssetBundles/NPCs/* >/dev/null 2>&1; then
+  mkdir -p /tmp/${BUILD_OUTPUT}/AssetBundles/NPCs
+  cp -R /mnt/AssetBundles/NPCs/* /tmp/${BUILD_OUTPUT}/AssetBundles/NPCs
+else
+  echo "No AssetBundles/NPCs/* to install"
+fi
 
 # TODO: This supports Jenkins only. For local build, need to package FFmpeg in Build.cs
 mkdir -p /tmp/${BUILD_OUTPUT}/simulator_Data/Plugins

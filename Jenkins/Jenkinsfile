@@ -49,9 +49,12 @@ pipeline {
 
   stages {
     stage("Build environment") {
-        steps {
-            sh label:"SIMULATOR env vars", script:"printenv | grep -E 'SIMULATOR|^SIM_' | sort"
+      steps {
+        script {
+          if (params.BUILD_LINUX && params.SCENARIOS_RUNNER_DOCKER_TAG == null || params.SCENARIOS_RUNNER_DOCKER_TAG == "") { error "Missing or empty parameter SCENARIOS_RUNNER_DOCKER_TAG! Value is required to bundle scenarios runner" }
         }
+        sh label:"SIMULATOR env vars", script:"printenv | grep -E 'SIMULATOR|^SIM_' | sort"
+      }
     }
 
     stage("Git") {
@@ -313,18 +316,19 @@ pipeline {
       steps {
         dir("Jenkins") {
           sh """
-            if ! docker pull ${GITLAB_HOST}:4567/\$SCENARIOS_RUNNER_DOCKER_TAG; then
-              echo "ABORT: cannot pull ${GITLAB_HOST}:4567/\$SCENARIOS_RUNNER_DOCKER_TAG"
+            echo "INFO: pulling docker image: ${GITLAB_HOST}:4567/${SCENARIOS_RUNNER_DOCKER_TAG}"
+            if ! docker pull ${GITLAB_HOST}:4567/${SCENARIOS_RUNNER_DOCKER_TAG}; then
+              echo "ABORT: cannot pull ${GITLAB_HOST}:4567/${SCENARIOS_RUNNER_DOCKER_TAG}"
               exit 1
             fi
-            TEMP_CONT=`docker create ${GITLAB_HOST}:4567/\$SCENARIOS_RUNNER_DOCKER_TAG --name scenarios-runner-tmp`
+            TEMP_CONT=`docker create ${GITLAB_HOST}:4567/${SCENARIOS_RUNNER_DOCKER_TAG} --name scenarios-runner-tmp`
             if ! docker cp \$TEMP_CONT:/usr/share/scenarios-runner/scripts .; then
-              echo "ABORT: ${GITLAB_HOST}:4567/\$SCENARIOS_RUNNER_DOCKER_TAG doesn't have /usr/share/scenarios-runner/scripts directory"
+              echo "ABORT: ${GITLAB_HOST}:4567/${SCENARIOS_RUNNER_DOCKER_TAG} doesn't have /usr/share/scenarios-runner/scripts directory"
               docker rm \$TEMP_CONT
               exit 1
             fi
             if ! docker cp \$TEMP_CONT:/etc/wise-image-info.source .; then
-              echo "ABORT: ${GITLAB_HOST}:4567/\$SCENARIOS_RUNNER_DOCKER_TAG doesn't have /etc/wise-image-info.source file"
+              echo "ABORT: ${GITLAB_HOST}:4567/${SCENARIOS_RUNNER_DOCKER_TAG} doesn't have /etc/wise-image-info.source file"
               docker rm \$TEMP_CONT
               exit 1
             fi
@@ -335,7 +339,7 @@ pipeline {
             DST_TAG="lgsvl/simulator-scenarios-runner:simulator-build__${OUTPUT_SUFFIX}"
             DST_TARBALL=\$(echo \$DST_TAG | tr ':/' '-')
 
-            docker tag ${GITLAB_HOST}:4567/\$SCENARIOS_RUNNER_DOCKER_TAG \$DST_TAG
+            docker tag ${GITLAB_HOST}:4567/${SCENARIOS_RUNNER_DOCKER_TAG} \$DST_TAG
 
             echo "INFO: saving docker image \$DST_TAG to dist/docker/\$DST_TARBALL.tar"
             docker save \$DST_TAG > dist/docker/\$DST_TARBALL.tar
@@ -349,7 +353,7 @@ pipeline {
 
             unzip -o \$ZIP
             UNZIP=`basename \$ZIP | sed 's/-norunner\\.zip\$//g'`
-            echo "INFO: bundling simulator from \$UNZIP with scenarios runner from docker image \$SCENARIOS_RUNNER_DOCKER_TAG:"
+            echo "INFO: bundling simulator from \$UNZIP with scenarios runner from docker image ${SCENARIOS_RUNNER_DOCKER_TAG}:"
             cat wise-image-info.source
 
             dist/install-testcase-runtime.sh \$UNZIP copy

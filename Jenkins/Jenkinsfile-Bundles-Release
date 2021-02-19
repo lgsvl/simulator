@@ -65,47 +65,45 @@ pipeline {
     }
 
     stage("Checkout Environments") {
-      when {
-        not {
-            environment name: "BUILD_SIMULATOR_ENVIRONMENTS", value: ""
-        }
-      }
       steps {
         script {
+          if (env.BUILD_SIMULATOR_ENVIRONMENTS) {
+            def environments = env.BUILD_SIMULATOR_ENVIRONMENTS.split(',')
+            def environment_names_list = []
 
-          def environments = env.BUILD_SIMULATOR_ENVIRONMENTS.split(',')
-          def environment_names_list = []
+            for (int i=0; i<environments.size(); i++) {
+              def environment_path = environments[i]
+              def environment_path_parts = environment_path.split('/')
+              def environment_name = environment_path_parts.last()
 
-          for (int i=0; i<environments.size(); i++) {
-            def environment_path = environments[i]
-            def environment_path_parts = environment_path.split('/')
-            def environment_name = environment_path_parts.last()
+              environment_names_list.add(environment_name)
 
-            environment_names_list.add(environment_name)
+              checkout([
+                $class: "GitSCM",
+                branches: [[name: "refs/heads/master"]],
+                browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Environments/${environment_path}", version: env.GITLAB_VERSION],
+                extensions: [
+                  [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Environments/${environment_name}"],
+                  [$class: "LocalBranch"],
+                  [$class: "GitLFSPull"]
+                ],
+                userRemoteConfigs: [[
+                  credentialsId: "auto-gitlab",
+                  url: "git@${GITLAB_HOST}:HDRP/Environments/${environment_path}.git"
+                ]]
+              ])
+            }
 
-            checkout([
-              $class: "GitSCM",
-              branches: [[name: "refs/heads/master"]],
-              browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Environments/${environment_path}", version: env.GITLAB_VERSION],
-              extensions: [
-                [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Environments/${environment_name}"],
-                [$class: "LocalBranch"],
-                [$class: "GitLFSPull"]
-              ],
-              userRemoteConfigs: [[
-                credentialsId: "auto-gitlab",
-                url: "git@${GITLAB_HOST}:HDRP/Environments/${environment_path}.git"
-              ]]
-            ])
+            def environment_names = environment_names_list.join(",")
+
+            env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 0 ${environment_names}").trim()
+          } else {
+            echo "INFO: No BUILD_SIMULATOR_ENVIRONMENTS to checkout"
+            env.SIM_ENVIRONMENTS = ""
           }
-
-          def environment_names = environment_names_list.join(",")
-
-          env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 0 ${environment_names}").trim()
-        } // script
+        }
         sh "printenv SIM_ENVIRONMENTS | tee environments.txt"
       }
-
       post {
         success {
             archiveArtifacts "environments.txt"
@@ -114,35 +112,34 @@ pipeline {
     }
 
     stage("Checkout Vehicles") {
-      when {
-        not {
-            environment name: "BUILD_SIMULATOR_VEHICLES", value: ""
-        }
-      }
       steps {
         script {
-          def vehicles = env.BUILD_SIMULATOR_VEHICLES.split(',')
-          for (int i=0; i<vehicles.size(); i++) {
-            def vehicle = vehicles[i]
-            checkout([
-              $class: "GitSCM",
-              branches: [[name: "refs/heads/master"]],
-              browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Vehicles/${vehicle}", version: env.GITLAB_VERSION],
-              extensions: [
-                [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Vehicles/${vehicle}"],
-                [$class: "LocalBranch"],
-                [$class: "GitLFSPull"]
-              ],
-              userRemoteConfigs: [[
-                credentialsId: "auto-gitlab",
-                url: "git@${GITLAB_HOST}:HDRP/Vehicles/${vehicle}.git"
-              ]]
-            ])
+          if (env.BUILD_SIMULATOR_VEHICLES) {
+            def vehicles = env.BUILD_SIMULATOR_VEHICLES.split(',')
+            for (int i=0; i<vehicles.size(); i++) {
+              def vehicle = vehicles[i]
+              checkout([
+                $class: "GitSCM",
+                branches: [[name: "refs/heads/master"]],
+                browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Vehicles/${vehicle}", version: env.GITLAB_VERSION],
+                extensions: [
+                  [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Vehicles/${vehicle}"],
+                  [$class: "LocalBranch"],
+                  [$class: "GitLFSPull"]
+                ],
+                userRemoteConfigs: [[
+                  credentialsId: "auto-gitlab",
+                  url: "git@${GITLAB_HOST}:HDRP/Vehicles/${vehicle}.git"
+                ]]
+              ])
+            }
+
+            env.SIM_VEHICLES = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 0 ${BUILD_SIMULATOR_VEHICLES}").trim()
+          } else {
+            echo "INFO: No BUILD_SIMULATOR_VEHICLES to checkout"
+            env.SIM_VEHICLES = ""
           }
-
-          env.SIM_VEHICLES = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 0 ${BUILD_SIMULATOR_VEHICLES}").trim()
-        } // script
-
+        }
         sh "printenv SIM_VEHICLES | tee vehicles.txt"
       }
       post {
@@ -153,50 +150,43 @@ pipeline {
     }
 
     stage("Checkout Sensors") {
-      when {
-        not {
-            environment name: "BUILD_SIMULATOR_SENSORS", value: ""
-        }
-      }
       steps {
-        sh label:"Cleanup Assets/External/Sensors", script:"""
-            cd Assets/External/Sensors
-            git clean -xdff .
-        """
-
         script {
+          if (env.BUILD_SIMULATOR_SENSORS) {
+            def sensors = env.BUILD_SIMULATOR_SENSORS.split(',')
+            def sensor_names_list = []
 
-          def sensors = env.BUILD_SIMULATOR_SENSORS.split(',')
-          def sensor_names_list = []
+            for (int i=0; i<sensors.size(); i++) {
+              def sensor_path = sensors[i]
+              def sensor_path_parts = sensor_path.split('/')
+              def sensor_name = sensor_path_parts.last()
 
-          for (int i=0; i<sensors.size(); i++) {
-            def sensor_path = sensors[i]
-            def sensor_path_parts = sensor_path.split('/')
-            def sensor_name = sensor_path_parts.last()
+              sensor_names_list.add(sensor_name)
 
-            sensor_names_list.add(sensor_name)
+              checkout([
+                $class: "GitSCM",
+                branches: [[name: "refs/heads/master"]],
+                browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Sensors/${sensor_path}", version: env.GITLAB_VERSION],
+                extensions: [
+                  [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Sensors/${sensor_name}"],
+                  [$class: "LocalBranch"],
+                  [$class: "GitLFSPull"]
+                ],
+                userRemoteConfigs: [[
+                  credentialsId: "auto-gitlab",
+                  url: "git@${GITLAB_HOST}:HDRP/Sensors/${sensor_path}.git"
+                ]]
+              ])
+            }
 
-            checkout([
-              $class: "GitSCM",
-              branches: [[name: "refs/heads/master"]],
-              browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Sensors/${sensor_path}", version: env.GITLAB_VERSION],
-              extensions: [
-                [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Sensors/${sensor_name}"],
-                [$class: "LocalBranch"],
-                [$class: "GitLFSPull"]
-              ],
-              userRemoteConfigs: [[
-                credentialsId: "auto-gitlab",
-                url: "git@${GITLAB_HOST}:HDRP/Sensors/${sensor_path}.git"
-              ]]
-            ])
+            def sensor_names = sensor_names_list.join(",")
+
+            env.SIM_SENSORS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Sensors ${S3_DOWNLOAD_HOST} sensor 0 ${sensor_names}").trim()
+          } else {
+            echo "INFO: No BUILD_SIMULATOR_SENSORS to checkout"
+            env.SIM_SENSORS = ""
           }
-
-          def sensor_names = sensor_names_list.join(",")
-
-          env.SIM_SENSORS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Sensors ${S3_DOWNLOAD_HOST} sensor 0 ${sensor_names}").trim()
-        } // script
-
+        }
         sh "printenv SIM_SENSORS | tee sensors.txt"
       }
       post {

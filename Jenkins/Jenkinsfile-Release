@@ -69,59 +69,72 @@ pipeline {
         """
 
         script {
-
-          def controllables = env.SIMULATOR_CONTROLLABLES.split(',')
-          for (int i=0; i<controllables.size(); i++) {
-            def controllable = controllables[i]
-            checkout([
-              $class: "GitSCM",
-              branches: [[name: "refs/heads/master"]],
-              browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Controllables/${controllable}", version: env.GITLAB_VERSION],
-              extensions: [
-                [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Controllables/${controllable}"],
-                [$class: "LocalBranch"],
-                [$class: "GitLFSPull"]
-              ],
-              userRemoteConfigs: [[
-                credentialsId: "auto-gitlab",
-                url: "git@${GITLAB_HOST}:HDRP/Controllables/${controllable}.git"
-              ]]
-            ])
-          }
-
           env.FORCE_REBUILD = "0"
           env.GIT_COMMIT = sh(returnStdout: true, script: "git rev-parse HEAD").trim()
           env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 1").trim()
           env.SIM_VEHICLES = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 1").trim()
           env.SIM_SENSORS = ""
-        } // script
+        }
 
         sh label:"SIMULATOR env vars", script:"printenv | grep -E 'SIMULATOR|^SIM_' | sort"
+      }
+    }
+
+    stage("Checkout Controllables") {
+      steps {
+        script {
+          if (env.SIMULATOR_CONTROLLABLES) {
+            def controllables = env.SIMULATOR_CONTROLLABLES.split(',')
+            for (int i=0; i<controllables.size(); i++) {
+              def controllable = controllables[i]
+              checkout([
+                $class: "GitSCM",
+                branches: [[name: "refs/heads/master"]],
+                browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Controllables/${controllable}", version: env.GITLAB_VERSION],
+                extensions: [
+                  [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Controllables/${controllable}"],
+                  [$class: "LocalBranch"],
+                  [$class: "GitLFSPull"]
+                ],
+                userRemoteConfigs: [[
+                  credentialsId: "auto-gitlab",
+                  url: "git@${GITLAB_HOST}:HDRP/Controllables/${controllable}.git"
+                ]]
+              ])
+            }
+          } else {
+            echo "INFO: No SIMULATOR_CONTROLLABLES to checkout"
+          }
+        }
       }
     }
 
     stage("Checkout NPCs") {
       steps {
         script {
-          def npcs = env.SIMULATOR_NPCS_REPOS.split(',')
-          for (int i=0; i<npcs.size(); i++) {
-            def npc = npcs[i]
-            checkout([
-              $class: "GitSCM",
-              branches: [[name: "refs/heads/master"]],
-              browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/NPC/${npc}", version: env.GITLAB_VERSION],
-              extensions: [
-                [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/NPCs/${npc}"],
-                [$class: "LocalBranch"],
-                [$class: "GitLFSPull"]
-              ],
-              userRemoteConfigs: [[
-                credentialsId: "auto-gitlab",
-                url: "git@${GITLAB_HOST}:HDRP/NPC/${npc}.git"
-              ]]
-            ])
+          if (env.SIMULATOR_NPCS_REPOS) {
+            def npcs = env.SIMULATOR_NPCS_REPOS.split(',')
+            for (int i=0; i<npcs.size(); i++) {
+              def npc = npcs[i]
+              checkout([
+                $class: "GitSCM",
+                branches: [[name: "refs/heads/master"]],
+                browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/NPC/${npc}", version: env.GITLAB_VERSION],
+                extensions: [
+                  [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/NPCs/${npc}"],
+                  [$class: "LocalBranch"],
+                  [$class: "GitLFSPull"]
+                ],
+                userRemoteConfigs: [[
+                  credentialsId: "auto-gitlab",
+                  url: "git@${GITLAB_HOST}:HDRP/NPC/${npc}.git"
+                ]]
+              ])
+            }
+          } else {
+            echo "INFO: No SIMULATOR_NPCS_REPOS to checkout"
           }
-        } // script
+        }
       }
     }
 

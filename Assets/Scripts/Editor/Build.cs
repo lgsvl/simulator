@@ -71,6 +71,7 @@ namespace Simulator.Editor
             public BundleConfig.BundleTypes bundleType;
             public string bundlePath;
             public string sourcePath => Path.Combine(BundleConfig.ExternalBase, bundlePath);
+            public bool isOpen = false;
 
             public class Entry
             {
@@ -84,8 +85,6 @@ namespace Simulator.Editor
 
             public void OnGUI()
             {
-                string header = bundlePath;
-                GUILayout.Label(header, EditorStyles.boldLabel);
                 if (entries.Count == 0)
                 {
                     EditorGUILayout.HelpBox($"No {bundlePath} are available", UnityEditor.MessageType.None);
@@ -836,11 +835,13 @@ namespace Simulator.Editor
             scroll = EditorGUILayout.BeginScrollView(scroll);
             foreach (var group in buildGroups.Values)
             {
-                group.OnGUI();
+                group.isOpen = EditorGUILayout.Foldout(group.isOpen, $"{group.bundlePath}");
+                if (group.isOpen)
+                    group.OnGUI();
             }
             EditorGUILayout.EndScrollView();
-
-            GUILayout.Label("Options", EditorStyles.boldLabel);
+            GUILayout.Space(10);
+            GUILayout.Label("Binary Options (Not bundles)", EditorStyles.boldLabel);
 
             Target = (BuildTarget)EditorGUILayout.EnumPopup("Executable Platform:", Target);
 

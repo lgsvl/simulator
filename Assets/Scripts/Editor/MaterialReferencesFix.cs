@@ -1,4 +1,11 @@
-﻿namespace Simulator.Editor
+/**
+ * Copyright (c) 2021 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
+namespace Simulator.Editor
 {
     using System.Collections.Generic;
     using System.IO;
@@ -25,7 +32,7 @@
             {"Texture2D_D8044091", "_PuddleMap"}
         };
 
-        [MenuItem("Simulator/Fix material references")]
+        //[MenuItem("Simulator/Fix material references")]
         public static void DoFix()
         {
             var confirm = EditorUtility.DisplayDialog("Material naming update",

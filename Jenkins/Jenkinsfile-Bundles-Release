@@ -290,7 +290,12 @@ pipeline {
       steps {
         withCredentials([[credentialsId: "${S3_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY', $class: 'AmazonWebServicesCredentialsBinding']]) {
           dir("Jenkins") {
-            sh "UID=`id -u` docker-compose run --rm upload-bundles | tee ../upload-bundles.log"
+            sh """
+              UID=`id -u` docker-compose run --rm upload-bundles | tee ../upload-bundles.log
+              # exit PIPESTATUS[0] cannot be used because of:
+              # groovy.lang.MissingPropertyException: No such property: PIPESTATUS for class: groovy.lang.Binding
+              exit `grep ^upload.failed: ../upload-bundles.log | wc -l`
+            """
           }
         }
       }

@@ -23,7 +23,7 @@ pipeline {
   parameters {
     booleanParam(name: "FORCE_REBUILD", defaultValue: false, description: "")
     booleanParam(name: "UPLOAD_TO_S3", defaultValue: true, description: "Upload bundles to S3")
-    booleanParam(name: "UPLOAD_TO_WISE", defaultValue: true, description: "Enable uploading assets to Wise.")
+    booleanParam(name: "UPLOAD_TO_WISE", defaultValue: false, description: "Enable uploading assets to Wise.")
     string(name: "BUILD_SIMULATOR_ENVIRONMENTS", defaultValue: "${SIMULATOR_ENVIRONMENTS}", description: "Environments to build")
     string(name: "BUILD_SIMULATOR_VEHICLES", defaultValue: "${SIMULATOR_VEHICLES}", description: "Vehicles to build")
     string(name: "BUILD_SIMULATOR_SENSORS", defaultValue: "${SIMULATOR_SENSORS}", description: "Sensors to build")

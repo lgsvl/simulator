@@ -61,10 +61,14 @@ namespace Simulator.Api.Commands
                     uid = System.Guid.NewGuid().ToString();
                     // Add uid key to arguments, as it will be distributed to the clients' simulations
                     if (Loader.Instance.Network.IsMaster)
+                    {
                         args.Add("uid", uid);
+                    }
                 }
                 else
+                {
                     uid = argsUid.Value;
+                }
 
                 if (type == (int)AgentType.Ego)
                 {
@@ -94,11 +98,14 @@ namespace Simulator.Api.Commands
                     List<SensorData> sensorsToDownload = new List<SensorData>();
                     ConcurrentDictionary<Task, string> assetDownloads = new ConcurrentDictionary<Task, string>();
 
-                    foreach (var plugin in config.Sensors)
+                    if (config.Sensors != null)
                     {
-                        if (plugin.Plugin.AssetGuid != null && sensorsToDownload.FirstOrDefault(s => s.Plugin.AssetGuid == plugin.Plugin.AssetGuid) == null)
+                        foreach (var plugin in config.Sensors)
                         {
-                            sensorsToDownload.Add(plugin);
+                            if (plugin.Plugin.AssetGuid != null && sensorsToDownload.FirstOrDefault(s => s.Plugin.AssetGuid == plugin.Plugin.AssetGuid) == null)
+                            {
+                                sensorsToDownload.Add(plugin);
+                            }
                         }
                     }
 
@@ -143,7 +150,9 @@ namespace Simulator.Api.Commands
                     {
                         var sensorUid = System.Guid.NewGuid().ToString();
                         if (SimulatorManager.InstanceAvailable)
+                        {
                             SimulatorManager.Instance.Sensors.AppendUid(sensor, sensorUid);
+                        }
                     }
 
                     api.SendResult(this, new JSONString(uid));

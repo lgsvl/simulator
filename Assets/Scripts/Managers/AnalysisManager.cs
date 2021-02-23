@@ -164,7 +164,7 @@ namespace Simulator.Analysis
                     var sensorType = sensorBase.GetType().GetCustomAttribute<SensorType>();
                     if (sensorType.Name == "Video Recording")
                     {
-                        sensorBase.GetType().GetMethod("StartRecording").Invoke(sensorBase, null);
+                        sensorBase.GetType().GetMethod("StartRecording").Invoke(sensorBase, new object[] { null });
                     }
                 });
             }

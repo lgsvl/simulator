@@ -101,8 +101,7 @@ namespace Simulator.Sensors
         protected Publisher<PointCloudData> Publish;
         protected uint SendSequence;
 
-        [NativeDisableContainerSafetyRestriction]
-        protected NativeArray<Vector4> Points;
+        protected Vector4[] Points;
 
         protected ComputeBuffer PointCloudBuffer;
         protected ComputeBuffer CosLatitudeAnglesBuffer;
@@ -344,11 +343,6 @@ namespace Simulator.Sensors
             CosLatitudeAnglesBuffer?.Release();
             SinLatitudeAnglesBuffer?.Release();
 
-            if (Points.IsCreated)
-            {
-                Points.Dispose();
-            }
-
             if (PointCloudMaterial != null)
             {
                 DestroyImmediate(PointCloudMaterial);
@@ -408,7 +402,7 @@ namespace Simulator.Sensors
 
         protected abstract void SendMessage();
 
-        public NativeArray<Vector4> Capture()
+        public Vector4[] Capture()
         {
             Debug.Assert(Compensated); // points should be in world-space
             int rotationCount = Mathf.CeilToInt(360.0f / HorizontalAngleLimit);
@@ -464,8 +458,7 @@ namespace Simulator.Sensors
                 Array.ForEach(textures, AvailableTextures.Push);
             }
 
-            var readback = AsyncGPUReadback.RequestIntoNativeArray(ref Points, PointCloudBuffer);
-            readback.WaitForCompletion();
+            PointCloudBuffer.GetData(Points);
 
             return Points;
         }
@@ -510,8 +503,7 @@ namespace Simulator.Sensors
                 Array.ForEach(active, req => AvailableRenderTextures.Push(req.TextureSet));
             }
 
-            var readback = AsyncGPUReadback.RequestIntoNativeArray(ref Points, PointCloudBuffer);
-            readback.WaitForCompletion();
+            PointCloudBuffer.GetData(Points);
 
             var worldToLocal = LidarTransform;
             if (Compensated)

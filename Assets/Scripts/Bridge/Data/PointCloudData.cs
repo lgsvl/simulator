@@ -23,6 +23,6 @@ namespace Simulator.Bridge.Data
         public Matrix4x4 Transform;
 
         // xyz are coordinates in world space, w is intensity
-        public NativeArray<Vector4> Points;
+        public Vector4[] Points;
    }
 }

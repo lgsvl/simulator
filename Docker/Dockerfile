@@ -131,7 +131,9 @@ IMAGE_CREATED_ON=$(date --iso-8601=seconds --utc)\n\
 # Increment IMAGE_INTERFACE_VERSION whenever changes to the image require that the launcher be updated.\n\
 IMAGE_INTERFACE_VERSION=2\n\
 IMAGE_UUID=${image_uuidgen}"\
-  >> /etc/wise-image-info.source
+  >> /etc/wise-image-info.source \
+  && echo "Simulator wise-image-info.source:" \
+  && cat /etc/wise-image-info.source
 
 COPY --from=unzipper /tmp/svlsimulator /opt/simulator
 

@@ -76,17 +76,27 @@ void LIDAR_COMPUTE (uint3 id : SV_DispatchThreadID)
     const int y = (int) (yy / _ScaleDistance.y + _TexSize.y * 0.5);
 
     const int index = indexOffset + (_Index + id.x) % _MeasurementsPerRotation;
-    
+    float distance;
+    float intensity;
+
     if (x < 0 || x >= _TexSize.x || y < 0 || y >= _TexSize.y)
+    {
+        distance = 0;
+        intensity = 0;
+    }
+    else
+    {
+        const float4 sample = LOAD_TEXTURE2D_X(_Input, uint2(x, y));
+        distance = 2.0f * DecodeFloatRGB(sample.rgb);
+        intensity = sample.a;
+    }
+
+    if (distance == 0)
     {
         _Output[index] = float4(0, 0, 0, 0);
     }
     else
     {
-        const float4 sample = LOAD_TEXTURE2D_X(_Input, uint2(x, y));
-        const float distance = 2.0f * DecodeFloatRGB(sample.rgb);
-        float intensity = sample.a;
-
         const float3 dir = mul(_CameraToWorld, float4(xx, yy, -_ScaleDistance.z, 1)).xyz - _Origin.xyz;
         float3 position = _Origin.xyz + normalize(dir) * distance * _ScaleDistance.w;
 

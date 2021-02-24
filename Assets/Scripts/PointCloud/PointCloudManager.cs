@@ -146,7 +146,7 @@ namespace Simulator.PointCloud
         
         public static void RenderLidar(ScriptableRenderContext context, CommandBuffer cmd, HDCamera hdCamera, RTHandle colorBuffer, RTHandle depthBuffer)
         {
-            if (activeInstance == null)
+            if (activeInstance == null || activeInstance.renderers == null)
                 return;
             
             foreach (var pointCloudRenderer in activeInstance.renderers)

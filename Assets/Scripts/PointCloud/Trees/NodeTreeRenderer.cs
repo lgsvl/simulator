@@ -215,7 +215,8 @@ namespace Simulator.PointCloud.Trees
             visibleNodes.Clear();
             usedNodes.Clear();
             usedNodesPointCount = 0;
-            var sceneCamera = SceneView.lastActiveSceneView.camera;
+            var lastSceneView = SceneView.lastActiveSceneView;
+            var sceneCamera = lastSceneView != null ? SceneView.lastActiveSceneView.camera : null;
 
             if (sceneCamera != null)
             {

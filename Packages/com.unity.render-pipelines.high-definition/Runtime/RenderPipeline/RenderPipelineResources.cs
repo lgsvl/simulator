@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
+    [HelpURL(Documentation.baseURL + Documentation.releaseVersion + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
     partial class RenderPipelineResources : ScriptableObject
     {
         [Serializable, ReloadGroup]
@@ -188,6 +188,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader depthValuesPS;
             [Reload("Runtime/RenderPipeline/RenderPass/MSAA/ColorResolve.shader")]
             public Shader colorResolvePS;
+            [Reload("Runtime/RenderPipeline/RenderPass/MSAA/MotionVecResolve.shader")]
+            public Shader resolveMotionVecPS;
 
             // Post-processing
             [Reload("Runtime/PostProcessing/Shaders/AlphaCopy.compute")]

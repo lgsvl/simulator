@@ -512,8 +512,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (parameters.debugClearAtlas)
                 CoreUtils.DrawFullScreen(cmd, parameters.clearMaterial, null, 0);
 
-            var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-
             foreach (var shadowRequest in parameters.shadowRequests)
             {
                 if (shadowRequest.shouldUseCachedShadow)
@@ -536,15 +534,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalMatrix(HDShaderIDs._InvProjMatrix, shadowRequest.deviceProjectionYFlip.inverse);
                 cmd.SetGlobalMatrix(HDShaderIDs._ViewProjMatrix, viewProjection);
                 cmd.SetGlobalMatrix(HDShaderIDs._InvViewProjMatrix, viewProjection.inverse);
-                cmd.SetGlobalVectorArray(HDShaderIDs._ShadowClipPlanes, shadowRequest.frustumPlanes);
+                cmd.SetGlobalVectorArray(HDShaderIDs._ShadowFrustumPlanes, shadowRequest.frustumPlanes);
 
                 // TODO: remove this execute when DrawShadows will use a CommandBuffer
                 renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
                 renderContext.DrawShadows(ref shadowDrawSettings);
-                
-                hdrp?.InvokeShadowMapRender(cmd, shadowRequest.worldTexelSize);
+
+                // === LGSVL (Invoke event for shadow map render)
+                (RenderPipelineManager.currentPipeline as HDRenderPipeline)?.InvokeShadowMapRender(cmd, shadowRequest.worldTexelSize);
+                // ===
             }
             cmd.SetGlobalFloat(HDShaderIDs._ZClip, 1.0f);   // Re-enable zclip globally
             cmd.SetGlobalDepthBias(0.0f, 0.0f);             // Reset depth bias.

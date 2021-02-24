@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Title("Master", "Lit (HDRP)")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HDLitMasterNode")]
     [FormerName("UnityEditor.ShaderGraph.HDLitMasterNode")]
-    class HDLitMasterNode : MasterNode<IHDLitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class HDLitMasterNode : MaterialMasterNode<IHDLitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string AlbedoSlotName = "Albedo";
         public const string AlbedoDisplaySlotName = "BaseColor";
@@ -1085,13 +1085,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 hidden = true,
                 value = new Color(1.0f, 1.0f, 1.0f, 1.0f)
             });
-            // lgsvl
+            // === LGSVL (Add property required by segmentation color to Shader Graph node)
             collector.AddShaderProperty(new ColorShaderProperty()
             {
                 overrideReferenceName = "_SegmentationColor",
                 hidden = true,
                 value = new Color(0.0f, 0.0f, 0.0f, 1.0f)
             });
+            // ===
             // ShaderGraph only property used to send the RenderQueueType to the material
             collector.AddShaderProperty(new Vector1ShaderProperty
             {
@@ -1126,6 +1127,7 @@ namespace UnityEditor.Rendering.HighDefinition
             );
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, alphaTest.isOn, alphaTestShadow.isOn);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSidedMode);
+            HDSubShaderUtilities.AddPrePostPassProperties(collector, alphaTestDepthPrepass.isOn, alphaTestDepthPostpass.isOn);
 
             base.CollectShaderProperties(collector, generationMode);
         }

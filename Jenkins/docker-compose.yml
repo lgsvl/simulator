@@ -3,7 +3,7 @@ version: "2.4"
 services:
   build-simulator:
     build: .
-    image: ${SIMULATOR_DOCKER_IMAGE}:2019.3.15f1
+    image: ${SIMULATOR_DOCKER_IMAGE}:2019.4.18f1
     user: ${UID}
     environment:
       - S3_DOWNLOAD_HOST
@@ -35,7 +35,7 @@ services:
 
   build-bundles:
     build: .
-    image: ${SIMULATOR_DOCKER_IMAGE}:2019.3.15f1
+    image: ${SIMULATOR_DOCKER_IMAGE}:2019.4.18f1
     user: ${UID}
     environment:
       - SIM_ENVIRONMENTS

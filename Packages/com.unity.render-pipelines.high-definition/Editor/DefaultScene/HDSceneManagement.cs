@@ -19,8 +19,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static HDSceneManagement()
         {
-            // lgsvl
-            //EditorSceneManager.newSceneCreated += NewSceneCreated;
+            // === LGSVL (remove listener for scene creation event)
+            // EditorSceneManager.newSceneCreated += NewSceneCreated;
+            // ===
 
             var scenePathProperty = Expression.Parameter(typeof(string), "scenePath");
             var createSceneAssetInfo = typeof(EditorSceneManager)

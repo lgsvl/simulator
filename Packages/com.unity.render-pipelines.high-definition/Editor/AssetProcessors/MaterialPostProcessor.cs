@@ -67,7 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         string commandLineOptions = System.Environment.CommandLine;
                         bool inTestSuite = commandLineOptions.Contains("-testResults");
-                        if (!inTestSuite && fileExist)
+                        if (!inTestSuite && fileExist && !Application.isBatchMode)
                         {
                             EditorUtility.DisplayDialog("HDRP Material upgrade", "The Materials in your Project were created using an older version of the High Definition Render Pipeline (HDRP)." +
                                                         " Unity must upgrade them to be compatible with your current version of HDRP. \n" +
@@ -129,7 +129,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 AssetVersion assetVersion = null;
                 foreach (var subAsset in assetVersions)
                 {
-                    if (subAsset.GetType() == typeof(AssetVersion))
+                    if (subAsset != null && subAsset.GetType() == typeof(AssetVersion))
                     {
                         assetVersion = subAsset as AssetVersion;
                         break;

@@ -286,6 +286,8 @@ float _TessellationTilingScale;
 int _ObjectId;
 int _PassValue;
 
+// === LGSVL (Add segmentation color variable to CBuffer)
 float4 _SegmentationColor;
+// ===
 
 CBUFFER_END

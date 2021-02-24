@@ -223,8 +223,9 @@ Shader "HDRP/Lit"
         [HideInInspector] _DiffusionProfileAsset("Diffusion Profile Asset", Vector) = (0, 0, 0, 0)
         [HideInInspector] _DiffusionProfileHash("Diffusion Profile Hash", Float) = 0
 
-        // lgsvl
+        // === LGSVL (Add segmentation color property)
         [HideInInspector] _SegmentationColor("Segmentation Color", Color) = (0, 0, 0, 1)
+        // ===
     }
 
     HLSLINCLUDE
@@ -839,8 +840,7 @@ Shader "HDRP/Lit"
             ENDHLSL
         }
 
-
-        // lgsvl
+        // === LGSVL (Add lidar sensor pass)
         Pass
         {
             Name "SimulatorLidarPass"
@@ -870,8 +870,9 @@ Shader "HDRP/Lit"
 
             ENDHLSL
         }
+        // ===
 
-        // lgsvl
+        // === LGSVL (Add segmentation sensor pass)
         Pass
         {
             Name "SimulatorSegmentationPass"
@@ -900,8 +901,9 @@ Shader "HDRP/Lit"
 
             ENDHLSL
         }
+        // ===
 
-        // lgsvl
+        // === LGSVL (Add depth sensor pass)
         Pass
         {
             Name "SimulatorDepthPass"
@@ -931,6 +933,7 @@ Shader "HDRP/Lit"
 
             ENDHLSL
         }
+        // ===
     }
 
     SubShader

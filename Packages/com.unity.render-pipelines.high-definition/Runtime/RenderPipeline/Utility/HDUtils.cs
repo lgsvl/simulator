@@ -25,6 +25,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Default HDAdditionalCameraData</summary>
         static internal HDAdditionalCameraData s_DefaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
 
+        static List<CustomPassVolume> m_TempCustomPassVolumeList = new List<CustomPassVolume>();
+
         static Texture3D m_ClearTexture3D;
         static RTHandle m_ClearTexture3DRTH;
         /// <summary>
@@ -449,6 +451,42 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static string GetCorePath()
             => "Packages/com.unity.render-pipelines.core/";
 
+        // It returns the previously set RenderPipelineAsset, assetWasFromQuality is true if the current asset was set through the quality settings
+        internal static RenderPipelineAsset SwitchToBuiltinRenderPipeline(out bool assetWasFromQuality)
+        {
+            var graphicSettingAsset = GraphicsSettings.renderPipelineAsset;
+            assetWasFromQuality = false;
+            if (graphicSettingAsset != null)
+            {
+                // Check if the currently used pipeline is the one from graphics settings
+                if (GraphicsSettings.currentRenderPipeline == graphicSettingAsset)
+                {
+                    GraphicsSettings.renderPipelineAsset = null;
+                    return graphicSettingAsset;
+                }
+            }
+            // If we are here, it means the asset comes from quality settings
+            var assetFromQuality = QualitySettings.renderPipeline;
+            QualitySettings.renderPipeline = null;
+            assetWasFromQuality = true;
+            return assetFromQuality;
+        }
+
+        // Set the renderPipelineAsset, either on the quality settings if it was unset from there or in GraphicsSettings.
+        // IMPORTANT: RenderPipelineManager.currentPipeline won't be HDRP until a camera.Render() call is made.
+        internal static void RestoreRenderPipelineAsset(bool wasUnsetFromQuality, RenderPipelineAsset renderPipelineAsset)
+        {
+            if(wasUnsetFromQuality)
+            {
+                QualitySettings.renderPipeline = renderPipelineAsset;
+            }
+            else
+            {
+                GraphicsSettings.renderPipelineAsset = renderPipelineAsset;
+            }
+
+        }
+
         internal struct PackedMipChainInfo
         {
             public Vector2Int textureSize;
@@ -470,6 +508,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // This function is NOT fast, but it is illustrative, and can be optimized later.
             public void ComputePackedMipChainInfo(Vector2Int viewportSize)
             {
+                // No work needed.
+                if (viewportSize == mipLevelSizes[0])
+                    return;
+
                 textureSize = viewportSize;
                 mipLevelSizes[0] = viewportSize;
                 mipLevelOffsets[0] = Vector2Int.zero;
@@ -527,7 +569,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public static int DivRoundUp(int x, int y) => (x + y - 1) / y;
+        internal static int DivRoundUp(int x, int y) => (x + y - 1) / y;
 
         internal static bool IsQuaternionValid(Quaternion q)
             => (q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]) > float.Epsilon;
@@ -581,8 +623,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     buildTarget == UnityEditor.BuildTarget.WSAPlayer ||
                     buildTarget == UnityEditor.BuildTarget.XboxOne ||
                     buildTarget == UnityEditor.BuildTarget.PS4 ||
-                    buildTarget == UnityEditor.BuildTarget.iOS ||
-                    buildTarget == UnityEditor.BuildTarget.Switch);
+                    // buildTarget == UnityEditor.BuildTarget.iOS || // IOS isn't supported
+                    // buildTarget == UnityEditor.BuildTarget.Switch || // Switch isn't supported
+                    buildTarget == UnityEditor.BuildTarget.CloudRendering);
         }
 
         internal static bool AreGraphicsAPIsSupported(UnityEditor.BuildTarget target, out GraphicsDeviceType unsupportedGraphicDevice)
@@ -619,31 +662,37 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif
 
+        internal static bool IsMacOSVersionAtLeast(string os, int majorVersion, int minorVersion, int patchVersion)
+        {
+            int startIndex = os.LastIndexOf(" ");
+            var parts = os.Substring(startIndex + 1).Split('.');
+            int currentMajorVersion = Convert.ToInt32(parts[0]);
+            int currentMinorVersion = Convert.ToInt32(parts[1]);
+            int currentPatchVersion = Convert.ToInt32(parts[2]);
+
+            if (currentMajorVersion < majorVersion) return false;
+            if (currentMajorVersion > majorVersion) return true;
+            if (currentMinorVersion < minorVersion) return false;
+            if (currentMinorVersion > minorVersion) return true;
+            if (currentPatchVersion < patchVersion) return false;
+            if (currentPatchVersion > patchVersion) return true;
+            return true;
+        }
+
         internal static bool IsOperatingSystemSupported(string os)
         {
             // Metal support depends on OS version:
             // macOS 10.11.x doesn't have tessellation / earlydepthstencil support, early driver versions were buggy in general
             // macOS 10.12.x should usually work with AMD, but issues with Intel/Nvidia GPUs. Regardless of the GPU, there are issues with MTLCompilerService crashing with some shaders
-            // macOS 10.13.x is expected to work, and if it's a driver/shader compiler issue, there's still hope on getting it fixed to next shipping OS patch release
+            // macOS 10.13.x should work, but active development tests against current OS
             //
             // Has worked experimentally with iOS in the past, but it's not currently supported
             //
 
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
             {
-                if (os.StartsWith("Mac"))
-                {
-                    // TODO: Expose in C# version number, for now assume "Mac OS X 10.10.4" format with version 10 at least
-                    int startIndex = os.LastIndexOf(" ");
-                    var parts = os.Substring(startIndex + 1).Split('.');
-                    int a = Convert.ToInt32(parts[0]);
-                    int b = Convert.ToInt32(parts[1]);
-                    // In case in the future there's a need to disable specific patch releases
-                    // int c = Convert.ToInt32(parts[2]);
-
-                    if (a < 10 || b < 13)
-                        return false;
-                }
+                if (os.StartsWith("Mac") && !IsMacOSVersionAtLeast(os, 10, 13, 0))
+                    return false;
             }
 
             return true;
@@ -691,6 +740,24 @@ namespace UnityEngine.Rendering.HighDefinition
             float distanceToCamera = Vector3.Magnitude(position1 - position2);
             float distanceFade = ComputeLinearDistanceFade(distanceToCamera, fadeDistance);
             return distanceFade * weight;
+        }
+
+        internal static bool WillCustomPassBeExecuted(HDCamera hdCamera, CustomPassInjectionPoint injectionPoint)
+        {
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
+                return false;
+
+            bool executed = false;
+            CustomPassVolume.GetActivePassVolumes(injectionPoint, m_TempCustomPassVolumeList);
+            foreach(var customPassVolume in m_TempCustomPassVolumeList)
+            {
+                if (customPassVolume == null)
+                    return false;
+
+                executed |= customPassVolume.WillExecuteInjectionPoint(hdCamera);
+            }
+
+            return executed;
         }
 
         internal static bool PostProcessIsFinalPass()
@@ -944,6 +1011,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             string msg = "Platform " + currentPlatform + " with device " + graphicAPI + " is not supported with High Definition Render Pipeline, no rendering will occur";
             DisplayUnsupportedMessage(msg);
+        }
+
+        internal static void ReleaseComponentSingletons()
+        {
+            ComponentSingleton<HDAdditionalReflectionData>.Release();
+            ComponentSingleton<HDAdditionalLightData>.Release();
+            ComponentSingleton<HDAdditionalCameraData>.Release();
         }
 
         internal static void DisplayUnsupportedXRMessage()

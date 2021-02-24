@@ -2,6 +2,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     using System;
 
+    // === LGSVL (Add point cloud related members to HDRenderPipeline class)
     public partial class HDRenderPipeline
     {
         /// <summary>
@@ -75,4 +76,5 @@ namespace UnityEngine.Rendering.HighDefinition
             OnRenderShadowMap?.Invoke(cmd, worldTexelSize);
         }
     }
+    // ===
 }

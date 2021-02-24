@@ -97,7 +97,6 @@ function get_unity_license {
         -serial ${UNITY_SERIAL} \
         -username ${UNITY_USERNAME} \
         -password ${UNITY_PASSWORD} \
-        -projectPath /mnt/dummy-unity-project \
         -quit
 
     popd

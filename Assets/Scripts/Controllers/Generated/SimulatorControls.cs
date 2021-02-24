@@ -3,14 +3,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Utilities;
 
-public class SimulatorControls : IInputActionCollection
+public class @SimulatorControls : IInputActionCollection, IDisposable
 {
-    private InputActionAsset asset;
-    public SimulatorControls()
+    public InputActionAsset asset { get; }
+    public @SimulatorControls()
     {
         asset = InputActionAsset.FromJson(@"{
     ""name"": ""SimulatorControls"",
@@ -21,146 +20,107 @@ public class SimulatorControls : IInputActionCollection
             ""actions"": [
                 {
                     ""name"": ""Direction"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""68acaa71-e07d-420b-b1d6-a76c02a93b0f"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": true,
-                    ""passThrough"": true,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""Elevation"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""0dad18b8-ab6f-4e94-9476-4b816f14eb47"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": true,
-                    ""passThrough"": true,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""MouseDelta"",
+                    ""type"": ""Value"",
                     ""id"": ""cfde6f4e-1da5-42e8-b6b8-0749b7ff43d9"",
-                    ""expectedControlLayout"": ""Vector2"",
-                    ""continuous"": true,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": true,
+                    ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""MouseLeft"",
+                    ""type"": ""Button"",
                     ""id"": ""18683cc6-4aa4-44ca-9229-acb759267a4b"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": ""Press(behavior=2)"",
-                    ""bindings"": []
+                    ""interactions"": ""Press(behavior=2)""
                 },
                 {
                     ""name"": ""MouseRight"",
+                    ""type"": ""Button"",
                     ""id"": ""7ed9f395-05c0-499c-8d3c-0b67a69b4939"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": true,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": ""Press(behavior=2)"",
-                    ""bindings"": []
+                    ""interactions"": ""Press(behavior=2)""
                 },
                 {
                     ""name"": ""MouseMiddle"",
+                    ""type"": ""Button"",
                     ""id"": ""55cc01e4-af34-4fa5-abe3-de3dbc8ef0cb"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": ""Press(behavior=2)"",
-                    ""bindings"": []
+                    ""interactions"": ""Press(behavior=2)""
                 },
                 {
                     ""name"": ""MouseScroll"",
+                    ""type"": ""Value"",
                     ""id"": ""af4a22ec-1b98-4220-88d1-d85e437099c0"",
-                    ""expectedControlLayout"": ""Vector2"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""MousePosition"",
+                    ""type"": ""Value"",
                     ""id"": ""97be806d-6ef9-4b27-9230-578ccb58996a"",
-                    ""expectedControlLayout"": ""Vector2"",
-                    ""continuous"": true,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": true,
+                    ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""Boost"",
+                    ""type"": ""Button"",
                     ""id"": ""51845660-a7e4-4312-ab4f-e8bbe45c237d"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""ToggleState"",
+                    ""type"": ""Button"",
                     ""id"": ""937f6067-9820-460d-99c5-e050ce658467"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""Zoom"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""1138b450-1c54-49a7-b808-8665b1326312"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": true,
-                    ""passThrough"": true,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""CinematicNewPath"",
+                    ""type"": ""Button"",
                     ""id"": ""665b9005-f4bd-473b-9c46-4fd20642ac7d"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""CinematicResetPath"",
+                    ""type"": ""Button"",
                     ""id"": ""2c242fd3-0465-42fe-9be4-7a4b71ba5221"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 }
             ],
             ""bindings"": [
@@ -173,8 +133,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""Direction"",
                     ""isComposite"": true,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": ""up"",
@@ -185,8 +144,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""Direction"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": true,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": true
                 },
                 {
                     ""name"": ""down"",
@@ -197,8 +155,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""Direction"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": true,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": true
                 },
                 {
                     ""name"": ""left"",
@@ -209,8 +166,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""Direction"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": true,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": true
                 },
                 {
                     ""name"": ""right"",
@@ -221,8 +177,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""Direction"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": true,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": true
                 },
                 {
                     ""name"": ""1D Axis"",
@@ -233,8 +188,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""Elevation"",
                     ""isComposite"": true,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": ""negative"",
@@ -245,8 +199,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""Elevation"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": true,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": true
                 },
                 {
                     ""name"": ""positive"",
@@ -257,8 +210,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""Elevation"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": true,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": true
                 },
                 {
                     ""name"": """",
@@ -269,8 +221,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""MouseDelta"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -281,8 +232,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""MouseLeft"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -293,8 +243,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""MouseRight"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -305,8 +254,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""MouseMiddle"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -317,8 +265,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""MouseScroll"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -329,8 +276,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""MousePosition"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -341,8 +287,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""Boost"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -353,8 +298,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ToggleState"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": ""1D Axis"",
@@ -365,8 +309,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""Zoom"",
                     ""isComposite"": true,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": ""negative"",
@@ -377,8 +320,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""Zoom"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": true,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": true
                 },
                 {
                     ""name"": ""positive"",
@@ -389,8 +331,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""Zoom"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": true,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": true
                 },
                 {
                     ""name"": """",
@@ -401,8 +342,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""CinematicNewPath"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -413,8 +353,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""CinematicResetPath"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -424,58 +363,43 @@ public class SimulatorControls : IInputActionCollection
             ""actions"": [
                 {
                     ""name"": ""ToggleNPCS"",
+                    ""type"": ""Button"",
                     ""id"": ""c3de16aa-60a2-49a7-8a4d-51f32b875b63"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""ToggleAgent"",
+                    ""type"": ""Button"",
                     ""id"": ""e2c98be3-db48-4767-9803-56e3a731d9e8"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""ToggleReset"",
+                    ""type"": ""Button"",
                     ""id"": ""02a13f64-a6f0-4d2c-9a12-188a987f1ee7"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""ToggleControlsUI"",
+                    ""type"": ""Button"",
                     ""id"": ""18aa8941-8b9f-4bfe-b14c-88d6e6641ba2"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""TogglePedestrians"",
+                    ""type"": ""Button"",
                     ""id"": ""b39bbbcd-97f5-4b45-b155-e7374f654c05"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 }
             ],
             ""bindings"": [
@@ -488,8 +412,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ToggleNPCS"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -500,8 +423,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ToggleAgent"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -512,8 +434,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ToggleAgent"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -524,8 +445,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ToggleAgent"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -536,8 +456,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ToggleAgent"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -548,8 +467,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ToggleAgent"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -560,8 +478,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ToggleAgent"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -572,8 +489,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ToggleAgent"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -584,8 +500,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ToggleAgent"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -596,8 +511,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ToggleAgent"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -608,8 +522,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ToggleAgent"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -620,8 +533,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ToggleReset"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -632,8 +544,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ToggleControlsUI"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -644,8 +555,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""TogglePedestrians"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -655,124 +565,91 @@ public class SimulatorControls : IInputActionCollection
             ""actions"": [
                 {
                     ""name"": ""Direction"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""a4c84d4e-ab73-4109-b6d3-87cef0688a48"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": true,
-                    ""passThrough"": true,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""HeadLights"",
+                    ""type"": ""Button"",
                     ""id"": ""2da8992e-466b-42bd-9300-0854e7aba0df"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""IndicatorLeft"",
+                    ""type"": ""Button"",
                     ""id"": ""be797ba1-c73a-41a4-ac0a-7269a1f21865"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""IndicatorRight"",
+                    ""type"": ""Button"",
                     ""id"": ""456e0d9b-1590-495a-a810-22068dde68ad"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""IndicatorHazard"",
+                    ""type"": ""Button"",
                     ""id"": ""949c9a20-2be9-4a66-99b8-fb9c720a3c89"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""FogLights"",
+                    ""type"": ""Button"",
                     ""id"": ""6ebbb86e-7e78-4e78-8238-8f12e931443d"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""ShiftFirst"",
+                    ""type"": ""Button"",
                     ""id"": ""e216bb61-1dbf-4936-8963-26a8cb3d4fde"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""ShiftReverse"",
+                    ""type"": ""Button"",
                     ""id"": ""e5606c54-98ab-4c0a-95ba-47e452129b1c"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""ParkingBrake"",
+                    ""type"": ""Button"",
                     ""id"": ""11cc056b-8dec-44d6-a5af-c41873912c49"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""Ignition"",
+                    ""type"": ""Button"",
                     ""id"": ""546e7144-7b87-4a19-b456-b3edf510c512"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""InteriorLight"",
+                    ""type"": ""Button"",
                     ""id"": ""ee3edbee-7490-48da-91aa-1426cbb4e154"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 }
             ],
             ""bindings"": [
@@ -785,8 +662,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""Direction"",
                     ""isComposite"": true,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": ""up"",
@@ -797,8 +673,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""Direction"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": true,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": true
                 },
                 {
                     ""name"": ""down"",
@@ -809,8 +684,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""Direction"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": true,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": true
                 },
                 {
                     ""name"": ""left"",
@@ -821,8 +695,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""Direction"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": true,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": true
                 },
                 {
                     ""name"": ""right"",
@@ -833,8 +706,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""Direction"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": true,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": true
                 },
                 {
                     ""name"": """",
@@ -845,8 +717,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""HeadLights"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -857,8 +728,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""IndicatorLeft"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -869,8 +739,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""IndicatorRight"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -881,8 +750,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""IndicatorHazard"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -893,8 +761,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""FogLights"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -905,8 +772,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ShiftFirst"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -917,8 +783,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ShiftReverse"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -929,8 +794,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ParkingBrake"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -941,8 +805,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""Ignition"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -953,8 +816,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""InteriorLight"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -964,168 +826,123 @@ public class SimulatorControls : IInputActionCollection
             ""actions"": [
                 {
                     ""name"": ""Accel"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""888616c7-579c-4efd-8527-708e683af1eb"",
-                    ""expectedControlLayout"": """",
-                    ""continuous"": true,
-                    ""passThrough"": true,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": """",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""Steer"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""455577db-93bb-4060-849b-d5608bfb6bad"",
-                    ""expectedControlLayout"": """",
-                    ""continuous"": true,
-                    ""passThrough"": true,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": """",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""Brake"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""27a09f05-a77b-4209-b710-af353ec2bc76"",
-                    ""expectedControlLayout"": """",
-                    ""continuous"": true,
-                    ""passThrough"": true,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": """",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""ButtonA"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""59312a63-d87f-4991-a404-426b8dfcaa04"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": true,
-                    ""passThrough"": true,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""ButtonB"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""7f46a0eb-0050-49d4-bd15-dd187a4ff30c"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": true,
-                    ""passThrough"": true,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""ButtonX"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""f8c5c1e7-bfad-48f3-a844-2bda89c29c45"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": true,
-                    ""passThrough"": true,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""ButtonY"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""c4f8a72b-afe3-448d-896c-4b366b62b997"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": true,
-                    ""passThrough"": true,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""ButtonRB"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""c22f26a3-873d-4afe-9085-8b3fd32fff3c"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": true,
-                    ""passThrough"": true,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""ButtonLB"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""37d85537-6481-4742-864c-c36a343fb6c4"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": true,
-                    ""passThrough"": true,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""ButtonStart"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""e384c3ab-2f9b-4e19-b583-3c653f088a80"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": true,
-                    ""passThrough"": true,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""ButtonSelect"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""ae7c3ac6-1379-4238-a41f-fc9091edc2fa"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": true,
-                    ""passThrough"": true,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""ButtonRSB"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""83e310ca-be8a-4d82-a1ea-1dbc08131851"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": true,
-                    ""passThrough"": true,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""ButtonLSB"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""f948e86f-4ed4-48ef-9772-f5e5fac8ec37"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": true,
-                    ""passThrough"": true,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""ButtonCenter"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""9d981352-e4c1-4fd7-b199-8e339f31d4d6"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": true,
-                    ""passThrough"": true,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 },
                 {
                     ""name"": ""DPad"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""1470b2f1-7873-4929-926b-fc30937dea0a"",
-                    ""expectedControlLayout"": """",
-                    ""continuous"": true,
-                    ""passThrough"": true,
-                    ""initialStateCheck"": false,
+                    ""expectedControlType"": """",
                     ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
+                    ""interactions"": """"
                 }
             ],
             ""bindings"": [
@@ -1138,8 +955,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""Accel"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1150,8 +966,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""Accel"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1162,8 +977,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""Steer"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1174,8 +988,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""Steer"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1186,8 +999,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""Brake"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1198,8 +1010,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""Brake"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1210,8 +1021,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ButtonA"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1222,8 +1032,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ButtonA"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1234,8 +1043,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ButtonB"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1246,8 +1054,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ButtonB"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1258,8 +1065,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ButtonX"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1270,8 +1076,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ButtonX"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1282,8 +1087,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ButtonY"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1294,8 +1098,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ButtonY"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1306,8 +1109,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ButtonRB"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1318,8 +1120,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ButtonRB"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1330,8 +1131,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ButtonLB"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1342,8 +1142,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ButtonLB"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1354,8 +1153,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ButtonStart"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1366,8 +1164,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ButtonStart"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1378,8 +1175,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ButtonSelect"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1390,8 +1186,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ButtonSelect"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1402,8 +1197,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ButtonRSB"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1414,8 +1208,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ButtonRSB"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1426,8 +1219,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ButtonLSB"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1438,8 +1230,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ButtonLSB"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1450,8 +1241,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ButtonCenter"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -1462,8 +1252,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""ButtonCenter"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": ""2D Vector"",
@@ -1474,8 +1263,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""DPad"",
                     ""isComposite"": true,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": ""up"",
@@ -1486,8 +1274,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""DPad"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": true,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": true
                 },
                 {
                     ""name"": ""down"",
@@ -1498,8 +1285,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""DPad"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": true,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": true
                 },
                 {
                     ""name"": ""left"",
@@ -1510,8 +1296,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""DPad"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": true,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": true
                 },
                 {
                     ""name"": ""right"",
@@ -1522,8 +1307,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""DPad"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": true,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": true
                 },
                 {
                     ""name"": ""2D Vector"",
@@ -1534,8 +1318,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""DPad"",
                     ""isComposite"": true,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": ""up"",
@@ -1546,8 +1329,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""DPad"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": true,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": true
                 },
                 {
                     ""name"": ""down"",
@@ -1558,8 +1340,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""DPad"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": true,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": true
                 },
                 {
                     ""name"": ""left"",
@@ -1570,8 +1351,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""DPad"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": true,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": true
                 },
                 {
                     ""name"": ""right"",
@@ -1582,8 +1362,7 @@ public class SimulatorControls : IInputActionCollection
                     ""groups"": """",
                     ""action"": ""DPad"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": true,
-                    ""modifiers"": """"
+                    ""isPartOfComposite"": true
                 }
             ]
         }
@@ -1591,60 +1370,60 @@ public class SimulatorControls : IInputActionCollection
     ""controlSchemes"": []
 }");
         // Camera
-        m_Camera = asset.GetActionMap("Camera");
-        m_Camera_Direction = m_Camera.GetAction("Direction");
-        m_Camera_Elevation = m_Camera.GetAction("Elevation");
-        m_Camera_MouseDelta = m_Camera.GetAction("MouseDelta");
-        m_Camera_MouseLeft = m_Camera.GetAction("MouseLeft");
-        m_Camera_MouseRight = m_Camera.GetAction("MouseRight");
-        m_Camera_MouseMiddle = m_Camera.GetAction("MouseMiddle");
-        m_Camera_MouseScroll = m_Camera.GetAction("MouseScroll");
-        m_Camera_MousePosition = m_Camera.GetAction("MousePosition");
-        m_Camera_Boost = m_Camera.GetAction("Boost");
-        m_Camera_ToggleState = m_Camera.GetAction("ToggleState");
-        m_Camera_Zoom = m_Camera.GetAction("Zoom");
-        m_Camera_CinematicNewPath = m_Camera.GetAction("CinematicNewPath");
-        m_Camera_CinematicResetPath = m_Camera.GetAction("CinematicResetPath");
+        m_Camera = asset.FindActionMap("Camera", throwIfNotFound: true);
+        m_Camera_Direction = m_Camera.FindAction("Direction", throwIfNotFound: true);
+        m_Camera_Elevation = m_Camera.FindAction("Elevation", throwIfNotFound: true);
+        m_Camera_MouseDelta = m_Camera.FindAction("MouseDelta", throwIfNotFound: true);
+        m_Camera_MouseLeft = m_Camera.FindAction("MouseLeft", throwIfNotFound: true);
+        m_Camera_MouseRight = m_Camera.FindAction("MouseRight", throwIfNotFound: true);
+        m_Camera_MouseMiddle = m_Camera.FindAction("MouseMiddle", throwIfNotFound: true);
+        m_Camera_MouseScroll = m_Camera.FindAction("MouseScroll", throwIfNotFound: true);
+        m_Camera_MousePosition = m_Camera.FindAction("MousePosition", throwIfNotFound: true);
+        m_Camera_Boost = m_Camera.FindAction("Boost", throwIfNotFound: true);
+        m_Camera_ToggleState = m_Camera.FindAction("ToggleState", throwIfNotFound: true);
+        m_Camera_Zoom = m_Camera.FindAction("Zoom", throwIfNotFound: true);
+        m_Camera_CinematicNewPath = m_Camera.FindAction("CinematicNewPath", throwIfNotFound: true);
+        m_Camera_CinematicResetPath = m_Camera.FindAction("CinematicResetPath", throwIfNotFound: true);
         // Simulator
-        m_Simulator = asset.GetActionMap("Simulator");
-        m_Simulator_ToggleNPCS = m_Simulator.GetAction("ToggleNPCS");
-        m_Simulator_ToggleAgent = m_Simulator.GetAction("ToggleAgent");
-        m_Simulator_ToggleReset = m_Simulator.GetAction("ToggleReset");
-        m_Simulator_ToggleControlsUI = m_Simulator.GetAction("ToggleControlsUI");
-        m_Simulator_TogglePedestrians = m_Simulator.GetAction("TogglePedestrians");
+        m_Simulator = asset.FindActionMap("Simulator", throwIfNotFound: true);
+        m_Simulator_ToggleNPCS = m_Simulator.FindAction("ToggleNPCS", throwIfNotFound: true);
+        m_Simulator_ToggleAgent = m_Simulator.FindAction("ToggleAgent", throwIfNotFound: true);
+        m_Simulator_ToggleReset = m_Simulator.FindAction("ToggleReset", throwIfNotFound: true);
+        m_Simulator_ToggleControlsUI = m_Simulator.FindAction("ToggleControlsUI", throwIfNotFound: true);
+        m_Simulator_TogglePedestrians = m_Simulator.FindAction("TogglePedestrians", throwIfNotFound: true);
         // VehicleKeyboard
-        m_VehicleKeyboard = asset.GetActionMap("VehicleKeyboard");
-        m_VehicleKeyboard_Direction = m_VehicleKeyboard.GetAction("Direction");
-        m_VehicleKeyboard_HeadLights = m_VehicleKeyboard.GetAction("HeadLights");
-        m_VehicleKeyboard_IndicatorLeft = m_VehicleKeyboard.GetAction("IndicatorLeft");
-        m_VehicleKeyboard_IndicatorRight = m_VehicleKeyboard.GetAction("IndicatorRight");
-        m_VehicleKeyboard_IndicatorHazard = m_VehicleKeyboard.GetAction("IndicatorHazard");
-        m_VehicleKeyboard_FogLights = m_VehicleKeyboard.GetAction("FogLights");
-        m_VehicleKeyboard_ShiftFirst = m_VehicleKeyboard.GetAction("ShiftFirst");
-        m_VehicleKeyboard_ShiftReverse = m_VehicleKeyboard.GetAction("ShiftReverse");
-        m_VehicleKeyboard_ParkingBrake = m_VehicleKeyboard.GetAction("ParkingBrake");
-        m_VehicleKeyboard_Ignition = m_VehicleKeyboard.GetAction("Ignition");
-        m_VehicleKeyboard_InteriorLight = m_VehicleKeyboard.GetAction("InteriorLight");
+        m_VehicleKeyboard = asset.FindActionMap("VehicleKeyboard", throwIfNotFound: true);
+        m_VehicleKeyboard_Direction = m_VehicleKeyboard.FindAction("Direction", throwIfNotFound: true);
+        m_VehicleKeyboard_HeadLights = m_VehicleKeyboard.FindAction("HeadLights", throwIfNotFound: true);
+        m_VehicleKeyboard_IndicatorLeft = m_VehicleKeyboard.FindAction("IndicatorLeft", throwIfNotFound: true);
+        m_VehicleKeyboard_IndicatorRight = m_VehicleKeyboard.FindAction("IndicatorRight", throwIfNotFound: true);
+        m_VehicleKeyboard_IndicatorHazard = m_VehicleKeyboard.FindAction("IndicatorHazard", throwIfNotFound: true);
+        m_VehicleKeyboard_FogLights = m_VehicleKeyboard.FindAction("FogLights", throwIfNotFound: true);
+        m_VehicleKeyboard_ShiftFirst = m_VehicleKeyboard.FindAction("ShiftFirst", throwIfNotFound: true);
+        m_VehicleKeyboard_ShiftReverse = m_VehicleKeyboard.FindAction("ShiftReverse", throwIfNotFound: true);
+        m_VehicleKeyboard_ParkingBrake = m_VehicleKeyboard.FindAction("ParkingBrake", throwIfNotFound: true);
+        m_VehicleKeyboard_Ignition = m_VehicleKeyboard.FindAction("Ignition", throwIfNotFound: true);
+        m_VehicleKeyboard_InteriorLight = m_VehicleKeyboard.FindAction("InteriorLight", throwIfNotFound: true);
         // VehicleWheel
-        m_VehicleWheel = asset.GetActionMap("VehicleWheel");
-        m_VehicleWheel_Accel = m_VehicleWheel.GetAction("Accel");
-        m_VehicleWheel_Steer = m_VehicleWheel.GetAction("Steer");
-        m_VehicleWheel_Brake = m_VehicleWheel.GetAction("Brake");
-        m_VehicleWheel_ButtonA = m_VehicleWheel.GetAction("ButtonA");
-        m_VehicleWheel_ButtonB = m_VehicleWheel.GetAction("ButtonB");
-        m_VehicleWheel_ButtonX = m_VehicleWheel.GetAction("ButtonX");
-        m_VehicleWheel_ButtonY = m_VehicleWheel.GetAction("ButtonY");
-        m_VehicleWheel_ButtonRB = m_VehicleWheel.GetAction("ButtonRB");
-        m_VehicleWheel_ButtonLB = m_VehicleWheel.GetAction("ButtonLB");
-        m_VehicleWheel_ButtonStart = m_VehicleWheel.GetAction("ButtonStart");
-        m_VehicleWheel_ButtonSelect = m_VehicleWheel.GetAction("ButtonSelect");
-        m_VehicleWheel_ButtonRSB = m_VehicleWheel.GetAction("ButtonRSB");
-        m_VehicleWheel_ButtonLSB = m_VehicleWheel.GetAction("ButtonLSB");
-        m_VehicleWheel_ButtonCenter = m_VehicleWheel.GetAction("ButtonCenter");
-        m_VehicleWheel_DPad = m_VehicleWheel.GetAction("DPad");
+        m_VehicleWheel = asset.FindActionMap("VehicleWheel", throwIfNotFound: true);
+        m_VehicleWheel_Accel = m_VehicleWheel.FindAction("Accel", throwIfNotFound: true);
+        m_VehicleWheel_Steer = m_VehicleWheel.FindAction("Steer", throwIfNotFound: true);
+        m_VehicleWheel_Brake = m_VehicleWheel.FindAction("Brake", throwIfNotFound: true);
+        m_VehicleWheel_ButtonA = m_VehicleWheel.FindAction("ButtonA", throwIfNotFound: true);
+        m_VehicleWheel_ButtonB = m_VehicleWheel.FindAction("ButtonB", throwIfNotFound: true);
+        m_VehicleWheel_ButtonX = m_VehicleWheel.FindAction("ButtonX", throwIfNotFound: true);
+        m_VehicleWheel_ButtonY = m_VehicleWheel.FindAction("ButtonY", throwIfNotFound: true);
+        m_VehicleWheel_ButtonRB = m_VehicleWheel.FindAction("ButtonRB", throwIfNotFound: true);
+        m_VehicleWheel_ButtonLB = m_VehicleWheel.FindAction("ButtonLB", throwIfNotFound: true);
+        m_VehicleWheel_ButtonStart = m_VehicleWheel.FindAction("ButtonStart", throwIfNotFound: true);
+        m_VehicleWheel_ButtonSelect = m_VehicleWheel.FindAction("ButtonSelect", throwIfNotFound: true);
+        m_VehicleWheel_ButtonRSB = m_VehicleWheel.FindAction("ButtonRSB", throwIfNotFound: true);
+        m_VehicleWheel_ButtonLSB = m_VehicleWheel.FindAction("ButtonLSB", throwIfNotFound: true);
+        m_VehicleWheel_ButtonCenter = m_VehicleWheel.FindAction("ButtonCenter", throwIfNotFound: true);
+        m_VehicleWheel_DPad = m_VehicleWheel.FindAction("DPad", throwIfNotFound: true);
     }
 
-    ~SimulatorControls()
+    public void Dispose()
     {
         UnityEngine.Object.Destroy(asset);
     }
@@ -1661,10 +1440,7 @@ public class SimulatorControls : IInputActionCollection
         set => asset.devices = value;
     }
 
-    public ReadOnlyArray<InputControlScheme> controlSchemes
-    {
-        get => asset.controlSchemes;
-    }
+    public ReadOnlyArray<InputControlScheme> controlSchemes => asset.controlSchemes;
 
     public bool Contains(InputAction action)
     {
@@ -1692,484 +1468,456 @@ public class SimulatorControls : IInputActionCollection
     }
 
     // Camera
-    private InputActionMap m_Camera;
+    private readonly InputActionMap m_Camera;
     private ICameraActions m_CameraActionsCallbackInterface;
-    private InputAction m_Camera_Direction;
-    private InputAction m_Camera_Elevation;
-    private InputAction m_Camera_MouseDelta;
-    private InputAction m_Camera_MouseLeft;
-    private InputAction m_Camera_MouseRight;
-    private InputAction m_Camera_MouseMiddle;
-    private InputAction m_Camera_MouseScroll;
-    private InputAction m_Camera_MousePosition;
-    private InputAction m_Camera_Boost;
-    private InputAction m_Camera_ToggleState;
-    private InputAction m_Camera_Zoom;
-    private InputAction m_Camera_CinematicNewPath;
-    private InputAction m_Camera_CinematicResetPath;
+    private readonly InputAction m_Camera_Direction;
+    private readonly InputAction m_Camera_Elevation;
+    private readonly InputAction m_Camera_MouseDelta;
+    private readonly InputAction m_Camera_MouseLeft;
+    private readonly InputAction m_Camera_MouseRight;
+    private readonly InputAction m_Camera_MouseMiddle;
+    private readonly InputAction m_Camera_MouseScroll;
+    private readonly InputAction m_Camera_MousePosition;
+    private readonly InputAction m_Camera_Boost;
+    private readonly InputAction m_Camera_ToggleState;
+    private readonly InputAction m_Camera_Zoom;
+    private readonly InputAction m_Camera_CinematicNewPath;
+    private readonly InputAction m_Camera_CinematicResetPath;
     public struct CameraActions
     {
-        private SimulatorControls m_Wrapper;
-        public CameraActions(SimulatorControls wrapper) { m_Wrapper = wrapper; }
-        public InputAction @Direction { get { return m_Wrapper.m_Camera_Direction; } }
-        public InputAction @Elevation { get { return m_Wrapper.m_Camera_Elevation; } }
-        public InputAction @MouseDelta { get { return m_Wrapper.m_Camera_MouseDelta; } }
-        public InputAction @MouseLeft { get { return m_Wrapper.m_Camera_MouseLeft; } }
-        public InputAction @MouseRight { get { return m_Wrapper.m_Camera_MouseRight; } }
-        public InputAction @MouseMiddle { get { return m_Wrapper.m_Camera_MouseMiddle; } }
-        public InputAction @MouseScroll { get { return m_Wrapper.m_Camera_MouseScroll; } }
-        public InputAction @MousePosition { get { return m_Wrapper.m_Camera_MousePosition; } }
-        public InputAction @Boost { get { return m_Wrapper.m_Camera_Boost; } }
-        public InputAction @ToggleState { get { return m_Wrapper.m_Camera_ToggleState; } }
-        public InputAction @Zoom { get { return m_Wrapper.m_Camera_Zoom; } }
-        public InputAction @CinematicNewPath { get { return m_Wrapper.m_Camera_CinematicNewPath; } }
-        public InputAction @CinematicResetPath { get { return m_Wrapper.m_Camera_CinematicResetPath; } }
+        private @SimulatorControls m_Wrapper;
+        public CameraActions(@SimulatorControls wrapper) { m_Wrapper = wrapper; }
+        public InputAction @Direction => m_Wrapper.m_Camera_Direction;
+        public InputAction @Elevation => m_Wrapper.m_Camera_Elevation;
+        public InputAction @MouseDelta => m_Wrapper.m_Camera_MouseDelta;
+        public InputAction @MouseLeft => m_Wrapper.m_Camera_MouseLeft;
+        public InputAction @MouseRight => m_Wrapper.m_Camera_MouseRight;
+        public InputAction @MouseMiddle => m_Wrapper.m_Camera_MouseMiddle;
+        public InputAction @MouseScroll => m_Wrapper.m_Camera_MouseScroll;
+        public InputAction @MousePosition => m_Wrapper.m_Camera_MousePosition;
+        public InputAction @Boost => m_Wrapper.m_Camera_Boost;
+        public InputAction @ToggleState => m_Wrapper.m_Camera_ToggleState;
+        public InputAction @Zoom => m_Wrapper.m_Camera_Zoom;
+        public InputAction @CinematicNewPath => m_Wrapper.m_Camera_CinematicNewPath;
+        public InputAction @CinematicResetPath => m_Wrapper.m_Camera_CinematicResetPath;
         public InputActionMap Get() { return m_Wrapper.m_Camera; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
-        public bool enabled { get { return Get().enabled; } }
-        public InputActionMap Clone() { return Get().Clone(); }
+        public bool enabled => Get().enabled;
         public static implicit operator InputActionMap(CameraActions set) { return set.Get(); }
         public void SetCallbacks(ICameraActions instance)
         {
             if (m_Wrapper.m_CameraActionsCallbackInterface != null)
             {
-                Direction.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnDirection;
-                Direction.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnDirection;
-                Direction.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnDirection;
-                Elevation.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnElevation;
-                Elevation.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnElevation;
-                Elevation.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnElevation;
-                MouseDelta.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseDelta;
-                MouseDelta.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseDelta;
-                MouseDelta.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseDelta;
-                MouseLeft.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseLeft;
-                MouseLeft.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseLeft;
-                MouseLeft.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseLeft;
-                MouseRight.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseRight;
-                MouseRight.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseRight;
-                MouseRight.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseRight;
-                MouseMiddle.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseMiddle;
-                MouseMiddle.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseMiddle;
-                MouseMiddle.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseMiddle;
-                MouseScroll.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseScroll;
-                MouseScroll.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseScroll;
-                MouseScroll.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseScroll;
-                MousePosition.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnMousePosition;
-                MousePosition.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnMousePosition;
-                MousePosition.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMousePosition;
-                Boost.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnBoost;
-                Boost.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnBoost;
-                Boost.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnBoost;
-                ToggleState.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnToggleState;
-                ToggleState.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnToggleState;
-                ToggleState.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnToggleState;
-                Zoom.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnZoom;
-                Zoom.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnZoom;
-                Zoom.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnZoom;
-                CinematicNewPath.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnCinematicNewPath;
-                CinematicNewPath.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnCinematicNewPath;
-                CinematicNewPath.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnCinematicNewPath;
-                CinematicResetPath.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnCinematicResetPath;
-                CinematicResetPath.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnCinematicResetPath;
-                CinematicResetPath.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnCinematicResetPath;
+                @Direction.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnDirection;
+                @Direction.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnDirection;
+                @Direction.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnDirection;
+                @Elevation.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnElevation;
+                @Elevation.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnElevation;
+                @Elevation.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnElevation;
+                @MouseDelta.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseDelta;
+                @MouseDelta.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseDelta;
+                @MouseDelta.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseDelta;
+                @MouseLeft.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseLeft;
+                @MouseLeft.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseLeft;
+                @MouseLeft.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseLeft;
+                @MouseRight.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseRight;
+                @MouseRight.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseRight;
+                @MouseRight.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseRight;
+                @MouseMiddle.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseMiddle;
+                @MouseMiddle.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseMiddle;
+                @MouseMiddle.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseMiddle;
+                @MouseScroll.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseScroll;
+                @MouseScroll.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseScroll;
+                @MouseScroll.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseScroll;
+                @MousePosition.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnMousePosition;
+                @MousePosition.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnMousePosition;
+                @MousePosition.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMousePosition;
+                @Boost.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnBoost;
+                @Boost.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnBoost;
+                @Boost.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnBoost;
+                @ToggleState.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnToggleState;
+                @ToggleState.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnToggleState;
+                @ToggleState.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnToggleState;
+                @Zoom.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnZoom;
+                @Zoom.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnZoom;
+                @Zoom.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnZoom;
+                @CinematicNewPath.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnCinematicNewPath;
+                @CinematicNewPath.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnCinematicNewPath;
+                @CinematicNewPath.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnCinematicNewPath;
+                @CinematicResetPath.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnCinematicResetPath;
+                @CinematicResetPath.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnCinematicResetPath;
+                @CinematicResetPath.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnCinematicResetPath;
             }
             m_Wrapper.m_CameraActionsCallbackInterface = instance;
             if (instance != null)
             {
-                Direction.started += instance.OnDirection;
-                Direction.performed += instance.OnDirection;
-                Direction.canceled += instance.OnDirection;
-                Elevation.started += instance.OnElevation;
-                Elevation.performed += instance.OnElevation;
-                Elevation.canceled += instance.OnElevation;
-                MouseDelta.started += instance.OnMouseDelta;
-                MouseDelta.performed += instance.OnMouseDelta;
-                MouseDelta.canceled += instance.OnMouseDelta;
-                MouseLeft.started += instance.OnMouseLeft;
-                MouseLeft.performed += instance.OnMouseLeft;
-                MouseLeft.canceled += instance.OnMouseLeft;
-                MouseRight.started += instance.OnMouseRight;
-                MouseRight.performed += instance.OnMouseRight;
-                MouseRight.canceled += instance.OnMouseRight;
-                MouseMiddle.started += instance.OnMouseMiddle;
-                MouseMiddle.performed += instance.OnMouseMiddle;
-                MouseMiddle.canceled += instance.OnMouseMiddle;
-                MouseScroll.started += instance.OnMouseScroll;
-                MouseScroll.performed += instance.OnMouseScroll;
-                MouseScroll.canceled += instance.OnMouseScroll;
-                MousePosition.started += instance.OnMousePosition;
-                MousePosition.performed += instance.OnMousePosition;
-                MousePosition.canceled += instance.OnMousePosition;
-                Boost.started += instance.OnBoost;
-                Boost.performed += instance.OnBoost;
-                Boost.canceled += instance.OnBoost;
-                ToggleState.started += instance.OnToggleState;
-                ToggleState.performed += instance.OnToggleState;
-                ToggleState.canceled += instance.OnToggleState;
-                Zoom.started += instance.OnZoom;
-                Zoom.performed += instance.OnZoom;
-                Zoom.canceled += instance.OnZoom;
-                CinematicNewPath.started += instance.OnCinematicNewPath;
-                CinematicNewPath.performed += instance.OnCinematicNewPath;
-                CinematicNewPath.canceled += instance.OnCinematicNewPath;
-                CinematicResetPath.started += instance.OnCinematicResetPath;
-                CinematicResetPath.performed += instance.OnCinematicResetPath;
-                CinematicResetPath.canceled += instance.OnCinematicResetPath;
+                @Direction.started += instance.OnDirection;
+                @Direction.performed += instance.OnDirection;
+                @Direction.canceled += instance.OnDirection;
+                @Elevation.started += instance.OnElevation;
+                @Elevation.performed += instance.OnElevation;
+                @Elevation.canceled += instance.OnElevation;
+                @MouseDelta.started += instance.OnMouseDelta;
+                @MouseDelta.performed += instance.OnMouseDelta;
+                @MouseDelta.canceled += instance.OnMouseDelta;
+                @MouseLeft.started += instance.OnMouseLeft;
+                @MouseLeft.performed += instance.OnMouseLeft;
+                @MouseLeft.canceled += instance.OnMouseLeft;
+                @MouseRight.started += instance.OnMouseRight;
+                @MouseRight.performed += instance.OnMouseRight;
+                @MouseRight.canceled += instance.OnMouseRight;
+                @MouseMiddle.started += instance.OnMouseMiddle;
+                @MouseMiddle.performed += instance.OnMouseMiddle;
+                @MouseMiddle.canceled += instance.OnMouseMiddle;
+                @MouseScroll.started += instance.OnMouseScroll;
+                @MouseScroll.performed += instance.OnMouseScroll;
+                @MouseScroll.canceled += instance.OnMouseScroll;
+                @MousePosition.started += instance.OnMousePosition;
+                @MousePosition.performed += instance.OnMousePosition;
+                @MousePosition.canceled += instance.OnMousePosition;
+                @Boost.started += instance.OnBoost;
+                @Boost.performed += instance.OnBoost;
+                @Boost.canceled += instance.OnBoost;
+                @ToggleState.started += instance.OnToggleState;
+                @ToggleState.performed += instance.OnToggleState;
+                @ToggleState.canceled += instance.OnToggleState;
+                @Zoom.started += instance.OnZoom;
+                @Zoom.performed += instance.OnZoom;
+                @Zoom.canceled += instance.OnZoom;
+                @CinematicNewPath.started += instance.OnCinematicNewPath;
+                @CinematicNewPath.performed += instance.OnCinematicNewPath;
+                @CinematicNewPath.canceled += instance.OnCinematicNewPath;
+                @CinematicResetPath.started += instance.OnCinematicResetPath;
+                @CinematicResetPath.performed += instance.OnCinematicResetPath;
+                @CinematicResetPath.canceled += instance.OnCinematicResetPath;
             }
         }
     }
-    public CameraActions @Camera
-    {
-        get
-        {
-            return new CameraActions(this);
-        }
-    }
+    public CameraActions @Camera => new CameraActions(this);
 
     // Simulator
-    private InputActionMap m_Simulator;
+    private readonly InputActionMap m_Simulator;
     private ISimulatorActions m_SimulatorActionsCallbackInterface;
-    private InputAction m_Simulator_ToggleNPCS;
-    private InputAction m_Simulator_ToggleAgent;
-    private InputAction m_Simulator_ToggleReset;
-    private InputAction m_Simulator_ToggleControlsUI;
-    private InputAction m_Simulator_TogglePedestrians;
+    private readonly InputAction m_Simulator_ToggleNPCS;
+    private readonly InputAction m_Simulator_ToggleAgent;
+    private readonly InputAction m_Simulator_ToggleReset;
+    private readonly InputAction m_Simulator_ToggleControlsUI;
+    private readonly InputAction m_Simulator_TogglePedestrians;
     public struct SimulatorActions
     {
-        private SimulatorControls m_Wrapper;
-        public SimulatorActions(SimulatorControls wrapper) { m_Wrapper = wrapper; }
-        public InputAction @ToggleNPCS { get { return m_Wrapper.m_Simulator_ToggleNPCS; } }
-        public InputAction @ToggleAgent { get { return m_Wrapper.m_Simulator_ToggleAgent; } }
-        public InputAction @ToggleReset { get { return m_Wrapper.m_Simulator_ToggleReset; } }
-        public InputAction @ToggleControlsUI { get { return m_Wrapper.m_Simulator_ToggleControlsUI; } }
-        public InputAction @TogglePedestrians { get { return m_Wrapper.m_Simulator_TogglePedestrians; } }
+        private @SimulatorControls m_Wrapper;
+        public SimulatorActions(@SimulatorControls wrapper) { m_Wrapper = wrapper; }
+        public InputAction @ToggleNPCS => m_Wrapper.m_Simulator_ToggleNPCS;
+        public InputAction @ToggleAgent => m_Wrapper.m_Simulator_ToggleAgent;
+        public InputAction @ToggleReset => m_Wrapper.m_Simulator_ToggleReset;
+        public InputAction @ToggleControlsUI => m_Wrapper.m_Simulator_ToggleControlsUI;
+        public InputAction @TogglePedestrians => m_Wrapper.m_Simulator_TogglePedestrians;
         public InputActionMap Get() { return m_Wrapper.m_Simulator; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
-        public bool enabled { get { return Get().enabled; } }
-        public InputActionMap Clone() { return Get().Clone(); }
+        public bool enabled => Get().enabled;
         public static implicit operator InputActionMap(SimulatorActions set) { return set.Get(); }
         public void SetCallbacks(ISimulatorActions instance)
         {
             if (m_Wrapper.m_SimulatorActionsCallbackInterface != null)
             {
-                ToggleNPCS.started -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleNPCS;
-                ToggleNPCS.performed -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleNPCS;
-                ToggleNPCS.canceled -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleNPCS;
-                ToggleAgent.started -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleAgent;
-                ToggleAgent.performed -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleAgent;
-                ToggleAgent.canceled -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleAgent;
-                ToggleReset.started -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleReset;
-                ToggleReset.performed -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleReset;
-                ToggleReset.canceled -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleReset;
-                ToggleControlsUI.started -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleControlsUI;
-                ToggleControlsUI.performed -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleControlsUI;
-                ToggleControlsUI.canceled -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleControlsUI;
-                TogglePedestrians.started -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnTogglePedestrians;
-                TogglePedestrians.performed -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnTogglePedestrians;
-                TogglePedestrians.canceled -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnTogglePedestrians;
+                @ToggleNPCS.started -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleNPCS;
+                @ToggleNPCS.performed -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleNPCS;
+                @ToggleNPCS.canceled -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleNPCS;
+                @ToggleAgent.started -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleAgent;
+                @ToggleAgent.performed -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleAgent;
+                @ToggleAgent.canceled -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleAgent;
+                @ToggleReset.started -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleReset;
+                @ToggleReset.performed -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleReset;
+                @ToggleReset.canceled -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleReset;
+                @ToggleControlsUI.started -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleControlsUI;
+                @ToggleControlsUI.performed -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleControlsUI;
+                @ToggleControlsUI.canceled -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleControlsUI;
+                @TogglePedestrians.started -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnTogglePedestrians;
+                @TogglePedestrians.performed -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnTogglePedestrians;
+                @TogglePedestrians.canceled -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnTogglePedestrians;
             }
             m_Wrapper.m_SimulatorActionsCallbackInterface = instance;
             if (instance != null)
             {
-                ToggleNPCS.started += instance.OnToggleNPCS;
-                ToggleNPCS.performed += instance.OnToggleNPCS;
-                ToggleNPCS.canceled += instance.OnToggleNPCS;
-                ToggleAgent.started += instance.OnToggleAgent;
-                ToggleAgent.performed += instance.OnToggleAgent;
-                ToggleAgent.canceled += instance.OnToggleAgent;
-                ToggleReset.started += instance.OnToggleReset;
-                ToggleReset.performed += instance.OnToggleReset;
-                ToggleReset.canceled += instance.OnToggleReset;
-                ToggleControlsUI.started += instance.OnToggleControlsUI;
-                ToggleControlsUI.performed += instance.OnToggleControlsUI;
-                ToggleControlsUI.canceled += instance.OnToggleControlsUI;
-                TogglePedestrians.started += instance.OnTogglePedestrians;
-                TogglePedestrians.performed += instance.OnTogglePedestrians;
-                TogglePedestrians.canceled += instance.OnTogglePedestrians;
+                @ToggleNPCS.started += instance.OnToggleNPCS;
+                @ToggleNPCS.performed += instance.OnToggleNPCS;
+                @ToggleNPCS.canceled += instance.OnToggleNPCS;
+                @ToggleAgent.started += instance.OnToggleAgent;
+                @ToggleAgent.performed += instance.OnToggleAgent;
+                @ToggleAgent.canceled += instance.OnToggleAgent;
+                @ToggleReset.started += instance.OnToggleReset;
+                @ToggleReset.performed += instance.OnToggleReset;
+                @ToggleReset.canceled += instance.OnToggleReset;
+                @ToggleControlsUI.started += instance.OnToggleControlsUI;
+                @ToggleControlsUI.performed += instance.OnToggleControlsUI;
+                @ToggleControlsUI.canceled += instance.OnToggleControlsUI;
+                @TogglePedestrians.started += instance.OnTogglePedestrians;
+                @TogglePedestrians.performed += instance.OnTogglePedestrians;
+                @TogglePedestrians.canceled += instance.OnTogglePedestrians;
             }
         }
     }
-    public SimulatorActions @Simulator
-    {
-        get
-        {
-            return new SimulatorActions(this);
-        }
-    }
+    public SimulatorActions @Simulator => new SimulatorActions(this);
 
     // VehicleKeyboard
-    private InputActionMap m_VehicleKeyboard;
+    private readonly InputActionMap m_VehicleKeyboard;
     private IVehicleKeyboardActions m_VehicleKeyboardActionsCallbackInterface;
-    private InputAction m_VehicleKeyboard_Direction;
-    private InputAction m_VehicleKeyboard_HeadLights;
-    private InputAction m_VehicleKeyboard_IndicatorLeft;
-    private InputAction m_VehicleKeyboard_IndicatorRight;
-    private InputAction m_VehicleKeyboard_IndicatorHazard;
-    private InputAction m_VehicleKeyboard_FogLights;
-    private InputAction m_VehicleKeyboard_ShiftFirst;
-    private InputAction m_VehicleKeyboard_ShiftReverse;
-    private InputAction m_VehicleKeyboard_ParkingBrake;
-    private InputAction m_VehicleKeyboard_Ignition;
-    private InputAction m_VehicleKeyboard_InteriorLight;
+    private readonly InputAction m_VehicleKeyboard_Direction;
+    private readonly InputAction m_VehicleKeyboard_HeadLights;
+    private readonly InputAction m_VehicleKeyboard_IndicatorLeft;
+    private readonly InputAction m_VehicleKeyboard_IndicatorRight;
+    private readonly InputAction m_VehicleKeyboard_IndicatorHazard;
+    private readonly InputAction m_VehicleKeyboard_FogLights;
+    private readonly InputAction m_VehicleKeyboard_ShiftFirst;
+    private readonly InputAction m_VehicleKeyboard_ShiftReverse;
+    private readonly InputAction m_VehicleKeyboard_ParkingBrake;
+    private readonly InputAction m_VehicleKeyboard_Ignition;
+    private readonly InputAction m_VehicleKeyboard_InteriorLight;
     public struct VehicleKeyboardActions
     {
-        private SimulatorControls m_Wrapper;
-        public VehicleKeyboardActions(SimulatorControls wrapper) { m_Wrapper = wrapper; }
-        public InputAction @Direction { get { return m_Wrapper.m_VehicleKeyboard_Direction; } }
-        public InputAction @HeadLights { get { return m_Wrapper.m_VehicleKeyboard_HeadLights; } }
-        public InputAction @IndicatorLeft { get { return m_Wrapper.m_VehicleKeyboard_IndicatorLeft; } }
-        public InputAction @IndicatorRight { get { return m_Wrapper.m_VehicleKeyboard_IndicatorRight; } }
-        public InputAction @IndicatorHazard { get { return m_Wrapper.m_VehicleKeyboard_IndicatorHazard; } }
-        public InputAction @FogLights { get { return m_Wrapper.m_VehicleKeyboard_FogLights; } }
-        public InputAction @ShiftFirst { get { return m_Wrapper.m_VehicleKeyboard_ShiftFirst; } }
-        public InputAction @ShiftReverse { get { return m_Wrapper.m_VehicleKeyboard_ShiftReverse; } }
-        public InputAction @ParkingBrake { get { return m_Wrapper.m_VehicleKeyboard_ParkingBrake; } }
-        public InputAction @Ignition { get { return m_Wrapper.m_VehicleKeyboard_Ignition; } }
-        public InputAction @InteriorLight { get { return m_Wrapper.m_VehicleKeyboard_InteriorLight; } }
+        private @SimulatorControls m_Wrapper;
+        public VehicleKeyboardActions(@SimulatorControls wrapper) { m_Wrapper = wrapper; }
+        public InputAction @Direction => m_Wrapper.m_VehicleKeyboard_Direction;
+        public InputAction @HeadLights => m_Wrapper.m_VehicleKeyboard_HeadLights;
+        public InputAction @IndicatorLeft => m_Wrapper.m_VehicleKeyboard_IndicatorLeft;
+        public InputAction @IndicatorRight => m_Wrapper.m_VehicleKeyboard_IndicatorRight;
+        public InputAction @IndicatorHazard => m_Wrapper.m_VehicleKeyboard_IndicatorHazard;
+        public InputAction @FogLights => m_Wrapper.m_VehicleKeyboard_FogLights;
+        public InputAction @ShiftFirst => m_Wrapper.m_VehicleKeyboard_ShiftFirst;
+        public InputAction @ShiftReverse => m_Wrapper.m_VehicleKeyboard_ShiftReverse;
+        public InputAction @ParkingBrake => m_Wrapper.m_VehicleKeyboard_ParkingBrake;
+        public InputAction @Ignition => m_Wrapper.m_VehicleKeyboard_Ignition;
+        public InputAction @InteriorLight => m_Wrapper.m_VehicleKeyboard_InteriorLight;
         public InputActionMap Get() { return m_Wrapper.m_VehicleKeyboard; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
-        public bool enabled { get { return Get().enabled; } }
-        public InputActionMap Clone() { return Get().Clone(); }
+        public bool enabled => Get().enabled;
         public static implicit operator InputActionMap(VehicleKeyboardActions set) { return set.Get(); }
         public void SetCallbacks(IVehicleKeyboardActions instance)
         {
             if (m_Wrapper.m_VehicleKeyboardActionsCallbackInterface != null)
             {
-                Direction.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnDirection;
-                Direction.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnDirection;
-                Direction.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnDirection;
-                HeadLights.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnHeadLights;
-                HeadLights.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnHeadLights;
-                HeadLights.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnHeadLights;
-                IndicatorLeft.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorLeft;
-                IndicatorLeft.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorLeft;
-                IndicatorLeft.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorLeft;
-                IndicatorRight.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorRight;
-                IndicatorRight.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorRight;
-                IndicatorRight.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorRight;
-                IndicatorHazard.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorHazard;
-                IndicatorHazard.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorHazard;
-                IndicatorHazard.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorHazard;
-                FogLights.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnFogLights;
-                FogLights.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnFogLights;
-                FogLights.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnFogLights;
-                ShiftFirst.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnShiftFirst;
-                ShiftFirst.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnShiftFirst;
-                ShiftFirst.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnShiftFirst;
-                ShiftReverse.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnShiftReverse;
-                ShiftReverse.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnShiftReverse;
-                ShiftReverse.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnShiftReverse;
-                ParkingBrake.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnParkingBrake;
-                ParkingBrake.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnParkingBrake;
-                ParkingBrake.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnParkingBrake;
-                Ignition.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIgnition;
-                Ignition.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIgnition;
-                Ignition.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIgnition;
-                InteriorLight.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnInteriorLight;
-                InteriorLight.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnInteriorLight;
-                InteriorLight.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnInteriorLight;
+                @Direction.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnDirection;
+                @Direction.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnDirection;
+                @Direction.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnDirection;
+                @HeadLights.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnHeadLights;
+                @HeadLights.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnHeadLights;
+                @HeadLights.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnHeadLights;
+                @IndicatorLeft.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorLeft;
+                @IndicatorLeft.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorLeft;
+                @IndicatorLeft.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorLeft;
+                @IndicatorRight.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorRight;
+                @IndicatorRight.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorRight;
+                @IndicatorRight.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorRight;
+                @IndicatorHazard.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorHazard;
+                @IndicatorHazard.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorHazard;
+                @IndicatorHazard.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorHazard;
+                @FogLights.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnFogLights;
+                @FogLights.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnFogLights;
+                @FogLights.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnFogLights;
+                @ShiftFirst.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnShiftFirst;
+                @ShiftFirst.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnShiftFirst;
+                @ShiftFirst.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnShiftFirst;
+                @ShiftReverse.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnShiftReverse;
+                @ShiftReverse.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnShiftReverse;
+                @ShiftReverse.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnShiftReverse;
+                @ParkingBrake.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnParkingBrake;
+                @ParkingBrake.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnParkingBrake;
+                @ParkingBrake.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnParkingBrake;
+                @Ignition.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIgnition;
+                @Ignition.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIgnition;
+                @Ignition.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIgnition;
+                @InteriorLight.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnInteriorLight;
+                @InteriorLight.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnInteriorLight;
+                @InteriorLight.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnInteriorLight;
             }
             m_Wrapper.m_VehicleKeyboardActionsCallbackInterface = instance;
             if (instance != null)
             {
-                Direction.started += instance.OnDirection;
-                Direction.performed += instance.OnDirection;
-                Direction.canceled += instance.OnDirection;
-                HeadLights.started += instance.OnHeadLights;
-                HeadLights.performed += instance.OnHeadLights;
-                HeadLights.canceled += instance.OnHeadLights;
-                IndicatorLeft.started += instance.OnIndicatorLeft;
-                IndicatorLeft.performed += instance.OnIndicatorLeft;
-                IndicatorLeft.canceled += instance.OnIndicatorLeft;
-                IndicatorRight.started += instance.OnIndicatorRight;
-                IndicatorRight.performed += instance.OnIndicatorRight;
-                IndicatorRight.canceled += instance.OnIndicatorRight;
-                IndicatorHazard.started += instance.OnIndicatorHazard;
-                IndicatorHazard.performed += instance.OnIndicatorHazard;
-                IndicatorHazard.canceled += instance.OnIndicatorHazard;
-                FogLights.started += instance.OnFogLights;
-                FogLights.performed += instance.OnFogLights;
-                FogLights.canceled += instance.OnFogLights;
-                ShiftFirst.started += instance.OnShiftFirst;
-                ShiftFirst.performed += instance.OnShiftFirst;
-                ShiftFirst.canceled += instance.OnShiftFirst;
-                ShiftReverse.started += instance.OnShiftReverse;
-                ShiftReverse.performed += instance.OnShiftReverse;
-                ShiftReverse.canceled += instance.OnShiftReverse;
-                ParkingBrake.started += instance.OnParkingBrake;
-                ParkingBrake.performed += instance.OnParkingBrake;
-                ParkingBrake.canceled += instance.OnParkingBrake;
-                Ignition.started += instance.OnIgnition;
-                Ignition.performed += instance.OnIgnition;
-                Ignition.canceled += instance.OnIgnition;
-                InteriorLight.started += instance.OnInteriorLight;
-                InteriorLight.performed += instance.OnInteriorLight;
-                InteriorLight.canceled += instance.OnInteriorLight;
+                @Direction.started += instance.OnDirection;
+                @Direction.performed += instance.OnDirection;
+                @Direction.canceled += instance.OnDirection;
+                @HeadLights.started += instance.OnHeadLights;
+                @HeadLights.performed += instance.OnHeadLights;
+                @HeadLights.canceled += instance.OnHeadLights;
+                @IndicatorLeft.started += instance.OnIndicatorLeft;
+                @IndicatorLeft.performed += instance.OnIndicatorLeft;
+                @IndicatorLeft.canceled += instance.OnIndicatorLeft;
+                @IndicatorRight.started += instance.OnIndicatorRight;
+                @IndicatorRight.performed += instance.OnIndicatorRight;
+                @IndicatorRight.canceled += instance.OnIndicatorRight;
+                @IndicatorHazard.started += instance.OnIndicatorHazard;
+                @IndicatorHazard.performed += instance.OnIndicatorHazard;
+                @IndicatorHazard.canceled += instance.OnIndicatorHazard;
+                @FogLights.started += instance.OnFogLights;
+                @FogLights.performed += instance.OnFogLights;
+                @FogLights.canceled += instance.OnFogLights;
+                @ShiftFirst.started += instance.OnShiftFirst;
+                @ShiftFirst.performed += instance.OnShiftFirst;
+                @ShiftFirst.canceled += instance.OnShiftFirst;
+                @ShiftReverse.started += instance.OnShiftReverse;
+                @ShiftReverse.performed += instance.OnShiftReverse;
+                @ShiftReverse.canceled += instance.OnShiftReverse;
+                @ParkingBrake.started += instance.OnParkingBrake;
+                @ParkingBrake.performed += instance.OnParkingBrake;
+                @ParkingBrake.canceled += instance.OnParkingBrake;
+                @Ignition.started += instance.OnIgnition;
+                @Ignition.performed += instance.OnIgnition;
+                @Ignition.canceled += instance.OnIgnition;
+                @InteriorLight.started += instance.OnInteriorLight;
+                @InteriorLight.performed += instance.OnInteriorLight;
+                @InteriorLight.canceled += instance.OnInteriorLight;
             }
         }
     }
-    public VehicleKeyboardActions @VehicleKeyboard
-    {
-        get
-        {
-            return new VehicleKeyboardActions(this);
-        }
-    }
+    public VehicleKeyboardActions @VehicleKeyboard => new VehicleKeyboardActions(this);
 
     // VehicleWheel
-    private InputActionMap m_VehicleWheel;
+    private readonly InputActionMap m_VehicleWheel;
     private IVehicleWheelActions m_VehicleWheelActionsCallbackInterface;
-    private InputAction m_VehicleWheel_Accel;
-    private InputAction m_VehicleWheel_Steer;
-    private InputAction m_VehicleWheel_Brake;
-    private InputAction m_VehicleWheel_ButtonA;
-    private InputAction m_VehicleWheel_ButtonB;
-    private InputAction m_VehicleWheel_ButtonX;
-    private InputAction m_VehicleWheel_ButtonY;
-    private InputAction m_VehicleWheel_ButtonRB;
-    private InputAction m_VehicleWheel_ButtonLB;
-    private InputAction m_VehicleWheel_ButtonStart;
-    private InputAction m_VehicleWheel_ButtonSelect;
-    private InputAction m_VehicleWheel_ButtonRSB;
-    private InputAction m_VehicleWheel_ButtonLSB;
-    private InputAction m_VehicleWheel_ButtonCenter;
-    private InputAction m_VehicleWheel_DPad;
+    private readonly InputAction m_VehicleWheel_Accel;
+    private readonly InputAction m_VehicleWheel_Steer;
+    private readonly InputAction m_VehicleWheel_Brake;
+    private readonly InputAction m_VehicleWheel_ButtonA;
+    private readonly InputAction m_VehicleWheel_ButtonB;
+    private readonly InputAction m_VehicleWheel_ButtonX;
+    private readonly InputAction m_VehicleWheel_ButtonY;
+    private readonly InputAction m_VehicleWheel_ButtonRB;
+    private readonly InputAction m_VehicleWheel_ButtonLB;
+    private readonly InputAction m_VehicleWheel_ButtonStart;
+    private readonly InputAction m_VehicleWheel_ButtonSelect;
+    private readonly InputAction m_VehicleWheel_ButtonRSB;
+    private readonly InputAction m_VehicleWheel_ButtonLSB;
+    private readonly InputAction m_VehicleWheel_ButtonCenter;
+    private readonly InputAction m_VehicleWheel_DPad;
     public struct VehicleWheelActions
     {
-        private SimulatorControls m_Wrapper;
-        public VehicleWheelActions(SimulatorControls wrapper) { m_Wrapper = wrapper; }
-        public InputAction @Accel { get { return m_Wrapper.m_VehicleWheel_Accel; } }
-        public InputAction @Steer { get { return m_Wrapper.m_VehicleWheel_Steer; } }
-        public InputAction @Brake { get { return m_Wrapper.m_VehicleWheel_Brake; } }
-        public InputAction @ButtonA { get { return m_Wrapper.m_VehicleWheel_ButtonA; } }
-        public InputAction @ButtonB { get { return m_Wrapper.m_VehicleWheel_ButtonB; } }
-        public InputAction @ButtonX { get { return m_Wrapper.m_VehicleWheel_ButtonX; } }
-        public InputAction @ButtonY { get { return m_Wrapper.m_VehicleWheel_ButtonY; } }
-        public InputAction @ButtonRB { get { return m_Wrapper.m_VehicleWheel_ButtonRB; } }
-        public InputAction @ButtonLB { get { return m_Wrapper.m_VehicleWheel_ButtonLB; } }
-        public InputAction @ButtonStart { get { return m_Wrapper.m_VehicleWheel_ButtonStart; } }
-        public InputAction @ButtonSelect { get { return m_Wrapper.m_VehicleWheel_ButtonSelect; } }
-        public InputAction @ButtonRSB { get { return m_Wrapper.m_VehicleWheel_ButtonRSB; } }
-        public InputAction @ButtonLSB { get { return m_Wrapper.m_VehicleWheel_ButtonLSB; } }
-        public InputAction @ButtonCenter { get { return m_Wrapper.m_VehicleWheel_ButtonCenter; } }
-        public InputAction @DPad { get { return m_Wrapper.m_VehicleWheel_DPad; } }
+        private @SimulatorControls m_Wrapper;
+        public VehicleWheelActions(@SimulatorControls wrapper) { m_Wrapper = wrapper; }
+        public InputAction @Accel => m_Wrapper.m_VehicleWheel_Accel;
+        public InputAction @Steer => m_Wrapper.m_VehicleWheel_Steer;
+        public InputAction @Brake => m_Wrapper.m_VehicleWheel_Brake;
+        public InputAction @ButtonA => m_Wrapper.m_VehicleWheel_ButtonA;
+        public InputAction @ButtonB => m_Wrapper.m_VehicleWheel_ButtonB;
+        public InputAction @ButtonX => m_Wrapper.m_VehicleWheel_ButtonX;
+        public InputAction @ButtonY => m_Wrapper.m_VehicleWheel_ButtonY;
+        public InputAction @ButtonRB => m_Wrapper.m_VehicleWheel_ButtonRB;
+        public InputAction @ButtonLB => m_Wrapper.m_VehicleWheel_ButtonLB;
+        public InputAction @ButtonStart => m_Wrapper.m_VehicleWheel_ButtonStart;
+        public InputAction @ButtonSelect => m_Wrapper.m_VehicleWheel_ButtonSelect;
+        public InputAction @ButtonRSB => m_Wrapper.m_VehicleWheel_ButtonRSB;
+        public InputAction @ButtonLSB => m_Wrapper.m_VehicleWheel_ButtonLSB;
+        public InputAction @ButtonCenter => m_Wrapper.m_VehicleWheel_ButtonCenter;
+        public InputAction @DPad => m_Wrapper.m_VehicleWheel_DPad;
         public InputActionMap Get() { return m_Wrapper.m_VehicleWheel; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
-        public bool enabled { get { return Get().enabled; } }
-        public InputActionMap Clone() { return Get().Clone(); }
+        public bool enabled => Get().enabled;
         public static implicit operator InputActionMap(VehicleWheelActions set) { return set.Get(); }
         public void SetCallbacks(IVehicleWheelActions instance)
         {
             if (m_Wrapper.m_VehicleWheelActionsCallbackInterface != null)
             {
-                Accel.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnAccel;
-                Accel.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnAccel;
-                Accel.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnAccel;
-                Steer.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnSteer;
-                Steer.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnSteer;
-                Steer.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnSteer;
-                Brake.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnBrake;
-                Brake.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnBrake;
-                Brake.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnBrake;
-                ButtonA.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonA;
-                ButtonA.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonA;
-                ButtonA.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonA;
-                ButtonB.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonB;
-                ButtonB.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonB;
-                ButtonB.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonB;
-                ButtonX.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonX;
-                ButtonX.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonX;
-                ButtonX.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonX;
-                ButtonY.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonY;
-                ButtonY.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonY;
-                ButtonY.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonY;
-                ButtonRB.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonRB;
-                ButtonRB.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonRB;
-                ButtonRB.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonRB;
-                ButtonLB.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonLB;
-                ButtonLB.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonLB;
-                ButtonLB.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonLB;
-                ButtonStart.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonStart;
-                ButtonStart.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonStart;
-                ButtonStart.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonStart;
-                ButtonSelect.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonSelect;
-                ButtonSelect.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonSelect;
-                ButtonSelect.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonSelect;
-                ButtonRSB.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonRSB;
-                ButtonRSB.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonRSB;
-                ButtonRSB.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonRSB;
-                ButtonLSB.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonLSB;
-                ButtonLSB.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonLSB;
-                ButtonLSB.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonLSB;
-                ButtonCenter.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonCenter;
-                ButtonCenter.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonCenter;
-                ButtonCenter.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonCenter;
-                DPad.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnDPad;
-                DPad.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnDPad;
-                DPad.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnDPad;
+                @Accel.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnAccel;
+                @Accel.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnAccel;
+                @Accel.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnAccel;
+                @Steer.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnSteer;
+                @Steer.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnSteer;
+                @Steer.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnSteer;
+                @Brake.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnBrake;
+                @Brake.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnBrake;
+                @Brake.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnBrake;
+                @ButtonA.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonA;
+                @ButtonA.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonA;
+                @ButtonA.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonA;
+                @ButtonB.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonB;
+                @ButtonB.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonB;
+                @ButtonB.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonB;
+                @ButtonX.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonX;
+                @ButtonX.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonX;
+                @ButtonX.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonX;
+                @ButtonY.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonY;
+                @ButtonY.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonY;
+                @ButtonY.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonY;
+                @ButtonRB.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonRB;
+                @ButtonRB.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonRB;
+                @ButtonRB.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonRB;
+                @ButtonLB.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonLB;
+                @ButtonLB.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonLB;
+                @ButtonLB.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonLB;
+                @ButtonStart.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonStart;
+                @ButtonStart.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonStart;
+                @ButtonStart.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonStart;
+                @ButtonSelect.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonSelect;
+                @ButtonSelect.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonSelect;
+                @ButtonSelect.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonSelect;
+                @ButtonRSB.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonRSB;
+                @ButtonRSB.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonRSB;
+                @ButtonRSB.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonRSB;
+                @ButtonLSB.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonLSB;
+                @ButtonLSB.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonLSB;
+                @ButtonLSB.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonLSB;
+                @ButtonCenter.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonCenter;
+                @ButtonCenter.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonCenter;
+                @ButtonCenter.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonCenter;
+                @DPad.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnDPad;
+                @DPad.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnDPad;
+                @DPad.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnDPad;
             }
             m_Wrapper.m_VehicleWheelActionsCallbackInterface = instance;
             if (instance != null)
             {
-                Accel.started += instance.OnAccel;
-                Accel.performed += instance.OnAccel;
-                Accel.canceled += instance.OnAccel;
-                Steer.started += instance.OnSteer;
-                Steer.performed += instance.OnSteer;
-                Steer.canceled += instance.OnSteer;
-                Brake.started += instance.OnBrake;
-                Brake.performed += instance.OnBrake;
-                Brake.canceled += instance.OnBrake;
-                ButtonA.started += instance.OnButtonA;
-                ButtonA.performed += instance.OnButtonA;
-                ButtonA.canceled += instance.OnButtonA;
-                ButtonB.started += instance.OnButtonB;
-                ButtonB.performed += instance.OnButtonB;
-                ButtonB.canceled += instance.OnButtonB;
-                ButtonX.started += instance.OnButtonX;
-                ButtonX.performed += instance.OnButtonX;
-                ButtonX.canceled += instance.OnButtonX;
-                ButtonY.started += instance.OnButtonY;
-                ButtonY.performed += instance.OnButtonY;
-                ButtonY.canceled += instance.OnButtonY;
-                ButtonRB.started += instance.OnButtonRB;
-                ButtonRB.performed += instance.OnButtonRB;
-                ButtonRB.canceled += instance.OnButtonRB;
-                ButtonLB.started += instance.OnButtonLB;
-                ButtonLB.performed += instance.OnButtonLB;
-                ButtonLB.canceled += instance.OnButtonLB;
-                ButtonStart.started += instance.OnButtonStart;
-                ButtonStart.performed += instance.OnButtonStart;
-                ButtonStart.canceled += instance.OnButtonStart;
-                ButtonSelect.started += instance.OnButtonSelect;
-                ButtonSelect.performed += instance.OnButtonSelect;
-                ButtonSelect.canceled += instance.OnButtonSelect;
-                ButtonRSB.started += instance.OnButtonRSB;
-                ButtonRSB.performed += instance.OnButtonRSB;
-                ButtonRSB.canceled += instance.OnButtonRSB;
-                ButtonLSB.started += instance.OnButtonLSB;
-                ButtonLSB.performed += instance.OnButtonLSB;
-                ButtonLSB.canceled += instance.OnButtonLSB;
-                ButtonCenter.started += instance.OnButtonCenter;
-                ButtonCenter.performed += instance.OnButtonCenter;
-                ButtonCenter.canceled += instance.OnButtonCenter;
-                DPad.started += instance.OnDPad;
-                DPad.performed += instance.OnDPad;
-                DPad.canceled += instance.OnDPad;
+                @Accel.started += instance.OnAccel;
+                @Accel.performed += instance.OnAccel;
+                @Accel.canceled += instance.OnAccel;
+                @Steer.started += instance.OnSteer;
+                @Steer.performed += instance.OnSteer;
+                @Steer.canceled += instance.OnSteer;
+                @Brake.started += instance.OnBrake;
+                @Brake.performed += instance.OnBrake;
+                @Brake.canceled += instance.OnBrake;
+                @ButtonA.started += instance.OnButtonA;
+                @ButtonA.performed += instance.OnButtonA;
+                @ButtonA.canceled += instance.OnButtonA;
+                @ButtonB.started += instance.OnButtonB;
+                @ButtonB.performed += instance.OnButtonB;
+                @ButtonB.canceled += instance.OnButtonB;
+                @ButtonX.started += instance.OnButtonX;
+                @ButtonX.performed += instance.OnButtonX;
+                @ButtonX.canceled += instance.OnButtonX;
+                @ButtonY.started += instance.OnButtonY;
+                @ButtonY.performed += instance.OnButtonY;
+                @ButtonY.canceled += instance.OnButtonY;
+                @ButtonRB.started += instance.OnButtonRB;
+                @ButtonRB.performed += instance.OnButtonRB;
+                @ButtonRB.canceled += instance.OnButtonRB;
+                @ButtonLB.started += instance.OnButtonLB;
+                @ButtonLB.performed += instance.OnButtonLB;
+                @ButtonLB.canceled += instance.OnButtonLB;
+                @ButtonStart.started += instance.OnButtonStart;
+                @ButtonStart.performed += instance.OnButtonStart;
+                @ButtonStart.canceled += instance.OnButtonStart;
+                @ButtonSelect.started += instance.OnButtonSelect;
+                @ButtonSelect.performed += instance.OnButtonSelect;
+                @ButtonSelect.canceled += instance.OnButtonSelect;
+                @ButtonRSB.started += instance.OnButtonRSB;
+                @ButtonRSB.performed += instance.OnButtonRSB;
+                @ButtonRSB.canceled += instance.OnButtonRSB;
+                @ButtonLSB.started += instance.OnButtonLSB;
+                @ButtonLSB.performed += instance.OnButtonLSB;
+                @ButtonLSB.canceled += instance.OnButtonLSB;
+                @ButtonCenter.started += instance.OnButtonCenter;
+                @ButtonCenter.performed += instance.OnButtonCenter;
+                @ButtonCenter.canceled += instance.OnButtonCenter;
+                @DPad.started += instance.OnDPad;
+                @DPad.performed += instance.OnDPad;
+                @DPad.canceled += instance.OnDPad;
             }
         }
     }
-    public VehicleWheelActions @VehicleWheel
-    {
-        get
-        {
-            return new VehicleWheelActions(this);
-        }
-    }
+    public VehicleWheelActions @VehicleWheel => new VehicleWheelActions(this);
     public interface ICameraActions
     {
         void OnDirection(InputAction.CallbackContext context);

@@ -633,8 +633,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             UseInPreview = false,
         };
-
-        // lgsvl
+        
+        
+        // === LGSVL (Add lidar sensor pass to Shader Graph sub-shaders)
         Pass m_PassSimulatorLidar = new Pass()
         {
             Name = "SimulatorLidarPass",
@@ -668,8 +669,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.PositionSlotId,
             },
         };
+        // ===
 
-        // lgsvl
+        // === LGSVL (Add segmentation sensor pass to Shader Graph sub-shaders)
         Pass m_PassSimulatorSegmentation = new Pass()
         {
             Name = "SimulatorSegmentationPass",
@@ -694,8 +696,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.PositionSlotId,
             },
         };
+        // ===
 
-        // lgsvl
+        // === LGSVL (Add depth sensor pass to Shader Graph sub-shaders)
         Pass m_PassSimulatorDepth = new Pass()
         {
             Name = "SimulatorDepthPass",
@@ -724,7 +727,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.PositionSlotId,
             },
         };
-
+        // ===
 
         Pass m_PassRaytracingIndirect = new Pass()
         {
@@ -1419,10 +1422,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     GenerateShaderPassLit(masterNode, m_PassTransparentDepthPostpass, mode, subShader, sourceAssetDependencyPaths);
                 }
-                
+
+                // === LGSVL (Generate sensor passes for Shader Graph sub-shaders)
                 GenerateShaderPassLit(masterNode, m_PassSimulatorLidar, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPassLit(masterNode, m_PassSimulatorSegmentation, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPassLit(masterNode, m_PassSimulatorDepth, mode, subShader, sourceAssetDependencyPaths);
+                // ===
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", false);
@@ -1445,7 +1450,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 subShader.AddShaderChunk("}", false);
             }
 
-            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.HDLitGUI""");
+            if (!masterNode.OverrideEnabled)
+            {
+                subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.HDLitGUI""");
+            }
 
             return subShader.GetShaderString(0);
         }

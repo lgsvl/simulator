@@ -333,6 +333,18 @@ namespace Simulator.Web
             var pluginStream = dir.Find($"{manifest.assetGuid}_sensor_main_{platform}").SeekableStream();
             AssetBundle pluginBundle = AssetBundle.LoadFromStream(pluginStream);
             var pluginAssets = pluginBundle.GetAllAssetNames();
+
+            var texDir = dir.Find($"{manifest.assetGuid}_sensor_textures");
+            if (texDir != null)
+            {
+                var texStream = dir.Find($"{manifest.assetGuid}_sensor_textures").SeekableStream();
+                var textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+                if (!AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
+                {
+                    textureBundle.LoadAllAssets();
+                }
+            }
+
             SensorBase pluginBase = pluginBundle.LoadAsset<GameObject>(pluginAssets[0]).GetComponent<SensorBase>();
             SensorConfig config = SensorTypes.GetConfig(pluginBase);
             config.Guid = manifest.assetGuid;
@@ -371,8 +383,7 @@ namespace Simulator.Web
 
             var prefabName = $"{manifest.assetName}.prefab";
             //Find a prefab with main asset name ignoring the characters case
-            var mainPrefabName = 
-                pluginAssets.First(name => name.IndexOf(prefabName, StringComparison.InvariantCultureIgnoreCase) >= 0);
+            var mainPrefabName = pluginAssets.First(name => name.IndexOf(prefabName, StringComparison.InvariantCultureIgnoreCase) >= 0);
             var controllable = pluginBundle.LoadAsset<GameObject>(mainPrefabName).GetComponent<IControllable>();
             Controllables.Add(manifest.assetName, controllable);
             var additionalAssets = new List<GameObject>();

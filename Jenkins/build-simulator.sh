@@ -113,10 +113,8 @@ function finish
 }
 trap finish EXIT
 
-get_unity_license
-
-if [ "$1" == "check" ]; then
-
+function unity_check
+{
   /opt/Unity/Editor/Unity \
     -batchmode \
     -force-vulkan \
@@ -128,11 +126,10 @@ if [ "$1" == "check" ]; then
     -logFile /dev/stdout | tee unity-check.log
 
   check_unity_log unity-check.log
+}
 
-  exit 0
-
-elif [ "$1" == "test" ]; then
-
+function unity_test
+{
   /opt/Unity/Editor/Unity \
     -batchmode \
     -force-vulkan \
@@ -146,7 +143,23 @@ elif [ "$1" == "test" ]; then
   check_unity_log unity-test.log
 
   exit 0
+}
 
+get_unity_license
+
+if [ "$1" == "check" ]; then
+  for i in `seq 1 5`; do
+    if ! unity_check; then
+      echo "WARN: unity_check failed, attempt $i in 5, trying again"
+    else
+      echo "INFO: attempt $i seems to be successful"
+      exit 0
+    fi
+  done
+  echo "ERROR: all 5 unity_check attempts failed, giving up"
+  exit 1
+elif [ "$1" == "test" ]; then
+  unity_test
 fi
 
 if [ "$1" == "windows" ]; then

@@ -147,7 +147,7 @@ function unity_test
 
 get_unity_license
 
-if [ "$1" == "check" ]; then
+if [ "$1" = "check" ]; then
   for i in `seq 1 5`; do
     if ! unity_check; then
       echo "WARN: unity_check failed, attempt $i in 5, trying again"
@@ -158,23 +158,23 @@ if [ "$1" == "check" ]; then
   done
   echo "ERROR: all 5 unity_check attempts failed, giving up"
   exit 1
-elif [ "$1" == "test" ]; then
+elif [ "$1" = "test" ]; then
   unity_test
 fi
 
-if [ "$1" == "windows" ]; then
+if [ "$1" = "windows" ]; then
 
   BUILD_TARGET=Win64
   BUILD_OUTPUT=${PREFIX}-windows64${SUFFIX}
   BUILD_CHECK=simulator.exe
 
-elif [ "$1" == "linux" ]; then
+elif [ "$1" = "linux" ]; then
 
   BUILD_TARGET=Linux64
   BUILD_OUTPUT=${PREFIX}-linux64${SUFFIX}
   BUILD_CHECK=simulator
 
-elif [ "$1" == "macos" ]; then
+elif [ "$1" = "macos" ]; then
 
   BUILD_TARGET=OSXUniversal
   BUILD_OUTPUT=${PREFIX}-macOS${SUFFIX}
@@ -214,7 +214,7 @@ if [ ! -f /tmp/${BUILD_OUTPUT}/${BUILD_CHECK} ]; then
   exit 1
 fi
 
-if [ "$1" == "windows" ] && [ -v CODE_SIGNING_PASSWORD ]; then
+if [ "$1" = "windows" ] && [ -v CODE_SIGNING_PASSWORD ]; then
   EXE="/tmp/${BUILD_OUTPUT}/${BUILD_CHECK}"
   SIGNED="/tmp/${BUILD_OUTPUT}/signed.exe"
 
@@ -264,9 +264,9 @@ fi
 
 # TODO: This supports Jenkins only. For local build, need to package FFmpeg in Build.cs
 mkdir -p /tmp/${BUILD_OUTPUT}/simulator_Data/Plugins
-if [ "$1" == "windows" ]; then
+if [ "$1" = "windows" ]; then
   cp /mnt/Assets/Plugins/VideoCapture/ffmpeg/windows/ffmpeg.exe /tmp/${BUILD_OUTPUT}/simulator_Data/Plugins/ffmpeg.exe
-elif [ "$1" == "linux" ]; then
+elif [ "$1" = "linux" ]; then
   cp /mnt/Assets/Plugins/VideoCapture/ffmpeg/linux/ffmpeg /tmp/${BUILD_OUTPUT}/simulator_Data/Plugins/ffmpeg
 fi
 

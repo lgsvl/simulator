@@ -324,7 +324,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                     }
                     else
                     {
-                        // Full qualified type name used, e.g. "$type": "Simulator.Sensors.Postprocessing.SunFlare, Simulator"
+                        // Full qualified type name used, e.g. "$_type": "Simulator.Sensors.Postprocessing.SunFlare, Simulator"
                         var jArrStr = jarray.ToString();
                         if (jArrStr.Contains("$_type"))
                         {

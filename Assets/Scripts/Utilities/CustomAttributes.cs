@@ -106,11 +106,11 @@ namespace Simulator.Utilities
             if (DefaultInstance != null)
                 return DefaultInstance;
 
-            // Revert change from GetDefaultInstanceJson
             var jObjStr = GetDefaultInstanceJson(fieldType);
             if (jObjStr == null)
                 return null;
 
+            // Revert change from GetDefaultInstanceJson
             jObjStr = jObjStr.Replace("$_type", "$type");
 
             // If sensor's assembly is named after its type, we're loading asset bundle with renamed assembly

@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using Simulator.Sensors.Postprocessing;
 
 namespace Simulator.Utilities
 {
@@ -52,7 +53,10 @@ namespace Simulator.Utilities
             {
                 throw new Exception($"Sensor Configuration Error: {sb.GetType().ToString()} is missing SensorType Attribute");
             }
-            foreach (var info in sb.GetType().GetRuntimeFields().Where(field => field.IsDefined(typeof(SensorParameter), true)))
+
+            var sbType = sb.GetType();
+
+            foreach (var info in sbType.GetRuntimeFields().Where(field => field.IsDefined(typeof(SensorParameter), true)))
             {
                 if (info.FieldType.IsEnum)
                 {
@@ -123,6 +127,23 @@ namespace Simulator.Utilities
 
                     parameters.Add(f);
                 }
+            }
+
+            if (typeof(CameraSensorBase).IsAssignableFrom(sbType))
+            {
+                const string ppName = "Postprocessing";
+                if (parameters.Any(x => x.Name == ppName))
+                    throw new Exception($"Serialized `{ppName}` field marked with {nameof(SensorParameter)} attribute conflicts with postprocessing data for {typeof(CameraSensorBase)}.");
+
+                var ppAttr = sbType.GetCustomAttribute<DefaultPostprocessingAttribute>();
+                var param = new SensorParam
+                {
+                    Name = ppName,
+                    Type = typeof(List<PostProcessData>).Name,
+                    DefaultValue = ppAttr != null ? ppAttr.GetDefaultInstanceJToken() : DefaultPostprocessingAttribute.GetEmptyInstanceJToken()
+                };
+
+                parameters.Add(param);
             }
 
             return new SensorConfig()

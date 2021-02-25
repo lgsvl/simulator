@@ -72,8 +72,7 @@ namespace Simulator.Sensors
 
         [SensorParameter]
         public float Xi = 0.0f;
-        
-        [SensorParameter]
+
         public List<PostProcessData> Postprocessing;
 
         public List<PostProcessData> LatePostprocessing;

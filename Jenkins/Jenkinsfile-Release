@@ -66,9 +66,10 @@ pipeline {
           ]]
         ])
 
+        // Important note: do not wipe Library folder
         sh label:"Cleanup the checkout", script:"""
-            git clean -xdff .
-            git reset --hard
+            git clean -xdff Assets AssetBundles Jenkins *.zip *.log
+            git reset --hard HEAD
         """
 
         script {

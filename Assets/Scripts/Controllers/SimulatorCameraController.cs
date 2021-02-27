@@ -39,7 +39,7 @@ public class SimulatorCameraController : MonoBehaviour
     private Camera thisCamera;
     private Transform pivot;
     private Vector3 offset = new Vector3(0f, 2.25f, -7f);
-    
+
     private float freeSpeed = 10f;
     private float followSpeed = 25f;
     private float boost = 0f;
@@ -58,6 +58,9 @@ public class SimulatorCameraController : MonoBehaviour
     private Vector3 cinematicStart;
     private Vector3 cinematicEnd;
     private Vector3 cinematicOffset = new Vector3(0f, 10f, 0f);
+
+    private float BoundsY = 3f;
+    private float BoundsZ = 30f;
 
     public CameraStateType CurrentCameraState = CameraStateType.Free;
     public CinematicStateType CurrentCinematicState = CinematicStateType.Follow;
@@ -196,15 +199,15 @@ public class SimulatorCameraController : MonoBehaviour
     private void UpdateFollowCamera()
     {
         Debug.Assert(targetObject != null);
-        
+
         var dist = Vector3.Distance(thisCamera.transform.position, targetObject.position);
-        if (dist < 3)
+        if (dist < BoundsZ)
             thisCamera.transform.localPosition = Vector3.MoveTowards(thisCamera.transform.localPosition, thisCamera.transform.InverseTransformPoint(targetObject.position), -Time.unscaledDeltaTime);
-        else if (dist > 30)
+        else if (dist > BoundsZ * 5f)
             thisCamera.transform.localPosition = Vector3.MoveTowards(thisCamera.transform.localPosition, thisCamera.transform.InverseTransformPoint(targetObject.position), Time.unscaledDeltaTime);
         else if (zoomInput != 0)
             thisCamera.transform.localPosition = Vector3.MoveTowards(thisCamera.transform.localPosition, thisCamera.transform.InverseTransformPoint(targetObject.position), Time.unscaledDeltaTime * zoomInput * 10f * (boost == 1 ? 10f : 1f));
-        
+
         if (mouseRight == 1)
         {
             defaultFollow = false;
@@ -218,8 +221,10 @@ public class SimulatorCameraController : MonoBehaviour
         {
             //transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, (mouseFollowRot * targetObject.forward), followSpeed * Time.unscaledDeltaTime, 1f)); // TODO new state for follow camera at mouse rotation else mouseFollowRot
             if (defaultFollow)
+            {
                 transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, targetObject.forward, followSpeed * Time.unscaledDeltaTime, 1f));
-            
+            }
+
             targetTiltFree = transform.eulerAngles.x;
             targetLookFree = transform.eulerAngles.y;
 
@@ -332,6 +337,16 @@ public class SimulatorCameraController : MonoBehaviour
         transform.SetParent(SimulatorManager.Instance?.CameraManager.transform);
         CurrentCameraState = CameraStateType.Follow;
         targetObject = target.transform;
+
+        var vehicleActions = target.GetComponent<VehicleActions>();
+        if (vehicleActions != null)
+        {
+            BoundsY = vehicleActions.Bounds.size.y;
+            BoundsZ = vehicleActions.Bounds.size.z;
+            BoundsZ = BoundsZ < 1f ? 1f : BoundsZ;
+            offset = new Vector3(0f, BoundsY, -BoundsZ);
+            cinematicOffset = new Vector3(0f, BoundsY * 3f, 0f);
+        }
         transform.position = targetObject.position;
         transform.rotation = targetObject.rotation;
         thisCamera.transform.localRotation = Quaternion.identity;
@@ -426,8 +441,8 @@ public class SimulatorCameraController : MonoBehaviour
         {
             case CinematicStateType.Static:
                 transform.SetParent(SimulatorManager.Instance?.CameraManager.transform);
-                transform.position = (UnityEngine.Random.insideUnitSphere * 20) + targetObject.transform.position;
-                transform.position = new Vector3(transform.position.x, targetObject.position.y + 10f, transform.position.z);
+                transform.position = (UnityEngine.Random.insideUnitSphere * BoundsZ * 3f) + targetObject.transform.position;
+                transform.position = new Vector3(transform.position.x, targetObject.position.y + (BoundsY * 2f), transform.position.z);
                 break;
             case CinematicStateType.Follow:
                 transform.SetParent(SimulatorManager.Instance?.CameraManager.transform);

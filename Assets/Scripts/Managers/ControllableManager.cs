@@ -27,8 +27,8 @@ namespace Simulator.Controllable
         {
             private string key;
 
-            public string Key => key ?? (key =
-                    $"{HierarchyUtilities.GetPath(Controllable.transform)}{Controllable.GetType().Name}"
+            public string Key => key ?? (key = string.IsNullOrEmpty(Controllable.UID) ?
+                    $"{HierarchyUtilities.GetPath(Controllable.transform)}{Controllable.GetType().Name}" : Controllable.UID
                 );
 
             public IControllable Controllable { get; }
@@ -49,7 +49,7 @@ namespace Simulator.Controllable
 
         private IdsRegister idsRegister;
 
-        private void Start()
+        private void Awake()
         {
             var messagesManager = Loader.Instance.Network.MessagesManager;
             if (messagesManager != null)
@@ -60,6 +60,10 @@ namespace Simulator.Controllable
                 messagesManager.RegisterObject(idsRegister);
                 idsRegister.SelfRegister();
             }
+        }
+
+        private void Start()
+        {
             var allControllables = FindObjectsOfType<MonoBehaviour>().OfType<IControllable>();
             foreach (var controllable in allControllables)
                 RegisterControllable(controllable);
@@ -86,10 +90,10 @@ namespace Simulator.Controllable
         {
             if (Controllables.Contains(iControllable))
                 return;
+            var controllable = new ControllableController(iControllable);
             if (iControllable.UID == null)
                 iControllable.UID = System.Guid.NewGuid().ToString();
             Controllables.Add(iControllable);
-            var controllable = new ControllableController(iControllable);
             Controllers.Add(iControllable, controllable);
             ControllersByUID.Add(iControllable.UID, controllable);
             idsRegister?.RegisterObject(controllable);

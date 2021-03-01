@@ -127,7 +127,7 @@ namespace Simulator.Network.Core.Messaging
 			isInternalIdBound = true;
 			InternalIdBindUtcTime = DateTime.UtcNow;
 			idRegistrationTimestamp.Add(id, InternalIdBindUtcTime);
-			BroadcastMessage(GetCommandMessage(IdsRegisterCommandType.BindIdAndKey, this));
+			BroadcastMessage(GetInitializationMessage());
 		}
 
 		/// <summary>
@@ -156,7 +156,7 @@ namespace Simulator.Network.Core.Messaging
 		/// <exception cref="ArgumentException">Cannot create initial message in register which does not assign ids.</exception>
 		private DistributedMessage GetInitializationMessage()
 		{
-			if (!assignIds)
+			if (!AssignIds)
 				throw new ArgumentException("Cannot create initial message in register which does not assign ids.");
 
 			var id = ResolveId(this);
@@ -214,7 +214,7 @@ namespace Simulator.Network.Core.Messaging
 		/// <returns>True if bytes stack contains internal id for register, false otherwise</returns>
 		public bool IsInitializationMessage(IPeerManager sender, DistributedMessage distributedMessage)
 		{
-			if (isInternalIdBound) return false;
+			if (isInternalIdBound || AssignIds) return false;
 
 			//Check if this is not an initial message
 			var command = (IdsRegisterCommandType)distributedMessage.Content.PeekInt(BytesPerCommandType);
@@ -432,6 +432,8 @@ namespace Simulator.Network.Core.Messaging
 		/// <inheritdoc/>
 		public void ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
 		{
+			if (IsInitializationMessage(sender, distributedMessage))
+				return;
 			var command =
 				(IdsRegisterCommandType)distributedMessage.Content.PopInt(
 					ByteCompression

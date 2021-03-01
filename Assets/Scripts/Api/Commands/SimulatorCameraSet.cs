@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace Simulator.Api.Commands
 {
-    class SimulatorCameraSet : ICommand
+    class SimulatorCameraSet : IDistributedCommand
     {
         public string Name => "simulator/camera/set";
 

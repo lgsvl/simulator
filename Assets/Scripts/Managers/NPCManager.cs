@@ -566,7 +566,13 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
                 var npcId = distributedMessage.Content.PopInt(2);
                 //TODO Preserve despawn command if it arrives before spawn command
                 if (npcId >= 0 && npcId < CurrentPooledNPCs.Count)
-                    Destroy(CurrentPooledNPCs[npcId].gameObject);
+                {
+                    var controller = CurrentPooledNPCs[npcId];
+                    if (controller != null)
+                    {
+                        Destroy(controller.gameObject);
+                    }
+                }
                 break;
         }
     }

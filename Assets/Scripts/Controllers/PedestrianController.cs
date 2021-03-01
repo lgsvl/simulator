@@ -84,10 +84,24 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
 
     public Transform AgentTransform => transform;
     public Bounds Bounds { get; private set; }
-    public float MovementSpeed { get; private set; }
     public Vector3 Acceleration => CurrentAcceleration;
     public uint GTID { get; set; }
     public string GUID { get; set; }
+
+    public float MovementSpeed
+    {
+        get => CurrentSpeed;
+        private set
+        {
+            if (Mathf.Approximately(CurrentSpeed, value))
+                return;
+            CurrentSpeed = value;
+            if (Loader.Instance.Network.IsMaster)
+                BroadcastSnapshot();
+            if (!Loader.Instance.Network.IsClient)
+                SetAnimationControllerParameters();
+        }
+    }
 
     public PedestrianState ThisPedState
     {
@@ -99,9 +113,9 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
 
             thisPedState = value;
             if (Loader.Instance.Network.IsMaster)
-            {
-                BroadcastSnapshot();
-            }
+                BroadcastSnapshot(true);
+            if (!Loader.Instance.Network.IsClient)
+                SetAnimationControllerParameters();
         }
     }
     private PedestrianState thisPedState = PedestrianState.Idle;
@@ -145,7 +159,6 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
 
         PEDTurn();
         PEDMove();
-        SetAnimationControllerParameters();
     }
 
     private void SetPedState(PedestrianState state)
@@ -155,7 +168,7 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
         {
             case PedestrianState.Idle:
                 CurrentTurn = Vector3.zero;
-                CurrentSpeed = 0f;
+                MovementSpeed = 0f;
                 break;
             case PedestrianState.Walking:
                 break;
@@ -318,8 +331,7 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
         Vector3 direction = targetPos - RB.position;
 
         CurrentTurn = direction;
-        CurrentSpeed = LinearSpeed;
-        MovementSpeed = CurrentSpeed;
+        MovementSpeed = LinearSpeed;
         SetPedState(PedestrianState.Walking);
 
         if (direction.magnitude < Accuracy)
@@ -418,6 +430,7 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
         CurrentTargetIndex = 0;
         NextTargetIndex = 0;
         CurrentLoopIndex = 0;
+        MovementSpeed = Speeds[NextTargetIndex];
 
         Control = ControlType.Waypoints;
         SetPedState(PedestrianState.Walking);
@@ -456,8 +469,7 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
             Vector3 direction = targetPos - RB.position;
 
             CurrentTurn = direction;
-            CurrentSpeed = Speeds[NextTargetIndex];
-            MovementSpeed = CurrentSpeed;
+            MovementSpeed = Speeds[NextTargetIndex];
 
             if (direction.magnitude < Accuracy)
             {
@@ -565,9 +577,9 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
 
     private void PEDMove()
     {
-        if (CurrentSpeed != 0f)
+        if (MovementSpeed != 0f)
         {
-            RB.MovePosition(RB.position + transform.forward * (CurrentSpeed * Time.fixedDeltaTime));
+            RB.MovePosition(RB.position + transform.forward * (MovementSpeed * Time.fixedDeltaTime));
         }
         else
         {
@@ -617,18 +629,7 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
                 Anim.SetFloat("speed", 0.0f);
                 break;
             case PedestrianState.Walking:
-                switch (Control)
-                {
-                    case ControlType.Automatic:
-                        Anim.SetFloat("speed", LinearSpeed);
-                        break;
-                    case ControlType.Waypoints:
-                        Anim.SetFloat("speed", Speeds[NextTargetIndex]);
-                        break;
-                    case ControlType.None:
-                        Anim.SetFloat("speed", 0.0f);
-                        break;
-                }
+                Anim.SetFloat("speed", MovementSpeed);
                 break;
         }
     }
@@ -726,10 +727,12 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
     {
         messageContent.PushEnum<PedestrianState>((int)ThisPedState);
         messageContent.PushEnum<ControlType>((int)Control);
+        messageContent.PushFloat(MovementSpeed);
     }
 
     protected override void ApplySnapshot(DistributedMessage distributedMessage)
     {
+        MovementSpeed = distributedMessage.Content.PopFloat();
         Control = distributedMessage.Content.PopEnum<ControlType>();
         ThisPedState = distributedMessage.Content.PopEnum<PedestrianState>();
         //Validate animator, as snapshot can be received before it is initialized

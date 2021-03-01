@@ -76,6 +76,11 @@ namespace Simulator.Network.Client
         public ClientObjectsRoot ObjectsRoot => objectsRoot;
 
         /// <summary>
+        /// Checks if this client is currently connected to the master peer
+        /// </summary>
+        public bool IsConnected => MasterPeer != null && MasterPeer.Connected;
+
+        /// <summary>
         /// Constructor
         /// </summary>
         public ClientManager()
@@ -368,6 +373,25 @@ namespace Simulator.Network.Client
         }
 
         /// <summary>
+        /// Broadcast the stop command to the master
+        /// </summary>
+        public void BroadcastStopCommand()
+        {
+            if (State == SimulationState.Stopping)
+                return;
+            Log.Info($"{GetType().Name} broadcasts the simulation stop command.");
+
+            var stopData = PacketsProcessor.Write(new Commands.Stop());
+            var message = MessagesPool.Instance.GetMessage(stopData.Length);
+            message.AddressKey = Key;
+            message.Content.PushBytes(stopData);
+            message.Type = DistributedMessageType.ReliableOrdered;
+            BroadcastMessage(message);
+            
+            State = SimulationState.Stopping;
+        }
+
+        /// <summary>
         /// Method invoked when manager receives run command
         /// </summary>
         /// <param name="run">Received run command</param>
@@ -389,11 +413,12 @@ namespace Simulator.Network.Client
         /// <param name="stop">Received stop command</param>
         private void OnStopCommand(Commands.Stop stop)
         {
-            if (Loader.Instance.CurrentSimulation != null && State != SimulationState.Initial)
-                Loader.StopAsync();
+            if (Loader.Instance.CurrentSimulation == null || State == SimulationState.Initial)
+                return;
 
-            State = SimulationState.Initial;
             Log.Info($"{GetType().Name} received stop command and stops the simulation.");
+            State = SimulationState.Stopping;
+            Loader.StopAsync();
         }
 
         /// <summary>

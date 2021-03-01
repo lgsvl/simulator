@@ -16,5 +16,6 @@ namespace Simulator.Network.Shared
         Ready,          // client finished all bundle loading
         Loading,        // client is loading the simulation
         Running,        // simulation is running
+        Stopping,       // simulation is stopping
     }
 }

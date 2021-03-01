@@ -312,5 +312,28 @@ namespace Simulator.Network.Shared
                     throw new ArgumentOutOfRangeException();
             }
         }
+
+        /// <summary>
+        /// Broadcasts the stop command to the connected peers
+        /// </summary>
+        public void BroadcastStopCommand()
+        {
+            //Do not send stop command is simulation is already stopping
+            if (Loader.Instance.Status != SimulatorStatus.Running)
+                return;
+            switch (Type)
+            {
+                case ClusterNodeType.NotClusterNode:
+                    break;
+                case ClusterNodeType.Master:
+                    Master.BroadcastStopCommand();
+                    break;
+                case ClusterNodeType.Client:
+                    Client.BroadcastStopCommand();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
     }
 }

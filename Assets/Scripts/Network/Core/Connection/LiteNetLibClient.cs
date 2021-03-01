@@ -101,9 +101,12 @@ namespace Simulator.Network.Core.Connection
                 UnconnectedMessagesEnabled = false, UpdateTime = 5, DisconnectTimeout = timeout,
                 AutoRecycle = true
             };
-            var result = NetClient.Start(Port);
+            var result = Port == 0 ? NetClient.Start() : NetClient.Start(Port);
             if (result)
-                Log.Info($"{GetType().Name} started using the port '{Port}'.");
+            {
+                var portLog = Port == 0 ? $" Using the port '{Port}'" : "";
+                Log.Info($"{GetType().Name} started.{portLog}");
+            }
             else
                 Log.Error($"{GetType().Name} failed to start using the port '{Port}'.");
             return result;

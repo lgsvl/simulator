@@ -612,6 +612,7 @@ namespace Simulator
 
                 if (ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline)
                 {
+                    Instance.Network?.BroadcastStopCommand();
                     Instance.reportStatus(SimulatorStatus.Stopping);
                 }
 

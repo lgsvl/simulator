@@ -62,7 +62,7 @@ namespace Simulator.Analysis
         #region network
         public string Key { get; } = "AnalysisManager";
 
-        private int ReceivedClientsSensors = 0;
+        private int ReceivedResponses = 0;
 
         private Dictionary<uint, JObject> ClientsSensorsData = new Dictionary<uint, JObject>();
         #endregion
@@ -139,7 +139,7 @@ namespace Simulator.Analysis
             CollisionTotals.Ego = 0;
             CollisionTotals.Npc = 0;
             CollisionTotals.Ped = 0;
-            ReceivedClientsSensors = 0;
+            ReceivedResponses = 0;
             ClientsSensorsData.Clear();
             Status = AnalysisStatusType.InProgress;
             AnalysisStart = DateTime.Now;
@@ -190,6 +190,7 @@ namespace Simulator.Analysis
             }
 
             JArray agentsJA = new JArray();
+            //If it is a distributed simulation, gather all sensors data in the master node
             if (Loader.Instance != null)
             {
                 if (Loader.Instance.Network.IsMaster)
@@ -197,12 +198,12 @@ namespace Simulator.Analysis
                     var clientsCount = Loader.Instance.Network.ClientsCount;
                     var timeout = Loader.Instance.Network.Settings.Timeout / 1000;
                     var startTime = Time.unscaledTime;
-                    while (ReceivedClientsSensors < clientsCount &&
+                    while (ReceivedResponses < clientsCount &&
                            Loader.Instance.Network.Master.Clients.Count > 0 &&
                            Time.unscaledTime - startTime < timeout)
                         await Task.Delay(100);
-                    if (ReceivedClientsSensors < clientsCount)
-                        Debug.LogWarning($"{GetType().Name} received {ReceivedClientsSensors} analysis reports from {clientsCount} clients.");
+                    if (ReceivedResponses < clientsCount)
+                        Debug.LogWarning($"{GetType().Name} received {ReceivedResponses} analysis reports from {clientsCount} clients.");
                 }
                 else if (Loader.Instance.Network.IsClient)
                 {
@@ -224,6 +225,14 @@ namespace Simulator.Analysis
                     message.Type = DistributedMessageType.ReliableOrdered;
                     //Send all collected data to the master
                     BroadcastMessage(message);
+                    
+                    var timeout = Loader.Instance.Network.Settings.Timeout / 1000;
+                    var startTime = Time.unscaledTime;
+                    //Wait for the master response
+                    while (ReceivedResponses < 1 &&
+                           Loader.Instance.Network.Client.IsConnected &&
+                           Time.unscaledTime - startTime < timeout)
+                        await Task.Delay(100);
                     Init = false;
                     return;
                 }
@@ -459,29 +468,41 @@ namespace Simulator.Analysis
         void IMessageReceiver.ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
         {
             var network = Loader.Instance.Network;
-            if (!network.IsMaster)
-                throw new ArgumentException("Client application cannot receive analysis data.");
-            var agentsString = distributedMessage.Content.PopString();
-            var agentsData = JArray.Parse(agentsString);
-            foreach (var agentDataToken in agentsData.Children())
+            if (network.IsMaster)
             {
-                var agentData = agentDataToken as JObject;
-                if (agentData == null)
-                    continue;
-                var agentId = agentData["id"].Value<uint>();
-                var sensorsJson = agentData["Sensors"] as JObject;
-                if (sensorsJson == null) continue;
-                if (ClientsSensorsData.TryGetValue(agentId, out var sensors))
+                var agentsString = distributedMessage.Content.PopString();
+                var agentsData = JArray.Parse(agentsString);
+                foreach (var agentDataToken in agentsData.Children())
                 {
-                    foreach (var clientSensorData in sensorsJson.Properties())
-                        sensors.Add(clientSensorData.Name, clientSensorData.Value);
+                    var agentData = agentDataToken as JObject;
+                    if (agentData == null)
+                        continue;
+                    var agentId = agentData["id"].Value<uint>();
+                    var sensorsJson = agentData["Sensors"] as JObject;
+                    if (sensorsJson == null) continue;
+                    if (ClientsSensorsData.TryGetValue(agentId, out var sensors))
+                    {
+                        foreach (var clientSensorData in sensorsJson.Properties())
+                            sensors.Add(clientSensorData.Name, clientSensorData.Value);
+                    }
+                    else
+                    {
+                        ClientsSensorsData.Add(agentId, sensorsJson);
+                    }
                 }
-                else
-                {
-                    ClientsSensorsData.Add(agentId, sensorsJson);
-                }
+                    
+                //Send approve response to the client
+                var message = MessagesPool.Instance.GetMessage();
+                message.AddressKey = Key;
+                message.Type = DistributedMessageType.ReliableOrdered;
+                UnicastMessage(sender.PeerEndPoint, message);
+                ReceivedResponses++;
             }
-            ReceivedClientsSensors++;
+            else
+            {
+                //Register received response from the master
+                ReceivedResponses++;
+            }
         }
 
         public void UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage)

@@ -147,6 +147,7 @@ namespace Simulator.Network.Master
             PacketsProcessor.SubscribeReusable<Commands.Pong, IPeerManager>(OnPongCommand);
             PacketsProcessor.SubscribeReusable<Commands.Ready, IPeerManager>(OnReadyCommand);
             PacketsProcessor.SubscribeReusable<Commands.Loaded, IPeerManager>(OnLoadedCommand);
+            PacketsProcessor.SubscribeReusable<Commands.Stop, IPeerManager>(OnStopCommand);
         }
 
         /// <summary>
@@ -174,6 +175,7 @@ namespace Simulator.Network.Master
             PacketsProcessor.RemoveSubscription<Commands.Pong>();
             PacketsProcessor.RemoveSubscription<Commands.Ready>();
             PacketsProcessor.RemoveSubscription<Commands.Loaded>();
+            PacketsProcessor.RemoveSubscription<Commands.Stop>();
         }
 
         /// <summary>
@@ -403,6 +405,18 @@ namespace Simulator.Network.Master
         }
 
         /// <summary>
+        /// Method invoked when manager receives stop command
+        /// </summary>
+        /// <param name="stop">Received stop command</param>
+        /// <param name="peer">Peer which has sent the command</param>
+        public void OnStopCommand(Commands.Stop stop, IPeerManager peer)
+        {
+            if (Loader.Instance.CurrentSimulation == null || State == SimulationState.Initial) return;
+            Log.Info($"{GetType().Name} received stop command and stops the simulation.");
+            Loader.StopAsync();
+        }
+
+        /// <summary>
         /// Broadcast the run command to all clients' simulations and runs the simulation
         /// </summary>
         public void RunSimulation()
@@ -425,8 +439,11 @@ namespace Simulator.Network.Master
         /// <summary>
         /// Broadcast the stop command to all clients' simulations and reverse changes in the Simulation
         /// </summary>
-        public void SimulationStopped()
+        public void BroadcastStopCommand()
         {
+            if (State == SimulationState.Stopping)
+                return;
+            
             Log.Info($"{GetType().Name} broadcasts the simulation stop command.");
 
             var stopData = PacketsProcessor.Write(new Commands.Stop());
@@ -435,7 +452,7 @@ namespace Simulator.Network.Master
             message.Content.PushBytes(stopData);
             message.Type = DistributedMessageType.ReliableOrdered;
             BroadcastMessage(message);
-            ThreadingUtilities.DispatchToMainThread(RevertChangesInSimulator);
+            State = SimulationState.Stopping;
         }
 
         /// <summary>
@@ -444,7 +461,6 @@ namespace Simulator.Network.Master
         private void RevertChangesInSimulator()
         {
             Log.Info($"{GetType().Name} reverts the changes done in the simulator.");
-            DisconnectFromClients();
             if (timescaleLockCalled)
             {
                 SimulatorManager.Instance.TimeManager.TimeScaleSemaphore.Unlock();

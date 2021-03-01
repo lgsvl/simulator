@@ -82,30 +82,44 @@ namespace Simulator.Utilities
                 else if (info.FieldType.IsGenericType && info.FieldType.GetGenericTypeDefinition() == typeof(List<>))
                 {
                     var type = info.FieldType;
+                    var attr = info.GetCustomAttribute<SensorParameter>();
 
                     var f = new SensorParam()
                     {
                         Name = info.Name,
                         Type = type.Name,
+                        DefaultValue = attr?.GetDefaultInstanceJToken(type)
                     };
 
                     parameters.Add(f);
                 }
                 else
                 {
+                    SensorParam f;
                     if (!Typemap.ContainsKey(info.FieldType))
                     {
-                        throw new Exception($"Sensor Configuration Error: {sb.GetType().ToString()} has unsupported type {info.FieldType} for {info.Name} field");
+                        var type = info.FieldType;
+                        var attr = info.GetCustomAttribute<SensorParameter>();
+
+                        f = new SensorParam()
+                        {
+                            Name = info.Name,
+                            Type = type.Name,
+                            DefaultValue = attr?.GetDefaultInstanceJToken(type)
+                        };
                     }
-                    var range = info.GetCustomAttribute<RangeAttribute>();
-                    var f = new SensorParam()
+                    else
                     {
-                        Name = info.Name,
-                        Type = Typemap[info.FieldType],
-                        DefaultValue = info.GetValue(sb),
-                        Min = range != null ? (float?)range.min : null,
-                        Max = range != null ? (float?)range.max : null,
-                    };
+                        var range = info.GetCustomAttribute<RangeAttribute>();
+                        f = new SensorParam()
+                        {
+                            Name = info.Name,
+                            Type = Typemap[info.FieldType],
+                            DefaultValue = info.GetValue(sb),
+                            Min = range != null ? (float?) range.min : null,
+                            Max = range != null ? (float?) range.max : null,
+                        };
+                    }
 
                     parameters.Add(f);
                 }

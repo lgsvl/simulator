@@ -6,12 +6,14 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Simulator;
 using Simulator.Components;
 using Simulator.Network.Core;
@@ -242,129 +244,175 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
 
         var sensor = Instantiate(prefab, position, rotation, agent.transform);
         var sb = sensor.GetComponent<SensorBase>();
+        var sbType = sb.GetType();
         sb.ParentTransform = parent.transform;
 
-        if (item.@params == null)
+        if (item.@params != null)
         {
-            return sensor;
-        }
+            foreach (var param in item.@params)
+            {
+                // these keys do not go through camelCase modifier so we do it manually
+                var key = param.Key.First().ToString().ToUpper() + param.Key.Substring(1);
+                var value = param.Value;
 
-        var sbType = sb.GetType();
-        foreach (var param in item.@params)
-        {
-            // these keys do not go through camelCase modifier so we do it manually
-            var key = param.Key.First().ToString().ToUpper() + param.Key.Substring(1);
-            var value = param.Value;
+                var field = sbType.GetField(key);
+                if (field == null)
+                {
+                    throw new Exception($"Unknown {key} parameter for {item.Name} sensor on {gameObject.name} vehicle");
+                }
 
-            var field = sbType.GetField(key);
-            if (field == null)
-            {
-                throw new Exception($"Unknown {key} parameter for {item.Name} sensor on {gameObject.name} vehicle");
-            }
-
-            if (field.FieldType == typeof(System.Int64)
-            || field.FieldType == typeof(System.Int32)
-            || field.FieldType == typeof(System.Double)
-            || field.FieldType == typeof(System.Single)
-            || field.FieldType == typeof(System.String)
-            || field.FieldType == typeof(System.Boolean))
-            {
-                field.SetValue(sb, Convert.ChangeType(value, field.FieldType));
-            }
-            else if (field.FieldType.IsEnum)
-            {
-                try
+                if (field.FieldType == typeof(System.Int64)
+                    || field.FieldType == typeof(System.Int32)
+                    || field.FieldType == typeof(System.Double)
+                    || field.FieldType == typeof(System.Single)
+                    || field.FieldType == typeof(System.String)
+                    || field.FieldType == typeof(System.Boolean))
                 {
-                    var obj = Enum.Parse(field.FieldType, (string) value);
-                    field.SetValue(sb, obj);
+                    field.SetValue(sb, Convert.ChangeType(value, field.FieldType));
                 }
-                catch (ArgumentException ex)
+                else if (field.FieldType.IsEnum)
                 {
-                    throw new Exception($"Failed to set {key} field to {value} enum value for {gameObject.name} vehicle, {sb.Name} sensor", ex);
-                }
-            }
-            else if (field.FieldType == typeof(Color))
-            {
-                if (ColorUtility.TryParseHtmlString((string)value, out var color))
-                {
-                    field.SetValue(sb, color);
-                }
-                else
-                {
-                    throw new Exception($"Failed to set {key} field to {value} color for {gameObject.name} vehicle, {sb.Name} sensor");
-                }
-            }
-            else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition() == typeof(List<>))
-            {
-                var type = field.FieldType.GetGenericArguments()[0];
-                Type listType = typeof(List<>).MakeGenericType(new[] {type});
-                System.Collections.IList list = (System.Collections.IList) Activator.CreateInstance(listType);
-                var jarray = (Newtonsoft.Json.Linq.JArray) value;
-
-                if (type.IsEnum)
-                {
-                    // TODO test this branch - remove this comment when you found a sensor + config that exercises this branch
-                    foreach (var elemValue in jarray.ToObject<List<string>>())
+                    try
                     {
-                        object elem;
-                        try
-                        {
-                            elem = Enum.Parse(type, elemValue);
-                        }
-                        catch (ArgumentException ex)
-                        {
-                            throw new Exception($"Failed to set {key} field to {value} enum value for {gameObject.name} vehicle, {sb.Name} sensor", ex);
-                        }
-
-                        list.Add(elem);
+                        var obj = Enum.Parse(field.FieldType, (string) value);
+                        field.SetValue(sb, obj);
+                    }
+                    catch (ArgumentException ex)
+                    {
+                        throw new Exception($"Failed to set {key} field to {value} enum value for {gameObject.name} vehicle, {sb.Name} sensor", ex);
                     }
                 }
-                else if (type == typeof(System.Single))
+                else if (field.FieldType == typeof(Color))
                 {
-                    list = jarray.ToObject<List<System.Single>>();
-                }
-                else
-                {
-                    List<Type> assignableTypes = null;
-                    if (type.IsAbstract)
+                    if (ColorUtility.TryParseHtmlString((string) value, out var color))
                     {
-                        assignableTypes = type.Assembly.GetTypes().Where(t => t != type && type.IsAssignableFrom(t)).ToList();
+                        field.SetValue(sb, color);
                     }
-
-                    foreach (var jtoken in jarray)
+                    else
                     {
-                        object elem;
-                        if (!type.IsAbstract)
+                        throw new Exception($"Failed to set {key} field to {value} color for {gameObject.name} vehicle, {sb.Name} sensor");
+                    }
+                }
+                else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    var type = field.FieldType.GetGenericArguments()[0];
+                    Type listType = typeof(List<>).MakeGenericType(type);
+                    IList list = (IList) Activator.CreateInstance(listType);
+                    var jarray = (Newtonsoft.Json.Linq.JArray) value;
+
+                    if (type.IsEnum)
+                    {
+                        // TODO test this branch - remove this comment when you found a sensor + config that exercises this branch
+                        foreach (var elemValue in jarray.ToObject<List<string>>())
                         {
-                            elem = jtoken.ToObject(type);
+                            object elem;
+                            try
+                            {
+                                elem = Enum.Parse(type, elemValue);
+                            }
+                            catch (ArgumentException ex)
+                            {
+                                throw new Exception($"Failed to set {key} field to {value} enum value for {gameObject.name} vehicle, {sb.Name} sensor", ex);
+                            }
+
+                            list.Add(elem);
                         }
+                    }
+                    else if (type == typeof(System.Single))
+                    {
+                        list = jarray.ToObject<List<System.Single>>();
+                    }
+                    else
+                    {
+                        // Full qualified type name used, e.g. "$type": "Simulator.Sensors.Postprocessing.SunFlare, Simulator"
+                        var jArrStr = jarray.ToString();
+                        if (jArrStr.Contains("$_type"))
+                        {
+                            // Revert change from SensorParameter attribute (more details there)
+                            jArrStr = jArrStr.Replace("$_type", "$type");
+
+                            // If sensor's assembly is named after its type, we're loading asset bundle with renamed assembly
+                            // Type was serialized before renaming - update types from that assembly to reflect this change 
+                            if (sbType.Assembly.GetName().Name == item.Type)
+                                jArrStr = Regex.Replace(jArrStr, "(\"\\$type\"\\:[^,]*, )(Simulator.Sensors)", $"$1{item.Type}");
+
+                            list = JsonConvert.DeserializeObject(jArrStr, typeof(List<>).MakeGenericType(type), new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto}) as IList;
+                        }
+                        // Shortened type name used, e.g. "type": "SunFlare"
                         else
                         {
-                            var typeName = jtoken.Value<string>("type");
-                            if (typeName == null)
+                            List<Type> assignableTypes = null;
+                            if (type.IsAbstract)
                             {
-                                throw new Exception($"Type {type.Name} is abstract and does not define `type` field ({gameObject.name} vehicle, {sb.Name} sensor, {key} field)");
+                                assignableTypes = type.Assembly.GetTypes().Where(t => t != type && type.IsAssignableFrom(t))
+                                    .ToList();
                             }
 
-                            var elementType = assignableTypes.FirstOrDefault(t => t.Name == typeName);
-                            if (elementType == null)
+                            foreach (var jtoken in jarray)
                             {
-                                throw new Exception($"No {typeName} type derived from {type.Name} for {key} field for {gameObject.name} vehicle, {sb.Name} sensor");
-                            }
+                                object elem;
+                                if (!type.IsAbstract)
+                                {
+                                    elem = jtoken.ToObject(type);
+                                }
+                                else
+                                {
+                                    var typeName = jtoken.Value<string>("type");
+                                    if (typeName == null)
+                                    {
+                                        throw new Exception(
+                                            $"Type {type.Name} is abstract and does not define `type` field ({gameObject.name} vehicle, {sb.Name} sensor, {key} field)");
+                                    }
 
-                            elem = jtoken.ToObject(elementType);
+                                    var elementType = assignableTypes.FirstOrDefault(t => t.Name == typeName);
+                                    if (elementType == null)
+                                    {
+                                        throw new Exception(
+                                            $"No {typeName} type derived from {type.Name} for {key} field for {gameObject.name} vehicle, {sb.Name} sensor");
+                                    }
+
+                                    elem = jtoken.ToObject(elementType);
+                                }
+
+                                list.Add(elem);
+                            }
                         }
-
-                        list.Add(elem);
                     }
-                }
 
-                field.SetValue(sb, list);
+                    field.SetValue(sb, list);
+                }
+                else
+                {
+                    var jObjStr = value.ToString();
+
+                    // Revert change from SensorParameter attribute (more details there)
+                    jObjStr = jObjStr.Replace("$_type", "$type");
+
+                    // If sensor's assembly is named after its type, we're loading asset bundle with renamed assembly
+                    // Type was serialized before renaming - update types from that assembly to reflect this change
+                    if (sbType.Assembly.GetName().Name == item.Type)
+                        jObjStr = Regex.Replace(jObjStr, "(\"\\$type\"\\:[^,]*, )(Simulator.Sensors)", $"$1{item.Type}");
+
+                    var instance = JsonConvert.DeserializeObject(jObjStr, field.FieldType, new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto});
+                    field.SetValue(sb, instance);
+                }
             }
-            else
-            {
-                throw new Exception($"Unknown {field.FieldType} type for {key} field for {gameObject.name} vehicle, {sb.Name} sensor");
-            }
+        }
+
+        // Populate all fields with their default instances, if their override was not set through config 
+        foreach (var field in sbType.GetRuntimeFields().Where(field => field.IsDefined(typeof(SensorParameter), true)))
+        {
+            var attr = field.GetCustomAttribute<SensorParameter>();
+
+            var current = field.GetValue(sb);
+            if (current != null)
+                continue;
+
+            var defaultInstance = attr.GetDefaultInstance(sbType, field.FieldType);
+            if (defaultInstance == null)
+                continue;
+
+            field.SetValue(sb, defaultInstance);
         }
 
         return sensor;

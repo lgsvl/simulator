@@ -146,15 +146,23 @@ namespace Simulator.Editor
 
             var skyUpdateContext = hd.GetType().GetProperty("visualSky", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(hd);
             var skyRenderer = skyUpdateContext?.GetType().GetProperty("skyRenderer", BindingFlags.Public | BindingFlags.Instance)?.GetValue(skyUpdateContext);
-            var currentBounces = skyRenderer?.GetType().GetField("m_LastPrecomputedBounce", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(skyRenderer);
+            var precomputedData = skyRenderer?.GetType().GetField("m_PrecomputedData", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(skyRenderer);
+            var currentBounces = precomputedData?.GetType().GetField("m_LastPrecomputedBounce", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(precomputedData);
             if (currentBounces == null)
                 return false;
 
-            var frameField = skyRenderer.GetType().BaseType?.GetField("m_LastFrameUpdate", BindingFlags.NonPublic | BindingFlags.Instance);
+            var baseFrameField = skyRenderer.GetType().BaseType?.GetField("m_LastFrameUpdate", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (baseFrameField != null)
+            {
+                var prev = (int) baseFrameField.GetValue(skyRenderer);
+                baseFrameField.SetValue(skyRenderer, prev - 1);
+            }
+
+            var frameField = precomputedData.GetType().GetField("m_LastFrameComputation", BindingFlags.NonPublic | BindingFlags.Instance);
             if (frameField != null)
             {
-                var prev = (int) frameField.GetValue(skyRenderer);
-                frameField.SetValue(skyRenderer, prev - 1);
+                var prev = (int) frameField.GetValue(precomputedData);
+                frameField.SetValue(precomputedData, prev - 1);
             }
 
             var targetBounces = pbrSky.numberOfBounces.value;
@@ -191,21 +199,35 @@ namespace Simulator.Editor
             var skyRenderer = skyUpdateContext.GetType().GetProperty("skyRenderer", BindingFlags.Public | BindingFlags.Instance)?.GetValue(skyUpdateContext);
             if (skyRenderer == null)
             {
-                Debug.LogError("No sky renderer available");
+                Debug.LogError("No sky renderer available.");
                 return;
             }
 
-            var frameField = skyRenderer.GetType().BaseType?.GetField("m_LastFrameUpdate", BindingFlags.NonPublic | BindingFlags.Instance);
+            var baseFrameField = skyRenderer.GetType().BaseType?.GetField("m_LastFrameUpdate", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (baseFrameField == null)
+            {
+                Debug.LogError("No frame count field available in sky renderer base class.");
+                return;
+            }
+
+            var precomputedData = skyRenderer.GetType().GetField("m_PrecomputedData", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(skyRenderer);
+            if (precomputedData == null)
+            {
+                Debug.LogError("No precomputed data field available in sky renderer.");
+                return;
+            }
+
+            var frameField = precomputedData.GetType().GetField("m_LastFrameComputation", BindingFlags.NonPublic | BindingFlags.Instance);
             if (frameField == null)
             {
-                Debug.LogError("No frame count field available in sky renderer");
+                Debug.LogError("No frame count field available in precomputed data.");
                 return;
             }
 
-            var currentBounces = skyRenderer.GetType().GetField("m_LastPrecomputedBounce", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(skyRenderer);
+            var currentBounces = precomputedData.GetType().GetField("m_LastPrecomputedBounce", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(precomputedData);
             if (currentBounces == null)
             {
-                Debug.LogError("No bounce data available.");
+                Debug.LogError("No bounce data available in precomputed data.");
                 return;
             }
 

@@ -32,14 +32,14 @@ namespace Simulator.Api.Commands
                     var npcManager = SimulatorManager.Instance.NPCManager;
                     var pooledNPCs = npcManager.SpawnNPCPool();
                     npcManager.NPCActive = true;
-                    npcManager.SetNPCOnMap();
+                    npcManager.SetNPCOnMap(true);
                     api.SendResult(this);
                     break;
                 case AgentType.Pedestrian:
                     var pedManager = SimulatorManager.Instance.PedestrianManager;
                     var pooledPeds = pedManager.SpawnPedPool();
                     pedManager.PedestriansActive = true;
-                    pedManager.SetPedOnMap();
+                    pedManager.SetPedOnMap(true);
                     api.SendResult(this);
                     break;
                 default:

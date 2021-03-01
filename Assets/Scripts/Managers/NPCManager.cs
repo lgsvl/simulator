@@ -293,7 +293,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     public void SetNPCOnMap(bool isInitialSpawn = false)
     {
         //Wait 1s if spawning failed to limit the raycasting checks
-        if (spawnsManager.FailedSpawnTime + 1.0f > Time.time)
+        if (!isInitialSpawn && spawnsManager.FailedSpawnTime + 1.0f > Time.time)
             return;
 
         for (int i = 0; i < CurrentPooledNPCs.Count; i++)

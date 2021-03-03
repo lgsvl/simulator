@@ -32,36 +32,34 @@ namespace Simulator.Editor
 {
     public class Build : EditorWindow
     {
-        public static bool Running;
-        private static bool BuildQueued;
-
-        enum BuildTarget
+        private enum BuildTarget
         {
             Windows,
             Linux,
             MacOS,
         }
 
-        class AsmdefBody
-        {
-            public string name;
-            public string[] references;
-            // TODO: This will enable 'unsafe' code for all.
-            // We may find a better way to unable it only when necessary.
-            public bool allowUnsafeCode = true;
-        }
+        public static bool Running;
+        private static bool BuildQueued;
+        private static string CurrentSelectedEntryName = "nothing";
+        private static string HelpMsg = "";
+        private static Dictionary<string, BundleData> BuildGroups;
 
         public const string SceneExtension = "unity";
         public const string ScriptExtension = "cs";
         public const string PrefabExtension = "prefab";
 
-        private static string CurrentSelectedEntryName = "nothing";
+        [SerializeField]
+        private BuildTarget Target;
+        [SerializeField]
+        private static bool BuildPlayer = false;
+        [SerializeField]
+        private string PlayerFolder = string.Empty;
+        [SerializeField]
+        private bool DevelopmentPlayer = false;
+        private Vector2 ScrollPos;
 
-        public static string ZipPath(params string[] elements)
-        {
-            return string.Join(Path.AltDirectorySeparatorChar.ToString(), elements);
-        }
-
+        #region data
         public class BundleData
         {
             public BundleData(BundleConfig.BundleTypes type, string path = null)
@@ -69,11 +67,6 @@ namespace Simulator.Editor
                 bundleType = type;
                 bundlePath = path ?? BundleConfig.pluralOf(type);
             }
-
-            public BundleConfig.BundleTypes bundleType;
-            public string bundlePath;
-            public string sourcePath => Path.Combine(BundleConfig.ExternalBase, bundlePath);
-            public bool isOpen = false;
 
             public class Entry
             {
@@ -83,8 +76,12 @@ namespace Simulator.Editor
                 public bool available;
             }
 
+            public BundleConfig.BundleTypes bundleType;
+            public string bundlePath;
+            public string sourcePath => Path.Combine(BundleConfig.ExternalBase, bundlePath);
+            public bool isOpen = false;
+
             public Dictionary<string, Entry> entries = new Dictionary<string, Entry>();
-            private Entry CurrentSelectedEntry;
 
             public void OnGUI()
             {
@@ -124,25 +121,22 @@ namespace Simulator.Editor
                 {
                     if (entry.Value.available)
                     {
-                        entry.Value.selected = GUILayout.Toggle(entry.Value.selected, entry.Key);
-                        if (entry.Value.selected)
+                        if (GUILayout.Toggle(entry.Value.selected, entry.Key))
                         {
                             BuildPlayer = false;
-                            if (CurrentSelectedEntry != null)
+                            foreach (var group in BuildGroups.Values)
                             {
-                                if (entry.Value != CurrentSelectedEntry)
+                                foreach (var e in group.entries.Values)
                                 {
-                                    var old = entries.Single(i => i.Value == CurrentSelectedEntry).Value;
-                                    old.selected = false;
-                                    CurrentSelectedEntry = entry.Value;
-                                    CurrentSelectedEntryName = CurrentSelectedEntry.name;
+                                    e.selected = false;
                                 }
                             }
-                            else
-                            {
-                                CurrentSelectedEntry = entry.Value;
-                                CurrentSelectedEntryName = CurrentSelectedEntry.name;
-                            }
+                            entry.Value.selected = true;
+                            CurrentSelectedEntryName = entry.Value.name;
+                        }
+                        else
+                        {
+                            entry.Value.selected = false;
                         }
                     }
                     else
@@ -153,7 +147,6 @@ namespace Simulator.Editor
                     }
                 }
                 #endregion
-
             }
 
             public void Refresh()
@@ -189,7 +182,7 @@ namespace Simulator.Editor
                     }
                     updated.Add(name);
                 }
-                entries = entries.Where(entry => updated.Contains(entry.Key)).ToDictionary(p=>p.Key, p=>p.Value);
+                entries = entries.Where(entry => updated.Contains(entry.Key)).ToDictionary(p => p.Key, p => p.Value);
             }
 
             public void EnableByName(string name)
@@ -235,9 +228,9 @@ namespace Simulator.Editor
                         manifest.fmuName = fmu == null ? "" : fmu.FMUData.Name;
 
                         manifest.baseLink = baseLink != null
-                            ? new double[] {baseLink.transform.position.x, baseLink.transform.position.y, baseLink.transform.position.z}
+                            ? new double[] { baseLink.transform.position.x, baseLink.transform.position.y, baseLink.transform.position.z }
                             : // rotation
-                            new double[] {0, 0, 0};
+                            new double[] { 0, 0, 0 };
 
                         Dictionary<string, object> files = new Dictionary<string, object>();
                         manifest.attachments = files;
@@ -326,7 +319,7 @@ namespace Simulator.Editor
                             manifest.assetName = sceneEntry.name;
                             manifest.assetType = "map";
                             manifest.assetGuid = Guid.NewGuid().ToString();
-                            manifest.mapOrigin = new double[] {origin.OriginEasting, origin.OriginNorthing};
+                            manifest.mapOrigin = new double[] { origin.OriginEasting, origin.OriginNorthing };
                             manifest.assetFormat = BundleConfig.Versions[BundleConfig.BundleTypes.Environment];
                             manifest.description = origin.Description;
                             manifest.fmuName = "";
@@ -334,12 +327,13 @@ namespace Simulator.Editor
 
                             string name = manifest.assetName;
 
-                            var hdMaps = new HdMaps() {
-                                apollo30 = ZipPath("hdmaps", "apollo30",  "base_map.bin"),
-                                apollo50 = ZipPath("hdmaps", "apollo50",  "base_map.bin"),
-                                autoware = ZipPath("hdmaps", "autoware",  "AutowareVectorMap.zip"),
-                                lanelet2 = ZipPath("hdmaps", "lanelet2",  name+".osm"),
-                                opendrive =ZipPath("hdmaps", "opendrive", name+".xodr"),
+                            var hdMaps = new HdMaps()
+                            {
+                                apollo30 = ZipPath("hdmaps", "apollo30", "base_map.bin"),
+                                apollo50 = ZipPath("hdmaps", "apollo50", "base_map.bin"),
+                                autoware = ZipPath("hdmaps", "autoware", "AutowareVectorMap.zip"),
+                                lanelet2 = ZipPath("hdmaps", "lanelet2", name + ".osm"),
+                                opendrive = ZipPath("hdmaps", "opendrive", name + ".xodr"),
                             };
                             manifest.attachments.Add("hdMaps", hdMaps);
 
@@ -445,9 +439,9 @@ namespace Simulator.Editor
 
                             var images = new Images()
                             {
-                                small =  ZipPath("images", "small.png"),
+                                small = ZipPath("images", "small.png"),
                                 medium = ZipPath("images", "medium.png"),
-                                large =  ZipPath("images", "large.png"),
+                                large = ZipPath("images", "large.png"),
                             };
                             manifest.attachments.Add("images", images);
                             buildArtifacts.Add((Path.Combine(tmpdir, "small.png"), images.small));
@@ -531,7 +525,7 @@ namespace Simulator.Editor
                         if (File.Exists(asmDefPath))
                         {
                             asmDef = JsonUtility.FromJson<AsmdefBody>(File.ReadAllText(asmDefPath));
-                        }   
+                        }
 
                         try
                         {
@@ -572,7 +566,7 @@ namespace Simulator.Editor
                                     case BundleConfig.BundleTypes.Controllable:
                                         //Add all prefabs and required textures to the bundle
                                         var assetPath = Path.Combine(sourcePath, entry.name);
-                                        var assetsInDirectory = AssetDatabase.FindAssets("t:GameObject", new[] {assetPath});
+                                        var assetsInDirectory = AssetDatabase.FindAssets("t:GameObject", new[] { assetPath });
                                         foreach (var assetGuid in assetsInDirectory)
                                         {
                                             var asset = AssetDatabase.GUIDToAssetPath(assetGuid);
@@ -613,7 +607,7 @@ namespace Simulator.Editor
 
                                 foreach (var buildConf in builds)
                                 {
-                                    var taskItems = new List<AssetBundleBuild>() {buildConf.build};
+                                    var taskItems = new List<AssetBundleBuild>() { buildConf.build };
 
                                     if (buildTextureBundle)
                                     {
@@ -652,7 +646,7 @@ namespace Simulator.Editor
 
                                 assemblyBuilder.additionalReferences = modules.Select(a => a.Location).ToArray();
 
-                                assemblyBuilder.buildFinished += delegate(string assemblyPath, CompilerMessage[] compilerMessages)
+                                assemblyBuilder.buildFinished += delegate (string assemblyPath, CompilerMessage[] compilerMessages)
                                 {
                                     var errorCount = compilerMessages.Count(m => m.type == CompilerMessageType.Error);
                                     var warningCount = compilerMessages.Count(m => m.type == CompilerMessageType.Warning);
@@ -772,7 +766,7 @@ namespace Simulator.Editor
                             archive.BeginUpdate();
                             foreach (var file in buildArtifacts.Where(e => e.archiveName != null))
                                 archive.Add(new StaticDiskDataSource(file.source), file.archiveName, CompressionMethod.Stored, true);
-                            
+
                             foreach (var file in persistentBuildArtifacts.Where(e => e.archiveName != null))
                                 archive.Add(new StaticDiskDataSource(file.source), file.archiveName, CompressionMethod.Stored, true);
 
@@ -817,18 +811,21 @@ namespace Simulator.Editor
                 }
             }
         }
+        #endregion
 
-        Dictionary<string, BundleData> buildGroups;
-
-        [SerializeField] BuildTarget Target;
-        [SerializeField] static bool BuildPlayer = false;
-        [SerializeField] string PlayerFolder = string.Empty;
-        [SerializeField] bool DevelopmentPlayer = false;
-        public Vector2 scroll;
-        private string HelpMsg = "";
+        #region asmdef
+        class AsmdefBody
+        {
+            public string name;
+            public string[] references;
+            // TODO: This will enable 'unsafe' code for all.
+            // We may find a better way to unable it only when necessary.
+            public bool allowUnsafeCode = true;
+        }
+        #endregion
 
         [MenuItem("Simulator/Build...", false, 30)]
-        static void ShowWindow()
+        private static void ShowWindow()
         {
             var window = GetWindow<Build>();
             if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows)
@@ -851,16 +848,16 @@ namespace Simulator.Editor
             window.Show();
         }
 
-        void OnDisable()
+        private void OnDisable()
         {
             var data = JsonUtility.ToJson(this, false);
             EditorPrefs.SetString("Simulator/Build", data);
         }
 
-        void OnGUI()
+        private void OnGUI()
         {
-            scroll = EditorGUILayout.BeginScrollView(scroll);
-            foreach (var group in buildGroups.Values)
+            ScrollPos = EditorGUILayout.BeginScrollView(ScrollPos);
+            foreach (var group in BuildGroups.Values)
             {
                 group.isOpen = EditorGUILayout.Foldout(group.isOpen, $"{group.bundlePath}");
                 if (group.isOpen)
@@ -883,7 +880,7 @@ namespace Simulator.Editor
             // TODO fix for issues with unity 2019.4.18f1 multiple bundles
             if (BuildPlayer)
             {
-                foreach (var group in buildGroups.Values)
+                foreach (var group in BuildGroups.Values)
                 {
                     foreach (var entry in group.entries.Values)
                     {
@@ -894,14 +891,6 @@ namespace Simulator.Editor
             }
             else
             {
-                foreach (var group in buildGroups.Values)
-                {
-                    foreach (var entry in group.entries.Values)
-                    {
-                        if (CurrentSelectedEntryName != entry.name)
-                            entry.selected = false;
-                    }
-                }
                 HelpMsg = $"One bundle can be built at a time: {CurrentSelectedEntryName} selected";
             }
             #endregion
@@ -958,24 +947,24 @@ namespace Simulator.Editor
             }
         }
 
-        void Refresh()
+        private void Refresh()
         {
-            if (buildGroups == null)
+            if (BuildGroups == null)
             {
-                buildGroups = new Dictionary<string, BundleData>();
+                BuildGroups = new Dictionary<string, BundleData>();
                 var data = new BundleData(BundleConfig.BundleTypes.Environment);
-                buildGroups.Add(data.bundlePath, data);
+                BuildGroups.Add(data.bundlePath, data);
                 data = new BundleData(BundleConfig.BundleTypes.Vehicle);
-                buildGroups.Add(data.bundlePath, data);
+                BuildGroups.Add(data.bundlePath, data);
                 data = new BundleData(BundleConfig.BundleTypes.Sensor);
-                buildGroups.Add(data.bundlePath, data);
+                BuildGroups.Add(data.bundlePath, data);
                 data = new BundleData(BundleConfig.BundleTypes.Controllable);
-                buildGroups.Add(data.bundlePath, data);
+                BuildGroups.Add(data.bundlePath, data);
                 data = new BundleData(BundleConfig.BundleTypes.Bridge);
-                buildGroups.Add(data.bundlePath, data);
+                BuildGroups.Add(data.bundlePath, data);
             }
 
-            buildGroups = buildGroups.Where(g => Directory.Exists(g.Value.sourcePath)).ToDictionary(e => e.Key, e => e.Value);
+            BuildGroups = BuildGroups.Where(g => Directory.Exists(g.Value.sourcePath)).ToDictionary(e => e.Key, e => e.Value);
             foreach (var NPCDir in Directory.EnumerateDirectories(Path.Combine(BundleConfig.ExternalBase, BundleConfig.pluralOf(BundleConfig.BundleTypes.NPC))))
             {
                 var bundlePath = NPCDir.Substring(BundleConfig.ExternalBase.Length + 1);
@@ -986,22 +975,27 @@ namespace Simulator.Editor
                     continue;
                 }
 
-                if (!buildGroups.ContainsKey(bundlePath))
+                if (!BuildGroups.ContainsKey(bundlePath))
                 {
                     var data = new BundleData(BundleConfig.BundleTypes.NPC, bundlePath);
-                    buildGroups.Add(data.bundlePath, data);
+                    BuildGroups.Add(data.bundlePath, data);
                 }
             }
 
-            foreach (var group in buildGroups.Values)
+            foreach (var group in BuildGroups.Values)
             {
                 group.Refresh();
             }
         }
 
-        void OnFocus()
+        private void OnFocus()
         {
             Refresh();
+        }
+
+        public static string ZipPath(params string[] elements)
+        {
+            return string.Join(Path.AltDirectorySeparatorChar.ToString(), elements);
         }
 
         static string GetFileSizeAsString(string url)
@@ -1106,7 +1100,7 @@ namespace Simulator.Editor
         {
             try
             {
-                foreach (var group in buildGroups.Values)
+                foreach (var group in BuildGroups.Values)
                     group.RunBuild(outputFolder);
             }
             finally
@@ -1200,7 +1194,7 @@ namespace Simulator.Editor
                             throw new Exception($"-build{val} expects comma seperated environment names!");
                         }
 
-                        var bundleGroups = build.buildGroups.Values.Where(g => g.bundleType == bundleType);
+                        var bundleGroups = BuildGroups.Values.Where(g => g.bundleType == bundleType);
                         i++;
                         foreach (var name in args[i].Split(','))
                         {
@@ -1254,11 +1248,13 @@ namespace Simulator.Editor
             {
                 Running = false;
                 if (forceExit)
+                {
                     EditorApplication.Exit(0);
+                }
             }
         }
 
-        static void SilentDelete(string path)
+        private static void SilentDelete(string path)
         {
             if (File.Exists(path))
             {

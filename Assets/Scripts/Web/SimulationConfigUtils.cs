@@ -286,11 +286,8 @@ namespace Simulator.Web
 
         private static string GetSimulationVolumesPath(string simulationId)
         {
-            // TODO: Application.temporaryCachePath is a better
-            // but runtime wrapper script can't handle spaces in paths
             return Path.Combine(
-                Path.GetTempPath(),
-                "LGSVLSimulator",
+                Application.temporaryCachePath,
                 "TestCaseRuntimeVolumes",
                 simulationId);
         }

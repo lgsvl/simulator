@@ -24,6 +24,7 @@ namespace Simulator.Editor.Tools
         {
             Prefab,
             Component,
+            Scene,
         }
         public static EditorToolsType ToolType { get; set; } = EditorToolsType.Prefab;
 
@@ -44,6 +45,13 @@ namespace Simulator.Editor.Tools
         }
         public static EditorComponentTools ComponentTool { get; set; } = EditorComponentTools.Add;
 
+        public enum EditorSceneTools
+        {
+            RotateSceneView,
+            Nothing,
+        }
+        public static EditorSceneTools SceneTool { get; set; } = EditorSceneTools.RotateSceneView;
+
         public static bool UseMeshCenter = false;
         public static bool AddInPosition = false;
 
@@ -55,6 +63,7 @@ namespace Simulator.Editor.Tools
         private GUIContent[] editorToolsTypeContent;
         private GUIContent[] editorPrefabToolsContent;
         private GUIContent[] editorComponentToolsContent;
+        private GUIContent[] editorSceneToolsContent;
 
         // prefab
         private GameObject PrefabToAdd = null;
@@ -68,6 +77,7 @@ namespace Simulator.Editor.Tools
             editorToolsTypeContent = new GUIContent[] {
             new GUIContent { text = "Prefab", tooltip = "Prefab mode"},
             new GUIContent { text = "Component", tooltip = "Component mode"},
+            new GUIContent { text = "Scene", tooltip = "Scene mode"},
             };
 
             editorPrefabToolsContent = new GUIContent[] {
@@ -83,9 +93,15 @@ namespace Simulator.Editor.Tools
             new GUIContent { text = "Remove", tooltip = "Remove component type"},
             };
 
+            editorSceneToolsContent = new GUIContent[] {
+            new GUIContent { text = "RotateSceneView", tooltip = "Rotate Editor Scene for correct real world alignment north -X"},
+            new GUIContent { text = "Nothing", tooltip = "No tool yet"},
+            };
+
             ToolType = EditorToolsType.Prefab;
             PrefabTool = EditorPrefabTools.ZeroParent;
             ComponentTool = EditorComponentTools.RandomRotation;
+            SceneTool = EditorSceneTools.RotateSceneView;
         }
 
         private void OnGUI()
@@ -194,6 +210,32 @@ namespace Simulator.Editor.Tools
                             EditorGUILayout.LabelField("Remove Tool", subtitleLabelStyle, GUILayout.ExpandWidth(true));
                             GUILayout.Space(10);
 
+                            break;
+                    }
+                    break;
+                case EditorToolsType.Scene:
+                    EditorGUILayout.LabelField("Scene Tools", titleLabelStyle, GUILayout.ExpandWidth(true));
+                    GUILayout.Space(5);
+                    if (!EditorGUIUtility.isProSkin)
+                        GUI.backgroundColor = nonProColor;
+                    SceneTool = (EditorSceneTools)GUILayout.SelectionGrid((int)SceneTool, editorSceneToolsContent, 2, buttonStyle);
+                    if (!EditorGUIUtility.isProSkin)
+                        GUI.backgroundColor = Color.white;
+                    GUILayout.Space(5);
+                    EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+                    GUILayout.Space(10);
+
+                    switch (SceneTool)
+                    {
+                        case EditorSceneTools.RotateSceneView:
+                            EditorGUILayout.LabelField("Rotate Scene View", subtitleLabelStyle, GUILayout.ExpandWidth(true));
+                            GUILayout.Space(10);
+                            EditorGUILayout.HelpBox("Rotate Editor Scene for correct real world alignment north -X", MessageType.None, true);
+                            GUILayout.Space(5);
+                            if (GUILayout.Button(new GUIContent("Run", "Run rotate scene view")))
+                                RotateSceneViewCamera();
+                            break;
+                        case EditorSceneTools.Nothing:
                             break;
                     }
                     break;
@@ -411,6 +453,13 @@ namespace Simulator.Editor.Tools
             ScriptToAdd = null;
             Debug.Log($"Added component {scriptType}");
             // TODO needs undo, prefab apply won't revert
+        }
+
+        private void RotateSceneViewCamera()
+        {
+            SceneView sceneView = SceneView.lastActiveSceneView;
+            sceneView.orthographic = true;
+            sceneView.LookAt(new Vector3(0f, 0f, 0f), Quaternion.Euler(90, -90, 0));
         }
     }
 }

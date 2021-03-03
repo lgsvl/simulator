@@ -62,7 +62,7 @@ pipeline {
 
         checkout([
           $class: "GitSCM",
-          branches: [[name: env.BRANCH_NAME]],
+          branches: [[name: "refs/heads/${env.BRANCH_NAME}"]],
           browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Simulator", version: env.GITLAB_VERSION],
           extensions: [
             [$class: "LocalBranch"],

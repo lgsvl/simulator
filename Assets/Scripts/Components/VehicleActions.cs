@@ -241,7 +241,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
             fogLights.ForEach(x => x.enabled = _fogLights);
             if (fogLightRenderer != null)
             {
-                fogLightRenderer.material.SetFloat("_EmitIntensity", 2);
+                fogLightRenderer.material.SetFloat("_EmitIntensity", _fogLights ? 3f : 0f);
             }
             if (Loader.Instance.Network.IsMaster)
                 BroadcastProperty(VehicleActionsPropertyName.FogLights, value);

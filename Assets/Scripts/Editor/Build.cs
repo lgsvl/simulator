@@ -55,6 +55,8 @@ namespace Simulator.Editor
         public const string ScriptExtension = "cs";
         public const string PrefabExtension = "prefab";
 
+        private static string CurrentSelectedEntryName = "nothing";
+
         public static string ZipPath(params string[] elements)
         {
             return string.Join(Path.AltDirectorySeparatorChar.ToString(), elements);
@@ -82,6 +84,7 @@ namespace Simulator.Editor
             }
 
             public Dictionary<string, Entry> entries = new Dictionary<string, Entry>();
+            private Entry CurrentSelectedEntry;
 
             public void OnGUI()
             {
@@ -94,31 +97,53 @@ namespace Simulator.Editor
                     EditorGUILayout.HelpBox($"Following {bundlePath} were automatically detected:", UnityEditor.MessageType.None);
                 }
 
-                if (entries.Count != 0)
-                {
-                    EditorGUILayout.BeginHorizontal(GUILayout.ExpandHeight(false));
-                    if (GUILayout.Button("Select All", GUILayout.ExpandWidth(false)))
-                    {
-                        foreach (var entry in entries)
-                        {
-                            entry.Value.selected = true;
-                        }
-                    }
-                    if (GUILayout.Button("Select None", GUILayout.ExpandWidth(false)))
-                    {
-                        foreach (var entry in entries)
-                        {
-                            entry.Value.selected = false;
-                        }
-                    }
-                    EditorGUILayout.EndHorizontal();
-                }
+                #region unity 2019.4.18f1 fix
+                // TODO fix for issues with unity 2019.4.18f1 multiple bundles
+
+                //if (entries.Count != 0)
+                //{
+                //    EditorGUILayout.BeginHorizontal(GUILayout.ExpandHeight(false));
+                //    if (GUILayout.Button("Select All", GUILayout.ExpandWidth(false)))
+                //    {
+                //        foreach (var entry in entries)
+                //        {
+                //            entry.Value.selected = true;
+                //        }
+                //    }
+                //    if (GUILayout.Button("Select None", GUILayout.ExpandWidth(false)))
+                //    {
+                //        foreach (var entry in entries)
+                //        {
+                //            entry.Value.selected = false;
+                //        }
+                //    }
+                //    EditorGUILayout.EndHorizontal();
+                //}
 
                 foreach (var entry in entries.OrderBy(entry => entry.Key))
                 {
                     if (entry.Value.available)
                     {
                         entry.Value.selected = GUILayout.Toggle(entry.Value.selected, entry.Key);
+                        if (entry.Value.selected)
+                        {
+                            BuildPlayer = false;
+                            if (CurrentSelectedEntry != null)
+                            {
+                                if (entry.Value != CurrentSelectedEntry)
+                                {
+                                    var old = entries.Single(i => i.Value == CurrentSelectedEntry).Value;
+                                    old.selected = false;
+                                    CurrentSelectedEntry = entry.Value;
+                                    CurrentSelectedEntryName = CurrentSelectedEntry.name;
+                                }
+                            }
+                            else
+                            {
+                                CurrentSelectedEntry = entry.Value;
+                                CurrentSelectedEntryName = CurrentSelectedEntry.name;
+                            }
+                        }
                     }
                     else
                     {
@@ -127,6 +152,7 @@ namespace Simulator.Editor
                         EditorGUI.EndDisabledGroup();
                     }
                 }
+                #endregion
 
             }
 
@@ -795,10 +821,11 @@ namespace Simulator.Editor
         Dictionary<string, BundleData> buildGroups;
 
         [SerializeField] BuildTarget Target;
-        [SerializeField] bool BuildPlayer = false;
+        [SerializeField] static bool BuildPlayer = false;
         [SerializeField] string PlayerFolder = string.Empty;
         [SerializeField] bool DevelopmentPlayer = false;
         public Vector2 scroll;
+        private string HelpMsg = "";
 
         [MenuItem("Simulator/Build...", false, 30)]
         static void ShowWindow()
@@ -837,7 +864,9 @@ namespace Simulator.Editor
             {
                 group.isOpen = EditorGUILayout.Foldout(group.isOpen, $"{group.bundlePath}");
                 if (group.isOpen)
+                {
                     group.OnGUI();
+                }
             }
             EditorGUILayout.EndScrollView();
             GUILayout.Space(10);
@@ -845,10 +874,37 @@ namespace Simulator.Editor
 
             Target = (BuildTarget)EditorGUILayout.EnumPopup("Executable Platform:", Target);
 
-            EditorGUILayout.HelpBox("Select Folder to Save...", MessageType.Info);
+            EditorGUILayout.HelpBox("Select Folder to Save...", MessageType.None, true);
 
             EditorGUILayout.BeginHorizontal(GUILayout.ExpandHeight(false));
             BuildPlayer = GUILayout.Toggle(BuildPlayer, "Build Simulator:", GUILayout.ExpandWidth(false));
+
+            #region unity 2019.4.18f1 fix
+            // TODO fix for issues with unity 2019.4.18f1 multiple bundles
+            if (BuildPlayer)
+            {
+                foreach (var group in buildGroups.Values)
+                {
+                    foreach (var entry in group.entries.Values)
+                    {
+                        entry.selected = false;
+                    }
+                }
+                HelpMsg = "Bundle selection disabled when binary selected";
+            }
+            else
+            {
+                foreach (var group in buildGroups.Values)
+                {
+                    foreach (var entry in group.entries.Values)
+                    {
+                        if (CurrentSelectedEntryName != entry.name)
+                            entry.selected = false;
+                    }
+                }
+                HelpMsg = $"One bundle can be built at a time: {CurrentSelectedEntryName} selected";
+            }
+            #endregion
 
             EditorGUI.BeginDisabledGroup(!BuildPlayer);
             PlayerFolder = GUILayout.TextField(PlayerFolder);
@@ -864,6 +920,8 @@ namespace Simulator.Editor
 
             DevelopmentPlayer = GUILayout.Toggle(DevelopmentPlayer, "Development Build");
             EditorGUI.EndDisabledGroup();
+
+            EditorGUILayout.HelpBox(HelpMsg, MessageType.Info, true);
 
             if (GUILayout.Button("Build"))
             {

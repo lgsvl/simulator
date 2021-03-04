@@ -26,9 +26,10 @@ namespace Simulator.Api.Commands
         Pedestrian = 3,
     };
 
-    class AddAgent : IDistributedCommand
+    class AddAgent : IDistributedCommand, ILockingCommand
     {
         public string Name => "simulator/add_agent";
+        public event Action<ILockingCommand> Executed;
 
         // We have to lock api.ActionsSemaphore before the first continuation (await)
         // to make sure API calls are executed one after the other
@@ -40,8 +41,6 @@ namespace Simulator.Api.Commands
             // we wrap the whole method since we are async
             try
             {
-                api.ActionsSemaphore.Lock();
-
                 if (sim == null)
                 {
                     throw new Exception("SimulatorManager not found! Is scene loaded?");
@@ -246,7 +245,7 @@ namespace Simulator.Api.Commands
             }
             finally
             {
-                api.ActionsSemaphore.Unlock();
+                Executed?.Invoke(this);
             }
         }
     }

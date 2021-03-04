@@ -59,6 +59,7 @@ namespace Simulator.Api
         public float TimeScale;
 
         WebSocketServer Server;
+        
         public static Dictionary<string, ICommand> Commands = new Dictionary<string, ICommand>();
 
         public Dictionary<string, GameObject> CachedVehicles = new Dictionary<string, GameObject>();
@@ -91,10 +92,7 @@ namespace Simulator.Api
 
         public static ApiManager Instance { get; private set; }
         
-        /// <summary>
-        /// Locking semaphore that disables executing actions while semaphore is locked
-        /// </summary>
-        public LockingSemaphore ActionsSemaphore { get; } = new LockingSemaphore();
+        private ApiLockingSemaphore ApiLock { get; } = new ApiLockingSemaphore();
 
         static ApiManager()
         {
@@ -283,6 +281,7 @@ namespace Simulator.Api
             Server.Start();
             SIM.LogAPI(SIM.API.SimulationCreate);
             Loader.Instance.Network.MessagesManager?.RegisterObject(this);
+            ApiLock.Initialize();
         }
 
         void OnDestroy()
@@ -298,6 +297,7 @@ namespace Simulator.Api
             SIM.LogAPI(SIM.API.SimulationDestroy);
             SIM.APIOnly = false;
             Loader.Instance.Network.MessagesManager?.UnregisterObject(this);
+            ApiLock.Deinitialize();
         }
 
         public async Task Reset()
@@ -470,11 +470,13 @@ namespace Simulator.Api
 
         void Update()
         {
-            while (ActionsSemaphore.IsUnlocked && Actions.TryDequeue(out var action))
+            while (ApiLock.IsUnlocked && Actions.TryDequeue(out var action))
             {
                 try
                 {
                     var isMasterSimulation = Loader.Instance.Network.IsMaster;
+                    if (action.Command is ILockingCommand lockingCommand)
+                        ApiLock.RegisterNewCommand(lockingCommand);
                     if (action.Command is IDelegatedCommand delegatedCommand && isMasterSimulation)
                     {
                         var endpoint = delegatedCommand.TargetNodeEndPoint(action.Arguments);
@@ -482,8 +484,9 @@ namespace Simulator.Api
                         if (Loader.Instance.Network.Master.IsConnectedToClient(endpoint))
                         {
                             var message = MessagesPool.Instance.GetMessage(
-                                4 + 4 *
-                                (2 + action.Arguments.Count + action.Command.Name.Length));
+                                BytesStack.GetMaxByteCount(action.Arguments) +
+                                BytesStack.GetMaxByteCount(action.Command.Name) + 
+                                ByteCompression.RequiredBytes<MessageType>());
                             message.AddressKey = Key;
                             message.Content.PushString(action.Arguments.ToString());
                             message.Content.PushString(action.Command.Name);
@@ -500,7 +503,8 @@ namespace Simulator.Api
                         {
                             var message = MessagesPool.Instance.GetMessage(
                                 BytesStack.GetMaxByteCount(action.Arguments) +
-                                BytesStack.GetMaxByteCount(action.Command.Name));
+                                BytesStack.GetMaxByteCount(action.Command.Name) + 
+                                ByteCompression.RequiredBytes<MessageType>());
                             message.AddressKey = Key;
                             message.Content.PushString(action.Arguments.ToString());
                             message.Content.PushString(action.Command.Name);
@@ -537,9 +541,7 @@ namespace Simulator.Api
                         var line = frame.GetFileLineNumber();
                         SendError($"{ex.Message} at {fname}@{line}");
                     }
-                    // If an exception was thrown from an async api handler, make sure
-                    // we unlock the semaphore, if it's not unlocked already
-                    if(ActionsSemaphore.IsLocked) ActionsSemaphore.Unlock();
+                    ApiLock.ForceUnlock();
                 }
             }
         }
@@ -564,7 +566,7 @@ namespace Simulator.Api
                 return;
             }
             
-            if (ActionsSemaphore.IsUnlocked && Time.timeScale != 0.0f)
+            if (ApiLock.IsUnlocked && Time.timeScale != 0.0f)
             {
                 if (FrameLimit != 0 && CurrentFrame >= FrameLimit)
                 {

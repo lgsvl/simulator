@@ -91,7 +91,7 @@ public class VehicleController : AgentController, ITriggerAgent
     public override void Init()
     {
         startTime = SimulatorManager.Instance.CurrentTime;
-        vehicleName = transform.root.name;
+        vehicleName = Config.Name;
         dynamics = GetComponent<IVehicleDynamics>();
         actions = GetComponent<VehicleActions>();
         AgentController = GetComponent<AgentController>();

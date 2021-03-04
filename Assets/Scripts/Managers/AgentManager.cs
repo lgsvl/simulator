@@ -81,7 +81,6 @@ public class AgentManager : MonoBehaviour
         SIM.LogSimulation(SIM.Simulation.BridgeTypeStart, config.Bridge != null ? config.Bridge.Name : "None");
         var sensorsController = go.AddComponent<SensorsController>();
         agentController.AgentSensorsController = sensorsController;
-        sensorsController.SetupSensors(config.Sensors);
 
         //Add required components for distributing rigidbody from master to clients
         var network = Loader.Instance.Network;
@@ -111,6 +110,7 @@ public class AgentManager : MonoBehaviour
 
         go.transform.position = config.Position;
         go.transform.rotation = config.Rotation;
+        sensorsController.SetupSensors(config.Sensors);
         agentController.Init();
 
         go.SetActive(true);

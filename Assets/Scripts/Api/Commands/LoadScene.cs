@@ -18,9 +18,15 @@ using Simulator.Web;
 
 namespace Simulator.Api.Commands
 {
-    class LoadScene : IDistributedCommand
+    class LoadScene : IDistributedCommand, ILockingCommand
     {
         public string Name => "simulator/load_scene";
+        
+        public string LockingGuid { get; set; }
+        
+        public float StartRealtime { get; set; }
+
+        public event Action<ILockingCommand> Executed;
 
         private async Task LoadMap(JSONNode args, string userMapId, int? seed = null)
         {
@@ -56,7 +62,7 @@ namespace Simulator.Api.Commands
                 {
                     api.SendError(sourceCommand, 
                         "Out of date Map AssetBundle. Please check content website for updated bundle or rebuild the bundle.");
-                    api.ActionsSemaphore.Unlock();
+                    sourceCommand.Executed?.Invoke(sourceCommand);
                     yield break;
                 }
 
@@ -76,7 +82,7 @@ namespace Simulator.Api.Commands
                 if (mapBundle == null)
                 {
                     api.SendError(sourceCommand, $"Failed to load environment from '{map.AssetGuid}' asset bundle '{map.Name}'");
-                    api.ActionsSemaphore.Unlock();
+                    sourceCommand.Executed?.Invoke(sourceCommand);
                     yield break;
                 }
 
@@ -86,7 +92,7 @@ namespace Simulator.Api.Commands
                 if (scenes.Length != 1)
                 {
                     api.SendError(sourceCommand, $"Unsupported environment in '{map.AssetGuid}' asset bundle '{map.Name}', only 1 scene expected");
-                    api.ActionsSemaphore.Unlock();
+                    sourceCommand.Executed?.Invoke(sourceCommand);
                     yield break;
                 }
 
@@ -125,7 +131,7 @@ namespace Simulator.Api.Commands
             api.CurrentSceneId = map.Id;
             api.CurrentSceneName = map.Name;
             api.CurrentScene = userMapId;
-            api.ActionsSemaphore.Unlock();
+            sourceCommand.Executed?.Invoke(sourceCommand);
             api.SendResult(sourceCommand);
         }
 
@@ -138,7 +144,6 @@ namespace Simulator.Api.Commands
             {
                 seed = args["seed"].AsInt;
             }
-            api.ActionsSemaphore.Lock();
             try
             {
                 await LoadMap(args, mapId, seed);
@@ -147,7 +152,7 @@ namespace Simulator.Api.Commands
             {
                 api.SendError(this, e.Message);
                 // only unlock in error case as map loading continues in coroutine after which we unlock
-                api.ActionsSemaphore.Unlock();
+                Executed?.Invoke(this);
             }
         }
     }

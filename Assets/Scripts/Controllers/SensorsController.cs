@@ -188,7 +188,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
 
                     if (prefab == null)
                     {
-                       throw new Exception($"Unknown sensor type {type} for {gameObject.name} vehicle");
+                       throw new Exception($"Unknown sensor type {type} for {gameObject.name} vehicle. Please try restarting the simulator.");
                     }
 
                     var sensor = CreateSensor(gameObject, parentObject, prefab, item, baseLink);

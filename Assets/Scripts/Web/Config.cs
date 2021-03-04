@@ -30,7 +30,7 @@ namespace Simulator.Web
         public static string ApiHost = "localhost";
         public static int ApiPort = 8181;
 
-        public static string CloudUrl = "https://wise.lgsvlsimulator.com";
+        public static string CloudUrl = "https://wise.svlsimulator.com";
         public static string SessionGUID;
         public static string SimID;
 

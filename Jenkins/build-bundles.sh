@@ -99,7 +99,7 @@ trap finish EXIT
 
 get_unity_license
 
-PREFIX=lgsvlsimulator
+PREFIX=svlsimulator
 
 if [ -v GIT_TAG ]; then
   SUFFIX=${GIT_TAG}

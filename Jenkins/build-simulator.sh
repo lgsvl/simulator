@@ -39,7 +39,7 @@ CHECK_UNITY_LOG=$(readlink -f "$(dirname $0)/check-unity-log.sh")
 
 cd /mnt
 
-PREFIX=lgsvlsimulator
+PREFIX=svlsimulator
 SUFFIX=
 
 if [ -v GIT_TAG ]; then
@@ -209,7 +209,7 @@ if [ "$1" == "windows" ] && [ -v CODE_SIGNING_PASSWORD ]; then
     -pkcs12 /tmp/signing.p12               \
     -pass "${CODE_SIGNING_PASSWORD}" \
     -n "LGSVL Simulator"                   \
-    -i https://www.lgsvlsimulator.com      \
+    -i https://www.svlsimulator.com      \
     -t http://timestamp.digicert.com       \
     -in "${EXE}"                           \
     -out "${SIGNED}"

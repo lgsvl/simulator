@@ -35,5 +35,5 @@ docker run -ti \
      -e XAUTHORITY=/tmp/.Xauthority \
      -v ${XAUTHORITY}:/tmp/.Xauthority \
      -v /tmp/.X11-unix:/tmp/.X11-unix \
-     -v lgsvlsimulator-data:/root/.config/unity3d \
-     lgsvlsimulator$tag "$@"
+     -v svlsimulator-data:/root/.config/unity3d \
+     svlsimulator$tag "$@"

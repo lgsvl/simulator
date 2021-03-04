@@ -12,7 +12,7 @@ Run the following command to build the container image:
 # Remove them when developing Dockerfile.
 # Only one of the simulator_* build args should be specified.
 # Default <VERSION> is "latest".
-# Default <URL> is https://github.com/lgsvl/simulator/releases/download/<VERSION>/lgsvlsimulator-linux64-<VERSION>.zip .
+# Default <URL> is https://github.com/lgsvl/simulator/releases/download/<VERSION>/svlsimulator-linux64-<VERSION>.zip .
 # Default <ZIPFILE> is none, ie, fetch from URL; <ZIPFILE> must be in the same directory tree as Dockerfile.
 # Default <IMAGE:TAG> is "ubuntu:18.04".
 # Default <VL_VERSION> ls "sdk-1.2.131.2".
@@ -21,7 +21,7 @@ $ docker build --pull --no-cache [--build-arg simulator_version=<VERSION>|simula
                                  [--build-arg vulkan_loader_version=<VL_VERSION>] \
                                  [--build-arg image_git_describe=$(git describe --always --tags>) \
                                  [--build-arg image_uuidgen=$(uuidgen)] \
-                                 -t lgsvlsimulator[:<VERSION>] .
+                                 -t svlsimulator[:<VERSION>] .
 ```
 
 ## Launch the container image
@@ -41,11 +41,11 @@ $ docker run -ti \
      -e XAUTHORITY=/tmp/.Xauthority \
      -v ${XAUTHORITY}:/tmp/.Xauthority \
      -v /tmp/.X11-unix:/tmp/.X11-unix \
-     -v lgsvlsimulator-data:/root/.config/unity3d \
-     lgsvlsimulator[:<VERSION>]
+     -v svlsimulator-data:/root/.config/unity3d \
+     svlsimulator[:<VERSION>]
 ```
 
-This will store persistent data (database, downloaded maps/vehicles, logfile) in the `lgsvlsimulator-data` Docker volume.
+This will store persistent data (database, downloaded maps/vehicles, logfile) in the `svlsimulator-data` Docker volume.
 
 The **Open Browser...** button shown by the simulator does not function when it is running in a container. Instead, you must
 manually browse to <http://localhost:8080>.

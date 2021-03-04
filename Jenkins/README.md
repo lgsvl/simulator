@@ -28,7 +28,7 @@ export UID
 docker-compose run --rm buid-simulator check
 ```
 
-Output will be in `lgsvlsimulator-check.html` file.
+Output will be in `svlsimulator-check.html` file.
 
 ## Running unit tests
 
@@ -36,7 +36,7 @@ Output will be in `lgsvlsimulator-check.html` file.
 docker-compose run --rm buid-simulator test
 ```
 
-Output will be in `lgsvlsimulator-test.xml` file in NUnit v3 format
+Output will be in `svlsimulator-test.xml` file in NUnit v3 format
 
 ## Running binary build
 
@@ -44,7 +44,7 @@ Output will be in `lgsvlsimulator-test.xml` file in NUnit v3 format
 docker-compose run --rm buid-simulator windows
 ```
 
-Output will be `lgsvlsimulator-windows.zip` file.
+Output will be `svlsimulator-windows.zip` file.
 Replace `windows` with `linux` or `macos` to build for other OS'es.
 
 ## Running build for Asset Bundles
@@ -91,5 +91,5 @@ It will automatically upload asset bundles to AWS S3 bucket when `master` branch
 
 Job will produce following artifacts:
 
-* `lgsvlsimulator-check-BRANCH-NUM.html`
-* `lgsvlsimulator-OS-BRANCH-NUM.zip` - for each OS selected for building
+* `svlsimulator-check-BRANCH-NUM.html`
+* `svlsimulator-OS-BRANCH-NUM.zip` - for each OS selected for building

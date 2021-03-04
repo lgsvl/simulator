@@ -1,4 +1,4 @@
-<h1 align="center">LGSVL Simulator:  An Autonomous Vehicle Simulator</h1>
+<h1 align="center">SVL Simulator:  An Autonomous Vehicle Simulator</h1>
 
 <div align="center">
 <a href="https://github.com/lgsvl/simulator/releases/latest">
@@ -8,10 +8,10 @@
 </div>
 <div align="center">
   <h4>
-    <a href="https://lgsvlsimulator.com" style="text-decoration: none">
+    <a href="https://svlsimulator.com" style="text-decoration: none">
     Website</a>
     <span> | </span>
-    <a href="https://lgsvlsimulator.com/docs" style="text-decoration: none">
+    <a href="https://svlsimulator.com/docs" style="text-decoration: none">
     Documentation</a>
     <span> | </span>
     <a href="https://github.com/lgsvl/simulator/releases/latest" style="text-decoration: none">
@@ -21,7 +21,7 @@
 
 ## Stay Informed
 
-Check out our [blog](https://www.lgsvlsimulator.com/blog/) and subscribe to our [mailing list](http://eepurl.com/gpuhkb) to get the latest updates.
+Check out our latest [news](https://www.svlsimulator.com/news/) and subscribe to our [mailing list](http://eepurl.com/gpuhkb) to get the latest updates.
 
 
 ## Introduction
@@ -43,7 +43,7 @@ For Chinese-speaking users, you can also view our latest videos [here](https://s
 
 
 ## Paper
-If you are using LGSVL Simulator for your research paper, please cite our ITSC 2020 paper:
+If you are using SVL Simulator for your research paper, please cite our ITSC 2020 paper:
 [LGSVL Simulator: A High Fidelity Simulator for Autonomous Driving](https://arxiv.org/pdf/2005.03778)
 
 ```
@@ -58,7 +58,7 @@ If you are using LGSVL Simulator for your research paper, please cite our ITSC 2
 
 ## Getting Started
 
-You can find complete and the most up-to-date guides on our [documentation website](https://www.lgsvlsimulator.com/docs).
+You can find complete and the most up-to-date guides on our [documentation website](https://www.svlsimulator.com/docs).
 
 Running the simulator with reasonable performance and frame rate (for perception related tasks) requires a high performance desktop. Below is the recommended system for running the simulator at high quality. We are currently working on performance improvements for a better experience. 
 
@@ -76,7 +76,7 @@ Currently, running the simulator in Windows yields better performance than runni
 
 ### Downloading and starting simulator
 
-1. Download the latest release of the LGSVL Simulator for your supported operating system (Windows or Linux) here: [https://github.com/lgsvl/simulator/releases/latest](https://github.com/lgsvl/simulator/releases/latest)
+1. Download the latest release of the SVL Simulator for your supported operating system (Windows or Linux) here: [https://github.com/lgsvl/simulator/releases/latest](https://github.com/lgsvl/simulator/releases/latest)
 2. Unzip the downloaded folder and run the executable.
 
 ### Building and running from source
@@ -113,7 +113,7 @@ Look [here](Docs/docs/keyboard-shortcuts.md) for a guide to currently available 
 
 ## Contact
 
-Please feel free to provide feedback or ask questions by creating a Github issue. For inquiries about collaboration, please email us at [contact@lgsvlsimulator.com](mailto:contact@lgsvlsimulator.com).
+Please feel free to provide feedback or ask questions by creating a Github issue. For inquiries about collaboration, please email us at [contact@svlsimulator.com](mailto:contact@svlsimulator.com).
 
 
 

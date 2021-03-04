@@ -43,7 +43,7 @@
 /WebUI/dist/
 /config.yml
 /Assets/Resources/Editor/DeveloperSettings.asset*
-/lgsvlsimulator-test*.xml
-/lgsvlsimulator-check*.html
-/lgsvlsimulator-bundles*.html
-/lgsvlsimulator-*.zip
+/svlsimulator-test*.xml
+/svlsimulator-check*.html
+/svlsimulator-bundles*.html
+/svlsimulator-*.zip

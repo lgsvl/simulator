@@ -98,17 +98,17 @@ COPY ${simulator_zipfile:-Dockerfile} /tmp/
 RUN set -ex \
   && cd /tmp \
   && : If simulator_zipfile is set, then skip downloading from simulator_url but rename the .zip as if it had been \
-  && if [ -e Dockerfile ]; then rm Dockerfile; else mv *.zip lgsvlsimulator.zip; exit 0; fi  \
+  && if [ -e Dockerfile ]; then rm Dockerfile; else mv *.zip svlsimulator.zip; exit 0; fi  \
   && if [ "${simulator_url}" = "" ]; then version=${simulator_version}; else version=":ignored" ; fi \
   && if [ $version = "latest" ]; then version=$(wget -q -O- https://api.github.com/repos/lgsvl/simulator/releases/latest | jq -r '.tag_name'); else true; fi \
   && url=${simulator_url} \
-  && if [ "$url" = "" ]; then url="https://github.com/lgsvl/simulator/releases/download/${version}/lgsvlsimulator-linux64-${version}.zip"; else true; fi \
-  && wget -q -O lgsvlsimulator.zip $url
+  && if [ "$url" = "" ]; then url="https://github.com/lgsvl/simulator/releases/download/${version}/svlsimulator-linux64-${version}.zip"; else true; fi \
+  && wget -q -O svlsimulator.zip $url
 
 RUN set -ex \
   && cd /tmp \
-  && unzip lgsvlsimulator.zip \
-  && mv lgsvlsimulator-linux64-* lgsvlsimulator
+  && unzip svlsimulator.zip \
+  && mv svlsimulator-linux64-* svlsimulator
 
 # Final image
 FROM base
@@ -133,6 +133,6 @@ IMAGE_INTERFACE_VERSION=2\n\
 IMAGE_UUID=${image_uuidgen}"\
   >> /etc/wise-image-info.source
 
-COPY --from=unzipper /tmp/lgsvlsimulator /opt/simulator
+COPY --from=unzipper /tmp/svlsimulator /opt/simulator
 
 CMD /opt/simulator/simulator

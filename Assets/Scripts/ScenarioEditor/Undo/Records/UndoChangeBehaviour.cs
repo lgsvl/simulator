@@ -17,9 +17,9 @@ namespace Simulator.ScenarioEditor.Undo.Records
     public class UndoChangeBehaviour : UndoRecord
     {
         /// <summary>
-        /// Scenario agent which behaviour was changed
+        /// Scenario agent behaviour extension which behaviour was changed
         /// </summary>
-        private ScenarioAgent scenarioAgent;
+        private AgentBehaviour agentBehaviour;
 
         /// <summary>
         /// Previous agent behaviour name
@@ -34,21 +34,21 @@ namespace Simulator.ScenarioEditor.Undo.Records
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="scenarioAgent">Scenario agent which variant was changed</param>
-        public UndoChangeBehaviour(ScenarioAgent scenarioAgent)
+        /// <param name="agentBehaviour">Scenario agent behaviour extension which behaviour was changed</param>
+        public UndoChangeBehaviour(AgentBehaviour agentBehaviour)
         {
-            this.scenarioAgent = scenarioAgent;
-            behaviourName = scenarioAgent.Behaviour;
-            behaviourParameters = scenarioAgent.BehaviourParameters;
-            scenarioAgent.BehaviourParameters = new JSONObject();
+            this.agentBehaviour = agentBehaviour;
+            behaviourName = agentBehaviour.Behaviour;
+            behaviourParameters = agentBehaviour.BehaviourParameters;
+            agentBehaviour.BehaviourParameters = new JSONObject();
         }
         
         /// <inheritdoc/>
         public override void Undo()
         {
-            scenarioAgent.BehaviourParameters = behaviourParameters;
+            agentBehaviour.BehaviourParameters = behaviourParameters;
             behaviourParameters = null;
-            scenarioAgent.ChangeBehaviour(behaviourName, false);
+            agentBehaviour.ChangeBehaviour(behaviourName, false);
             ScenarioManager.Instance.logPanel.EnqueueInfo("Undo applied to rollback changed agent behaviour.");
         }
 

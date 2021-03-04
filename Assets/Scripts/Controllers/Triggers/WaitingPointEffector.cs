@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -41,16 +41,23 @@ public class WaitingPointEffector : TriggerEffector
         } while (lowestDistance > PointRadius);
     }
 
-    public override void DeserializeProperties(JSONNode jsonData)
-    {
-        ActivatorPoint = jsonData["activator_point"].ReadVector3();
-        PointRadius = jsonData["point_radius"];
-    }
-
     public override void SerializeProperties(JSONNode jsonData)
     {
         var activatorNode = new JSONObject().WriteVector3(ActivatorPoint);
-        jsonData.Add("activator_point", activatorNode);
-        jsonData.Add("point_radius", new JSONNumber(PointRadius));
+        jsonData.Add("activatorPoint", activatorNode);
+        jsonData.Add("pointRadius", new JSONNumber(PointRadius));
+    }
+
+    public override void DeserializeProperties(JSONNode jsonData)
+    {
+        var activatorPoint = jsonData["activatorPoint"];
+        if (activatorPoint == null)
+            activatorPoint = jsonData["activator_point"];
+        ActivatorPoint = activatorPoint.ReadVector3();
+
+        var pointRadius = jsonData["pointRadius"];
+        if (pointRadius == null)
+            pointRadius = jsonData["point_radius"];
+        PointRadius = pointRadius;
     }
 }

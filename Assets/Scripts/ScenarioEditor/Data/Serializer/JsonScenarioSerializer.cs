@@ -9,12 +9,10 @@ namespace Simulator.ScenarioEditor.Data.Serializer
 {
     using Agents;
     using Controllables;
-    using Elements;
     using Elements.Agents;
     using Managers;
     using SimpleJSON;
     using Simulator.Utilities;
-    using UnityEngine;
 
     /// <summary>
     /// Class serializing a scenario into a json data
@@ -31,7 +29,7 @@ namespace Simulator.ScenarioEditor.Data.Serializer
             var scenarioManager = ScenarioManager.Instance;
             scenarioData.Add("version", new JSONString("0.01"));
             var vseMetadata = new JSONObject();
-            scenarioData.Add("vse_metadata", vseMetadata);
+            scenarioData.Add("vseMetadata", vseMetadata);
             SerializeMetadata(vseMetadata);
             AddMapNode(scenarioData, scenarioManager.GetExtension<ScenarioMapManager>().CurrentMapMetaData);
             //Add agents
@@ -59,7 +57,7 @@ namespace Simulator.ScenarioEditor.Data.Serializer
         private static void SerializeMetadata(JSONObject data)
         {
             var cameraSettings = new JSONObject();
-            data.Add("camera_settings", cameraSettings);
+            data.Add("cameraSettings", cameraSettings);
             var camera = ScenarioManager.Instance.ScenarioCamera;
             var position = new JSONObject().WriteVector3(camera.transform.position);
             cameraSettings.Add("position", position);
@@ -103,83 +101,10 @@ namespace Simulator.ScenarioEditor.Data.Serializer
             transform.Add("position", position);
             var rotation = new JSONObject().WriteVector3(scenarioAgent.TransformToRotate.rotation.eulerAngles);
             transform.Add("rotation", rotation);
-            if (!string.IsNullOrEmpty(scenarioAgent.Behaviour))
-            {
-                var behaviour = new JSONObject();
-                behaviour.Add("name", new JSONString(scenarioAgent.Behaviour));
-                agentNode.Add("behaviour", behaviour);
-                if (scenarioAgent.BehaviourParameters.Count > 0)
-                    behaviour.Add("parameters", scenarioAgent.BehaviourParameters);
-            }
-            if (!string.IsNullOrEmpty(scenarioAgent.SensorsConfigurationId))
-                agentNode.Add("sensorsConfigurationId", new JSONString(scenarioAgent.SensorsConfigurationId));
 
-            if (scenarioAgent.DestinationPoint != null &&  scenarioAgent.DestinationPoint.IsActive)
-            {
-                var destinationPoint = new JSONObject();
-                agentNode.Add("destinationPoint", destinationPoint);
-                var destinationPosition = new JSONObject().WriteVector3(scenarioAgent.DestinationPoint.TransformToMove.position);
-                destinationPoint.Add("position", destinationPosition);
-                var destinationRotation = new JSONObject().WriteVector3(scenarioAgent.DestinationPoint.TransformToRotate.rotation.eulerAngles);
-                destinationPoint.Add("rotation", destinationRotation);
-            }
-
-            if (scenarioAgent.SupportColors)
-            {
-                var colorNode = new JSONObject();
-                agentNode.Add("color", colorNode);
-                colorNode.Add("r", new JSONNumber(scenarioAgent.AgentColor.r));
-                colorNode.Add("g", new JSONNumber(scenarioAgent.AgentColor.g));
-                colorNode.Add("b", new JSONNumber(scenarioAgent.AgentColor.b));
-            }
-            
-            if (scenarioAgent.Source.AgentSupportWaypoints(scenarioAgent))
-                AddWaypointsNodes(agentNode, scenarioAgent);
+            foreach (var extension in scenarioAgent.Extensions) extension.Value.SerializeToJson(agentNode);
         }
 
-        /// <summary>
-        /// Adds waypoints nodes to the json
-        /// </summary>
-        /// <param name="data">Json object where data will be added</param>
-        /// <param name="scenarioAgent">Scenario agent which includes those waypoints</param>
-        private static void AddWaypointsNodes(JSONObject data, ScenarioAgent scenarioAgent)
-        {
-            var waypoints = data.GetValueOrDefault("waypoints", new JSONArray());
-            if (!data.HasKey("waypoints"))
-                data.Add("waypoints", waypoints);
-
-            var angle = Vector3.zero;
-            for (var i = 0; i < scenarioAgent.Waypoints.Count; i++)
-            {
-                var scenarioWaypoint = scenarioAgent.Waypoints[i];
-                var waypointNode = new JSONObject();
-                var position = new JSONObject().WriteVector3(scenarioWaypoint.transform.position);
-                var hasNextWaypoint = i + 1 < scenarioAgent.Waypoints.Count;
-                angle = hasNextWaypoint
-                    ? Quaternion.LookRotation(scenarioAgent.Waypoints[i + 1].transform.position - position).eulerAngles
-                    : angle;
-                waypointNode.Add("ordinal_number", new JSONNumber(i));
-                waypointNode.Add("position", position);
-                waypointNode.Add("angle", angle);
-                waypointNode.Add("wait_time", new JSONNumber(scenarioWaypoint.WaitTime));
-                waypointNode.Add("speed", new JSONNumber(scenarioWaypoint.Speed));
-                AddTriggerNode(waypointNode, scenarioWaypoint.LinkedTrigger);
-                waypoints.Add(waypointNode);
-            }
-        }
-
-        /// <summary>
-        /// Adds triggers nodes to the json
-        /// </summary>
-        /// <param name="data">Json object where data will be added</param>
-        /// <param name="scenarioTrigger">Scenario trigger to serialize</param>
-        private static void AddTriggerNode(JSONObject data, ScenarioTrigger scenarioTrigger)
-        {
-            scenarioTrigger.OnBeforeSerialize();
-            var triggerNode = scenarioTrigger.Trigger.SerializeTrigger();
-            data.Add("trigger", triggerNode);
-        }
-        
         /// <summary>
         /// Adds an controllable node to the json
         /// </summary>
@@ -193,7 +118,7 @@ namespace Simulator.ScenarioEditor.Data.Serializer
             controllableNode.Add("policy", Utility.SerializeControlPolicy(controllable.Policy));
             controllableNode.Add("spawned", controllable.IsEditableOnMap);
             if (!controllable.IsEditableOnMap) return;
-            
+
             controllableNode.Add("name", new JSONString(controllable.Variant.Name));
             var transform = new JSONObject();
             controllableNode.Add("transform", transform);

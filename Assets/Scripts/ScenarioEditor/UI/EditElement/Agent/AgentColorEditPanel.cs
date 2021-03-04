@@ -1,55 +1,56 @@
-/**
- * Copyright (c) 2020 LG Electronics, Inc.
+﻿/**
+ * Copyright (c) 2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
  */
 
-namespace Simulator.ScenarioEditor.UI.EditElement.Behaviours
+namespace Simulator.ScenarioEditor.UI.EditElement.Agent
 {
     using Effectors;
     using Elements;
     using Elements.Agents;
     using Managers;
     using ScenarioEditor.Utilities;
+    using Undo;
+    using Undo.Records;
     using UnityEngine;
+    using UnityEngine.UI;
 
     /// <summary>
-    /// UI panel which allows editing a scenario agent behaviour
+    /// Edit panel for the agent's color
     /// </summary>
-    public abstract class BehaviourEditPanel : ParameterEditPanel
+    public class AgentColorEditPanel : ParameterEditPanel
     {
+        //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
+#pragma warning disable 0649
+        /// <summary>
+        /// Image that represents color of the agent
+        /// </summary>
+        [SerializeField]
+        private Image colorImage;
+#pragma warning restore 0649
+
         /// <summary>
         /// Is this panel initialized
         /// </summary>
         private bool isInitialized;
         
         /// <summary>
-        /// Is this panel shown
+        /// Color extension that is edited by this panel
         /// </summary>
-        private bool isShown = true;
+        private AgentColorExtension colorExtension;
 
         /// <summary>
         /// Currently edited scenario agent reference
         /// </summary>
-        protected ScenarioAgent selectedAgent;
-
-        /// <summary>
-        /// Currently edited behaviours extensions
-        /// </summary>
-        protected AgentBehaviour behaviourExtension;
-        
-        /// <summary>
-        /// Behaviour name that can be edited with this panel
-        /// </summary>
-        protected abstract string EditedBehaviour { get; }
+        private ScenarioAgent selectedAgent;
 
         /// <inheritdoc/>
         public override void Initialize()
         {
             if (isInitialized)
                 return;
-            Hide();
             ScenarioManager.Instance.SelectedOtherElement += OnSelectedOtherElement;
             isInitialized = true;
             OnSelectedOtherElement(ScenarioManager.Instance.SelectedElement);
@@ -73,42 +74,37 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Behaviours
         private void OnSelectedOtherElement(ScenarioElement selectedElement)
         {
             //Detach from current agent events
-            if (behaviourExtension != null)
-                behaviourExtension.BehaviourChanged -= SelectedAgentOnBehaviourChanged;
+            if (colorExtension != null)
+                colorExtension.ColorChanged -= SelectedAgentOnColorChanged;
 
             selectedAgent = selectedElement as ScenarioAgent;
-            behaviourExtension = selectedAgent == null ? null : selectedAgent.GetExtension<AgentBehaviour>();
             //Attach to selected agent events
-            if (behaviourExtension != null)
+            if (selectedAgent != null)
             {
-                behaviourExtension.BehaviourChanged += SelectedAgentOnBehaviourChanged;
+                colorExtension = selectedAgent.GetExtension<AgentColorExtension>();
+                if (colorExtension == null)
+                    Hide();
+                else
+                {
+                    colorExtension.ColorChanged += SelectedAgentOnColorChanged;
+                    Show();
+                }
             }
-            SelectedAgentOnBehaviourChanged(behaviourExtension == null ? "" : behaviourExtension.Behaviour);
+            else
+            {
+                Hide();
+            }
         }
 
-        /// <summary>
-        /// Method invoked when selected agent changes the behaviour
-        /// </summary>
-        /// <param name="newBehaviour">Agent new behaviour</param>
-        private void SelectedAgentOnBehaviourChanged(string newBehaviour)
-        {
-            if (selectedAgent == null || newBehaviour != EditedBehaviour)
-                Hide();
-            else
-                Show();
-        }
 
         /// <summary>
         /// Shows this panel with prepared UI elements for currently selected agent
         /// </summary>
         public void Show()
         {
-            if (isShown)
-                return;
+            colorImage.color = colorExtension.AgentColor;
             gameObject.SetActive(true);
             UnityUtilities.LayoutRebuild(transform as RectTransform);
-            OnShown();
-            isShown = true;
         }
 
         /// <summary>
@@ -116,21 +112,30 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Behaviours
         /// </summary>
         public void Hide()
         {
-            if (!isShown)
-                return;
             gameObject.SetActive(false);
-            OnHidden();
-            isShown = false;
         }
 
         /// <summary>
-        /// Method invoked when this panel is being shown
+        /// Method invoked when selected agent changes the color
         /// </summary>
-        protected virtual void OnShown() { }
+        /// <param name="newColor">Agent new color</param>
+        private void SelectedAgentOnColorChanged(Color newColor)
+        {
+            if (colorImage != null)
+                colorImage.color = newColor;
+        }
 
         /// <summary>
-        /// Method invoked when this panel is being hidden
+        /// Shows the color picker to change the selected agent color
         /// </summary>
-        protected virtual void OnHidden() { }
+        public void EditColor()
+        {
+            var colorPicker = ScenarioManager.Instance.colorPicker;
+            var previousColor = colorExtension.AgentColor;
+            colorPicker.Show(colorExtension.AgentColor,
+                color => colorExtension.AgentColor = color,
+                () => ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
+                    .RegisterRecord(new UndoChangeColor(colorExtension, previousColor)));
+        }
     }
 }

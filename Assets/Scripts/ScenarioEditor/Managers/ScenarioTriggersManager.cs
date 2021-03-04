@@ -64,7 +64,8 @@ namespace Simulator.ScenarioEditor.Managers
             foreach (var effector in effectors)
             {
                 var effectorPanel = customEffectorEditPanels.Find(p => p.EditedEffectorType == effector.GetType());
-                effectorPanel.EffectorAddedToTrigger(trigger, effector);
+                if (effectorPanel!=null)
+                    effectorPanel.EffectorAddedToTrigger(trigger, effector);
             }
         }
     }

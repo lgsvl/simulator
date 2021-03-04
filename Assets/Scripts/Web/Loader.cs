@@ -427,162 +427,84 @@ namespace Simulator
 
             Instance.Actions.Enqueue(async () =>
             {
-                    AssetBundle textureBundle = null;
-                    AssetBundle mapBundle = null;
-                    try
+                try
+                {
+                    if (Config.Headless && (simulation.Headless))
                     {
-                        if (Config.Headless && (simulation.Headless))
+                        throw new Exception("Simulator is configured to run in headless mode, only headless simulations are allowed");
+                    }
+
+                    if (Instance.ConnectionUI != null)
+                    {
+                        Instance.ConnectionUI.SetLoaderUIState(ConnectionUI.LoaderUIStateType.PROGRESS);
+                    }
+
+                    Instance.SimConfig = new SimulationConfig(simulation);
+
+                    // load environment
+                    if (Instance.SimConfig.ApiOnly)
+                    {
+                        var api = Instantiate(Instance.ApiManagerPrefab);
+                        api.name = "ApiManager";
+
+                        Instance.ConnectionUI.SetLoaderUIState(ConnectionUI.LoaderUIStateType.READY);
+
+                        // Spawn external test case process
+                        RunTestCase(simulation.Template);
+                    }
+                    else if (simulation.Map != null)
+                    {
+                        var callback = new Action<bool, string, string>((isDone, sceneName, mapBundlePath) =>
                         {
-                            throw new Exception("Simulator is configured to run in headless mode, only headless simulations are allowed");
-                        }
+                            Instance.SimConfig.MapName = sceneName;
+                            Instance.SimConfig.MapAssetGuid = simulation.Map.AssetGuid;
+                            if (!isDone) return;
+                            var loaders = FindObjectsOfType<NodeTreeLoader>();
+                            foreach (var l in loaders)
+                                l.UpdateData(mapBundlePath, Utility.StringToGUID(l.GetDataPath()).ToString());
 
-                        if (Instance.ConnectionUI != null)
-                        {
-                            Instance.ConnectionUI.SetLoaderUIState(ConnectionUI.LoaderUIStateType.PROGRESS);
-                        }
-
-                        Instance.SimConfig = new SimulationConfig(simulation);
-
-                        // load environment
-                        if (Instance.SimConfig.ApiOnly)
-                        {
-                            var api = Instantiate(Instance.ApiManagerPrefab);
-                            api.name = "ApiManager";
-
-                            Instance.ConnectionUI.SetLoaderUIState(ConnectionUI.LoaderUIStateType.READY);
-
-                            // Spawn external test case process
-                            RunTestCase(simulation.Template);
-                        }
-                        else if (simulation.Map != null)
-                        {
-                            var mapData = simulation.Map;
-                            var mapBundlePath = WebUtilities.GenerateLocalPath(mapData.AssetGuid, BundleConfig.BundleTypes.Environment);
-                            mapBundle = null;
-                            textureBundle = null;
-
-                            ZipFile zip = new ZipFile(mapBundlePath);
-                            {
-                                string manfile;
-                                ZipEntry entry = zip.GetEntry("manifest.json");
-                                using (var ms = zip.GetInputStream(entry))
-                                {
-                                    int streamSize = (int)entry.Size;
-                                    byte[] buffer = new byte[streamSize];
-                                    streamSize = ms.Read(buffer, 0, streamSize);
-                                    manfile = Encoding.UTF8.GetString(buffer);
-                                }
-
-                                Manifest manifest;
-
-                                try
-                                {
-                                    manifest = Newtonsoft.Json.JsonConvert.DeserializeObject<Manifest>(manfile);
-                                }
-                                catch
-                                {
-                                    throw new Exception("Out of date AssetBundle, rebuild or download latest AssetBundle.");
-                                }
-
-                                if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Environment])
-                                {
-                                    zip.Close();
-
-                                    // TODO: proper exception
-                                    throw new ZipException("BundleFormat version mismatch");
-                                }
-
-                                if (zip.FindEntry($"{manifest.assetGuid}_environment_textures", false) != -1)
-                                {
-                                    entry = zip.GetEntry($"{manifest.assetGuid}_environment_textures");
-                                    var texStream = VirtualFileSystem.VirtualFileSystem.EnsureSeekable(zip.GetInputStream(entry), entry.Size);
-                                    textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
-                                }
-
-                                string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
-                                entry = zip.GetEntry($"{manifest.assetGuid}_environment_main_{platform}");
-                                var mapStream = VirtualFileSystem.VirtualFileSystem.EnsureSeekable(zip.GetInputStream(entry), entry.Size);
-                                mapBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
-
-                                if (mapBundle == null)
-                                {
-                                    throw new Exception($"Failed to load environment from '{mapData.Name}' asset bundle");
-                                }
-
-                                textureBundle?.LoadAllAssets();
-
-                                var scenes = mapBundle.GetAllScenePaths();
-                                if (scenes.Length != 1)
-                                {
-                                    throw new Exception($"Unsupported environment in '{mapData.Name}' asset bundle, only 1 scene expected");
-                                }
-
-                                var sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
-                                Instance.SimConfig.MapName = sceneName;
-                                Instance.SimConfig.MapAssetGuid = simulation.Map.AssetGuid;
-
-                                var loader = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
-                                loader.completed += op =>
-                                {
-                                    if (op.isDone)
-                                    {
-                                        textureBundle?.Unload(false);
-                                        mapBundle.Unload(false);
-                                        zip.Close();
-                                        NodeTreeLoader[] loaders = FindObjectsOfType<NodeTreeLoader>();
-                                        foreach (NodeTreeLoader l in loaders)
-                                        {
-                                            l.UpdateData(mapBundlePath, Utility.StringToGUID(l.GetDataPath()).ToString());
-                                        }
-
-                                        SetupScene(simulation);
-                                    }
-                                };
-                            }
-                        }
-                        else
-                        {
                             SetupScene(simulation);
-                        }
+                        }); 
+                        LoadMap(simulation.Map.AssetGuid, simulation.Map.Name, LoadSceneMode.Single, callback);
                     }
-                    catch (ZipException ex)
+                    else
                     {
-                        Debug.Log($"Failed to start '{simulation.Name}' simulation");
-                        Debug.LogException(ex);
-
-                        Instance.reportStatus(SimulatorStatus.Error, ex.Message);
-
-                        if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
-                        {
-                            Instance.reportStatus(SimulatorStatus.Stopping);
-                            SceneManager.LoadScene(Instance.LoaderScene);
-                            Instance.reportStatus(SimulatorStatus.Idle);
-                        }
-
-                        textureBundle?.Unload(false);
-                        mapBundle?.Unload(false);
-                        AssetBundle.UnloadAllAssetBundles(true);
-                        await Instance.Network.Deinitialize();
+                        SetupScene(simulation);
                     }
-                    catch (Exception ex)
+                }
+                catch (ZipException ex)
+                {
+                    Debug.Log($"Failed to start '{simulation.Name}' simulation");
+                    Debug.LogException(ex);
+
+                    Instance.reportStatus(SimulatorStatus.Error, ex.Message);
+
+                    if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
                     {
-                        Debug.Log($"Failed to start '{simulation.Name}' simulation");
-                        Debug.LogException(ex);
-
-                        Instance.reportStatus(SimulatorStatus.Error, ex.Message);
-
-                        if (SceneManager.GetActiveScene().name != Instance.LoaderScene && ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline)
-                        {
-                            Instance.reportStatus(SimulatorStatus.Stopping);
-                            SceneManager.LoadScene(Instance.LoaderScene);
-                        }
-
+                        Instance.reportStatus(SimulatorStatus.Stopping);
+                        SceneManager.LoadScene(Instance.LoaderScene);
                         Instance.reportStatus(SimulatorStatus.Idle);
-                        textureBundle?.Unload(false);
-                        mapBundle?.Unload(false);
-                        AssetBundle.UnloadAllAssetBundles(true);
-                        await Instance.Network.Deinitialize();
                     }
+
+                    AssetBundle.UnloadAllAssetBundles(true);
+                    await Instance.Network.Deinitialize();
+                }
+                catch (Exception ex)
+                {
+                    Debug.Log($"Failed to start '{simulation.Name}' simulation");
+                    Debug.LogException(ex);
+
+                    Instance.reportStatus(SimulatorStatus.Error, ex.Message);
+
+                    if (SceneManager.GetActiveScene().name != Instance.LoaderScene && ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline)
+                    {
+                        Instance.reportStatus(SimulatorStatus.Stopping);
+                        SceneManager.LoadScene(Instance.LoaderScene);
+                    }
+
+                    Instance.reportStatus(SimulatorStatus.Idle);
+                    await Instance.Network.Deinitialize();
+                }
             });
         }
 
@@ -666,6 +588,99 @@ namespace Simulator
                     }
                 }
             });
+        }
+
+        public static void LoadMap(string assetGuid, string mapName, LoadSceneMode loadMode, Action<bool, string, string> callback)
+        {
+            var mapBundlePath = WebUtilities.GenerateLocalPath(assetGuid, BundleConfig.BundleTypes.Environment);
+            AssetBundle textureBundle = null;
+            AssetBundle mapBundle = null;
+            ZipFile zip = new ZipFile(mapBundlePath);
+            try
+            {
+                string manfile;
+                ZipEntry entry = zip.GetEntry("manifest.json");
+                using (var ms = zip.GetInputStream(entry))
+                {
+                    int streamSize = (int) entry.Size;
+                    byte[] buffer = new byte[streamSize];
+                    streamSize = ms.Read(buffer, 0, streamSize);
+                    manfile = Encoding.UTF8.GetString(buffer);
+                }
+
+                Manifest manifest;
+
+                try
+                {
+                    manifest = Newtonsoft.Json.JsonConvert.DeserializeObject<Manifest>(manfile);
+                }
+                catch
+                {
+                    throw new Exception("Out of date AssetBundle, rebuild or download latest AssetBundle.");
+                }
+
+                if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Environment])
+                {
+                    zip.Close();
+
+                    // TODO: proper exception
+                    throw new ZipException("BundleFormat version mismatch");
+                }
+
+                if (zip.FindEntry($"{manifest.assetGuid}_environment_textures", false) != -1)
+                {
+                    entry = zip.GetEntry($"{manifest.assetGuid}_environment_textures");
+                    var texStream =
+                        VirtualFileSystem.VirtualFileSystem.EnsureSeekable(zip.GetInputStream(entry), entry.Size);
+                    textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+                }
+
+                string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows
+                    ? "windows"
+                    : "linux";
+                entry = zip.GetEntry($"{manifest.assetGuid}_environment_main_{platform}");
+                var mapStream =
+                    VirtualFileSystem.VirtualFileSystem.EnsureSeekable(zip.GetInputStream(entry), entry.Size);
+                mapBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
+
+                if (mapBundle == null)
+                {
+                    throw new Exception($"Failed to load environment from '{mapName}' asset bundle");
+                }
+
+                if (textureBundle != null)
+                    textureBundle.LoadAllAssets();
+
+                var scenes = mapBundle.GetAllScenePaths();
+                if (scenes.Length != 1)
+                {
+                    throw new Exception(
+                        $"Unsupported environment in '{mapName}' asset bundle, only 1 scene expected");
+                }
+
+                var sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
+                var loader = SceneManager.LoadSceneAsync(sceneName, loadMode);
+                if (callback != null)
+                    loader.completed += op =>
+                    {
+                        callback.Invoke(op.isDone, sceneName, mapBundlePath);
+                        zip.Close();
+                        if (textureBundle != null)
+                            textureBundle.Unload(false);
+                        if (mapBundle != null)
+                            mapBundle.Unload(false);
+                    };
+            }
+            catch (Exception)
+            {
+                zip.Close();
+                if (textureBundle != null)
+                    textureBundle.Unload(false);
+                if (mapBundle != null)
+                    mapBundle.Unload(false);
+                AssetBundle.UnloadAllAssetBundles(true);
+                throw;
+            }
         }
 
         static void SetupScene(SimulationData simulation)

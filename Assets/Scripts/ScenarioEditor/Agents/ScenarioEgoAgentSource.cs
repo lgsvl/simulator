@@ -128,6 +128,8 @@ namespace Simulator.ScenarioEditor.Agents
             newGameObject.transform.SetParent(transform);
             var scenarioAgent = newGameObject.AddComponent<ScenarioAgent>();
             scenarioAgent.Setup(this, variant);
+            scenarioAgent.GetOrAddExtension<AgentSensorsConfiguration>();
+            scenarioAgent.GetOrAddExtension<AgentDestinationPoint>();
             //Add destination point
             var destinationPointObject = ScenarioManager.Instance.prefabsPools
                 .GetInstance(agentsManager.destinationPoint);

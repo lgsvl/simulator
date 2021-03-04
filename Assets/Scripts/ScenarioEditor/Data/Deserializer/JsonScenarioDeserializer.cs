@@ -12,8 +12,6 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
     using Agents;
     using Controllable;
     using Controllables;
-    using Elements;
-    using Elements.Agents;
     using Input;
     using Managers;
     using SimpleJSON;
@@ -47,8 +45,14 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
         /// <param name="data">Json object with the metadata</param>
         private static void DeserializeMetadata(JSONNode data)
         {
-            var vseMetadata = data["vse_metadata"];
-            var cameraSettings = vseMetadata["camera_settings"];
+            var vseMetadata = data["vseMetadata"];
+            if (vseMetadata == null)
+                vseMetadata = data["vse_metadata"];
+            if (vseMetadata == null)
+                return;
+            var cameraSettings = vseMetadata["cameraSettings"];
+            if (cameraSettings == null)
+                cameraSettings = vseMetadata["camera_settings"];
             if (cameraSettings == null)
                 return;
             var position = cameraSettings["position"];
@@ -136,76 +140,10 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                 var transformNode = agentNode["transform"];
                 agentInstance.transform.position = transformNode["position"].ReadVector3();
                 agentInstance.TransformToRotate.rotation = Quaternion.Euler(transformNode["rotation"].ReadVector3());
-                if (agentNode.HasKey("behaviour"))
-                {
-                    var behaviourNode = agentNode["behaviour"];
-                    if (behaviourNode.HasKey("parameters"))
-                        agentInstance.BehaviourParameters = behaviourNode["parameters"] as JSONObject;
-                    agentInstance.ChangeBehaviour(behaviourNode["name"], false);
-                }
-                if (agentNode.HasKey("sensorsConfigurationId"))
-                    agentInstance.ChangeSensorsConfigurationId(agentNode["sensorsConfigurationId"], false); 
 
-                if (agentInstance.DestinationPoint != null && agentNode.HasKey("destinationPoint"))
-                {
-                    var destinationPoint = agentNode["destinationPoint"];
-                    agentInstance.DestinationPoint.TransformToMove.position =
-                        destinationPoint["position"].ReadVector3();
-                    agentInstance.DestinationPoint.TransformToRotate.rotation =
-                        Quaternion.Euler(destinationPoint["rotation"].ReadVector3());
-                    agentInstance.DestinationPoint.SetActive(true);
-                    agentInstance.DestinationPoint.SetVisibility(false);
-                    agentInstance.DestinationPoint.Refresh();
-                }
-
-                if (agentInstance.SupportColors && agentNode.HasKey("color"))
-                {
-                    var colorNode = agentNode["color"];
-                    agentInstance.AgentColor = new Color(colorNode["r"].AsFloat, colorNode["g"].AsFloat,
-                        colorNode["b"].AsFloat);
-                }
-
-                DeserializeWaypoints(agentNode, agentInstance);
-                agentInstance.WaypointsParent.gameObject.SetActive(agentSource.AgentSupportWaypoints(agentInstance));
+                foreach (var extension in agentInstance.Extensions) extension.Value.DeserializeFromJson(agentNode);
                 agentInstance.gameObject.SetActive(true);
             }
-        }
-
-        /// <summary>
-        /// Deserializes waypoints for the scenario agent from the json data
-        /// </summary>
-        /// <param name="data">Json data with agent's waypoints</param>
-        /// <param name="scenarioAgent">Scenario agent which includes those waypoints</param>
-        private static void DeserializeWaypoints(JSONNode data, ScenarioAgent scenarioAgent)
-        {
-            var waypointsNode = data["waypoints"] as JSONArray;
-            if (waypointsNode == null)
-                return;
-
-            foreach (var waypointNode in waypointsNode.Children)
-            {
-                var mapWaypointPrefab =
-                    ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>().waypointPrefab;
-                var waypointInstance = ScenarioManager.Instance.prefabsPools
-                    .GetInstance(mapWaypointPrefab).GetComponent<ScenarioWaypoint>();
-                waypointInstance.transform.position = waypointNode["position"].ReadVector3();
-                waypointInstance.WaitTime = waypointNode["wait_time"];
-                waypointInstance.Speed = waypointNode["speed"];
-                int index = waypointNode["ordinal_number"];
-                //TODO sort waypoints
-                scenarioAgent.AddWaypoint(waypointInstance, index);
-                DeserializeTrigger(waypointInstance.LinkedTrigger, waypointNode["trigger"]);
-            }
-        }
-
-        /// <summary>
-        /// Deserializes a trigger from the json data
-        /// </summary>
-        /// <param name="trigger">Trigger object to fill with effectors</param>
-        /// <param name="triggerNode">Json data with a trigger</param>
-        private static void DeserializeTrigger(ScenarioTrigger trigger, JSONNode triggerNode)
-        {
-            trigger.Trigger = WaypointTrigger.DeserializeTrigger(triggerNode);
         }
 
         /// <summary>
@@ -222,7 +160,7 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                 var controllablesManager = ScenarioManager.Instance.GetExtension<ScenarioControllablesManager>();
                 IControllable iControllable;
                 ScenarioControllable scenarioControllable;
-                
+
                 var uid = controllableNode["uid"];
                 bool spawned;
                 if (controllableNode.HasKey("spawned"))
@@ -235,13 +173,16 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                     scenarioControllable = controllablesManager.FindControllable(uid);
                     if (scenarioControllable == null)
                     {
-                        ScenarioManager.Instance.logPanel.EnqueueWarning($"Could not load controllable with uid: {uid}.");
+                        ScenarioManager.Instance.logPanel.EnqueueWarning(
+                            $"Could not load controllable with uid: {uid}.");
                         continue;
                     }
+
                     iControllable = scenarioControllable.Variant.controllable;
                     scenarioControllable.Policy = iControllable.ParseControlPolicy(controllableNode["policy"], out _);
                     continue;
                 }
+
                 var controllableName = controllableNode["name"];
                 var variant = controllablesManager.Source.Variants.Find(v => v.Name == controllableName);
                 if (variant == null)

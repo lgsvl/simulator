@@ -178,7 +178,9 @@ namespace Simulator.ScenarioEditor.Controllables
             if (initialPolicy == null)
             {
                 initialPolicy = new List<ControlAction>();
-                initialPolicy.AddRange(variant.controllable.DefaultControlPolicy);
+                var defaultPolicy = variant.controllable.DefaultControlPolicy;
+                if (defaultPolicy!=null && defaultPolicy.Count>0)
+                    initialPolicy.AddRange(variant.controllable.DefaultControlPolicy);
             }
 
             SetupNewControllable(scenarioControllable);

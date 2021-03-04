@@ -18,8 +18,8 @@ public abstract class TriggerEffector : ICloneable
     public abstract object Clone();
 
     public abstract IEnumerator Apply(ITriggerAgent triggerAgent);
-
-    public abstract void DeserializeProperties(JSONNode jsonData);
     
     public abstract void SerializeProperties(JSONNode jsonData);
+
+    public abstract void DeserializeProperties(JSONNode jsonData);
 }

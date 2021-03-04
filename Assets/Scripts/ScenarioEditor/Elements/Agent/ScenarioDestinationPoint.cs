@@ -96,11 +96,12 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         /// Attach this destination point to the agent
         /// </summary>
         /// <param name="agent">Scenario agent to which destination point will be attached</param>
-        /// <param name="initializeTransform">Should </param>
+        /// <param name="initializeTransform">Should this attach initialize the transform</param>
         public void AttachToAgent(ScenarioAgent agent, bool initializeTransform)
         {
             ParentAgent = agent;
-            agent.DestinationPoint = this;
+            var extension = agent.GetExtension<AgentDestinationPoint>();
+            extension.DestinationPoint = this;
             if (!initializeTransform) return;
             transform.SetParent(agent.transform);
             var forward = agent.TransformToMove.forward;

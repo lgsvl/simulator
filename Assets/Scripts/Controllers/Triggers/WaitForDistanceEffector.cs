@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -41,13 +41,16 @@ public class WaitForDistanceEffector : TriggerEffector
         } while (lowestDistance > MaxDistance);
     }
 
-    public override void DeserializeProperties(JSONNode jsonData)
-    {
-        MaxDistance = jsonData["max_distance"];
-    }
-
     public override void SerializeProperties(JSONNode jsonData)
     {
-        jsonData.Add("max_distance", new JSONNumber(MaxDistance));
+        jsonData.Add("maxDistance", new JSONNumber(MaxDistance));
+    }
+
+    public override void DeserializeProperties(JSONNode jsonData)
+    {
+        var maxDistance = jsonData["maxDistance"];
+        if (maxDistance == null)
+            maxDistance = jsonData["max_distance"];
+        MaxDistance = maxDistance;
     }
 }

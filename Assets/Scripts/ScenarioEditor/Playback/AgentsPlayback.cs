@@ -71,20 +71,22 @@ namespace Simulator.ScenarioEditor.Playback
                 pathPositions.Add(previousPosition);
                 var arrival = 0.0f;
                 pathArrivals.Add(arrival);
-                for (var i = 0; i < agent.Waypoints.Count; i++)
-                {
-                    var waypoint = agent.Waypoints[i];
-                    var speed = waypoint.Speed;
-                    //Agent won't move further after stopping
-                    if (speed <= 0.0f)
-                        break;
-                    var position = waypoint.transform.position;
-                    pathPositions.Add(position);
-                    var distance = Vector3.Distance(previousPosition, position);
-                    arrival += distance / speed;
-                    pathArrivals.Add(arrival);
-                    previousPosition = position;
-                }
+                var waypointsExtension = agent.GetExtension<AgentWaypoints>();
+                if (waypointsExtension!=null)
+                    for (var i = 0; i < waypointsExtension.Waypoints.Count; i++)
+                    {
+                        var waypoint = waypointsExtension.Waypoints[i];
+                        var speed = waypoint.Speed;
+                        //Agent won't move further after stopping
+                        if (speed <= 0.0f)
+                            break;
+                        var position = waypoint.transform.position;
+                        pathPositions.Add(position);
+                        var distance = Vector3.Distance(previousPosition, position);
+                        arrival += distance / speed;
+                        pathArrivals.Add(arrival);
+                        previousPosition = position;
+                    }
 
                 duration = pathArrivals[pathArrivals.Count - 1];
             }

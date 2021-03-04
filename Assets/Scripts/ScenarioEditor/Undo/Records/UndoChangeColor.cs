@@ -17,9 +17,9 @@ namespace Simulator.ScenarioEditor.Undo.Records
     public class UndoChangeColor : UndoRecord
     {
         /// <summary>
-        /// Scenario agent which color was changed
+        /// Scenario agent color extension which color was changed
         /// </summary>
-        private ScenarioAgent scenarioAgent;
+        private AgentColorExtension agentColor;
 
         /// <summary>
         /// Previous agent color
@@ -29,18 +29,18 @@ namespace Simulator.ScenarioEditor.Undo.Records
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="scenarioAgent">Scenario agent which variant was changed</param>
+        /// <param name="agentColor">Scenario agent color extension which color was changed</param>
         /// <param name="previousColor">Previous color of the given agent</param>
-        public UndoChangeColor(ScenarioAgent scenarioAgent, Color previousColor)
+        public UndoChangeColor(AgentColorExtension agentColor, Color previousColor)
         {
-            this.scenarioAgent = scenarioAgent;
+            this.agentColor = agentColor;
             this.previousColor = previousColor;
         }
         
         /// <inheritdoc/>
         public override void Undo()
         {
-            scenarioAgent.AgentColor = previousColor;
+            agentColor.AgentColor = previousColor;
             ScenarioManager.Instance.logPanel.EnqueueInfo("Undo applied to rollback changed agent color.");
         }
 

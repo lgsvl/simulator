@@ -102,8 +102,8 @@ namespace Simulator.ScenarioEditor.Agents
             var newGameObject = new GameObject(ElementTypeName);
             newGameObject.transform.SetParent(transform);
             var scenarioAgent = newGameObject.AddComponent<ScenarioAgent>();
+            scenarioAgent.GetOrAddExtension<AgentWaypoints>();
             scenarioAgent.Setup(this, variant);
-            scenarioAgent.PathRenderer.material = waypointsMaterial;
             return scenarioAgent;
         }
 

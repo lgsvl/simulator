@@ -110,16 +110,18 @@ namespace Simulator.ScenarioEditor.Agents
             var newGameObject = new GameObject(ElementTypeName);
             newGameObject.transform.SetParent(transform);
             var scenarioAgent = newGameObject.AddComponent<ScenarioAgent>();
-            scenarioAgent.SupportColors = true;
+            scenarioAgent.GetOrAddExtension<AgentBehaviour>();
+            scenarioAgent.GetOrAddExtension<AgentColorExtension>();
+            scenarioAgent.GetOrAddExtension<AgentWaypoints>();
             scenarioAgent.Setup(this, variant);
-            scenarioAgent.PathRenderer.material = waypointsMaterial;
             return scenarioAgent;
         }
 
         /// <inheritdoc/>
         public override bool AgentSupportWaypoints(ScenarioAgent agent)
         {
-            return agent.Behaviour == nameof(NPCWaypointBehaviour);
+            var behaviourExtension = agent.GetExtension<AgentBehaviour>();
+            return behaviourExtension!=null && behaviourExtension.Behaviour == nameof(NPCWaypointBehaviour);
         }
 
         /// <inheritdoc/>
@@ -151,7 +153,6 @@ namespace Simulator.ScenarioEditor.Agents
             var agent = GetAgentInstance(selectedVariant);
             agent.TransformToRotate.rotation = draggedInstance.transform.rotation;
             agent.ForceMove(draggedInstance.transform.position);
-            agent.ChangeBehaviour(nameof(NPCWaypointBehaviour), false);
             ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
             ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoAddElement(agent));
             draggedInstance = null;

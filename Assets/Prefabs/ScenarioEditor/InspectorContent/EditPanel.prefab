@@ -52,6 +52,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   panelsPrefabs:
   - {fileID: 5483772115388540979, guid: 99e10d5a112eba2429b9b465e798111d, type: 3}
+  - {fileID: 8167009289149285446, guid: 9b472e51fabd9924a829190e3f63c85f, type: 3}
+  - {fileID: 5539488441820269911, guid: 656a454bdf1dc994280d380f1b6a17b3, type: 3}
+  - {fileID: 7242258811040509352, guid: a94771c3560a41d4c8bed5a63aab3d7a, type: 3}
+  - {fileID: 3168388307110397924, guid: c1aa47211f9282046b9ee4d4e2888ff9, type: 3}
+  - {fileID: 1533436347995553992, guid: 7bd7b6cbfc7a2c74fbd82aea01d2933e, type: 3}
   - {fileID: 7678158459915483645, guid: a9867fe34950b8d4095042202e0ed9d8, type: 3}
   - {fileID: 6465829054850888254, guid: d251d53b04f77ba49a75d3e6189bdb33, type: 3}
   - {fileID: 6847431052623147647, guid: 3814cbd8a0666bb40b04276d236b32b6, type: 3}

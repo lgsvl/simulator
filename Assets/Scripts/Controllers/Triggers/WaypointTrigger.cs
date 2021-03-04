@@ -71,9 +71,11 @@ public class WaypointTrigger
             return null;
         var effectorsNode = data["effectors"].AsArray;
         var trigger = new WaypointTrigger();
-        for (int i = 0; i < effectorsNode.Count; i++)
+        for (var i = 0; i < effectorsNode.Count; i++)
         {
             var typeName = effectorsNode[i]["typeName"];
+            if (typeName == null)
+                typeName = effectorsNode[i]["type_name"];
             var newEffector = TriggersManager.GetEffectorOfType(typeName);
             if (newEffector == null)
             {

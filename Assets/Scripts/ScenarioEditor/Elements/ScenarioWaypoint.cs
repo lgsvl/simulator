@@ -57,6 +57,11 @@ namespace Simulator.ScenarioEditor.Elements
         public ScenarioAgent ParentAgent { get; set; }
 
         /// <summary>
+        /// Parent agent extension which modifies this waypoint
+        /// </summary>
+        public AgentWaypoints ParentAgentWaypoints { get; set; }
+
+        /// <summary>
         /// Trigger that is linked to this waypoint
         /// </summary>
         public ScenarioTrigger LinkedTrigger
@@ -113,13 +118,11 @@ namespace Simulator.ScenarioEditor.Elements
         public override void CopyProperties(ScenarioElement origin)
         {
             var originWaypoint = origin.GetComponent<ScenarioWaypoint>();
-            if (originWaypoint != null)
-            {
-                //Clear triggers object
-                LinkedTrigger.Deinitalize();
-                LinkedTrigger.Initialize();
-                CopyProperties(originWaypoint, true);
-            }
+            if (originWaypoint == null) return;
+            //Clear triggers object
+            LinkedTrigger.Deinitalize();
+            LinkedTrigger.Initialize();
+            CopyProperties(originWaypoint, true);
         }
 
         /// <summary>
@@ -153,29 +156,29 @@ namespace Simulator.ScenarioEditor.Elements
                     break;
             }
 
-            ParentAgent.WaypointPositionChanged(this);
+            ParentAgentWaypoints.WaypointPositionChanged(this);
         }
 
         /// <inheritdoc/>
         public override void RemoveFromMap()
         {
             base.RemoveFromMap();
-            if (ParentAgent != null)
-                IndexInAgent = ParentAgent.RemoveWaypoint(this);
+            if (ParentAgentWaypoints != null)
+                IndexInAgent = ParentAgentWaypoints.RemoveWaypoint(this);
         }
 
         /// <inheritdoc/>
         public override void UndoRemove()
         {
             base.UndoRemove();
-            if (ParentAgent != null)
-                ParentAgent.AddWaypoint(this, IndexInAgent);
+            ParentAgentWaypoints?.AddWaypoint(this, IndexInAgent);
         }
 
         /// <inheritdoc/>
         public override void Dispose()
         {
             ParentAgent = null;
+            ParentAgentWaypoints = null;
             if (linkedTrigger != null)
                 linkedTrigger.Deinitalize();
             Speed = 6.0f;
@@ -187,7 +190,7 @@ namespace Simulator.ScenarioEditor.Elements
         protected override void OnMoved(bool notifyOthers = true)
         {
             base.OnMoved(notifyOthers);
-            ParentAgent.WaypointPositionChanged(this);
+            ParentAgentWaypoints?.WaypointPositionChanged(this);
         }
     }
 }

@@ -538,7 +538,7 @@ namespace Simulator.Api
                         SendError($"{ex.Message} at {fname}@{line}");
                     }
                     // If an exception was thrown from an async api handler, make sure
-                    // we unlock the semaphore, if not done so already
+                    // we unlock the semaphore, if it's not unlocked already
                     if(ActionsSemaphore.IsLocked) ActionsSemaphore.Unlock();
                 }
             }

@@ -80,6 +80,11 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         private ScenarioAgent selectedAgent;
 
         /// <summary>
+        /// Waypoints extension of currently selected agent
+        /// </summary>
+        private AgentWaypoints selectedAgentWaypoints;
+
+        /// <summary>
         /// Reference to currently selected waypoint
         /// </summary>
         private ScenarioWaypoint selectedWaypoint;
@@ -143,8 +148,10 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                 SubmitChangedInputs();
             selectedWaypoint = selectedElement as ScenarioWaypoint;
             selectedAgent = selectedWaypoint != null ? selectedWaypoint.ParentAgent : null;
+            selectedAgentWaypoints = selectedAgent == null ? null : selectedAgent.GetExtension<AgentWaypoints>();
             //Disable waypoints for ego vehicles
-            if (selectedAgent == null || !selectedAgent.Source.AgentSupportWaypoints(selectedAgent))
+            if (selectedAgent == null || selectedAgentWaypoints == null ||
+                !selectedAgent.Source.AgentSupportWaypoints(selectedAgent))
             {
                 gameObject.SetActive(false);
             }
@@ -211,7 +218,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                     break;
             }
 
-            selectedAgent.AddWaypoint(waypointInstance, true, selectedWaypoint);
+            selectedAgentWaypoints.AddWaypoint(waypointInstance, true, selectedWaypoint);
         }
 
         /// <inheritdoc/>
@@ -232,7 +239,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                     break;
             }
 
-            selectedAgent.WaypointPositionChanged(waypointInstance);
+            selectedAgentWaypoints.WaypointPositionChanged(waypointInstance);
         }
 
         /// <inheritdoc/>
@@ -257,7 +264,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                     break;
             }
 
-            selectedAgent.AddWaypoint(waypointInstance, true, previousWaypoint);
+            selectedAgentWaypoints.AddWaypoint(waypointInstance, true, previousWaypoint);
             ScenarioManager.Instance.IsScenarioDirty = true;
             ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
                 .RegisterRecord(new UndoAddElement(previousWaypoint));
@@ -309,7 +316,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             if (selectedWaypoint == null || !float.TryParse(waitTimeString, out var waitTime)) return;
             ChangeWaypointWaitTime(waitTime);
         }
-        
+
         /// <summary>
         /// Changes the currently selected waypoint wait time
         /// </summary>

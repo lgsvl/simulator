@@ -291,84 +291,36 @@ namespace Simulator.ScenarioEditor.Managers
         /// <summary>
         /// Map assets loading task
         /// </summary>
-        /// <param name="map">MapModel to be loaded</param>
+        /// <param name="map">Map to be loaded</param>
         /// <param name="mapMetaData">Map meta data to be loaded</param>
         private async Task LoadMapAssets(AssetModel map, MapMetaData mapMetaData)
         {
-            AssetBundle textureBundle = null;
-            AssetBundle mapBundle = null;
-
-            ZipFile zip = new ZipFile(map.LocalPath);
+            var loading = true;
             try
             {
-                Manifest manifest;
-                ZipEntry entry = zip.GetEntry("manifest.json");
-                using (var ms = zip.GetInputStream(entry))
+                var callback = new Action<bool, string, string>((isDone, sceneName, mapBundlePath) =>
                 {
-                    int streamSize = (int) entry.Size;
-                    byte[] buffer = new byte[streamSize];
-                    streamSize = ms.Read(buffer, 0, streamSize);
-                    manifest = Newtonsoft.Json.JsonConvert.DeserializeObject<Manifest>(Encoding.UTF8.GetString(buffer));
-                }
+                    var scene = SceneManager.GetSceneByName(sceneName);
+                    SceneManager.SetActiveScene(scene);
+                    CurrentMapMetaData = mapMetaData;
 
-                if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Environment])
-                {
-                    ScenarioManager.Instance.logPanel.EnqueueError(
-                        $"Out of date Map AssetBundle: {manifest.assetName}. Please check content website for updated bundle or rebuild the bundle.");
-                    return;
-                }
+                    if (Loader.Instance.SimConfig != null)
+                        Loader.Instance.SimConfig.MapName = CurrentMapMetaData.name;
 
-                if (zip.FindEntry($"{manifest.assetGuid}_environment_textures", true) != -1)
-                {
-                    var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_environment_textures"));
-                    textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
-                }
-
-                string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows
-                    ? "windows"
-                    : "linux";
-                var mapStream =
-                    zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_environment_main_{platform}"));
-                mapBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
-
-                if (mapBundle == null)
-                {
-                    //Debug.LogError($"Failed to load environment from '{map.Name}' asset bundle");
-                    return;
-                }
-
-                textureBundle?.LoadAllAssets();
-
-                var scenes = mapBundle.GetAllScenePaths();
-                if (scenes.Length != 1)
-                {
-                    //Debug.LogError($"Unsupported environment in '{map.Name}' asset bundle, only 1 scene expected");
-                    return;
-                }
-
-                var sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
-
-                loadedSceneName = sceneName;
-                var loader = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
-                while (!loader.isDone)
+                    CurrentMapBounds = CalculateMapBounds(scene);
+                    LaneSnapping.Initialize();
+                    loadedSceneName = sceneName;
+                    PlayerPrefs.SetString(MapPersistenceKey, CurrentMapMetaData.name);
+                    loading = false;
+                    MapChanged?.Invoke(CurrentMapMetaData);
+                });
+                Loader.LoadMap(map.AssetGuid, map.Name, LoadSceneMode.Additive, callback);
+                while (loading)
                     await Task.Delay(100);
-                var scene = SceneManager.GetSceneByName(sceneName);
-                SceneManager.SetActiveScene(scene);
-                CurrentMapMetaData = mapMetaData;
-
-                if (Loader.Instance.SimConfig != null)
-                    Loader.Instance.SimConfig.MapName = CurrentMapMetaData.name;
-
-                CurrentMapBounds = CalculateMapBounds(scene);
-                LaneSnapping.Initialize();
-                PlayerPrefs.SetString(MapPersistenceKey, CurrentMapMetaData.name);
-                MapChanged?.Invoke(CurrentMapMetaData);
             }
-            finally
+            catch (Exception ex)
             {
-                textureBundle?.Unload(false);
-                mapBundle?.Unload(false);
-                zip.Close();
+                ScenarioManager.Instance.logPanel.EnqueueError(ex.Message);
             }
         }
 

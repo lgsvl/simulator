@@ -8,6 +8,7 @@
 namespace Simulator.ScenarioEditor.UI.EditElement.Behaviours
 {
     using Data.Serializer;
+    using Elements.Agents;
     using Managers;
     using Undo;
     using Undo.Records;
@@ -45,29 +46,32 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Behaviours
         protected override void OnShown()
         {
             base.OnShown();
+
             //Setup the isLaneChange value
-            if (selectedAgent.BehaviourParameters.HasKey("isLaneChange"))
+            if (behaviourExtension.BehaviourParameters.HasKey("isLaneChange"))
             {
-                currentIsLaneChange = (bool) selectedAgent.BehaviourParameters["isLaneChange"];
+                currentIsLaneChange = (bool) behaviourExtension.BehaviourParameters["isLaneChange"];
             }
             else
             {
                 currentIsLaneChange = false;
-                selectedAgent.BehaviourParameters["isLaneChange"] = currentIsLaneChange;
+                behaviourExtension.BehaviourParameters["isLaneChange"] = currentIsLaneChange;
             }
+
             isLaneChangeToggle.SetIsOnWithoutNotify(currentIsLaneChange);
             //Setup the maxSpeed value and input
             maxSpeedInput.Initialize(ScenarioPersistenceKeys.SpeedUnitKey, MaxSpeedApply);
             float maxSpeed;
-            if (selectedAgent.BehaviourParameters.HasKey("maxSpeed"))
+            if (behaviourExtension.BehaviourParameters.HasKey("maxSpeed"))
             {
-                maxSpeed = (float) selectedAgent.BehaviourParameters["maxSpeed"];
+                maxSpeed = (float) behaviourExtension.BehaviourParameters["maxSpeed"];
             }
             else
             {
                 maxSpeed = 0.0f;
-                selectedAgent.BehaviourParameters["maxSpeed"] = maxSpeed;
+                behaviourExtension.BehaviourParameters["maxSpeed"] = maxSpeed;
             }
+
             maxSpeedInput.ExternalValueChange(maxSpeed, false);
         }
 
@@ -99,10 +103,10 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Behaviours
         {
             if (currentIsLaneChange == isLaneChange)
                 return;
-            if (selectedAgent.BehaviourParameters.HasKey("isLaneChange"))
-                selectedAgent.BehaviourParameters["isLaneChange"] = isLaneChange;
+            if (behaviourExtension.BehaviourParameters.HasKey("isLaneChange"))
+                behaviourExtension.BehaviourParameters["isLaneChange"] = isLaneChange;
             else
-                selectedAgent.BehaviourParameters.Add("isLaneChange", isLaneChange);
+                behaviourExtension.BehaviourParameters.Add("isLaneChange", isLaneChange);
             currentIsLaneChange = isLaneChange;
         }
 
@@ -114,10 +118,10 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Behaviours
         {
             if (selectedAgent == null)
                 return;
-            if (selectedAgent.BehaviourParameters.HasKey("maxSpeed"))
-                selectedAgent.BehaviourParameters["maxSpeed"] = maxSpeed;
+            if (behaviourExtension.BehaviourParameters.HasKey("maxSpeed"))
+                behaviourExtension.BehaviourParameters["maxSpeed"] = maxSpeed;
             else
-                selectedAgent.BehaviourParameters.Add("maxSpeed", maxSpeed);
+                behaviourExtension.BehaviourParameters.Add("maxSpeed", maxSpeed);
         }
     }
 }

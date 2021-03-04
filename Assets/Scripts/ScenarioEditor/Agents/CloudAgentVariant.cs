@@ -61,72 +61,18 @@ namespace Simulator.ScenarioEditor.Agents
         /// <exception cref="ArgumentException">Invalid prefab path in the vehicle model</exception>
         public bool AcquirePrefab()
         {
-            var bundlePath = assetModel.LocalPath;
-            using (ZipFile zip = new ZipFile(bundlePath))
+            try
             {
-                Manifest manifest;
-                ZipEntry entry = zip.GetEntry("manifest.json");
-                using (var ms = zip.GetInputStream(entry))
-                {
-                    int streamSize = (int) entry.Size;
-                    byte[] buffer = new byte[streamSize];
-                    streamSize = ms.Read(buffer, 0, streamSize);
-                    manifest = Newtonsoft.Json.JsonConvert.DeserializeObject<Manifest>(Encoding.UTF8.GetString(buffer));
-                }
-
-                if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Vehicle])
-                {
-                    ScenarioManager.Instance.logPanel.EnqueueError(
-                        $"Out of date Vehicle AssetBundle: {manifest.assetName}. Please check content website for updated bundle or rebuild the bundle.");
-                    return false;
-                }
-
-                AssetBundle textureBundle = null;
-
-                if (zip.FindEntry($"{manifest.assetGuid}_vehicle_textures", true) != -1)
-                {
-                    var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_vehicle_textures"));
-                    textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
-                }
-
-                string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows
-                    ? "windows"
-                    : "linux";
-                var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_vehicle_main_{platform}"));
-                var vehicleBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
-
-                if (vehicleBundle == null)
-                {
-                    ScenarioManager.Instance.logPanel.EnqueueError(
-                        $"Failed to load vehicle {name} from '{bundlePath}' asset bundle");
-                    return false;
-                }
-
-                try
-                {
-                    var vehicleAssets = vehicleBundle.GetAllAssetNames();
-                    if (vehicleAssets.Length != 1)
-                    {
-                        ScenarioManager.Instance.logPanel.EnqueueError(
-                            $"Unsupported '{bundlePath}' vehicle asset bundle, only 1 asset expected");
-                        return false;
-                    }
-
-                    if (!AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
-                    {
-                        textureBundle?.LoadAllAssets();
-                    }
-
-                    prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
-                    IsPrepared = prefab != null;
-                }
-                finally
-                {
-                    textureBundle?.Unload(false);
-                    vehicleBundle.Unload(false);
-                }
+                prefab = Loader.LoadVehicleBundle(assetModel.LocalPath);
+            }
+            catch (Exception ex)
+            {
+                ScenarioManager.Instance.logPanel.EnqueueError(
+                    $"Could not load the vehicle bundle {name}. Error: \"{ex.Message}\".");
+                return false;
             }
 
+            IsPrepared = prefab != null;
             return true;
         }
 

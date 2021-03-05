@@ -33,7 +33,7 @@ namespace Simulator.Bridge
         Dictionary<string, SubscriberCallbacks> Subscribers = new Dictionary<string, SubscriberCallbacks>();
         HashSet<string> Services = new HashSet<string>();
 
-        BridgePlugin Plugin;
+        public BridgePlugin Plugin;
         IBridgeInstance Instance;
 
         public BridgeInstance(BridgePlugin plugin)

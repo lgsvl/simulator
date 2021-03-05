@@ -12,6 +12,7 @@ using Simulator.Sensors.UI;
 using System.Collections;
 using Simulator.Analysis;
 using System.Collections.Generic;
+using System;
 
 namespace Simulator.Sensors
 {
@@ -37,6 +38,11 @@ namespace Simulator.Sensors
 
         [HideInInspector]
         public Transform ParentTransform;
+
+        public virtual Type GetDataBridgePlugin()
+        {
+            return null;
+        }
 
         public abstract void OnBridgeSetup(BridgeInstance bridge);
         public abstract void OnVisualize(Visualizer visualizer);

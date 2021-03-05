@@ -297,6 +297,16 @@ namespace Simulator.Web
                         SensorTypeLookup.Add(manifest.assetGuid, prefab.GetComponent<SensorBase>());
                     }
 
+                    var pluginType = prefab.GetComponent<SensorBase>().GetDataBridgePlugin();
+                    if (pluginType != null)
+                    {
+                        var sensorBridgePlugin = Activator.CreateInstance(pluginType) as ISensorBridgePlugin;
+                        foreach (var kv in BridgePlugins.All)
+                        {
+                            sensorBridgePlugin.Register(kv.Value);
+                        }
+                    }
+
                     return;
                 }
             }

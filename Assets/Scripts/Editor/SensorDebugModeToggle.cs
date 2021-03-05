@@ -11,6 +11,8 @@ public static class SensorDebugModeToggle
     static SensorDebugModeToggle()
     {
         SensorDebugModeToggle.enabled_ = Config.SensorDebugModeEnabled;
+        /// Set checkmark on menu item
+        Menu.SetChecked(SensorDebugModeToggle.MENU_NAME, Config.SensorDebugModeEnabled);
 
         /// Delaying until first editor tick so that the menu
         /// will be populated before setting check state, and

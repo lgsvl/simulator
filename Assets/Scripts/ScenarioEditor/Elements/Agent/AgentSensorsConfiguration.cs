@@ -22,7 +22,7 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         /// <summary>
         /// Sensors configuration that will be applied to this agent
         /// </summary>
-        public string SensorsConfigurationId { get; private set; }
+        public string SensorsConfigurationId { get; private set; } = "";
 
         /// <summary>
         /// Event invoked when this agent changes the sensors configuration id
@@ -33,6 +33,8 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         public override void Initialize(ScenarioAgent parentAgent)
         {
             base.Initialize(parentAgent);
+            if (parentAgent.Variant is EgoAgentVariant egoAgentVariant && egoAgentVariant.SensorsConfigurations.Count>0)
+                ChangeSensorsConfigurationId(egoAgentVariant.SensorsConfigurations[0].Id, false);
             ParentAgent.VariantChanged += ParentAgentOnVariantChanged;
         }
 

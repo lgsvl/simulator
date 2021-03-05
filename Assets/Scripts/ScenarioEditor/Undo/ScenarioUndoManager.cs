@@ -80,7 +80,7 @@ namespace Simulator.ScenarioEditor.Undo
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Undo failed for a {lastRecord.GetType().Name}. Exception: {ex.Message}");
+                Debug.LogError($"Undo failed for a {lastRecord.GetType().Name}. Exception: {ex.Message}. Callstack: {ex.StackTrace}.");
             }
 
             recordsCache.RemoveFirst();
@@ -92,6 +92,7 @@ namespace Simulator.ScenarioEditor.Undo
         /// </summary>
         public void ClearRecords()
         {
+            foreach (var undoRecord in recordsCache) undoRecord.Dispose();
             recordsCache.Clear();
         }
     }

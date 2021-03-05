@@ -43,7 +43,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 441733e9c71fb7d4ebb540ecedf786f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  controllablesPrefabs:
-  - {fileID: 7570196598149948260, guid: c780b97c1a74e7f4ea1121fc0c37807a, type: 3}
-  customEditPanelsPrefabs:
-  - {fileID: 7466451912606688660, guid: e11cca4155b09654490dc0b70572bdd5, type: 3}
+  controllablesPrefabs: []
+  customEditPanelsPrefabs: []

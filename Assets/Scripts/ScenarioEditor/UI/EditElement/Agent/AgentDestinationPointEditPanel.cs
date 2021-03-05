@@ -140,24 +140,30 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
         public void ToggleSetDestinationPoint(bool active)
         {
             if (destinationPointExtension == null) return;
-            var agent = selectedAgent;
-            var undoCallback = new Action<bool>((undoValue) => { SetDestinationPoint(agent, undoValue); });
+            var extension = destinationPointExtension;
+            var undoCallback = new Action<bool>((undoValue) =>
+            {
+                SetDestinationPoint(extension, undoValue);
+            });
             ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
-                .RegisterRecord(new UndoToggle(destinationPointToggle, destinationPointExtension.DestinationPoint.IsActive,
+                .RegisterRecord(new GenericUndo<bool>(extension.DestinationPoint.IsActive,
+                    "Undo toggling a destination point",
                     undoCallback));
-            SetDestinationPoint(selectedAgent, active);
+            SetDestinationPoint(extension, active);
         }
 
         /// <summary>
         /// Sets destination point as active or inactive if it is supported by selected agent
         /// </summary>
-        /// <param name="agent">Agent owning changed destination point</param>
+        /// <param name="extension">Changed destination point extension</param>
         /// <param name="active">Should the destination point be active</param>
-        private void SetDestinationPoint(ScenarioAgent agent, bool active)
+        private void SetDestinationPoint(AgentDestinationPoint extension, bool active)
         {
-            destinationPointExtension.DestinationPoint.SetActive(active);
-            var isSelected = agent == selectedAgent;
-            destinationPointExtension.DestinationPoint.SetVisibility(isSelected && active);
+            extension.DestinationPoint.SetActive(active);
+            var isSelected = extension == destinationPointExtension;
+            extension.DestinationPoint.SetVisibility(isSelected && active);
+            if (isSelected)
+                destinationPointToggle.SetIsOnWithoutNotify(active);
             activeDestinationPointPanel.SetActive(isSelected && active);
         }
 

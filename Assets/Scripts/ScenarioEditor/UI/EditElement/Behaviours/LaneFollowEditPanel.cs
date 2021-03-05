@@ -7,6 +7,7 @@
 
 namespace Simulator.ScenarioEditor.UI.EditElement.Behaviours
 {
+    using System;
     using Data.Serializer;
     using Elements.Agents;
     using Managers;
@@ -90,24 +91,33 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Behaviours
         {
             if (currentIsLaneChange == isLaneChange)
                 return;
-            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoToggle(
-                isLaneChangeToggle, currentIsLaneChange, IsLaneChangeApply));
-            IsLaneChangeApply(isLaneChange);
+            var extension = behaviourExtension;
+            var undoCallback = new Action<bool>((undoValue) =>
+            {
+                IsLaneChangeApply(extension, undoValue);
+            });
+            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new GenericUndo<bool>(
+                currentIsLaneChange, "Undo toggling is lane change value", undoCallback));
+            IsLaneChangeApply(behaviourExtension, isLaneChange);
         }
 
         /// <summary>
         /// Method invoked when the is lane change variable is changed by the toggle
         /// </summary>
+        /// <param name="extension">Agent behaviour which is lane change changes</param>
         /// <param name="isLaneChange">Is lane change</param>
-        private void IsLaneChangeApply(bool isLaneChange)
+        private void IsLaneChangeApply(AgentBehaviour extension, bool isLaneChange)
         {
             if (currentIsLaneChange == isLaneChange)
                 return;
-            if (behaviourExtension.BehaviourParameters.HasKey("isLaneChange"))
-                behaviourExtension.BehaviourParameters["isLaneChange"] = isLaneChange;
+            if (extension.BehaviourParameters.HasKey("isLaneChange"))
+                extension.BehaviourParameters["isLaneChange"] = isLaneChange;
             else
-                behaviourExtension.BehaviourParameters.Add("isLaneChange", isLaneChange);
+                extension.BehaviourParameters.Add("isLaneChange", isLaneChange);
             currentIsLaneChange = isLaneChange;
+            var isSelected = extension == behaviourExtension;
+            if (isSelected)
+                isLaneChangeToggle.SetIsOnWithoutNotify(isLaneChange);
         }
 
         /// <summary>

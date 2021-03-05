@@ -146,6 +146,7 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         {
             if (!Extensions.TryGetValue(type, out var extension))
                 return null;
+            extension.Deinitialize();
             Extensions.Remove(type);
             ExtensionRemoved?.Invoke(extension);
             return extension;

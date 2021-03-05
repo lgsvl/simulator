@@ -74,7 +74,10 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Behaviours
         {
             //Detach from current agent events
             if (behaviourExtension != null)
+            {
                 behaviourExtension.BehaviourChanged -= SelectedAgentOnBehaviourChanged;
+                Hide();
+            }
 
             selectedAgent = selectedElement as ScenarioAgent;
             behaviourExtension = selectedAgent == null ? null : selectedAgent.GetExtension<AgentBehaviour>();
@@ -82,6 +85,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Behaviours
             if (behaviourExtension != null)
             {
                 behaviourExtension.BehaviourChanged += SelectedAgentOnBehaviourChanged;
+                Show();
             }
             SelectedAgentOnBehaviourChanged(behaviourExtension == null ? "" : behaviourExtension.Behaviour);
         }

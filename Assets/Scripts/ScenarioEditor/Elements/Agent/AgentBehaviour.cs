@@ -68,7 +68,7 @@ namespace Simulator.ScenarioEditor.Elements.Agents
             var origin = agent.GetExtension<AgentBehaviour>();
             if (origin == null) return;
             Behaviour = origin.Behaviour;
-            BehaviourParameters = origin.BehaviourParameters;
+            BehaviourParameters = JSON.Parse(origin.BehaviourParameters.ToString()) as JSONObject;
         }
 
         /// <summary>

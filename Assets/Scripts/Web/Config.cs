@@ -68,6 +68,8 @@ namespace Simulator.Web
 
         public static FileStream LockFile;
 
+        public static bool SensorDebugModeEnabled = false;
+
 #if UNITY_EDITOR
         [UnityEditor.InitializeOnLoadMethod]
 #else
@@ -284,7 +286,7 @@ namespace Simulator.Web
         public static void LoadSensorPlugin(Manifest manifest, VfsEntry dir)
         {
             #if UNITY_EDITOR
-            if (EditorPrefs.GetBool("Simulator/Sensor Debug Mode", false) == true)
+            if (SensorDebugModeEnabled == true)
             {
                 if (File.Exists(Path.Combine(BundleConfig.ExternalBase, "Sensors", manifest.assetName, $"{manifest.assetName}.prefab")))
                 {

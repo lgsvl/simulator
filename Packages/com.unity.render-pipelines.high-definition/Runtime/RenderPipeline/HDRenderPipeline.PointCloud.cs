@@ -31,6 +31,11 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// MSAA samples currently used by this render pipeline.
+        /// </summary>
+        public MSAASamples MSAASamples => m_MSAASamples;
+
+        /// <summary>
         /// Marks current copy of depth buffer as invalid. Should be called after original depth buffer is modified.
         /// </summary>
         public void InvalidateDepthBufferCopy()

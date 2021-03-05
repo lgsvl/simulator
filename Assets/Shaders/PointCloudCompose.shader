@@ -21,7 +21,6 @@ Shader "Simulator/PointCloud/HDRP/Compose"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
 
-    #pragma multi_compile _ _PC_LINEAR_DEPTH
     #pragma multi_compile _ _PC_TARGET_GBUFFER _PC_UNLIT_SHADOWS
 
     #ifdef _PC_UNLIT_SHADOWS
@@ -111,12 +110,7 @@ Shader "Simulator/PointCloud/HDRP/Compose"
         float4 pcPacked = _ColorTex.Load(int3(insetSS, 0));
         float4 pcNormalDepth = _NormalDepthTex.Load(int3(insetSS, 0));
 
-        #ifdef _PC_LINEAR_DEPTH
-            float linearDepth = 1.0 - pcPacked.w;
-            float eyeDepth = (1 / (linearDepth) - _ZBufferParams.y) / _ZBufferParams.x;
-        #else
-            float eyeDepth = pcPacked.w;
-        #endif
+        float eyeDepth = pcPacked.w;
 
         if (eyeDepth <= camDepth)
             discard;
@@ -179,13 +173,8 @@ Shader "Simulator/PointCloud/HDRP/Compose"
 
         float4 pcPacked = _ColorTex.Load(int3(insetSS, 0));
 
-        #ifdef _PC_LINEAR_DEPTH
-            float linearDepth = 1.0 - pcPacked.w;
-            float eyeDepth = (1 / (linearDepth) - _ZBufferParams.y) / _ZBufferParams.x;
-        #else
-            float linearDepth = Linear01Depth(pcPacked.w, _ZBufferParams);
-            float eyeDepth = pcPacked.w;
-        #endif
+        float eyeDepth = pcPacked.w;
+        float linearDepth = Linear01Depth(eyeDepth, _ZBufferParams);
 
         // Solid render has depth data on the whole texture, which lidar will detect - discard far plane
         if (eyeDepth < camDepth || linearDepth > 0.999)

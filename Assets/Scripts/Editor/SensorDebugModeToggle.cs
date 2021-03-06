@@ -1,4 +1,4 @@
-﻿using Simulator.Web;
+using Simulator.Web;
 using UnityEditor;
 
 [InitializeOnLoad]
@@ -10,7 +10,8 @@ public static class SensorDebugModeToggle
     /// Called on load thanks to the InitializeOnLoad attribute
     static SensorDebugModeToggle()
     {
-        SensorDebugModeToggle.enabled_ = Config.SensorDebugModeEnabled;
+        SensorDebugModeToggle.enabled_ = EditorPrefs.GetBool(SensorDebugModeToggle.MENU_NAME, false);
+        //SensorDebugModeToggle.enabled_ = Config.SensorDebugModeEnabled; // TODO why this not working?
         /// Set checkmark on menu item
         Menu.SetChecked(SensorDebugModeToggle.MENU_NAME, Config.SensorDebugModeEnabled);
 
@@ -32,10 +33,13 @@ public static class SensorDebugModeToggle
 
     public static void PerformAction(bool enabled)
     {
+        
+
         /// Set checkmark on menu item
         Menu.SetChecked(SensorDebugModeToggle.MENU_NAME, enabled);
         /// Saving editor state
-        Config.SensorDebugModeEnabled = enabled;
+        EditorPrefs.SetBool(SensorDebugModeToggle.MENU_NAME, enabled);
+        //Config.SensorDebugModeEnabled = enabled; // TODO why this not working?
 
         SensorDebugModeToggle.enabled_ = enabled;
     }

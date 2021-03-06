@@ -285,8 +285,9 @@ namespace Simulator.Web
 
         public static void LoadSensorPlugin(Manifest manifest, VfsEntry dir)
         {
-            #if UNITY_EDITOR
-            if (SensorDebugModeEnabled == true)
+#if UNITY_EDITOR
+            //if (SensorDebugModeEnabled == true) // TODO Why is this not working?
+            if (EditorPrefs.GetBool("Simulator/Sensor Debug Mode", false) == true)
             {
                 if (File.Exists(Path.Combine(BundleConfig.ExternalBase, "Sensors", manifest.assetName, $"{manifest.assetName}.prefab")))
                 {
@@ -312,7 +313,7 @@ namespace Simulator.Web
                     return;
                 }
             }
-            #endif
+#endif
             if (SensorTypeLookup.ContainsKey(manifest.assetGuid))
             {
                 return;

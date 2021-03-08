@@ -268,8 +268,9 @@ namespace Simulator.Web
 
             if (!environment.ContainsKey("LGSVL__SIMULATOR_HOST"))
             {
-                environment.Add("SIMULATOR_HOST", Config.ApiHost);
-                environment.Add("LGSVL__SIMULATOR_HOST", Config.ApiHost);
+                var hostname = Config.ApiHost == "*" ? "localhost" : Config.ApiHost;
+                environment.Add("SIMULATOR_HOST", hostname);
+                environment.Add("LGSVL__SIMULATOR_HOST", hostname);
             }
 
             if (!environment.ContainsKey("LGSVL__SIMULATOR_PORT"))

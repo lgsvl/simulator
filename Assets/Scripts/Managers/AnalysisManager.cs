@@ -57,7 +57,6 @@ namespace Simulator.Analysis
         private string PersistantPath;
         private string AnalysisPath;
         private string SimulationPath;
-        public string TestReportId;
 
         #region network
         public string Key { get; } = "AnalysisManager";
@@ -131,8 +130,9 @@ namespace Simulator.Analysis
             {
                 return;
             }
+            SimConfig = Loader.Instance?.SimConfig;
 
-            Console.WriteLine("[ANMGR] Initializing with TestReportId:{0}", (TestReportId is null) ? "<null>" : TestReportId);
+            Console.WriteLine("[ANMGR] Initializing with TestReportId:{0}", (SimConfig?.TestReportId is null) ? "<null>" : SimConfig.TestReportId);
 
             Sensors.Clear();
             AnalysisEvents.Clear();
@@ -144,7 +144,6 @@ namespace Simulator.Analysis
             Status = AnalysisStatusType.InProgress;
             AnalysisStart = DateTime.Now;
 
-            SimConfig = Loader.Instance?.SimConfig;
             if (SimConfig == null)// || !SimConfig.CurrentTestId.HasValue) // This will need to taken from WISE or sent to simconfig, then read
             {
                 return; // Development mode or generate report false
@@ -382,14 +381,15 @@ namespace Simulator.Analysis
 
             File.WriteAllText(Path.Combine(SimulationPath, "SimulationConfiguration.json"), Results.ToString(Formatting.Indented));
 
-            if (TestReportId != null)
+            if (!string.IsNullOrEmpty(SimConfig.TestReportId))
             {
-                Console.WriteLine("[ANMGR] Sending test report data id:{0}", TestReportId);
-                ConnectionManager.API.SendAnalysis<JArray>(TestReportId, Results);
+                Console.WriteLine("[ANMGR] Sending test report data id:{0}", SimConfig.TestReportId);
+                ConnectionManager.API.SendAnalysis<JArray>(SimConfig.TestReportId, Results);
             }
             else
             {
                 Console.WriteLine("[ANMGR] Skip sending report: TestReportId is null");
+                Debug.LogError("AnalysisSend faild due to null TestReportId");
             }
         }
 

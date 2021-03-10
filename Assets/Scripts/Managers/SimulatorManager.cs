@@ -235,8 +235,6 @@ public class SimulatorManager : MonoBehaviour
             {
                 controls.Disable();
             }
-
-            AnalysisManager.TestReportId = config.TestReportId;
         }
         SIM.APIOnly = apiMode;
         SIM.LogSimulation(SIM.Simulation.SimulationStart, simulationName);

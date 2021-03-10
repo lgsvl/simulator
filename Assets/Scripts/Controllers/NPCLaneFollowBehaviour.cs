@@ -21,6 +21,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     public LayerMask groundHitBitmask;
     public LayerMask carCheckBlockBitmask;
     protected RaycastHit frontClosestHitInfo = new RaycastHit();
+    protected RaycastHit frontHighClosestHitInfo = new RaycastHit();
     protected RaycastHit leftClosestHitInfo = new RaycastHit();
     protected RaycastHit rightClosestHitInfo = new RaycastHit();
     protected RaycastHit groundCheckInfo = new RaycastHit();
@@ -61,6 +62,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
 
     protected bool isLaneDataSet = false;
     public bool isFrontDetectWithinStopDistance = false;
+    public bool isFrontDetectHighWithinStopDistance = false;
     public bool isRightDetectWithinStopDistance = false;
     public bool isLeftDetectWithinStopDistance = false;
     public bool isFrontLeftDetect = false;
@@ -77,7 +79,6 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     protected float stopSignWaitTime = 1f;
     protected float currentStopTime = 0f;
 
-    private NPCController NPCController;
     private Collider[] MaxHitColliders = new Collider[5];
     #endregion
 
@@ -86,7 +87,6 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     {
         groundHitBitmask = LayerMask.GetMask("Default");
         carCheckBlockBitmask = LayerMask.GetMask("Agent", "NPC", "Pedestrian");
-        NPCController = this.GetComponent<NPCController>();
     }
 
     public override void PhysicsUpdate()
@@ -147,7 +147,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     protected void EvaluateDistanceFromFocus()
     {
         if (!SimulatorManager.Instance.NPCManager.spawnsManager.WithinSpawnArea(transform.position) && 
-            !SimulatorManager.Instance.NPCManager.spawnsManager.IsVisible(NPCController.Bounds) && 
+            !SimulatorManager.Instance.NPCManager.spawnsManager.IsVisible(controller.Bounds) && 
             !controller.IsUserSpecified)
         {
             Despawn();
@@ -218,13 +218,14 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         currentTurn += turnAdjustRate * Time.fixedDeltaTime * (targetTurn - currentTurn);
 
         if (targetSpeed == 0)
+        {
             currentTurn = 0;
+        }
     }
 
     protected virtual void SetTargetSpeed()
     {
         targetSpeed = normalSpeed;
-
         if (isStopSign)
         {
             if (!hasReachedStopSign)
@@ -269,11 +270,6 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
             }
         }
 
-        if ((isFrontDetectWithinStopDistance || isRightDetectWithinStopDistance || isLeftDetectWithinStopDistance) && !hasReachedStopSign)
-        {
-            targetSpeed = SetFrontDetectSpeed();
-        }
-
         if (isForcedStop)
         {
             targetSpeed = 0f;
@@ -296,12 +292,21 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     protected float GetLerpedDistanceToStopTarget()
     {
         float tempD = 0f;
-
         if (isFrontDetectWithinStopDistance) // raycast
         {
             tempD = frontClosestHitInfo.distance / stopHitDistance;
             if (frontClosestHitInfo.distance < stopHitDistance)
+            {
                 tempD = 0f;
+            }
+        }
+        else if (isFrontDetectHighWithinStopDistance) // raycast
+        {
+            tempD = frontHighClosestHitInfo.distance / stopHitDistance;
+            if (frontHighClosestHitInfo.distance < stopHitDistance)
+            {
+                tempD = 0f;
+            }
         }
         else // stop target
         {
@@ -336,8 +341,11 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     {
         currentStopTime = 0f;
         yield return FixedUpdateManager.WaitUntilFixed(() => distanceToStopTarget <= stopLineDistance);
-        if (prevMapLane.stopLine.currentState == MapData.SignalLightStateType.Green) 
+        if (prevMapLane.stopLine.currentState == MapData.SignalLightStateType.Green)
+        {
             yield break; // light is green so just go
+        }
+
         isStopLight = true;
         yield return FixedUpdateManager.WaitUntilFixed(() => atStopTarget); // wait if until reaching stop line
         if ((isRightTurn && prevMapLane.rightLaneReverse == null))
@@ -348,9 +356,13 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
             isStopLight = false;
             yield break;
         }
+
         yield return FixedUpdateManager.WaitUntilFixed(() => prevMapLane.stopLine.currentState == MapData.SignalLightStateType.Green); // wait until green light
         if (isLeftTurn || isRightTurn)
+        {
             yield return FixedUpdateManager.WaitForFixedSeconds(RandomGenerator.NextFloat(1f, 2f)); // wait to creep out on turn
+        }
+
         isStopLight = false;
     }
 
@@ -360,6 +372,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         {
             currentStopTime += Time.fixedDeltaTime;
         }
+
         if (currentStopTime > 60f && !controller.IsUserSpecified)
         {
             Debug.Log($"NPC Despawn: Stopped for {currentStopTime} seconds");
@@ -441,25 +454,25 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         }
 
         // check for ped in road
-        if (Physics.OverlapSphereNonAlloc(NPCController.frontCenter.position + Vector3.forward, 2f, MaxHitColliders, 1 << LayerMask.NameToLayer("Pedestrian")) > 0)
+        if (Physics.OverlapSphereNonAlloc(controller.frontCenter.position + Vector3.forward, 2f, MaxHitColliders, 1 << LayerMask.NameToLayer("Pedestrian")) > 0)
         {
             state = true;
         }
 
         // check for ego
-        if (Physics.OverlapSphereNonAlloc(NPCController.frontCenter.position, 1.5f, MaxHitColliders, 1 << LayerMask.NameToLayer("Agent")) > 0)
+        if (Physics.OverlapSphereNonAlloc(controller.frontCenter.position, 1.5f, MaxHitColliders, 1 << LayerMask.NameToLayer("Agent")) > 0)
         {
             state = true;
         }
 
         // check for npc
         var currentLayer = gameObject.layer;
-        NPCController.MainCollider.gameObject.layer = 2; // move collider off raycast layer to check
-        if (Physics.OverlapSphereNonAlloc(NPCController.frontCenter.position, 1.5f, MaxHitColliders, 1 << LayerMask.NameToLayer("NPC")) > 0)
+        controller.MainCollider.gameObject.layer = 2; // move collider off raycast layer to check
+        if (Physics.OverlapSphereNonAlloc(controller.frontCenter.position, 1.5f, MaxHitColliders, 1 << LayerMask.NameToLayer("NPC")) > 0)
         {
             state = true;
         }
-        NPCController.MainCollider.gameObject.layer = currentLayer;
+        controller.MainCollider.gameObject.layer = currentLayer;
 
         return state;
     }
@@ -499,6 +512,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         {
             Debug.DrawLine(laneData[i], laneData[i+1], currentIndex == i ? Color.yellow : Color.red);
         }
+
         Gizmos.color = Color.yellow;
         Gizmos.DrawSphere(currentTarget, 0.5f);
         Gizmos.color = Color.red;
@@ -566,10 +580,17 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
 
     protected IEnumerator DelayChangeLane()
     {
-        if (currentMapLane == null) yield break;
-        if (!currentMapLane.isTrafficLane) yield break;
-        if (RandomGenerator.Next(100) < 98) yield break;
-        if (!laneChange) yield break;
+        if (currentMapLane == null)
+            yield break;
+
+        if (!currentMapLane.isTrafficLane)
+            yield break;
+
+        if (RandomGenerator.Next(100) < 98)
+            yield break;
+
+        if (!laneChange)
+            yield break;
 
         if (currentMapLane.leftLaneForward != null)
         {
@@ -662,9 +683,14 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
 
     protected void GetDodge()
     {
-        if (currentMapLane == null) return;
-        if (isDodge) return;
-        if (IsYieldToIntersectionLane()) return;
+        if (currentMapLane == null)
+            return;
+
+        if (isDodge)
+            return;
+
+        if (IsYieldToIntersectionLane())
+            return;
 
         if (isLeftDetectWithinStopDistance || isRightDetectWithinStopDistance)
         {
@@ -675,20 +701,24 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
             {
                 if (npcC != null)
                 {
-                    isFrontDetectWithinStopDistance = true;
+                    isFrontDetectWithinStopDistance = true; // TODO isFrontDetectHighWithinStopDistance
                     frontClosestHitInfo = isLeftDetectWithinStopDistance ? leftClosestHitInfo : rightClosestHitInfo;
                 }
                 else if (aC != null)
                 {
-                    isFrontDetectWithinStopDistance = true;
+                    isFrontDetectWithinStopDistance = true; // TODO isFrontDetectHighWithinStopDistance
                     frontClosestHitInfo = isLeftDetectWithinStopDistance ? leftClosestHitInfo : rightClosestHitInfo;
                     if (!isWaitingToDodge)
+                    {
                         controller.Coroutines.Add(FixedUpdateManager.StartCoroutine(WaitToDodge(aC, isLeftDetectWithinStopDistance)));
+                    }
                 }
                 else
                 {
                     if (leftClosestHitInfo.collider?.gameObject?.GetComponentInParent<NPCController>() == null && leftClosestHitInfo.collider?.transform.root.GetComponent<AgentController>() == null)
+                    {
                         SetDodge(!isLeftDetectWithinStopDistance);
+                    }
                 }
             }
             else // intersection lane
@@ -696,8 +726,12 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
                 if (npcC != null)
                 {
                     if ((isLeftTurn && npcC.isLeftTurn || isRightTurn && npcC.isRightTurn) && Vector3.Dot(transform.TransformDirection(Vector3.forward), npcC.transform.TransformDirection(Vector3.forward)) < -0.7f)
+                    {
                         if (currentIndex > 1)
+                        {
                             SetDodge(isLeftTurn, true);
+                        }
+                    }
                 }
             }
         }
@@ -719,9 +753,13 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         }
 
         if (!isLeft)
+        {
             SetDodge(true);
+        }
         else
+        {
             SetDodge(false);
+        }
         isWaitingToDodge = false;
     }
 
@@ -814,23 +852,32 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     #region lights
     protected void ToggleBrakeLights()
     {
-        if (targetSpeed < 2f || isStopLight || isFrontDetectWithinStopDistance || (isStopSign && distanceToStopTarget < stopLineDistance))
+        if (targetSpeed < 2f || isStopLight || isFrontDetectWithinStopDistance || isFrontDetectHighWithinStopDistance || (isStopSign && distanceToStopTarget < stopLineDistance))
+        {
             controller.SetBrakeLights(true);
+        }
         else
+        {
             controller.SetBrakeLights(false);
+        }
     }
     #endregion
 
     #region utility
     protected void CollisionCheck()
     {
-        if (controller.frontCenter == null || controller.frontLeft == null || controller.frontRight == null) return;
+        if (controller.frontCenter == null || controller.frontLeft == null || controller.frontRight == null || controller.frontCenterHigh == null)
+        {
+            return;
+        }
 
         frontClosestHitInfo = new RaycastHit();
+        frontHighClosestHitInfo = new RaycastHit();
         rightClosestHitInfo = new RaycastHit();
         leftClosestHitInfo = new RaycastHit();
 
         Physics.Raycast(controller.frontCenter.position, controller.frontCenter.forward, out frontClosestHitInfo, frontRaycastDistance, carCheckBlockBitmask);
+        Physics.Raycast(controller.frontCenterHigh.position, controller.frontCenterHigh.forward, out frontHighClosestHitInfo, frontRaycastDistance, carCheckBlockBitmask);
         Physics.Raycast(controller.frontRight.position, controller.frontRight.forward, out rightClosestHitInfo, frontRaycastDistance / 2, carCheckBlockBitmask);
         Physics.Raycast(controller.frontLeft.position, controller.frontLeft.forward, out leftClosestHitInfo, frontRaycastDistance / 2, carCheckBlockBitmask);
         isFrontLeftDetect = Physics.CheckSphere(controller.frontLeft.position - (controller.frontLeft.right * 2), 1f, carCheckBlockBitmask);
@@ -848,45 +895,37 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         }
 
         isFrontDetectWithinStopDistance = (frontClosestHitInfo.collider) && frontClosestHitInfo.distance < stopHitDistance;
+        isFrontDetectHighWithinStopDistance = (frontHighClosestHitInfo.collider) && frontHighClosestHitInfo.distance < stopHitDistance;
+        if (isFrontDetectWithinStopDistance && isFrontDetectHighWithinStopDistance)
+        {
+            if (frontClosestHitInfo.distance > frontHighClosestHitInfo.distance)
+            {
+                isFrontDetectWithinStopDistance = false;
+            }
+            else
+            {
+                isFrontDetectHighWithinStopDistance = false;
+            }
+        }
         isRightDetectWithinStopDistance = (rightClosestHitInfo.collider) && rightClosestHitInfo.distance < stopHitDistance / 2;
         isLeftDetectWithinStopDistance = (leftClosestHitInfo.collider) && leftClosestHitInfo.distance < stopHitDistance / 2;
 
         // ground collision
         groundCheckInfo = new RaycastHit();
-        if (!Physics.Raycast(transform.position + transform.up, -transform.up, out groundCheckInfo, 5f, groundHitBitmask) &&
-            !controller.IsUserSpecified)
+        if (!Physics.Raycast(transform.position + transform.up, -transform.up, out groundCheckInfo, 5f, groundHitBitmask) && !controller.IsUserSpecified)
         {
             Despawn();
         }
 
+        // debug
         //if (frontClosestHitInfo.collider != null)
-        //    Debug.DrawLine(frontCenter.position, frontClosestHitInfo.point, Color.blue, 0.25f);
+        //    Debug.DrawLine(controller.frontCenter.position, frontClosestHitInfo.point, Color.blue, 0.25f);
+        //if (frontHighClosestHitInfo.collider != null)
+        //    Debug.DrawLine(controller.frontCenterHigh.position, frontHighClosestHitInfo.point, Color.green, 0.25f);
         //if (leftClosestHitInfo.collider != null)
-        //    Debug.DrawLine(frontLeft.position, leftClosestHitInfo.point, Color.yellow, 0.25f);
+        //    Debug.DrawLine(controller.frontLeft.position, leftClosestHitInfo.point, Color.yellow, 0.25f);
         //if (rightClosestHitInfo.collider != null)
-        //    Debug.DrawLine(frontRight.position, rightClosestHitInfo.point, Color.red, 0.25f);
-    }
-
-    protected float SetFrontDetectSpeed()
-    {
-        var blocking = frontClosestHitInfo.transform;
-        blocking = blocking ?? rightClosestHitInfo.transform;
-        blocking = blocking ?? leftClosestHitInfo.transform;
-
-        float tempS = 0f;
-        // TODO logic has changed and this is causing an issue with behavior SetFrontDetectSpeed should never have frontClosestHitInfo.distance > stopHitDistance
-        if (Vector3.Dot(transform.forward, blocking.transform.forward) > 0.7f) // detected is on similar vector
-        {
-            if (frontClosestHitInfo.distance > stopHitDistance)
-            {
-                tempS = (normalSpeed) * (frontClosestHitInfo.distance / stopHitDistance);
-            }
-        }
-        //else if (Vector3.Dot(transform.forward, blocking.transform.forward) < -0.2f && (isRightTurn || isLeftTurn))
-        //{
-        //    tempS = normalSpeed;
-        //}
-        return tempS;
+        //    Debug.DrawLine(controller.frontRight.position, rightClosestHitInfo.point, Color.red, 0.25f);
     }
     #endregion
 

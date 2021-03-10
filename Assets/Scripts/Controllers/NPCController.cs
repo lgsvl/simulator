@@ -57,6 +57,7 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
 
     // targeting
     public Transform frontCenter;
+    public Transform frontCenterHigh;
     public Transform frontLeft;
     public Transform frontRight;
 
@@ -412,6 +413,10 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
         go.transform.position = new Vector3(Bounds.center.x, Bounds.min.y + 0.5f, Bounds.center.z + Bounds.max.z);
         go.transform.SetParent(transform, true);
         frontCenter = go.transform;
+        go = new GameObject("FrontHigh");
+        go.transform.position = new Vector3(Bounds.center.x, Bounds.max.y, Bounds.center.z + Bounds.max.z);
+        go.transform.SetParent(transform, true);
+        frontCenterHigh = go.transform;
         go = new GameObject("Right");
         go.transform.position = new Vector3(Bounds.center.x + Bounds.max.x, Bounds.min.y + 0.5f, Bounds.center.z + Bounds.max.z);
         go.transform.SetParent(transform, true);
@@ -996,6 +1001,7 @@ public abstract class NPCBehaviourBase : MonoBehaviour
         get => controller.isLeftTurn;
         set { controller.isLeftTurn = value; }
     }
+
     public bool isRightTurn
     {
         get => controller.isRightTurn;

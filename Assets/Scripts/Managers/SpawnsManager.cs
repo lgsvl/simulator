@@ -148,11 +148,11 @@ public class SpawnsManager : MonoBehaviour
                             continue;
                     }
 
-                    if (!MapOrigin.IgnoreNPCVisible && checkVisibility) // set from map origin to ignore sensor visible check
-                    {
-                        if (IsVisible(bounds))
-                            continue;
-                    }
+                    //if (!MapOrigin.IgnoreNPCVisible && checkVisibility) // set from map origin to ignore sensor visible check
+                    //{
+                    //    if (IsVisible(bounds))
+                    //        continue;
+                    //}
                     break;
                 case SpawnAreaType.PedestrianLanes:
                     if (!MapOrigin.IgnorePedBounds)
@@ -161,11 +161,11 @@ public class SpawnsManager : MonoBehaviour
                             continue;
                     }
 
-                    if (!MapOrigin.IgnorePedVisible && checkVisibility)
-                    {
-                        if (IsVisible(bounds))
-                            continue;
-                    }
+                    //if (!MapOrigin.IgnorePedVisible && checkVisibility) // set from map origin to ignore sensor visible check
+                    //{
+                    //    if (IsVisible(bounds))
+                    //        continue;
+                    //}
                     break;
             }
 

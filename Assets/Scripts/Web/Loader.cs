@@ -63,6 +63,12 @@ namespace Simulator
                 AssetBundle = Web.WebUtilities.GenerateLocalPath(vehicleData.AssetGuid, BundleConfig.BundleTypes.Vehicle);
             }
             Sensors = vehicleData.Sensors;
+            
+            //Load sensors from the configuration if no sensors are set
+            if ((Sensors == null || Sensors.Length == 0) && 
+                vehicleData.SensorsConfigurations!=null && vehicleData.SensorsConfigurations.Length>0)
+                Sensors = vehicleData.SensorsConfigurations[0].Sensors;
+            
 
             if (vehicleData.Bridge != null && !string.IsNullOrEmpty(vehicleData.Bridge.Type))
             {

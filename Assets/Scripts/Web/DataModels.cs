@@ -101,6 +101,7 @@ namespace Simulator.Web
         public bool IsOwned { get; set; }
         public string VehicleId { get; set; }
         public string BridgePluginId { get; set; }
+        public SensorData[] Sensors { get; set; }
     }
 
     [CloudData(ApiPath = "api/v1/vehicles")]

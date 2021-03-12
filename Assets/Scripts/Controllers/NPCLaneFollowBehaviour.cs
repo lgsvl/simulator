@@ -270,6 +270,11 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
             }
         }
 
+        if ((isFrontDetectWithinStopDistance || isRightDetectWithinStopDistance || isLeftDetectWithinStopDistance) && !hasReachedStopSign)
+        {
+            targetSpeed = SetFrontDetectSpeed();
+        }
+
         if (isForcedStop)
         {
             targetSpeed = 0f;
@@ -926,6 +931,29 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         //    Debug.DrawLine(controller.frontLeft.position, leftClosestHitInfo.point, Color.yellow, 0.25f);
         //if (rightClosestHitInfo.collider != null)
         //    Debug.DrawLine(controller.frontRight.position, rightClosestHitInfo.point, Color.red, 0.25f);
+    }
+
+    protected float SetFrontDetectSpeed()
+    {
+        var blocking = frontClosestHitInfo.transform;
+        blocking = blocking ?? frontHighClosestHitInfo.transform;
+        blocking = blocking ?? rightClosestHitInfo.transform;
+        blocking = blocking ?? leftClosestHitInfo.transform;
+
+        float tempS = 0f;
+        // TODO logic has changed and this is causing an issue with behavior SetFrontDetectSpeed should never have frontClosestHitInfo.distance > stopHitDistance
+        if (Vector3.Dot(transform.forward, blocking.transform.forward) > 0.7f) // detected is on similar vector
+        {
+            if (frontClosestHitInfo.distance > stopHitDistance)
+            {
+                tempS = (normalSpeed) * (frontClosestHitInfo.distance / stopHitDistance);
+            }
+        }
+        //else if (Vector3.Dot(transform.forward, blocking.transform.forward) < -0.2f && (isRightTurn || isLeftTurn))
+        //{
+        //    tempS = normalSpeed;
+        //}
+        return tempS;
     }
     #endregion
 

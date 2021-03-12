@@ -121,6 +121,17 @@ namespace Simulator.Editor
                 ? Object.Instantiate(vehiclePrefab, vehicleParent.transform)
                 : Object.Instantiate(vehiclePrefab);
 
+            // adjust camera distance based on hit distance
+            RaycastHit hit;
+            var start = cameraObj.transform.position;
+            var end = vehicle.transform.position;
+            var direction = (end - start);
+            Ray cameraRay = new Ray(start, direction);
+            if (Physics.Raycast(cameraRay, out hit, LayerMask.GetMask("Agent")))
+            {
+                cameraObj.transform.position = hit.point + ((cameraObj.transform.position - hit.point).normalized) * 3f;
+            }
+
             // This will trigger HDCamera.Update, which must be done before calling HDCamera.GetOrCreate
             // Otherwise m_AdditionalCameraData will not be set and HDCamera will be discarded after first frame
             camera.Render();

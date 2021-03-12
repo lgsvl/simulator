@@ -161,9 +161,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                 var item = requested[i];
                 string parentName = item.Parent != null ? item.Parent : string.Empty;
 
-                if (parents.ContainsKey(parentName))
-                {
-                    var parentObject = parents[parentName];
+                    var parentObject = parents.ContainsKey(parentName) ? parents[parentName] : gameObject;
                     var name = item.Name;
                     var type = item.Type;
                     GameObject prefab = null;
@@ -213,7 +211,6 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                     sensorInstanceController.Enable();
                     agentController.AgentSensors.Add(sensorBase);
                     sensorsInstances.Add(name, sensorInstanceController);
-                }
             }
 
             // no sensors found their parent this round, they also won't find it next round

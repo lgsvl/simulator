@@ -172,9 +172,12 @@ namespace Simulator.ScenarioEditor.Elements.Agents
                 var waypointNode = new JSONObject();
                 var position = new JSONObject().WriteVector3(scenarioWaypoint.transform.position);
                 var hasNextWaypoint = i + 1 < Waypoints.Count;
+                var hasPreviousWaypoint = i > 0;
                 angle = hasNextWaypoint
                     ? Quaternion.LookRotation(Waypoints[i + 1].transform.position - position).eulerAngles
-                    : angle;
+                    : (hasPreviousWaypoint ? 
+                        Quaternion.LookRotation(position - Waypoints[i - 1].transform.position).eulerAngles
+                        : ParentAgent.transform.eulerAngles);
                 waypointNode.Add("ordinalNumber", new JSONNumber(i));
                 waypointNode.Add("position", position);
                 waypointNode.Add("angle", angle);

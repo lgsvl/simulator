@@ -34,7 +34,7 @@ namespace Simulator.Bridge.Cyber
 
             RegSubscriber<VehicleControlData, apollo.control.ControlCommand>(plugin, CyberConversions.ConvertTo);
             RegSubscriber<Detected2DObjectArray, apollo.common.Detection2DArray>(plugin, CyberConversions.ConvertTo);
-            RegSubscriber<Detected3DObjectArray, apollo.common.Detection3DArray>(plugin, CyberConversions.ConvertTo);
+            RegSubscriber<Detected3DObjectArray, apollo.perception.PerceptionObstacles>(plugin, CyberConversions.ConvertTo);
         }
 
         public void RegPublisher<DataType, BridgeType>(IBridgePlugin plugin, Func<DataType, BridgeType> converter)

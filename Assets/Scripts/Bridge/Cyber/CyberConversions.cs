@@ -7,6 +7,7 @@
 
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 using Simulator.Bridge.Data;
 using System.Text;
@@ -585,22 +586,56 @@ namespace Simulator.Bridge.Cyber
             return result;
         }
 
-        public static Detected3DObjectArray ConvertTo(apollo.common.Detection3DArray data)
+        public static Detected3DObjectArray ConvertTo(apollo.perception.PerceptionObstacles data)
         {
+            var detections = new List<Detected3DObject>();
+
+            foreach (var obstacle in data.perception_obstacle)
+            {
+                String label;
+                switch (obstacle.type)
+                {
+                    case apollo.perception.PerceptionObstacle.Type.Vehicle:
+                        label = "Car";
+                        break;
+                    case apollo.perception.PerceptionObstacle.Type.Pedestrian:
+                        label = "Pedestrian";
+                        break;
+                    case apollo.perception.PerceptionObstacle.Type.Bicycle:
+                        label = "Bicycle";
+                        break;
+                    default:
+                        label = "Unknown";
+                        break;
+                }
+
+                GpsData gps = new GpsData()
+                {
+                    Easting = obstacle.position.x,
+                    Northing = obstacle.position.y,
+                    Altitude = obstacle.position.z,
+                };
+
+                var det = new Detected3DObject()
+                {
+                    Id = (uint)obstacle.id,
+                    Label = label,
+                    Gps = gps,
+                    Heading = 90 - obstacle.theta * Mathf.Rad2Deg,
+                    Scale = new Vector3
+                    (
+                        (float)obstacle.width,
+                        (float)obstacle.height,
+                        (float)obstacle.length
+                    ),
+                };
+
+                detections.Add(det);
+            }
+
             return new Detected3DObjectArray()
             {
-                Data = data.detections.Select(obj =>
-                    new Detected3DObject()
-                    {
-                        Id = obj.id,
-                        Label = obj.label,
-                        Score = obj.score,
-                        Position = Convert(obj.bbox.position.position),
-                        Rotation = Convert(obj.bbox.position.orientation),
-                        Scale = Convert(obj.bbox.size),
-                        LinearVelocity = Convert(obj.velocity.linear),
-                        AngularVelocity = Convert(obj.velocity.angular),
-                    }).ToArray(),
+                Data = detections.ToArray(),
             };
         }
 

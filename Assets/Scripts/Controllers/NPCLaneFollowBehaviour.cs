@@ -305,14 +305,6 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
                 tempD = 0f;
             }
         }
-        else if (isFrontDetectHighWithinStopDistance) // raycast
-        {
-            tempD = frontHighClosestHitInfo.distance / stopHitDistance;
-            if (frontHighClosestHitInfo.distance < stopHitDistance)
-            {
-                tempD = 0f;
-            }
-        }
         else // stop target
         {
             tempD = distanceToStopTarget > stopLineDistance ? stopLineDistance : distanceToStopTarget / stopLineDistance;
@@ -706,12 +698,12 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
             {
                 if (npcC != null)
                 {
-                    isFrontDetectWithinStopDistance = true; // TODO isFrontDetectHighWithinStopDistance
+                    isFrontDetectWithinStopDistance = true;
                     frontClosestHitInfo = isLeftDetectWithinStopDistance ? leftClosestHitInfo : rightClosestHitInfo;
                 }
                 else if (aC != null)
                 {
-                    isFrontDetectWithinStopDistance = true; // TODO isFrontDetectHighWithinStopDistance
+                    isFrontDetectWithinStopDistance = true;
                     frontClosestHitInfo = isLeftDetectWithinStopDistance ? leftClosestHitInfo : rightClosestHitInfo;
                     if (!isWaitingToDodge)
                     {
@@ -901,16 +893,10 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
 
         isFrontDetectWithinStopDistance = (frontClosestHitInfo.collider) && frontClosestHitInfo.distance < stopHitDistance;
         isFrontDetectHighWithinStopDistance = (frontHighClosestHitInfo.collider) && frontHighClosestHitInfo.distance < stopHitDistance;
-        if (isFrontDetectWithinStopDistance && isFrontDetectHighWithinStopDistance)
+        if (isFrontDetectHighWithinStopDistance)
         {
-            if (frontClosestHitInfo.distance > frontHighClosestHitInfo.distance)
-            {
-                isFrontDetectWithinStopDistance = false;
-            }
-            else
-            {
-                isFrontDetectHighWithinStopDistance = false;
-            }
+            isFrontDetectWithinStopDistance = true;
+            frontClosestHitInfo = frontHighClosestHitInfo;
         }
         isRightDetectWithinStopDistance = (rightClosestHitInfo.collider) && rightClosestHitInfo.distance < stopHitDistance / 2;
         isLeftDetectWithinStopDistance = (leftClosestHitInfo.collider) && leftClosestHitInfo.distance < stopHitDistance / 2;
@@ -936,7 +922,6 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     protected float SetFrontDetectSpeed()
     {
         var blocking = frontClosestHitInfo.transform;
-        blocking = blocking ?? frontHighClosestHitInfo.transform;
         blocking = blocking ?? rightClosestHitInfo.transform;
         blocking = blocking ?? leftClosestHitInfo.transform;
 

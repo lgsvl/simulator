@@ -99,7 +99,7 @@ Alternatively, you can get source code of specific release. Here is an example h
 Check out our instructions for getting started with building from source [here](https://www.svlsimulator.com/docs/installation-guide/build-instructions).
 
 
-## Simulator Instructions
+## Simulator Instructions (from 2021.1 release onwards)
 
 1. After starting the simulator, you should see a button to "Link to Cloud".
 2. Use this button to link your local simulator instance to a [cluster](https://www.svlsimulator.com/docs/user-interface/web/clusters-tab) on our [web user interface](https://wise.svlsimulator.com)
@@ -107,6 +107,8 @@ Check out our instructions for getting started with building from source [here](
 4. The vehicle should spawn inside the map environment that was selected.
 5. Read [here](https://www.svlsimulator.com/docs/user-interface/keyboard-shortcuts/) for an explanation of all current keyboard shortcuts and controls.
 6. Follow the guides on our respective [Autoware](https://github.com/lgsvl/Autoware) and [Apollo 5.0](https://github.com/lgsvl/apollo-5.0) repositories for instructions on running the platforms with the simulator.
+
+**NOTE**: If using a release older than "2021.1", please follow instructions on [archive](https://www.svlsimulator.com/docs/archive/)
 
 ### Guide to simulator functionality
 

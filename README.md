@@ -26,15 +26,18 @@ Check out our latest [news](https://www.svlsimulator.com/news/) and subscribe to
 
 ## Introduction
 
-LG Electronics America R&D Center has developed an HDRP Unity-based multi-robot simulator for autonomous vehicle developers. 
+LG Electronics America R&D Lab has developed an HDRP Unity-based multi-robot simulator for autonomous vehicle developers. 
 We provide an out-of-the-box solution which can meet the needs of developers wishing to focus on testing their autonomous vehicle algorithms. 
-It currently has integration with TierIV's [Autoware](https://github.com/lgsvl/Autoware) and Baidu's [Apollo 5.0](https://github.com/lgsvl/apollo-5.0)
-and [Apollo 3.0](https://github.com/lgsvl/apollo) platforms, can generate HD maps, and can be immediately used for testing and validation of a whole system with little need for custom integrations. 
+It currently has integration with The Autoware Foundation's [Autoware](https://github.com/lgsvl/Autoware), [Autoware.auto](https://gitlab.com/autowarefoundation/autoware.auto/AutowareAuto) and Baidu's [Apollo Master](https://github.com/ApolloAuto/apollo), [Apollo 6.0](https://github.com/ApolloAuto/apollo/releases/tag/v6.0.0), [Apollo 5.0](https://github.com/lgsvl/apollo-5.0) and [Apollo 3.0](https://github.com/lgsvl/apollo) platforms, can generate HD maps, and can be immediately used for testing and validation of a whole system with little need for custom integrations. 
 We hope to build a collaborative community among robotics and autonomous vehicle developers by open sourcing our efforts. 
 
-*To use the simulator with Apollo, first download the simulator binary, then follow the guide on our [Apollo 5.0 fork](https://github.com/lgsvl/apollo-5.0).*
+*To use the simulator with Apollo 5.0, first download the simulator binary, then follow the guide on our [Apollo 5.0 fork](https://github.com/lgsvl/apollo-5.0).*
+
+*To use the simulator with Apollo 6.0 or master, first download the simulator binary, then follow our [Running with latest Apollo](https://www.svlsimulator.com/docs/system-under-test/apollo-master-instructions/) docs.*
 
 *To use the simulator with Autoware, first download the simulator binary, then follow the guide on our [Autoware fork](https://github.com/lgsvl/Autoware).*
+
+*To use the simulator with Autoware.auto, first download the simulator binary, then follow the guide on our [Autoware.auto](https://autowarefoundation.gitlab.io/autoware.auto/AutowareAuto/lgsvl.html).*
 
 For Chinese-speaking users, you can also view our latest videos [here](https://space.bilibili.com/412295691) and download our simulator releases [here](https://pan.baidu.com/s/1M33ysJYZfi4vya41gmB0rw) (code: 6k91).
 对于中国的用户，您也可在[哔哩哔哩](https://space.bilibili.com/412295691)上观看我们最新发布的视频，从[百度网盘](https://pan.baidu.com/s/1M33ysJYZfi4vya41gmB0rw)(提取码: 6k91)上下载使用我们的仿真器。
@@ -93,21 +96,21 @@ Alternatively, you can get source code of specific release. Here is an example h
     cd simulator
     git checkout 2020.03
 
-Check out our instructions for getting started with building from source [here](Docs/docs/build-instructions.md).
+Check out our instructions for getting started with building from source [here](https://www.svlsimulator.com/docs/installation-guide/build-instructions).
 
 
 ## Simulator Instructions
 
-1. After starting the simulator, you should see a button to open the UI in the browser. 
-2. Go to the Simulations tab and select the appropriate map and vehicle.  For a standard setup, select "BorregasAve" for map and "Jaguar2015XE (Apollo 5.0)" for vehicle. Click "Run" to begin.
-3. The vehicle/robot should spawn inside the map environment that was selected. Read [here](Docs/docs/keyboard-shortcuts.md) for an explanation of all current keyboard shortcuts and controls.
-4. Follow the guides on our respective [Autoware](https://github.com/lgsvl/Autoware) and [Apollo 5.0](https://github.com/lgsvl/apollo-5.0) repositories for instructions on running the platforms with the simulator.
-
-[![](Docs/docs/images/readme-simulator.png)](Docs/docs/images/full_size_images/readme-simulator.png)
+1. After starting the simulator, you should see a button to "Link to Cloud".
+2. Use this button to link your local simulator instance to a [cluster](https://www.svlsimulator.com/docs/user-interface/web/clusters-tab) on our [web user interface](https://wise.svlsimulator.com)
+3. Now create a [random traffic](https://www.svlsimulator.com/docs/creating-scenarios/random-traffic-scenarios/) simulation. For a standard setup, select "BorregasAve" for map and "Jaguar2015XE with Apollo 5.0 sensor configuration" for vehicle. Click "Run" to begin.
+4. The vehicle should spawn inside the map environment that was selected.
+5. Read [here](https://www.svlsimulator.com/docs/user-interface/keyboard-shortcuts/) for an explanation of all current keyboard shortcuts and controls.
+6. Follow the guides on our respective [Autoware](https://github.com/lgsvl/Autoware) and [Apollo 5.0](https://github.com/lgsvl/apollo-5.0) repositories for instructions on running the platforms with the simulator.
 
 ### Guide to simulator functionality
 
-Look [here](Docs/docs/keyboard-shortcuts.md) for a guide to currently available functionality and keyboard shortcuts for using the simulator.
+Look [here](https://www.svlsimulator.com/docs) for a guide to currently available functionality and features.
 
 
 
@@ -119,6 +122,6 @@ Please feel free to provide feedback or ask questions by creating a Github issue
 
 ## Copyright and License
 
-Copyright (c) 2019 LG Electronics, Inc.
+Copyright (c) 2019-2021 LG Electronics, Inc.
 
 This software contains code licensed as described in LICENSE.

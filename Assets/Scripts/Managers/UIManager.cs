@@ -301,6 +301,7 @@ public class UIManager : MonoBehaviour
     {
         SetCameraButtonState();
         CloseButtonOnClick();
+        ClearVisualizers();
     }
 
     public void SetCameraButtonState()
@@ -562,7 +563,7 @@ public class UIManager : MonoBehaviour
         AgentDropdown.value = SimulatorManager.Instance.AgentManager.GetCurrentActiveAgentIndex();
     }
 
-    private void AgentControllerOnSensorsChanged(AgentController agentController)
+    private void ClearVisualizers()
     {
         for (int i = 0; i < visualizerToggles.Count; i++)
         {
@@ -574,6 +575,11 @@ public class UIManager : MonoBehaviour
         }
         visualizerToggles.Clear();
         visualizers.Clear();
+    }
+
+    private void AgentControllerOnSensorsChanged(AgentController agentController)
+    {
+        ClearVisualizers();
         
         //Check if agent was not set to null
         if (agentController != null)

@@ -35,7 +35,7 @@ namespace Simulator.Api.Commands
 
             foreach (var controllable in controllables)
             {
-                if (string.IsNullOrEmpty(controllable.UID))
+                if (!string.IsNullOrEmpty(controllable.UID))
                 {
                     JSONArray validActions = new JSONArray();
                     if (controllable.ValidStates != null)

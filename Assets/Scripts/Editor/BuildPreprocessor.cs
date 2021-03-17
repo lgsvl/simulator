@@ -29,6 +29,7 @@ namespace Simulator.Editor
             info.Version = Environment.GetEnvironmentVariable("BUILD_VERSION");
             info.GitCommit = Environment.GetEnvironmentVariable("GIT_COMMIT");
             info.GitBranch = Environment.GetEnvironmentVariable("GIT_BRANCH");
+            info.SentryDSN = Environment.GetEnvironmentVariable("SENTRY_DSN");
 
             info.DownloadHost = Environment.GetEnvironmentVariable("S3_DOWNLOAD_HOST");
 

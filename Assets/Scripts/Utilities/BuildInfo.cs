@@ -23,6 +23,7 @@ namespace Simulator.Utilities
         public string Version;
         public string GitCommit;
         public string GitBranch;
+        public string SentryDSN;
 
         public string DownloadHost;
         public BuildItem[] DownloadEnvironments;

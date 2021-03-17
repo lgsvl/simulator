@@ -13,7 +13,8 @@
         "Unity.Mathematics",
         "Unity.Formats.Fbx.Editor",
         "Unity.RenderPipelines.HighDefinition.Config.Runtime",
-        "LiteNetLib"
+        "LiteNetLib",
+        "Sentry"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

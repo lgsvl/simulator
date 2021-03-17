@@ -1,0 +1,26 @@
+{
+  "name": "io.sentry.sentry-unity-lite",
+  "version": "1.0.2",
+  "displayName": "Sentry Unity Lite",
+  "description": "Sentry SDK for Unity",
+  "unity": "2018.1",
+  "license": "MIT",
+  "keywords": [
+    "logging",
+    "diagnostics"
+  ],
+  "author": {
+    "name": "Sentry Application Monitoring",
+    "email": "oss@sentry.io",
+    "url": "https://github.com/getsentry/sentry-unity-lite"
+  },
+  "samples": [
+    {
+      "displayName": "Demo",
+      "description": "Demo application for Sentry",
+      "path": "Samples~/Demo"
+    }
+  ],
+  "dependencies": {},
+  "type": "library"
+}

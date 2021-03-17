@@ -270,6 +270,16 @@ namespace Simulator
                 StartSimulation(devSim);
 #endif
             }
+
+            if (!string.IsNullOrEmpty(info?.SentryDSN))
+            {
+                var sentry = gameObject.AddComponent<SentrySdk>();
+                sentry.Dsn = info.SentryDSN;
+                sentry.Version = $"{info?.Version}-{info?.GitCommit}";
+                sentry.SendDefaultPii = false;
+                sentry.Debug = false;
+                sentry.AutoGenerateBreadcrumb = false;
+            }
         }
 
         void OnApplicationQuit()

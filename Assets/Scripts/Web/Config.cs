@@ -70,6 +70,8 @@ namespace Simulator.Web
 
         public static bool SensorDebugModeEnabled = false;
 
+        public static string SentryDSN = "";
+
 #if UNITY_EDITOR
         [UnityEditor.InitializeOnLoadMethod]
 #else

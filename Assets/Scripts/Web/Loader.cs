@@ -237,8 +237,6 @@ namespace Simulator
         {
             stopWatch.Start();
             var info = Resources.Load<BuildInfo>("BuildInfo");
-            SIM.Init(info == null ? "Development" : info.Version);
-            SIM.LogSimulation(SIM.Simulation.ApplicationStart);
             Application.wantsToQuit += CleanupOnExit;
 
             if (Instance != null)
@@ -277,7 +275,6 @@ namespace Simulator
         void OnApplicationQuit()
         {
             stopWatch.Stop();
-            SIM.LogSimulation(SIM.Simulation.ApplicationExit, value: (long)stopWatch.Elapsed.TotalSeconds);
         }
 
         private void Update()
@@ -574,7 +571,6 @@ namespace Simulator
                         {
                             SceneManager.MoveGameObjectToScene(ApiManager.Instance.gameObject, SceneManager.GetActiveScene());
                         }
-                        SIM.LogSimulation(SIM.Simulation.ApplicationClick, "Exit");
                         var loader = SceneManager.LoadSceneAsync(Instance.LoaderScene);
                         loader.completed += op =>
                         {

@@ -100,7 +100,6 @@ namespace Simulator.Api.Commands
 
                 var loader = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
                 yield return new WaitUntil(() => loader.isDone);
-                SIM.LogAPI(SIM.API.SimulationLoad, sceneName);
 
                 if (Loader.Instance.SimConfig != null)
                 {

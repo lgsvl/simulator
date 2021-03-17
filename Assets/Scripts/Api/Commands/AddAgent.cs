@@ -155,7 +155,6 @@ namespace Simulator.Api.Commands
                     }
 
                     api.SendResult(this, new JSONString(uid));
-                    SIM.LogAPI(SIM.API.AddAgentEgo, name);
                 }
                 else if (type == (int)AgentType.Npc)
                 {
@@ -189,7 +188,7 @@ namespace Simulator.Api.Commands
                     api.Agents.Add(uid, npcController.gameObject);
                     api.AgentUID.Add(npcController.gameObject, uid);
                     api.SendResult(this, new JSONString(uid));
-                    SIM.LogAPI(SIM.API.AddAgentNPC, name);
+
                     // Override the color argument as NPCController may change the NPC color
                     if (Loader.Instance.Network.IsMaster)
                     {
@@ -232,7 +231,6 @@ namespace Simulator.Api.Commands
                     api.Agents.Add(uid, pedController.gameObject);
                     api.AgentUID.Add(pedController.gameObject, uid);
                     api.SendResult(this, new JSONString(uid));
-                    SIM.LogAPI(SIM.API.AddAgentPedestrian, name);
                 }
                 else
                 {

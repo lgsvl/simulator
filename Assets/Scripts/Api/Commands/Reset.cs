@@ -18,7 +18,6 @@ namespace Simulator.Api.Commands
         {
             var api = ApiManager.Instance;
             await api.Reset();
-            SIM.LogAPI(SIM.API.SimulationReset);
             ApiManager.Instance.SendResult(sourceCommand);
         }
 

@@ -183,16 +183,7 @@ public class VehicleController : AgentController, ITriggerAgent
 
     private void OnDisable()
     {
-        if (Config == null) return;
-        SIM.LogSimulation(SIM.Simulation.VehicleStop, Config.Name, elapsedTime);
-        SIM.LogSimulation(SIM.Simulation.BridgeTypeStop, Config.Bridge != null ? Config.Bridge.Name : "None", elapsedTime);
-
-        if (Config.Sensors == null)
-            return;
-        foreach (var sensor in Config.Sensors)
-        {
-            SIM.LogSimulation(SIM.Simulation.SensorStop, sensor.Name, elapsedTime);
-        }
+        //
     }
 
     private void SensorsControllerOnSensorsChanged()
@@ -238,7 +229,6 @@ public class VehicleController : AgentController, ITriggerAgent
         {
             ApiManager.Instance?.AddCollision(gameObject, collision.gameObject, collision);
             SimulatorManager.Instance.AnalysisManager.IncrementEgoCollision(AgentController.GTID, transform.position, dynamics.RB.velocity, otherVel, otherLayer);
-            SIM.LogSimulation(SIM.Simulation.EgoCollision);
         }
     }
 
@@ -253,7 +243,6 @@ public class VehicleController : AgentController, ITriggerAgent
         {
             ApiManager.Instance?.AddCollision(gameObject, other.attachedRigidbody.gameObject);
             SimulatorManager.Instance.AnalysisManager.IncrementEgoCollision(AgentController.GTID, transform.position, dynamics.RB.velocity, otherVel, otherLayer);
-            SIM.LogSimulation(SIM.Simulation.EgoCollision);
         }
     }
 }

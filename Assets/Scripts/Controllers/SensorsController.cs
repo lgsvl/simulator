@@ -193,7 +193,6 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                     var sensorBase = sensor.GetComponent<SensorBase>();
                     sensorBase.Name = name;
                     sensor.name = name;
-                    SIM.LogSimulation(SIM.Simulation.SensorStart, name);
                     if (AgentBridgeClient != null)
                     {
                         sensor.GetComponent<SensorBase>().OnBridgeSetup(AgentBridgeClient.Bridge);

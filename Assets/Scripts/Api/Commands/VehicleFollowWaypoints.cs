@@ -61,7 +61,6 @@ namespace Simulator.Api.Commands
                 waypointFollow.SetFollowWaypoints(wp, loop); // TODO use NPCController to init waypoint data
                 api.RegisterAgentWithWaypoints(npc.gameObject);
                 api.SendResult(this);
-                SIM.LogAPI(SIM.API.FollowWaypoints, "NPC");
             }
             else
             {

@@ -23,7 +23,6 @@ namespace Simulator.Api.Commands
             {
                 api.StopLine.Add(obj);
                 api.SendResult(this);
-                SIM.LogAPI(SIM.API.OnStopLineSet);
             }
             else
             {

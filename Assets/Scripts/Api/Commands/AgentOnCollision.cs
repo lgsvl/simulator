@@ -23,7 +23,6 @@ namespace Simulator.Api.Commands
             {
                 api.Collisions.Add(obj);
                 api.SendResult(this);
-                SIM.LogAPI(SIM.API.OnCollisionSet, obj.tag);
             }
             else
             {

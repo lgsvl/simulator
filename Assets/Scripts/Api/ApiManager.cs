@@ -279,7 +279,6 @@ namespace Simulator.Api
             Server.AddWebSocketService<SimulatorClient>("/");
             Server.KeepClean = false;
             Server.Start();
-            SIM.LogAPI(SIM.API.SimulationCreate);
             Loader.Instance.Network.MessagesManager?.RegisterObject(this);
             ApiLock.Initialize();
         }
@@ -294,8 +293,6 @@ namespace Simulator.Api
 
             Instance = null;
             SimulatorManager.SetTimeScale(1.0f);
-            SIM.LogAPI(SIM.API.SimulationDestroy);
-            SIM.APIOnly = false;
             Loader.Instance.Network.MessagesManager?.UnregisterObject(this);
             ApiLock.Deinitialize();
         }

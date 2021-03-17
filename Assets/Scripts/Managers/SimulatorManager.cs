@@ -119,8 +119,6 @@ public class SimulatorManager : MonoBehaviour
             DestroyImmediate(gameObject);
         }
 
-        SIM.StartSession();
-
         var unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
         CurrentTime = (DateTime.UtcNow - unixEpoch).TotalSeconds;
         SessionStartTime = CurrentTime;
@@ -236,20 +234,6 @@ public class SimulatorManager : MonoBehaviour
                 controls.Disable();
             }
         }
-        SIM.APIOnly = apiMode;
-        SIM.LogSimulation(SIM.Simulation.SimulationStart, simulationName);
-        SIM.LogSimulation(SIM.Simulation.ClusterNameStart, clusterName);
-        SIM.LogSimulation(SIM.Simulation.MapStart, string.IsNullOrEmpty(mapName) ? UnityEngine.SceneManagement.SceneManager.GetActiveScene().name : mapName);
-        SIM.LogSimulation(SIM.Simulation.HeadlessModeStart, state: headless);
-        SIM.LogSimulation(SIM.Simulation.InteractiveModeStart, state: interactive);
-        SIM.LogSimulation(SIM.Simulation.UsePredefinedSeedStart, state: useSeed);
-        SIM.LogSimulation(SIM.Simulation.NPCStart, state: npc);
-        SIM.LogSimulation(SIM.Simulation.RandomPedestrianStart, state: pedestrian);
-        SIM.LogSimulation(SIM.Simulation.TimeOfDayStart, timeOfDay == "" ? string.Format("{0:hh}:{0:mm}", TimeSpan.FromHours(EnvironmentEffectsManager.CurrentTimeOfDay)) : timeOfDay);
-        SIM.LogSimulation(SIM.Simulation.RainStart, rain == 0f ? EnvironmentEffectsManager.Rain.ToString() : rain.ToString());
-        SIM.LogSimulation(SIM.Simulation.WetnessStart, wet == 0f ? EnvironmentEffectsManager.Wet.ToString() : wet.ToString());
-        SIM.LogSimulation(SIM.Simulation.FogStart, fog == 0f ? EnvironmentEffectsManager.Fog.ToString() : fog.ToString());
-        SIM.LogSimulation(SIM.Simulation.CloudinessStart, cloud == 0f ? EnvironmentEffectsManager.Cloud.ToString() : cloud.ToString());
         InitSegmenationColors();
         WireframeBoxes = gameObject.AddComponent<WireframeBoxes>();
         if (Loader.Instance != null) TimeManager.Initialize(Loader.Instance.Network.MessagesManager);
@@ -303,31 +287,6 @@ public class SimulatorManager : MonoBehaviour
         if (IsInitialized)
         {
             controls.Disable();
-            var elapsedTime = GetElapsedTime(SessionStartTime);
-            SIM.LogSimulation(SIM.Simulation.HeadlessModeStop, value: elapsedTime, state: headless);
-            SIM.LogSimulation(SIM.Simulation.InteractiveModeStop, value: elapsedTime, state: interactive);
-            SIM.LogSimulation(SIM.Simulation.UsePredefinedSeedStop, state: useSeed);
-            SIM.LogSimulation(SIM.Simulation.NPCStop, value: elapsedTime, state: npc);
-            SIM.LogSimulation(SIM.Simulation.RandomPedestrianStop, value: elapsedTime, state: pedestrian);
-            SIM.LogSimulation(SIM.Simulation.TimeOfDayStop,
-                timeOfDay == ""
-                    ? string.Format("{0:hh}:{0:mm}", TimeSpan.FromHours(EnvironmentEffectsManager.CurrentTimeOfDay))
-                    : timeOfDay, value: elapsedTime);
-            SIM.LogSimulation(SIM.Simulation.RainStop,
-                rain == 0f ? EnvironmentEffectsManager.Rain.ToString() : rain.ToString(), elapsedTime);
-            SIM.LogSimulation(SIM.Simulation.WetnessStop,
-                wet == 0f ? EnvironmentEffectsManager.Wet.ToString() : wet.ToString(), elapsedTime);
-            SIM.LogSimulation(SIM.Simulation.FogStop,
-                fog == 0f ? EnvironmentEffectsManager.Fog.ToString() : fog.ToString(), elapsedTime);
-            SIM.LogSimulation(SIM.Simulation.CloudinessStop,
-                cloud == 0f ? EnvironmentEffectsManager.Cloud.ToString() : cloud.ToString(), elapsedTime);
-            SIM.LogSimulation(SIM.Simulation.MapStop,
-                string.IsNullOrEmpty(mapName)
-                    ? UnityEngine.SceneManagement.SceneManager.GetActiveScene().name
-                    : mapName, elapsedTime);
-            SIM.LogSimulation(SIM.Simulation.ClusterNameStop, clusterName, elapsedTime);
-            SIM.LogSimulation(SIM.Simulation.SimulationStop, simulationName, elapsedTime);
-            SIM.StopSession();
         }
 
         TimeManager.Deinitialize();

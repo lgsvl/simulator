@@ -701,7 +701,6 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
         {
             ApiManager.Instance?.AddCollision(gameObject, collision.gameObject, collision);
             SimulatorManager.Instance.AnalysisManager.IncrementPedCollision();
-            SIM.LogSimulation(SIM.Simulation.NPCCollision);
         }
 
         if ((LayerMask.GetMask("Agent", "NPC", "Pedestrian", "Obstacle") & 1 << collision.gameObject.layer) != 0)

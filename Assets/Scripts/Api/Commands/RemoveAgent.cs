@@ -47,7 +47,6 @@ namespace Simulator.Api.Commands
                 api.Agents.Remove(uid);
                 api.AgentUID.Remove(obj);
                 api.SendResult(this);
-                SIM.LogAPI(SIM.API.RemoveAgent, obj.name);
             }
             else
             {

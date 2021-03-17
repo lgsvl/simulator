@@ -227,7 +227,6 @@ namespace Simulator.Web
             else if (ConnectionManager.Status == ConnectionManager.ConnectionStatus.Online)
             {
                 Application.OpenURL(Simulator.Web.Config.CloudUrl);
-                SIM.LogSimulation(SIM.Simulation.ApplicationClick, "Open Browser");
             }
         }
 

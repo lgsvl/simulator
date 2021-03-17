@@ -61,8 +61,6 @@ public class AgentManager : MonoBehaviour
             baseLink.transform.SetParent(go.transform, false);
         }
 
-        SIM.LogSimulation(SIM.Simulation.VehicleStart, config.Name);
-        
         ActiveAgents.Add(agentController.Config);
         agentController.GTID = ++SimulatorManager.Instance.GTIDs;
         agentController.Config.GTID = agentController.GTID;
@@ -78,7 +76,6 @@ public class AgentManager : MonoBehaviour
                 bridgeClient.Connect(config.Connection);
             }
         }
-        SIM.LogSimulation(SIM.Simulation.BridgeTypeStart, config.Bridge != null ? config.Bridge.Name : "None");
         var sensorsController = go.AddComponent<SensorsController>();
         agentController.AgentSensorsController = sensorsController;
 

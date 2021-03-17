@@ -53,7 +53,6 @@ namespace Simulator.Api.Commands
                 ped.FollowWaypoints(wp, loop);
                 api.RegisterAgentWithWaypoints(ped.gameObject);
                 api.SendResult(this);
-                SIM.LogAPI(SIM.API.FollowWaypoints, "Pedestrian");
             }
             else
             {

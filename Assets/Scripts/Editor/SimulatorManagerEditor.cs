@@ -78,11 +78,6 @@ public static class SimulatorManagerEditor
         {
             //if (Simulator.Loader.Instance != null)
             //    Simulator.Loader.Instance.OnApplicationQuit();
-            //if (stopWatch.IsRunning)
-            //{
-            //    stopWatch.Stop();
-            //    SIM.LogSimulation(SIM.Simulation.ApplicationExit, value: (long)stopWatch.Elapsed.TotalSeconds);
-            //}
         }
     }
 }

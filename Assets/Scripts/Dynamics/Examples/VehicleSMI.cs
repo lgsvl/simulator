@@ -324,7 +324,6 @@ public class VehicleSMI : MonoBehaviour, IVehicleDynamics
         if ((MileTicker * 0.00062137f) > 1)
         {
             MileTicker = 0;
-            SIM.LogSimulation(SIM.Simulation.MileTick);
         }
     }
 

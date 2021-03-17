@@ -213,7 +213,6 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
         {
             ApiManager.Instance?.AddCollision(rb.gameObject, other.attachedRigidbody.gameObject);
             SimulatorManager.Instance.AnalysisManager.IncrementNPCCollision();
-            SIM.LogSimulation(SIM.Simulation.NPCCollision);
             if(_ActiveBehaviour) _ActiveBehaviour.OnAgentCollision(other.gameObject);
         }
     }
@@ -896,7 +895,6 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
         {
             ApiManager.Instance?.AddCollision(gameObject, collision.gameObject, collision);
             SimulatorManager.Instance.AnalysisManager.IncrementNPCCollision();
-            SIM.LogSimulation(SIM.Simulation.NPCCollision);
             ActiveBehaviour?.OnAgentCollision(collision.gameObject);
         }
     }

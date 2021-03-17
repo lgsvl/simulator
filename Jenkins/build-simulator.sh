@@ -81,6 +81,12 @@ else
   NPCS=
 fi
 
+if [ -n ${SENTRY_DSN} ]; then
+  echo "SENTRY_DSN=${SENTRY_DSN}"
+else
+  echo "Warning: SENTRY_DSN is not set"
+fi
+
 function check_unity_log {
     ${CHECK_UNITY_LOG} $@
 }

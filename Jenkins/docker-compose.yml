@@ -17,6 +17,7 @@ services:
       - GIT_COMMIT
       - GIT_BRANCH
       - GIT_TAG
+      - SENTRY_DSN
       - UNITY_USERNAME
       - UNITY_PASSWORD
       - UNITY_SERIAL

@@ -45,6 +45,7 @@ pipeline {
     GIT_BRANCH = "${sh(script:"echo ${env.BRANCH_NAME} | sed 's#^refs/heads/##g' | tr / -  | tr [:upper:] [:lower:]", returnStdout: true).trim()}"
     OUTPUT_SUFFIX = "${GIT_BRANCH}-${JENKINS_BUILD_ID}"
     CODE_SIGNING_FILE = "/dev/urandom"
+    SENTRY_DSN = credentials("SIMULATOR_SENTRY_DSN")
   }
 
   stages {

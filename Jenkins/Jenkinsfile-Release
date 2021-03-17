@@ -34,6 +34,7 @@ pipeline {
     OUTPUT_SUFFIX = "${sh(script:"echo ${env.GIT_TAG} | sed 's#^refs/tags/##g' | tr / -  | tr [:upper:] [:lower:]", returnStdout: true).trim()}"
     CODE_SIGNING_FILE = "/dev/urandom"
     FORCE_REBUILD = "${FORCE_REBUILD}"
+    SENTRY_DSN = credentials("SIMULATOR_SENTRY_DSN_RELEASE")
   }
 
   stages {

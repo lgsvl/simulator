@@ -21,7 +21,7 @@
 
 ## Stay Informed
 
-Check out our latest [news](https://www.svlsimulator.com/news/) and subscribe to our [mailing list](http://eepurl.com/gpuhkb) to get the latest updates.
+Check out our latest [news](https://www.svlsimulator.com/news/) and subscribe to our [mailing list](http://eepurl.com/htlRjH) to get the latest updates.
 
 
 ## Introduction

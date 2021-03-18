@@ -30,6 +30,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
     public Bounds Bounds;
     [HideInInspector]
     public List<Transform> CinematicCameraTransforms = new List<Transform>();
+    public Transform DriverViewTransform;
 
     private Renderer headLightRenderer;
     private Renderer brakeLightRenderer;
@@ -408,6 +409,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         }
 
         CreateCinematicTransforms();
+        CreateDriverViewTransform();
 
         // GroundTruth Box Collider
         var gtBox = new GameObject("GroundTruthBox");
@@ -489,6 +491,22 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         cinematicT.SetParent(transform, true);
         cinematicT.LookAt(Bounds.center + new Vector3(0f, 0.25f, 0f));
         CinematicCameraTransforms.Add(cinematicT);
+    }
+
+    private void CreateDriverViewTransform()
+    {
+        if (DriverViewTransform == null)
+        {
+            // raycast down to 
+            if (Physics.Raycast(new Vector3(Bounds.center.x, Bounds.max.y * 2f, Bounds.center.z + Bounds.max.z / 4f), Vector3.down, out RaycastHit hit, LayerMask.GetMask("Agent")))
+            {
+                DriverViewTransform = new GameObject("DriverView").transform;
+                DriverViewTransform.position = hit.point;
+                DriverViewTransform.rotation = Quaternion.identity;
+                DriverViewTransform.SetParent(transform, true);
+            }
+            
+        }
     }
 
     public void IncrementHeadLightState()

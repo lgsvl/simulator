@@ -13,7 +13,8 @@ public enum CameraStateType
 {
     Free = 0,
     Follow = 1,
-    Cinematic = 2
+    Cinematic = 2,
+    Driver = 3,
 };
 
 public enum CinematicStateType
@@ -67,6 +68,8 @@ public class SimulatorCameraController : MonoBehaviour
     private float elapsedCinematicTime = 0f;
     private float cinematicCycleDuration = 8f;
     private List<Transform> cinematicCameraTransforms;
+
+    private Transform DriverViewCameraTransform;
 
     private void Awake()
     {
@@ -178,6 +181,8 @@ public class SimulatorCameraController : MonoBehaviour
                 break;
             case CameraStateType.Cinematic:
                 UpdateCinematicCamera();
+                break;
+            case CameraStateType.Driver:
                 break;
         }
     }
@@ -399,6 +404,23 @@ public class SimulatorCameraController : MonoBehaviour
         elapsedCinematicTime = 0f;
         cinematicCameraTransforms = targetObject.GetComponent<VehicleActions>().CinematicCameraTransforms;
         RandomCinematicState();
+        SimulatorManager.Instance.UIManager?.SetCameraButtonState();
+    }
+
+    public void SetDriverViewCameraState()
+    {
+        SimulatorManager.Instance?.UIManager?.ResetCinematicAlpha();
+        CurrentCameraState = CameraStateType.Driver;
+        targetObject = SimulatorManager.Instance.AgentManager.CurrentActiveAgent.transform;
+        DriverViewCameraTransform = targetObject.GetComponent<VehicleActions>().DriverViewTransform;
+        if (DriverViewCameraTransform != null)
+        {
+            transform.SetParent(DriverViewCameraTransform);
+            transform.localPosition = Vector3.zero;
+            transform.localRotation = Quaternion.identity;
+            thisCamera.transform.localRotation = Quaternion.identity;
+            thisCamera.transform.localPosition = Vector3.zero;
+        }
         SimulatorManager.Instance.UIManager?.SetCameraButtonState();
     }
 

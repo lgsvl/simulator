@@ -125,6 +125,7 @@ public class UIManager : MonoBehaviour
     public Text LockedText;
     public Text UnlockedText;
     public Text CinematicText;
+    public Text DriverText;
     public Text CameraStateText;
 
     [Space(5, order = 0)]
@@ -314,16 +315,25 @@ public class UIManager : MonoBehaviour
                 LockedText.gameObject.SetActive(false);
                 UnlockedText.gameObject.SetActive(true);
                 CinematicText.gameObject.SetActive(false);
+                DriverText.gameObject.SetActive(false);
                 break;
             case CameraStateType.Follow:
                 LockedText.gameObject.SetActive(true);
                 UnlockedText.gameObject.SetActive(false);
                 CinematicText.gameObject.SetActive(false);
+                DriverText.gameObject.SetActive(false);
                 break;
             case CameraStateType.Cinematic:
                 LockedText.gameObject.SetActive(false);
                 UnlockedText.gameObject.SetActive(false);
                 CinematicText.gameObject.SetActive(true);
+                DriverText.gameObject.SetActive(false);
+                break;
+            case CameraStateType.Driver:
+                LockedText.gameObject.SetActive(false);
+                UnlockedText.gameObject.SetActive(false);
+                CinematicText.gameObject.SetActive(false);
+                DriverText.gameObject.SetActive(true);
                 break;
         }
     }

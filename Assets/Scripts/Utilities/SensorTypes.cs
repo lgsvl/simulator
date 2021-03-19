@@ -131,7 +131,7 @@ namespace Simulator.Utilities
 
             if (typeof(CameraSensorBase).IsAssignableFrom(sbType))
             {
-                const string ppName = "Postprocessing";
+                const string ppName = DefaultPostprocessingAttribute.PostprocessingFieldName;
                 if (parameters.Any(x => x.Name == ppName))
                     throw new Exception($"Serialized `{ppName}` field marked with {nameof(SensorParameter)} attribute conflicts with postprocessing data for {typeof(CameraSensorBase)}.");
 

@@ -15,7 +15,11 @@ namespace Simulator.Sensors.Postprocessing
     [AttributeUsage(AttributeTargets.Class)]
     public class DefaultPostprocessingAttribute : Attribute
     {
+        public const string PostprocessingFieldName = nameof(CameraSensorBase.Postprocessing);
+
         private readonly List<PostProcessData> defaultInstances;
+
+        public List<PostProcessData> GetDefaultInstances => new List<PostProcessData>(defaultInstances);
 
         public DefaultPostprocessingAttribute([NotNull] params Type[] types)
         {

@@ -22,6 +22,7 @@ using Simulator.Network.Core.Messaging;
 using Simulator.Network.Core.Messaging.Data;
 using Simulator.Network.Shared;
 using Simulator.Sensors;
+using Simulator.Sensors.Postprocessing;
 using Simulator.Utilities;
 using Simulator.Web;
 using UnityEngine;
@@ -409,6 +410,16 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                 continue;
 
             field.SetValue(sb, defaultInstance);
+        }
+
+        if (sb is CameraSensorBase cameraBase && cameraBase.Postprocessing == null && sbType.IsDefined(typeof(DefaultPostprocessingAttribute), true))
+        {
+            if (cameraBase.Postprocessing == null)
+            {
+                var attr = sbType.GetCustomAttribute<DefaultPostprocessingAttribute>();
+                var ppInstances = attr.GetDefaultInstances;
+                cameraBase.Postprocessing = ppInstances;
+            }
         }
 
         return sensor;

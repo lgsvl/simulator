@@ -1,6 +1,6 @@
-# Running LGSVL Simulator in Docker
+# Running SVL Simulator in Docker
 
-This folder contains Dockerfile and instructions how to run LGSVL Simulator in a Docker container. `Dockerfile` creates a minimal container image with Vulkan capabilities, and downloads and unpacks the LGSVL Simulator under `/opt/simulator`.
+This folder contains a Dockerfile and instructions how to run SVL Simulator in a Docker container. `Dockerfile` creates a minimal container image with Vulkan capabilities, and downloads and unpacks the SVL Simulator under `/opt/simulator`.
 
 The container image should work on __Ubuntu 18.04__ and on __ArchLinux__.
 

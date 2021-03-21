@@ -26,11 +26,9 @@ $ docker build --pull --no-cache [--build-arg simulator_version=<VERSION>|simula
 
 ## Launch the container image
 
-Make sure you have installed the [**NVIDIA Container Toolkit**](https://github.com/NVIDIA/nvidia-docker#quickstart) and the
-[**NVIDIA Container Runtime**](https://github.com/NVIDIA/nvidia-container-runtime#installation), and have
-[registered the runtime](https://github.com/NVIDIA/nvidia-container-runtime#docker-engine-setup) with the Docker Engine.
+Make sure you have installed Docker (19.03 or later preferred) and the [**NVIDIA Container Toolkit**](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html).
 
-To run the simulator using the host's X Server, use the following command:
+To run the simulator using the host's X Server, first run the simulator outside of the container, link it to the cloud, and exit. Then use the following command:
 
 ```shell
 # Replace "--gpus=all" with "--runtime=nvidia" if you are using Docker < v19.03 or have `nvidia-docker` installed instead of the NVIDIA Container Toolkit.
@@ -41,11 +39,8 @@ $ docker run -ti \
      -e XAUTHORITY=/tmp/.Xauthority \
      -v ${XAUTHORITY}:/tmp/.Xauthority \
      -v /tmp/.X11-unix:/tmp/.X11-unix \
-     -v svlsimulator-data:/root/.config/unity3d \
+     -v ~/.config/unity3d:/root/.config/unity3d \
      svlsimulator[:<VERSION>]
 ```
 
-This will store persistent data (database, downloaded maps/vehicles, logfile) in the `svlsimulator-data` Docker volume.
-
-The **Open Browser...** button shown by the simulator does not function when it is running in a container. Instead, you must
-manually browse to <http://localhost:8080>.
+Note that only simulations which use the __API Only__ and __Random Traffic__ runtime templates can be run. Also, the **OPEN BROWSER** and **Visual Editor** buttons do not function.

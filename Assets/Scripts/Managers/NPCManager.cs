@@ -96,8 +96,29 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     private Ray TestRay;
     private RaycastHit[] RayCastHits = new RaycastHit[1];
 
+    public delegate void SpawnCallbackType(NPCController controller);
+    List<SpawnCallbackType> SpawnCallbacks = new List<SpawnCallbackType>();
+
     public delegate void DespawnCallbackType(NPCController controller);
     List<DespawnCallbackType> DespawnCallbacks = new List<DespawnCallbackType>();
+
+    public void RegisterSpawnCallback(SpawnCallbackType callback)
+    {
+        SpawnCallbacks.Add(callback);
+    }
+
+    public void DeregisterSpawnCallback(SpawnCallbackType callback)
+    {
+        if (!SpawnCallbacks.Remove(callback))
+        {
+            Debug.LogError("Error in DeregisterDespawnCallback. " + callback + " is not registered before.");
+        }
+    }
+
+    public void ClearSpawnCallbacks()
+    {
+        SpawnCallbacks.Clear();
+    }
 
     public void RegisterDespawnCallback(DespawnCallbackType callback)
     {
@@ -241,6 +262,11 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         if (Loader.Instance.Network.IsClusterSimulation)
         {
             ClusterSimulationUtilities.AddDistributedComponents(go);
+        }
+
+        foreach (var callback in SpawnCallbacks)
+        {
+            callback(NPCController);
         }
 
         return NPCController;
@@ -415,6 +441,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
         CurrentPooledNPCs.Clear();
         ClearDespawnCallbacks();
+        ClearSpawnCallbacks();
     }
 
     private string GetNPCLabel(string npc_name)

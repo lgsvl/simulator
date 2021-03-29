@@ -44,3 +44,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   waypointsMaterial: {fileID: 2100000, guid: 5d35dbaf97b8cae47996a72c0b8dbc1f, type: 2}
+  defaultRendererPrefab: {fileID: 741628327851849148, guid: 88c8daf7b2e56814eb65fd10d61b5d62,
+    type: 3}

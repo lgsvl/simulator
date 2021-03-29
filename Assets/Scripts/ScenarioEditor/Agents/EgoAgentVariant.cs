@@ -35,6 +35,26 @@ namespace Simulator.ScenarioEditor.Agents
         /// All available sensors configurations for this ego agent variant
         /// </summary>
         public List<SensorsConfiguration> SensorsConfigurations { get; set; } = new List<SensorsConfiguration>();
+
+        /// <summary>
+        /// Flag that indicates if the default are already cached
+        /// </summary>
+        private bool cachedDefaults;
+
+        /// <summary>
+        /// Should the default collider be added to the variant instances
+        /// </summary>
+        private bool requiresDefaultCollider;
+
+        /// <summary>
+        /// Should the default renderer be added to the variant instances
+        /// </summary>
+        private bool requiresDefaultRenderer;
+
+        /// <summary>
+        /// Bounds that are used to create a default collider or mesh renderer
+        /// </summary>
+        private Bounds defaultBounds;
         
         /// <summary>
         /// Constructor
@@ -48,6 +68,74 @@ namespace Simulator.ScenarioEditor.Agents
         public EgoAgentVariant(ScenarioAgentSource source, string name, GameObject prefab, string description,
             string guid, string assetGuid) : base(source, name, prefab, description, guid, assetGuid)
         {
+        }
+
+        /// <summary>
+        /// Calculates the default values and caches them
+        /// </summary>
+        /// <param name="defaultRendererPrefab">Renderer prefab that will be instantiated if instance has no mesh renderers</param>
+        private void CacheDefaults(GameObject defaultRendererPrefab)
+        {
+            if (cachedDefaults)
+                return;
+            
+            var colliders = Prefab.GetComponentsInChildren<Collider>();
+            var hasMeshRenderer = Prefab.GetComponentInParent<MeshRenderer>();
+            defaultBounds = new Bounds();
+            if (colliders.Length == 0)
+            {
+                //Add a default collider if there is no collider
+                if (hasMeshRenderer)
+                {
+                    var renderers = Prefab.GetComponentsInParent<MeshRenderer>();
+                    foreach (var renderer in renderers)
+                        defaultBounds.Encapsulate(renderer.bounds);
+                    requiresDefaultRenderer = false;
+                    requiresDefaultCollider = true;
+                }
+                else
+                {
+                    var renderers = defaultRendererPrefab.GetComponentsInParent<MeshRenderer>();
+                    foreach (var renderer in renderers)
+                        defaultBounds.Encapsulate(renderer.bounds);
+                    requiresDefaultRenderer = true;
+                    requiresDefaultCollider = defaultRendererPrefab.GetComponentInChildren<Collider>() == null;
+                }
+            }
+            else
+            {
+                foreach (var collider in colliders)
+                {
+                    defaultBounds.Encapsulate(collider.bounds);
+                }
+                requiresDefaultRenderer = !hasMeshRenderer;
+                requiresDefaultCollider = true;
+            }
+
+            cachedDefaults = true;
+        }
+
+        /// <summary>
+        /// Adds the required components to the instance
+        /// </summary>
+        /// <param name="instance">Instance that will get required components</param>
+        /// <param name="defaultRendererPrefab">Renderer prefab that will be instantiated if instance has no mesh renderers</param>
+        public void AddRequiredComponents(GameObject instance, GameObject defaultRendererPrefab)
+        {
+            CacheDefaults(defaultRendererPrefab);
+
+            if (requiresDefaultRenderer && instance.GetComponentInChildren<MeshRenderer>() == null)
+            {
+                Object.Instantiate(defaultRendererPrefab, instance.transform);
+            }
+            
+            if (requiresDefaultCollider && instance.GetComponentInChildren<Collider>() == null)
+            {
+                var collider = instance.AddComponent<BoxCollider>();
+                collider.isTrigger = true;
+                collider.center = defaultBounds.center;
+                collider.size = defaultBounds.size;
+            }
         }
     }
 }

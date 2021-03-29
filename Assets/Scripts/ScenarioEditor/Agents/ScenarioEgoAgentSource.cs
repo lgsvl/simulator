@@ -38,6 +38,11 @@ namespace Simulator.ScenarioEditor.Agents
         /// </summary>
         private GameObject draggedInstance;
 
+        /// <summary>
+        /// Renderer prefab that will be instantiated if instance has no mesh renderers
+        /// </summary>
+        public GameObject defaultRendererPrefab;
+
         /// <inheritdoc/>
         public override string ElementTypeName => "EgoAgent";
 
@@ -97,9 +102,11 @@ namespace Simulator.ScenarioEditor.Agents
         public override GameObject GetModelInstance(SourceVariant variant)
         {
             var instance = base.GetModelInstance(variant);
+            ((EgoAgentVariant)variant).AddRequiredComponents(instance, defaultRendererPrefab);
             var colliders = instance.GetComponentsInChildren<Collider>();
-            foreach (var collider in colliders) collider.isTrigger = true;
-            
+            foreach (var collider in colliders)
+                collider.isTrigger = true;
+
             //Destroy all the custom components from the ego vehicle
             var allComponents = instance.GetComponents<MonoBehaviour>();
             for (var i = 0; i < allComponents.Length; i++)

@@ -63,8 +63,8 @@ fi
 
 SUFFIX=${SUFFIX//\//-}
 
-if [ ! -z ${SIMULATOR_CONTROLLABLES+x} ]; then
-  CONTROLLABLES="-buildBundles -buildControllables ${SIMULATOR_CONTROLLABLES}"
+if [ ! -z ${SIM_CONTROLLABLES+x} ]; then
+  CONTROLLABLES="-buildBundles -buildControllables ${SIM_CONTROLLABLES}"
 else
   CONTROLLABLES=
 fi

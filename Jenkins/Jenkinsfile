@@ -27,6 +27,7 @@ pipeline {
     booleanParam(name: "FORCE_CHECK", defaultValue: false, description: "")
     booleanParam(name: "FORCE_TEST", defaultValue: false, description: "")
     booleanParam(name: "UPLOAD_TO_ECR", defaultValue: false, description: "Enable uploading docker image with build simulator zip to the ECR.")
+    string(name: "BUILD_SIMULATOR_CONTROLLABLES", defaultValue: "${SIMULATOR_CONTROLLABLES}", description: "Controllables to build")
     string(name: "CLOUD_URL", defaultValue: "${SIMULATOR_WISE_STAGING_URL}", description: "")
     string(name: "SCENARIOS_RUNNER_DOCKER_TAG", defaultValue: "hdrp/scenarios/runner/jenkins:latest", description: "Repo and tag of scenarios runner docker image which will be bundled in zip archive")
     string(name: 'WISE_AWS_ECR_ACCOUNT_ID', defaultValue: '853285614468', description: 'The AWS account ID whose ECR will be used', trim: true)
@@ -87,6 +88,7 @@ pipeline {
           env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 1").trim()
           env.SIM_VEHICLES = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 1").trim()
           env.SIM_SENSORS = ""
+          env.SIM_CONTROLLABLES = env.BUILD_SIMULATOR_CONTROLLABLES
         }
 
         sh label:"SIMULATOR env vars", script:"printenv | grep -E 'SIMULATOR|^SIM_' | sort"
@@ -96,7 +98,7 @@ pipeline {
     stage("Checkout Controllables") {
       steps {
         script {
-          def repo_list = env.SIMULATOR_CONTROLLABLES
+          def repo_list = env.BUILD_SIMULATOR_CONTROLLABLES
           def repo_prefix = "Controllables"
 
           if (repo_list) {

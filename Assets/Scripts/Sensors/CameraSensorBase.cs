@@ -529,7 +529,7 @@ namespace Simulator.Sensors
                 LowFPSCalculatedTime += delta;
                 if (LowFPSCalculatedTime >= TargetFPSTime)
                 {
-                    LowFPSEvent(GetComponentInParent<AgentController>().GTID, delta, fps);
+                    LowFPSEvent(GetComponentInParent<IAgentController>().GTID, delta, fps);
                     LowFPSCalculatedTime = 0f;
                     LowFPS = true;
                 }

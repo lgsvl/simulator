@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -7,16 +7,13 @@
 
 using UnityEngine;
 using System.Collections.Generic;
-using Simulator;
 using Simulator.Api;
-using System.Linq;
 
-public class VehicleController : AgentController, ITriggerAgent
+public class VehicleController : AgentController
 {
     private IVehicleDynamics dynamics;
     private VehicleActions actions;
-    private SensorsController sensorsController;
-    private AgentController AgentController;
+    private IAgentController AgentController;
     private Rigidbody rb;
 
     private List<IVehicleInputs> inputs = new List<IVehicleInputs>();
@@ -36,21 +33,6 @@ public class VehicleController : AgentController, ITriggerAgent
     public override Vector3 Velocity => simpleVelocity;
     public override Vector3 Acceleration => simpleAcceleration;
 
-    public override SensorsController AgentSensorsController
-    {
-        get => sensorsController;
-        set
-        {
-            if (sensorsController == value)
-                return;
-            if (sensorsController != null)
-                sensorsController.SensorsChanged -= SensorsControllerOnSensorsChanged;
-            sensorsController = value;
-            if (sensorsController != null)
-                sensorsController.SensorsChanged += SensorsControllerOnSensorsChanged;
-        }
-    }
-
     private float turnSignalTriggerThreshold = 0.2f;
     private float turnSignalOffThreshold = 0.1f;
     private bool resetTurnIndicator = false;
@@ -61,11 +43,6 @@ public class VehicleController : AgentController, ITriggerAgent
     private bool sticky = false;
     private float stickySteering;
     private float stickAcceleraton;
-    
-    #region ITriggerAgent
-    Transform ITriggerAgent.AgentTransform => transform;
-    float ITriggerAgent.MovementSpeed => Velocity.magnitude;
-    #endregion
 
     public void Update()
     {
@@ -94,7 +71,7 @@ public class VehicleController : AgentController, ITriggerAgent
         vehicleName = Config.Name;
         dynamics = GetComponent<IVehicleDynamics>();
         actions = GetComponent<VehicleActions>();
-        AgentController = GetComponent<AgentController>();
+        AgentController = GetComponent<IAgentController>();
         rb = GetComponent<Rigidbody>();
         inputs.AddRange(GetComponentsInChildren<IVehicleInputs>());
         initialPosition = transform.position;
@@ -184,11 +161,6 @@ public class VehicleController : AgentController, ITriggerAgent
     private void OnDisable()
     {
         //
-    }
-
-    private void SensorsControllerOnSensorsChanged()
-    {
-        OnSensorsChanged();
     }
 
     public override void ResetPosition()

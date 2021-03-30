@@ -18,19 +18,13 @@ using Simulator.Network.Core.Messaging.Data;
 using UnityEngine;
 using UnityEngine.VFX;
 
-public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
+public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IMessageReceiver
 {
     public Texture lowCookie;
     public Texture highCookie;
 
-    private AgentController agentController;
+    private IAgentController agentController;
     private Rigidbody RB;
-
-    [HideInInspector]
-    public Bounds Bounds;
-    [HideInInspector]
-    public List<Transform> CinematicCameraTransforms = new List<Transform>();
-    public Transform DriverViewTransform;
 
     private Renderer headLightRenderer;
     private Renderer brakeLightRenderer;
@@ -62,7 +56,6 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
     private string key;
     public string Key => key ?? (key = $"{HierarchyUtilities.GetPath(transform)}VehicleActions");
     
-    public enum HeadLightState { OFF = 0, LOW = 1, HIGH = 2 };
     private HeadLightState _currentHeadLightState = HeadLightState.OFF;
     public HeadLightState CurrentHeadLightState
     {
@@ -116,12 +109,11 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
                 message.Content.PushEnum<HeadLightState>((int)value);
                 message.Content.PushEnum<VehicleActionsPropertyName>((int)VehicleActionsPropertyName.CurrentHeadLightState);
                 message.Type = DistributedMessageType.ReliableOrdered;
-                BroadcastMessage(message);
+                ((IMessageSender) this).BroadcastMessage(message);
             }
         }
     }
 
-    public enum WiperState { OFF = 0, LOW = 1, MED = 2, HIGH = 3 };
     private WiperState _currentWiperState = WiperState.OFF;
     public WiperState CurrentWiperState
     {
@@ -140,7 +132,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
                 message.Content.PushEnum<WiperState>((int)value);
                 message.Content.PushEnum<VehicleActionsPropertyName>((int)VehicleActionsPropertyName.CurrentWiperState);
                 message.Type = DistributedMessageType.ReliableOrdered;
-                BroadcastMessage(message);
+                ((IMessageSender) this).BroadcastMessage(message);
             }
         }
     }
@@ -350,11 +342,11 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
     private void SetNeededComponents()
     {
         var dynamics = GetComponent<VehicleSMI>();
-        agentController = GetComponent<AgentController>();
+        agentController = GetComponent<IAgentController>();
         var allRenderers = GetComponentsInChildren<Renderer>(true);
         var animators = GetComponentsInChildren<Animator>(true); // TODO wipers doors windows
 
-        Bounds = new Bounds(transform.position, Vector3.zero);
+        var bounds = new Bounds(transform.position, Vector3.zero);
         foreach (Renderer child in allRenderers)
         {
             if (child.name == "HeadLights")
@@ -405,8 +397,10 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
                     fogLightRenderer.material.SetFloat("_EmitIntensity", 0f);
                 }
             }
-            Bounds.Encapsulate(child.bounds);
+            bounds.Encapsulate(child.bounds);
         }
+
+        agentController.Bounds = bounds;
 
         CreateCinematicTransforms();
         CreateDriverViewTransform();
@@ -415,8 +409,8 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         var gtBox = new GameObject("GroundTruthBox");
         var gtBoxCollider = gtBox.AddComponent<BoxCollider>();
         gtBoxCollider.isTrigger = true;
-        gtBoxCollider.size = Bounds.size;
-        gtBoxCollider.center = new Vector3(gtBoxCollider.center.x, Bounds.size.y / 2, gtBoxCollider.center.z);
+        gtBoxCollider.size = bounds.size;
+        gtBoxCollider.center = new Vector3(gtBoxCollider.center.x, bounds.size.y / 2, gtBoxCollider.center.z);
         gtBox.transform.parent = transform;
         gtBox.layer = LayerMask.NameToLayer("GroundTruth");
 
@@ -461,51 +455,51 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
 
     private void CreateCinematicTransforms()
     {
+        var bound = agentController.Bounds;
         var cinematicT = new GameObject("CenterFront").transform;
-        cinematicT.position = new Vector3(Bounds.center.x, Bounds.min.y + 1f, Bounds.center.z + Bounds.max.z * 2);
+        cinematicT.position = new Vector3(bound.center.x, bound.min.y + 1f, bound.center.z + bound.max.z * 2);
         cinematicT.SetParent(transform, true);
-        cinematicT.LookAt(Bounds.center);
-        CinematicCameraTransforms.Add(cinematicT);
+        cinematicT.LookAt(bound.center);
+        agentController.CinematicCameraTransforms.Add(cinematicT);
         cinematicT = new GameObject("CenterTop").transform;
-        cinematicT.position = new Vector3(Bounds.center.x, Bounds.max.y * 10f, Bounds.center.z);
+        cinematicT.position = new Vector3(bound.center.x, bound.max.y * 10f, bound.center.z);
         cinematicT.SetParent(transform, true);
-        cinematicT.LookAt(Bounds.center);
-        CinematicCameraTransforms.Add(cinematicT);
+        cinematicT.LookAt(bound.center);
+        agentController.CinematicCameraTransforms.Add(cinematicT);
         cinematicT = new GameObject("RightFront").transform;
-        cinematicT.position = new Vector3(Bounds.center.x + Bounds.max.x + 1f, Bounds.min.y + 0.5f, Bounds.center.z + Bounds.max.z);
+        cinematicT.position = new Vector3(bound.center.x + bound.max.x + 1f, bound.min.y + 0.5f, bound.center.z + bound.max.z);
         cinematicT.SetParent(transform, true);
-        cinematicT.LookAt(Bounds.center + new Vector3(0f, 0.25f, 0f));
-        CinematicCameraTransforms.Add(cinematicT);
+        cinematicT.LookAt(bound.center + new Vector3(0f, 0.25f, 0f));
+        agentController.CinematicCameraTransforms.Add(cinematicT);
         cinematicT = new GameObject("LeftFront").transform;
-        cinematicT.position = new Vector3(Bounds.center.x - Bounds.max.x - 1f, Bounds.min.y + 0.5f, Bounds.center.z + Bounds.max.z);
+        cinematicT.position = new Vector3(bound.center.x - bound.max.x - 1f, bound.min.y + 0.5f, bound.center.z + bound.max.z);
         cinematicT.SetParent(transform, true);
-        cinematicT.LookAt(Bounds.center + new Vector3(0f, 0.25f, 0f));
-        CinematicCameraTransforms.Add(cinematicT);
+        cinematicT.LookAt(bound.center + new Vector3(0f, 0.25f, 0f));
+        agentController.CinematicCameraTransforms.Add(cinematicT);
         cinematicT = new GameObject("RightBack").transform;
-        cinematicT.position = new Vector3(Bounds.center.x + Bounds.max.x + 1f, Bounds.min.y + 0.5f, Bounds.center.z - Bounds.max.z);
+        cinematicT.position = new Vector3(bound.center.x + bound.max.x + 1f, bound.min.y + 0.5f, bound.center.z - bound.max.z);
         cinematicT.SetParent(transform, true);
-        cinematicT.LookAt(Bounds.center + new Vector3(0f, 0.25f, 0f));
-        CinematicCameraTransforms.Add(cinematicT);
+        cinematicT.LookAt(bound.center + new Vector3(0f, 0.25f, 0f));
+        agentController.CinematicCameraTransforms.Add(cinematicT);
         cinematicT = new GameObject("LeftBack").transform;
-        cinematicT.position = new Vector3(Bounds.center.x - Bounds.max.x - 1f, Bounds.min.y + 0.5f, Bounds.center.z - Bounds.max.z);
+        cinematicT.position = new Vector3(bound.center.x - bound.max.x - 1f, bound.min.y + 0.5f, bound.center.z - bound.max.z);
         cinematicT.SetParent(transform, true);
-        cinematicT.LookAt(Bounds.center + new Vector3(0f, 0.25f, 0f));
-        CinematicCameraTransforms.Add(cinematicT);
+        cinematicT.LookAt(bound.center + new Vector3(0f, 0.25f, 0f));
+        agentController.CinematicCameraTransforms.Add(cinematicT);
     }
 
     private void CreateDriverViewTransform()
     {
-        if (DriverViewTransform == null)
+        if (agentController.DriverViewTransform != null) return;
+        // raycast down to 
+        var bounds = agentController.Bounds;
+        if (Physics.Raycast(new Vector3(bounds.center.x, bounds.max.y * 2f, bounds.center.z + bounds.max.z / 4f), Vector3.down, out RaycastHit hit, LayerMask.GetMask("Agent")))
         {
-            // raycast down to 
-            if (Physics.Raycast(new Vector3(Bounds.center.x, Bounds.max.y * 2f, Bounds.center.z + Bounds.max.z / 4f), Vector3.down, out RaycastHit hit, LayerMask.GetMask("Agent")))
-            {
-                DriverViewTransform = new GameObject("DriverView").transform;
-                DriverViewTransform.position = hit.point;
-                DriverViewTransform.rotation = Quaternion.identity;
-                DriverViewTransform.SetParent(transform, true);
-            }
-            
+            var view = new GameObject("DriverView").transform;
+            view.position = hit.point;
+            view.rotation = Quaternion.identity;
+            view.SetParent(transform, true);
+            agentController.DriverViewTransform = view;
         }
     }
 
@@ -600,7 +594,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
     }
     
     /// <inheritdoc/>
-    public void ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
+    void IMessageReceiver.ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
     {
         //Ignore messages if this component is marked as destroyed
         if (this == null)
@@ -642,14 +636,14 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
     }
 
     /// <inheritdoc/>
-    public void UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage)
+    void IMessageSender.UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage)
     {
         if (Key != null)
             messagesManager?.UnicastMessage(endPoint, distributedMessage);
     }
 
     /// <inheritdoc/>
-    public void BroadcastMessage(DistributedMessage distributedMessage)
+    void IMessageSender.BroadcastMessage(DistributedMessage distributedMessage)
     {
         if (Key != null)
             messagesManager?.BroadcastMessage(distributedMessage);
@@ -668,7 +662,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         message.Content.PushBool(value);
         message.Content.PushEnum<VehicleActionsPropertyName>((int)propertyName);
         message.Type = DistributedMessageType.ReliableOrdered;
-        BroadcastMessage(message);
+        ((IMessageSender) this).BroadcastMessage(message);
     }
 
     private enum VehicleActionsPropertyName

@@ -207,11 +207,11 @@ public class SimulatorCameraController : MonoBehaviour
 
         var dist = Vector3.Distance(thisCamera.transform.position, targetObject.position);
         if (dist < BoundsZ)
-            thisCamera.transform.localPosition = Vector3.MoveTowards(thisCamera.transform.localPosition, thisCamera.transform.InverseTransformPoint(targetObject.position), -Time.unscaledDeltaTime);
+            thisCamera.transform.localPosition = Vector3.MoveTowards(thisCamera.transform.localPosition, thisCamera.transform.InverseTransformPoint(targetObject.position)+offset, -Time.unscaledDeltaTime);
         else if (dist > BoundsZ * 5f)
-            thisCamera.transform.localPosition = Vector3.MoveTowards(thisCamera.transform.localPosition, thisCamera.transform.InverseTransformPoint(targetObject.position), Time.unscaledDeltaTime);
+            thisCamera.transform.localPosition = Vector3.MoveTowards(thisCamera.transform.localPosition, thisCamera.transform.InverseTransformPoint(targetObject.position)+offset, Time.unscaledDeltaTime);
         else if (zoomInput != 0)
-            thisCamera.transform.localPosition = Vector3.MoveTowards(thisCamera.transform.localPosition, thisCamera.transform.InverseTransformPoint(targetObject.position), Time.unscaledDeltaTime * zoomInput * 10f * (boost == 1 ? 10f : 1f));
+            thisCamera.transform.localPosition = Vector3.MoveTowards(thisCamera.transform.localPosition, thisCamera.transform.InverseTransformPoint(targetObject.position)+offset, Time.unscaledDeltaTime * zoomInput * 10f * (boost == 1 ? 10f : 1f));
 
         if (mouseRight == 1)
         {
@@ -343,11 +343,11 @@ public class SimulatorCameraController : MonoBehaviour
         CurrentCameraState = CameraStateType.Follow;
         targetObject = target.transform;
 
-        var vehicleActions = target.GetComponent<VehicleActions>();
-        if (vehicleActions != null)
+        var agentController = target.GetComponent<IAgentController>();
+        if (agentController != null)
         {
-            BoundsY = vehicleActions.Bounds.size.y;
-            BoundsZ = vehicleActions.Bounds.size.z;
+            BoundsY = agentController.Bounds.size.y;
+            BoundsZ = agentController.Bounds.size.z;
             BoundsZ = BoundsZ < 1f ? 1f : BoundsZ;
             offset = new Vector3(0f, BoundsY, -BoundsZ);
             cinematicOffset = new Vector3(0f, BoundsY * 3f, 0f);
@@ -402,7 +402,7 @@ public class SimulatorCameraController : MonoBehaviour
         thisCamera.transform.localRotation = Quaternion.identity;
         thisCamera.transform.localPosition = Vector3.zero;
         elapsedCinematicTime = 0f;
-        cinematicCameraTransforms = targetObject.GetComponent<VehicleActions>().CinematicCameraTransforms;
+        cinematicCameraTransforms = targetObject.GetComponent<IAgentController>().CinematicCameraTransforms;
         RandomCinematicState();
         SimulatorManager.Instance.UIManager?.SetCameraButtonState();
     }
@@ -412,7 +412,7 @@ public class SimulatorCameraController : MonoBehaviour
         SimulatorManager.Instance?.UIManager?.ResetCinematicAlpha();
         CurrentCameraState = CameraStateType.Driver;
         targetObject = SimulatorManager.Instance.AgentManager.CurrentActiveAgent.transform;
-        DriverViewCameraTransform = targetObject.GetComponent<VehicleActions>().DriverViewTransform;
+        DriverViewCameraTransform = targetObject.GetComponent<IAgentController>().DriverViewTransform;
         if (DriverViewCameraTransform != null)
         {
             transform.SetParent(DriverViewCameraTransform);
@@ -463,7 +463,7 @@ public class SimulatorCameraController : MonoBehaviour
         {
             case CinematicStateType.Static:
                 transform.SetParent(SimulatorManager.Instance?.CameraManager.transform);
-                transform.position = (UnityEngine.Random.insideUnitSphere * BoundsZ * 3f) + targetObject.transform.position;
+                transform.position = (UnityEngine.Random.insideUnitSphere * (BoundsZ * 3f)) + targetObject.transform.position;
                 transform.position = new Vector3(transform.position.x, targetObject.position.y + (BoundsY * 2f), transform.position.z);
                 break;
             case CinematicStateType.Follow:
@@ -476,6 +476,12 @@ public class SimulatorCameraController : MonoBehaviour
                 transform.SetParent(targetObject);
                 break;
             case CinematicStateType.Stuck:
+                if (cinematicCameraTransforms.Count==0)
+                {
+                    //Reroll state as Stuck type is not supported in the active agent
+                    RandomCinematicState();
+                    break;
+                }
                 var rando = Random.Range(0, cinematicCameraTransforms.Count);
                 transform.position = cinematicCameraTransforms[rando].transform.position;
                 transform.rotation = cinematicCameraTransforms[rando].transform.rotation;

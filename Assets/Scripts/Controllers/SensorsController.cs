@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -28,7 +28,7 @@ using Simulator.Web;
 using UnityEngine;
 using VirtualFileSystem;
 
-public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
+public class SensorsController : MonoBehaviour, ISensorsController, IMessageSender, IMessageReceiver
 {
     private struct SensorInstanceController
     {
@@ -87,7 +87,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
             $"{HierarchyUtilities.GetPath(transform)}SensorsController"
         );
 
-    public MessagesManager MessagesManager =>
+    private MessagesManager MessagesManager =>
         messagesManager ?? (messagesManager = Loader.Instance.Network.MessagesManager);
 
     private BridgeClient AgentBridgeClient
@@ -120,7 +120,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         MessagesManager?.UnregisterObject(this);
     }
 
-    static string GetSensorType(SensorBase sensor)
+    private static string GetSensorType(SensorBase sensor)
     {
         var type = sensor.GetType().GetCustomAttributes(typeof(SensorType), false)[0] as SensorType;
         return type.Name;
@@ -149,7 +149,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
             {string.Empty, gameObject},
         };
 
-        var agentController = GetComponent<AgentController>();
+        var agentController = GetComponent<IAgentController>();
         var requested = sensors.ToList();
         var baseLink = transform.GetComponentInChildren<BaseLink>();
 
@@ -209,7 +209,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                     }
 
                     sensorInstanceController.Enable();
-                    agentController.AgentSensors.Add(sensorBase);
+                    agentController?.AgentSensors.Add(sensorBase);
                     sensorsInstances.Add(name, sensorInstanceController);
             }
 
@@ -431,7 +431,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         {
             return;
         }
-        GetComponent<AgentController>().AgentSensors.Remove(sensorInstance.Instance);
+        GetComponent<IAgentController>().AgentSensors.Remove(sensorInstance.Instance);
         Destroy(sensorInstance.Instance.gameObject);
         sensorsInstances.Remove(name);
     }
@@ -560,7 +560,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
             message.AddressKey = Key;
             message.Content.PushString(sensorString);
             message.Type = DistributedMessageType.ReliableOrdered;
-            UnicastMessage(client.Peer.PeerEndPoint, message);
+            ((IMessageSender) this).UnicastMessage(client.Peer.PeerEndPoint, message);
         }
 
         SensorsChanged?.Invoke();
@@ -575,7 +575,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         }
     }
 
-    public void ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
+    void IMessageReceiver.ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
     {
         if (sensorsInstances.Any() || Loader.Instance.Network.IsMaster)
         {
@@ -587,7 +587,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
     }
 
     /// <inheritdoc/>
-    public void UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage)
+    void IMessageSender.UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage)
     {
         if (!string.IsNullOrEmpty(Key))
         {
@@ -596,7 +596,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
     }
 
     /// <inheritdoc/>
-    public void BroadcastMessage(DistributedMessage distributedMessage)
+    void IMessageSender.BroadcastMessage(DistributedMessage distributedMessage)
     {
         if (!string.IsNullOrEmpty(Key))
         {

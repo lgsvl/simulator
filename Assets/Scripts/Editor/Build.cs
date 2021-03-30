@@ -214,16 +214,23 @@ namespace Simulator.Editor
                 {
                     if (bundleType == BundleConfig.BundleTypes.Vehicle)
                     {
-                        var info = AssetDatabase.LoadAssetAtPath<GameObject>(prefabEntry.mainAssetFile).GetComponent<VehicleInfo>();
-                        var fmu = AssetDatabase.LoadAssetAtPath<GameObject>(prefabEntry.mainAssetFile).GetComponent<VehicleFMU>();
-                        var baseLink = AssetDatabase.LoadAssetAtPath<GameObject>(prefabEntry.mainAssetFile).GetComponent<BaseLink>();
+                        var vehiclePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabEntry.mainAssetFile);
+                        var rigidbody = vehiclePrefab.GetComponent<Rigidbody>();
+                        if (rigidbody == null) 
+                            throw new Exception($"Build failed: Rigidbody on {prefabEntry.mainAssetFile} not found. Please add a Rigidbody component and rebuild.");
+                        var agentController = vehiclePrefab.GetComponent<IAgentController>();
+                        if (agentController == null) 
+                            throw new Exception($"Build failed: IAgentController implementation on {prefabEntry.mainAssetFile} not found. Please add a component implementing IAgentController and rebuild.");
+                        var info = vehiclePrefab.GetComponent<VehicleInfo>();
+                        var fmu = vehiclePrefab.GetComponent<VehicleFMU>();
+                        var baseLink = vehiclePrefab.GetComponent<BaseLink>();
 
                         if (info == null)
                         {
-                            throw new Exception($"Build failed: Vehicle info on {prefabEntry.mainAssetFile} not found. Please add a VehicleInfo component and rebuild.");
+                            Debug.LogWarning($"Build warning: Vehicle info on {prefabEntry.mainAssetFile} not found. Please add a VehicleInfo component to include meta data in the manifest.");
                         }
 
-                        manifest.description = info.Description;
+                        manifest.description = info != null ? info.Description : "";
                         manifest.assetType = "vehicle";
                         manifest.fmuName = fmu == null ? "" : fmu.FMUData.Name;
 

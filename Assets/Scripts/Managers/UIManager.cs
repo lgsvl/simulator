@@ -552,19 +552,19 @@ public class UIManager : MonoBehaviour
         //Detach from the current agent events
         if (CurrentAgent != null)
         {
-            var previousAgentController = CurrentAgent.GetComponent<AgentController>();
+            var previousAgentController = CurrentAgent.GetComponent<IAgentController>();
             if (previousAgentController != null)
                 previousAgentController.SensorsChanged -= AgentControllerOnSensorsChanged;
         }
 
         //Set new agent
         CurrentAgent = agent;
-        AgentController agentController = null;
+        IAgentController agentController = null;
                 
         //Attach to the new agent events
         if (CurrentAgent != null)
         {
-            agentController = CurrentAgent.GetComponent<AgentController>();
+            agentController = CurrentAgent.GetComponent<IAgentController>();
             if (agentController != null)
                 agentController.SensorsChanged += AgentControllerOnSensorsChanged;
         }
@@ -587,7 +587,7 @@ public class UIManager : MonoBehaviour
         visualizers.Clear();
     }
 
-    private void AgentControllerOnSensorsChanged(AgentController agentController)
+    private void AgentControllerOnSensorsChanged(IAgentController agentController)
     {
         ClearVisualizers();
         
@@ -595,10 +595,10 @@ public class UIManager : MonoBehaviour
         if (agentController != null)
         {
             VisualizerGridLayoutGroup.enabled = true;
-            Array.ForEach(agentController.GetComponentsInChildren<SensorBase>(), sensor => { AddVisualizer(sensor); });
+            Array.ForEach(agentController.AgentGameObject.GetComponentsInChildren<SensorBase>(), sensor => { AddVisualizer(sensor); });
             VisualizerGridLayoutGroup.enabled = false;
+            SetAgentBridgeInfo(agentController.AgentGameObject);
         }
-        SetAgentBridgeInfo(agentController.gameObject);
     }
 
     private void SetCurrentPanel()

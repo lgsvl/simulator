@@ -213,8 +213,9 @@ public class SpawnsManager : MonoBehaviour
 
         foreach (var activeAgent in activeAgents)
         {
-            var activeAgentController = activeAgent.AgentGO.GetComponent<AgentController>();
-            if (CheckVisibilityNonAlloc(activeAgentController.transform.position, npcColliderBounds))
+            var activeAgentController = activeAgent.AgentGO.GetComponent<IAgentController>();
+            var agentTransform = activeAgentController.AgentGameObject.transform;
+            if (CheckVisibilityNonAlloc(agentTransform.position, npcColliderBounds))
             {
                 return true;
             }

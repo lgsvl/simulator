@@ -25,8 +25,26 @@ namespace Simulator.Api.Commands
                 var control = args["control"];
 
                 var vc = obj.GetComponent<VehicleController>();
-                var va = obj.GetComponent<VehicleActions>();
+                var va = obj.GetComponent<IVehicleActions>();
                 var vd = obj.GetComponent<IVehicleDynamics>();
+
+                if (vc == null)
+                {
+                    api.SendError(this, $"{nameof(VehicleController)} component not found in agent '{uid}'.");
+                    return;
+                }
+
+                if (va == null)
+                {
+                    api.SendError(this, $"{nameof(IVehicleActions)} component not found in agent '{uid}'.");
+                    return;
+                }
+                
+                if (vd == null)
+                {
+                    api.SendError(this, $"{nameof(IVehicleDynamics)} component not found in agent '{uid}'.");
+                    return;
+                }
 
                 var steering = control["steering"].AsFloat;
                 var throttle = control["throttle"].AsFloat;
@@ -47,13 +65,13 @@ namespace Simulator.Api.Commands
                 if (args["control"]["headlights"] != null)
                 {
                     int headlights = args["control"]["headlights"].AsInt;
-                    va.CurrentHeadLightState = (VehicleActions.HeadLightState)headlights;
+                    va.CurrentHeadLightState = (HeadLightState)headlights;
                 }
 
                 if (args["control"]["windshield_wipers"] != null)
                 {
                     int state = args["control"]["windshield_wipers"].AsInt;
-                    va.CurrentWiperState = (VehicleActions.WiperState)state;
+                    va.CurrentWiperState = (WiperState)state;
                 }
 
                 if (args["control"]["turn_signal_left"] != null)

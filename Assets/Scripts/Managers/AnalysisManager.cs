@@ -156,6 +156,9 @@ namespace Simulator.Analysis
 
             foreach (var agent in SimConfig.Agents)
             {
+                if (agent.AgentGO == null)
+                    continue;
+                
                 Array.ForEach(agent.AgentGO.GetComponentsInChildren<SensorBase>(), sensorBase =>
                 {
                     Sensors.Add(sensorBase);

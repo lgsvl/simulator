@@ -692,7 +692,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         if (isLeftDetectWithinStopDistance || isRightDetectWithinStopDistance)
         {
             var npcC = isLeftDetectWithinStopDistance ? leftClosestHitInfo.collider.GetComponentInParent<NPCLaneFollowBehaviour>() : rightClosestHitInfo.collider.GetComponentInParent<NPCLaneFollowBehaviour>();
-            var aC = isLeftDetectWithinStopDistance ? leftClosestHitInfo.collider.transform.root.GetComponent<AgentController>() : rightClosestHitInfo.collider.transform.root.GetComponent<AgentController>();
+            var aC = isLeftDetectWithinStopDistance ? leftClosestHitInfo.collider.transform.root.GetComponent<IAgentController>() : rightClosestHitInfo.collider.transform.root.GetComponent<IAgentController>();
 
             if (currentMapLane.isTrafficLane)
             {
@@ -712,7 +712,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
                 }
                 else
                 {
-                    if (leftClosestHitInfo.collider?.gameObject?.GetComponentInParent<NPCController>() == null && leftClosestHitInfo.collider?.transform.root.GetComponent<AgentController>() == null)
+                    if (leftClosestHitInfo.collider?.gameObject?.GetComponentInParent<NPCController>() == null && leftClosestHitInfo.collider?.transform.root.GetComponent<IAgentController>() == null)
                     {
                         SetDodge(!isLeftDetectWithinStopDistance);
                     }
@@ -734,13 +734,13 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         }
     }
 
-    IEnumerator WaitToDodge(AgentController aC, bool isLeft)
+    IEnumerator WaitToDodge(IAgentController aC, bool isLeft)
     {
         isWaitingToDodge = true;
         float elapsedTime = 0f;
         while (elapsedTime < 5f)
         {
-            if (aC.GetComponent<Rigidbody>().velocity.magnitude > 0.01f)
+            if (aC.AgentGameObject.GetComponent<Rigidbody>().velocity.magnitude > 0.01f)
             {
                 isWaitingToDodge = false;
                 yield break;

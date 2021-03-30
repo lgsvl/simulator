@@ -27,10 +27,10 @@ public class TimeToCollisionEffector : TriggerEffector
     {
         var lowestTTC = TimeToCollisionLimit;
         var egos = SimulatorManager.Instance.AgentManager.ActiveAgents;
-        AgentController collisionEgo = null;
+        IAgentController collisionEgo = null;
         foreach (var ego in egos)
         {
-            var agentController = ego.AgentGO.GetComponentInChildren<AgentController>();
+            var agentController = ego.AgentGO.GetComponentInChildren<IAgentController>();
             var ttc = CalculateTTC(agentController, agent);
             if (ttc >= lowestTTC || ttc < 0.0f) continue;
             
@@ -63,14 +63,15 @@ public class TimeToCollisionEffector : TriggerEffector
         
     }
 
-    private float CalculateTTC(AgentController ego, ITriggerAgent agent)
+    private float CalculateTTC(IAgentController ego, ITriggerAgent agent)
     {
         //Calculate intersection point, return infinity if vehicles won't intersect
-        if (!GetLineIntersection(ego.transform.position, ego.transform.forward, agent.AgentTransform.position, agent.AgentTransform.forward,
+        var egoTransform = ego.AgentGameObject.transform;
+        if (!GetLineIntersection(egoTransform.position, egoTransform.forward, agent.AgentTransform.position, agent.AgentTransform.forward,
             out var intersection))
             return float.PositiveInfinity;
 
-        var egoDistance = Distance2D(ego.transform.position, intersection);
+        var egoDistance = Distance2D(egoTransform.position, intersection);
         var npcDistance = Distance2D(agent.AgentTransform.position, intersection);
         var egoTimeToIntersection = CalculateTimeForAccelerated(ego.Velocity.magnitude, ego.Acceleration.magnitude, egoDistance);
         var npcTimeToIntersection = CalculateTimeForAccelerated(agent.MovementSpeed, agent.Acceleration.magnitude, npcDistance);

@@ -161,56 +161,58 @@ public class SensorsController : MonoBehaviour, ISensorsController, IMessageSend
             {
                 var item = requested[i];
                 string parentName = item.Parent != null ? item.Parent : string.Empty;
+                if (!parents.ContainsKey(parentName))
+                    continue;
 
-                    var parentObject = parents.ContainsKey(parentName) ? parents[parentName] : gameObject;
-                    var name = item.Name;
-                    var type = item.Type;
-                    GameObject prefab = null;
-                    if (item.Plugin.AssetGuid == null)
-                    {
-                        prefab = Config.SensorPrefabs.FirstOrDefault(s => GetSensorType(s) == type).gameObject;
-                    }
-                    else if (Config.SensorTypeLookup.ContainsKey(item.Plugin.AssetGuid))
+                var parentObject = parents[parentName];
+                var name = item.Name;
+                var type = item.Type;
+                GameObject prefab = null;
+                if (item.Plugin.AssetGuid == null)
+                {
+                    prefab = Config.SensorPrefabs.FirstOrDefault(s => GetSensorType(s) == type).gameObject;
+                }
+                else if (Config.SensorTypeLookup.ContainsKey(item.Plugin.AssetGuid))
+                {
+                    prefab = Config.SensorTypeLookup[item.Plugin.AssetGuid]?.gameObject;
+                }
+                else
+                {
+                    var dir = Path.Combine(Config.PersistentDataPath, "Sensors");
+                    var vfs = VfsEntry.makeRoot(dir);
+                    Config.CheckDir(vfs.GetChild(item.Plugin.AssetGuid), Config.LoadSensorPlugin);
+                    if (Config.SensorTypeLookup.ContainsKey(item.Plugin.AssetGuid))
                     {
                         prefab = Config.SensorTypeLookup[item.Plugin.AssetGuid]?.gameObject;
                     }
-                    else
-                    {
-                        var dir = Path.Combine(Config.PersistentDataPath, "Sensors");
-                        var vfs = VfsEntry.makeRoot(dir);
-                        Config.CheckDir(vfs.GetChild(item.Plugin.AssetGuid), Config.LoadSensorPlugin);
-                        if (Config.SensorTypeLookup.ContainsKey(item.Plugin.AssetGuid))
-                        {
-                            prefab = Config.SensorTypeLookup[item.Plugin.AssetGuid]?.gameObject;
-                        }
-                    }
+                }
 
-                    if (prefab == null)
-                    {
-                       throw new Exception($"Unloaded sensor type {type} for {gameObject.name} vehicle detected. Restart simulator application.");
-                    }
+                if (prefab == null)
+                {
+                   throw new Exception($"Unloaded sensor type {type} for {gameObject.name} vehicle detected. Restart simulator application.");
+                }
 
-                    var sensor = CreateSensor(gameObject, parentObject, prefab, item, baseLink);
-                    var sensorBase = sensor.GetComponent<SensorBase>();
-                    sensorBase.Name = name;
-                    sensor.name = name;
-                    if (AgentBridgeClient != null)
-                    {
-                        sensor.GetComponent<SensorBase>().OnBridgeSetup(AgentBridgeClient.Bridge);
-                    }
+                var sensor = CreateSensor(gameObject, parentObject, prefab, item, baseLink);
+                var sensorBase = sensor.GetComponent<SensorBase>();
+                sensorBase.Name = name;
+                sensor.name = name;
+                if (AgentBridgeClient != null)
+                {
+                    sensor.GetComponent<SensorBase>().OnBridgeSetup(AgentBridgeClient.Bridge);
+                }
 
-                    parents.Add(name, sensor);
-                    requested.RemoveAt(i);
-                    i--;
-                    var sensorInstanceController = new SensorInstanceController(item, sensorBase);
-                    if (SimulatorManager.InstanceAvailable)
-                    {
-                        SimulatorManager.Instance.Sensors.RegisterSensor(sensorBase);
-                    }
+                parents.Add(name, sensor);
+                requested.RemoveAt(i);
+                i--;
+                var sensorInstanceController = new SensorInstanceController(item, sensorBase);
+                if (SimulatorManager.InstanceAvailable)
+                {
+                    SimulatorManager.Instance.Sensors.RegisterSensor(sensorBase);
+                }
 
-                    sensorInstanceController.Enable();
-                    agentController?.AgentSensors.Add(sensorBase);
-                    sensorsInstances.Add(name, sensorInstanceController);
+                sensorInstanceController.Enable();
+                agentController?.AgentSensors.Add(sensorBase);
+                sensorsInstances.Add(name, sensorInstanceController);
             }
 
             // no sensors found their parent this round, they also won't find it next round

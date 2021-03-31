@@ -13,6 +13,9 @@ using Simulator.Sensors;
 
 public abstract class AgentController : MonoBehaviour, IAgentController
 {
+    [SerializeField]
+    private Transform driverViewTransform;
+    
     private ISensorsController sensorsController;
     
     public bool Active { get; set; }
@@ -27,7 +30,13 @@ public abstract class AgentController : MonoBehaviour, IAgentController
     public uint GTID { get; set; }
     public virtual Bounds Bounds { get; set; }
     public virtual List<Transform> CinematicCameraTransforms { get; } = new List<Transform>();
-    public virtual Transform DriverViewTransform { get; set; }
+
+    public virtual Transform DriverViewTransform
+    {
+        get => driverViewTransform;
+        set => driverViewTransform = value;
+    }
+
     public virtual List<SensorBase> AgentSensors { get; } = new List<SensorBase>();
 
     public ISensorsController AgentSensorsController

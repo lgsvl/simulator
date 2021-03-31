@@ -7,146 +7,107 @@
             "actions": [
                 {
                     "name": "Direction",
+                    "type": "PassThrough",
                     "id": "68acaa71-e07d-420b-b1d6-a76c02a93b0f",
-                    "expectedControlLayout": "Button",
-                    "continuous": true,
-                    "passThrough": true,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "Elevation",
+                    "type": "PassThrough",
                     "id": "0dad18b8-ab6f-4e94-9476-4b816f14eb47",
-                    "expectedControlLayout": "Button",
-                    "continuous": true,
-                    "passThrough": true,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "MouseDelta",
+                    "type": "Value",
                     "id": "cfde6f4e-1da5-42e8-b6b8-0749b7ff43d9",
-                    "expectedControlLayout": "Vector2",
-                    "continuous": true,
-                    "passThrough": false,
-                    "initialStateCheck": true,
+                    "expectedControlType": "Vector2",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "MouseLeft",
+                    "type": "Button",
                     "id": "18683cc6-4aa4-44ca-9229-acb759267a4b",
-                    "expectedControlLayout": "Button",
-                    "continuous": false,
-                    "passThrough": false,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press(behavior=2)",
-                    "bindings": []
+                    "interactions": "Press(behavior=2)"
                 },
                 {
                     "name": "MouseRight",
+                    "type": "Button",
                     "id": "7ed9f395-05c0-499c-8d3c-0b67a69b4939",
-                    "expectedControlLayout": "Button",
-                    "continuous": true,
-                    "passThrough": false,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press(behavior=2)",
-                    "bindings": []
+                    "interactions": "Press(behavior=2)"
                 },
                 {
                     "name": "MouseMiddle",
+                    "type": "Button",
                     "id": "55cc01e4-af34-4fa5-abe3-de3dbc8ef0cb",
-                    "expectedControlLayout": "Button",
-                    "continuous": false,
-                    "passThrough": false,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press(behavior=2)",
-                    "bindings": []
+                    "interactions": "Press(behavior=2)"
                 },
                 {
                     "name": "MouseScroll",
+                    "type": "Value",
                     "id": "af4a22ec-1b98-4220-88d1-d85e437099c0",
-                    "expectedControlLayout": "Vector2",
-                    "continuous": false,
-                    "passThrough": false,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Vector2",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "MousePosition",
+                    "type": "Value",
                     "id": "97be806d-6ef9-4b27-9230-578ccb58996a",
-                    "expectedControlLayout": "Vector2",
-                    "continuous": true,
-                    "passThrough": false,
-                    "initialStateCheck": true,
+                    "expectedControlType": "Vector2",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "Boost",
+                    "type": "Button",
                     "id": "51845660-a7e4-4312-ab4f-e8bbe45c237d",
-                    "expectedControlLayout": "Button",
-                    "continuous": false,
-                    "passThrough": false,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "ToggleState",
+                    "type": "Button",
                     "id": "937f6067-9820-460d-99c5-e050ce658467",
-                    "expectedControlLayout": "Button",
-                    "continuous": false,
-                    "passThrough": false,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "Zoom",
+                    "type": "PassThrough",
                     "id": "1138b450-1c54-49a7-b808-8665b1326312",
-                    "expectedControlLayout": "Button",
-                    "continuous": true,
-                    "passThrough": true,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "CinematicNewPath",
+                    "type": "Button",
                     "id": "665b9005-f4bd-473b-9c46-4fd20642ac7d",
-                    "expectedControlLayout": "Button",
-                    "continuous": false,
-                    "passThrough": false,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "CinematicResetPath",
+                    "type": "Button",
                     "id": "2c242fd3-0465-42fe-9be4-7a4b71ba5221",
-                    "expectedControlLayout": "Button",
-                    "continuous": false,
-                    "passThrough": false,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 }
             ],
             "bindings": [
@@ -159,8 +120,7 @@
                     "groups": "",
                     "action": "Direction",
                     "isComposite": true,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "up",
@@ -171,8 +131,7 @@
                     "groups": "",
                     "action": "Direction",
                     "isComposite": false,
-                    "isPartOfComposite": true,
-                    "modifiers": ""
+                    "isPartOfComposite": true
                 },
                 {
                     "name": "down",
@@ -183,8 +142,7 @@
                     "groups": "",
                     "action": "Direction",
                     "isComposite": false,
-                    "isPartOfComposite": true,
-                    "modifiers": ""
+                    "isPartOfComposite": true
                 },
                 {
                     "name": "left",
@@ -195,8 +153,7 @@
                     "groups": "",
                     "action": "Direction",
                     "isComposite": false,
-                    "isPartOfComposite": true,
-                    "modifiers": ""
+                    "isPartOfComposite": true
                 },
                 {
                     "name": "right",
@@ -207,8 +164,7 @@
                     "groups": "",
                     "action": "Direction",
                     "isComposite": false,
-                    "isPartOfComposite": true,
-                    "modifiers": ""
+                    "isPartOfComposite": true
                 },
                 {
                     "name": "1D Axis",
@@ -219,8 +175,7 @@
                     "groups": "",
                     "action": "Elevation",
                     "isComposite": true,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "negative",
@@ -231,8 +186,7 @@
                     "groups": "",
                     "action": "Elevation",
                     "isComposite": false,
-                    "isPartOfComposite": true,
-                    "modifiers": ""
+                    "isPartOfComposite": true
                 },
                 {
                     "name": "positive",
@@ -243,8 +197,7 @@
                     "groups": "",
                     "action": "Elevation",
                     "isComposite": false,
-                    "isPartOfComposite": true,
-                    "modifiers": ""
+                    "isPartOfComposite": true
                 },
                 {
                     "name": "",
@@ -255,8 +208,7 @@
                     "groups": "",
                     "action": "MouseDelta",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -267,8 +219,7 @@
                     "groups": "",
                     "action": "MouseLeft",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -279,8 +230,7 @@
                     "groups": "",
                     "action": "MouseRight",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -291,8 +241,7 @@
                     "groups": "",
                     "action": "MouseMiddle",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -303,8 +252,7 @@
                     "groups": "",
                     "action": "MouseScroll",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -315,8 +263,7 @@
                     "groups": "",
                     "action": "MousePosition",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -327,8 +274,7 @@
                     "groups": "",
                     "action": "Boost",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -339,8 +285,7 @@
                     "groups": "",
                     "action": "ToggleState",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "1D Axis",
@@ -351,8 +296,7 @@
                     "groups": "",
                     "action": "Zoom",
                     "isComposite": true,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "negative",
@@ -363,8 +307,7 @@
                     "groups": "",
                     "action": "Zoom",
                     "isComposite": false,
-                    "isPartOfComposite": true,
-                    "modifiers": ""
+                    "isPartOfComposite": true
                 },
                 {
                     "name": "positive",
@@ -375,8 +318,7 @@
                     "groups": "",
                     "action": "Zoom",
                     "isComposite": false,
-                    "isPartOfComposite": true,
-                    "modifiers": ""
+                    "isPartOfComposite": true
                 },
                 {
                     "name": "",
@@ -387,8 +329,7 @@
                     "groups": "",
                     "action": "CinematicNewPath",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -399,8 +340,7 @@
                     "groups": "",
                     "action": "CinematicResetPath",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 }
             ]
         },
@@ -410,58 +350,43 @@
             "actions": [
                 {
                     "name": "ToggleNPCS",
+                    "type": "Button",
                     "id": "c3de16aa-60a2-49a7-8a4d-51f32b875b63",
-                    "expectedControlLayout": "Button",
-                    "continuous": false,
-                    "passThrough": false,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "ToggleAgent",
+                    "type": "Button",
                     "id": "e2c98be3-db48-4767-9803-56e3a731d9e8",
-                    "expectedControlLayout": "Button",
-                    "continuous": false,
-                    "passThrough": false,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "ToggleReset",
+                    "type": "Button",
                     "id": "02a13f64-a6f0-4d2c-9a12-188a987f1ee7",
-                    "expectedControlLayout": "Button",
-                    "continuous": false,
-                    "passThrough": false,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "ToggleControlsUI",
+                    "type": "Button",
                     "id": "18aa8941-8b9f-4bfe-b14c-88d6e6641ba2",
-                    "expectedControlLayout": "Button",
-                    "continuous": false,
-                    "passThrough": false,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "TogglePedestrians",
+                    "type": "Button",
                     "id": "b39bbbcd-97f5-4b45-b155-e7374f654c05",
-                    "expectedControlLayout": "Button",
-                    "continuous": false,
-                    "passThrough": false,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 }
             ],
             "bindings": [
@@ -474,8 +399,7 @@
                     "groups": "",
                     "action": "ToggleNPCS",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -486,8 +410,7 @@
                     "groups": "",
                     "action": "ToggleAgent",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -498,8 +421,7 @@
                     "groups": "",
                     "action": "ToggleAgent",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -510,8 +432,7 @@
                     "groups": "",
                     "action": "ToggleAgent",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -522,8 +443,7 @@
                     "groups": "",
                     "action": "ToggleAgent",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -534,8 +454,7 @@
                     "groups": "",
                     "action": "ToggleAgent",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -546,8 +465,7 @@
                     "groups": "",
                     "action": "ToggleAgent",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -558,8 +476,7 @@
                     "groups": "",
                     "action": "ToggleAgent",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -570,8 +487,7 @@
                     "groups": "",
                     "action": "ToggleAgent",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -582,8 +498,7 @@
                     "groups": "",
                     "action": "ToggleAgent",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -594,8 +509,7 @@
                     "groups": "",
                     "action": "ToggleAgent",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -606,8 +520,7 @@
                     "groups": "",
                     "action": "ToggleReset",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -618,8 +531,7 @@
                     "groups": "",
                     "action": "ToggleControlsUI",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -630,8 +542,7 @@
                     "groups": "",
                     "action": "TogglePedestrians",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 }
             ]
         },
@@ -641,124 +552,91 @@
             "actions": [
                 {
                     "name": "Direction",
+                    "type": "PassThrough",
                     "id": "a4c84d4e-ab73-4109-b6d3-87cef0688a48",
-                    "expectedControlLayout": "Button",
-                    "continuous": true,
-                    "passThrough": true,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "HeadLights",
+                    "type": "Button",
                     "id": "2da8992e-466b-42bd-9300-0854e7aba0df",
-                    "expectedControlLayout": "Button",
-                    "continuous": false,
-                    "passThrough": false,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "IndicatorLeft",
+                    "type": "Button",
                     "id": "be797ba1-c73a-41a4-ac0a-7269a1f21865",
-                    "expectedControlLayout": "Button",
-                    "continuous": false,
-                    "passThrough": false,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "IndicatorRight",
+                    "type": "Button",
                     "id": "456e0d9b-1590-495a-a810-22068dde68ad",
-                    "expectedControlLayout": "Button",
-                    "continuous": false,
-                    "passThrough": false,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "IndicatorHazard",
+                    "type": "Button",
                     "id": "949c9a20-2be9-4a66-99b8-fb9c720a3c89",
-                    "expectedControlLayout": "Button",
-                    "continuous": false,
-                    "passThrough": false,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "FogLights",
+                    "type": "Button",
                     "id": "6ebbb86e-7e78-4e78-8238-8f12e931443d",
-                    "expectedControlLayout": "Button",
-                    "continuous": false,
-                    "passThrough": false,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "ShiftFirst",
+                    "type": "Button",
                     "id": "e216bb61-1dbf-4936-8963-26a8cb3d4fde",
-                    "expectedControlLayout": "Button",
-                    "continuous": false,
-                    "passThrough": false,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "ShiftReverse",
+                    "type": "Button",
                     "id": "e5606c54-98ab-4c0a-95ba-47e452129b1c",
-                    "expectedControlLayout": "Button",
-                    "continuous": false,
-                    "passThrough": false,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "ParkingBrake",
+                    "type": "Button",
                     "id": "11cc056b-8dec-44d6-a5af-c41873912c49",
-                    "expectedControlLayout": "Button",
-                    "continuous": false,
-                    "passThrough": false,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "Ignition",
+                    "type": "Button",
                     "id": "546e7144-7b87-4a19-b456-b3edf510c512",
-                    "expectedControlLayout": "Button",
-                    "continuous": false,
-                    "passThrough": false,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "InteriorLight",
+                    "type": "Button",
                     "id": "ee3edbee-7490-48da-91aa-1426cbb4e154",
-                    "expectedControlLayout": "Button",
-                    "continuous": false,
-                    "passThrough": false,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 }
             ],
             "bindings": [
@@ -771,8 +649,7 @@
                     "groups": "",
                     "action": "Direction",
                     "isComposite": true,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "up",
@@ -783,8 +660,7 @@
                     "groups": "",
                     "action": "Direction",
                     "isComposite": false,
-                    "isPartOfComposite": true,
-                    "modifiers": ""
+                    "isPartOfComposite": true
                 },
                 {
                     "name": "down",
@@ -795,8 +671,7 @@
                     "groups": "",
                     "action": "Direction",
                     "isComposite": false,
-                    "isPartOfComposite": true,
-                    "modifiers": ""
+                    "isPartOfComposite": true
                 },
                 {
                     "name": "left",
@@ -807,8 +682,7 @@
                     "groups": "",
                     "action": "Direction",
                     "isComposite": false,
-                    "isPartOfComposite": true,
-                    "modifiers": ""
+                    "isPartOfComposite": true
                 },
                 {
                     "name": "right",
@@ -819,8 +693,7 @@
                     "groups": "",
                     "action": "Direction",
                     "isComposite": false,
-                    "isPartOfComposite": true,
-                    "modifiers": ""
+                    "isPartOfComposite": true
                 },
                 {
                     "name": "",
@@ -831,8 +704,7 @@
                     "groups": "",
                     "action": "HeadLights",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -843,8 +715,7 @@
                     "groups": "",
                     "action": "IndicatorLeft",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -855,8 +726,7 @@
                     "groups": "",
                     "action": "IndicatorRight",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -867,8 +737,7 @@
                     "groups": "",
                     "action": "IndicatorHazard",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -879,8 +748,7 @@
                     "groups": "",
                     "action": "FogLights",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -891,8 +759,7 @@
                     "groups": "",
                     "action": "ShiftFirst",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -903,8 +770,7 @@
                     "groups": "",
                     "action": "ShiftReverse",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -915,8 +781,7 @@
                     "groups": "",
                     "action": "ParkingBrake",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -927,8 +792,7 @@
                     "groups": "",
                     "action": "Ignition",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -939,8 +803,7 @@
                     "groups": "",
                     "action": "InteriorLight",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 }
             ]
         },
@@ -950,182 +813,136 @@
             "actions": [
                 {
                     "name": "Accel",
+                    "type": "PassThrough",
                     "id": "888616c7-579c-4efd-8527-708e683af1eb",
-                    "expectedControlLayout": "",
-                    "continuous": true,
-                    "passThrough": true,
-                    "initialStateCheck": false,
+                    "expectedControlType": "",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "Steer",
+                    "type": "PassThrough",
                     "id": "455577db-93bb-4060-849b-d5608bfb6bad",
-                    "expectedControlLayout": "",
-                    "continuous": true,
-                    "passThrough": true,
-                    "initialStateCheck": false,
+                    "expectedControlType": "",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "Brake",
+                    "type": "PassThrough",
                     "id": "27a09f05-a77b-4209-b710-af353ec2bc76",
-                    "expectedControlLayout": "",
-                    "continuous": true,
-                    "passThrough": true,
-                    "initialStateCheck": false,
+                    "expectedControlType": "",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "ButtonA",
+                    "type": "PassThrough",
                     "id": "59312a63-d87f-4991-a404-426b8dfcaa04",
-                    "expectedControlLayout": "Button",
-                    "continuous": true,
-                    "passThrough": true,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "ButtonB",
+                    "type": "PassThrough",
                     "id": "7f46a0eb-0050-49d4-bd15-dd187a4ff30c",
-                    "expectedControlLayout": "Button",
-                    "continuous": true,
-                    "passThrough": true,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "ButtonX",
+                    "type": "PassThrough",
                     "id": "f8c5c1e7-bfad-48f3-a844-2bda89c29c45",
-                    "expectedControlLayout": "Button",
-                    "continuous": true,
-                    "passThrough": true,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "ButtonY",
+                    "type": "PassThrough",
                     "id": "c4f8a72b-afe3-448d-896c-4b366b62b997",
-                    "expectedControlLayout": "Button",
-                    "continuous": true,
-                    "passThrough": true,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "ButtonRB",
+                    "type": "PassThrough",
                     "id": "c22f26a3-873d-4afe-9085-8b3fd32fff3c",
-                    "expectedControlLayout": "Button",
-                    "continuous": true,
-                    "passThrough": true,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "ButtonLB",
+                    "type": "PassThrough",
                     "id": "37d85537-6481-4742-864c-c36a343fb6c4",
-                    "expectedControlLayout": "Button",
-                    "continuous": true,
-                    "passThrough": true,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "ButtonStart",
+                    "type": "PassThrough",
                     "id": "e384c3ab-2f9b-4e19-b583-3c653f088a80",
-                    "expectedControlLayout": "Button",
-                    "continuous": true,
-                    "passThrough": true,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "ButtonSelect",
+                    "type": "PassThrough",
                     "id": "ae7c3ac6-1379-4238-a41f-fc9091edc2fa",
-                    "expectedControlLayout": "Button",
-                    "continuous": true,
-                    "passThrough": true,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "ButtonRSB",
+                    "type": "PassThrough",
                     "id": "83e310ca-be8a-4d82-a1ea-1dbc08131851",
-                    "expectedControlLayout": "Button",
-                    "continuous": true,
-                    "passThrough": true,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "ButtonLSB",
+                    "type": "PassThrough",
                     "id": "f948e86f-4ed4-48ef-9772-f5e5fac8ec37",
-                    "expectedControlLayout": "Button",
-                    "continuous": true,
-                    "passThrough": true,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "ButtonCenter",
+                    "type": "PassThrough",
                     "id": "9d981352-e4c1-4fd7-b199-8e339f31d4d6",
-                    "expectedControlLayout": "Button",
-                    "continuous": true,
-                    "passThrough": true,
-                    "initialStateCheck": false,
+                    "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 },
                 {
                     "name": "DPad",
+                    "type": "PassThrough",
                     "id": "1470b2f1-7873-4929-926b-fc30937dea0a",
-                    "expectedControlLayout": "",
-                    "continuous": true,
-                    "passThrough": true,
-                    "initialStateCheck": false,
+                    "expectedControlType": "",
                     "processors": "",
-                    "interactions": "",
-                    "bindings": []
+                    "interactions": ""
                 }
             ],
             "bindings": [
                 {
                     "name": "",
                     "id": "bed5fb37-63ac-4233-850e-a9e14a6a203b",
-                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/y",
+                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/stick/y",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "Accel",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -1136,20 +953,18 @@
                     "groups": "",
                     "action": "Accel",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
                     "id": "9556cee8-daea-4154-b0b5-39cf87329e20",
-                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/x",
+                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/stick/x",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "Steer",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -1160,20 +975,18 @@
                     "groups": "",
                     "action": "Steer",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
                     "id": "62d31aaa-3ef4-44f1-aa07-65401643ca96",
-                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/z",
+                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/z",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "Brake",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -1184,20 +997,18 @@
                     "groups": "",
                     "action": "Brake",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
                     "id": "d9ddbe73-def5-4e00-afd9-9cd54179ac5d",
-                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button1",
+                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/trigger",
                     "interactions": "Press(behavior=1)",
                     "processors": "",
                     "groups": "",
                     "action": "ButtonA",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -1208,20 +1019,18 @@
                     "groups": "",
                     "action": "ButtonA",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
                     "id": "4dbfa0de-c0e9-4235-b1cb-179f8f54ce88",
-                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button2",
+                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/button2",
                     "interactions": "Press(behavior=1)",
                     "processors": "",
                     "groups": "",
                     "action": "ButtonB",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -1232,20 +1041,18 @@
                     "groups": "",
                     "action": "ButtonB",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
                     "id": "12cddf58-a50f-4b3c-bd49-1dd09dc4bc5a",
-                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button3",
+                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/button3",
                     "interactions": "Press(behavior=1)",
                     "processors": "",
                     "groups": "",
                     "action": "ButtonX",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -1256,20 +1063,18 @@
                     "groups": "",
                     "action": "ButtonX",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
                     "id": "7c48d30f-d4b7-4918-83fc-d141309b1bff",
-                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button4",
+                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/button4",
                     "interactions": "Press(behavior=1)",
                     "processors": "",
                     "groups": "",
                     "action": "ButtonY",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -1280,20 +1085,18 @@
                     "groups": "",
                     "action": "ButtonY",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
                     "id": "f3428280-2044-4494-a71d-8876ccc378db",
-                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button5",
+                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/button5",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "ButtonRB",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -1304,20 +1107,18 @@
                     "groups": "",
                     "action": "ButtonRB",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
                     "id": "cc92cf1c-2647-4b2e-99c4-2ef7883f4dcb",
-                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button6",
+                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/button6",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "ButtonLB",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -1328,20 +1129,18 @@
                     "groups": "",
                     "action": "ButtonLB",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
                     "id": "a1fbb4a0-cd63-4a72-84bc-e27bb2fa6387",
-                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button7",
+                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/button7",
                     "interactions": "Press(behavior=1)",
                     "processors": "",
                     "groups": "",
                     "action": "ButtonStart",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -1352,20 +1151,18 @@
                     "groups": "",
                     "action": "ButtonStart",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
                     "id": "978313b2-9e48-4479-ae0c-defb6a04acfa",
-                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button8",
+                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/button8",
                     "interactions": "Press(behavior=1)",
                     "processors": "",
                     "groups": "",
                     "action": "ButtonSelect",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -1376,20 +1173,18 @@
                     "groups": "",
                     "action": "ButtonSelect",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
                     "id": "533f135e-d206-4e92-8448-e104dcceedc8",
-                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button9",
+                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/button9",
                     "interactions": "Press(behavior=1)",
                     "processors": "",
                     "groups": "",
                     "action": "ButtonRSB",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -1400,20 +1195,18 @@
                     "groups": "",
                     "action": "ButtonRSB",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
                     "id": "c8b5f0be-5ae7-4af0-a08c-8750cd61b429",
-                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button10",
+                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/button10",
                     "interactions": "Press(behavior=1)",
                     "processors": "",
                     "groups": "",
                     "action": "ButtonLSB",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -1424,20 +1217,18 @@
                     "groups": "",
                     "action": "ButtonLSB",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
                     "id": "5084feaa-62d9-47db-995c-a8c3b28ef2ca",
-                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button11",
+                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/button11",
                     "interactions": "Press(behavior=1)",
                     "processors": "",
                     "groups": "",
                     "action": "ButtonCenter",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -1448,8 +1239,7 @@
                     "groups": "",
                     "action": "ButtonCenter",
                     "isComposite": false,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "2D Vector",
@@ -1460,56 +1250,51 @@
                     "groups": "",
                     "action": "DPad",
                     "isComposite": true,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "up",
                     "id": "a7325f94-c632-413e-9e47-dee272324d3c",
-                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/dpad/up",
+                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/hat/up",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "DPad",
                     "isComposite": false,
-                    "isPartOfComposite": true,
-                    "modifiers": ""
+                    "isPartOfComposite": true
                 },
                 {
                     "name": "down",
                     "id": "6f2aeda4-1b33-4970-9d5f-3c7211868a15",
-                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/dpad/down",
+                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/hat/down",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "DPad",
                     "isComposite": false,
-                    "isPartOfComposite": true,
-                    "modifiers": ""
+                    "isPartOfComposite": true
                 },
                 {
                     "name": "left",
                     "id": "a4e08757-fc90-4c4e-a67c-d3ef308650e6",
-                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/dpad/left",
+                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/hat/left",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "DPad",
                     "isComposite": false,
-                    "isPartOfComposite": true,
-                    "modifiers": ""
+                    "isPartOfComposite": true
                 },
                 {
                     "name": "right",
                     "id": "d3c50b20-52f4-47b2-96f4-edb5cbee34a9",
-                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/dpad/right",
+                    "path": "<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/hat/right",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "DPad",
                     "isComposite": false,
-                    "isPartOfComposite": true,
-                    "modifiers": ""
+                    "isPartOfComposite": true
                 },
                 {
                     "name": "2D Vector",
@@ -1520,8 +1305,7 @@
                     "groups": "",
                     "action": "DPad",
                     "isComposite": true,
-                    "isPartOfComposite": false,
-                    "modifiers": ""
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "up",
@@ -1532,8 +1316,7 @@
                     "groups": "",
                     "action": "DPad",
                     "isComposite": false,
-                    "isPartOfComposite": true,
-                    "modifiers": ""
+                    "isPartOfComposite": true
                 },
                 {
                     "name": "down",
@@ -1544,8 +1327,7 @@
                     "groups": "",
                     "action": "DPad",
                     "isComposite": false,
-                    "isPartOfComposite": true,
-                    "modifiers": ""
+                    "isPartOfComposite": true
                 },
                 {
                     "name": "left",
@@ -1556,8 +1338,7 @@
                     "groups": "",
                     "action": "DPad",
                     "isComposite": false,
-                    "isPartOfComposite": true,
-                    "modifiers": ""
+                    "isPartOfComposite": true
                 },
                 {
                     "name": "right",
@@ -1568,8 +1349,7 @@
                     "groups": "",
                     "action": "DPad",
                     "isComposite": false,
-                    "isPartOfComposite": true,
-                    "modifiers": ""
+                    "isPartOfComposite": true
                 }
             ]
         }

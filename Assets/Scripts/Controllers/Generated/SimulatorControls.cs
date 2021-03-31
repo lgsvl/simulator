@@ -949,7 +949,7 @@ public class @SimulatorControls : IInputActionCollection, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""bed5fb37-63ac-4233-850e-a9e14a6a203b"",
-                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/y"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/stick/y"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -971,7 +971,7 @@ public class @SimulatorControls : IInputActionCollection, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""9556cee8-daea-4154-b0b5-39cf87329e20"",
-                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/x"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/stick/x"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -993,7 +993,7 @@ public class @SimulatorControls : IInputActionCollection, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""62d31aaa-3ef4-44f1-aa07-65401643ca96"",
-                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/z"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/z"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -1015,7 +1015,7 @@ public class @SimulatorControls : IInputActionCollection, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""d9ddbe73-def5-4e00-afd9-9cd54179ac5d"",
-                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button1"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/trigger"",
                     ""interactions"": ""Press(behavior=1)"",
                     ""processors"": """",
                     ""groups"": """",
@@ -1037,7 +1037,7 @@ public class @SimulatorControls : IInputActionCollection, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""4dbfa0de-c0e9-4235-b1cb-179f8f54ce88"",
-                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button2"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/button2"",
                     ""interactions"": ""Press(behavior=1)"",
                     ""processors"": """",
                     ""groups"": """",
@@ -1059,7 +1059,7 @@ public class @SimulatorControls : IInputActionCollection, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""12cddf58-a50f-4b3c-bd49-1dd09dc4bc5a"",
-                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button3"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/button3"",
                     ""interactions"": ""Press(behavior=1)"",
                     ""processors"": """",
                     ""groups"": """",
@@ -1081,7 +1081,7 @@ public class @SimulatorControls : IInputActionCollection, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""7c48d30f-d4b7-4918-83fc-d141309b1bff"",
-                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button4"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/button4"",
                     ""interactions"": ""Press(behavior=1)"",
                     ""processors"": """",
                     ""groups"": """",
@@ -1103,7 +1103,7 @@ public class @SimulatorControls : IInputActionCollection, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""f3428280-2044-4494-a71d-8876ccc378db"",
-                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button5"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/button5"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -1125,7 +1125,7 @@ public class @SimulatorControls : IInputActionCollection, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""cc92cf1c-2647-4b2e-99c4-2ef7883f4dcb"",
-                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button6"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/button6"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -1147,7 +1147,7 @@ public class @SimulatorControls : IInputActionCollection, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""a1fbb4a0-cd63-4a72-84bc-e27bb2fa6387"",
-                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button7"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/button7"",
                     ""interactions"": ""Press(behavior=1)"",
                     ""processors"": """",
                     ""groups"": """",
@@ -1169,7 +1169,7 @@ public class @SimulatorControls : IInputActionCollection, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""978313b2-9e48-4479-ae0c-defb6a04acfa"",
-                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button8"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/button8"",
                     ""interactions"": ""Press(behavior=1)"",
                     ""processors"": """",
                     ""groups"": """",
@@ -1191,7 +1191,7 @@ public class @SimulatorControls : IInputActionCollection, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""533f135e-d206-4e92-8448-e104dcceedc8"",
-                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button9"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/button9"",
                     ""interactions"": ""Press(behavior=1)"",
                     ""processors"": """",
                     ""groups"": """",
@@ -1213,7 +1213,7 @@ public class @SimulatorControls : IInputActionCollection, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""c8b5f0be-5ae7-4af0-a08c-8750cd61b429"",
-                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button10"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/button10"",
                     ""interactions"": ""Press(behavior=1)"",
                     ""processors"": """",
                     ""groups"": """",
@@ -1235,7 +1235,7 @@ public class @SimulatorControls : IInputActionCollection, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""5084feaa-62d9-47db-995c-a8c3b28ef2ca"",
-                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button11"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/button11"",
                     ""interactions"": ""Press(behavior=1)"",
                     ""processors"": """",
                     ""groups"": """",
@@ -1268,7 +1268,7 @@ public class @SimulatorControls : IInputActionCollection, IDisposable
                 {
                     ""name"": ""up"",
                     ""id"": ""a7325f94-c632-413e-9e47-dee272324d3c"",
-                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/dpad/up"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/hat/up"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -1279,7 +1279,7 @@ public class @SimulatorControls : IInputActionCollection, IDisposable
                 {
                     ""name"": ""down"",
                     ""id"": ""6f2aeda4-1b33-4970-9d5f-3c7211868a15"",
-                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/dpad/down"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/hat/down"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -1290,7 +1290,7 @@ public class @SimulatorControls : IInputActionCollection, IDisposable
                 {
                     ""name"": ""left"",
                     ""id"": ""a4e08757-fc90-4c4e-a67c-d3ef308650e6"",
-                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/dpad/left"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/hat/left"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -1301,7 +1301,7 @@ public class @SimulatorControls : IInputActionCollection, IDisposable
                 {
                     ""name"": ""right"",
                     ""id"": ""d3c50b20-52f4-47b2-96f4-edb5cbee34a9"",
-                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/dpad/right"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One>/hat/right"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",

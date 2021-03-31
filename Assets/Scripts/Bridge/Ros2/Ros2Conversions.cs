@@ -333,16 +333,19 @@ namespace Simulator.Bridge.Ros2
             };
         }
 
-        // public static VehicleOdometry ConvertFrom(VehicleOdometryData data)
-        // {
-        //     return new VehicleOdometry()
-        //     {
-        //         stamp = Convert(data.Time),
-        //         velocity_mps = data.Speed,
-        //         front_wheel_angle_rad = UnityEngine.Mathf.Deg2Rad * data.SteeringAngleFront,
-        //         rear_wheel_angle_rad = UnityEngine.Mathf.Deg2Rad * data.SteeringAngleBack,
-        //     };
-        // }
+        public static Lgsvl.VehicleOdometry ConvertFrom(VehicleOdometryData data)
+        {
+            return new Lgsvl.VehicleOdometry()
+            {
+                header = new Ros.Header()
+                {
+                    stamp = Convert(data.Time),
+                },
+                velocity = data.Speed,
+                front_wheel_angle = UnityEngine.Mathf.Deg2Rad * data.SteeringAngleFront,
+                rear_wheel_angle = UnityEngine.Mathf.Deg2Rad * data.SteeringAngleBack,
+            };
+        }
 
         public static Detected3DObjectArray ConvertTo(Lgsvl.Detection3DArray data)
         {
@@ -377,11 +380,15 @@ namespace Simulator.Bridge.Ros2
             {
                 wheelAngle = -MaxSteeringAngle;
             }
+            else
+            {
+                wheelAngle = data.target_wheel_angle;
+            }
 
             // ratio between -MaxSteeringAngle and MaxSteeringAngle
             var k = (float)(wheelAngle + MaxSteeringAngle) / (MaxSteeringAngle*2);
 
-            // target_wheel_angular_rate, target_gear are not supported on simulator side.
+            // target_gear are not supported on simulator side
 
             return new VehicleControlData()
             {
@@ -389,7 +396,8 @@ namespace Simulator.Bridge.Ros2
                 Acceleration = data.acceleration_pct,
                 Braking = data.braking_pct,
                 SteerAngle = UnityEngine.Mathf.Lerp(-1f, 1f, k),
-
+                // autoware.auto 1.0.0 issue
+                // SteerInput = data.target_wheel_angular_rate,
             };
         }
 

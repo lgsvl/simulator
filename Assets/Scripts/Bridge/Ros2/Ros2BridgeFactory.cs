@@ -41,6 +41,7 @@ namespace Simulator.Bridge.Ros2
             RegPublisher<GpsOdometryData, Ros.Odometry>(plugin, Ros2Conversions.ConvertFrom);
             RegPublisher<ImuData, Ros.Imu>(plugin, Ros2Conversions.ConvertFrom);
             RegPublisher<ClockData, Ros.Clock>(plugin, Ros2Conversions.ConvertFrom);
+            RegPublisher<VehicleOdometryData, Lgsvl.VehicleOdometry>(plugin, Ros2Conversions.ConvertFrom);
 
             RegSubscriber<VehicleStateData, Lgsvl.VehicleStateData>(plugin, Ros2Conversions.ConvertTo);
             RegSubscriber<VehicleControlData, Lgsvl.VehicleControlData>(plugin, Ros2Conversions.ConvertTo);
@@ -49,7 +50,7 @@ namespace Simulator.Bridge.Ros2
         }
 
         public void RegPublisher<DataType, BridgeType>(IBridgePlugin plugin, Func<DataType, BridgeType> converter)
-        {   
+        {
             plugin.AddType<DataType>(Ros2Utils.GetMessageType<BridgeType>());
             plugin.AddPublisherCreator(
                 (instance, topic) =>

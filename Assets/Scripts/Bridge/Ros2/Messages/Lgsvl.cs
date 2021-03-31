@@ -181,6 +181,15 @@ namespace Simulator.Bridge.Ros2.Lgsvl
         public bool autonomous_mode_active;
     }
 
+    [MessageType("lgsvl_msgs/VehicleOdometry")]
+    public struct VehicleOdometry
+    {
+        public Header header;
+        public float velocity;
+        public float front_wheel_angle;
+        public float rear_wheel_angle;
+    }
+
     [MessageType("lgsvl_msgs/DetectedRadarObject")]
     public struct DetectedRadarObject
     {

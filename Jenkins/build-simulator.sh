@@ -44,11 +44,9 @@ SUFFIX=
 
 if [ -v GIT_TAG ]; then
   export BUILD_VERSION=${GIT_TAG}
-  DEVELOPMENT_BUILD=
   SUFFIX=${SUFFIX}-${GIT_TAG}
 else
   export BUILD_VERSION="dev"
-  DEVELOPMENT_BUILD=-developmentBuild
   if [ -v GIT_BRANCH ]; then
     GIT_BRANCH_SUFFIX=`echo ${GIT_BRANCH} | tr / -  | tr [:upper:] [:lower:]`
     SUFFIX=${SUFFIX}-${GIT_BRANCH_SUFFIX}
@@ -56,6 +54,12 @@ else
   if [ -v JENKINS_BUILD_ID ]; then
     SUFFIX=${SUFFIX}-${JENKINS_BUILD_ID}
   fi
+fi
+
+if $FORCE_DEV_BUILD ; then
+  DEVELOPMENT_BUILD=-developmentBuild
+else
+  DEVELOPMENT_BUILD=
 fi
 
 # Replace any '/' with '-' using bash's Pattern Replace

@@ -26,6 +26,7 @@ pipeline {
     booleanParam(name: "BUILD_MACOS", defaultValue: false, description: "")
     booleanParam(name: "FORCE_CHECK", defaultValue: false, description: "")
     booleanParam(name: "FORCE_TEST", defaultValue: false, description: "")
+    booleanParam(name: "FORCE_DEV_BUILD", defaultValue: true, description: "Enables DEVELOPMENT_BUILD")
     booleanParam(name: "UPLOAD_TO_ECR", defaultValue: false, description: "Enable uploading docker image with build simulator zip to the ECR.")
     string(name: "BUILD_SIMULATOR_CONTROLLABLES", defaultValue: "${SIMULATOR_CONTROLLABLES}", description: "Controllables to build")
     string(name: "CLOUD_URL", defaultValue: "${SIMULATOR_WISE_STAGING_URL}", description: "")

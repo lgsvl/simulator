@@ -86,7 +86,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     private void Awake()
     {
         groundHitBitmask = LayerMask.GetMask("Default");
-        carCheckBlockBitmask = LayerMask.GetMask("Agent", "NPC", "Pedestrian");
+        carCheckBlockBitmask = LayerMask.GetMask("Agent", "NPC", "Pedestrian", "Obstacle");
     }
 
     public override void PhysicsUpdate()

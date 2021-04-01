@@ -30,6 +30,8 @@ using VirtualFileSystem;
 
 namespace Simulator
 {
+    using System.Reflection;
+
     public class AgentConfig
     {
         public string Name;
@@ -802,6 +804,18 @@ namespace Simulator
                     if (vehicleAssets.Length != 1)
                     {
                         throw new Exception($"Unsupported '{manifest.assetName}' vehicle asset bundle, only 1 asset expected");
+                    }
+                    
+                    //Import main assembly
+                    var assembly = zip.GetEntry($"{manifest.assetName}.dll");
+                    if (assembly != null)
+                    {
+                        using (var s = zip.GetInputStream(assembly))
+                        {
+                            byte[] buffer = new byte[s.Length];
+                            s.Read(buffer, 0, (int) s.Length);
+                            Assembly.Load(buffer);
+                        }
                     }
 
                     if (manifest.fmuName != "")

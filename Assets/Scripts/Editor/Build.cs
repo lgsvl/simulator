@@ -566,6 +566,7 @@ namespace Simulator.Editor
                                     case BundleConfig.BundleTypes.Sensor:
                                     case BundleConfig.BundleTypes.NPC:
                                     case BundleConfig.BundleTypes.Bridge:
+                                    case BundleConfig.BundleTypes.Pedestrian:
                                         //Include the main asset only
                                         texturesNames.AddRange(AssetDatabase.GetDependencies(entry.mainAssetFile).Where(a => a.EndsWith(".png") || a.EndsWith(".jpg") || a.EndsWith(".tga")).ToArray());
                                         assetsNames.Add(entry.mainAssetFile);
@@ -694,7 +695,6 @@ namespace Simulator.Editor
 
                             if (manifest.fmuName != "")
                             {
-
                                 var fmuPathWindows = Path.Combine(sourcePath, manifest.assetName, manifest.fmuName, "binaries", "win64", $"{manifest.fmuName}.dll");
                                 var fmuPathLinux = Path.Combine(sourcePath, manifest.assetName, manifest.fmuName, "binaries", "linux64", $"{manifest.fmuName}.so");
                                 if (File.Exists(fmuPathWindows))
@@ -989,6 +989,23 @@ namespace Simulator.Editor
                 }
             }
 
+            foreach (var PedDir in Directory.EnumerateDirectories(Path.Combine(BundleConfig.ExternalBase, BundleConfig.pluralOf(BundleConfig.BundleTypes.Pedestrian))))
+            {
+                var bundlePath = PedDir.Substring(BundleConfig.ExternalBase.Length + 1);
+
+                // Ignore temp folders created by Jenkins
+                if (bundlePath.EndsWith("@tmp"))
+                {
+                    continue;
+                }
+
+                if (!BuildGroups.ContainsKey(bundlePath))
+                {
+                    var data = new BundleData(BundleConfig.BundleTypes.Pedestrian, bundlePath);
+                    BuildGroups.Add(data.bundlePath, data);
+                }
+            }
+
             foreach (var group in BuildGroups.Values)
             {
                 group.Refresh();
@@ -1108,7 +1125,9 @@ namespace Simulator.Editor
             try
             {
                 foreach (var group in BuildGroups.Values)
+                {
                     group.RunBuild(outputFolder);
+                }
             }
             finally
             {
@@ -1136,7 +1155,7 @@ namespace Simulator.Editor
             Build build = new Build();
             build.Refresh();
 
-            var buildBundleParam = new Regex("^-build(Environment|Vehicle|Sensor|Controllable|NPC|Bridge)s$");
+            var buildBundleParam = new Regex("^-build(Environment|Vehicle|Sensor|Controllable|NPC|Bridge|Pedestrian)s$");
             int bundleSum = 0;
 
             var args = Environment.GetCommandLineArgs();

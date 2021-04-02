@@ -52,12 +52,12 @@ namespace Simulator.ScenarioEditor.Agents
         {
             inputManager = ScenarioManager.Instance.GetExtension<InputManager>();
             var pedestrianManager = Loader.Instance.SimulatorManagerPrefab.pedestrianManagerPrefab;
-            var pedestriansInSimulation = pedestrianManager.pedModels;
+            var pedestriansInSimulation = pedestrianManager.PedestrianData;
             for (var i = 0; i < pedestriansInSimulation.Count; i++)
             {
                 var pedestrian = pedestriansInSimulation[i];
-                Debug.Log($"Loading pedestrian {pedestrian.name} from the pedestrian manager.");
-                var variant = new AgentVariant(this, pedestrian.name, pedestrian, string.Empty);
+                Debug.Log($"Loading pedestrian {pedestrian.Name} from the pedestrian manager.");
+                var variant = new AgentVariant(this, pedestrian.Name, pedestrian.Prefab, string.Empty);
                 Variants.Add(variant);
                 progress.Report((float)(i+1)/pedestriansInSimulation.Count);
             }

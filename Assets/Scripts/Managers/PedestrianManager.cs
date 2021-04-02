@@ -10,8 +10,6 @@ using System.Net;
 using Simulator;
 using Simulator.Map;
 using UnityEngine;
-using Simulator.Network.Core;
-using Simulator.Network.Core.Components;
 using Simulator.Network.Core.Connection;
 using Simulator.Network.Core.Messaging;
 using Simulator.Network.Core.Messaging.Data;
@@ -20,6 +18,8 @@ using Simulator.Network.Shared.Messages;
 using Simulator.Utilities;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
+using static Simulator.Web.Config;
+using System.Linq;
 
 public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
 {
@@ -36,7 +36,8 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
     };
 
     public GameObject pedPrefab;
-    public List<GameObject> pedModels = new List<GameObject>();
+    public List<PedAssetData> PedestrianData = new List<PedAssetData>();
+
     public bool PedestriansActive { get; set; } = false;
     [HideInInspector]
     public List<PedestrianController> CurrentPooledPeds = new List<PedestrianController>();
@@ -76,6 +77,32 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         SimulatorCamera = SimCameraManager.SimulatorCamera;
         MapManager = SimulatorManager.Instance.MapManager;
 
+        PedestrianData.Clear();
+        if (Loader.Instance.CurrentSimulation.Peds == null)
+        {
+            Loader.Instance.CurrentSimulation.Peds = Simulator.Web.Config.Pedestrians.Values.ToArray();
+        }
+
+        foreach (var data in Loader.Instance.CurrentSimulation.Peds)
+        {
+            if (data.Enabled)
+            {
+                GameObject obj = null;
+                foreach (var item in Simulator.Web.Config.Pedestrians.Values)
+                {
+                    if (item.Name == data.Name)
+                    {
+                        obj = item.Prefab;
+                    }
+                }
+                PedestrianData.Add(new PedAssetData
+                {
+                    Prefab = obj,
+                    Name = obj.name,
+                });
+            }
+        }
+
         SpawnInfo[] spawnInfos = FindObjectsOfType<SpawnInfo>();
         Loader.Instance.Network.MessagesManager?.RegisterObject(this);
         var pt = Vector3.zero;
@@ -93,9 +120,19 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         {
             if (!SimulatorManager.Instance.IsAPI && !Loader.Instance.Network.IsClient)
             {
-                SpawnPedPool();
-                if (PedestriansActive)
-                    SetPedOnMap(true);
+                var pool = SpawnPedPool();
+                if (pool != null)
+                {
+                    if (PedestriansActive)
+                    {
+                        SetPedOnMap(true);
+                    }
+                }
+                else
+                {
+                    Debug.Log("No pedestrian pool, disabled pedestrian manager ");
+                    gameObject.SetActive(false);
+                }
             }
         }
         else
@@ -141,7 +178,17 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
     public List<PedestrianController> SpawnPedPool()
     {
-        Debug.Assert(pedPrefab != null && pedModels != null && pedModels.Count != 0);
+        if (pedPrefab == null)
+        {
+            Debug.LogWarning("Pedestrian prefab is null, please check Pedestrian manager public reference");
+            return null;
+        }
+
+        if (PedestrianData.Count == 0)
+        {
+            Debug.LogWarning("Pedestrian count is 0, please clone and build pedestrians");
+            return null;
+        }
 
         for (int i = 0; i < CurrentPooledPeds.Count; i++)
         {
@@ -155,8 +202,8 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         int poolCount = Mathf.FloorToInt(PedMaxCount + (PedMaxCount * 0.1f));
         for (int i = 0; i < poolCount; i++)
         {
-            var modelIndex = RandomGenerator.Next(pedModels.Count);
-            var model = pedModels[modelIndex];
+            var modelIndex = RandomGenerator.Next(PedestrianData.Count);
+            var model = PedestrianData[modelIndex].Prefab;
             var spawnData = new PedSpawnData
             {
                 Active = false,
@@ -306,7 +353,7 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         //Add required components for cluster simulation
         ClusterSimulationUtilities.AddDistributedComponents(ped);
         pedController.SetGroundTruthBox();
-        var model = pedModels[modelIndex];
+        var model = PedestrianData[modelIndex].Prefab;
         Instantiate(model, ped.transform);
         pedController.Control = PedestrianController.ControlType.None;
         pedController.enabled = false;

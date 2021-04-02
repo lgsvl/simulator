@@ -20,6 +20,7 @@ namespace Simulator
             Controllable,
             NPC,
             Bridge,
+            Pedestrian,
         }
 
         public static Dictionary<BundleTypes, string> Versions = new Dictionary<BundleTypes, string>()
@@ -30,6 +31,7 @@ namespace Simulator
             [BundleTypes.Controllable]= "com.svlsimulator.0",
             [BundleTypes.NPC]         = "com.svlsimulator.0",
             [BundleTypes.Bridge]      = "com.svlsimulator.0",
+            [BundleTypes.Pedestrian]  = "com.svlsimulator.0",
         };
 
         public static string singularOf(BundleTypes type) => Enum.GetName(typeof(BundleTypes), type);

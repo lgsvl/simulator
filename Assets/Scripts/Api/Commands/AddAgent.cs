@@ -205,7 +205,7 @@ namespace Simulator.Api.Commands
                         throw new Exception($"{sceneName} is missing Pedestrian NavMesh");
                     }
 
-                    var model = sim.PedestrianManager.pedModels.Find(obj => obj.name == name);
+                    var model = sim.PedestrianManager.PedestrianData.Find(obj => obj.Name == name).Prefab;
                     if (model == null)
                     {
                         throw new Exception($"Unknown '{name}' pedestrian name");

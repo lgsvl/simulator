@@ -254,6 +254,7 @@ namespace Simulator.Web
         public TemplateData Template { get; set; }
         public string TestReportId { get; set; }
         public NPCAssetData[] NPCs { get; set; }
+        public PedAssetData[] Peds { get; set; }
     }
 
 

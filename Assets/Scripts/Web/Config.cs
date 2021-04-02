@@ -61,7 +61,15 @@ namespace Simulator.Web
             public bool Enabled = true;
         }
         public static Dictionary<string, NPCAssetData> NPCVehicles = new Dictionary<string, NPCAssetData>();
-
+        public class PedAssetData
+        {
+            [NonSerialized]
+            public GameObject Prefab;
+            public string Name;
+            public string AssetGuid;
+            public bool Enabled = true;
+        }
+        public static Dictionary<string, PedAssetData> Pedestrians = new Dictionary<string, PedAssetData>();
         public static Dictionary<string, IntPtr> FMUs = new Dictionary<string, IntPtr>(); // managed by FMU.cs
 
         public static int DefaultPageSize = 100;
@@ -173,7 +181,7 @@ namespace Simulator.Web
             }
         }
 
-        private static void LoadBuiltinAssets()
+        private static void LoadBuiltinAssets() // TODO remove
         {
             var npcSettings = NPCSettings.Load();
             var prefabs = new[]
@@ -251,8 +259,9 @@ namespace Simulator.Web
             CheckDir(vfs.GetChild(BundleConfig.pluralOf(BundleConfig.BundleTypes.Bridge)), LoadBridgePlugin); // NOTE: bridges must be loaded before sensor plugins
             CheckDir(vfs.GetChild(BundleConfig.pluralOf(BundleConfig.BundleTypes.Sensor)), LoadSensorPlugin);
             CheckDir(vfs.GetChild(BundleConfig.pluralOf(BundleConfig.BundleTypes.NPC)), LoadNPCAsset);
-
+            CheckDir(vfs.GetChild(BundleConfig.pluralOf(BundleConfig.BundleTypes.Pedestrian)), LoadPedestrianAsset);
             Debug.Log($"Loaded {NPCBehaviours.Count} NPCs behaviours and {NPCVehicles.Count} NPC models in {sw.Elapsed}");
+            Debug.Log($"Loaded {Pedestrians.Count} Pedestrians");
         }
 
         private static Assembly LoadAssembly(VfsEntry dir, string name)
@@ -450,7 +459,6 @@ namespace Simulator.Web
             var pluginEntry = dir.Find($"{manifest.assetGuid}_npc_main_{platform}");
             if (pluginEntry != null)
             {
-
                 AssetBundle pluginBundle = AssetBundle.LoadFromStream(pluginEntry.SeekableStream());
                 var pluginAssets = pluginBundle.GetAllAssetNames();
                 var prefabName = $"{manifest.assetName}.prefab";
@@ -482,6 +490,50 @@ namespace Simulator.Web
             if (pluginEntry == null && pluginSource == null)
             {
                 Debug.LogError("Neither assembly nor prefab found in "+manifest.assetName);
+            }
+
+            if (textureBundle && !AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
+            {
+                textureBundle.LoadAllAssets();
+            }
+        }
+
+        private static void LoadPedestrianAsset(Manifest manifest, VfsEntry dir)
+        {
+            if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Pedestrian])
+            {
+                throw new Exception($"manifest version mismatch, expected {BundleConfig.Versions[BundleConfig.BundleTypes.Pedestrian]}, got {manifest.assetFormat}");
+            }
+
+            var texEntry = dir.Find($"{manifest.assetGuid}_pedestrian_textures");
+            AssetBundle textureBundle = null;
+            if (texEntry != null)
+            {
+                var texStream = VirtualFileSystem.VirtualFileSystem.EnsureSeekable(texEntry.SeekableStream(), (int)texEntry.Size);
+                textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+            }
+
+            string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
+            var pluginEntry = dir.Find($"{manifest.assetGuid}_pedestrian_main_{platform}");
+            if (pluginEntry != null)
+            {
+                AssetBundle pluginBundle = AssetBundle.LoadFromStream(pluginEntry.SeekableStream());
+                var pluginAssets = pluginBundle.GetAllAssetNames();
+                var prefabName = $"{manifest.assetName}.prefab";
+                var mainPrefabName = pluginAssets.First(name => name.IndexOf(prefabName, StringComparison.InvariantCultureIgnoreCase) >= 0);
+                GameObject prefab = pluginBundle.LoadAsset<GameObject>(mainPrefabName);
+
+                Pedestrians.Add(manifest.assetName, new PedAssetData()
+                {
+                    Prefab = prefab,
+                    Name = manifest.assetName,
+                    AssetGuid = manifest.assetGuid,
+                });
+            }
+
+            if (pluginEntry == null)
+            {
+                Debug.LogError("No prefab found in " + manifest.assetName);
             }
 
             if (textureBundle && !AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))

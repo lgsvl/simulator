@@ -43,6 +43,11 @@ namespace Simulator.Network.Core.Connection
         List<string> AcceptableIdentifiers { get; }
 
         /// <summary>
+        /// Dictionary of currently connected peers by their endpoint
+        /// </summary>
+        Dictionary<IPEndPoint, IPeerManager> ConnectedPeers { get; }
+
+        /// <summary>
         /// Event invoked when new peer has been connected to the manager
         /// </summary>
         event Action<IPeerManager> PeerConnected;

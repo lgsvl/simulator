@@ -11,7 +11,7 @@ namespace Simulator.Network.Core.Components
 	using System.Collections;
 
 	using Messaging.Data;
-
+	using Threading;
 	using UnityEngine;
 
 	/// <summary>
@@ -66,16 +66,82 @@ namespace Simulator.Network.Core.Components
 		/// </summary>
 		private IEnumerator updateSnapshotsCoroutine;
 
+		/// <summary>
+		/// Is the update snapshots coroutine running on the dispatcher
+		/// </summary>
+		private bool coroutineOnDispatcher;
+
 		/// <inheritdoc/>
 		public override void Initialize()
 		{
 			base.Initialize();
+			
+			ParentObject.IsAuthoritativeChanged += ParentObjectOnIsAuthoritativeChanged;
+			ParentObjectOnIsAuthoritativeChanged(ParentObject.IsAuthoritative);
+		}
 
-			if (!ParentObject.IsAuthoritative) return;
-			if (updateSnapshotsCoroutine != null) return;
+		/// <inheritdoc/>
+		public override void Deinitialize()
+		{
+			if (this == null)
+				return;
+			//Check if this object is currently being destroyed
+			base.Deinitialize();
+			ParentObject.IsAuthoritativeChanged -= ParentObjectOnIsAuthoritativeChanged;
+			
+			if (updateSnapshotsCoroutine == null)
+				return;
+			if (coroutineOnDispatcher)
+			{
+				ThreadingUtilities.Dispatcher.StopCoroutine(updateSnapshotsCoroutine);
+				updateSnapshotsCoroutine = null;
+			}
+			else
+			{
+				StopCoroutine(updateSnapshotsCoroutine);
+				updateSnapshotsCoroutine = null;
+			}
+		}
 
-			updateSnapshotsCoroutine = UpdateSnapshots();
-			StartCoroutine(updateSnapshotsCoroutine);
+		/// <summary>
+		/// Method that starts or stops required coroutines
+		/// </summary>
+		/// <param name="isAuthoritative">Is the parent <see cref="DistributedObject"/> authoritative</param>
+		private void ParentObjectOnIsAuthoritativeChanged(bool isAuthoritative)
+		{
+			if (isAuthoritative)
+			{
+				if (updateSnapshotsCoroutine != null) 
+					return;
+
+				updateSnapshotsCoroutine = UpdateSnapshots();
+				if (isActiveAndEnabled)
+				{
+					StartCoroutine(updateSnapshotsCoroutine);
+					coroutineOnDispatcher = false;
+				}
+				else
+				{
+					ThreadingUtilities.Dispatcher.StartCoroutine(updateSnapshotsCoroutine);
+					coroutineOnDispatcher = true;
+				}
+			}
+			else
+			{
+				if (updateSnapshotsCoroutine == null)
+					return;
+			
+				if (coroutineOnDispatcher)
+				{
+					ThreadingUtilities.Dispatcher.StopCoroutine(updateSnapshotsCoroutine);
+					updateSnapshotsCoroutine = null;
+				}
+				else
+				{
+					StopCoroutine(updateSnapshotsCoroutine);
+					updateSnapshotsCoroutine = null;
+				}
+			}
 		}
 
 		/// <summary>
@@ -89,6 +155,7 @@ namespace Simulator.Network.Core.Components
 
 				updateSnapshotsCoroutine = UpdateSnapshots();
 				StartCoroutine(updateSnapshotsCoroutine);
+				coroutineOnDispatcher = false;
 			}
 		}
 
@@ -97,15 +164,17 @@ namespace Simulator.Network.Core.Components
 		/// </summary>
 		protected void OnDisable()
 		{
-			updateSnapshotsCoroutine = null;
+			if (!coroutineOnDispatcher)
+				updateSnapshotsCoroutine = null;
 		}
 
 		/// <summary>
-		/// 
+		/// Coroutine that sends updated snapshots if snapshot changes
 		/// </summary>
 		protected IEnumerator UpdateSnapshots()
 		{
-			var waitForEndOffFrame = new WaitForEndOfFrame();
+			BroadcastSnapshot(true);
+			yield return null;
 			while (IsInitialized)
 			{
 				if (Time.unscaledTime >= lastSentSnapshotTime + 1.0f / SnapshotsPerSecondLimit &&
@@ -114,7 +183,7 @@ namespace Simulator.Network.Core.Components
 					BroadcastSnapshot();
 					lastSentSnapshotTime = Time.unscaledTime;
 				}
-				yield return waitForEndOffFrame;
+				yield return null;
 			}
 			updateSnapshotsCoroutine = null;
 		}
@@ -173,9 +242,9 @@ namespace Simulator.Network.Core.Components
 		/// <inheritdoc/>
 		protected override void ApplySnapshot(DistributedMessage distributedMessage)
 		{
-			if (distributedMessage.Timestamp <= lastReceivedSnapshotTimestamp) return;
+			if (distributedMessage.ServerTimestamp <= lastReceivedSnapshotTimestamp) return;
 
-			lastReceivedSnapshotTimestamp = distributedMessage.Timestamp;
+			lastReceivedSnapshotTimestamp = distributedMessage.ServerTimestamp;
 
 			//Parse incoming snapshot
 			transform.localPosition = distributedMessage.Content.PopDecompressedPosition();

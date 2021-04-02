@@ -279,6 +279,21 @@ namespace Simulator.Network.Core.Messaging
         /// <param name="distributedMessage">Message to be sent</param>
         public void BroadcastMessage(DistributedMessage distributedMessage)
         {
+            //Check if this message is forwarded, then don't send it back to the sender
+            var connectedPeers = connectionManager.ConnectedPeers;
+            if (connectedPeers.ContainsValue(distributedMessage.Sender))
+            {
+                foreach (var connectedPeer in connectedPeers)
+                {
+                    if (connectedPeer.Value != distributedMessage.Sender)
+                    {
+                        //Unicast a message copy to every peer excluding the sender
+                        UnicastMessage(connectedPeer.Key, new DistributedMessage(distributedMessage));
+                    }
+                }
+
+                return;
+            }
             var id = idsRegister.ResolveId(distributedMessage.AddressKey);
             if (id != null)
             {

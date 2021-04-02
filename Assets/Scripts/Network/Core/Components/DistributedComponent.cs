@@ -117,7 +117,14 @@ namespace Simulator.Network.Core.Components
         {
             if (!IsInitialized)
                 return;
-            ParentObject.UnregisterComponent(this);
+            //Check if this object is currently being destroyed
+            if (this != null)
+            {
+                ParentObject.UnregisterComponent(this);
+                ParentObject.Initialized -= Initialize;
+                ParentObject.DestroyCalled -= SelfDestroy;
+            }
+
             IsInitialized = false;
         }
 
@@ -202,8 +209,25 @@ namespace Simulator.Network.Core.Components
         /// <inheritdoc/>
         public void ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
         {
-            if (!ParentObject.IsAuthoritative)
-                ParseMessage(distributedMessage);
+            if (ParentObject.IsAuthoritative)
+                return;
+
+            DistributedMessage messageCopy = null;
+            if (ParentObject.ForwardMessages)
+            {
+                messageCopy = new DistributedMessage(distributedMessage);
+                if (string.IsNullOrEmpty(messageCopy.AddressKey))
+                    Log.Error("Null before");
+            }
+
+            ParseMessage(distributedMessage);
+            if (ParentObject.ForwardMessages && messageCopy != null)
+            {
+                if (!string.IsNullOrEmpty(messageCopy.AddressKey))
+                    BroadcastMessage(messageCopy);
+                else 
+                    Log.Error("Null after");
+            }
         }
 
         /// <summary>

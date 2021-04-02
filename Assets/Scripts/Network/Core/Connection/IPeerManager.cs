@@ -17,6 +17,11 @@ namespace Simulator.Network.Core.Connection
     public interface IPeerManager
     {
         /// <summary>
+        /// Unique identifier of the peer
+        /// </summary>
+        string Identifier { get; }
+        
+        /// <summary>
         /// Is the peer currently connected
         /// </summary>
         bool Connected { get; }

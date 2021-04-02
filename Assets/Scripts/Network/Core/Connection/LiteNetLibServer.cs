@@ -36,8 +36,8 @@ namespace Simulator.Network.Core.Connection
         /// <summary>
         /// Peers dictionary, which are connected or trying to connect
         /// </summary>
-        private readonly Dictionary<EndPoint, LiteNetLibPeerManager> peers =
-            new Dictionary<EndPoint, LiteNetLibPeerManager>();
+        private readonly Dictionary<IPEndPoint, IPeerManager> peers =
+            new Dictionary<IPEndPoint, IPeerManager>();
 
         /// <inheritdoc/>
         public bool IsServer => true;
@@ -53,6 +53,9 @@ namespace Simulator.Network.Core.Connection
 
         /// <inheritdoc/>
         public List<string> AcceptableIdentifiers { get; } = new List<string>();
+
+        /// <inheritdoc/>
+        public Dictionary<IPEndPoint, IPeerManager> ConnectedPeers => peers;
 
         /// <inheritdoc/>
         public event Action<IPeerManager> PeerConnected;

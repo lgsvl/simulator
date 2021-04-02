@@ -17,6 +17,7 @@ using Newtonsoft.Json;
 using Simulator;
 using Simulator.Components;
 using Simulator.Network.Core;
+using Simulator.Network.Core.Components;
 using Simulator.Network.Core.Connection;
 using Simulator.Network.Core.Messaging;
 using Simulator.Network.Core.Messaging.Data;
@@ -45,21 +46,46 @@ public class SensorsController : MonoBehaviour, ISensorsController, IMessageSend
             this.configuration = configuration;
             this.instance = instance;
 
+            if (Loader.Instance.Network.IsClusterSimulation)
+            {
+                var distributedObject = instance.gameObject.AddComponent<DistributedObject>();
+                distributedObject.ForwardMessages = Loader.Instance.Network.IsMaster;
+                distributedObject.DistributeIsActive = false;
+                distributedObject.CallInitialize();
+                var distributedTransform = instance.gameObject.AddComponent<DistributedTransform>();
+                distributedTransform.Initialize();
+            }
+
             //Negate current value so proper method can be called
+            //Without negating current status method will not be be executed
             enabled = !instance.isActiveAndEnabled;
             if (enabled)
+            {
                 Disable();
+            }
             else
+            {
                 Enable();
+            }
         }
 
         public void Enable()
         {
             if (enabled)
+            {
                 return;
+            }
 
             if (Instance != null)
+            {
                 Instance.gameObject.SetActive(true);
+            }
+
+            if (Loader.Instance.Network.IsClusterSimulation)
+            {
+                var distributedObject = instance.gameObject.GetComponent<DistributedObject>();
+                distributedObject.IsAuthoritative = true;
+            }
 
             enabled = true;
         }
@@ -67,10 +93,21 @@ public class SensorsController : MonoBehaviour, ISensorsController, IMessageSend
         public void Disable()
         {
             if (!enabled)
+            {
                 return;
+            }
 
             if (Instance != null)
+            {
                 Instance.gameObject.SetActive(false);
+            }
+            
+            if (Loader.Instance.Network.IsClusterSimulation)
+            {
+                var distributedObject = instance.gameObject.GetComponent<DistributedObject>();
+                distributedObject.IsAuthoritative = false;
+            }
+            
             enabled = false;
         }
     }
@@ -449,16 +486,15 @@ public class SensorsController : MonoBehaviour, ISensorsController, IMessageSend
         }
 
         var clientsCount = clients.Count;
-        var clientsSensors = new List<SensorData>[clientsCount];
+        var clientsSensors = new List<string>[clientsCount];
         for (var i = 0; i < clientsSensors.Length; i++)
         {
-            clientsSensors[i] = new List<SensorData>();
+            clientsSensors[i] = new List<string>();
         }
 
         //Order sensors by distribution type, so ultra high loads will be handled first
         var sensorsByDistributionType =
-            sensorsInstances.Values
-                .Where(controller =>
+            sensorsInstances.Values.Where(controller =>
                     controller.Instance.DistributionType != SensorBase.SensorDistributionType.DoNotDistribute)
                 .OrderByDescending(controller => controller.Instance.DistributionType);
         //Track the load of simulations
@@ -483,7 +519,7 @@ public class SensorsController : MonoBehaviour, ISensorsController, IMessageSend
                     {
                         //Sensor will be distributed to lowest load client
                         clientsLoad[lowestLoadIndex] += lowLoadValue;
-                        clientsSensors[lowestLoadIndex].Add(sensorData.Configuration);
+                        clientsSensors[lowestLoadIndex].Add(sensorData.Configuration.Name);
                         sensorData.Disable();
                         SimulatorManager.Instance.Sensors.AppendEndPoint(sensorData.Instance, clients[lowestLoadIndex].Peer.PeerEndPoint);
                     }
@@ -506,7 +542,7 @@ public class SensorsController : MonoBehaviour, ISensorsController, IMessageSend
                     {
                         //Sensor will be distributed to lowest load client
                         clientsLoad[lowestLoadIndex] += highLoadValue;
-                        clientsSensors[lowestLoadIndex].Add(sensorData.Configuration);
+                        clientsSensors[lowestLoadIndex].Add(sensorData.Configuration.Name);
                         sensorData.Disable();
                         SimulatorManager.Instance.Sensors.AppendEndPoint(sensorData.Instance, clients[lowestLoadIndex].Peer.PeerEndPoint);
                     }
@@ -528,7 +564,7 @@ public class SensorsController : MonoBehaviour, ISensorsController, IMessageSend
 
                     //Sensor will be distributed to lowest load client
                     clientsLoad[lowestLoadIndex] += ultraHighLoadValue;
-                    clientsSensors[lowestLoadIndex].Add(sensorData.Configuration);
+                    clientsSensors[lowestLoadIndex].Add(sensorData.Configuration.Name);
                     SimulatorManager.Instance.Sensors.AppendEndPoint(sensorData.Instance, clients[lowestLoadIndex].Peer.PeerEndPoint);
                     sensorData.Disable();
                     break;
@@ -553,14 +589,18 @@ public class SensorsController : MonoBehaviour, ISensorsController, IMessageSend
             Debug.LogWarning($"Running cluster simulation with overloaded master simulation. Used sensors cannot be distributed to the clients.");
         }
 
+        var sensorsData = sensorsInstances.Select(s => s.Value.Configuration);
+        var allSensors = JsonConvert.SerializeObject(sensorsData, JsonSettings.camelCase);
+        var sensorsLength = BytesStack.GetMaxByteCount(allSensors);
         //Send sensors data to clients
         for (var i = 0; i < clientsCount; i++)
         {
             var client = network.Master.Clients[i];
-            var sensorString = JsonConvert.SerializeObject(clientsSensors[i], JsonSettings.camelCase);
-            var message = MessagesPool.Instance.GetMessage(BytesStack.GetMaxByteCount(sensorString));
+            var enabledSensors = JsonConvert.SerializeObject(clientsSensors[i], JsonSettings.camelCase);
+            var message = MessagesPool.Instance.GetMessage(sensorsLength+BytesStack.GetMaxByteCount(enabledSensors));
             message.AddressKey = Key;
-            message.Content.PushString(sensorString);
+            message.Content.PushString(enabledSensors);
+            message.Content.PushString(allSensors);
             message.Type = DistributedMessageType.ReliableOrdered;
             ((IMessageSender) this).UnicastMessage(client.Peer.PeerEndPoint, message);
         }
@@ -583,9 +623,19 @@ public class SensorsController : MonoBehaviour, ISensorsController, IMessageSend
         {
             return;
         }
-        var sensors = distributedMessage.Content.PopString();
-        var parsed = JsonConvert.DeserializeObject<SensorData[]>(sensors);
-        InstantiateSensors(parsed);
+        var allSensorsString = distributedMessage.Content.PopString();
+        var allSensors = JsonConvert.DeserializeObject<SensorData[]>(allSensorsString);
+        var enabledSensorsString = distributedMessage.Content.PopString();
+        var enabledSensors = JsonConvert.DeserializeObject<List<string>>(enabledSensorsString);
+        InstantiateSensors(allSensors);
+        foreach (var instance in sensorsInstances)
+        {
+            if (enabledSensors.Contains(instance.Key))
+                instance.Value.Enable();
+            else
+                instance.Value.Disable();
+        }
+        SensorsChanged?.Invoke();
     }
 
     /// <inheritdoc/>

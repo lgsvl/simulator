@@ -63,10 +63,34 @@ namespace Simulator.Network.Core.Messaging.Data
         /// <summary>
         /// Constructor
         /// </summary>
+        public DistributedMessage()
+        {
+            
+        }
+        
+        /// <summary>
+        /// Constructor
+        /// </summary>
         /// <param name="content">The content of message</param>
         public DistributedMessage(BytesStack content)
         {
             Content = content;
+        }
+        
+        /// <summary>
+        /// Copy constructor
+        /// </summary>
+        /// <param name="origin">Origin distributed message that will be copied</param>
+        public DistributedMessage(DistributedMessage origin)
+        {
+            OriginPool = origin.OriginPool;
+            Sender = origin.Sender;
+            AddressKey = origin.AddressKey;
+            Content = new BytesStack(origin.Content);
+            Type = origin.Type;
+            ServerTimestamp = origin.ServerTimestamp;
+            Timestamp = origin.Timestamp;
+            TimeTicksDifference = origin.TimeTicksDifference;
         }
 
         /// <summary>
@@ -87,6 +111,13 @@ namespace Simulator.Network.Core.Messaging.Data
         /// </summary>
         public void Release()
         {
+            Sender = null;
+            AddressKey = null;
+            Content.Reset();
+            Type = DistributedMessageType.ReliableOrdered;
+            ServerTimestamp = DateTime.MinValue;
+            Timestamp = DateTime.MinValue;
+            TimeTicksDifference = 0;
             OriginPool?.ReleaseMessage(this);
         }
     }

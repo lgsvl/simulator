@@ -42,6 +42,11 @@ namespace Simulator.Network.Core.Components
         private IGloballyUniquelyIdentified guidSource;
 
         /// <summary>
+        /// Is this distributed component authoritative (sends data to other components)
+        /// </summary>
+        private bool isAuthoritative;
+
+        /// <summary>
         /// Cached IMessageSender key
         /// </summary>
         private string key;
@@ -64,7 +69,22 @@ namespace Simulator.Network.Core.Components
         /// <summary>
         /// Is this distributed component authoritative (sends data to other components)
         /// </summary>
-        public bool IsAuthoritative { get; protected set; }
+        public bool IsAuthoritative
+        {
+            get => isAuthoritative;
+            set
+            {
+                if (isAuthoritative == value)
+                    return;
+                isAuthoritative = value;
+                IsAuthoritativeChanged?.Invoke(isAuthoritative);
+            }
+        }
+
+        /// <summary>
+        /// Should the "IsActive" status be distributed between machines
+        /// </summary>
+        public bool DistributeIsActive { get; set; } = true;
 
         /// <summary>
         /// Will this object be destroyed
@@ -93,6 +113,11 @@ namespace Simulator.Network.Core.Components
             get => selectiveDistribution;
             set => selectiveDistribution = value;
         }
+        
+        /// <summary>
+        /// Should this distributed object broadcast received messages
+        /// </summary>
+        public bool ForwardMessages { get; set; }
 
         /// <summary>
         /// Sibling component that has GUID assigned, if available used as the Key base
@@ -106,9 +131,14 @@ namespace Simulator.Network.Core.Components
         public event Action Initialized;
 
         /// <summary>
-        /// Event called when distributed object will be destroyed
+        /// Event invoked when distributed object will be destroyed
         /// </summary>
         public event Action DestroyCalled;
+
+        /// <summary>
+        /// Event invoked when the isAuthoritative flag changes
+        /// </summary>
+        public event Action<bool> IsAuthoritativeChanged;
 
         /// <summary>
         /// Event invoked when new distributed component is registered to this object
@@ -144,11 +174,14 @@ namespace Simulator.Network.Core.Components
             if (!IsInitialized)
                 return;
 
-            var message = MessagesPool.Instance.GetMessage(4);
-            message.Content.PushEnum<DistributedObjectCommandType>((int) DistributedObjectCommandType.Enable);
-            message.AddressKey = Key;
-            message.Type = DistributedMessageType.ReliableOrdered;
-            BroadcastMessage(message);
+            if (DistributeIsActive)
+            {
+                var message = MessagesPool.Instance.GetMessage(4);
+                message.Content.PushEnum<DistributedObjectCommandType>((int) DistributedObjectCommandType.Enable);
+                message.AddressKey = Key;
+                message.Type = DistributedMessageType.ReliableOrdered;
+                BroadcastMessage(message);
+            }
         }
 
         /// <summary>
@@ -159,11 +192,14 @@ namespace Simulator.Network.Core.Components
             if (!IsInitialized)
                 return;
 
-            var message = MessagesPool.Instance.GetMessage(4);
-            message.Content.PushEnum<DistributedObjectCommandType>((int) DistributedObjectCommandType.Disable);
-            message.AddressKey = Key;
-            message.Type = DistributedMessageType.ReliableOrdered;
-            BroadcastMessage(message);
+            if (DistributeIsActive)
+            {
+                var message = MessagesPool.Instance.GetMessage(4);
+                message.Content.PushEnum<DistributedObjectCommandType>((int) DistributedObjectCommandType.Disable);
+                message.AddressKey = Key;
+                message.Type = DistributedMessageType.ReliableOrdered;
+                BroadcastMessage(message);
+            }
         }
 
         /// <summary>
@@ -171,6 +207,8 @@ namespace Simulator.Network.Core.Components
         /// </summary>
         public void CallInitialize()
         {
+            if (IsInitialized)
+                return;
             if (Root == null)
             {
                 WillBeDestroyed = true;
@@ -179,6 +217,7 @@ namespace Simulator.Network.Core.Components
             }
             else
             {
+                IsAuthoritative = Root.AuthoritativeDistributionAsDefault;
                 if (GuidSource == null)
                     Initialize();
                 else
@@ -210,7 +249,6 @@ namespace Simulator.Network.Core.Components
         {
             if (IsInitialized)
                 return;
-            IsAuthoritative = Root.AuthoritativeDistributionAsDefault;
             Root.RegisterObject(this);
             IsInitialized = true;
             Initialized?.Invoke();
@@ -325,7 +363,7 @@ namespace Simulator.Network.Core.Components
         /// <inheritdoc/>
         public void BroadcastMessage(DistributedMessage distributedMessage)
         {
-            if (!IsAuthoritative)
+            if (!IsAuthoritative && !ForwardMessages)
                 return;
             if (SelectiveDistribution)
                 foreach (var addressedEndPoint in AddressedEndPoints)
@@ -346,7 +384,7 @@ namespace Simulator.Network.Core.Components
         public void ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
         {
             //Check if game object is not destroyed
-            if (this ==null || gameObject == null)
+            if (this == null || gameObject == null)
                 return;
             var commandType = distributedMessage.Content.PopEnum<DistributedObjectCommandType>();
             switch (commandType)

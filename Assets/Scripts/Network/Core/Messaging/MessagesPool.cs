@@ -26,11 +26,6 @@ namespace Simulator.Network.Core.Messaging
 		/// Global instance of the messages pool
 		/// </summary>
 		public static MessagesPool Instance { get; } = new MessagesPool();
-		
-		/// <summary>
-		/// Should the message key be cleared on release
-		/// </summary>
-		public readonly bool ClearKey = true;
 
 		/// <summary>
 		/// Scope limits of the inner pools in bytes (every pool use different scope)
@@ -148,11 +143,6 @@ namespace Simulator.Network.Core.Messaging
 			if (message.OriginPool != this) return;
 			var poolIndex = BytesToIndex(message.Content.StackSize);
 			message.OriginPool = null;
-			message.Content.Reset();
-			message.Timestamp = DateTime.MinValue;
-			if (ClearKey) message.AddressKey = null;
-			message.Type = DistributedMessageType.ReliableOrdered;
-
 			lock (pools)
 			{
 				pools[poolIndex].Add(message);

@@ -295,6 +295,11 @@ namespace Simulator.Network.Core.Messaging
 		/// <returns>Identifier bound to address key, null if it's not bound</returns>
 		public int? ResolveId(string addressKey)
 		{
+			if (string.IsNullOrEmpty(addressKey))
+			{
+				Log.Error("Cannot resolve id without address key set.");
+				return null;
+			}
 			if (!keyToIdDictionary.TryGetValue(addressKey, out var id)) return null;
 
 			return id;

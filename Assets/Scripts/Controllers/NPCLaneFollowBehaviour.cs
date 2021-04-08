@@ -17,6 +17,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     #region vars
     private bool DebugMode = false;
     private bool AutomaticMode = true;
+
     // physics
     public LayerMask groundHitBitmask;
     public LayerMask carCheckBlockBitmask;
@@ -57,8 +58,8 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
 
     public float stopHitDistance = 5f;
     public float stopLineDistance = 15f;
-    public float aggressionAdjustRate;
-    public int aggression;
+    public float aggressionAdjustRate; //  TODO remove
+    public int aggression; // TODO remove
 
     protected bool isLaneDataSet = false;
     public bool isFrontDetectWithinStopDistance = false;
@@ -70,13 +71,12 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     public bool hasReachedStopSign = false;
     public bool isStopLight = false;
     public bool isStopSign = false;
-    public float path = 0f;
     public bool isCurve = false;
     public bool laneChange = false;
     public bool isDodge = false;
     public bool isWaitingToDodge = false;
 
-    protected float stopSignWaitTime = 1f;
+    protected float stopSignWaitTime = 1f; // TODO 3sec
     protected float currentStopTime = 0f;
 
     private Collider[] MaxHitColliders = new Collider[5];
@@ -93,10 +93,9 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     {
         if (isLaneDataSet)
         {
-            ToggleBrakeLights();
+            ToggleBrakeLights(); // move to set target speed and call controller?
             CollisionCheck();
             EvaluateTarget();
-            GetIsTurn();
             if (AutomaticMode)
             {
                 GetDodge();
@@ -177,7 +176,6 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         controller.ResetLights();
         currentSpeed = 0f;
         currentStopTime = 0f;
-        path = 0f;
         rb.angularVelocity = Vector3.zero;
         rb.velocity = Vector3.zero;
         isCurve = false;
@@ -196,7 +194,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     #endregion
 
     #region physics
-    public void NPCMove()
+    protected void NPCMove()
     {
         var movement = rb.position + transform.forward * currentSpeed * Time.fixedDeltaTime;
         rb.MovePosition(new Vector3(movement.x, rb.position.y, movement.z));
@@ -550,29 +548,34 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
             }
             else
             {
-                GetNextLane();
+                // GetNextLane
+                // last index of current lane data
+                if (currentMapLane?.nextConnectedLanes.Count >= 1) // choose next path and set waypoints
+                {
+                    currentMapLane = currentMapLane.nextConnectedLanes[RandomGenerator.Next(currentMapLane.nextConnectedLanes.Count)];
+                    laneSpeedLimit = currentMapLane.speedLimit;
+                    aggressionAdjustRate = laneSpeedLimit / 11.176f; // 11.176 m/s corresponds to 25 mph
+                    normalSpeed = APIMaxSpeed > 0 ?
+                        Mathf.Min(APIMaxSpeed, laneSpeedLimit) :
+                        RandomGenerator.NextFloat(laneSpeedLimit - 3 + aggression, laneSpeedLimit + 1 + aggression); // API set max speed or lane speed limit
+                    SetLaneData(currentMapLane.mapWorldPositions);
+                    SetTurnSignal();
+                }
+                else
+                {
+                    Despawn(); // issue getting new waypoints so despawn
+                }
             }
         }
-    }
 
-    protected void GetNextLane()
-    {
-        // last index of current lane data
-        if (currentMapLane?.nextConnectedLanes.Count >= 1) // choose next path and set waypoints
+        // isTurn
+        if (currentMapLane == null)
         {
-            currentMapLane = currentMapLane.nextConnectedLanes[RandomGenerator.Next(currentMapLane.nextConnectedLanes.Count)];
-            laneSpeedLimit = currentMapLane.speedLimit;
-            aggressionAdjustRate = laneSpeedLimit / 11.176f; // 11.176 m/s corresponds to 25 mph
-            normalSpeed = APIMaxSpeed > 0 ?
-                Mathf.Min(APIMaxSpeed, laneSpeedLimit) :
-                RandomGenerator.NextFloat(laneSpeedLimit - 3 + aggression, laneSpeedLimit + 1 + aggression); // API set max speed or lane speed limit
-            SetLaneData(currentMapLane.mapWorldPositions);
-            SetTurnSignal();
+            return;
         }
-        else
-        {
-            Despawn(); // issue getting new waypoints so despawn
-        }
+
+        var path = transform.InverseTransformPoint(currentTarget).x;
+        isCurve = path < -1f || path > 1f ? true : false;
     }
 
     protected IEnumerator DelayChangeLane()
@@ -836,13 +839,6 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
             }
         }
         controller.SetNPCTurnSignal();
-    }
-
-    protected void GetIsTurn()
-    {
-        if (currentMapLane == null) return;
-        path = transform.InverseTransformPoint(currentTarget).x;
-        isCurve = path < -1f || path > 1f ? true : false;
     }
     #endregion
 

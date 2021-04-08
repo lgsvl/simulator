@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -103,6 +103,9 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
     private string key;
     public string GUID => id;
     public string Key => key ?? (string.IsNullOrEmpty(GUID) ? null : key = $"{GUID}/NPCController");
+
+    // animation
+    private Animator AgentAnimator;
 
     private enum NPCLightStateTypes
     {
@@ -254,10 +257,6 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
         rb = GetComponent<Rigidbody>();
         allRenderers = GetComponentsInChildren<Renderer>().ToList();
         allLights = GetComponentsInChildren<Light>();
-        if (allLights.Length == 0)
-        {
-            Debug.LogError(gameObject.name + " did not find any lights!");
-        }
 
         Color.RGBToHSV(NPCColor, out float h, out float s, out float v);
         h = Mathf.Clamp01(RandomGenerator.NextFloat(h - 0.01f, h + 0.01f));
@@ -337,51 +336,6 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
             }
         }
 
-        if (headLights.Count == 0)
-        {
-            Debug.LogWarning($"Asset {gameObject.name} missing light 'Head'");
-        }
-        if (brakeLights.Count == 0)
-        {
-            Debug.LogWarning($"Asset {gameObject.name} missing light 'Brake'");
-        }
-        if (indicatorLeftLights.Count == 0)
-        {
-            Debug.LogWarning($"Asset {gameObject.name} missing light 'IndicatorLeft'");
-        }
-        if (indicatorRightLights.Count == 0)
-        {
-            Debug.LogWarning($"Asset {gameObject.name} missing light 'IndicatorRight'");
-        }
-        if (indicatorReverseLight == null)
-        {
-            Debug.LogWarning($"Asset {gameObject.name} missing light 'IndicatorReverse'");
-        }
-        if (MainCollider == null)
-        {
-            Debug.LogWarning($"Asset {gameObject.name} missing renderer 'Body'");
-        }
-        if (headLight == null)
-        {
-            Debug.LogWarning($"Asset {gameObject.name} missing material 'LightHead'");
-        }
-        if (brakeLight == null)
-        {
-            Debug.LogWarning($"Asset {gameObject.name} missing material 'LightBrake'");
-        }
-        if (indicatorRight == null)
-        {
-            Debug.LogWarning($"Asset {gameObject.name} missing material 'IndicatorRight'");
-        }
-        if (indicatorLeft == null)
-        {
-            Debug.LogWarning($"Asset {gameObject.name} missing material 'IndicatorLeft'");
-        }
-        if (indicatorReverse == null)
-        {
-            Debug.LogWarning($"Asset {gameObject.name} missing material 'IndicatorReverse'");
-        }
-
         Bounds = new Bounds(transform.position, Vector3.zero);
         foreach (Renderer renderer in allRenderers)
         {
@@ -424,6 +378,9 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
         go.transform.position = new Vector3(Bounds.center.x - Bounds.max.x, Bounds.min.y + 0.5f, Bounds.center.z + Bounds.max.z);
         go.transform.SetParent(transform, true);
         frontLeft = go.transform;
+
+        // animation
+        AgentAnimator = GetComponentInChildren<Animator>();
     }
 
     public T SetBehaviour<T>() where T: NPCBehaviourBase
@@ -889,6 +846,19 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
     }
     #endregion
 
+    #region animation
+    public void SetAnimationControllerParameters()
+    {
+        if (AgentAnimator == null)
+            return;
+
+        if (gameObject.activeInHierarchy)
+        {
+            AgentAnimator.SetFloat("speed", currentSpeed);
+        }
+    }
+    #endregion
+
     void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.layer == agentLayer)
@@ -1014,7 +984,16 @@ public abstract class NPCBehaviourBase : MonoBehaviour
     public float currentSpeed
     {
         get => controller.currentSpeed;
-        set { controller.currentSpeed = value; }
+        set
+        {
+            controller.currentSpeed = value;
+            controller.SetAnimationControllerParameters();
+            // TODO
+            //if (Loader.Instance.Network.IsMaster)
+            //    BroadcastSnapshot();
+            //if (!Loader.Instance.Network.IsClient)
+            //    SetAnimationControllerParameters();
+        }
     }
 
     public bool isForcedStop

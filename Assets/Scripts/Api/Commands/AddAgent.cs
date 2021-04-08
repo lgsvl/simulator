@@ -159,7 +159,7 @@ namespace Simulator.Api.Commands
                 else if (type == (int)AgentType.Npc)
                 {
                     var colorData = args["color"].ReadVector3();
-                    var template = sim.NPCManager.NPCVehicles.Find(obj => obj.Prefab.name == name); // TODO need to search all available npcs including npc bundles
+                    var template = sim.NPCManager.NPCVehicles.Find(obj => obj.Prefab.name == name);
                     if (template.Prefab == null)
                     {
                         throw new Exception($"Unknown '{name}' NPC name");

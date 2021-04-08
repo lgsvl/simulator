@@ -183,47 +183,6 @@ namespace Simulator.Web
 
         private static void LoadBuiltinAssets() // TODO remove
         {
-            var npcSettings = NPCSettings.Load();
-            var prefabs = new[]
-            {
-                "Hatchback",
-                "Sedan",
-                "Jeep",
-                "SUV",
-                "BoxTruck",
-                "SchoolBus",
-            };
-
-            foreach (var entry in prefabs)
-            {
-                var go = npcSettings.NPCPrefabs.Find(x => x.name == entry) as GameObject;
-                if (go == null)
-                {
-                    // I was seeing this in editor a few times, where it was not able to find the builtin assets
-                    Debug.LogError($"Failed to load builtin {entry} "+(go==null?"null":go.ToString()));
-                    continue;
-                }
-                Map.NPCSizeType size = Map.NPCSizeType.MidSize;
-                var meta = go.GetComponent<NPCMetaData>();
-
-                if (meta != null)
-                {
-                    size = meta.SizeType;
-                }
-                else
-                {
-                    Debug.LogWarning($"NPC {entry} missing meta info, setting default size");
-                }
-
-                NPCVehicles.Add(entry, new NPCAssetData
-                {
-                    Prefab = go,
-                    NPCType = size,
-                    Name = entry,
-                    AssetGuid = $"builtin-{entry}",
-                });
-            }
-
             var behaviours = new []
             {
                 typeof(NPCLaneFollowBehaviour),
@@ -260,8 +219,7 @@ namespace Simulator.Web
             CheckDir(vfs.GetChild(BundleConfig.pluralOf(BundleConfig.BundleTypes.Sensor)), LoadSensorPlugin);
             CheckDir(vfs.GetChild(BundleConfig.pluralOf(BundleConfig.BundleTypes.NPC)), LoadNPCAsset);
             CheckDir(vfs.GetChild(BundleConfig.pluralOf(BundleConfig.BundleTypes.Pedestrian)), LoadPedestrianAsset);
-            Debug.Log($"Loaded {NPCBehaviours.Count} NPCs behaviours and {NPCVehicles.Count} NPC models in {sw.Elapsed}");
-            Debug.Log($"Loaded {Pedestrians.Count} Pedestrians");
+            Debug.Log($"Loaded NPCs behaviours: {NPCBehaviours.Count}  NPC models: {NPCVehicles.Count}  Pedestrians: {Pedestrians.Count} in {sw.Elapsed}");
         }
 
         private static Assembly LoadAssembly(VfsEntry dir, string name)

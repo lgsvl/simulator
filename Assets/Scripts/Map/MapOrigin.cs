@@ -34,6 +34,7 @@ namespace Simulator.Map
         Bus = 1 << 9,
         Trailer = 1 << 10,
         Motorcycle = 1 << 11,
+        Bicycle = 1 << 12,
     };
 
     public partial class MapOrigin : MonoBehaviour

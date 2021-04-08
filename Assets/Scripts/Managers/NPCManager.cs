@@ -36,6 +36,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         [NPCSizeType.Bus]           = 1,
         [NPCSizeType.Trailer]       = 0,
         [NPCSizeType.Motorcycle]    = 1,
+        [NPCSizeType.Bicycle]       = 1,
     };
 
     [System.Serializable]
@@ -288,14 +289,13 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         CurrentPooledNPCs.Clear();
         ActiveNPCCount = 0;
 
-        int poolCount = Mathf.FloorToInt(NPCMaxCount + (NPCMaxCount * 0.1f));
-        for (int i = 0; i < poolCount; i++)
+        for (int i = 0; i < NPCMaxCount; i++)
         {
             var template = GetWeightedRandomNPC();
             if (template == null)
             {
-                Debug.LogError("NPC size weights are incorrectly set!"); // TODO change to while with timer to make sure poolCount is reached
-                continue;
+                Debug.LogWarning("NPC size weights are incorrect, pooling stopped");
+                return null;
             }
             var spawnData = new NPCSpawnData
             {
@@ -474,6 +474,12 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
     private NPCAssetData GetWeightedRandomNPC()
     {
+        if (NPCVehicles.Count == 0)
+        {
+            Debug.LogWarning("NPC count is 0, please clone and build npcs");
+            return null;
+        }
+
         int totalWeight = NPCVehicles.Where(npc => HasSizeFlag(npc.NPCType)).Sum(npc => GetNPCFrequencyWeight(npc.NPCType));
         int rnd = RandomGenerator.Next(totalWeight);
 

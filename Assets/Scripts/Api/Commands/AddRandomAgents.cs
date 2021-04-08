@@ -31,6 +31,11 @@ namespace Simulator.Api.Commands
                 case AgentType.Npc:
                     var npcManager = SimulatorManager.Instance.NPCManager;
                     var pooledNPCs = npcManager.SpawnNPCPool();
+                    if (pooledNPCs == null)
+                    {
+                        api.SendError(this, "No npcs to spawn");
+                        return;
+                    }
                     npcManager.NPCActive = true;
                     npcManager.SetNPCOnMap(true);
                     api.SendResult(this);

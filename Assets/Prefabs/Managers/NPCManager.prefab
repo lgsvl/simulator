@@ -223,7 +223,15 @@ MonoBehaviour:
     TypeColors:
     - Color: {r: 0, g: 0, b: 0, a: 1}
       Weight: 1
-  npcSpawnsManager: {fileID: -1528281303692722397}
+  - Type: 4096
+    TypeColors:
+    - Color: {r: 0, g: 0.2924528, b: 0.022800742, a: 1}
+      Weight: 10
+    - Color: {r: 1, g: 0, b: 0.007048607, a: 1}
+      Weight: 15
+    - Color: {r: 1, g: 1, b: 1, a: 1}
+      Weight: 18
+  spawnsManager: {fileID: 0}
   CurrentPooledNPCs: []
 --- !u!114 &-1528281303692722397
 MonoBehaviour:
@@ -237,4 +245,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6d663bd3ad996c4c9edf4457690a3b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  npcManager: {fileID: 5434890109357067384}
+  spawnAreaType: 0
+  spawnRadius: 6

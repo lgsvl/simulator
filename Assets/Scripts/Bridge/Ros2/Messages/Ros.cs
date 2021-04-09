@@ -37,6 +37,32 @@ namespace Simulator.Bridge.Ros2.Ros
         public PartialByteArray data;
     }
 
+    [MessageType("sensor_msgs/CameraInfo")]
+    public struct CameraInfo
+    {
+        public Header header;
+        public uint width;
+        public uint height;
+        public string distortion_model;
+        public double[] D;
+        public double[] K;
+        public double[] R;
+        public double[] P;
+        public uint binning_x;
+        public uint binning_y;
+        public RegionOfInterest roi;
+    }
+
+    [MessageType("sensor_msgs/RegionOfInterest")]
+    public struct RegionOfInterest
+    {
+        public uint x_offset;
+        public uint y_offset;
+        public uint width;
+        public uint height;
+        public bool do_rectify;
+    }
+
     [MessageType("std_msgs/Header")]
     public struct Header
     {

@@ -31,6 +31,7 @@ namespace Simulator.Bridge.Ros
             );
 
             RegPublisher<ImageData, Ros.CompressedImage>(plugin, Conversions.ConvertFrom);
+            RegPublisher<CameraInfoData, Ros.CameraInfo>(plugin, Conversions.ConvertFrom);
             RegPublisher<Detected2DObjectData, Lgsvl.Detection2DArray>(plugin, Conversions.ConvertFrom);
             RegPublisher<ClockData, Ros.Clock>(plugin, Conversions.ConvertFrom);
 

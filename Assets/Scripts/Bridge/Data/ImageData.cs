@@ -21,4 +21,22 @@ namespace Simulator.Bridge.Data
         public byte[] Bytes;
         public int Length;
     }
+
+    public class CameraInfoData
+    {
+        public string Name;
+        public string Frame;
+        public double Time;
+        public uint Sequence;
+
+        public int Width;
+        public int Height;
+
+        public double FocalLengthX;
+        public double FocalLengthY;
+        public double PrincipalPointX;
+        public double PrincipalPointY;
+
+        public float[] DistortionParameters;
+    }
 }

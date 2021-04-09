@@ -36,6 +36,58 @@ namespace Simulator.Bridge.Ros
             };
         }
 
+        public static Ros.CameraInfo ConvertFrom(CameraInfoData data)
+        {
+            return new Ros.CameraInfo()
+            {
+                header = new Ros.Header()
+                {
+                    seq = data.Sequence,
+                    stamp = ConvertTime(data.Time),
+                    frame_id = data.Frame,
+                },
+                height = (uint)data.Height,
+                width = (uint)data.Width,
+                distortion_model = "plumb_bob",
+                D = new double[5]
+                {
+                    (double)data.DistortionParameters[0],
+                    (double)data.DistortionParameters[1],
+                    0.0,
+                    0.0,
+                    (double)data.DistortionParameters[2],
+                },
+                K = new double[9]
+                {
+                    data.FocalLengthX, 0.0, data.PrincipalPointX,
+                    0.0, data.FocalLengthY, data.PrincipalPointY,
+                    0.0, 0.0, 1.0,
+                },
+                R = new double[9]
+                {
+                    1.0, 0.0, 0.0,
+                    0.0, 1.0, 0.0,
+                    0.0, 0.0, 1.0,
+                },
+                P = new double[12]
+                {
+                    data.FocalLengthX, 0.0, data.PrincipalPointX, 0.0,
+                    0.0, data.FocalLengthY, data.PrincipalPointY, 0.0,
+                    0.0, 0.0, 1.0, 0.0,
+                },
+                binning_x = 0,
+                binning_y = 0,
+                roi = new Ros.RegionOfInterest()
+                {
+                    x_offset = 0,
+                    y_offset = 0,
+                    width = 0,
+                    height = 0,
+                    do_rectify = false,
+                }
+            };
+        }
+
         public static Lgsvl.Detection2DArray ConvertFrom(Detected2DObjectData data)
         {
             return new Lgsvl.Detection2DArray()

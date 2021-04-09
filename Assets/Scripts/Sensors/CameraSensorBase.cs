@@ -73,13 +73,19 @@ namespace Simulator.Sensors
         [SensorParameter]
         public float Xi = 0.0f;
 
+        [SensorParameter]
+        public string CameraInfoTopic;
+
         public List<PostProcessData> Postprocessing;
 
         public List<PostProcessData> LatePostprocessing;
 
         BridgeInstance Bridge;
         Publisher<ImageData> Publish;
+        Publisher<CameraInfoData> CameraInfoPublish;
         uint Sequence;
+
+        CameraInfoData CameraInfoData;
 
         const int MaxJpegSize = 4 * 1024 * 1024; // 4MB
 
@@ -189,6 +195,10 @@ namespace Simulator.Sensors
         {
             Bridge = bridge;
             Publish = bridge.AddPublisher<ImageData>(Topic);
+            if (!string.IsNullOrEmpty(CameraInfoTopic))
+            {
+                CameraInfoPublish = bridge.AddPublisher<CameraInfoData>(CameraInfoTopic);
+            }
         }
 
         protected virtual void Update()
@@ -209,6 +219,12 @@ namespace Simulator.Sensors
 
             CheckTexture();
             CheckCapture();
+
+            if (CameraInfoPublish != null)
+            {
+                InitCameraInfoData();
+            }
+
             ProcessReadbackRequests();
         }
 
@@ -426,8 +442,19 @@ namespace Simulator.Sensors
                             imageData.Length = JpegEncoder.Encode(capture.GpuData, Width, Height, 4, JpegQuality, imageData.Bytes);
                             if (imageData.Length > 0)
                             {
-                                imageData.Time = capture.CaptureTime;
+                                var time = capture.CaptureTime;
+                                imageData.Time = time;
                                 Publish(imageData);
+
+                                if (CameraInfoData != null)
+                                {
+                                    CameraInfoData.Name = Name;
+                                    CameraInfoData.Frame = Frame;
+                                    CameraInfoData.Time = time;
+                                    CameraInfoData.Sequence = Sequence;
+
+                                    CameraInfoPublish?.Invoke(CameraInfoData);
+                                }
                             }
                             else
                             {
@@ -553,6 +580,39 @@ namespace Simulator.Sensors
                 { "Status", AnalysisManager.AnalysisStatusType.Failed },
             };
             SimulatorManager.Instance.AnalysisManager.AddEvent(data);
+        }
+
+        private void InitCameraInfoData()
+        {
+            if (CameraInfoData != null)
+            {
+                return;
+            }
+
+            var vFOV = SensorCamera.fieldOfView * Mathf.Deg2Rad;
+            var hFOV = 2 * Mathf.Atan(Mathf.Tan(SensorCamera.fieldOfView * Mathf.Deg2Rad / 2) * SensorCamera.aspect);
+
+            double fx = (double)(SensorCamera.pixelWidth / (2.0f * Mathf.Tan(0.5f * hFOV)));
+            double fy = (double)(SensorCamera.pixelHeight / (2.0f * Mathf.Tan(0.5f * vFOV)));
+            double cx = SensorCamera.pixelWidth / 2.0f;
+            double cy = SensorCamera.pixelHeight / 2.0f;
+
+            CameraInfoData = new CameraInfoData();
+            CameraInfoData.Width = SensorCamera.pixelWidth;
+            CameraInfoData.Height = SensorCamera.pixelHeight;
+            CameraInfoData.FocalLengthX = fx;
+            CameraInfoData.FocalLengthY = fx;
+            CameraInfoData.PrincipalPointX = cx;
+            CameraInfoData.PrincipalPointY = cy;
+
+            if (Distorted)
+            {
+                CameraInfoData.DistortionParameters = DistortionParameters.ToArray();
+            }
+            else
+            {
+                CameraInfoData.DistortionParameters = new float[4] { 0.0f, 0.0f, 0.0f, 0.0f };
+            }
         }
     }
 }

@@ -156,7 +156,10 @@ namespace Simulator.Components
                         if ((chunkCenter - worldPos).sqrMagnitude > sqrDist)
                             continue;
 
-                        toSpawn.Add(new Vector2Int(x, y));
+                        var pos = new Vector2Int(x, y);
+
+                        if (!toSpawn.Contains(pos))
+                            toSpawn.Add(pos);
                     }
                 }
             }

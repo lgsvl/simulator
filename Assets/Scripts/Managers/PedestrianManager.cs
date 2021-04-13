@@ -59,6 +59,47 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
     private CameraManager SimCameraManager;
     private Camera SimulatorCamera;
     private MapManager MapManager;
+    public delegate void SpawnCallbackType(PedestrianController controller);
+    List<SpawnCallbackType> SpawnCallbacks = new List<SpawnCallbackType>();
+
+    public delegate void DespawnCallbackType(PedestrianController controller);
+    List<DespawnCallbackType> DespawnCallbacks = new List<DespawnCallbackType>();
+
+    public void RegisterSpawnCallback(SpawnCallbackType callback)
+    {
+        SpawnCallbacks.Add(callback);
+    }
+
+    public void DeregisterSpawnCallback(SpawnCallbackType callback)
+    {
+        if (!SpawnCallbacks.Remove(callback))
+        {
+            Debug.LogError("Error in DeregisterDespawnCallback. " + callback + " is not registered before.");
+        }
+    }
+
+    public void ClearSpawnCallbacks()
+    {
+        SpawnCallbacks.Clear();
+    }
+
+    public void RegisterDespawnCallback(DespawnCallbackType callback)
+    {
+        DespawnCallbacks.Add(callback);
+    }
+
+    public void DeregisterDespawnCallback(DespawnCallbackType callback)
+    {
+        if (!DespawnCallbacks.Remove(callback))
+        {
+            Debug.LogError("Error in DeregisterDespawnCallback. " + callback + " is not registered before.");
+        }
+    }
+
+    public void ClearDespawnCallbacks()
+    {
+        DespawnCallbacks.Clear();
+    }
 
     public void InitRandomGenerator(int seed)
     {
@@ -246,6 +287,12 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
             ClusterSimulationUtilities.AddDistributedComponents(ped);
         }
 
+
+        foreach (var callback in SpawnCallbacks)
+        {
+            callback(pedController);
+        }
+
         return pedController;
     }
 
@@ -305,6 +352,8 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         List<PedestrianController> peds = new List<PedestrianController>(CurrentPooledPeds);
         peds.ForEach(x => DespawnPedestrianApi(x));
         CurrentPooledPeds.Clear();
+        ClearSpawnCallbacks();
+        ClearDespawnCallbacks();
     }
     #endregion
 

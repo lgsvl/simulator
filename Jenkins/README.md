@@ -73,7 +73,8 @@ To setup Pipeline CI job on jenkins following global environment variables are r
 Following credentials must be set up in Jenkins:
 
 * `auto-gitlab` - ssh key for cloning git repositories, this key must have access to HDRP repositories
-* `Jenkins-Gitlab` - username/password combo for Docker registry on GitLab where to push Simulator docker image
+* `auto-gitlab-docker-registry` - username/password combo for Docker registry on GitLab where to push Simulator docker image
+* `dockerhub-docker-registry` - username/password combo for default Docker registry from docker deamon (usually dockerhub https://hub.docker.com/)
 * `s3--aws-credentials` - credentials to upload assets to s3
 * `s3-release--aws-credentials` - credentials to upload assets to release s3
 

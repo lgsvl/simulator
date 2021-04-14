@@ -186,12 +186,14 @@ pipeline {
 
     stage("Docker") {
       environment {
-        DOCKER = credentials("Jenkins-Gitlab")
+        DOCKERHUB_DOCKER_REGISTRY = credentials("dockerhub-docker-registry")
+        AUTO_GITLAB_DOCKER_REGISTRY = credentials("auto-gitlab-docker-registry")
       }
       steps {
         dir("Jenkins") {
           sh """
-            docker login -u ${DOCKER_USR} -p ${DOCKER_PSW} ${GITLAB_HOST}:4567
+            docker login -u "${DOCKERHUB_DOCKER_REGISTRY_USR}" -p "${DOCKERHUB_DOCKER_REGISTRY_PSW}"
+            docker login -u "${AUTO_GITLAB_DOCKER_REGISTRY_USR}" -p "${AUTO_GITLAB_DOCKER_REGISTRY_PSW}" ${GITLAB_HOST}:4567
             docker-compose build build-simulator
             docker-compose push build-simulator
           """

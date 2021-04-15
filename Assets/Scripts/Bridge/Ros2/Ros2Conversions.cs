@@ -368,26 +368,6 @@ namespace Simulator.Bridge.Ros2
 
         public static VehicleControlData ConvertTo(Lgsvl.VehicleControlData data)
         {
-            float Deg2Rad = UnityEngine.Mathf.Deg2Rad;
-            float MaxSteeringAngle = 39.4f * Deg2Rad;
-            float wheelAngle = 0f;
-
-            if (data.target_wheel_angle > MaxSteeringAngle)
-            {
-                wheelAngle = MaxSteeringAngle;
-            }
-            else if (data.target_wheel_angle < -MaxSteeringAngle)
-            {
-                wheelAngle = -MaxSteeringAngle;
-            }
-            else
-            {
-                wheelAngle = data.target_wheel_angle;
-            }
-
-            // ratio between -MaxSteeringAngle and MaxSteeringAngle
-            var k = (float)(wheelAngle + MaxSteeringAngle) / (MaxSteeringAngle*2);
-
             // target_gear are not supported on simulator side
 
             return new VehicleControlData()
@@ -395,7 +375,7 @@ namespace Simulator.Bridge.Ros2
                 TimeStampSec = Convert(data.header.stamp),
                 Acceleration = data.acceleration_pct,
                 Braking = data.braking_pct,
-                SteerAngle = UnityEngine.Mathf.Lerp(-1f, 1f, k),
+                SteerAngle = data.target_wheel_angle * UnityEngine.Mathf.Rad2Deg,
                 SteerInput = data.target_wheel_angular_rate,
             };
         }

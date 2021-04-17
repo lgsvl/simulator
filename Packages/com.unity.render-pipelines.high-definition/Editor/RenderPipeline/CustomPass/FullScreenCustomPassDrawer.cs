@@ -18,6 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
 	    private class Styles
 	    {
 		    public static float defaultLineSpace = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+            public static float helpBoxHeight = EditorGUIUtility.singleLineHeight * 2;
 
             public static GUIContent fullScreenPassMaterial = new GUIContent("FullScreen Material", "FullScreen Material used for the full screen DrawProcedural.");
             public static GUIContent materialPassName = new GUIContent("Pass Name", "The shader pass to use for your fullscreen pass.");
@@ -50,23 +51,27 @@ namespace UnityEditor.Rendering.HighDefinition
 			if (m_FetchColorBuffer.boolValue && targetColorBuffer == CustomPass.TargetBuffer.Camera)
 			{
 				// We add a warning to prevent fetching and writing to the same render target
-				EditorGUI.HelpBox(rect, Styles.writeAndFetchColorBufferWarning, MessageType.Warning);
-				rect.y += Styles.defaultLineSpace;
+				Rect helpBoxRect = rect;
+				helpBoxRect.height = Styles.helpBoxHeight;
+				EditorGUI.HelpBox(helpBoxRect, Styles.writeAndFetchColorBufferWarning, MessageType.Warning);
+				rect.y += Styles.helpBoxHeight;
 			}
 
-			// TODO: remove all this code when the fix for SerializedReference lands
-			m_FullScreenPassMaterial.objectReferenceValue = EditorGUI.ObjectField(rect, Styles.fullScreenPassMaterial, m_FullScreenPassMaterial.objectReferenceValue, typeof(Material), false);
-			// EditorGUI.PropertyField(rect, m_FullScreenPassMaterial, Styles.fullScreenPassMaterial);
+			EditorGUI.PropertyField(rect, m_FullScreenPassMaterial, Styles.fullScreenPassMaterial);
 			rect.y += Styles.defaultLineSpace;
 			if (m_FullScreenPassMaterial.objectReferenceValue is Material mat)
 			{
 				using (new EditorGUI.IndentLevelScope())
 				{
-					EditorGUI.BeginChangeCheck();
-					int index = mat.FindPass(m_MaterialPassName.stringValue);
-					index = EditorGUI.IntPopup(rect, Styles.materialPassName, index, GetMaterialPassNames(mat), Enumerable.Range(0, mat.passCount).ToArray());
-					if (EditorGUI.EndChangeCheck())
-						m_MaterialPassName.stringValue = mat.GetPassName(index);
+					EditorGUI.BeginProperty(rect, Styles.materialPassName, m_MaterialPassName);
+					{
+						EditorGUI.BeginChangeCheck();
+						int index = mat.FindPass(m_MaterialPassName.stringValue);
+						index = EditorGUI.IntPopup(rect, Styles.materialPassName, index, GetMaterialPassNames(mat), Enumerable.Range(0, mat.passCount).ToArray());
+						if (EditorGUI.EndChangeCheck())
+							m_MaterialPassName.stringValue = mat.GetPassName(index);
+					}
+					EditorGUI.EndProperty();
 				}
 			}
         }
@@ -74,9 +79,11 @@ namespace UnityEditor.Rendering.HighDefinition
 		protected override float GetPassHeight(SerializedProperty customPass)
 		{
 			int lineCount = (m_FullScreenPassMaterial.objectReferenceValue is Material ? 3 : 2);
-			lineCount += (m_FetchColorBuffer.boolValue && targetColorBuffer == CustomPass.TargetBuffer.Camera) ? 1 : 0;
+			int height = (int)(Styles.defaultLineSpace * lineCount);
 
-			return Styles.defaultLineSpace * lineCount;
+			height += (m_FetchColorBuffer.boolValue && targetColorBuffer == CustomPass.TargetBuffer.Camera) ? (int)Styles.helpBoxHeight : 0;
+
+			return height;
 		}
     }
 }

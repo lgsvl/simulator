@@ -21,6 +21,10 @@ namespace UnityEngine.Rendering.HighDefinition
             ShadowFilteringVeryHighQualityRemoval,
             SeparateColorGradingAndTonemappingFrameSettings,
             ReplaceTextureArraysByAtlasForCookieAndPlanar,
+            AddedAdaptiveSSS,
+            RemoveCookieCubeAtlasToOctahedral2D,
+            RoughDistortion,
+            VirtualTexturing
         }
 
         static readonly MigrationDescription<Version, HDRenderPipelineAsset> k_Migration = MigrationDescription.New(
@@ -80,7 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 FrameSettings.MigrateToSeparateColorGradingAndTonemapping(ref data.m_RenderingPathDefaultCameraFrameSettings);
             }),
-            MigrationStep.New(Version.ReplaceTextureArraysByAtlasForCookieAndPlanar, (HDRenderPipelineAsset data) => 
+            MigrationStep.New(Version.ReplaceTextureArraysByAtlasForCookieAndPlanar, (HDRenderPipelineAsset data) =>
             {
                 ref var lightLoopSettings = ref data.m_RenderPipelineSettings.lightLoopSettings;
 
@@ -95,11 +99,44 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Clamp to avoid too large atlases
                 cookieAtlasSize = Mathf.Clamp(cookieAtlasSize, (int)CookieAtlasResolution.CookieResolution256, (int)CookieAtlasResolution.CookieResolution8192);
-                planarSize = Mathf.Clamp(planarSize, (int)PlanarReflectionAtlasResolution.PlanarReflectionResolution256, (int)PlanarReflectionAtlasResolution.PlanarReflectionResolution8192);
+                planarSize = Mathf.Clamp(planarSize, (int)PlanarReflectionAtlasResolution.Resolution256, (int)PlanarReflectionAtlasResolution.Resolution8192);
 
                 lightLoopSettings.cookieAtlasSize = (CookieAtlasResolution)cookieAtlasSize;
                 lightLoopSettings.planarReflectionAtlasSize = (PlanarReflectionAtlasResolution)planarSize;
-            })
+            }),
+            MigrationStep.New(Version.AddedAdaptiveSSS, (HDRenderPipelineAsset data) =>
+            {
+            #pragma warning disable 618 // Type or member is obsolete
+                bool previouslyHighQuality = data.m_RenderPipelineSettings.m_ObsoleteincreaseSssSampleCount;
+            #pragma warning restore 618
+
+                FrameSettings.MigrateSubsurfaceParams(ref data.m_RenderingPathDefaultCameraFrameSettings,                  previouslyHighQuality);
+                FrameSettings.MigrateSubsurfaceParams(ref data.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings, previouslyHighQuality);
+                FrameSettings.MigrateSubsurfaceParams(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings,      previouslyHighQuality);
+            }),
+            MigrationStep.New(Version.RemoveCookieCubeAtlasToOctahedral2D, (HDRenderPipelineAsset data) =>
+            {
+                ref var lightLoopSettings = ref data.m_RenderPipelineSettings.lightLoopSettings;
+
+#pragma warning disable 618 // Type or member is obsolete
+                float cookieAtlasSize = Mathf.Sqrt((int)lightLoopSettings.cookieAtlasSize * (int)lightLoopSettings.cookieAtlasSize * lightLoopSettings.cookieTexArraySize);
+                float planarSize = Mathf.Sqrt((int)lightLoopSettings.planarReflectionAtlasSize * (int)lightLoopSettings.planarReflectionAtlasSize * lightLoopSettings.maxPlanarReflectionOnScreen);
+#pragma warning restore 618
+
+                Debug.Log("HDRP Internally changed the storage of Cube Cookie to use Octahedral Projection inside the 2D Cookie Atlas. It is recommended that you increase the size of the 2D Cookie Atlas if your cookies no longer fit.");
+            }),
+            MigrationStep.New(Version.RoughDistortion, (HDRenderPipelineAsset data) =>
+            {
+                FrameSettings.MigrateRoughDistortion(ref data.m_RenderingPathDefaultCameraFrameSettings);
+                FrameSettings.MigrateRoughDistortion(ref data.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings);
+                FrameSettings.MigrateRoughDistortion(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings);
+            }),
+            MigrationStep.New(Version.VirtualTexturing, (HDRenderPipelineAsset data) =>
+            {
+                FrameSettings.MigrateVirtualTexturing(ref data.m_RenderingPathDefaultCameraFrameSettings);
+                FrameSettings.MigrateVirtualTexturing(ref data.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings);
+                FrameSettings.MigrateVirtualTexturing(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings);
+            }) 
         );
 
         [SerializeField]

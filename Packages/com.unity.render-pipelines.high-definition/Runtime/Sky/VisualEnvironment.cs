@@ -8,10 +8,11 @@ namespace UnityEngine.Rendering.HighDefinition
     /// This component setups the sky used for rendering as well as the way ambient probe should be computed.
     /// </summary>
     [Serializable, VolumeComponentMenu("Visual Environment")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Visual-Environment" + Documentation.endURL)]
     public sealed class VisualEnvironment : VolumeComponent
     {
         /// <summary>Type of sky that should be used for rendering.</summary>
-        public IntParameter skyType = new IntParameter(0);
+        public NoInterpIntParameter skyType = new NoInterpIntParameter(0);
         /// <summary>Defines the way the ambient probe should be computed.</summary>
         public SkyAmbientModeParameter skyAmbientMode = new SkyAmbientModeParameter(SkyAmbientMode.Static);
 

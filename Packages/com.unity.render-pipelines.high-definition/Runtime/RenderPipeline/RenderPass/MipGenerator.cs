@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Generates an in-place depth pyramid
         // TODO: Mip-mapping depth is problematic for precision at lower mips, generate a packed atlas instead
-        public void RenderMinDepthPyramid(CommandBuffer cmd, RenderTexture texture, HDUtils.PackedMipChainInfo info)
+        public void RenderMinDepthPyramid(CommandBuffer cmd, RenderTexture texture, HDUtils.PackedMipChainInfo info, bool mip1AlreadyComputed)
         {
             HDUtils.CheckRTCreated(texture);
 
@@ -68,6 +68,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // and we don't support Min samplers either. So we are forced to perform 4x loads.
             for (int i = 1; i < info.mipLevelCount; i++)
             {
+                if (mip1AlreadyComputed && i == 1) continue; 
+
                 Vector2Int dstSize   = info.mipLevelSizes[i];
                 Vector2Int dstOffset = info.mipLevelOffsets[i];
                 Vector2Int srcSize   = info.mipLevelSizes[i - 1];
@@ -107,6 +109,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.Assert(source.dimension == destination.dimension, "MipGenerator source texture does not match dimension of destination!");
             }
 
+            // Check if format has changed since last time we generated mips
+            if (m_TempColorTargets[rtIndex] != null && m_TempColorTargets[rtIndex].rt.graphicsFormat != destination.graphicsFormat)
+            {
+                RTHandles.Release(m_TempColorTargets[rtIndex]);
+                m_TempColorTargets[rtIndex] = null;
+            }
+
             // Only create the temporary target on-demand in case the game doesn't actually need it
             if (m_TempColorTargets[rtIndex] == null)
             {
@@ -131,6 +140,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int tempTargetWidth = srcMipWidth >> 1;
             int tempTargetHeight = srcMipHeight >> 1;
+
+            // Check if format has changed since last time we generated mips
+            if (m_TempDownsamplePyramid[rtIndex] != null && m_TempDownsamplePyramid[rtIndex].rt.graphicsFormat != destination.graphicsFormat)
+            {
+                RTHandles.Release(m_TempDownsamplePyramid[rtIndex]);
+                m_TempDownsamplePyramid[rtIndex] = null;
+            }
 
             if (m_TempDownsamplePyramid[rtIndex] == null)
             {

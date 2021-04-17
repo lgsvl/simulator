@@ -7,7 +7,7 @@
 
 namespace Simulator.PointCloud
 {
-    using UnityEngine;
+    using System.Linq;
     using UnityEngine.Rendering;
     using UnityEngine.Rendering.HighDefinition;
 
@@ -15,7 +15,8 @@ namespace Simulator.PointCloud
     {
         private PointCloudRenderer[] pointCloudRenderers;
 
-        private RenderTargetIdentifier[] cachedTargetIdentifiers;
+        private RenderTargetIdentifier[] rtiCache1;
+        private RenderTargetIdentifier[] rtiCache4;
 
         private HDRenderPipeline RenderPipeline => RenderPipelineManager.currentPipeline as HDRenderPipeline;
 
@@ -27,77 +28,33 @@ namespace Simulator.PointCloud
         protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             RenderPipeline.OnRenderShadowMap += RenderShadows;
+            RenderPipeline.OnRenderGBuffer += RenderLit;
             base.Setup(renderContext, cmd);
         }
 
-        private bool SkyPreRenderRequired()
-        {
-            // Unlit injection point has sky already rendered - skip
-            if (injectionPoint != PointCloudManager.LitInjectionPoint)
-                return false;
-
-            foreach (var pointCloudRenderer in pointCloudRenderers)
-            {
-                if ((pointCloudRenderer.Mask & PointCloudRenderer.RenderMask.Camera) != 0 &&
-                    pointCloudRenderer.SupportsLighting &&
-                    pointCloudRenderer.DebugBlendSky)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera,
-            CullingResults cullingResult)
+        protected override void Execute(CustomPassContext ctx)
         {
             if (pointCloudRenderers == null || pointCloudRenderers.Length == 0)
                 return;
 
-            var isLit = injectionPoint == PointCloudManager.LitInjectionPoint;
-
-            RenderTargetIdentifier[] rtIds;
-            
-            GetCameraBuffers(out var colorBuffer, out var depthBuffer);
-
-            if (isLit)
-            {
-                // This cannot be cached - GBuffer RTIs can change between frames
-                rtIds = RenderPipeline.GetGBuffersRTI(hdCamera);
-            }
+            if (rtiCache1 == null)
+                rtiCache1 = new[] {ctx.cameraColorBuffer.nameID};
             else
-            {
-                if (cachedTargetIdentifiers == null)
-                    cachedTargetIdentifiers = new[] {colorBuffer.nameID};
-                else
-                    cachedTargetIdentifiers[0] = colorBuffer.nameID;
-                
-                rtIds = cachedTargetIdentifiers;
-            }
-            
-            if (SkyPreRenderRequired())
-                RenderPipeline.ForceRenderSky(hdCamera, cmd);
+                rtiCache1[0] = ctx.cameraColorBuffer.nameID;
 
             foreach (var pcr in pointCloudRenderers)
             {
-                if (!(pcr.SupportsLighting ^ isLit))
-                {
-                    if (isLit)
-                    {
-                        // Update SH coefficients on compose material - Unity will not push this data for custom pass
-                        PointCloudManager.Resources.UpdateSHCoefficients(cmd, pcr.transform.position);
-                    }
-                    
-                    pcr.Render(cmd, hdCamera, rtIds, depthBuffer, colorBuffer);
-                }
+                if (pcr.SupportsLighting)
+                    continue;
+
+                pcr.Render(ctx.cmd, ctx.hdCamera, rtiCache1, ctx.cameraDepthBuffer, ctx.cameraColorBuffer);
             }
 
             // Decals rendering triggers early depth buffer copy and marks it as valid for later usage.
             // Mark the copy as invalid after point cloud rendering, as depth buffer was changed.
             // Point cloud render should probably take part in depth prepass and be included in copy, but it can be
             // done at a later time.
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
+            if (ctx.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
                 RenderPipeline.InvalidateDepthBufferCopy();
         }
 
@@ -110,12 +67,44 @@ namespace Simulator.PointCloud
                 pcr.RenderShadows(cmd, worldTexelSize);
         }
 
+        private void RenderLit(HDRenderPipeline.GBufferRenderData data)
+        {
+            if (pointCloudRenderers == null || pointCloudRenderers.Length == 0)
+                return;
+
+            var doLitPass = pointCloudRenderers.Any(pcr => pcr.SupportsLighting);
+            if (!doLitPass)
+                return;
+
+            // TODO: Add support for multiple GBuffer texture count (up to 6)
+            if (rtiCache4 == null)
+                rtiCache4 = new RenderTargetIdentifier[4];
+
+            for (var i = 0; i < rtiCache4.Length; ++i)
+                rtiCache4[i] = data.gBuffer[i];
+
+            RenderPipeline.ForceRenderSky(data.camera, data.context.cmd, data.customPassColorBuffer, data.customPassDepthBuffer);
+
+            foreach (var pcr in pointCloudRenderers)
+            {
+                if (!pcr.SupportsLighting)
+                    continue;
+
+                PointCloudManager.Resources.UpdateSHCoefficients(data.context.cmd, pcr.transform.position);
+                pcr.Render(data.context.cmd, data.camera, rtiCache4, data.depthBuffer, data.customPassColorBuffer);
+            }
+        }
+
         protected override void Cleanup()
         {
             if (RenderPipeline != null)
+            {
                 RenderPipeline.OnRenderShadowMap -= RenderShadows;
+                RenderPipeline.OnRenderGBuffer -= RenderLit;
+            }
+
             pointCloudRenderers = null;
-            
+
             base.Cleanup();
         }
     }

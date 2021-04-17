@@ -6,12 +6,13 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the Color Adjustments effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Color Adjustments")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Post-Processing-Color-Adjustments" + Documentation.endURL)]
     public sealed class ColorAdjustments : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
-        /// Sets the value that HDRP uses to adjust the overall exposure of the Scene, in EV.
+        /// Adjusts the brightness of the image just before color grading, in EV.
         /// </summary>
-        [Tooltip("Sets the value that HDRP uses to adjust the overall exposure of the Scene, in EV.")]
+        [Tooltip("Adjusts the brightness of the image just before color grading, in EV.")]
         public FloatParameter postExposure = new FloatParameter(0f);
 
         /// <summary>

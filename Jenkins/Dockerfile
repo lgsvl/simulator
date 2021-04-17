@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 # install dependencies
 
@@ -23,7 +23,7 @@ ENV NVIDIA_DRIVER_CAPABILITIES graphics,display,utility
 ADD "https://gitlab.com/nvidia/container-images/vulkan/raw/master/nvidia_icd.json" /etc/vulkan/icd.d/nvidia_icd.json
 RUN chmod 644 /etc/vulkan/icd.d/nvidia_icd.json
 
-RUN curl -fLo UnitySetup https://beta.unity3d.com/download/3310a4d4f880/UnitySetup-2019.4.18f1 \
+RUN curl -fLo UnitySetup https://beta.unity3d.com/download/76626098c1c4/UnitySetup-2020.3.3f1 \
     && chmod +x UnitySetup \
     && yes | ./UnitySetup --unattended --install-location=/opt/Unity --components=Unity,Windows-Mono,Mac-Mono \
     && rm UnitySetup

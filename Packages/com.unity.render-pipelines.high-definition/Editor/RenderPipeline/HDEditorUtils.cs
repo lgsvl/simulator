@@ -228,6 +228,22 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.EndProperty();
         }
 
+        internal static void DrawDecalLayerMask_Internal(Rect rect, GUIContent label, SerializedProperty property)
+        {
+            if (HDRenderPipeline.defaultAsset == null)
+                return ;
+
+            EditorGUI.BeginProperty(rect, label, property);
+
+            EditorGUI.BeginChangeCheck();
+            int changedValue = EditorGUI.MaskField(rect, label ?? GUIContent.none, property.intValue, HDRenderPipeline.defaultAsset.decalLayerNames);
+            if (EditorGUI.EndChangeCheck())
+                property.intValue = changedValue;
+
+            EditorGUI.EndProperty();
+        }
+
+
         /// <summary>
         /// Should be placed between BeginProperty / EndProperty
         /// </summary>
@@ -252,9 +268,9 @@ namespace UnityEditor.Rendering.HighDefinition
             Rect lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
             EditorGUI.BeginProperty(lineRect, label, property);
             EditorGUI.BeginChangeCheck();
-            string lightLayerName0 = EditorGUI.DelayedTextField(lineRect, label, property.stringValue);
+            string value = EditorGUI.DelayedTextField(lineRect, label, property.stringValue);
             if (EditorGUI.EndChangeCheck())
-                property.stringValue = lightLayerName0;
+                property.stringValue = value;
             EditorGUI.EndProperty();
         }
 
@@ -276,6 +292,33 @@ namespace UnityEditor.Rendering.HighDefinition
             //
             labelPosition.x += EditorGUI.indentLevel * 15;
             EditorGUI.HandlePrefixLabel(totalPosition, labelPosition, label);
+        }
+
+        /// <summary>
+        /// Like EditorGUI.IndentLevelScope but this one will also indent the override checkboxes.
+        /// </summary>
+        internal class IndentScope : GUI.Scope
+        {
+            int m_Offset;
+
+            public IndentScope(int offset = 16)
+            {
+                m_Offset = offset;
+
+                // When using EditorGUI.indentLevel++, the clicking on the checkboxes does not work properly due to some issues on the C++ side.
+                // This scope is a work-around for this issue.
+                GUILayout.BeginHorizontal();
+                EditorGUILayout.Space(offset, false);
+                GUILayout.BeginVertical();
+                EditorGUIUtility.labelWidth -= m_Offset;
+            }
+
+            protected override void CloseScope()
+            {
+                EditorGUIUtility.labelWidth += m_Offset;
+                GUILayout.EndVertical();
+                GUILayout.EndHorizontal();
+            }
         }
     }
 

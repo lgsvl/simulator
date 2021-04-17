@@ -20,27 +20,23 @@ namespace Simulator.PointCloud
     [ExecuteInEditMode]
     public class PointCloudManager : MonoBehaviour
     {
-        public const CustomPassInjectionPoint UnlitInjectionPoint = CustomPassInjectionPoint.AfterPostProcess;
-        public const CustomPassInjectionPoint LitInjectionPoint = CustomPassInjectionPoint.AfterOpaqueDepthAndNormal;
+        public const CustomPassInjectionPoint UnlitInjectionPoint = CustomPassInjectionPoint.BeforeTransparent;
 
         private PointCloudRenderer[] renderers;
 
-        private PointCloudRenderPass litPass;
         private PointCloudRenderPass unlitPass;
 
         private PointCloudResources resources;
 
         private static PointCloudManager activeInstance;
 
-        public static PointCloudResources Resources
-        {
-            get { return activeInstance.resources ?? (activeInstance.resources = new PointCloudResources()); }
-        }
+        public static PointCloudResources Resources => activeInstance.resources ?? (activeInstance.resources = new PointCloudResources());
 
         private void VerifyPassVolume()
         {
             var isPlayMode = Application.isPlaying;
-            if (isPlayMode)
+            var isVse = Loader.IsInScenarioEditor;
+            if (isPlayMode && !isVse)
                 InitializeGlobalVolume();
             else
                 InitializeLocalVolume();
@@ -49,23 +45,16 @@ namespace Simulator.PointCloud
         private void InitializeLocalVolume()
         {
             // CustomPassManager is either marked for destruction or wasn't yet spawned - no need for cleanup
-            litPass = null;
             unlitPass = null;
-            
-            var customPassVolumes = gameObject.GetComponents<CustomPassVolume>();
-            if (customPassVolumes.Length == 2)
-            {
-                for (var i = 0; i < 2; ++i)
-                {
-                    customPassVolumes[i].enabled = true;
 
-                    if (TryGetLocalUnlitPass(customPassVolumes[i], ref unlitPass))
-                        continue;
-                    TryGetLocalLitPass(customPassVolumes[i], ref litPass);
-                }
+            var customPassVolumes = gameObject.GetComponents<CustomPassVolume>();
+            if (customPassVolumes.Length == 1)
+            {
+                customPassVolumes[0].enabled = true;
+                TryGetLocalUnlitPass(customPassVolumes[0], ref unlitPass);
             }
 
-            if (litPass == null || unlitPass == null)
+            if (unlitPass == null)
             {
                 foreach (var pass in customPassVolumes)
                     CoreUtils.Destroy(pass);
@@ -74,16 +63,11 @@ namespace Simulator.PointCloud
                 unlitVolume.injectionPoint = UnlitInjectionPoint;
                 unlitVolume.AddPassOfType(typeof(PointCloudRenderPass));
                 TryGetLocalUnlitPass(unlitVolume, ref unlitPass);
-                
-                var litVolume = gameObject.AddComponent<CustomPassVolume>();
-                litVolume.injectionPoint = LitInjectionPoint;
-                litVolume.AddPassOfType(typeof(PointCloudRenderPass));
-                TryGetLocalLitPass(litVolume, ref litPass);
             }
 
-            if (litPass == null || unlitPass == null)
+            if (unlitPass == null)
                 Debug.LogError("Unable to initialize custom pass volumes for point clouds.");
-            
+
             RefreshRenderers();
         }
 
@@ -110,10 +94,8 @@ namespace Simulator.PointCloud
             }
 
             var customPassManager = SimulatorManager.Instance.CustomPassManager;
-            
             unlitPass = customPassManager.AddPass<PointCloudRenderPass>(UnlitInjectionPoint, -200);
-            litPass = customPassManager.AddPass<PointCloudRenderPass>(LitInjectionPoint, -200, CustomPass.TargetBuffer.None);
-            
+
             RefreshRenderers();
         }
 
@@ -130,20 +112,6 @@ namespace Simulator.PointCloud
             return true;
         }
 
-        private static bool TryGetLocalLitPass(CustomPassVolume volume, ref PointCloudRenderPass pass)
-        {
-            if (volume.injectionPoint != LitInjectionPoint || volume.customPasses.Count != 1 ||
-                !(volume.customPasses[0] is PointCloudRenderPass p))
-                return false;
-
-            pass = p;
-            // Don't bind camera color buffer when using lighting - it's going to use GBuffer instead anyway
-            pass.targetColorBuffer = CustomPass.TargetBuffer.None;
-            pass.targetDepthBuffer = CustomPass.TargetBuffer.Camera;
-            
-            return true;
-        }
-        
         public static void RenderLidar(ScriptableRenderContext context, CommandBuffer cmd, HDCamera hdCamera, RTHandle colorBuffer, RTHandle depthBuffer)
         {
             if (activeInstance == null || activeInstance.renderers == null)
@@ -158,7 +126,7 @@ namespace Simulator.PointCloud
         
         public static void RenderDepth(ScriptableRenderContext context, CommandBuffer cmd, HDCamera hdCamera, RTHandle colorBuffer, RTHandle depthBuffer)
         {
-            if (activeInstance == null)
+            if (activeInstance == null || activeInstance.renderers == null)
                 return;
 
             foreach (var pointCloudRenderer in activeInstance.renderers)
@@ -203,8 +171,6 @@ namespace Simulator.PointCloud
         private void OnDisable()
         {
             renderers = null;
-            
-            litPass?.UpdateRenderers(null);
             unlitPass?.UpdateRenderers(null);
             
             activeInstance.resources?.ReleaseAll();
@@ -216,8 +182,6 @@ namespace Simulator.PointCloud
         private void RefreshRenderers()
         {
             renderers = FindObjectsOfType<PointCloudRenderer>();
-            
-            litPass?.UpdateRenderers(renderers);
             unlitPass?.UpdateRenderers(renderers);
         }
     }

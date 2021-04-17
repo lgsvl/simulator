@@ -94,10 +94,10 @@ namespace Simulator.Sensors.Postprocessing
             return hashCode;
         }
 
-        private static void RenderPostProcess<T>(CommandBuffer cmd, HDCamera hdCamera, CameraSensorBase sensor, RTHandle sensorColorBuffer, CustomPass pass, T data, CubemapFace cubemapFace = CubemapFace.Unknown) where T : PostProcessData
+        private static void RenderPostProcess<T>(PostProcessPassContext ctx, CameraSensorBase sensor, CustomPass pass, T data, CubemapFace cubemapFace = CubemapFace.Unknown) where T : PostProcessData
         {
             var postProcessPass = pass as IPostProcessRenderer;
-            postProcessPass?.Render(cmd, hdCamera, sensor, sensorColorBuffer, data, cubemapFace);
+            postProcessPass?.Render(ctx, sensor, data, cubemapFace);
         }
 
         public void Initialize()
@@ -482,12 +482,10 @@ namespace Simulator.Sensors.Postprocessing
         /// effects automatically.
         /// </para>
         /// </summary>
-        /// <param name="cmd">Buffer used to queue commands.</param>
-        /// <param name="hdCamera">HD camera used by the sensor.</param>
+        /// <param name="ctx">Context used for this pass execution.</param>
         /// <param name="sensor">Sensor that should have postprocessing effects rendered.</param>
-        /// <param name="target"><see cref="RTHandle"/> used as target for the sensor.</param>
         /// <param name="cubemapFace">Specifies target face if cubemap is used.</param>
-        public void RenderForSensor(CommandBuffer cmd, HDCamera hdCamera, CameraSensorBase sensor, RTHandle target, CubemapFace cubemapFace = CubemapFace.Unknown)
+        public void RenderForSensor(PostProcessPassContext ctx, CameraSensorBase sensor, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
             if (sensor.Postprocessing == null || sensor.Postprocessing.Count == 0)
                 return;
@@ -497,7 +495,7 @@ namespace Simulator.Sensors.Postprocessing
                 foreach (var kvp in postProcessingPasses)
                 {
                     if (data.GetType() == kvp.Key)
-                        RenderPostProcess(cmd, hdCamera, sensor, target, kvp.Value, data, cubemapFace);
+                        RenderPostProcess(ctx, sensor, kvp.Value, data, cubemapFace);
                 }
             }
         }
@@ -505,11 +503,9 @@ namespace Simulator.Sensors.Postprocessing
         /// <summary>
         /// <para>Renders all post-distortion postprocessing effects declared for given sensor.</para>
         /// </summary>
-        /// <param name="cmd">Buffer used to queue commands.</param>
-        /// <param name="hdCamera">HD camera used by the sensor.</param>
+        /// <param name="ctx">Context used for this pass execution.</param>
         /// <param name="sensor">Sensor that should have postprocessing effects rendered.</param>
-        /// <param name="target"><see cref="RTHandle"/> used as target for the sensor.</param>
-        public void RenderLateForSensor(CommandBuffer cmd, HDCamera hdCamera, CameraSensorBase sensor, RTHandle target)
+        public void RenderLateForSensor(PostProcessPassContext ctx, CameraSensorBase sensor)
         {
             if (sensor.LatePostprocessing == null || sensor.LatePostprocessing.Count == 0)
                 return;
@@ -519,7 +515,7 @@ namespace Simulator.Sensors.Postprocessing
                 foreach (var kvp in postProcessingPasses)
                 {
                     if (data.GetType() == kvp.Key)
-                        RenderPostProcess(cmd, hdCamera, sensor, target, kvp.Value, data);
+                        RenderPostProcess(ctx, sensor, kvp.Value, data);
                 }
             }
         }

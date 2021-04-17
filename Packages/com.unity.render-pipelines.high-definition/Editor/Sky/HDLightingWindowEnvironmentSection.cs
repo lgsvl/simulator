@@ -208,16 +208,23 @@ namespace UnityEditor.Rendering.HighDefinition
             VolumeProfile profile = m_SerializedActiveSceneLightingSky.volumeProfile;
             if (profile != null)
             {
+                bool foundID = false;
+                var currentID = m_SerializedActiveSceneLightingSky.skyUniqueID.intValue;
                 var skyTypesDict = SkyManager.skyTypesDict;
 
                 foreach (KeyValuePair<int, Type> kvp in skyTypesDict)
                 {
-                    if (profile.Has(kvp.Value))
+                    if (profile.TryGet(kvp.Value, out VolumeComponent comp) && comp.active)
                     {
                         m_SkyClassNames.Add(new GUIContent(kvp.Value.Name.ToString()));
                         m_SkyUniqueIDs.Add(kvp.Key);
+                        if (currentID == kvp.Key)
+                            foundID = true;
                     }
                 }
+
+                if (!foundID)
+                    m_SerializedActiveSceneLightingSky.skyUniqueID.intValue = 0;
             }
         }
 

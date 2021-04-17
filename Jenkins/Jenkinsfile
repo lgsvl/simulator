@@ -1,11 +1,52 @@
-//
+def checkoutExternalAsset(assetType, projectPath) {
+    // Checkout external asset into Assets/External subfolder
+    def git_ref = "refs/heads/master"
+
+    def repo_parts = projectPath.split(":")
+
+    if (repo_parts.size() > 1) {
+        // Parse '/apth/to/git/repo:ref-spec'
+        git_ref = repo_parts[1]
+    }
+
+    def repo_path = repo_parts[0]
+    def repo_path_parts = repo_path.split('/')
+    def repo_name = repo_path_parts.last()
+
+    checkout([
+        $class: "GitSCM",
+        branches: [[name: "${git_ref}"]],
+        browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/${repo_path}", version: env.GITLAB_VERSION],
+        extensions: [
+            [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/${assetType}/${repo_name}"],
+            [$class: "LocalBranch"],
+            [$class: "GitLFSPull"]
+        ],
+        userRemoteConfigs: [[
+            credentialsId: "auto-gitlab",
+            url: "git@${GITLAB_HOST}:${repo_path}.git"
+        ]]
+    ])
+}
+
+def checkoutExternalAssets(assetType, projectPaths) {
+    if (projectPaths) {
+        def repos = projectPaths.split(',')
+
+        for (int i=0; i<repos.size(); i++) {
+            checkoutExternalAsset(assetType, repos[i])
+        }
+    } else {
+        echo "INFO: Nothing to checkout"
+    }
+}
 
 pipeline {
 
   agent {
     node {
       label "unity3d-2019.4-vulkan"
-      customWorkspace "/home/jenkins/workspace/simulator-cloud-2019.4.18f1"
+      customWorkspace "/home/jenkins/workspace/simulator-cloud-2020.3.3f1"
     }
   }
 
@@ -28,12 +69,20 @@ pipeline {
     booleanParam(name: "FORCE_TEST", defaultValue: false, description: "")
     booleanParam(name: "FORCE_DEV_BUILD", defaultValue: true, description: "Enables DEVELOPMENT_BUILD")
     booleanParam(name: "UPLOAD_TO_ECR", defaultValue: false, description: "Enable uploading docker image with build simulator zip to the ECR.")
-    string(name: "BUILD_SIMULATOR_CONTROLLABLES", defaultValue: "${SIMULATOR_CONTROLLABLES}", description: "Controllables to build")
     string(name: "CLOUD_URL", defaultValue: "${SIMULATOR_WISE_STAGING_URL}", description: "")
     string(name: "SCENARIOS_RUNNER_DOCKER_TAG", defaultValue: "hdrp/scenarios/runner/jenkins:latest", description: "Repo and tag of scenarios runner docker image which will be bundled in zip archive")
     string(name: 'WISE_AWS_ECR_ACCOUNT_ID', defaultValue: '853285614468', description: 'The AWS account ID whose ECR will be used', trim: true)
     string(name: 'WISE_AWS_ECR_REGION', defaultValue: 'us-east-1', description: 'The AWS region where the ECR is located', trim: true)
     credentials( name: 'WISE_AWS_ECR_CREDENTIALS_ID', required: true, defaultValue: "simulator--aws-credentials", description: 'The credentials to be used for accessing the ECR', credentialType: 'com.cloudbees.jenkins.plugins.awscredentials.AWSCredentialsImpl')
+
+    string(name: "SIMULATOR_CONTROLLABLES_REPOS", defaultValue: "HDRP/Controllables/TrafficCone,HDRP/Controllables/ChargingStation,HDRP/Controllables/TriggerZone", description: "Controllables repos to checkout")
+    string(name: "SIM_CONTROLLABLES", defaultValue: "${SIMULATOR_CONTROLLABLES}", description: "Controllables to build")
+
+    string(name: "SIMULATOR_NPC_REPOS", defaultValue: "HDRP/NPC/DefaultNPC,HDRP/VRU/Bicycles", description: "NPC Repos to checkout")
+    string(name: "SIMULATOR_NPCS", defaultValue: "all", description: "NPCs to build")
+
+    string(name: "SIMULATOR_VRU_REPOS", defaultValue: "HDRP/VRU/Scooters,HDRP/VRU/Walkers,HDRP/VRU/Animals", description: "VRU Repos to checkout")
+    string(name: "SIMULATOR_PEDESTRIANS", defaultValue: "all", description: "Pedestrians to build")
   }
 
   environment {
@@ -51,15 +100,6 @@ pipeline {
   }
 
   stages {
-    stage("Build environment") {
-      steps {
-        script {
-          if (params.BUILD_LINUX && params.SCENARIOS_RUNNER_DOCKER_TAG == null || params.SCENARIOS_RUNNER_DOCKER_TAG == "") { error "Missing or empty parameter SCENARIOS_RUNNER_DOCKER_TAG! Value is required to bundle scenarios runner" }
-        }
-        sh label:"SIMULATOR env vars", script:"printenv | grep -E 'SIMULATOR|^SIM_' | sort"
-      }
-    }
-
     stage("Git") {
       steps {
 
@@ -88,109 +128,63 @@ pipeline {
           env.GIT_COMMIT = sh(returnStdout: true, script: "git rev-parse HEAD").trim()
           env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 1").trim()
           env.SIM_VEHICLES = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 1").trim()
-          env.SIM_SENSORS = ""
-          env.SIM_CONTROLLABLES = env.BUILD_SIMULATOR_CONTROLLABLES
-        }
 
-        sh label:"SIMULATOR env vars", script:"printenv | grep -E 'SIMULATOR|^SIM_' | sort"
+          // Disable build-in sensors
+          SIM_SENSORS = ""
+        }
       }
     }
 
-    stage("Checkout Controllables") {
+    stage("Prepare Assets/External settings") {
       steps {
         script {
-          def repo_list = env.BUILD_SIMULATOR_CONTROLLABLES
-          def repo_prefix = "Controllables"
+          // Reset environment variable to be set
+          // by the next conditional stage
+          env.SIM_CONTROLLABLES = ""
+          env.SIMULATOR_NPCS = ""
+          env.SIMULATOR_PEDESTRIANS = ""
+        }
+      }
+    }
 
-          if (repo_list) {
-            def repos = repo_list.split(',')
-            def repo_names_list = []
+    stage("Checkout Assets/External") {
+      when {
+        anyOf {
+          branch "master"
+        }
+      }
 
-            for (int i=0; i<repos.size(); i++) {
-              def repo_parts = repos[i].split(":")
+      steps {
+        script {
+          // Controllables
+          if (params.SIM_CONTROLLABLES != null && !params.SIM_CONTROLLABLES.isEmpty()) {
+            echo "Checkout Controllables"
+            checkoutExternalAssets("Controllables", env.SIMULATOR_CONTROLLABLES_REPOS)
+            env.SIM_CONTROLLABLES = params.SIM_CONTROLLABLES
+          }
 
-              def repo_git_ref = "refs/heads/master"
-              if (repo_parts.size() > 1) {
-                  repo_git_ref = repo_parts[1]
-              }
+          // NPCs
+          if (params.SIMULATOR_NPCS != null && !params.SIMULATOR_NPCS.isEmpty()) {
+            echo "Checkout NPCs"
+            checkoutExternalAssets("NPCs", env.SIMULATOR_NPC_REPOS)
+            env.SIMULATOR_NPCS = params.SIMULATOR_NPCS
+          }
 
-              def repo_path = repo_parts[0]
-              def repo_path_parts = repo_path.split('/')
-              def repo_name = repo_path_parts.last()
-
-              repo_names_list.add(repo_name)
-              echo "INFO: Checking out ${repo_prefix}: ${repo_name} ref ${repo_git_ref} from HDRP/${repo_prefix}/${repo_path} to Assets/External/${repo_prefix}/${repo_name}"
-
-              checkout([
-                $class: "GitSCM",
-                branches: [[name: "${repo_git_ref}"]],
-                browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/${repo_prefix}/${repo_path}", version: env.GITLAB_VERSION],
-                extensions: [
-                  [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/${repo_prefix}/${repo_name}"],
-                  [$class: "LocalBranch"],
-                  [$class: "GitLFSPull"]
-                ],
-                userRemoteConfigs: [[
-                  credentialsId: "auto-gitlab",
-                  url: "git@${GITLAB_HOST}:HDRP/${repo_prefix}/${repo_path}.git"
-                ]]
-              ])
-            }
-            def repo_names = repo_names_list.join(",")
-            echo "INFO: Checked out following ${repo_prefix}: ${repo_names}"
-          } else {
-            echo "INFO: No ${repo_prefix} to checkout"
+          // Pedestrians
+          if (params.SIMULATOR_PEDESTRIANS != null && !params.SIMULATOR_PEDESTRIANS.isEmpty()) {
+            echo "Checkout Pedestrians (Pedestrians/Animals/Scooters/Etc"
+            checkoutExternalAssets("Pedestrians", env.SIMULATOR_VRU_REPOS)
+            env.SIMULATOR_PEDESTRIANS = params.SIMULATOR_PEDESTRIANS
           }
         }
       }
     }
 
-    stage("Checkout NPCs") {
+    stage("Build environment info") {
       steps {
-        script {
-          def repo_list = env.SIMULATOR_NPCS_REPOS
-          def repo_prefix = "NPC"
-
-          if (repo_list) {
-            def repos = repo_list.split(',')
-            def repo_names_list = []
-
-            for (int i=0; i<repos.size(); i++) {
-              def repo_parts = repos[i].split(":")
-
-              def repo_git_ref = "refs/heads/master"
-              if (repo_parts.size() > 1) {
-                  repo_git_ref = repo_parts[1]
-              }
-
-              def repo_path = repo_parts[0]
-              def repo_path_parts = repo_path.split('/')
-              def repo_name = repo_path_parts.last()
-
-              repo_names_list.add(repo_name)
-              echo "INFO: Checking out ${repo_prefix}: ${repo_name} ref ${repo_git_ref} from HDRP/${repo_prefix}/${repo_path} to Assets/External/${repo_prefix}s/${repo_name}" // Notice extra 's' in 'NPCs'
-
-              checkout([
-                $class: "GitSCM",
-                branches: [[name: "${repo_git_ref}"]],
-                browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/${repo_prefix}/${repo_path}", version: env.GITLAB_VERSION],
-                extensions: [
-                  [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/${repo_prefix}s/${repo_name}"], // Notice extra 's' in 'NPCs'
-                  [$class: "LocalBranch"],
-                  [$class: "GitLFSPull"]
-                ],
-                userRemoteConfigs: [[
-                  credentialsId: "auto-gitlab",
-                  url: "git@${GITLAB_HOST}:HDRP/${repo_prefix}/${repo_path}.git"
-                ]]
-              ])
-            }
-            def repo_names = repo_names_list.join(",")
-            echo "INFO: Checked out following ${repo_prefix}: ${repo_names}"
-          } else {
-            echo "INFO: No ${repo_prefix} to checkout"
-          }
-        }
+          sh script: "find Assets/External -mindepth 2 -maxdepth 3 -type d -name '.git' | sed 's|\\/\\.git\$||' || echo 'W: Nothing found'", label: "Git clones"
+          sh script:"find Assets/External -mindepth 2 -maxdepth 3 -type d | grep -E -v 'git|tmp'  || echo 'W: Nothing found'", label: "Assets"
+          sh label:"SIMULATOR env vars", script:"printenv | grep -E 'SIMULATOR|^SIM_' | grep -v -E '_RELEASE|_ALL|_ENVIRONMENTS|_SENSORS' | sort"
       }
     }
 

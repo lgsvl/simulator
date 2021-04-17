@@ -35,17 +35,17 @@ namespace Simulator.Sensors.Postprocessing
             CoreUtils.Destroy(material);
         }
 
-        protected override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, GreyScale data)
+        protected override void Render(PostProcessPassContext ctx, RTHandle source, RTHandle destination, GreyScale data)
         {
             if (Mathf.Approximately(data.intensity, 0f))
             {
-                HDUtils.BlitCameraTexture(cmd, source, destination);
+                HDUtils.BlitCameraTexture(ctx.cmd, source, destination);
                 return;
             }
 
-            cmd.SetGlobalFloat("_Intensity", data.intensity);
-            cmd.SetGlobalTexture("_InputTexture", source);
-            HDUtils.DrawFullScreen(cmd, material, destination);
+            ctx.cmd.SetGlobalFloat("_Intensity", data.intensity);
+            ctx.cmd.SetGlobalTexture("_InputTexture", source);
+            HDUtils.DrawFullScreen(ctx.cmd, material, destination);
         }
     }
 }

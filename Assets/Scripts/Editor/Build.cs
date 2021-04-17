@@ -185,14 +185,20 @@ namespace Simulator.Editor
                 entries = entries.Where(entry => updated.Contains(entry.Key)).ToDictionary(p => p.Key, p => p.Value);
             }
 
-            public void EnableByName(string name)
+            public bool EnableByName(string name)
             {
                 if (!entries.ContainsKey(name))
                 {
                     var knownKeys = string.Join(",", entries.Keys);
-                    throw new Exception($"could not enable entry {name} as it was not found. Known entirs of {bundlePath} are {knownKeys}");
+                    Debug.LogWarning($"[BUILD] could not enable entry {name} as it was not found. Known entries of {bundlePath} are {knownKeys}");
+
+                    return false;
                 }
+
+                Debug.Log($"[BUILD] Enable entry '{name}' of {bundlePath}");
+
                 entries[name].selected = true;
+                return true;
             }
 
             private void PreparePrefabManifest(Entry prefabEntry, string outputFolder, List<(string, string)> buildArtifacts, Manifest manifest)
@@ -1224,21 +1230,32 @@ namespace Simulator.Editor
                         i++;
                         foreach (var name in args[i].Split(','))
                         {
+                            bool isAssetEnabled = false;
+
                             foreach (var buildGroup in bundleGroups)
                             {
                                 if (name == "all")
                                 {
                                     foreach (var entry in buildGroup.entries.Values)
                                     {
+                                        isAssetEnabled = true;
                                         entry.selected = true;
                                         bundleSum++;
+
+                                        Debug.Log($"[BUILD] Enable {bundleType} entry '{entry.name}'");
                                     }
                                 }
                                 else
                                 {
-                                    buildGroup.EnableByName(name);
-                                    bundleSum++;
+                                    if (buildGroup.EnableByName(name) == true) {
+                                        bundleSum++;
+                                        isAssetEnabled = true;
+                                    }
                                 }
+                            }
+
+                            if (!isAssetEnabled) {
+                                throw new Exception($"could not enable entry {name} of {bundleType}");
                             }
                         }
                     }

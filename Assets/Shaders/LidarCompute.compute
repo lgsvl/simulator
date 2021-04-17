@@ -364,7 +364,7 @@ void DIR_LIDAR_COMPUTE (uint3 id : SV_DispatchThreadID)
     const float distance = 2.0f * DecodeFloatRGB(sample.rgb);
 
     const int index = indexOffset + (_Index + id.x) % _MeasurementsPerRotation;
-    if (distance == 0 || dot(dirNorm, _DirLidarForward) < _CosAngle)
+    if (distance == 0 || dot(dirNorm, _DirLidarForward.xyz) < _CosAngle)
     {
         _Output[index] = float4(0, 0, 0, 0);
     }

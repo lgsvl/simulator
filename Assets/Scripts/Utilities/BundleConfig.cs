@@ -25,13 +25,13 @@ namespace Simulator
 
         public static Dictionary<BundleTypes, string> Versions = new Dictionary<BundleTypes, string>()
         {
-            [BundleTypes.Vehicle]     = "com.svlsimulator.3",
-            [BundleTypes.Environment] = "com.svlsimulator.2",
-            [BundleTypes.Sensor]      = "com.svlsimulator.3",
-            [BundleTypes.Controllable]= "com.svlsimulator.0",
-            [BundleTypes.NPC]         = "com.svlsimulator.0",
+            [BundleTypes.Vehicle]     = "com.svlsimulator.4",
+            [BundleTypes.Environment] = "com.svlsimulator.3",
+            [BundleTypes.Sensor]      = "com.svlsimulator.4",
+            [BundleTypes.Controllable]= "com.svlsimulator.1",
+            [BundleTypes.NPC]         = "com.svlsimulator.1",
             [BundleTypes.Bridge]      = "com.svlsimulator.0",
-            [BundleTypes.Pedestrian]  = "com.svlsimulator.0",
+            [BundleTypes.Pedestrian]  = "com.svlsimulator.1",
         };
 
         public static string singularOf(BundleTypes type) => Enum.GetName(typeof(BundleTypes), type);

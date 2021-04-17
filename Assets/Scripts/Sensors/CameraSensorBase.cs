@@ -5,28 +5,26 @@
  *
  */
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.Threading.Tasks;
-using UnityEngine;
-using UnityEngine.Rendering;
-using Simulator.Bridge;
-using Simulator.Bridge.Data;
-using Simulator.Plugins;
-using Simulator.Utilities;
-using Simulator.Sensors.UI;
-using UnityEngine.Rendering.HighDefinition;
-using Unity.Collections;
-
-using LensDistortion = Simulator.Utilities.LensDistortion;
-using UnityEngine.Experimental.Rendering;
-
 namespace Simulator.Sensors
 {
-    using Analysis;
-    using Postprocessing;
+    using System;
     using System.Collections;
+    using System.Collections.Concurrent;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
+    using Analysis;
+    using Bridge;
+    using Bridge.Data;
+    using Plugins;
+    using Postprocessing;
+    using UI;
+    using Unity.Collections;
+    using UnityEngine;
+    using UnityEngine.Experimental.Rendering;
+    using UnityEngine.Rendering;
+    using UnityEngine.Rendering.HighDefinition;
+    using Utilities;
+    using LensDistortion = Utilities.LensDistortion;
 
     [RequireComponent(typeof(Camera))]
     public abstract class CameraSensorBase: SensorBase
@@ -354,7 +352,8 @@ namespace Simulator.Sensors
                 }
 
                 cmd.SetGlobalVector(ScreenSizeProperty, new Vector4(Width, Height, 1.0f / Width, 1.0f / Height));
-                SimulatorManager.Instance.Sensors.PostProcessSystem.RenderLateForSensor(cmd, hd, this, DistortedHandle.ColorHandle);
+                var ctx = new PostProcessPassContext(cmd, hd, DistortedHandle);
+                SimulatorManager.Instance.Sensors.PostProcessSystem.RenderLateForSensor(ctx, this);
             }
 
             FinalRenderTarget.BlitTo2D(cmd, hd);

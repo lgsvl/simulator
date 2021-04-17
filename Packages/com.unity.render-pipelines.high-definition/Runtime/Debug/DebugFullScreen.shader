@@ -12,7 +12,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -22,13 +22,19 @@ Shader "Hidden/HDRP/DebugFullScreen"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.cs.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.cs.hlsl"
+            #define DEBUG_DISPLAY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/FullScreenDebug.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 
             CBUFFER_START (UnityDebug)
             float _FullScreenDebugMode;
+            float4 _FullScreenDebugDepthRemap;
             float _TransparencyOverdrawMaxPixelCost;
+            float _QuadOverdrawMaxQuadCost;
+            float _VertexDensityMaxPixelCost;
+            uint _DebugContactShadowLightIndex;
+            int _DebugDepthPyramidMip;
             CBUFFER_END
 
             TEXTURE2D_X(_DebugFullScreenTexture);
@@ -55,6 +61,23 @@ Shader "Hidden/HDRP/DebugFullScreen"
                 output.texcoord = GetNormalizedFullScreenTriangleTexCoord(input.vertexID);
                 return output;
             }
+
+            static float4 VTDebugColors[] = {
+                float4(1.0f, 1.0f, 1.0f, 1.0f),
+                float4(1.0f, 1.0f, 0.0f, 1.0f),
+                float4(0.0f, 1.0f, 1.0f, 1.0f),
+                float4(0.0f, 1.0f, 0.0f, 1.0f),
+                float4(1.0f, 0.0f, 1.0f, 1.0f),
+                float4(1.0f, 0.0f, 0.0f, 1.0f),
+                float4(0.0f, 0.0f, 1.0f, 1.0f),
+                float4(0.5f, 0.5f, 0.5f, 1.0f),
+                float4(0.5f, 0.5f, 0.0f, 1.0f),
+                float4(0.0f, 0.5f, 0.5f, 1.0f),
+                float4(0.0f, 0.5f, 0.0f, 1.0f),
+                float4(0.5f, 0.0f, 0.5f, 1.0f),
+                float4(0.5f, 0.0f, 0.0f, 1.0f),
+                float4(0.0f, 0.0f, 0.5f, 1.0f)
+            };
 
             // Motion vector debug utilities
             float DistanceToLine(float2 p, float2 p1, float2 p2)
@@ -139,7 +162,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     return color;
                 }
                 // SSAO
-                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_SSAO)
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_AMBIENT_OCCLUSION)
                 {
                     return 1.0f - SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).xxxx;
                 }
@@ -163,10 +186,10 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
                     return color;
                 }
-                if( _FullScreenDebugMode == FULLSCREENDEBUGMODE_RAY_TRACED_GLOBAL_ILLUMINATION)
+                if( _FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_GLOBAL_ILLUMINATION)
                 {
                     float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
-                    return color;
+                    return color.w * color;
                 }
                 if( _FullScreenDebugMode == FULLSCREENDEBUGMODE_RECURSIVE_RAY_TRACING)
                 {
@@ -241,6 +264,11 @@ Shader "Hidden/HDRP/DebugFullScreen"
                         d = 1.0 - saturate(d);
                     }
 
+                    // Explicitly handling the case where mv == float2(0, 0) as atan2(mv.x, mv.y) above would be atan2(0,0) which
+                    // is undefined and in practice can be incosistent between compilers (e.g. NaN on FXC and ~pi/2 on DXC)
+                    if(!any(mv))
+                        color = float3(0, 0, 0);
+
                     return float4(color + d.xxx, 1.0);
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_COLOR_LOG)
@@ -278,7 +306,10 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
                     return float4(fade.xxx, 0.0);
                 }
-                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTIONS)
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTIONS ||
+                    _FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTIONS_PREV ||
+                    _FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTIONS_ACCUM ||
+                    _FullScreenDebugMode == FULLSCREENDEBUGMODE_TRANSPARENT_SCREEN_SPACE_REFLECTIONS)
                 {
                     float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord) * GetCurrentExposureMultiplier();
                     return float4(color.rgb, 1.0f);
@@ -296,18 +327,79 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     uint2 pixCoord = (uint2)input.positionCS.xy >> _DebugDepthPyramidMip;
                     float depth = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixCoord + mipOffset).r;
                     PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-                    float linearDepth = frac(posInput.linearDepth * 0.1);
+
+                    float linearDepth = lerp(_FullScreenDebugDepthRemap.x, _FullScreenDebugDepthRemap.y, (posInput.linearDepth - _FullScreenDebugDepthRemap.z) / (_FullScreenDebugDepthRemap.w - _FullScreenDebugDepthRemap.z));
                     return float4(linearDepth.xxx, 1.0);
                 }
-                
+
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
                 {
                     float4 color = (float4)0;
-    
+
                     float pixelCost = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).r;
                     if ((pixelCost > 0.001))
-                        color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _TransparencyOverdrawMaxPixelCost) * pixelCost), 1.0, 1.0));// 
+                        color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _TransparencyOverdrawMaxPixelCost) * pixelCost), 1.0, 1.0));//
                     return color;
+                }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_QUAD_OVERDRAW)
+                {
+                    uint2 quad = (uint2)input.positionCS.xy & ~1;
+                    uint quad0_idx = _ScreenSize.x * (_ScreenSize.y * SLICE_ARRAY_INDEX + quad.y) + quad.x;
+                    uint quad1_idx = _ScreenSize.x * (_ScreenSize.y * SLICE_ARRAY_INDEX + quad.y) + quad.x + 1;
+                    float4 color = (float4)0;
+
+                    float quadCost = (float)_FullScreenDebugBuffer[quad0_idx];
+                    if (all(((uint2)input.positionCS.xy & 1) == 0)) // Write only once per quad
+                    {
+                        _FullScreenDebugBuffer[quad0_idx] = 0; // Overdraw
+                        _FullScreenDebugBuffer[quad1_idx] = 0; // Lock
+                    }
+                    if ((quadCost > 0.001))
+                        color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _QuadOverdrawMaxQuadCost) * quadCost), 1.0, 1.0));
+
+                    return color;
+                }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_VERTEX_DENSITY)
+                {
+                    uint2 quad = (uint2)input.positionCS;
+                    uint quad_idx = _ScreenSize.x * (_ScreenSize.y * SLICE_ARRAY_INDEX + quad.y) + quad.x;
+                    float4 color = (float4)0;
+
+                    float density = (float)_FullScreenDebugBuffer[quad_idx];
+                    _FullScreenDebugBuffer[quad_idx] = 0;
+                    if ((density > 0.001))
+                        color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _VertexDensityMaxPixelCost) * density), 1.0, 1.0));
+
+                    return color;
+                }
+
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_REQUESTED_VIRTUAL_TEXTURE_TILES)
+                {
+                    float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+                    if (!any(color))
+                        return float4(0, 0, 0, 0);
+
+                    float tileX = color.r;
+                    float tileY = color.g;
+                    float level = color.b;
+                    float tex = color.a;
+                    float3 hsv = RgbToHsv(VTDebugColors[level].rgb);
+
+                    //dont adjust hue/saturation when trying to show white or grey (on mips 0 and 7)
+                    if (level == 0 || level == 7)
+                    {
+                        hsv.z = ((uint)tileY % 5) / 5.0f + 1.0f - (((uint)tileX % 5) / 5.0f);
+                        hsv.z /= 2.0f;
+                        hsv.x = hsv.y = 0.0f;
+                    }
+                    else
+                    {
+                        hsv.y = ((uint)tileY % 5) / 10.0f + 0.5f;
+                        hsv.z = 1.0f - (((uint)tileX % 5) / 10.0f + 0.5f);
+                    }
+
+                    return float4(HsvToRgb(hsv), 1.0f);
+
                 }
 
                 return float4(0.0, 0.0, 0.0, 0.0);

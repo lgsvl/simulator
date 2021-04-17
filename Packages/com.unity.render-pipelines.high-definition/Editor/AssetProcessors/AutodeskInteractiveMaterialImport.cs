@@ -1,7 +1,7 @@
 using UnityEngine;
-using UnityEditor.AssetImporters;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEditor.AssetImporters;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -53,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (description.TryGetProperty("base_color", out vectorProperty))
                     material.SetColor("_Color", vectorProperty);
                 if (description.TryGetProperty("emissive", out vectorProperty))
-                    material.SetColor("_EmissionColor", vectorProperty);
+                    material.SetColor("_Emissive", vectorProperty);
 
                 if (description.TryGetProperty("roughness", out floatProperty))
                     material.SetFloat("_Roughness", floatProperty);

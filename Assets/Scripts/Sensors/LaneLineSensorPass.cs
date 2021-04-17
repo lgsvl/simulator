@@ -46,9 +46,9 @@ namespace Simulator.Sensors
             }
         }
 
-        protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult)
+        protected override void Execute(CustomPassContext ctx)
         {
-            var sensors = hdCamera.camera.GetComponents<SensorBase>();
+            var sensors = ctx.hdCamera.camera.GetComponents<SensorBase>();
             var sensor = sensors.FirstOrDefault<SensorBase>(s => s.GetType().GetCustomAttribute<SensorType>().Name == "LaneLineSensor");
             if (sensor == null)
                 return;
@@ -59,8 +59,8 @@ namespace Simulator.Sensors
 
             VerifyBuffer(lineCount);
             buffer.SetData((List<Line>)sensor.GetType().GetField("linesToRender").GetValue(sensor), 0, 0, lineCount);
-            SetCameraRenderTarget(cmd);
-            cmd.DrawProcedural(Matrix4x4.identity, lineMaterial, 0, MeshTopology.Points, lineCount);
+            CoreUtils.SetRenderTarget(ctx.cmd, ctx.cameraColorBuffer, ctx.cameraDepthBuffer, ClearFlag.None);
+            ctx.cmd.DrawProcedural(Matrix4x4.identity, lineMaterial, 0, MeshTopology.Points, lineCount);
         }
         
         protected override void Cleanup()

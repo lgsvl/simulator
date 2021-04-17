@@ -7,7 +7,6 @@
 
 namespace Simulator.Sensors.Postprocessing
 {
-    using System;
     using UnityEngine;
     using UnityEngine.Rendering;
     using UnityEngine.Rendering.HighDefinition;
@@ -51,12 +50,14 @@ namespace Simulator.Sensors.Postprocessing
         /// </summary>
         protected abstract void DoCleanup();
 
-        protected sealed override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult)
+        protected sealed override void Execute(CustomPassContext customPassContext)
         {
             if (PostProcessSystem == null)
                 return;
-            
-            var sensor = hdCamera.camera.GetComponent<CameraSensorBase>();
+
+            var ctx = new PostProcessPassContext(customPassContext);
+
+            var sensor = ctx.hdCamera.camera.GetComponent<CameraSensorBase>();
             if (sensor == null || sensor.Postprocessing == null || sensor.Postprocessing.Count == 0)
                 return;
 
@@ -64,11 +65,9 @@ namespace Simulator.Sensors.Postprocessing
             if (PostProcessSystem.IsLatePostprocess(sensor, typeof(TData)))
                 return;
 
-            GetCameraBuffers(out var colorBuffer, out _);
-
             if (!IsActive)
             {
-                PostProcessSystem.Skip(cmd, colorBuffer, sensor, true, false);
+                PostProcessSystem.Skip(ctx.cmd, ctx.cameraColorBuffer, sensor, true, false);
                 return;
             }
 
@@ -85,15 +84,15 @@ namespace Simulator.Sensors.Postprocessing
             if (data == null)
                 return;
 
-            PostProcessSystem.GetRTHandles(cmd, colorBuffer, sensor, true, false, out var source, out var target);
+            PostProcessSystem.GetRTHandles(ctx.cmd, ctx.cameraColorBuffer, sensor, true, false, out var source, out var target);
 
-            Render(cmd, hdCamera, source, target, data);
+            Render(ctx, source, target, data);
 
-            PostProcessSystem.RecycleSourceRT(source, colorBuffer, true);
+            PostProcessSystem.RecycleSourceRT(source, ctx.cameraColorBuffer, true);
         }
 
         ///<inheritdoc/>
-        public void Render(CommandBuffer cmd, HDCamera hdCamera, CameraSensorBase sensor, RTHandle sensorColorBuffer, PostProcessData data, CubemapFace cubemapFace = CubemapFace.Unknown)
+        public void Render(PostProcessPassContext ctx, CameraSensorBase sensor, PostProcessData data, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
             if (PostProcessSystem == null)
                 return;
@@ -102,36 +101,35 @@ namespace Simulator.Sensors.Postprocessing
 
             if (!IsActive)
             {
-                PostProcessSystem.Skip(cmd, sensorColorBuffer, sensor, true, lateQueue);
+                PostProcessSystem.Skip(ctx.cmd, ctx.cameraColorBuffer, sensor, true, lateQueue);
                 return;
             }
 
             if (!(data is TData tData))
             {
                 Debug.LogError($"Attempting to render postprocess with invalid data type (required {typeof(TData).Name}, got {data.GetType().Name})");
-                PostProcessSystem.Skip(cmd, sensorColorBuffer, sensor, true, lateQueue);
+                PostProcessSystem.Skip(ctx.cmd, ctx.cameraColorBuffer, sensor, true, lateQueue);
                 return;
             }
 
-            PostProcessSystem.GetRTHandles(cmd, sensorColorBuffer, sensor, false, lateQueue, out var source, out var target, cubemapFace);
+            PostProcessSystem.GetRTHandles(ctx.cmd, ctx.cameraColorBuffer, sensor, false, lateQueue, out var source, out var target, cubemapFace);
 
-            Render(cmd, hdCamera, source, target, tData);
+            Render(ctx, source, target, tData);
 
-            PostProcessSystem.RecycleSourceRT(source, sensorColorBuffer, false);
+            PostProcessSystem.RecycleSourceRT(source, ctx.cameraColorBuffer, false);
 
             if (cubemapFace != CubemapFace.Unknown)
-                PostProcessSystem.TryPerformFinalCubemapPass(cmd, sensor, target, sensorColorBuffer, cubemapFace);
+                PostProcessSystem.TryPerformFinalCubemapPass(ctx.cmd, sensor, target, ctx.cameraColorBuffer, cubemapFace);
         }
 
         /// <summary>
         /// <para>Called when this postprocessing pass is supposed to be rendered.</para>
         /// <para>All rendering code for this pass should be executed here.</para>
         /// </summary>
-        /// <param name="cmd">Buffer used to queue commands.</param>
-        /// <param name="camera">HD camera used by the sensor.</param>
+        /// <param name="ctx">Context used for this pass execution.</param>
         /// <param name="source"><see cref="RTHandle"/> that should be used as a source (can be sampled).</param>
         /// <param name="destination"><see cref="RTHandle"/> that should be used as a target (can't be sampled).</param>
         /// <param name="data">Data container for postprocessing parameters.</param>
-        protected abstract void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, TData data);
+        protected abstract void Render(PostProcessPassContext ctx, RTHandle source, RTHandle destination, TData data);
     }
 }

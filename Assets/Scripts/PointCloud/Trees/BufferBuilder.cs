@@ -59,17 +59,12 @@ namespace Simulator.PointCloud.Trees
             this.nodeLoader = nodeLoader;
             this.maxBufferElements = maxBufferElements;
             this.rebuildSteps = rebuildSteps;
-            
-            // DX11 for some reason doesn't work with SubUpdate mode in this case
-            var bufferMode = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan
-                ? ComputeBufferMode.SubUpdates
-                : ComputeBufferMode.Immutable; 
-            
+
             bufferA = new ComputeBuffer(maxBufferElements, UnsafeUtility.SizeOf<PointCloudPoint>(),
-                ComputeBufferType.Default, bufferMode);
-            
+                ComputeBufferType.Default, ComputeBufferMode.Immutable);
+
             bufferB = new ComputeBuffer(maxBufferElements, UnsafeUtility.SizeOf<PointCloudPoint>(),
-                ComputeBufferType.Default, bufferMode);
+                ComputeBufferType.Default, ComputeBufferMode.Immutable);
         }
 
         /// <summary>

@@ -11,7 +11,7 @@ fi
 grep --extended-regexp \
     --ignore-case \
     --before-context=100 --after-context=100 \
-    'threw exception|Fatal Error|Caught fatal signal' \
+    'threw exception|Fatal Error|Caught fatal signal|Scripts have compiler errors' \
     $LOG_FILE
 
 RESULT=$?

@@ -36,8 +36,10 @@ namespace Simulator.Sensors.Postprocessing
             CoreUtils.Destroy(material);
         }
 
-        protected override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, Rain data)
+        protected override void Render(PostProcessPassContext ctx, RTHandle source, RTHandle destination, Rain data)
         {
+            var cmd = ctx.cmd;
+
             if (Mathf.Approximately(EnvironmentEffectsManager.Rain, 0f))
             {
                 HDUtils.BlitCameraTexture(cmd, source, destination);

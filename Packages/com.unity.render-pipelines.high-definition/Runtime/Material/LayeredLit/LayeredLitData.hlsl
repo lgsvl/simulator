@@ -265,6 +265,21 @@ float3 BlendLayeredVector3(float3 x0, float3 x1, float3 x2, float3 x3, float wei
     return result;
 }
 
+float2 BlendLayeredVector2(float2 x0, float2 x1, float2 x2, float2 x3, float weight[4])
+{
+    float2 result = float2(0.0, 0.0);
+
+    result = x0 * weight[0] + x1 * weight[1];
+#if _LAYER_COUNT >= 3
+    result += (x2 * weight[2]);
+#endif
+#if _LAYER_COUNT >= 4
+    result += x3 * weight[3];
+#endif
+
+    return result;
+}
+
 float BlendLayeredScalar(float x0, float x1, float x2, float x3, float weight[4])
 {
     float result = 0.0;
@@ -655,10 +670,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // When using lightmaps, the uv1 is always valid but we don't update _UVMappingMask.y to 1
     // So when we are using them, we just need to keep the UVs as is.
 #if !defined(LIGHTMAP_ON) && defined(SURFACE_GRADIENT)
-    input.texCoord1 = ((_UVMappingMask0.y + _UVMappingMask1.y + _UVMappingMask2.y + _UVMappingMask3.y + _UVDetailsMappingMask0.y + _UVDetailsMappingMask1.y + _UVDetailsMappingMask2.y + _UVDetailsMappingMask3.y) > 0) ? input.texCoord1 : 0;
+    input.texCoord1 = ((_UVMappingMask0.y + _UVMappingMask1.y + _UVMappingMask2.y + _UVMappingMask3.y + _UVDetailsMappingMask0.y + _UVDetailsMappingMask1.y + _UVDetailsMappingMask2.y + _UVDetailsMappingMask3.y + _UVMappingMaskEmissive.y) > 0) ? input.texCoord1 : 0;
 #endif
 
-#ifndef SHADER_STAGE_RAY_TRACING
+// Don't dither if displaced tessellation (we're fading out the displacement instead to match the next LOD)
+#if !defined(SHADER_STAGE_RAY_TRACING) && !defined(_TESSELLATION_DISPLACEMENT)
 #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
     LODDitheringTransition(ComputeFadeMaskSeed(V, posInput.positionSS), unity_LODFade.x);
 #endif
@@ -771,8 +787,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     if (_EnableDecals)
     {
         // Both uses and modifies 'surfaceData.normalWS'.
-        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
-        ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
+        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
+        ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData);
     }
 #endif
 
@@ -816,7 +832,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, input.tangentToWorld[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold);
 #endif
 
-    GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
+    GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, layerTexCoord.base0, builtinData);
+
+#ifdef _ALPHATEST_ON
+    // Used for sharpening by alpha to mask
+    builtinData.alphaClipTreshold = _AlphaCutoff;
+#endif
 
     RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
 }

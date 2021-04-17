@@ -85,6 +85,12 @@ else
   NPCS=
 fi
 
+if [ ! -z ${SIMULATOR_PEDESTRIANS+x} ]; then
+  PEDESTRIANS="-buildBundles -buildPedestrians ${SIMULATOR_PEDESTRIANS}"
+else
+  PEDESTRIANS=
+fi
+
 if [ -n ${SENTRY_DSN} ]; then
   echo "SENTRY_DSN=${SENTRY_DSN}"
 else
@@ -200,7 +206,7 @@ fi
 echo "I: Cleanup AssetBundles before build"
 
 rm -Rf /mnt/AssetBundles || true
-mkdir -p /mnt/AssetBundles/{Controllables,NPCs,Sensors} || true
+mkdir -p /mnt/AssetBundles/{Controllables,NPCs,Sensors,Pedestrians} || true
 
 /opt/Unity/Editor/Unity ${DEVELOPMENT_BUILD} \
   -batchmode \
@@ -213,6 +219,7 @@ mkdir -p /mnt/AssetBundles/{Controllables,NPCs,Sensors} || true
   ${CONTROLLABLES} \
   ${SENSORS} \
   ${NPCS} \
+  ${PEDESTRIANS} \
   -logFile /dev/stdout | tee unity-build-player-${BUILD_TARGET}.log
 
 check_unity_log unity-build-player-${BUILD_TARGET}.log
@@ -251,26 +258,11 @@ cp /mnt/LICENSE-3RD-PARTY /tmp/${BUILD_OUTPUT}/LICENSE-3RD-PARTY.txt
 cp /mnt/PRIVACY /tmp/${BUILD_OUTPUT}/PRIVACY.txt
 cp /mnt/README.md /tmp/${BUILD_OUTPUT}/README.txt
 
-if ls /mnt/AssetBundles/Controllables/controllable_* >/dev/null 2>&1; then
-  mkdir -p /tmp/${BUILD_OUTPUT}/AssetBundles/Controllables
-  cp /mnt/AssetBundles/Controllables/controllable_* /tmp/${BUILD_OUTPUT}/AssetBundles/Controllables
-else
-  echo "No AssetBundles/Controllables/controllable_* to install"
-fi
+# Copy all asset bundles
+cp -R /mnt/AssetBundles /tmp/${BUILD_OUTPUT}
 
-if ls /mnt/AssetBundles/Sensors/sensor_* >/dev/null 2>&1; then
-  mkdir -p /tmp/${BUILD_OUTPUT}/AssetBundles/Sensors
-  cp /mnt/AssetBundles/Sensors/sensor_* /tmp/${BUILD_OUTPUT}/AssetBundles/Sensors
-else
-  echo "No AssetBundles/Sensors/sensor_* to install"
-fi
-
-if ls /mnt/AssetBundles/NPCs/* >/dev/null 2>&1; then
-  mkdir -p /tmp/${BUILD_OUTPUT}/AssetBundles/NPCs
-  cp -R /mnt/AssetBundles/NPCs/* /tmp/${BUILD_OUTPUT}/AssetBundles/NPCs
-else
-  echo "No AssetBundles/NPCs/* to install"
-fi
+# Dump asset bundle list for inspection
+find /tmp/${BUILD_OUTPUT}/AssetBundles -type f
 
 # TODO: This supports Jenkins only. For local build, need to package FFmpeg in Build.cs
 mkdir -p /tmp/${BUILD_OUTPUT}/simulator_Data/Plugins

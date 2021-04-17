@@ -5,13 +5,13 @@
  *
  */
 
-using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.HighDefinition;
-using Random = UnityEngine.Random;
-
 namespace Simulator.Sensors.Postprocessing
 {
+    using UnityEngine;
+    using UnityEngine.Rendering;
+    using UnityEngine.Rendering.HighDefinition;
+    using Random = UnityEngine.Random;
+
     [PostProcessOrder(1100)]
     public sealed class VideoArtifactsFX : PostProcessPass<VideoArtifacts>
     {
@@ -44,8 +44,10 @@ namespace Simulator.Sensors.Postprocessing
                 material = CoreUtils.CreateEngineMaterial("Hidden/Shader/VideoArtifacts");
         }
 
-        protected override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, VideoArtifacts data)
+        protected override void Render(PostProcessPassContext ctx, RTHandle source, RTHandle destination, VideoArtifacts data)
         {
+            var cmd = ctx.cmd;
+
             if (Mathf.Approximately(data.intensity, 0f))
             {
                 HDUtils.BlitCameraTexture(cmd, source, destination);

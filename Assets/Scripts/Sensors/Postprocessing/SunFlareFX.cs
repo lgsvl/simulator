@@ -117,8 +117,10 @@ namespace Simulator.Sensors.Postprocessing
             angleOcclusion = null;
         }
 
-        protected override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, SunFlare data)
+        protected override void Render(PostProcessPassContext ctx, RTHandle source, RTHandle destination, SunFlare data)
         {
+            var cmd = ctx.cmd;
+            var camera = ctx.hdCamera;
             var cam = camera.camera;
             var sunForward = sunTransform.forward;
             var sunWorldPos = cam.transform.position - sunForward * 1000f;
@@ -136,8 +138,7 @@ namespace Simulator.Sensors.Postprocessing
 
             if (intensity > 0f)
             {
-                GetCameraBuffers(out _, out var depthBuffer);
-                var depthTexRes = depthBuffer.referenceSize;
+                var depthTexRes = ctx.cameraDepthBuffer.referenceSize;
                 var actualCameraSize = new Vector2Int(camera.actualWidth, camera.actualHeight);
                 var occlTexRes = new Vector2Int(OcclusionRes, OcclusionRes);
 
@@ -153,7 +154,7 @@ namespace Simulator.Sensors.Postprocessing
                 cmd.SetComputeVectorParam(computeShader, SunViewPos, scaledSun);
 
                 var kernel = textureOcclusionKernel;
-                cmd.SetComputeTextureParam(computeShader, kernel, DepthTexture, depthBuffer);
+                cmd.SetComputeTextureParam(computeShader, kernel, DepthTexture, ctx.cameraDepthBuffer);
                 cmd.SetComputeTextureParam(computeShader, kernel, OcclusionTextureOut, occlusionTextureA);
                 cmd.DispatchCompute(computeShader, kernel, OcclusionRes / 8, OcclusionRes / 8, 1);
 

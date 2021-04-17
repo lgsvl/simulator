@@ -84,13 +84,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_EditorAdvancedFade = false;
         }
 
-        internal void Update(bool animate, float time)
+        internal void Update(float time)
         {
             //Update scrolling based on deltaTime
             if (volumeMask != null)
             {
-                float animationTime = animate ? time : 0.0f;
-                textureOffset = (textureScrollingSpeed * animationTime);
+                textureOffset = (textureScrollingSpeed * time);
                 // Switch from right-handed to left-handed coordinate system.
                 textureOffset.x = -textureOffset.x;
                 textureOffset.y = -textureOffset.y;
@@ -149,7 +148,7 @@ namespace UnityEngine.Rendering.HighDefinition
     } // class DensityVolumeParameters
 
     /// <summary>Density volume class.</summary>
-    [HelpURL(Documentation.baseURL + Documentation.releaseVersion + Documentation.subURL + "Density-Volume" + Documentation.endURL)]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Density-Volume" + Documentation.endURL)]
     [ExecuteAlways]
     [AddComponentMenu("Rendering/Density Volume")]
     public partial class DensityVolume : MonoBehaviour
@@ -158,22 +157,34 @@ namespace UnityEngine.Rendering.HighDefinition
         public DensityVolumeArtistParameters parameters = new DensityVolumeArtistParameters(Color.white, 10.0f, 0.0f);
 
         private Texture3D previousVolumeMask = null;
+#if UNITY_EDITOR
+        private int volumeMaskHash = 0;
+#endif
 
         /// <summary>Action shich should be performed after updating the texture.</summary>
         public Action OnTextureUpdated;
 
 
         /// <summary>Gather and Update any parameters that may have changed.</summary>
-        internal void PrepareParameters(bool animate, float time)
+        internal void PrepareParameters(float time)
         {
             //Texture has been updated notify the manager
-            if (previousVolumeMask != parameters.volumeMask)
+            bool updated = previousVolumeMask != parameters.volumeMask;
+#if UNITY_EDITOR
+            int newMaskHash = parameters.volumeMask ? parameters.volumeMask.imageContentsHash.GetHashCode() : 0;
+            updated |= newMaskHash != volumeMaskHash;
+#endif
+
+            if (updated)
             {
                 NotifyUpdatedTexure();
                 previousVolumeMask = parameters.volumeMask;
+#if UNITY_EDITOR
+                volumeMaskHash = newMaskHash;
+#endif
             }
 
-            parameters.Update(animate, time);
+            parameters.Update(time);
         }
 
         private void NotifyUpdatedTexure()

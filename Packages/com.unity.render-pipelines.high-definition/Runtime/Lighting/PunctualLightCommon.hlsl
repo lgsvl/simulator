@@ -25,8 +25,11 @@ void GetPunctualLightVectors(float3 positionWS, LightData light, out float3 L, o
 
     if (light.lightType == GPULIGHTTYPE_PROJECTOR_BOX)
     {
+        float dist = distances.w;
+        float distSq = dist * dist;
+
         L = -light.forward;
-        distances.xyz = 1; // No distance or angle attenuation
+        distances.xyz = float3(1.0f, distSq, 1.0);
     }
     else
     {

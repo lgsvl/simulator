@@ -149,7 +149,7 @@ namespace Simulator
     public class Loader : MonoBehaviour
     {
         private static string ScenarioEditorSceneName = "ScenarioEditor";
-        private static bool IsInScenarioEditor;
+        public static bool IsInScenarioEditor { get; private set; }
 
         public SimulationNetwork Network { get; } = new SimulationNetwork();
         public SimulatorManager SimulatorManagerPrefab;

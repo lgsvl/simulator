@@ -27,6 +27,7 @@ Shader "Simulator/PointCloud/HDRP/Compose"
         #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
         #define HAS_LIGHTLOOP 
         #define SHADOW_OPTIMIZE_REGISTER_USAGE 1
+        #define SHADOW_LOW
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDShadowContext.hlsl"
@@ -128,7 +129,7 @@ Shader "Simulator/PointCloud/HDRP/Compose"
                 float shadow;
                 float3 shadow3;
                 float3 normalWS = pcNormalDepth.rgb;
-                uint renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
+                uint renderingLayers = GetMeshRenderingLightLayer();
                 ShadowLoopMin(shadowContext, posInput, normalWS, asuint(_ShadowsFilter), renderingLayers, shadow3);
                 shadow = dot(shadow3, float3(1.0/3.0, 1.0/3.0, 1.0/3.0));
 
@@ -151,7 +152,9 @@ Shader "Simulator/PointCloud/HDRP/Compose"
             float4 normalGBuffer;
             EncodeIntoNormalBuffer(nData, insetSS, /* out */ normalGBuffer);
 
-            float3 ambient = SampleSH9(pcNormalDepth.rgb) * color * _IndirectLightingMultiplier.x * GetCurrentExposureMultiplier();
+            uint renderingLayers = GetMeshRenderingLightLayer();
+            float multiplier = GetIndirectDiffuseMultiplier(renderingLayers);
+            float3 ambient = SampleSH9(pcNormalDepth.rgb) * color * multiplier * GetCurrentExposureMultiplier();
 
             outGBuffer0 = float4(color, 1);
             outGBuffer1 = normalGBuffer;

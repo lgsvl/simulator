@@ -1,6 +1,5 @@
-// XRSystem is where information about XR views and passes are read from 3 exclusive sources:
+// XRSystem is where information about XR views and passes are read from 2 exclusive sources:
 // - XRDisplaySubsystem from the XR SDK
-// - the 'legacy' C++ stereo rendering path and XRSettings
 // - custom XR layout (only internal for now)
 
 using System;
@@ -40,13 +39,6 @@ namespace UnityEngine.Rendering.HighDefinition
         MaterialPropertyBlock mirrorViewMaterialProperty = new MaterialPropertyBlock();
 #endif
 
-        // Set by test framework
-        internal static bool automatedTestRunning = false;
-
-        // Used by test framework and to enable debug features
-        static bool testModeEnabledInitialization { get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-xr-tests"); }
-        internal static bool testModeEnabled = testModeEnabledInitialization;
-
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
         internal static bool dumpDebugInfo = false;
         internal static List<string> passDebugInfos = new List<string>(8);
@@ -76,12 +68,18 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         	if (GraphicsSettings.currentRenderPipeline == null)
                 return;
+
+        #if UNITY_2020_2_OR_NEWER
+            SubsystemManager.GetSubsystems(displayList);
+        #else
             SubsystemManager.GetInstances(displayList);
+        #endif
 
             for (int i = 0; i < displayList.Count; i++)
             {
                 displayList[i].disableLegacyRenderer = true;
                 displayList[i].sRGB = true;
+                displayList[i].textureLayout = XRDisplaySubsystem.TextureLayout.Texture2DArray;
             }
         }
 #endif
@@ -97,22 +95,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 // XRTODO : replace by API from XR SDK, assume we have 2 slices until then
                 maxViews = 2;
             }
-            else
 #endif
-            {
-                if (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced)
-                    maxViews = 2;
-            }
 
-            if (testModeEnabled)
+            if (XRGraphicsAutomatedTests.enabled)
                 maxViews = Math.Max(maxViews, 2);
 
             return maxViews;
         }
-
+#if UNITY_2021_1_OR_NEWER
+        internal List<(Camera, XRPass)> SetupFrame(List<Camera> cameras, bool singlePassAllowed, bool singlePassTestModeActive)
+#else
         internal List<(Camera, XRPass)> SetupFrame(Camera[] cameras, bool singlePassAllowed, bool singlePassTestModeActive)
+#endif
         {
-            bool xrSdkActive = RefreshXrSdk();
+            bool xrActive = RefreshXrSdk();
 
             if (framePasses.Count > 0)
             {
@@ -120,51 +116,42 @@ namespace UnityEngine.Rendering.HighDefinition
                 ReleaseFrame();
             }
 
-            if ((singlePassTestModeActive || automatedTestRunning) && testModeEnabled)
-                SetCustomLayout(LayoutSinglePassTestMode);
-            else
-                SetCustomLayout(null);
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            bool singlePassTestMode = (singlePassTestModeActive || XRGraphicsAutomatedTests.running) && XRGraphicsAutomatedTests.enabled;
+#endif
 
             foreach (var camera in cameras)
             {
                 if (camera == null)
                     continue;
 
-                // Read XR SDK or legacy settings
-                bool xrEnabled = xrSdkActive || (camera.stereoEnabled && XRGraphics.enabled);
-
                 // Enable XR layout only for gameview camera
-                bool xrSupported = camera.cameraType == CameraType.Game && camera.targetTexture == null;
+                bool xrSupported = camera.cameraType == CameraType.Game && camera.targetTexture == null && HDUtils.TryGetAdditionalCameraDataOrDefault(camera).xrRendering;
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                if (singlePassTestMode && LayoutSinglePassTestMode(new XRLayout() { camera = camera, xrSystem = this }))
+                {
+                    // single-pass test layout in used
+                }
+                else
+#endif
                 if (customLayout != null && customLayout(new XRLayout() { camera = camera, xrSystem = this }))
                 {
                     // custom layout in used
                 }
 #if ENABLE_VR && ENABLE_XR_MODULE
-                else if (xrEnabled && xrSupported)
+                else if (xrActive && xrSupported)
                 {
                     // Disable vsync on the main display when rendering to a XR device
                     QualitySettings.vSyncCount = 0;
-
-                    if (XRGraphics.renderViewportScale != 1.0f)
-                    {
-                        Debug.LogWarning("RenderViewportScale has no effect with this render pipeline. Use dynamic resolution instead.");
-                    }
 
                     if(display != null)
                     {
                         display.zNear = camera.nearClipPlane;
                         display.zFar = camera.farClipPlane;
                     }
-					
-                    if (xrSdkActive)
-                    {
-                        CreateLayoutFromXrSdk(camera, singlePassAllowed);
-                    }
-                    else
-                    {
-                        CreateLayoutLegacyStereo(camera);
-                    }
+
+                    CreateLayoutFromXrSdk(camera, singlePassAllowed);
                 }
 #endif
                 else
@@ -192,7 +179,12 @@ namespace UnityEngine.Rendering.HighDefinition
         bool RefreshXrSdk()
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
+
+        #if UNITY_2020_2_OR_NEWER
+            SubsystemManager.GetSubsystems(displayList);
+        #else
             SubsystemManager.GetInstances(displayList);
+        #endif
 
             if (displayList.Count > 0)
             {
@@ -201,7 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 display = displayList[0];
                 display.disableLegacyRenderer = true;
-                //display.textureLayout = XRDisplaySubsystem.TextureLayout.Texture2DArray;
+                display.textureLayout = XRDisplaySubsystem.TextureLayout.Texture2DArray;
 
                 return display.running;
             }
@@ -212,57 +204,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
             return false;
-        }
-
-        void CreateLayoutLegacyStereo(Camera camera)
-        {
-            if (!camera.TryGetCullingParameters(true, out var cullingParams))
-            {
-                Debug.LogError("Unable to get Culling Parameters from camera!");
-                return;
-            }
-
-            var passCreateInfo = new XRPassCreateInfo
-            {
-                multipassId = 0,
-                cullingPassId = 0,
-                cullingParameters = cullingParams,
-                renderTarget = camera.targetTexture,
-                customMirrorView = null
-            };
-
-            if (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.MultiPass)
-            {
-                if (camera.stereoTargetEye == StereoTargetEyeMask.Both || camera.stereoTargetEye == StereoTargetEyeMask.Left)
-                {
-                    var pass = XRPass.Create(passCreateInfo);
-                    pass.AddView(camera, Camera.StereoscopicEye.Left, 0);
-
-                    AddPassToFrame(camera, pass);
-                    passCreateInfo.multipassId++;
-                }
-
-
-                if (camera.stereoTargetEye == StereoTargetEyeMask.Both || camera.stereoTargetEye == StereoTargetEyeMask.Right)
-                {
-                    var pass = XRPass.Create(passCreateInfo);
-                    pass.AddView(camera, Camera.StereoscopicEye.Right, 1);
-
-                    AddPassToFrame(camera, pass);
-                }
-            }
-            else
-            {
-                var pass = XRPass.Create(passCreateInfo);
-
-                if (camera.stereoTargetEye == StereoTargetEyeMask.Both || camera.stereoTargetEye == StereoTargetEyeMask.Left)
-                    pass.AddView(camera, Camera.StereoscopicEye.Left, 0);
-
-                if (camera.stereoTargetEye == StereoTargetEyeMask.Both || camera.stereoTargetEye == StereoTargetEyeMask.Right)
-                    pass.AddView(camera, Camera.StereoscopicEye.Right, 1);
-
-               AddPassToFrame(camera, pass);
-            }
         }
 
         void CreateLayoutFromXrSdk(Camera camera, bool singlePassAllowed)
@@ -336,6 +277,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void AddPassToFrame(Camera camera, XRPass xrPass)
         {
+            xrPass.UpdateOcclusionMesh();
             framePasses.Add((camera, xrPass));
         }
 
@@ -412,6 +354,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
         bool LayoutSinglePassTestMode(XRLayout frameLayout)
         {
             Camera camera = frameLayout.camera;
@@ -462,5 +405,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return false;
         }
+#endif
     }
 }

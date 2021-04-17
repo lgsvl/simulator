@@ -21,37 +21,6 @@ public static class SimulatorManagerEditor
     static SimulatorManagerEditor()
     {
         EditorApplication.playModeStateChanged += LogPlayModeState;
-        EditorSceneManager.newSceneCreated += NewSceneCreated;
-    }
-
-    private static void NewSceneCreated(Scene scene, NewSceneSetup newSceneSetup, NewSceneMode newSceneMode)
-    {
-        if (Simulator.Editor.Build.Running)
-        {
-            return;
-        }
-
-        var objects = scene.GetRootGameObjects();
-        for (int index = objects.Length - 1; index >= 0; --index)
-        {
-            Object.DestroyImmediate(objects[index]);
-        }
-        Debug.Log($"Removed {objects.Length} Unity Editor default new scene objects that will conflict with LGSVL Simulator");
-
-        var tempGO = new GameObject("MapHolder");
-        tempGO.transform.position = Vector3.zero;
-        tempGO.transform.rotation = Quaternion.identity;
-        var MapHolder = tempGO.AddComponent<MapHolder>();
-        var trafficLanes = new GameObject("TrafficLanes").transform;
-        trafficLanes.SetParent(tempGO.transform);
-        MapHolder.trafficLanesHolder = trafficLanes;
-        var intersections = new GameObject("Intersections").transform;
-        intersections.SetParent(tempGO.transform);
-        MapHolder.intersectionsHolder = intersections;
-        var origin = new GameObject("MapOrigin").AddComponent<MapOrigin>();
-        var spawn = new GameObject("SpawnInfo").AddComponent<SpawnInfo>();
-
-        Debug.Log($"Added required MapHolder, MapOrigin and SpawnInfo objects for LGSVL Simulation.  Please set MapOrigin and spawn location");
     }
 
     private static void LogPlayModeState(PlayModeStateChange state)

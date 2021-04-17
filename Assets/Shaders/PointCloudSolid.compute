@@ -65,7 +65,6 @@ CBUFFER_START(cb0)
     float _PointScale;
 
     // Pull kernel parameters
-    int _PullInputLevel;
     int _PullSkipWeightMul = 0;
     float _PullFilterParam = 4;
 
@@ -227,6 +226,7 @@ float GetRoughDepth(uint2 base, int2 delta, out float bin)
 {
     const int2 maxPos = (int2)_MipTexSize.xy;
     int2 pos = base + delta;
+    bin = 0;
 
     if (pos.x >= maxPos.x || pos.y >= maxPos.y || pos.x < 0 || pos.y < 0)
         return 0.0;
@@ -368,7 +368,7 @@ void REMOVE_HIDDEN(uint3 id : SV_DispatchThreadID)
     {
         float ratio = (float) maxlevel / (_RemoveHiddenLevelCount - 1);
         float3 debugColor = lerp(float3(0, 0, 1), float3(0, 1, 0), ratio);
-        col.rgb = lerp(col * debugColor, debugColor, 0.5);
+        col.rgb = lerp(col.rgb * debugColor, debugColor, 0.5);
         packed.rg = PackRGBA(col);
         _RemoveHiddenColor[id.xy] = packed;
     }
@@ -473,14 +473,8 @@ void ApplyPreviousFrame(uint3 id : SV_DispatchThreadID)
 // PULL
 // ============================================================================================
 
-#ifdef SHADER_API_VULKAN
-Texture2D<float4> _PullColorInput;
-Texture2D<float4> _PullDepthBufferInput;
-#else
 RWTexture2D<float4> _PullColorInput;
 RWTexture2D<float4> _PullDepthBufferInput;
-#endif
-
 RWTexture2D<float4> _PullColorOutput;
 RWTexture2D<float4> _PullDepthBufferOutput;
 
@@ -582,11 +576,7 @@ void PullKernel(uint3 id : SV_DispatchThreadID, uint2 groupId : SV_GroupID, uint
     for (uint t = groupIndex; t < TILE_SIZE * TILE_SIZE; t += BLOCKSIZE * BLOCKSIZE)
     {
         const uint2 input = blockStartCoord + PullUnflatten(t);
-        #if SHADER_API_VULKAN
-            uint3 pos = uint3(input, _PullInputLevel);
-        #else
-            uint2 pos = input;
-        #endif
+        uint2 pos = input;
         
         float4 rgbw;
         float depth;
@@ -659,22 +649,12 @@ void PullKernel(uint3 id : SV_DispatchThreadID, uint2 groupId : SV_GroupID, uint
 // PUSH
 // ============================================================================================
 
-#ifdef SHADER_API_VULKAN
-Texture2D<float4> _PushColorInput;
-Texture2D<float4> _PushDepthBufferInput;
-#else
 RWTexture2D<float4> _PushColorInput;
 RWTexture2D<float4> _PushDepthBufferInput;
-#endif
-
 RWTexture2D<float4> _PushColorOutput;
 RWTexture2D<float4> _PushDepthBufferOutput;
 
-#ifdef SHADER_API_VULKAN
-float4 SampleInBounds(Texture2D<float4> tex, int3 coord, int2 maxPos, float weight, inout float weightSum, out float depth)
-#else
 float4 SampleInBounds(RWTexture2D<float4> tex, int2 coord, int2 maxPos, float weight, inout float weightSum, out float depth)
-#endif
 {
     if (coord.x < 0 || coord.y < 0 || coord.x > maxPos.x || coord.y > maxPos.y)
     {
@@ -705,17 +685,10 @@ void PushKernel(uint3 id : SV_DispatchThreadID)
     float4 x = _PushColorOutput.Load(id.xy);
     float4 weights = float4(9.0/16.0, 3.0/16.0, 3.0/16.0, 1.0/16.0);
 
-    #ifdef SHADER_API_VULKAN
-        int3 sampleA = uint3(xy2 + offset.zz, _PushInputLevel);
-        int3 sampleB = uint3(xy2 + offset.zy, _PushInputLevel);
-        int3 sampleC = uint3(xy2 + offset.xz, _PushInputLevel);
-        int3 sampleD = uint3(xy2 + offset.xy, _PushInputLevel);
-    #else
-        int2 sampleA = xy2 + offset.zz;
-        int2 sampleB = xy2 + offset.zy;
-        int2 sampleC = xy2 + offset.xz;
-        int2 sampleD = xy2 + offset.xy;
-    #endif
+    int2 sampleA = xy2 + offset.zz;
+    int2 sampleB = xy2 + offset.zy;
+    int2 sampleC = xy2 + offset.xz;
+    int2 sampleD = xy2 + offset.xy;
 
     float weightSum = 1.0;
     float da, db, dc, dd;
@@ -839,12 +812,7 @@ void SMOOTH_NORMALS(uint3 id : SV_DispatchThreadID)
 {
     float4 inSample = _SmoothNormalsIn.Load(int3(id.xy, 0));
     float2 uv = id.xy * _FullRTSize.zw + 0.5 * _FullRTSize.zw;
-
-    #ifdef PC_LINEAR_DEPTH
-        float z = (1 / (1.0-inSample.w) - _ZBufferParams.y) / _ZBufferParams.x;
-    #else
-        float z = inSample.w;
-    #endif
+    float z = inSample.w;
 
     float4 viewPos = mul(_InverseProj, float4(2 * uv - 1, z, 1));
     viewPos /= viewPos.w;

@@ -7,7 +7,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     // #pragma enable_d3d11_debug_symbols
     #pragma editor_sync_compilation
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -70,7 +70,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         // TODO: Not sure it's possible to precompute cam rel pos since variables
         // in the two constant buffers may be set at a different frequency?
-        const float3 O = _WorldSpaceCameraPos1 - _PlanetCenterPosition;
+        const float3 O = _WorldSpaceCameraPos1 - _PlanetCenterPosition.xyz;
         const float3 V = GetSkyViewDirWS(input.positionCS.xy);
 
         bool renderSunDisk = _RenderSunDisk != 0;
@@ -114,8 +114,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     float cosInner = cos(radInner);
                     float cosOuter = cos(radInner + light.flareSize);
 
-                    // float solidAngle = TWO_PI * (1 - cosInner);
-                    float solidAngle = 1; // Don't scale...
+                    float solidAngle = TWO_PI * (1 - cosInner);
 
                     if (LdotV >= cosOuter)
                     {
@@ -177,7 +176,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     radiance += _GroundEmissionMultiplier * ts.rgb;
                 }
 
-                float3 albedo = _GroundAlbedo;
+                float3 albedo = _GroundAlbedo.xyz;
 
                 if (_HasGroundAlbedoTexture)
                 {

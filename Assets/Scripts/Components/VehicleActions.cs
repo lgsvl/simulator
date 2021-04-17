@@ -73,31 +73,31 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
                     headLights.ForEach(x => x.intensity = 0f);
                     if (headLightRenderer != null)
                     {
-                        headLightRenderer.material.SetFloat("_EmitIntensity", 0);
+                        headLightRenderer.material.SetFloat("_EmitIntensity", 0f);
                     }
                     break;
                 case HeadLightState.LOW:
                     headLights.ForEach(x => x.enabled = true);
-                    headLights.ForEach(x => x.intensity = 250f);
+                    headLights.ForEach(x => x.intensity = 1500f);
                     if (lowCookie != null)
                     {
                         headLights.ForEach(x => x.cookie = lowCookie);
                     }
                     if (headLightRenderer != null)
                     {
-                        headLightRenderer.material.SetFloat("_EmitIntensity", 4);
+                        headLightRenderer.material.SetFloat("_EmitIntensity", 10f);
                     }
                     break;
                 case HeadLightState.HIGH:
                     headLights.ForEach(x => x.enabled = true);
-                    headLights.ForEach(x => x.intensity = 500f);
+                    headLights.ForEach(x => x.intensity = 2500f);
                     if (highCookie != null)
                     {
                         headLights.ForEach(x => x.cookie = highCookie);
                     }
                     if (headLightRenderer != null)
                     {
-                        headLightRenderer.material.SetFloat("_EmitIntensity", 12);
+                        headLightRenderer.material.SetFloat("_EmitIntensity", 20f);
                     }
                     break;
             }
@@ -203,16 +203,16 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
                 case HeadLightState.OFF:
                     if (brakeLightRenderer != null)
                     {
-                        brakeLights.ForEach(x => x.intensity = _brakeLights ? 3f : 0f);
-                        brakeLightRenderer.material.SetFloat("_EmitIntensity", _brakeLights ? 3 : 0);
+                        brakeLights.ForEach(x => x.intensity = _brakeLights ? 400f : 0f);
+                        brakeLightRenderer.material.SetFloat("_EmitIntensity", _brakeLights ? 8f : 0f);
                     }
                     break;
                 case HeadLightState.LOW:
                 case HeadLightState.HIGH:
                     if (brakeLightRenderer != null)
                     {
-                        brakeLights.ForEach(x => x.intensity = _brakeLights ? 3f : 1f);
-                        brakeLightRenderer.material.SetFloat("_EmitIntensity", _brakeLights ? 3 : 1.1f);
+                        brakeLights.ForEach(x => x.intensity = _brakeLights ? 400f : 80f);
+                        brakeLightRenderer.material.SetFloat("_EmitIntensity", _brakeLights ? 8f : 2f);
                     }
                     break;
             }
@@ -232,9 +232,10 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
 
             _fogLights = value;
             fogLights.ForEach(x => x.enabled = _fogLights);
+            fogLights.ForEach(x => x.intensity = _fogLights ? 300f : 0f);
             if (fogLightRenderer != null)
             {
-                fogLightRenderer.material.SetFloat("_EmitIntensity", _fogLights ? 3f : 0f);
+                fogLightRenderer.material.SetFloat("_EmitIntensity", _fogLights ? 10f : 0f);
             }
             if (Loader.Instance.Network.IsMaster)
                 BroadcastProperty(VehicleActionsPropertyName.FogLights, value);
@@ -249,9 +250,10 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
         {
             _reverseLights = value;
             indicatorReverseLights.ForEach(x => x.enabled = _reverseLights);
+            indicatorReverseLights.ForEach(x => x.intensity = _reverseLights ? 400f : 0f);
             if (indicatorReverseLightRenderer != null)
             {
-                indicatorReverseLightRenderer.material.SetFloat("_EmitIntensity", _reverseLights ? 2 : 0);
+                indicatorReverseLightRenderer.material.SetFloat("_EmitIntensity", _reverseLights ? 6f : 0f);
             }
             if (Loader.Instance.Network.IsMaster)
                 BroadcastProperty(VehicleActionsPropertyName.ReverseLights, value);
@@ -530,8 +532,10 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
 
     private void SetIndicatorLeftLights(bool state)
     {
-        indicatorLeftLightRenderer.material.SetFloat("_EmitIntensity", state ? 2 : 0);
         indicatorLeftLights.ForEach(x => x.enabled = state);
+        indicatorLeftLights.ForEach(x => x.intensity = state ? 100f : 0f);
+        if (indicatorLeftLightRenderer != null)
+            indicatorLeftLightRenderer.material.SetFloat("_EmitIntensity", state ? 6f : 0f);
     }
     
     private void StartIndicatorRightStatus()
@@ -556,8 +560,10 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
 
     private void SetIndicatorRightLights(bool state)
     {
-        indicatorRightLightRenderer.material.SetFloat("_EmitIntensity", state ? 2 : 0);
         indicatorRightLights.ForEach(x => x.enabled = state);
+        indicatorRightLights.ForEach(x => x.intensity = state ? 100f : 0f);
+        if (indicatorRightLightRenderer != null)
+            indicatorRightLightRenderer.material.SetFloat("_EmitIntensity", state ? 6f : 0f);
     }
 
     private void StartIndicatorHazardStatus()
@@ -582,10 +588,14 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
 
     private void SetIndicatorHazardLights(bool state)
     {
-        indicatorLeftLightRenderer.material.SetFloat("_EmitIntensity", state ? 2 : 0);
         indicatorLeftLights.ForEach(x => x.enabled = state);
-        indicatorRightLightRenderer.material.SetFloat("_EmitIntensity", state ? 2 : 0);
+        indicatorLeftLights.ForEach(x => x.intensity = state ? 100f : 0f);
+        if (indicatorLeftLightRenderer != null)
+            indicatorLeftLightRenderer.material.SetFloat("_EmitIntensity", state ? 6f : 0f);
         indicatorRightLights.ForEach(x => x.enabled = state);
+        indicatorRightLights.ForEach(x => x.intensity = state ? 100f : 0f);
+        if (indicatorRightLightRenderer != null)
+            indicatorRightLightRenderer.material.SetFloat("_EmitIntensity", state ? 6f : 0f);
     }
 
     public void IncrementWiperState()

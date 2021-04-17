@@ -408,7 +408,7 @@ namespace Simulator.PointCloud
             var refSize = rt.referenceSize;
 
             var msaaSamples = ((HDRenderPipeline) RenderPipelineManager.currentPipeline).MSAASamples;
-            // TODO: verify if this is still needed after updating HDRP above 7.5.2
+            // TODO: verify if this is still needed after updating HDRP above 10.3.2
             // In previous versions (7.3) viewport size was updated automatically - now it has to be manually managed
             // This can have critical performance impact if new MSAA samples settings don't not match current settings
             RTHandles.SetReferenceSize(width, height, msaaSamples);
@@ -564,7 +564,6 @@ namespace Simulator.PointCloud
                     cmd.SetComputeVectorParam(cs, PointCloudShaderIDs.SolidCompute.MipTextureSize, mipVec);
                     cmd.SetComputeVectorParam(cs, PointCloudShaderIDs.SolidCompute.HigherMipTextureSize, higherMipVec);
                     cmd.SetComputeIntParam(cs, PointCloudShaderIDs.SolidCompute.PullKernel.SkipWeightMul, i == maxLevel ? 1 : 0);
-                    cmd.SetComputeIntParam(cs, PointCloudShaderIDs.SolidCompute.PullKernel.InputLevel, i - 1);
                     cmd.SetComputeTextureParam(cs, pullKernel, PointCloudShaderIDs.SolidCompute.PullKernel.InputColor, rtColor, i - 1);
                     cmd.SetComputeTextureParam(cs, pullKernel, PointCloudShaderIDs.SolidCompute.PullKernel.OutputColor, rtColor, i);
                     cmd.DispatchCompute(cs, pullKernel, GetGroupSize(mipRes.x, 8), GetGroupSize(mipRes.y, 8), 1);

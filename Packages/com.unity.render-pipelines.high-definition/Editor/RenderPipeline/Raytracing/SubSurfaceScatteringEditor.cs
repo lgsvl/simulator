@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnEnable()
         {
-            var o = new PropertyFetcher<GlobalIllumination>(serializedObject);
+            var o = new PropertyFetcher<SubSurfaceScattering>(serializedObject);
             m_RayTracing = Unpack(o.Find(x => x.rayTracing));
             m_SampleCount = Unpack(o.Find(x => x.sampleCount));
         }
@@ -34,9 +34,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_RayTracing);
                 if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
                 {
-                    EditorGUI.indentLevel++;
-                    PropertyField(m_SampleCount);
-                    EditorGUI.indentLevel--;
+                    using (new HDEditorUtils.IndentScope())
+                    {
+                        PropertyField(m_SampleCount);
+                    }
                 }
             }
         }

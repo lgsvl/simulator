@@ -29,8 +29,6 @@
 // So same motion vectors buffer is use for all scenario, so if deferred define a motion vectors buffer, the same is reuse for forward case.
 // THis is similar to NormalBuffer
 
-// TODO: CAUTION: current DecodeMotionVector is not used in motion vector / TAA pass as it come from Postprocess stack
-// This will be fix when postprocess will be integrated into HD, but it mean that we must not change the
 // EncodeMotionVector / DecodeMotionVector code for now, i.e it must do nothing like it is doing currently.
 // Design note: We assume that motion vector/distortion fit into a single buffer (i.e not spread on several buffer)
 void EncodeMotionVector(float2 motionVector, out float4 outBuffer)
@@ -63,7 +61,7 @@ void DecodeDistortion(float4 inBuffer, out float2 distortion, out float distorti
     isValidSource = (inBuffer.z != 0.0);
 }
 
-void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, inout float3 result, inout bool needLinearToSRGB)
+void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, PositionInputs posInput, inout float3 result, inout bool needLinearToSRGB)
 {
     GetGeneratedBuiltinDataDebug(paramId, builtinData, result, needLinearToSRGB);
 
@@ -80,6 +78,28 @@ void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, inout float3 res
     case DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION:
         result = float3((builtinData.distortion / (abs(builtinData.distortion) + 1) + 1) * 0.5, 0.5);
         break;
+#ifdef DEBUG_DISPLAY
+    case DEBUGVIEW_BUILTIN_BUILTINDATA_RENDERING_LAYERS:
+        // Only 8 first rendering layers are currently in use (used by light layers)
+        // This mode shows only those layers
+
+        uint stripeSize = 8;
+
+        int lightLayers = builtinData.renderingLayers & _DebugLightLayersMask;
+        uint layerId = 0, layerCount = countbits(lightLayers);
+
+        result = float3(0, 0, 0);
+        for (uint i = 0; (i < 8) && (layerId < layerCount); i++)
+        {
+            if (lightLayers & (1 << i))
+            {
+                if ((posInput.positionSS.y / stripeSize) % layerCount == layerId)
+                    result = _DebugRenderingLayersColors[i].xyz;
+                layerId++;
+            }
+        }
+        break;
+#endif
     }
 }
 

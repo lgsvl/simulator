@@ -177,6 +177,12 @@ public class EnvironmentEffectsManager : MonoBehaviour
         Moon = Instantiate(MoonGO, new Vector3(0f, 50f, 0f), Quaternion.Euler(90f, 0f, 0f)).GetComponent<Light>();
         MoonHD = Moon.gameObject.GetComponent<HDAdditionalLightData>();
 
+        // AD Stack needs -90 degree map rotation so celestial bodies need rotated
+        var CelestialBodyHolder = new GameObject("CelestialBodyHolder");
+        CelestialBodyHolder.transform.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(0f, -90f, 0f));
+        Sun.transform.SetParent(CelestialBodyHolder.transform);
+        Moon.transform.SetParent(CelestialBodyHolder.transform);
+
         Reset();
 
         PostPrecessingVolume = Instantiate(PostProcessingVolumePrefab);
@@ -318,12 +324,12 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     private void UpdateSunPosition()
     {
-        Sun.transform.rotation = SunMoonPosition.GetSunPosition(JDay + CurrentTimeOfDay / 24f, GPSLocation.Longitude, GPSLocation.Latitude);
+        Sun.transform.localRotation = SunMoonPosition.GetSunPosition(JDay + CurrentTimeOfDay / 24f, GPSLocation.Longitude, GPSLocation.Latitude);
     }
 
     private void UpdateMoonPosition()
     {
-        Moon.transform.rotation = SunMoonPosition.GetMoonPosition(JDay + CurrentTimeOfDay / 24f, GPSLocation.Longitude, GPSLocation.Latitude);
+        Moon.transform.localRotation = SunMoonPosition.GetMoonPosition(JDay + CurrentTimeOfDay / 24f, GPSLocation.Longitude, GPSLocation.Latitude);
     }
 
     private void TimeOfDayCycle()

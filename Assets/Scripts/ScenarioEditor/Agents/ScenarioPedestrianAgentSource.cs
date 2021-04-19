@@ -18,6 +18,7 @@ namespace Simulator.ScenarioEditor.Agents
     using Undo.Records;
     using UnityEngine;
     using Utilities;
+    using Web;
 
     /// <inheritdoc/>
     /// <remarks>
@@ -51,15 +52,14 @@ namespace Simulator.ScenarioEditor.Agents
         public override Task Initialize(IProgress<float> progress)
         {
             inputManager = ScenarioManager.Instance.GetExtension<InputManager>();
-            var pedestrianManager = Loader.Instance.SimulatorManagerPrefab.pedestrianManagerPrefab;
-            var pedestriansInSimulation = pedestrianManager.PedestrianData;
-            for (var i = 0; i < pedestriansInSimulation.Count; i++)
+            var pedestriansInSimulation = Config.Pedestrians;
+            var i = 0;
+            foreach (var pedestrian in pedestriansInSimulation)
             {
-                var pedestrian = pedestriansInSimulation[i];
-                Debug.Log($"Loading pedestrian {pedestrian.Name} from the pedestrian manager.");
-                var variant = new AgentVariant(this, pedestrian.Name, pedestrian.Prefab, string.Empty);
+                Debug.Log($"Loading pedestrian {pedestrian.Value.Name} from the pedestrian manager.");
+                var variant = new AgentVariant(this, pedestrian.Value.Name, pedestrian.Value.Prefab, string.Empty);
                 Variants.Add(variant);
-                progress.Report((float)(i+1)/pedestriansInSimulation.Count);
+                progress.Report((float)(++i)/pedestriansInSimulation.Count);
             }
             return Task.CompletedTask;
         }

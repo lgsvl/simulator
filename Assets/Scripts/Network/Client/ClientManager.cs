@@ -290,15 +290,16 @@ namespace Simulator.Network.Client
             if (!network.IsClient)
                 return;
             var masterEndPoints = network.MasterAddresses;
-            var localEndPoints = network.LocalAddresses;
             var identifier = network.LocalIdentifier;
             foreach (var masterEndPoint in masterEndPoints)
             {
                 //Check if client is already connected
                 if (MasterPeer != null)
                     return;
-                if (!localEndPoints.Contains(masterEndPoint))
+                if (!IPAddress.IsLoopback(masterEndPoint.Address))
+                {
                     Connection.Connect(masterEndPoint, identifier);
+                }
             }
         }
 
@@ -319,7 +320,7 @@ namespace Simulator.Network.Client
             for (var i = 0; i < network.LocalAddresses.Count; i++)
             {
                 var ipEndPoint = network.LocalAddresses[i];
-                localAddressesSb.Append(ipEndPoint);
+                localAddressesSb.Append(ipEndPoint.Address);
                 if (i + 1 < network.LocalAddresses.Count)
                     localAddressesSb.Append(", ");
             }

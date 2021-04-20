@@ -107,11 +107,11 @@ namespace Simulator.Network.Core.Connection
             var result = Port == 0 ? NetClient.Start() : NetClient.Start(Port);
             if (result)
             {
-                var portLog = Port == 0 ? $" Using the port '{Port}'" : "";
+                var portLog = Port == 0 ? $" Using local port '{NetClient.LocalPort}'" : "";
                 Log.Info($"{GetType().Name} started.{portLog}");
             }
             else
-                Log.Error($"{GetType().Name} failed to start using the port '{Port}'.");
+                Log.Error($"{GetType().Name} failed to start using local port '{NetClient.LocalPort}'.");
             return result;
         }
 

@@ -361,7 +361,7 @@ namespace Simulator
                         var pluginTask = DownloadManager.GetAsset(BundleConfig.BundleTypes.Sensor, sensor.Plugin.AssetGuid,
                             sensor.Name, pluginProgress);
                         downloads.Add(pluginTask);
-                        Instance.assetDownloads.TryAdd(pluginTask, sensor.Type);
+                        Instance.assetDownloads.TryAdd(pluginTask, sensor.Plugin.AssetGuid);
                     }
                 }
 
@@ -532,7 +532,7 @@ namespace Simulator
                 {
                     foreach (var download in Instance.assetDownloads)
                     {
-                        if (!download.Key.IsCompleted)
+                        if (!download.Key.IsCompleted && !download.Key.IsCanceled)
                         {
                             DownloadManager.StopAssetDownload(download.Value);
                         }

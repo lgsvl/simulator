@@ -194,7 +194,8 @@ namespace Simulator.Web
                 Download download = downloads.FirstOrDefault(d => d.uri.OriginalString == url);
                 if (download == null)
                 {
-                    throw new Exception($"Cannot remove download from download queue: {url} is not in the download queue.");
+                    Debug.LogWarning($"Cannot remove download from download queue: {url} is not in the download queue.");
+                    return;
                 }
 
                 download.valid = false;

@@ -85,8 +85,6 @@ namespace Simulator.ScenarioEditor.Utilities
             private GameObject Populate()
             {
                 var instance = Instantiate(originPrefab, poolParent);
-                if (instance.scene != poolParent.gameObject.scene)
-                    Debug.LogWarning("ERROR");
                 return instance;
             }
         }

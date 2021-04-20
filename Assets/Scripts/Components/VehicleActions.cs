@@ -85,7 +85,7 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
                     }
                     if (headLightRenderer != null)
                     {
-                        headLightRenderer.material.SetFloat("_EmitIntensity", 10f);
+                        headLightRenderer.material.SetFloat("_EmitIntensity", 15f);
                     }
                     break;
                 case HeadLightState.HIGH:
@@ -97,7 +97,7 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
                     }
                     if (headLightRenderer != null)
                     {
-                        headLightRenderer.material.SetFloat("_EmitIntensity", 20f);
+                        headLightRenderer.material.SetFloat("_EmitIntensity", 30f);
                     }
                     break;
             }
@@ -533,7 +533,7 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
     private void SetIndicatorLeftLights(bool state)
     {
         indicatorLeftLights.ForEach(x => x.enabled = state);
-        indicatorLeftLights.ForEach(x => x.intensity = state ? 100f : 0f);
+        indicatorLeftLights.ForEach(x => x.intensity = state ? 200f : 0f);
         if (indicatorLeftLightRenderer != null)
             indicatorLeftLightRenderer.material.SetFloat("_EmitIntensity", state ? 6f : 0f);
     }
@@ -561,7 +561,7 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
     private void SetIndicatorRightLights(bool state)
     {
         indicatorRightLights.ForEach(x => x.enabled = state);
-        indicatorRightLights.ForEach(x => x.intensity = state ? 100f : 0f);
+        indicatorRightLights.ForEach(x => x.intensity = state ? 200f : 0f);
         if (indicatorRightLightRenderer != null)
             indicatorRightLightRenderer.material.SetFloat("_EmitIntensity", state ? 6f : 0f);
     }
@@ -589,11 +589,11 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
     private void SetIndicatorHazardLights(bool state)
     {
         indicatorLeftLights.ForEach(x => x.enabled = state);
-        indicatorLeftLights.ForEach(x => x.intensity = state ? 100f : 0f);
+        indicatorLeftLights.ForEach(x => x.intensity = state ? 200f : 0f);
         if (indicatorLeftLightRenderer != null)
             indicatorLeftLightRenderer.material.SetFloat("_EmitIntensity", state ? 6f : 0f);
         indicatorRightLights.ForEach(x => x.enabled = state);
-        indicatorRightLights.ForEach(x => x.intensity = state ? 100f : 0f);
+        indicatorRightLights.ForEach(x => x.intensity = state ? 200f : 0f);
         if (indicatorRightLightRenderer != null)
             indicatorRightLightRenderer.material.SetFloat("_EmitIntensity", state ? 6f : 0f);
     }

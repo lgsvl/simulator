@@ -568,14 +568,14 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
                 {
                     light.enabled = true;
                 }
-                headLight?.SetEmission(10f);
+                headLight?.SetEmission(2f);
                 break;
             case NPCLightStateTypes.High:
                 foreach (var light in headLights)
                 {
                     light.enabled = true;
                 }
-                headLight?.SetEmission(12f);
+                headLight?.SetEmission(4f);
                 break;
         }
     }
@@ -595,7 +595,7 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
                 {
                     light.enabled = true;
                 }
-                brakeLight?.SetEmission(3f);
+                brakeLight?.SetEmission(1f);
                 break;
         }
     }
@@ -611,7 +611,7 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
                     {
                         light.enabled = true;
                     }
-                    brakeLight?.SetEmission(10f);
+                    brakeLight?.SetEmission(2f);
                 }
                 else
                 {
@@ -628,7 +628,7 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
                     {
                         light.enabled = true;
                     }
-                    brakeLight?.SetEmission(10f);
+                    brakeLight?.SetEmission(2f);
                 }
                 else
                 {
@@ -636,7 +636,7 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
                     {
                         light.enabled = true;
                     }
-                    brakeLight?.SetEmission(3f);
+                    brakeLight?.SetEmission(1f);
                 }
                 break;
         }
@@ -736,7 +736,7 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
 
     private void SetTurnIndicator(bool state = false, bool isReset = false, bool isHazard = false)
     {
-        float emit = state ? 10f : 0f;
+        float emit = state ? 2f : 0f;
         if (isHazard)
         {
             indicatorLeft?.SetEmission(emit);
@@ -766,7 +766,7 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
 
     public void SetIndicatorReverse(bool state)
     {
-        indicatorReverse?.SetEmission(state ? 8f : 0f);
+        indicatorReverse?.SetEmission(state ? 3f : 0f);
         if (indicatorReverseLight != null)
         {
             indicatorReverseLight.enabled = state;

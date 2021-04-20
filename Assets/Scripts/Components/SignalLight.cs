@@ -82,6 +82,6 @@ public class SignalLight : MonoBehaviour
         {
             sig.material.SetVector(EmissiveColorId, Color.black);
         }
-        SignalLightRenderers[index].material.SetVector(EmissiveColorId, Color.white * 25f);
+        SignalLightRenderers[index].material.SetVector(EmissiveColorId, Color.white * 250f);
     }
 }

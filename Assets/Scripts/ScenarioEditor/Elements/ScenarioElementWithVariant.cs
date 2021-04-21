@@ -88,15 +88,15 @@ namespace Simulator.ScenarioEditor.Elements
             variant = newVariant;
             
             //Check if variant should spawn a model instance
-            if (newVariant.Prefab != null)
+            modelInstance = source.GetModelInstance(variant);
+            if (modelInstance != null)
             {
-                modelInstance = source.GetModelInstance(variant).gameObject;
                 modelInstance.name = modelObjectName;
                 modelInstance.transform.SetParent(transform);
                 modelInstance.transform.localPosition = position;
                 modelInstance.transform.localRotation = rotation;
+                modelRenderers = null;
             }
-            modelRenderers = null;
 
             VariantChanged?.Invoke(variant);
         }

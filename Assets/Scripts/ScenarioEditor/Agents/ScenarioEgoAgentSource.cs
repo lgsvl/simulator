@@ -48,7 +48,7 @@ namespace Simulator.ScenarioEditor.Agents
 
         /// <inheritdoc/>
         public override string ParameterType => "vehicle";
-        
+
         /// <inheritdoc/>
         public override int AgentTypeId => 1;
 
@@ -85,24 +85,26 @@ namespace Simulator.ScenarioEditor.Agents
                         Name = sensorsConfiguration.Name
                     });
                 }
+
                 if (newVehicle.assetModel != null)
                     newVehicle.AcquirePrefab();
 
                 Variants.Add(newVehicle);
-                progress.Report((float)(i+1)/library.Length);
+                progress.Report((float) (i + 1) / library.Length);
             }
         }
 
         /// <inheritdoc/>
-        public override void Deinitialize()
-        {
-        }
+        public override void Deinitialize() { }
 
         /// <inheritdoc/>
         public override GameObject GetModelInstance(SourceVariant variant)
         {
-            var instance = base.GetModelInstance(variant);
-            ((EgoAgentVariant)variant).AddRequiredComponents(instance, defaultRendererPrefab);
+            var instance = variant.Prefab != null
+                ? base.GetModelInstance(variant)
+                : ScenarioManager.Instance.prefabsPools.GetInstance(defaultRendererPrefab);
+            
+            ((EgoAgentVariant) variant).AddRequiredComponents(instance, defaultRendererPrefab);
             var colliders = instance.GetComponentsInChildren<Collider>();
             foreach (var collider in colliders)
                 collider.isTrigger = true;
@@ -116,8 +118,11 @@ namespace Simulator.ScenarioEditor.Agents
             }
 
             var rigidbody = instance.GetComponent<Rigidbody>();
-            rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
-            rigidbody.isKinematic = true;
+            if (rigidbody != null)
+            {
+                rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+                rigidbody.isKinematic = true;
+            }
             return instance;
         }
 

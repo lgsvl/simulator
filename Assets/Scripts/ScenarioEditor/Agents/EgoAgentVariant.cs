@@ -79,10 +79,10 @@ namespace Simulator.ScenarioEditor.Agents
             if (cachedDefaults)
                 return;
             
-            var colliders = Prefab.GetComponentsInChildren<Collider>();
-            var hasMeshRenderer = Prefab.GetComponentInParent<MeshRenderer>();
+            var colliders = Prefab != null ? Prefab.GetComponentsInChildren<Collider>() : null;
+            var hasMeshRenderer = Prefab != null && Prefab.GetComponentInParent<MeshRenderer>() != null;
             defaultBounds = new Bounds();
-            if (colliders.Length == 0)
+            if (colliders != null && colliders.Length == 0)
             {
                 //Add a default collider if there is no collider
                 if (hasMeshRenderer)
@@ -104,10 +104,14 @@ namespace Simulator.ScenarioEditor.Agents
             }
             else
             {
-                foreach (var collider in colliders)
+                if (colliders != null)
                 {
-                    defaultBounds.Encapsulate(collider.bounds);
+                    foreach (var collider in colliders)
+                    {
+                        defaultBounds.Encapsulate(collider.bounds);
+                    }
                 }
+
                 requiresDefaultRenderer = !hasMeshRenderer;
                 requiresDefaultCollider = true;
             }

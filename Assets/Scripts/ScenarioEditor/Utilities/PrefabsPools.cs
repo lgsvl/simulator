@@ -146,6 +146,15 @@ namespace Simulator.ScenarioEditor.Utilities
         }
 
         /// <summary>
+        /// Checks if passed instance was created by the pool
+        /// </summary>
+        /// <param name="instance"></param>
+        public bool IsInstanceFromPool(GameObject instance)
+        {
+            return instance != null && instanceToPool.ContainsKey(instance);
+        }
+
+        /// <summary>
         /// Returns the prefab instance back to the pool
         /// </summary>
         /// <param name="instance">Instance that is no longer used and can be reused later</param>

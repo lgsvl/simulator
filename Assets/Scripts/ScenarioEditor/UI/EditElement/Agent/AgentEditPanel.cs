@@ -98,7 +98,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
         /// <param name="newVariant">Agent new variant</param>
         private void SelectedAgentOnVariantChanged(SourceVariant newVariant)
         {
-            var variantId = agentSource.Variants.IndexOf(newVariant);
+            var variantId = variantDropdown.options.FindIndex(o => o.text == selectedAgent.Variant.Name);
             variantDropdown.SetValueWithoutNotify(variantId);
         }
 
@@ -112,9 +112,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
             variantDropdown.options.Clear();
             variantDropdown.AddOptions(
                 agentSource.Variants.Where(variant => variant.IsPrepared).Select(variant => variant.Name).ToList());
-
-            var variantId = agentSource.Variants.IndexOf(selectedAgent.Variant);
-            variantDropdown.SetValueWithoutNotify(variantId);
+            SelectedAgentOnVariantChanged(selectedAgent.Variant);
 
             gameObject.SetActive(true);
             UnityUtilities.LayoutRebuild(transform as RectTransform);
@@ -131,10 +129,11 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
         /// <summary>
         /// Method changing the variant of the currently selected scenario agent
         /// </summary>
-        /// <param name="variantId">Variant identifier in the source</param>
-        public void VariantDropdownChanged(int variantId)
+        /// <param name="optionId">Option identifier of the selected variant</param>
+        public void VariantDropdownChanged(int optionId)
         {
-            ChangeVariant(agentSource.Variants[variantId]);
+            var index = agentSource.Variants.FindIndex(v => v.Name == variantDropdown.options[optionId].text);
+            ChangeVariant(agentSource.Variants[index]);
         }
 
         /// <summary>

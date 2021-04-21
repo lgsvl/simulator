@@ -34,6 +34,8 @@ namespace Simulator.ScenarioEditor.Elements
         /// <returns>Scenario element variant model</returns>
         public virtual GameObject GetModelInstance(SourceVariant variant)
         {
+            if (variant.Prefab == null)
+                return null;
             var instance = ScenarioManager.Instance.prefabsPools.GetInstance(variant.Prefab);
             return instance;
         }
@@ -44,7 +46,15 @@ namespace Simulator.ScenarioEditor.Elements
         /// <param name="instance">Scenario element variant instance which should be returned to the pool</param>
         public void ReturnModelInstance(GameObject instance)
         {
-            ScenarioManager.Instance.prefabsPools.ReturnInstance(instance);
+            var pool = ScenarioManager.Instance.prefabsPools;
+            if (pool.IsInstanceFromPool(instance))
+            {
+                pool.ReturnInstance(instance);
+            }
+            else
+            {
+                Destroy(instance);
+            }
         } 
 
         /// <summary>

@@ -621,7 +621,7 @@ namespace Simulator.Web
                             Application.Quit(1);
                         }
 
-                        PersistentDataPath = args[++i];
+                        PersistentDataPath = Path.GetFullPath(args[++i]);
                         break;
                     case "--retryForever":
                         RetryForever = true;

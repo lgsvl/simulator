@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -186,12 +186,6 @@ public class EnvironmentEffectsManager : MonoBehaviour
         ActiveProfile.TryGet(out PBS);
 
         CloudRenderer = Instantiate(CloudPrefab, new Vector3(0f, 0f, 0f), Quaternion.identity).GetComponentInChildren<Renderer>();
-
-        // RainVolumes.AddRange(FindObjectsOfType<RainVolume>());
-        // foreach (var volume in RainVolumes)
-        // {
-        //     RainPfxs.Add(volume.Init(RainPfx, RandomGenerator.Next()));
-        // }
 
         VFXRain = Instantiate(VFXRainPrefab);
         var origin = MapOrigin.Find();

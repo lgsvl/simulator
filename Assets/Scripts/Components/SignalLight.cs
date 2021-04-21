@@ -24,6 +24,7 @@ public class SignalLight : MonoBehaviour
     private List<Renderer> SignalLightRenderers = new List<Renderer>();
     private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
     private static readonly int EmissiveColorId = Shader.PropertyToID("_EmissiveColor");
+    private static readonly int EmissiveExposureWeightId = Shader.PropertyToID("_EmissiveExposureWeight");
 
     private void Awake()
     {
@@ -53,6 +54,7 @@ public class SignalLight : MonoBehaviour
         for (int i = 0; i < SignalLightRenderers.Count; i++)
         {
             SignalLightRenderers[i].material.SetColor(BaseColorId, SignalLightDatas[i].SignalColor);
+            SignalLightRenderers[i].material.SetFloat(EmissiveExposureWeightId, 0.6f); // latest unity update requires this change from 1f
         }
     }
 

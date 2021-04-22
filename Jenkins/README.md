@@ -20,6 +20,8 @@ export UNITY_SERIAL=...
 export SIMULATOR_DOCKER_IMAGE=hdrp/simulator
 export PYTHONUNBUFFERED=1
 export UID
+export CODE_SIGNING_FILE=/dev/urandom
+export FORCE_DEV_BUILD=true
 ```
 
 ## Running file/folder check

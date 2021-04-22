@@ -17,7 +17,7 @@ First export necessary environment variables:
 export UNITY_USERNAME=...
 export UNITY_PASSWORD=...
 export UNITY_SERIAL=...
-export DOCKER_IMAGE_NAME=hdrp/simulator
+export SIMULATOR_DOCKER_IMAGE=hdrp/simulator
 export PYTHONUNBUFFERED=1
 export UID
 ```
@@ -25,7 +25,7 @@ export UID
 ## Running file/folder check
 
 ```
-docker-compose run --rm buid-simulator check
+docker-compose run --rm build-simulator check
 ```
 
 Output will be in `svlsimulator-check.html` file.
@@ -33,7 +33,7 @@ Output will be in `svlsimulator-check.html` file.
 ## Running unit tests
 
 ```
-docker-compose run --rm buid-simulator test
+docker-compose run --rm build-simulator test
 ```
 
 Output will be in `svlsimulator-test.xml` file in NUnit v3 format
@@ -41,7 +41,7 @@ Output will be in `svlsimulator-test.xml` file in NUnit v3 format
 ## Running binary build
 
 ```
-docker-compose run --rm buid-simulator windows
+docker-compose run --rm build-simulator windows
 ```
 
 Output will be `svlsimulator-windows.zip` file.
@@ -50,7 +50,7 @@ Replace `windows` with `linux` or `macos` to build for other OS'es.
 ## Running build for Asset Bundles
 
 ```
-docker-compose run --rm buid-bundles
+docker-compose run --rm build-bundles
 ```
 
 Output will be in AssetBundles folder.
@@ -63,7 +63,7 @@ To setup Pipeline CI job on jenkins following global environment variables are r
 * `UNITY_PASSWORD` - Unity username for password
 * `UNITY_SERIAL` - Unity username for serial
 * `GITLAB_HOST` - hostname of GitLab instance, ex: `gitlab.example.com`
-* `DOCKER_IMAGE_NAME` - name of Docker image, ex: `gitlab.example.com:4567/hdrp/simulator`
+* `SIMULATOR_DOCKER_IMAGE` - name of Docker image, ex: `gitlab.example.com:4567/hdrp/simulator`
 * `SIMULATOR_ENVIRONMENTS` - comma separated list of environment bundles to build, ex: `CubeTown,SanFrancisco`
 * `SIMULATOR_VEHICLES` - comma separated list of vehicle bundles to build, ex: `Car1,Car2`
 * `S3_BUCKET_NAME` - AWS S3 bucket name to where upload bundles

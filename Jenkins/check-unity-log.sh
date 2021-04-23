@@ -11,7 +11,7 @@ fi
 grep --extended-regexp \
     --ignore-case \
     --before-context=100 --after-context=100 \
-    'threw exception|Fatal Error|Caught fatal signal|Scripts have compiler errors' \
+    'threw exception|Fatal Error|Caught fatal signal|Scripts have compiler errors|^Player build result: Failed!' \
     $LOG_FILE
 
 RESULT=$?

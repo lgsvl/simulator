@@ -2,7 +2,7 @@
   "dependencies": {
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.2d.tilemap": "1.0.0",
-    "com.unity.formats.fbx": "4.0.1",
+    "com.unity.formats.fbx": "3.2.1-preview.2",
     "com.unity.ide.rider": "3.0.5",
     "com.unity.ide.visualstudio": "2.0.7",
     "com.unity.ide.vscode": "1.2.3",

@@ -114,6 +114,11 @@ namespace Simulator.Network.Master
         public string Key { get; } = "SimulationManager";
 
         /// <summary>
+        /// Load balancer for distributing tasks between clients
+        /// </summary>
+        public NetworkLoadBalancer LoadBalancer { get; } = new NetworkLoadBalancer();
+
+        /// <summary>
         /// All current clients connected or trying to connect to the master
         /// </summary>
         public List<ClientConnection> Clients
@@ -132,6 +137,16 @@ namespace Simulator.Network.Master
         public event Action<SimulationState> StateChanged;
 
         /// <summary>
+        /// Event invoked when a new client connects
+        /// </summary>
+        public event Action<IPeerManager> ClientConnected;
+        
+        /// <summary>
+        /// Event invoked when the client disconnects
+        /// </summary>
+        public event Action<IPeerManager> ClientDisconnected;
+
+        /// <summary>
         /// Constructor
         /// </summary>
         public MasterManager()
@@ -148,6 +163,7 @@ namespace Simulator.Network.Master
             PacketsProcessor.SubscribeReusable<Commands.Ready, IPeerManager>(OnReadyCommand);
             PacketsProcessor.SubscribeReusable<Commands.Loaded, IPeerManager>(OnLoadedCommand);
             PacketsProcessor.SubscribeReusable<Commands.Stop, IPeerManager>(OnStopCommand);
+            LoadBalancer.Initialize(this);
         }
 
         /// <summary>
@@ -176,6 +192,7 @@ namespace Simulator.Network.Master
             PacketsProcessor.RemoveSubscription<Commands.Ready>();
             PacketsProcessor.RemoveSubscription<Commands.Loaded>();
             PacketsProcessor.RemoveSubscription<Commands.Stop>();
+            LoadBalancer.Deinitialize();
         }
 
         /// <summary>
@@ -294,6 +311,7 @@ namespace Simulator.Network.Master
                 State = SimulationState.Connected
             };
             Clients.Add(client);
+            ClientConnected?.Invoke(clientPeerManager);
 
             if (State == SimulationState.Connecting)
             {
@@ -313,6 +331,7 @@ namespace Simulator.Network.Master
             Log.Info($"{GetType().Name} disconnected from the client with address '{client.Peer.PeerEndPoint}'.");
             Debug.Assert(client != null);
             Clients.Remove(client);
+            ClientDisconnected?.Invoke(clientPeerManager);
 
             if (Loader.Instance.CurrentSimulation != null && State != SimulationState.Initial)
             {

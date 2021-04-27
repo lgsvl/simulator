@@ -79,6 +79,7 @@ pipeline {
     UNITY_USERNAME = credentials("UNITY_USERNAME")
     UNITY_PASSWORD = credentials("UNITY_PASSWORD")
     UNITY_SERIAL = credentials("UNITY_SERIAL")
+    UNITY_VERSION = "2020.3.3f1"
     CODE_SIGNING_PASSWORD = credentials("LGSVL_CODE_SIGNING_PASSWORD")
     PYTHONUNBUFFERED = "1"
     DISPLAY = ":0"

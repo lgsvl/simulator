@@ -23,6 +23,11 @@ if [ ! -v UNITY_SERIAL ]; then
   exit 1
 fi
 
+if [ ! -v UNITY_VERSION ]; then
+  echo "ERROR: UNITY_VERSION environment variable is not set"
+  exit 1
+fi
+
 if [ $# -ne 1 ]; then
   echo "ERROR: please specify command!"
   echo "  check - runs file/folder structure check"
@@ -41,6 +46,12 @@ cd /mnt
 
 PREFIX=svlsimulator
 SUFFIX=
+UNITY=/opt/Unity/Editor/Unity
+
+if [ ! -x "${UNITY}" ] ; then
+    echo "ERROR: ${UNITY} doesn't exist or isn't executable"
+    exit 1
+fi
 
 if [ -v GIT_TAG ]; then
   export BUILD_VERSION=${GIT_TAG}
@@ -107,7 +118,7 @@ function get_unity_license {
     mkdir -p dummy-unity-project
     pushd dummy-unity-project
 
-    /opt/Unity/Editor/Unity \
+    ${UNITY} \
         -logFile /dev/stdout \
         -batchmode \
         -serial ${UNITY_SERIAL} \
@@ -120,7 +131,7 @@ function get_unity_license {
 
 function finish
 {
-  /opt/Unity/Editor/Unity \
+  ${UNITY} \
     -batchmode \
     -force-vulkan \
     -silent-crashes \
@@ -131,7 +142,7 @@ trap finish EXIT
 
 function unity_check
 {
-  /opt/Unity/Editor/Unity \
+  ${UNITY} \
     -batchmode \
     -force-vulkan \
     -silent-crashes \
@@ -146,7 +157,7 @@ function unity_check
 
 function unity_test
 {
-  /opt/Unity/Editor/Unity \
+  ${UNITY} \
     -batchmode \
     -force-vulkan \
     -silent-crashes \
@@ -208,7 +219,7 @@ echo "I: Cleanup AssetBundles before build"
 rm -Rf /mnt/AssetBundles || true
 mkdir -p /mnt/AssetBundles/{Controllables,NPCs,Sensors,Pedestrians} || true
 
-/opt/Unity/Editor/Unity ${DEVELOPMENT_BUILD} \
+${UNITY} ${DEVELOPMENT_BUILD} \
   -batchmode \
   -force-vulkan \
   -silent-crashes \

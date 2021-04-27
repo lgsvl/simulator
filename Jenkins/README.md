@@ -18,6 +18,7 @@ export UNITY_USERNAME=...
 export UNITY_PASSWORD=...
 export UNITY_SERIAL=...
 export UNITY_DOCKER_IMAGE=hdrp/simulator
+export UNITY_VERSION="2020.3.3f1"
 export PYTHONUNBUFFERED=1
 export UID
 export CODE_SIGNING_FILE=/dev/urandom
@@ -66,6 +67,7 @@ To setup Pipeline CI job on jenkins following global environment variables are r
 * `UNITY_SERIAL` - Unity username for serial
 * `GITLAB_HOST` - hostname of GitLab instance, ex: `gitlab.example.com`
 * `UNITY_DOCKER_IMAGE` - name of Docker image, ex: `gitlab.example.com:4567/hdrp/simulator`
+* `UNITY_VERSION` - tag of Docker image with Unity, ex: `2020.3.3f1`
 * `SIMULATOR_ENVIRONMENTS` - comma separated list of environment bundles to build, ex: `CubeTown,SanFrancisco`
 * `SIMULATOR_VEHICLES` - comma separated list of vehicle bundles to build, ex: `Car1,Car2`
 * `S3_BUCKET_NAME` - AWS S3 bucket name to where upload bundles

@@ -37,6 +37,7 @@ pipeline {
     UNITY_USERNAME = credentials("UNITY_USERNAME")
     UNITY_PASSWORD = credentials("UNITY_PASSWORD")
     UNITY_SERIAL = credentials("UNITY_SERIAL")
+    UNITY_VERSION = "2020.3.3f1"
     PYTHONUNBUFFERED = "1"
     DISPLAY = ":0"
     JENKINS_BUILD_ID = "${BUILD_ID}"

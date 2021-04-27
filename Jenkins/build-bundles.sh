@@ -23,6 +23,11 @@ if [ ! -v UNITY_SERIAL ]; then
   exit 1
 fi
 
+if [ ! -v UNITY_VERSION ]; then
+  echo "ERROR: UNITY_VERSION environment variable is not set"
+  exit 1
+fi
+
 if [ -z ${SIM_ENVIRONMENTS+x} ] && [ -z ${SIM_VEHICLES+x} ] && [ -z ${SIM_SENSORS+x} ] && [ -z ${SIM_BRIDGES+x} ]; then
   echo All environments, vehicles, sensors and bridges are up to date!
   exit 0
@@ -49,6 +54,13 @@ function check_unity_log {
 export HOME=/tmp
 
 cd /mnt
+
+UNITY=/opt/Unity/Editor/Unity
+
+if [ ! -x "${UNITY}" ] ; then
+    echo "ERROR: ${UNITY} doesn't exist or isn't executable"
+    exit 1
+fi
 
 ###
 
@@ -83,7 +95,7 @@ fi
 function get_unity_license {
     echo "Fetching unity license"
 
-    /opt/Unity/Editor/Unity \
+    ${UNITY} \
         -logFile /dev/stdout \
         -batchmode \
         -serial ${UNITY_SERIAL} \
@@ -95,7 +107,7 @@ function get_unity_license {
 
 function finish
 {
-  /opt/Unity/Editor/Unity \
+  ${UNITY} \
     -batchmode \
     -force-vulkan \
     -silent-crashes \
@@ -120,7 +132,7 @@ echo "I: Cleanup AssetBundles before build"
 
 rm -Rf /mnt/AssetBundles || true
 
-/opt/Unity/Editor/Unity \
+${UNITY} \
   -force-vulkan \
   -silent-crashes \
   -projectPath /mnt \

@@ -94,8 +94,8 @@ namespace Simulator.Editor
                     EditorGUILayout.HelpBox($"Following {bundlePath} were automatically detected:", UnityEditor.MessageType.None);
                 }
 
-                #region unity 2019.4.18f1 fix
-                // TODO fix for issues with unity 2019.4.18f1 multiple bundles
+                #region unity 2020.3.3f1 fix
+                // TODO fix for issues with unity 2020.3.3f1 multiple bundles
 
                 //if (entries.Count != 0)
                 //{
@@ -222,11 +222,18 @@ namespace Simulator.Editor
                     {
                         var vehiclePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabEntry.mainAssetFile);
                         var rigidbody = vehiclePrefab.GetComponent<Rigidbody>();
-                        if (rigidbody == null) 
-                            throw new Exception($"Build failed: Rigidbody on {prefabEntry.mainAssetFile} not found. Please add a Rigidbody component and rebuild.");
+                        var articulationBody = vehiclePrefab.GetComponent<ArticulationBody>();
+                        if (rigidbody == null && articulationBody == null)
+                        {
+                            throw new Exception($"Build failed: Rigidbody or ArticulationBody on {prefabEntry.mainAssetFile} not found. Please add a Rigidbody component and rebuild.");
+                        }
+
                         var agentController = vehiclePrefab.GetComponent<IAgentController>();
-                        if (agentController == null) 
+                        if (agentController == null)
+                        {
                             throw new Exception($"Build failed: IAgentController implementation on {prefabEntry.mainAssetFile} not found. Please add a component implementing IAgentController and rebuild.");
+                        }
+
                         var info = vehiclePrefab.GetComponent<VehicleInfo>();
                         var fmu = vehiclePrefab.GetComponent<VehicleFMU>();
                         var baseLink = vehiclePrefab.GetComponent<BaseLink>();
@@ -889,8 +896,8 @@ namespace Simulator.Editor
             EditorGUILayout.BeginHorizontal(GUILayout.ExpandHeight(false));
             BuildPlayer = GUILayout.Toggle(BuildPlayer, "Build Simulator:", GUILayout.ExpandWidth(false));
 
-            #region unity 2019.4.18f1 fix
-            // TODO fix for issues with unity 2019.4.18f1 multiple bundles
+            #region unity 2020.3.3f1 fix
+            // TODO fix for issues with unity 2020.3.3f1 multiple bundles
             if (BuildPlayer)
             {
                 foreach (var group in BuildGroups.Values)

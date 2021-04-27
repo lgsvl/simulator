@@ -4,6 +4,7 @@
  * This software contains code licensed as described in LICENSE.
  *
  */
+
 using Simulator.Bridge;
 using Simulator.Controllable;
 using Simulator.Sensors;
@@ -260,7 +261,7 @@ namespace Simulator.Web
             {
                 if (File.Exists(Path.Combine(BundleConfig.ExternalBase, "Sensors", manifest.assetName, $"{manifest.assetName}.prefab")))
                 {
-                    Debug.Log($"Loading {manifest.assetName} in Sensor Debug Mode. If you wish to use this sensor plugin from WISE, disable Sensor Debug Mode in Simulator->Sensor Debug Mode or remove the sensor from Assets/External/Sensors");
+                    Debug.LogWarning($"Loading {manifest.assetName} in Sensor Debug Mode. If you wish to use this sensor plugin from WISE, disable Sensor Debug Mode in Simulator->Sensor Debug Mode or remove the sensor from Assets/External/Sensors");
                     var prefab = (GameObject)AssetDatabase.LoadAssetAtPath(Path.Combine(BundleConfig.ExternalBase, "Sensors", manifest.assetName, $"{manifest.assetName}.prefab"), typeof(GameObject));
                     SensorPrefabs.Add(prefab.GetComponent<SensorBase>());
                     Sensors.Add(SensorTypes.GetConfig(prefab.GetComponent<SensorBase>()));

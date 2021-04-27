@@ -11,44 +11,37 @@ using Simulator.Api;
 
 public class VehicleController : AgentController
 {
-    private IVehicleDynamics dynamics;
-    private VehicleActions actions;
+    private IVehicleDynamics Dynamics;
+    private VehicleActions Actions;
     private IAgentController AgentController;
-    private Rigidbody rb;
+    private List<IVehicleInputs> Inputs = new List<IVehicleInputs>();
 
-    private List<IVehicleInputs> inputs = new List<IVehicleInputs>();
+    private Vector3 InitialPosition;
+    private Quaternion InitialRotation;
+    private Vector3 LastRBPosition;
+    private Vector3 SimpleVelocity;
+    private Vector3 SimpleAcceleration;
 
-    private string vehicleName;
-    private Vector3 initialPosition;
-    private Quaternion initialRotation;
-    private Vector3 lastRBPosition;
-    private Vector3 simpleVelocity;
-    private Vector3 simpleAcceleration;
-
-    public Vector2 DirectionInput { get; set; } = Vector2.zero;
     public float AccelInput { get; set; } = 0f;
     public float SteerInput { get; set; } = 0f;
     public float BrakeInput { get; set; } = 0f;
-    
-    public override Vector3 Velocity => simpleVelocity;
-    public override Vector3 Acceleration => simpleAcceleration;
 
-    private float turnSignalTriggerThreshold = 0.2f;
-    private float turnSignalOffThreshold = 0.1f;
-    private bool resetTurnIndicator = false;
-    private double startTime;
-    private long elapsedTime = 0;
+    public override Vector3 Velocity => SimpleVelocity;
+    public override Vector3 Acceleration => SimpleAcceleration;
+
+    private float TurnSignalTriggerThreshold = 0.2f;
+    private float TurnSignalOffThreshold = 0.1f;
+    private bool ResetTurnIndicator = false;
 
     // api do not remove
-    private bool sticky = false;
-    private float stickySteering;
-    private float stickAcceleraton;
+    private bool Sticky = false;
+    private float StickySteering;
+    private float StickAcceleraton;
 
     public void Update()
     {
         UpdateInput();
         UpdateLights();
-        UpdateElapsedTime();
     }
 
     public void FixedUpdate()
@@ -57,35 +50,35 @@ public class VehicleController : AgentController
 
         if (Time.fixedDeltaTime > 0)
         {
-            var previousVelocity = simpleVelocity;
-            var position = rb.position;
-            simpleVelocity = (position - lastRBPosition) / Time.fixedDeltaTime;
-            simpleAcceleration = simpleVelocity - previousVelocity;
-            lastRBPosition = position;
+            var previousVelocity = SimpleVelocity;
+            var position = transform.position;
+            SimpleVelocity = (position - LastRBPosition) / Time.fixedDeltaTime;
+            SimpleAcceleration = SimpleVelocity - previousVelocity;
+            LastRBPosition = position;
         }
     }
 
     public override void Init()
     {
-        startTime = SimulatorManager.Instance.CurrentTime;
-        vehicleName = Config.Name;
-        dynamics = GetComponent<IVehicleDynamics>();
-        actions = GetComponent<VehicleActions>();
+        Dynamics = GetComponent<IVehicleDynamics>();
+        Actions = GetComponent<VehicleActions>();
         AgentController = GetComponent<IAgentController>();
-        rb = GetComponent<Rigidbody>();
-        inputs.AddRange(GetComponentsInChildren<IVehicleInputs>());
-        initialPosition = transform.position;
-        initialRotation = transform.rotation;
+        Inputs.AddRange(GetComponentsInChildren<IVehicleInputs>());
+        InitialPosition = transform.position;
+        InitialRotation = transform.rotation;
     }
 
     private void UpdateInput()
     {
-        if (sticky) return;
+        if (Sticky)
+        {
+            return;
+        }
 
         SteerInput = AccelInput = BrakeInput = 0f;
-        
+
         // get all inputs
-        foreach (var input in inputs)
+        foreach (var input in Inputs)
         {
             SteerInput += input.SteerInput;
             AccelInput += input.AccelInput;
@@ -100,94 +93,105 @@ public class VehicleController : AgentController
 
     private void UpdateInputAPI()
     {
-        if (!sticky) return;
-        
-        SteerInput = stickySteering;
-        AccelInput = stickAcceleraton;
+        if (!Sticky)
+        {
+            return;
+        }
+
+        SteerInput = StickySteering;
+        AccelInput = StickAcceleraton;
     }
 
     private void UpdateLights()
     {
-        if (actions == null)
+        if (Actions == null)
+        {
             return;
+        }
+
         // brakes
         if (AccelInput < 0 || BrakeInput > 0)
-            actions.BrakeLights = true;
+        {
+            Actions.BrakeLights = true;
+        }
         else
-            actions.BrakeLights = false;
+        {
+            Actions.BrakeLights = false;
+        }
 
         // reverse
-        actions.ReverseLights = dynamics.Reverse;
+        Actions.ReverseLights = Dynamics.Reverse;
 
         // turn indicator reset on turn
-        if (actions.LeftTurnSignal)
+        if (Actions.LeftTurnSignal)
         {
-            if (resetTurnIndicator)
+            if (ResetTurnIndicator)
             {
-                if (SteerInput > -turnSignalOffThreshold)
-                    actions.LeftTurnSignal = resetTurnIndicator = false;
-                
+                if (SteerInput > -TurnSignalOffThreshold)
+                {
+                    Actions.LeftTurnSignal = ResetTurnIndicator = false;
+                }
+
             }
             else
             {
-                if (SteerInput < -turnSignalTriggerThreshold)
-                    resetTurnIndicator = true;
+                if (SteerInput < -TurnSignalTriggerThreshold)
+                {
+                    ResetTurnIndicator = true;
+                }
             }
         }
 
-        if (actions.RightTurnSignal)
+        if (Actions.RightTurnSignal)
         {
-            if (resetTurnIndicator)
+            if (ResetTurnIndicator)
             {
-                if (SteerInput < turnSignalOffThreshold)
-                    actions.RightTurnSignal = resetTurnIndicator = false;
+                if (SteerInput < TurnSignalOffThreshold)
+                {
+                    Actions.RightTurnSignal = ResetTurnIndicator = false;
+                }
             }
             else
             {
-                if (SteerInput > turnSignalTriggerThreshold)
-                    resetTurnIndicator = true;
+                if (SteerInput > TurnSignalTriggerThreshold)
+                {
+                    ResetTurnIndicator = true;
+                }
             }
         }
-    }
-
-    private void UpdateElapsedTime()
-    {
-        if (SimulatorManager.Instance != null)
-        {
-            elapsedTime = SimulatorManager.Instance.GetElapsedTime(startTime);
-        }
-    }
-
-    private void OnDisable()
-    {
-        //
     }
 
     public override void ResetPosition()
     {
-        if (dynamics == null) return;
+        if (Dynamics == null)
+        {
+            return;
+        }
 
-        dynamics.ForceReset(initialPosition, initialRotation);
+        Dynamics.ForceReset(InitialPosition, InitialRotation);
     }
 
     public override void ResetSavedPosition(Vector3 pos, Quaternion rot)
     {
-        if (dynamics == null) return;
+        if (Dynamics == null)
+        {
+            return;
+        }
 
-        dynamics.ForceReset(pos, rot);
+        Dynamics.ForceReset(pos, rot);
     }
 
     // api
     public void ApplyControl(bool sticky, float steering, float acceleration)
     {
-        this.sticky = sticky;
-        stickySteering = steering;
-        stickAcceleraton = acceleration;
+        this.Sticky = sticky;
+        StickySteering = steering;
+        StickAcceleraton = acceleration;
     }
 
     public void ResetStickyControl()
     {
-        sticky = false;
+        Sticky = false;
     }
 
     void OnCollisionEnter(Collision collision)
@@ -200,7 +204,7 @@ public class VehicleController : AgentController
         if ((layerMask & (1 << layer)) != 0)
         {
             ApiManager.Instance?.AddCollision(gameObject, collision.gameObject, collision);
-            SimulatorManager.Instance.AnalysisManager.IncrementEgoCollision(AgentController.GTID, transform.position, dynamics.RB.velocity, otherVel, otherLayer);
+            SimulatorManager.Instance.AnalysisManager.IncrementEgoCollision(AgentController.GTID, transform.position, Dynamics.RB.velocity, otherVel, otherLayer);
         }
     }
 
@@ -214,7 +218,7 @@ public class VehicleController : AgentController
         if ((layerMask & (1 << layer)) != 0)
         {
             ApiManager.Instance?.AddCollision(gameObject, other.attachedRigidbody.gameObject);
-            SimulatorManager.Instance.AnalysisManager.IncrementEgoCollision(AgentController.GTID, transform.position, dynamics.RB.velocity, otherVel, otherLayer);
+            SimulatorManager.Instance.AnalysisManager.IncrementEgoCollision(AgentController.GTID, transform.position, Dynamics.RB.velocity, otherVel, otherLayer);
         }
     }
 }

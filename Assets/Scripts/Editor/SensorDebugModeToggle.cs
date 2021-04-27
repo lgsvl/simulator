@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2021 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
 using Simulator.Web;
 using UnityEditor;
 
@@ -26,15 +33,12 @@ public static class SensorDebugModeToggle
     [MenuItem(SensorDebugModeToggle.MENU_NAME)]
     private static void ToggleAction()
     {
-
         /// Toggling action
         PerformAction(!SensorDebugModeToggle.enabled_);
     }
 
     public static void PerformAction(bool enabled)
     {
-        
-
         /// Set checkmark on menu item
         Menu.SetChecked(SensorDebugModeToggle.MENU_NAME, enabled);
         /// Saving editor state

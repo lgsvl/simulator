@@ -611,6 +611,9 @@ public class CloudAPI
         NetworkInterface[] intf = NetworkInterface.GetAllNetworkInterfaces();
         foreach (NetworkInterface device in intf)
         {
+            if (device.OperationalStatus != OperationalStatus.Up)
+                continue;
+            
             foreach (UnicastIPAddressInformation info in device.GetIPProperties().UnicastAddresses)
             {
                 string address = info.Address.ToString();

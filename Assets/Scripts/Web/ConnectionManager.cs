@@ -13,6 +13,7 @@ using Simulator.Web;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Text;
@@ -63,7 +64,14 @@ public class ConnectionManager : MonoBehaviour
         unityThread = Thread.CurrentThread.ManagedThreadId;
         service = new ClientSettingsService();
         ClientSettings settings = service.GetOrMake();
-        API = new CloudAPI(new Uri(Config.CloudUrl), Config.SimID);
+
+        if (string.IsNullOrEmpty(Config.CloudProxy))
+        {
+            API = new CloudAPI(new Uri(Config.CloudUrl), Config.SimID);
+        } else {
+            API = new CloudAPI(new Uri(Config.CloudUrl), new Uri(Config.CloudProxy), Config.SimID);
+        }
+
         #if UNITY_EDITOR
         EditorApplication.playModeStateChanged += HandlePlayMode;
         #endif
@@ -370,23 +378,44 @@ public class ConnectionManager : MonoBehaviour
 
 public class CloudAPI
 {
-    HttpClient client = new HttpClient();
-    string SimId;
-    Uri InstanceURL;
+    HttpClient client;
+    CancellationTokenSource requestTokenSource;
 
-    CancellationTokenSource requestTokenSource = new CancellationTokenSource();
+    Uri CloudURL;
+    Uri ProxyURL;
+    string SimId;
+
     private const uint fetchLimit = 50;
     StreamReader onlineStream;
 
-    [NonSerialized]
-    public string CloudType;
+    // TODO: rename this property to something more appropritate
+    public string CloudType { get => CloudURL.AbsoluteUri; }
 
-    public CloudAPI(Uri instanceURL, string simId)
+    public CloudAPI(Uri cloudURL, string simId)
     {
-        InstanceURL = instanceURL;
+        CloudURL = cloudURL;
+        ProxyURL = null;
         SimId = simId;
-        CloudType = InstanceURL.AbsoluteUri;
-        Console.WriteLine("[CONN] Instance URL {0}", CloudType);
+
+        client = new HttpClient();
+        requestTokenSource = new CancellationTokenSource();
+
+        Console.WriteLine("[CONN] Cloud URL {0}", CloudURL.AbsoluteUri);
+    }
+
+    public CloudAPI(Uri cloudURL, Uri proxyURL, string simId)
+    {
+        CloudURL = cloudURL;
+        ProxyURL = proxyURL;
+        SimId = simId;
+
+        WebProxy webProxy = new WebProxy(new Uri(Config.CloudProxy));
+        HttpClientHandler handler = new HttpClientHandler();
+        handler.Proxy = webProxy;
+        client = new HttpClient(handler);
+        requestTokenSource = new CancellationTokenSource();
+
+        Console.WriteLine("[CONN] Cloud URL {0} via proxy {1}", CloudURL.AbsoluteUri, ProxyURL.AbsolutePath);
     }
 
     public class NoSuccessException: Exception
@@ -404,7 +433,7 @@ public class CloudAPI
         }
 
         var json = Newtonsoft.Json.JsonConvert.SerializeObject(simInfo, JsonSettings.camelCase);
-        HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, new Uri(InstanceURL, "/api/v1/clusters/connect"));
+        HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, new Uri(CloudURL, "/api/v1/clusters/connect"));
         message.Content = new StringContent(json, Encoding.UTF8, "application/json");
         message.Headers.Add("SimId", Config.SimID);
         message.Headers.Add("Accept", "application/json");
@@ -502,9 +531,9 @@ public class CloudAPI
         }
     }
 
-    public async Task<ApiModelType> GetApi<ApiModelType>(string routeAndParams) 
+    public async Task<ApiModelType> GetApi<ApiModelType>(string routeAndParams)
     {
-        HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Get, new Uri(InstanceURL, routeAndParams));
+        HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Get, new Uri(CloudURL, routeAndParams));
         message.Headers.Add("SimId", SimId);
         message.Headers.Add("Accept", "application/json");
 
@@ -545,7 +574,7 @@ public class CloudAPI
 
     public async Task PostApi<ApiData>(string route, ApiData data)
     {
-        HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, new Uri(InstanceURL, route));
+        HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, new Uri(CloudURL, route));
         message.Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(data, JsonSettings.camelCase), Encoding.UTF8, "application/json");
         message.Headers.Add("SimId", Config.SimID);
         message.Headers.Add("Accept", "application/json");

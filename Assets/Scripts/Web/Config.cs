@@ -32,10 +32,9 @@ namespace Simulator.Web
         public static int ApiPort = 8181;
 
         public static string CloudUrl = "https://wise.svlsimulator.com";
+        public static string CloudProxy;
         public static string SessionGUID;
         public static string SimID;
-
-        public static bool AgreeToLicense = false;
 
         public static bool Headless = false;
 
@@ -339,7 +338,7 @@ namespace Simulator.Web
             }
         }
 
-        public static void LoadControllablePlugin(Manifest manifest, VfsEntry dir) 
+        public static void LoadControllablePlugin(Manifest manifest, VfsEntry dir)
         {
             if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Controllable])
             {
@@ -352,7 +351,7 @@ namespace Simulator.Web
             var pluginStream = dir.Find($"{manifest.assetGuid}_controllable_main_{platform}").SeekableStream();
             AssetBundle pluginBundle = AssetBundle.LoadFromStream(pluginStream);
             var pluginAssets = pluginBundle.GetAllAssetNames();
-            
+
             var texDir = dir.Find($"{manifest.assetGuid}_controllable_textures");
             if (texDir != null)
             {
@@ -508,6 +507,7 @@ namespace Simulator.Web
             public string api_hostname { get; set; } = Config.ApiHost;
             public int api_port { get; set; } = Config.ApiPort;
             public string cloud_url { get; set; } = Config.CloudUrl;
+            public string cloud_proxy { get; set; } = Config.CloudProxy;
             public string data_path { get; set; } = Config.PersistentDataPath;
         }
 
@@ -536,6 +536,7 @@ namespace Simulator.Web
                 api_port = ApiPort,
                 data_path = PersistentDataPath,
                 cloud_url = CloudUrl,
+                cloud_proxy = CloudProxy,
                 headless = Headless
             };
         }
@@ -564,6 +565,14 @@ namespace Simulator.Web
             if (!string.IsNullOrEmpty(cloudUrl))
             {
                 CloudUrl = cloudUrl;
+            }
+
+            CloudProxy = config.cloud_proxy;
+            string cloudProxy = Environment.GetEnvironmentVariable("http_proxy") ??
+                                Environment.GetEnvironmentVariable("HTTP_PROXY");
+            if (!string.IsNullOrEmpty(cloudProxy))
+            {
+                CloudProxy = cloudProxy;
             }
 
             Headless = config.headless;

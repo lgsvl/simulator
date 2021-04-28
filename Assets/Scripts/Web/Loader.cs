@@ -299,7 +299,7 @@ namespace Simulator
 
         public static async void StartSimulation(SimulationData simData)
         {
-            CloudAPI api = null;
+            CloudAPI API = null;
             if (Instance.Status != SimulatorStatus.Idle)
             {
                 Debug.LogWarning("Received start simulation command while Simulator is not idle.");
@@ -311,10 +311,16 @@ namespace Simulator
                 // downloads still need simulator to be online, but in developer mode we don't have ConnectionManager
                 if (ConnectionManager.instance == null)
                 {
-                    api = new CloudAPI(new Uri(Config.CloudUrl), Config.SimID);
+                    if (string.IsNullOrEmpty(Config.CloudProxy))
+                    {
+                        API = new CloudAPI(new Uri(Config.CloudUrl), Config.SimID);
+                    } else {
+                        API = new CloudAPI(new Uri(Config.CloudUrl), new Uri(Config.CloudProxy), Config.SimID);
+                    }
+
                     var simInfo = CloudAPI.GetInfo();
-                    var reader = await api.Connect(simInfo);
-                    await api.EnsureConnectSuccess();
+                    var reader = await API.Connect(simInfo);
+                    await API.EnsureConnectSuccess();
                 }
 #endif
                 Instance.currentSimulation = simData;
@@ -426,9 +432,9 @@ namespace Simulator
 #if UNITY_EDITOR
             finally
             {
-                if (api != null)
+                if (API != null)
                 {
-                    api.Disconnect();
+                    API.Disconnect();
                 }
             }
 #endif
@@ -459,8 +465,8 @@ namespace Simulator
                     // load environment
                     if (Instance.SimConfig.ApiOnly)
                     {
-                        var api = Instantiate(Instance.ApiManagerPrefab);
-                        api.name = "ApiManager";
+                        var API = Instantiate(Instance.ApiManagerPrefab);
+                        API.name = "ApiManager";
 
                         Instance.ConnectionUI.SetLoaderUIState(ConnectionUI.LoaderUIStateType.READY);
 
@@ -479,7 +485,7 @@ namespace Simulator
                                 l.UpdateData(mapBundlePath, Utility.StringToGUID(l.GetDataPath()).ToString());
 
                             SetupScene(simulation);
-                        }); 
+                        });
                         LoadMap(simulation.Map.AssetGuid, simulation.Map.Name, LoadSceneMode.Single, callback);
                     }
                     else
@@ -537,7 +543,7 @@ namespace Simulator
                             DownloadManager.StopAssetDownload(download.Value);
                         }
                     }
-                    
+
                     Instance.assetDownloads.Clear();
                     Instance.reportStatus(SimulatorStatus.Stopping);
                     await Instance.Network.Deinitialize();

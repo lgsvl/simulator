@@ -58,7 +58,6 @@ namespace Simulator.Web
                 {
                     completed?.Invoke(args.Error == null && !args.Cancelled, args.Error);
                 }
-                
 
                 client.DownloadProgressChanged -= Update;
                 client.DownloadFileCompleted -= Completed;
@@ -85,6 +84,7 @@ namespace Simulator.Web
 
         static ConcurrentQueue<Download> downloads = new ConcurrentQueue<Download>();
         static WebClient client;
+        static WebProxy proxy;
         static string currentUrl;
         static int currentProgress;
         static long nextUpdate;
@@ -100,6 +100,13 @@ namespace Simulator.Web
 
             client = new WebClient();
             client.Headers.Add("SimId", Config.SimID);
+            // Initialize proxy here
+            if (!string.IsNullOrEmpty(Config.CloudProxy))
+            {
+                proxy = new WebProxy(new Uri(Config.CloudProxy));
+                client.Proxy = proxy;
+            }
+
             ManageDownloads();
         }
 

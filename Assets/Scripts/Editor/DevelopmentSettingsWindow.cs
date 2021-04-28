@@ -170,9 +170,14 @@ namespace Simulator.Editor
                     API.Disconnect();
                 }
 
-                API = new CloudAPI(new Uri(Config.CloudUrl), Config.SimID);
-                var simInfo = CloudAPI.GetInfo();
+                if (string.IsNullOrEmpty(Config.CloudProxy))
+                {
+                    API = new CloudAPI(new Uri(Config.CloudUrl), Config.SimID);
+                } else {
+                    API = new CloudAPI(new Uri(Config.CloudUrl), new Uri(Config.CloudProxy), Config.SimID);
+                }
 
+                var simInfo = CloudAPI.GetInfo();
                 var reader = await API.Connect(simInfo);
                 await API.EnsureConnectSuccess();
                 var ret = await API.GetLibrary<VehicleDetailData>();

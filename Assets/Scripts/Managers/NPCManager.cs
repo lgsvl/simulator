@@ -157,6 +157,12 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         InitSpawn = true;
 
         NPCVehicles.Clear();
+
+        if (Loader.Instance.CurrentSimulation == null)
+        {
+            return;
+        }
+
         if (Loader.Instance.CurrentSimulation.NPCs == null)
         {
             Loader.Instance.CurrentSimulation.NPCs = Simulator.Web.Config.NPCVehicles.Values.ToArray();

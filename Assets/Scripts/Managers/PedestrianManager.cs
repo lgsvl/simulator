@@ -119,6 +119,12 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         MapManager = SimulatorManager.Instance.MapManager;
 
         PedestrianData.Clear();
+
+        if (Loader.Instance.CurrentSimulation == null)
+        {
+            return;
+        }
+
         if (Loader.Instance.CurrentSimulation.Peds == null)
         {
             Loader.Instance.CurrentSimulation.Peds = Simulator.Web.Config.Pedestrians.Values.ToArray();

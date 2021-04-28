@@ -226,7 +226,7 @@ public class SensorsController : MonoBehaviour, ISensorsController, IMessageSend
 
                 if (prefab == null)
                 {
-                   throw new Exception($"Unloaded sensor type {type} for {gameObject.name} vehicle detected. Restart simulator application.");
+                    throw new Exception($"Issue loading {type} for {gameObject.name} check logs");
                 }
 
                 var sensor = CreateSensor(gameObject, parentObject, prefab, item, baseLink);

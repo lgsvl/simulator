@@ -314,6 +314,10 @@ namespace Simulator.Bridge.Cyber
 
         public void SendAsync(byte[] data, Action completed)
         {
+            // Socket already closed, but worker thread just finished preparing data - ignore
+            if (Socket == null)
+                return;
+
             try
             {
                 Socket.BeginSend(data, 0, data.Length, SocketFlags.None, ar =>

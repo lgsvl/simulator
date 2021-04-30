@@ -67,10 +67,10 @@ namespace Simulator.Bridge.Cyber
                 is_dense = false,
                 measurement_time = data.Time,
                 height = 1,
-                width = (uint)data.Points.Length, // TODO is this right?
+                width = (uint)data.PointCount, // TODO is this right?
             };
 
-            for (int i = 0; i < data.Points.Length; i++)
+            for (int i = 0; i < data.PointCount; i++)
             {
                 var point = data.Points[i];
                 if (point == Vector4.zero)

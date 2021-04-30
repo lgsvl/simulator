@@ -6,11 +6,12 @@
  */
 
 using UnityEngine;
-using Unity.Collections;
 
 namespace Simulator.Bridge.Data
 {
-    public class PointCloudData
+    using System;
+
+    public class PointCloudData : IThreadCachedBridgeData<PointCloudData>
     {
         public string Name;
         public string Frame;
@@ -24,5 +25,25 @@ namespace Simulator.Bridge.Data
 
         // xyz are coordinates in world space, w is intensity
         public Vector4[] Points;
-   }
+
+        public int PointCount;
+
+        public void CopyToCache(PointCloudData target)
+        {
+            target.Name = Name;
+            target.Frame = Frame;
+            target.Time = Time;
+            target.Sequence = Sequence;
+
+            target.LaserCount = LaserCount;
+            target.Transform = Transform;
+
+            if (target.Points == null || target.Points.Length < PointCount)
+                target.Points = new Vector4[PointCount];
+
+            Array.Copy(Points, target.Points, PointCount);
+
+            target.PointCount = PointCount;
+        }
+    }
 }

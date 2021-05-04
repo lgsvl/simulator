@@ -12,7 +12,7 @@ using UnityEditor;
 using UnityEngine.SceneManagement;
 using UnityEditor.SceneManagement;
 using System.IO;
-
+using System.Reflection;
 public class SDFImportMenu : EditorWindow
 {
     [SerializeField]
@@ -79,7 +79,7 @@ public class SDFImportMenu : EditorWindow
 
         EditorGUILayout.HelpBox($"version {sdfRoot.Version}", MessageType.Info);
 
-        GameObject[] dynamicModels = null;
+        (GameObject, SDFModel)[] dynamicModels = null;
         if (GUILayout.Button("Import World"))
         {
             Scene newScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -126,29 +126,38 @@ public class SDFImportMenu : EditorWindow
             Debug.Log("import completed ");
         }
 
-        dynamicModels = sdfRoot.models.Where(m => m != null && !m.isStatic).ToArray();
+        dynamicModels = sdfRoot.models.Where(m => m.Item1 != null && !m.Item1.isStatic).ToArray();
 
         if (sdfRoot != null && dynamicModels.Length > 0)
         {
             GUILayout.Space(10);
             EditorGUILayout.LabelField("Convert model to vehicle prefab", titleLabelStyle, GUILayout.ExpandWidth(true));
+            Dictionary<string, GameObject> distinctModels = new Dictionary<string, GameObject>();
+            foreach (var (go, sdfmodel) in dynamicModels)
+            {
+                if (go == null || go.isStatic) continue;
+                var path = sdfmodel.document.FileName.Substring(sourcePath.Length + 1).Replace('/', '\u2215');
+                if (distinctModels.ContainsKey(path)) continue;
+                distinctModels.Add(path, go);
+            }
 
-            var displayOptions = dynamicModels.Select(m => m.name).ToArray();
+            var displayOptions = distinctModels.Select(m => $"{m.Value.name} ({m.Key})").ToArray();
             int selectedModelBefore = System.Array.IndexOf(displayOptions, SelectedPrefabModel);
             int selectedModel = EditorGUILayout.Popup("Select Vehicle", selectedModelBefore < 0 ? 0 : selectedModelBefore, displayOptions);
             SelectedPrefabModel = displayOptions[selectedModel];
             if (selectedModelBefore != selectedModel)
             {
-                PrefabName = dynamicModels[selectedModel].name;
+                PrefabName = dynamicModels[selectedModel].Item1.name;
             }
 
+            EditorGUILayout.LabelField("Vehicle Name");
             PrefabName = EditorGUILayout.TextField(PrefabName);
-            EditorGUILayout.LabelField("Description");
+            EditorGUILayout.LabelField("Vehicle Description");
             PrefabDescription = GUILayout.TextArea(PrefabDescription);
 
             if (GUILayout.Button("create prefab"))
             {
-                var model = dynamicModels[selectedModel];
+                var model = dynamicModels[selectedModel].Item1;
                 if (!model.TryGetComponent(out Simulator.VehicleInfo info))
                 {
                     info = model.AddComponent<Simulator.VehicleInfo>();
@@ -174,7 +183,7 @@ public class SDFImportMenu : EditorWindow
             EditorGUILayout.LabelField("Convert models to spawn locations", titleLabelStyle, GUILayout.ExpandWidth(true));
             for (int i = 0; i < dynamicModels.Length; i++)
             {
-                spawnLocationSelection[i] = GUILayout.Toggle(spawnLocationSelection[i], dynamicModels[i].name);
+                spawnLocationSelection[i] = GUILayout.Toggle(spawnLocationSelection[i], dynamicModels[i].Item1.name);
             }
 
             if (GUILayout.Button("convert to spawn info"))
@@ -183,7 +192,7 @@ public class SDFImportMenu : EditorWindow
                 {
                     if (spawnLocationSelection[i])
                     {
-                        var model = dynamicModels[i];
+                        var model = dynamicModels[i].Item1;
                         var spawnpoint = new GameObject("spawninfo from " + model.name);
                         spawnpoint.transform.position = model.transform.position;
                         var spawnInfo = spawnpoint.AddComponent<Simulator.Utilities.SpawnInfo>();

@@ -10,14 +10,24 @@ using System.Xml.Linq;
 using UnityEngine;
 using System.Globalization;
 
-public class SDFBase
+[AttributeUsage(AttributeTargets.Class)]
+public class SDFPluginParser : Attribute
 {
-    public readonly SDFDocument document;
+    public string PluginName { get; private set; }
 
-    protected SDFBase(SDFDocument document)
+    public SDFPluginParser(string name)
     {
-        this.document = document;
+        PluginName = name;
     }
+}
+
+public abstract class SDFParserBase
+{
+    protected SDFParserBase()
+    {
+    }
+
+    public abstract GameObject Parse(XElement modelElement, GameObject parent);
 
     public static Vector3 ParseSDFVector(XElement element)
     {
@@ -44,6 +54,25 @@ public class SDFBase
             return defaultValue;
         }
     }
+
+    public static float ParseSingle(XAttribute attribute, float defaultValue)
+    {
+        try
+        {
+            if (attribute == null)
+            {
+                return defaultValue;
+            }
+
+            return Convert.ToSingle(attribute.Value, CultureInfo.InvariantCulture);
+        }
+        catch (Exception e)
+        {
+            Debug.Log("Could not parse as single: " + attribute.Value + " " + e);
+            return defaultValue;
+        }
+    }
+
     public static (float, float) ParseXY(XElement element, (float, float) defaultValue)
     {
         try
@@ -62,6 +91,7 @@ public class SDFBase
             return defaultValue;
         }
     }
+
     public static bool ParseIntBool(XElement element, bool defaultValue)
     {
         try
@@ -108,6 +138,7 @@ public class SDFBase
             return defaultValue;
         }
     }
+
     public static Pose ParsePose(XElement poseElement)
     {
         if (poseElement == null || string.IsNullOrWhiteSpace(poseElement.Value))
@@ -140,6 +171,7 @@ public class SDFBase
         var pose = ParsePose(poseElement);
         (go.transform.localPosition, go.transform.localRotation) = (pose.position, pose.rotation);
     }
+
     public static void ApplyPose(XElement element, GameObject go)
     {
         var poseNode = element.Element("pose");
@@ -148,6 +180,7 @@ public class SDFBase
             HandlePose(poseNode, go);
         }
     }
+
     public static Transform FindParentModel(Transform tr)
     {
         var go = tr.gameObject.GetComponentInParent<ModelHelper>();

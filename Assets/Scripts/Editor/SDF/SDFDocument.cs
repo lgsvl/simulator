@@ -19,15 +19,16 @@ public class SDFDocument
         get => doc.Element("sdf")?.Attribute("version")?.Value;
     }
 
+    public SDFParserBase RootElement { get; set; } = null;
+
     private readonly XDocument doc;
     public readonly string modelPath;
-    public readonly string fileName;
+    public string FileName { get; }
     static public float cylinderUseMeshRadiusLengthFactor = 4.0f;
     private static readonly Regex uriRegExp = new Regex(@"(\w+)://(.+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-    public List<GameObject> models = new List<GameObject>();
-
-    public PhysicMaterial defaultPhysicMaterial = new PhysicMaterial()
+    public List<(GameObject, SDFModel)> models = new List<(GameObject, SDFModel)>();
+    public PhysicMaterial DefaultPhysicMaterial { get; } = new PhysicMaterial()
     {
         name = "Stone",
         dynamicFriction = 0.6f,
@@ -40,7 +41,7 @@ public class SDFDocument
     public SDFDocument(string fileName, string modelPath)
     {
         doc = XDocument.Load(fileName);
-        this.fileName = fileName;
+        this.FileName = fileName;
         this.modelPath = modelPath;
     }
 
@@ -54,7 +55,9 @@ public class SDFDocument
             if (schema == "model")
             {
                 var loader = new SDFDocument($"{modelPath}/{path}/model.sdf", modelPath);
-                return loader.LoadModel(parent).gameObject;
+                var includedObject = loader.LoadModel(parent);
+                models.Add((includedObject, (SDFModel)loader.RootElement));
+                return includedObject;
             }
         }
         return null;
@@ -107,7 +110,7 @@ public class SDFDocument
             throw new NotImplementedException();
         }
 
-        var parentModel = SDFBase.FindParentModel(owner.transform);
+        var parentModel = SDFParserBase.FindParentModel(owner.transform);
         string name = owner.name;
         for (var t = owner.transform.parent; t != parentModel; t = t.parent)
         {
@@ -128,13 +131,13 @@ public class SDFDocument
         models.Clear();
 
         var worldNode = doc.Element("sdf").Element("world");
-        rootObject.name = worldNode.Attribute("name")?.Value ?? "unnamed";
+        rootObject.name = "Models";
 
         var cameraNode = worldNode.Element("gui").Element("camera");
         if (cameraNode != null)
         {
             mainCamera.name = cameraNode.Attribute("name")?.Value ?? "unnamed";
-            SDFBase.ApplyPose(cameraNode, mainCamera.gameObject);
+            SDFParserBase.ApplyPose(cameraNode, mainCamera.gameObject);
         }
         else
         {
@@ -145,7 +148,7 @@ public class SDFDocument
             switch (child.Name.ToString())
             {
                 case "include":
-                    models.Add(HandleInclude(child, rootObject));
+                    HandleInclude(child, rootObject);
                     break;
                 case "gui":
                     break;
@@ -156,10 +159,11 @@ public class SDFDocument
         }
     }
 
-    public ModelHelper LoadModel(GameObject parent)
+    public GameObject LoadModel(GameObject parent)
     {
         var modelElement = doc.Element("sdf").Element("model");
         var model = new SDFModel(this);
+        RootElement = model;
         return model.Parse(modelElement, parent);
     }
 
@@ -172,7 +176,7 @@ public class SDFDocument
             switch (childElement.Name.ToString())
             {
                 case "pose":
-                    SDFBase.HandlePose(childElement, includedObject);
+                    SDFParserBase.HandlePose(childElement, includedObject);
                     break;
                 case "name":
                     includedObject.name = childElement.Value;

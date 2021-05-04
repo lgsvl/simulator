@@ -4,21 +4,24 @@
  * This software contains code licensed as described in LICENSE.
  *
  */
-
+using System;
 using System.Xml.Linq;
 using UnityEngine;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 
-public class SDFModel : SDFBase
+public class SDFModel : SDFParserBase
 {
-    public SDFModel(SDFDocument root) : base(root)
+    public SDFModel(SDFDocument document)
     {
+        this.document = document;
     }
+
+    public readonly SDFDocument document;
 
     Dictionary<(GameObject, string), Transform> originalChildObjects = new Dictionary<(GameObject, string), Transform>();
 
-    public ModelHelper Parse(XElement modelElement, GameObject parent)
+    public override GameObject Parse(XElement modelElement, GameObject parent)
     {
         GameObject modelObject = new GameObject(modelElement.Attribute("name")?.Value ?? "unnamed model");
         var ab = modelObject.AddComponent<ArticulationBody>();
@@ -62,7 +65,7 @@ public class SDFModel : SDFBase
                     break;
                 case "model":
                     var model = new SDFModel(document);
-                    modelHelper.models.Add(model.Parse(childElement, modelObject));
+                    modelHelper.models.Add(model.Parse(childElement, modelObject).GetComponent<ModelHelper>());
                     break;
                 case "self_collide":
                     modelHelper.self_collide = ParseIntBool(childElement, false);
@@ -77,31 +80,20 @@ public class SDFModel : SDFBase
                 case "link": // handled above
                 case "static": // handled above
                 case "enable_wind": //unsupported
-                break;
+                    break;
                 default:
                     Debug.LogWarning("unhandled element: " + childElement + " within " + modelElement);
                     break;
             }
         }
-        return modelHelper;
+        return modelObject;
     }
 
-    private void HandlePlugin(XElement childElement, GameObject modelObject)
+    private void HandlePlugin(XElement pluginElement, GameObject parentObject)
     {
-        var pluginName = childElement.Attribute("name")?.Value;
-        // TODO some kind of plugin registry?
-        switch (pluginName)
-        {
-/*
-            case "ElevatorSystem":
-                var plugin = new SDFElevatorPlugin(document);
-                plugin.Parse(childElement, modelObject);
-                break;
-*/
-            default:
-                Debug.LogWarning("plugin not implemented: " + childElement);
-                break;
-        }
+        Debug.Log("adding stub "+parentObject.name+" "+pluginElement.ToString());
+        var stub = parentObject.AddComponent<SDFPluginStub>();
+        stub.data = pluginElement.ToString();
     }
 
     //FIXME
@@ -115,7 +107,8 @@ public class SDFModel : SDFBase
         }
         if (ParseIntBool(childElement, true) == false)
         {
-//            body.sleepThreshold = -100.0f;
+            // this does not seem to do anything
+            // body.sleepThreshold = -100.0f;
         }
     }
 
@@ -156,7 +149,7 @@ public class SDFModel : SDFBase
             }
         }
 
-        var disabler = jointChild.gameObject.AddComponent<SelfCollisionDisabler>();
+        var disabler = jointChild.gameObject.AddComponent<JointSelfCollisionDisabler>();
         disabler.jointParent = jointParent;
 
         var childBody = jointChild.GetComponent<ArticulationBody>();

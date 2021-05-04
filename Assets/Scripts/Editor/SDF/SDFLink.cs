@@ -12,13 +12,17 @@ using UnityEngine;
 using UnityEditor;
 using System.Globalization;
 
-class SDFLink : SDFBase
+
+class SDFLink : SDFParserBase
 {
-    public SDFLink(SDFDocument root) : base(root)
+    public SDFLink(SDFDocument document)
     {
+        this.document = document;
     }
 
-    public GameObject Parse(XElement linkElement, GameObject parentModel)
+    readonly SDFDocument document;
+
+    public override GameObject Parse(XElement linkElement, GameObject parentModel)
     {
         var linkObject = new GameObject(linkElement.Attribute("name")?.Value ?? "unnamed link");
         linkObject.transform.parent = parentModel.transform;
@@ -27,6 +31,7 @@ class SDFLink : SDFBase
         linkObject.isStatic = parentModel.isStatic;
         var body = linkObject.AddComponent<ArticulationBody>();
         body.enabled = !parentModel.isStatic;
+        var helper = linkObject.AddComponent<LinkHelper>();
 
         foreach (var childElement in linkElement.Elements())
         {
@@ -50,9 +55,9 @@ class SDFLink : SDFBase
                 case "inertial":
                     HandleInertial(childElement, linkObject);
                     break;
-              //case "self_collide":
-              //    HandleSelfCollide(childElement, linkObject);
-              //    break;
+                case "self_collide":
+                    HandleSelfCollide(childElement, linkObject);
+                    break;
                 case "enable_wind": //unsupported
                     break;
                 default:
@@ -62,6 +67,13 @@ class SDFLink : SDFBase
         }
         return linkObject;
     }
+
+    private void HandleSelfCollide(XElement childElement, GameObject linkObject)
+    {
+        var helper = linkObject.GetComponent<LinkHelper>();
+        helper.self_collide = ParseIntBool(childElement, false);
+    }
+
     private void HandleInertial(XElement element, GameObject parentLink)
     {
         var body = parentLink.GetComponent<ArticulationBody>();
@@ -114,6 +126,11 @@ class SDFLink : SDFBase
         }
 
         body.useGravity = ParseIntBool(childElement, true);
+        if (body.useGravity)
+        {
+            body.gameObject.isStatic = false;
+        }
+
     }
 
     private void HandleKinematic(XElement childElement, GameObject go)
@@ -125,7 +142,11 @@ class SDFLink : SDFBase
             return;
         }
 
-//        body.useGravity  = ParseIntBool(childElement, true);
+        bool isKinematic = ParseIntBool(childElement, true);
+        if (isKinematic)
+        {
+            go.isStatic = false;
+        }
     }
 
     private void HandleCollision(XElement collisionElement, GameObject parentLink)
@@ -136,7 +157,7 @@ class SDFLink : SDFBase
         collisionObject.transform.localPosition = Vector3.zero;
         collisionObject.transform.localRotation = Quaternion.identity;
         collisionObject.isStatic = parentLink.isStatic;
-        PhysicMaterial material = document.defaultPhysicMaterial;
+        PhysicMaterial material = document.DefaultPhysicMaterial;
 
         foreach (var childElement in collisionElement.Elements())
         {

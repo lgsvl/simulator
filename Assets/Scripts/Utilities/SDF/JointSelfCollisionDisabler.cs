@@ -8,9 +8,9 @@
 using UnityEngine;
 using System.Linq;
 
-public class SelfCollisionDisabler : MonoBehaviour
+public class JointSelfCollisionDisabler : MonoBehaviour
 {
-    public Transform jointParent;
+    public Transform jointParent = null;
 
     void Awake()
     {

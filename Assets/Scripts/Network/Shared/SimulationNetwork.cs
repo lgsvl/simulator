@@ -220,7 +220,12 @@ namespace Simulator.Network.Shared
             }
             StopConnection();
 
-            ThreadingUtilities.DispatchToMainThread(ClearNetworkObjects);
+            var type = Type;
+            var clearObjectsAction = new Action(() =>
+            {
+                ClearNetworkObjects(type);
+            });
+            ThreadingUtilities.DispatchToMainThread(clearObjectsAction);
 
             LocalAddresses.Clear();
             MasterAddresses.Clear();
@@ -232,17 +237,23 @@ namespace Simulator.Network.Shared
         /// <summary>
         /// Removes instantiated objects by the network system
         /// </summary>
-        private void ClearNetworkObjects()
+        private void ClearNetworkObjects(ClusterNodeType type)
         {
-            switch (Type)
+            switch (type)
             {
                 case ClusterNodeType.Master:
-                    if (Master!=null)
+                    if (Master != null)
+                    {
                         Object.Destroy(Master.gameObject);
+                        Master = null;
+                    }
                     break;
                 case ClusterNodeType.Client:
-                    if (Client!=null)
+                    if (Client != null)
+                    {
                         Object.Destroy(Client.gameObject);
+                        Client = null;
+                    }
                     break;
             }
         }
@@ -319,7 +330,7 @@ namespace Simulator.Network.Shared
         public void BroadcastStopCommand()
         {
             //Do not send stop command is simulation is already stopping
-            if (Loader.Instance.Status != SimulatorStatus.Running)
+            if (Loader.Instance.Status != SimulatorStatus.Running && Loader.Instance.Status != SimulatorStatus.Error)
                 return;
             switch (Type)
             {

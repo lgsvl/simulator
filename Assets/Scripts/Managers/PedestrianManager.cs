@@ -5,6 +5,7 @@
  *
  */
 
+using System;
 using System.Collections.Generic;
 using System.Net;
 using Simulator;
@@ -401,6 +402,16 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
     private void SpawnPedestrianMock(string GUID, int modelIndex, Vector3 position, Quaternion rotation) // TODO mock might be random control now, use spawnData
     {
+        if (modelIndex < 0)
+        {
+            Debug.LogError("PedestrianManager received an invalid model index. Pedestrian mock cannot be spawned.");
+            return;
+        }
+        if (modelIndex >= PedestrianData.Count)
+        {
+            Debug.LogError("PedestrianManager received an invalid model index. Pedestrian mock cannot be spawned. Make sure that every cluster machine uses the same pedestrians list.");
+            return;
+        }
         GameObject ped = Instantiate(pedPrefab, position, rotation, transform);
         ped.SetActive(false);
         var pedController = ped.GetComponent<PedestrianController>();

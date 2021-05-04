@@ -17,12 +17,9 @@ namespace Simulator.Network.Master
     using Core.Connection;
     using Core.Messaging;
     using Core.Messaging.Data;
-    using Core.Threading;
     using LiteNetLib.Utils;
     using Shared;
     using UnityEngine;
-    using UnityEngine.SceneManagement;
-    using Utilities;
 
     /// <summary>
     /// Simulation network master manager
@@ -38,7 +35,7 @@ namespace Simulator.Network.Master
             /// Peer data of this client
             /// </summary>
             public IPeerManager Peer { get; set; }
-            
+
             /// <summary>
             /// Current state of this client simulation
             /// </summary>
@@ -64,7 +61,7 @@ namespace Simulator.Network.Master
         /// Determines if time scale was locked from this script
         /// </summary>
         private bool timescaleLockCalled;
-        
+
         /// <summary>
         /// Identifier of the last sent ping
         /// </summary>
@@ -240,7 +237,8 @@ namespace Simulator.Network.Master
             ConnectionManager.PeerConnected += OnClientConnected;
             ConnectionManager.PeerDisconnected += OnClientDisconnected;
             State = SimulationState.Connecting;
-            Log.Info($"{GetType().Name} started the connection manager, current UTC time: {DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)}.");
+            Log.Info(
+                $"{GetType().Name} started the connection manager, current UTC time: {DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)}.");
         }
 
         /// <summary>
@@ -287,14 +285,15 @@ namespace Simulator.Network.Master
         /// </summary>
         public void TryStartSimulation()
         {
-            if (objectsRoot!=null && 
+            if (objectsRoot != null &&
                 clients.Any(c => c.State != SimulationState.Loading)) return;
-            
+
             if (timescaleLockCalled)
             {
                 SimulatorManager.Instance.TimeManager.TimeScaleSemaphore.Unlock();
                 timescaleLockCalled = false;
             }
+
             State = SimulationState.Running;
         }
 
@@ -391,7 +390,6 @@ namespace Simulator.Network.Master
 
             client.State = SimulationState.Ready;
             TryLoadSimulation();
-
         }
 
         /// <summary>
@@ -410,7 +408,6 @@ namespace Simulator.Network.Master
 
             client.State = SimulationState.Running;
             TryStartSimulation();
-
         }
 
         /// <summary>
@@ -430,8 +427,13 @@ namespace Simulator.Network.Master
         /// <param name="peer">Peer which has sent the command</param>
         public void OnStopCommand(Commands.Stop stop, IPeerManager peer)
         {
-            if (Loader.Instance.CurrentSimulation == null || State == SimulationState.Initial) return;
+            var simulation = Loader.Instance.Network.CurrentSimulation;
+            if (State == SimulationState.Initial || State == SimulationState.Stopping ||
+                simulation == null || simulation.Id != stop.SimulationId) return;
+            
             Log.Info($"{GetType().Name} received stop command and stops the simulation.");
+            BroadcastStopCommand();
+            State = SimulationState.Stopping;
             Loader.StopAsync();
         }
 
@@ -442,10 +444,11 @@ namespace Simulator.Network.Master
         {
             Log.Info($"{GetType().Name} runs the prepared simulation and broadcasts run command.");
 
-            var stopData = PacketsProcessor.Write(new Commands.Run());
-            var message = MessagesPool.Instance.GetMessage(stopData.Length);
+            var dataWriter = new NetDataWriter();
+            PacketsProcessor.Write(dataWriter, new Commands.Run());
+            var message = MessagesPool.Instance.GetMessage(dataWriter.Length);
             message.AddressKey = Key;
-            message.Content.PushBytes(stopData);
+            message.Content.PushBytes(dataWriter.CopyData());
             message.Type = DistributedMessageType.ReliableOrdered;
             BroadcastMessage(message);
 
@@ -460,15 +463,19 @@ namespace Simulator.Network.Master
         /// </summary>
         public void BroadcastStopCommand()
         {
-            if (State == SimulationState.Stopping)
+            if (State == SimulationState.Stopping || Loader.Instance.Network.CurrentSimulation == null)
                 return;
-            
+
             Log.Info($"{GetType().Name} broadcasts the simulation stop command.");
 
-            var stopData = PacketsProcessor.Write(new Commands.Stop());
-            var message = MessagesPool.Instance.GetMessage(stopData.Length);
+            var dataWriter = new NetDataWriter();
+            PacketsProcessor.Write(dataWriter, new Commands.Stop
+                {
+                    SimulationId = Loader.Instance.Network.CurrentSimulation.Id
+                });
+            var message = MessagesPool.Instance.GetMessage(dataWriter.Length);
             message.AddressKey = Key;
-            message.Content.PushBytes(stopData);
+            message.Content.PushBytes(dataWriter.CopyData());
             message.Type = DistributedMessageType.ReliableOrdered;
             BroadcastMessage(message);
             State = SimulationState.Stopping;
@@ -494,10 +501,11 @@ namespace Simulator.Network.Master
         public void SendPing()
         {
             receivedPongs = 0;
-            var stopData = PacketsProcessor.Write(new Commands.Ping() { Id = ++pingId});
-            var message = MessagesPool.Instance.GetMessage(stopData.Length);
+            var dataWriter = new NetDataWriter();
+            PacketsProcessor.Write(dataWriter, new Commands.Ping() {Id = ++pingId});
+            var message = MessagesPool.Instance.GetMessage(dataWriter.Length);
             message.AddressKey = Key;
-            message.Content.PushBytes(stopData);
+            message.Content.PushBytes(dataWriter.CopyData());
             message.Type = DistributedMessageType.Unreliable;
             BroadcastMessage(message);
         }

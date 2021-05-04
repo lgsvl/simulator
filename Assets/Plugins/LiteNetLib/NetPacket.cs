@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Net;
 using LiteNetLib.Utils;
 
@@ -33,7 +33,11 @@ namespace LiteNetLib
 
         static NetPacket()
         {
-            HeaderSizes = new int[LastProperty+1];
+#if NET5_0_OR_GREATER || NET5_0
+            HeaderSizes = GC.AllocateUninitializedArray<int>(LastProperty + 1, true);
+#else
+            HeaderSizes = new int[LastProperty + 1];
+#endif
             for (int i = 0; i < HeaderSizes.Length; i++)
             {
                 switch ((PacketProperty)i)
@@ -67,26 +71,23 @@ namespace LiteNetLib
         //Header
         public PacketProperty Property
         {
-            get { return (PacketProperty)(RawData[0] & 0x1F); }
-            set { RawData[0] = (byte)((RawData[0] & 0xE0) | (byte)value); }
+            get => (PacketProperty)(RawData[0] & 0x1F);
+            set => RawData[0] = (byte)((RawData[0] & 0xE0) | (byte)value);
         }
 
         public byte ConnectionNumber
         {
-            get { return (byte)((RawData[0] & 0x60) >> 5); }
-            set { RawData[0] = (byte) ((RawData[0] & 0x9F) | (value << 5)); }
+            get => (byte)((RawData[0] & 0x60) >> 5);
+            set => RawData[0] = (byte) ((RawData[0] & 0x9F) | (value << 5));
         }
 
         public ushort Sequence
         {
-            get { return BitConverter.ToUInt16(RawData, 1); }
-            set { FastBitConverter.GetBytes(RawData, 1, value); }
+            get => BitConverter.ToUInt16(RawData, 1);
+            set => FastBitConverter.GetBytes(RawData, 1, value);
         }
 
-        public bool IsFragmented
-        {
-            get { return (RawData[0] & 0x80) != 0; }
-        }
+        public bool IsFragmented => (RawData[0] & 0x80) != 0;
 
         public void MarkFragmented()
         {
@@ -95,26 +96,26 @@ namespace LiteNetLib
 
         public byte ChannelId
         {
-            get { return RawData[3]; }
-            set { RawData[3] = value; }
+            get => RawData[3];
+            set => RawData[3] = value;
         }
 
         public ushort FragmentId
         {
-            get { return BitConverter.ToUInt16(RawData, 4); }
-            set { FastBitConverter.GetBytes(RawData, 4, value); }
+            get => BitConverter.ToUInt16(RawData, 4);
+            set => FastBitConverter.GetBytes(RawData, 4, value);
         }
 
         public ushort FragmentPart
         {
-            get { return BitConverter.ToUInt16(RawData, 6); }
-            set { FastBitConverter.GetBytes(RawData, 6, value); }
+            get => BitConverter.ToUInt16(RawData, 6);
+            set => FastBitConverter.GetBytes(RawData, 6, value);
         }
 
         public ushort FragmentsTotal
         {
-            get { return BitConverter.ToUInt16(RawData, 8); }
-            set { FastBitConverter.GetBytes(RawData, 8, value); }
+            get => BitConverter.ToUInt16(RawData, 8);
+            set => FastBitConverter.GetBytes(RawData, 8, value);
         }
 
         //Data
@@ -151,24 +152,14 @@ namespace LiteNetLib
             return HeaderSizes[RawData[0] & 0x1F];
         }
 
-        //Packet constructor from byte array
-        public bool FromBytes(byte[] data, int start, int packetSize)
+        public bool Verify()
         {
-            //Reading property
-            byte property = (byte)(data[start] & 0x1F);
-            bool fragmented = (data[start] & 0x80) != 0;
-            int headerSize = HeaderSizes[property];
-
-            if (property > LastProperty || packetSize < headerSize ||
-               (fragmented && packetSize < headerSize + NetConstants.FragmentHeaderSize) ||
-               data.Length < start + packetSize)
-            {
+            byte property = (byte)(RawData[0] & 0x1F);
+            if (property > LastProperty)
                 return false;
-            }
-
-            Buffer.BlockCopy(data, start, RawData, 0, packetSize);
-            Size = (ushort)packetSize;
-            return true;
+            int headerSize = HeaderSizes[property];
+            bool fragmented = (RawData[0] & 0x80) != 0;
+            return Size >= headerSize && (!fragmented || Size >= headerSize + NetConstants.FragmentHeaderSize);
         }
     }
 
@@ -192,7 +183,7 @@ namespace LiteNetLib
         {
             return BitConverter.ToInt32(packet.RawData, 1);
         }
-        
+
         public static NetConnectRequestPacket FromData(NetPacket packet)
         {
             if (packet.ConnectionNumber >= NetConstants.MaxConnectionNumber)
@@ -200,7 +191,7 @@ namespace LiteNetLib
 
             //Getting new id for peer
             long connectionId = BitConverter.ToInt64(packet.RawData, 5);
-            
+
             //Get target address
             int addrSize = packet.RawData[13];
             if (addrSize != 16 && addrSize != 28)

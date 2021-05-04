@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32ede81ea6ed4224c844a6a7347b1b51, type: 3}
   m_Name: NetworkSettings
   m_EditorClassIdentifier: 
-  connectionPort: 9999
-  runAsMaster: 1
+  connectionPort: 28349
+  timeout: 30000
   distributedObjectPrefabs: []

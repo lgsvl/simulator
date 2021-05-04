@@ -36,6 +36,7 @@ namespace Simulator.Network.Shared
         
         public class Stop
         {
+            public string SimulationId { get; set; }
         }
         
         public class EnvironmentState

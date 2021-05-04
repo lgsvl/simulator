@@ -566,11 +566,25 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
     private void SpawnNPCMock(DistributedMessage message)
     {
+        var active = message.Content.PopBool();
+        var genId = message.Content.PopString();
+        var templateId = message.Content.PopInt(2);
+        if (templateId < 0)
+        {
+            Debug.LogError("NPCManager received an invalid NPC template id. NPC mock cannot be spawned.");
+            return;
+        }
+        if (templateId >= NPCVehicles.Count)
+        {
+            Debug.LogError("NPCManager received an invalid NPC template id. NPC mock cannot be spawned. Make sure that every cluster machine uses the same NPCs list.");
+            return;
+        }
+        
         var data = new NPCSpawnData()
         {
-            Active = message.Content.PopBool(),
-            GenId = message.Content.PopString(),
-            Template = NPCVehicles[message.Content.PopInt(2)],
+            Active = active,
+            GenId = genId,
+            Template = NPCVehicles[templateId],
             Seed = message.Content.PopInt(),
             Color = message.Content.PopDecompressedColor(1),
             Position = message.Content.PopDecompressedPosition(),

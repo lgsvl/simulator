@@ -531,6 +531,9 @@ namespace Simulator
 
         public static void StopAsync()
         {
+            if (Instance.Status == SimulatorStatus.Stopping)
+                return;
+            
             Instance.Actions.Enqueue(async () =>
             {
                 //Check if simulation scene was initialized
@@ -589,6 +592,7 @@ namespace Simulator
                         {
                             SceneManager.MoveGameObjectToScene(ApiManager.Instance.gameObject, SceneManager.GetActiveScene());
                         }
+                        
                         var loader = SceneManager.LoadSceneAsync(Instance.LoaderScene);
                         loader.completed += op =>
                         {
@@ -596,7 +600,9 @@ namespace Simulator
                             {
                                 AssetBundle.UnloadAllAssetBundles(false);
                                 Instance.ConnectionUI.SetLoaderUIState(ConnectionUI.LoaderUIStateType.START);
-                                Instance.reportStatus(SimulatorStatus.Idle);
+                                
+                                if (Instance.Status == SimulatorStatus.Stopping)
+                                    Instance.reportStatus(SimulatorStatus.Idle);
                             }
                         };
                     }
@@ -604,7 +610,9 @@ namespace Simulator
                     {
                         Debug.Log($"Failed to stop '{Instance.CurrentSimulation.Name}' simulation");
                         Debug.LogException(ex);
-                        Instance.reportStatus(SimulatorStatus.Idle);
+                        
+                        if (Instance.Status == SimulatorStatus.Stopping)
+                            Instance.reportStatus(SimulatorStatus.Idle);
                     }
                 }
             });

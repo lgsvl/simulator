@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -31,7 +31,7 @@ namespace LiteNetLib
         {
             if(hostStr == "localhost")
                 return IPAddress.Loopback;
-            
+
             IPAddress ipAddress;
             if (!IPAddress.TryParse(hostStr, out ipAddress))
             {
@@ -46,7 +46,7 @@ namespace LiteNetLib
             return ipAddress;
         }
 
-        private static IPAddress ResolveAddress(string hostStr, AddressFamily addressFamily)
+        public static IPAddress ResolveAddress(string hostStr, AddressFamily addressFamily)
         {
             IPAddress[] addresses = ResolveAddresses(hostStr);
             foreach (IPAddress ip in addresses)
@@ -59,15 +59,11 @@ namespace LiteNetLib
             return null;
         }
 
-        private static IPAddress[] ResolveAddresses(string hostStr)
+        public static IPAddress[] ResolveAddresses(string hostStr)
         {
-#if NETSTANDARD || NETCOREAPP
             var hostTask = Dns.GetHostEntryAsync(hostStr);
             hostTask.GetAwaiter().GetResult();
             var host = hostTask.Result;
-#else
-            var host = Dns.GetHostEntry(hostStr);
-#endif
             return host.AddressList;
         }
 
@@ -97,7 +93,7 @@ namespace LiteNetLib
                 foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
                 {
                     //Skip loopback and disabled network interfaces
-                    if (ni.NetworkInterfaceType == NetworkInterfaceType.Loopback || 
+                    if (ni.NetworkInterfaceType == NetworkInterfaceType.Loopback ||
                         ni.OperationalStatus != OperationalStatus.Up)
                         continue;
 

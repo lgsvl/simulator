@@ -46,9 +46,8 @@ namespace LiteNetLib.Utils
 
         protected virtual SubscribeDelegate GetCallbackFromData(NetDataReader reader)
         {
-            var hash = reader.GetULong();
-            SubscribeDelegate action;
-            if (!_callbacks.TryGetValue(hash, out action))
+            ulong hash = reader.GetULong();
+            if (!_callbacks.TryGetValue(hash, out var action))
             {
                 throw new ParseException("Undefined packet in NetDataReader");
             }
@@ -160,22 +159,6 @@ namespace LiteNetLib.Utils
             packet.Serialize(writer);
         }
 
-        public byte[] Write<T>(T packet) where T : class, new()
-        {
-            _netDataWriter.Reset();
-            WriteHash<T>(_netDataWriter);
-            _netSerializer.Serialize(_netDataWriter, packet);
-            return _netDataWriter.CopyData();
-        }
-
-        public byte[] WriteNetSerializable<T>(T packet) where T : INetSerializable
-        {
-            _netDataWriter.Reset();
-            WriteHash<T>(_netDataWriter);
-            packet.Serialize(_netDataWriter);
-            return _netDataWriter.CopyData();
-        }
-
         /// <summary>
         /// Reads one packet from NetDataReader and calls OnReceive delegate
         /// </summary>
@@ -256,7 +239,7 @@ namespace LiteNetLib.Utils
         }
 
         public void SubscribeNetSerializable<T, TUserData>(
-            Action<T, TUserData> onReceive, 
+            Action<T, TUserData> onReceive,
             Func<T> packetConstructor) where T : INetSerializable
         {
             _callbacks[GetHash<T>()] = (reader, userData) =>

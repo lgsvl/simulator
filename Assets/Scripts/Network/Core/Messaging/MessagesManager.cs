@@ -7,11 +7,13 @@
 
 namespace Simulator.Network.Core.Messaging
 {
+    using System;
     using System.Collections.Generic;
     using System.Net;
     using Connection;
     using Data;
     using Identification;
+    using UnityEngine;
 
     /// <summary>
     /// Messages manager for incoming  and outgoing messages via connection manager
@@ -83,7 +85,8 @@ namespace Simulator.Network.Core.Messaging
         public MessagesManager(IConnectionManager connectionManager)
         {
             this.connectionManager = connectionManager;
-            idsRegister = new IdsRegister(this, new SimpleIdManager(), connectionManager.IsServer, "MessagesIdsRegister");
+            idsRegister = new IdsRegister(this, new SimpleIdManager(), connectionManager.IsServer,
+                "MessagesIdsRegister");
             senders.Add(idsRegister);
             if (idsRegister.AssignIds)
             {
@@ -130,6 +133,9 @@ namespace Simulator.Network.Core.Messaging
                     try
                     {
                         //Pass still valid messages
+                        var awaitingMessagesCount = awaitingMessages.Count;
+                        var passedMessagesCount = 0;
+                        var skippedMessagesCount = 0;
                         foreach (var awaitingMessage in awaitingMessages)
                         {
                             //Ignore messages with outdated assigned identifiers
@@ -142,12 +148,21 @@ namespace Simulator.Network.Core.Messaging
                             }
 
                             if (awaitingMessage.DistributedMessage.ServerTimestamp < registrationTimestamp)
+                            {
+                                skippedMessagesCount++;
                                 continue;
+                            }
+
                             awaitingMessage.DistributedMessage.AddressKey = identifiedObject.Key;
                             receiver.ReceiveMessage(connectionManager.GetConnectedPeerManager(awaitingMessage.EndPoint),
                                 awaitingMessage.DistributedMessage);
                             awaitingMessage.DistributedMessage.Release();
+                            passedMessagesCount++;
                         }
+
+                        if (skippedMessagesCount > 0)
+                            Log.Warning(
+                                $"MessagesManager passed {passedMessagesCount}, skipped {skippedMessagesCount} messages from all {awaitingMessagesCount} awaiting messages to {identifiedObject.Key}.");
                     }
                     finally
                     {
@@ -222,7 +237,7 @@ namespace Simulator.Network.Core.Messaging
                 }
 
                 //Ignore messages with outdated assigned identifiers
-                if (distributedMessage.Timestamp < idsRegister.InternalIdBindUtcTime)
+                if (distributedMessage.ServerTimestamp < idsRegister.InternalIdBindUtcTime)
                     return;
 
                 //Hold message until proper receiver registers
@@ -294,6 +309,7 @@ namespace Simulator.Network.Core.Messaging
 
                 return;
             }
+
             var id = idsRegister.ResolveId(distributedMessage.AddressKey);
             if (id != null)
             {

@@ -9,7 +9,6 @@ namespace Simulator.Network.Client
 {
     using System;
     using System.Collections;
-    using System.Collections.Generic;
     using System.Globalization;
     using System.Net;
     using System.Text;
@@ -348,10 +347,11 @@ namespace Simulator.Network.Client
         {
             if (State != SimulationState.Connected) return;
             State = SimulationState.Ready;
-            var stopData = PacketsProcessor.Write(new Commands.Ready());
-            var message = MessagesPool.Instance.GetMessage(stopData.Length);
+            var dataWriter = new NetDataWriter();
+            PacketsProcessor.Write(dataWriter, new Commands.Ready());
+            var message = MessagesPool.Instance.GetMessage(dataWriter.Length);
             message.AddressKey = Key;
-            message.Content.PushBytes(stopData);
+            message.Content.PushBytes(dataWriter.CopyData());
             message.Type = DistributedMessageType.ReliableOrdered;
             BroadcastMessage(message);
             Log.Info($"{GetType().Name} is ready and has sent ready command to the master.");
@@ -364,10 +364,11 @@ namespace Simulator.Network.Client
         {
             if (State != SimulationState.Connected) return;
             State = SimulationState.Ready;
-            var stopData = PacketsProcessor.Write(new Commands.Loaded());
-            var message = MessagesPool.Instance.GetMessage(stopData.Length);
+            var dataWriter = new NetDataWriter();
+            PacketsProcessor.Write(dataWriter, new Commands.Loaded());
+            var message = MessagesPool.Instance.GetMessage(dataWriter.Length);
             message.AddressKey = Key;
-            message.Content.PushBytes(stopData);
+            message.Content.PushBytes(dataWriter.CopyData());
             message.Type = DistributedMessageType.ReliableOrdered;
             BroadcastMessage(message);
             Log.Info($"{GetType().Name} loaded the simulation and has sent loaded command to the master.");
@@ -378,14 +379,18 @@ namespace Simulator.Network.Client
         /// </summary>
         public void BroadcastStopCommand()
         {
-            if (State == SimulationState.Stopping)
+            if (State == SimulationState.Stopping || Loader.Instance.Network.CurrentSimulation == null)
                 return;
             Log.Info($"{GetType().Name} broadcasts the simulation stop command.");
 
-            var stopData = PacketsProcessor.Write(new Commands.Stop());
-            var message = MessagesPool.Instance.GetMessage(stopData.Length);
+            var dataWriter = new NetDataWriter();
+            PacketsProcessor.Write(dataWriter, new Commands.Stop
+                {
+                    SimulationId = Loader.Instance.Network.CurrentSimulation.Id
+                });
+            var message = MessagesPool.Instance.GetMessage(dataWriter.Length);
             message.AddressKey = Key;
-            message.Content.PushBytes(stopData);
+            message.Content.PushBytes(dataWriter.CopyData());
             message.Type = DistributedMessageType.ReliableOrdered;
             BroadcastMessage(message);
             
@@ -414,8 +419,9 @@ namespace Simulator.Network.Client
         /// <param name="stop">Received stop command</param>
         private void OnStopCommand(Commands.Stop stop)
         {
-            if (Loader.Instance.CurrentSimulation == null || State == SimulationState.Initial)
-                return;
+            var simulation = Loader.Instance.Network.CurrentSimulation;
+            if (State == SimulationState.Initial || State == SimulationState.Stopping ||
+                simulation == null || simulation.Id != stop.SimulationId) return;
 
             Log.Info($"{GetType().Name} received stop command and stops the simulation.");
             State = SimulationState.Stopping;
@@ -445,10 +451,11 @@ namespace Simulator.Network.Client
         /// <param name="ping">Ping command</param>
         private void OnPingCommand(Commands.Ping ping)
         {
-            var pongData = PacketsProcessor.Write(new Commands.Pong() {Id = ping.Id});
-            var message = MessagesPool.Instance.GetMessage(pongData.Length);
+            var dataWriter = new NetDataWriter();
+            PacketsProcessor.Write(dataWriter, new Commands.Pong() {Id = ping.Id});
+            var message = MessagesPool.Instance.GetMessage(dataWriter.Length);
             message.AddressKey = Key;
-            message.Content.PushBytes(pongData);
+            message.Content.PushBytes(dataWriter.CopyData());
             message.Type = DistributedMessageType.Unreliable;
             BroadcastMessage(message);
         }

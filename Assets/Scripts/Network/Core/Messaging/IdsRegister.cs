@@ -231,7 +231,8 @@ namespace Simulator.Network.Core.Messaging
 					offset += BytesPerId;
 					isInternalIdBound = true;
 					var timeDifference = distributedMessage.Content.PeekLong(8, offset);
-					InternalIdBindUtcTime = messagesManager.TimeManager.GetTimestamp(timeDifference);
+					var calculatedTimestamp = messagesManager.TimeManager.GetTimestamp(timeDifference);
+					InternalIdBindUtcTime = distributedMessage.ServerTimestamp;
 					idRegistrationTimestamp.Add(id, InternalIdBindUtcTime);
 					idToObjectDictionary.Add(id, this);
 					keyToIdDictionary.Add(Key, id);
@@ -323,7 +324,8 @@ namespace Simulator.Network.Core.Messaging
 		/// <param name="newObject">Object to be registered</param>
 		public void RegisterObject(IIdentifiedObject newObject)
 		{
-			if (keyToIdDictionary.ContainsKey(newObject.Key)) return;
+			if (keyToIdDictionary.ContainsKey(newObject.Key))
+				return;
 
 			if (AssignIds)
 			{
@@ -349,7 +351,8 @@ namespace Simulator.Network.Core.Messaging
 		/// <param name="unregisteredObject">Object to be unregistered</param>
 		public void UnregisterObject(IIdentifiedObject unregisteredObject)
 		{
-			if (unregisteredObject == null) return;
+			if (unregisteredObject == null) 
+				return;
 
 			if (!keyToIdDictionary.ContainsKey(unregisteredObject.Key))
 			{
@@ -410,7 +413,8 @@ namespace Simulator.Network.Core.Messaging
 			lock (unboundObjects)
 			{
 				objectToBind = unboundObjects.Find(r => r.Key == key);
-				if (objectToBind != null) unboundObjects.Remove(objectToBind);
+				if (objectToBind != null)
+					unboundObjects.Remove(objectToBind);
 			}
 
 			//If corresponding identified object is found bind it to the id
@@ -420,11 +424,13 @@ namespace Simulator.Network.Core.Messaging
 				keyToIdDictionary.Add(objectToBind.Key, id);
 				ObjectBoundToId?.Invoke(objectToBind, id);
 			}
-
 			//If there is no proper unbound identified object add key-id binding to the list
 			else
 			{
-				if (!awaitingKeyIdBinds.TryGetValue(key, out var currentIdForKey)) awaitingKeyIdBinds.Add(key, id);
+				if (!awaitingKeyIdBinds.TryGetValue(key, out var currentIdForKey))
+				{
+					awaitingKeyIdBinds.Add(key, id);
+				}
 				else if (currentIdForKey != id)
 				{
 					//Id changed
@@ -456,14 +462,14 @@ namespace Simulator.Network.Core.Messaging
 					if ((idToObjectDictionary.TryGetValue(id, out registeredObject) && registeredObject.Key == key) ||
 					    (awaitingKeyIdBinds.TryGetValue(key, out awaitingId) && awaitingId == id)) return;
 
+					idRegistrationTimestamp.Add(id, distributedMessage.ServerTimestamp);
 					//New bind to the id received before receiving unbind command
 					if (registeredObject != null)
 					{
 						UnbindKeyId(key, id);
 						idRegistrationTimestamp.Remove(id);
 					}
-
-					idRegistrationTimestamp.Add(id, distributedMessage.ServerTimestamp);
+					
 					TryBindReceiver(key, id);
 					break;
 				case IdsRegisterCommandType.UnbindIdAndKey:

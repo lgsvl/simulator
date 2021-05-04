@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using LiteNetLib.Utils;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -157,10 +158,11 @@ public class EnvironmentEffectsManager : MonoBehaviour
                 State.Cloud = Cloud;
                 State.TimeOfDay = CurrentTimeOfDay;
 
-                var stateData = masterManager.PacketsProcessor.Write(State);
-                var message = MessagesPool.Instance.GetMessage(stateData.Length);
+                var writer = new NetDataWriter();
+                masterManager.PacketsProcessor.Write(writer, State);
+                var message = MessagesPool.Instance.GetMessage(writer.Length);
                 message.AddressKey = masterManager.Key;
-                message.Content.PushBytes(stateData);
+                message.Content.PushBytes(writer.CopyData());
                 message.Type = DistributedMessageType.ReliableOrdered;
                 masterManager.BroadcastMessage(message);
             }

@@ -11,6 +11,9 @@ using Simulator.Bridge;
 
 namespace Simulator.Components
 {
+    using System;
+    using Debug = UnityEngine.Debug;
+
     public class BridgeClient : MonoBehaviour
     {
         public string Connection { get; private set; }

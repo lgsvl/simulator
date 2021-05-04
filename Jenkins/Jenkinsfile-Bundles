@@ -38,6 +38,8 @@ pipeline {
     UNITY_PASSWORD = credentials("UNITY_PASSWORD")
     UNITY_SERIAL = credentials("UNITY_SERIAL")
     UNITY_VERSION = "2020.3.3f1"
+    UNITY_DOCKER_IMAGE = "${GITLAB_HOST}:4567/hdrp/unityci/editor"
+    UNITY_DOCKER_IMAGE_TAG = "2020.3.3f1-v0.13-5-g143c765__build__14"
     PYTHONUNBUFFERED = "1"
     DISPLAY = ":0"
     JENKINS_BUILD_ID = "${BUILD_ID}"
@@ -303,7 +305,11 @@ pipeline {
           sh """
             docker login -u "${DOCKERHUB_DOCKER_REGISTRY_USR}" -p "${DOCKERHUB_DOCKER_REGISTRY_PSW}"
             docker login -u "${AUTO_GITLAB_DOCKER_REGISTRY_USR}" -p "${AUTO_GITLAB_DOCKER_REGISTRY_PSW}" ${GITLAB_HOST}:4567
-            docker-compose build build-simulator
+            docker-compose build \
+                --build-arg UNITY_VERSION="${UNITY_VERSION}" \
+                --build-arg EDITOR_DOCKER_IMAGE="${UNITY_DOCKER_IMAGE}:${UNITY_DOCKER_IMAGE_TAG}" \
+                --build-arg IMAGE_TAG="${UNITY_DOCKER_IMAGE_TAG}-simulator" \
+                build-simulator
             docker-compose push build-simulator
           """
         }

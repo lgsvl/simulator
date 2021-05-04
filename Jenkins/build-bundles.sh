@@ -55,7 +55,7 @@ export HOME=/tmp
 
 cd /mnt
 
-UNITY=/opt/Unity/Editor/Unity
+UNITY=/usr/bin/unity-editor
 
 if [ ! -x "${UNITY}" ] ; then
     echo "ERROR: ${UNITY} doesn't exist or isn't executable"

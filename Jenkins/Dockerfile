@@ -1,17 +1,13 @@
-FROM ubuntu:20.04
+ARG EDITOR_DOCKER_IMAGE=unityci/editor:ubuntu-2020.3.3f1-windows-mono-0.13.0
+FROM ${EDITOR_DOCKER_IMAGE}
 
 # install dependencies
 
 RUN set -ex \
   && apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-  curl zip ca-certificates osslsigncode \
-        gconf-service lib32gcc1 lib32stdc++6 libasound2 libc6 libc6-i386 libcairo2 libcap2 libcups2 \
-        libdbus-1-3 libexpat1 libfontconfig1 libfreetype6 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 \
-        libgl1 libglib2.0-0 libglu1 libgtk2.0-0 libgtk-3-0 libnspr4 libnss3 libpango1.0-0 libstdc++6 \
-        libx11-6 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 \
-        libxrender1 libxtst6 zlib1g debconf npm libsoup2.4-1 libarchive13 libpng16-16 \
-        libvulkan1 libxau6 libxcb1 libxdmcp6 systemd lsb-release \
+      zip ca-certificates osslsigncode \
+      uuid-runtime \
   && apt-get clean
 
 # NB. This is overwritten when launched by docker with --gpus=N option
@@ -23,11 +19,25 @@ ENV NVIDIA_DRIVER_CAPABILITIES graphics,display,utility
 ADD "https://gitlab.com/nvidia/container-images/vulkan/raw/master/nvidia_icd.json" /etc/vulkan/icd.d/nvidia_icd.json
 RUN chmod 644 /etc/vulkan/icd.d/nvidia_icd.json
 
-ENV UNITY_VERSION="2020.3.3f1"
+ARG UNITY_VERSION=(unknown)
+ARG UNITY_CHANGESET=(unknown)
+ARG UNITY_MODULES=(unknown)
+ARG EDITOR_DOCKER_IMAGE=(unknown)
+ARG IMAGE_TAG=(unknown)
+ARG image_git_describe=(unknown)
 
-RUN curl -fLo UnitySetup https://beta.unity3d.com/download/76626098c1c4/UnitySetup-${UNITY_VERSION} \
-    && chmod +x UnitySetup \
-    && yes | ./UnitySetup --unattended --install-location=/opt/Unity --components=Unity,Windows-Mono,Mac-Mono \
-    && rm UnitySetup \
-    && [ -x /opt/Unity/Editor/Unity ] || echo "ERROR: /opt/Unity/Editor/Unity doesn't exist" \
-    && [ -x /opt/Unity/Editor/Unity ] || exit 1
+RUN /bin/echo -e "IMAGE_APP=\"unity-editor\"\n\
+IMAGE_CREATED_BY=\"Jenkinsfile\"\n\
+IMAGE_CREATED_FROM=\"${image_git_describe}\"\n\
+IMAGE_CREATED_ON=\"$(date --iso-8601=seconds --utc)\"\n\
+IMAGE_UNITY_VERSION=\"${UNITY_VERSION}\"\n\
+IMAGE_UNITY_CHANGESET=\"${UNITY_CHANGESET}\"\n\
+IMAGE_UNITY_MODULES=\"${UNITY_MODULES}\"\n\
+IMAGE_EDITOR_DOCKER_IMAGE=\"${EDITOR_DOCKER_IMAGE}\"\n\
+IMAGE_TAG=\"${IMAGE_TAG}\"\n\
+# Increment IMAGE_INTERFACE_VERSION whenever changes to the image require that the launcher be updated.\n\
+IMAGE_INTERFACE_VERSION=\"1\"\n\
+IMAGE_UUID=\"$(uuidgen)\"" \
+  >> /opt/unity/image-info-lgsvl.source \
+  && echo "unity image-info-lgsvl.source:" \
+  && cat /opt/unity/image-info-lgsvl.source

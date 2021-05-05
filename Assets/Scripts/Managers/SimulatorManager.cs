@@ -166,7 +166,7 @@ public class SimulatorManager : MonoBehaviour
         {
             var mapBounds = CalculateMapBounds();
             //Add margin to the bounds
-            mapBounds.size += Vector3.one * 10;
+            mapBounds.size += Vector3.one * 50;
             ByteCompression.SetPositionBounds(mapBounds);
         }
 

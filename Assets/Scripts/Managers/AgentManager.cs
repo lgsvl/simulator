@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -48,16 +48,18 @@ public class AgentManager : MonoBehaviour
         go.name = config.Name;
         // set it inactive until we can be sure setting up sensors etc worked without exceptions and it AgentController was initialized
         go.SetActive(false);
-        var agentController = go.GetComponent<IAgentController>();
-        if (agentController==null)
+        var controller = go.GetComponent<IAgentController>();
+        if (controller == null)
+        {
             Debug.LogWarning($"{nameof(IAgentController)} implementation not found on the {config.Name} vehicle. This vehicle can't be used as an ego vehicle.");
+        }
         else
         {
-            agentController.Config = config;
-            agentController.Config.AgentGO = go;
-            ActiveAgents.Add(agentController.Config);
-            agentController.GTID = ++SimulatorManager.Instance.GTIDs;
-            agentController.Config.GTID = agentController.GTID;
+            controller.Config = config;
+            controller.Config.AgentGO = go;
+            ActiveAgents.Add(controller.Config);
+            controller.GTID = ++SimulatorManager.Instance.GTIDs;
+            controller.Config.GTID = controller.GTID;
         }
 
         var lane = go.AddComponent<VehicleLane>();
@@ -82,8 +84,10 @@ public class AgentManager : MonoBehaviour
         }
 
         var sensorsController = go.GetComponent<ISensorsController>() ?? go.AddComponent<SensorsController>();
-        if (agentController!=null)
-            agentController.AgentSensorsController = sensorsController;
+        if (controller != null)
+        {
+            controller.AgentSensorsController = sensorsController;
+        }
 
         //Add required components for distributing rigidbody from master to clients
         var network = Loader.Instance.Network;
@@ -93,8 +97,8 @@ public class AgentManager : MonoBehaviour
             if (network.IsClient)
             {
                 //Disable controller and dynamics on clients so it will not interfere mocked components
-                if (agentController!=null)
-                    agentController.Enabled = false;
+                if (controller!=null)
+                    controller.Enabled = false;
                 var vehicleDynamics = go.GetComponent<IVehicleDynamics>() as MonoBehaviour;
                 if (vehicleDynamics != null)
                     vehicleDynamics.enabled = false;
@@ -115,8 +119,10 @@ public class AgentManager : MonoBehaviour
         go.transform.position = config.Position;
         go.transform.rotation = config.Rotation;
         sensorsController.SetupSensors(config.Sensors);
-        if (agentController!=null)
-            agentController.Init();
+        if (controller != null)
+        {
+            controller.Init();
+        }
 
         go.SetActive(true);
         return go;
@@ -147,9 +153,14 @@ public class AgentManager : MonoBehaviour
 
     public void SetCurrentActiveAgent(int index)
     {
-        if (ActiveAgents.Count == 0) return;
-        if (index < 0 || index > ActiveAgents.Count - 1) return;
-        if (ActiveAgents[index] == null) return;
+        if (ActiveAgents.Count == 0)
+            return;
+
+        if (index < 0 || index > ActiveAgents.Count - 1)
+            return;
+
+        if (ActiveAgents[index] == null)
+            return;
 
         CurrentActiveAgent = ActiveAgents[index].AgentGO;
         CurrentActiveAgentController = CurrentActiveAgent.GetComponent<IAgentController>();
@@ -179,8 +190,11 @@ public class AgentManager : MonoBehaviour
         for (int i = 0; i < ActiveAgents.Count; i++)
         {
             if (ActiveAgents[i].AgentGO == CurrentActiveAgent)
+            {
                 index = i;
+            }
         }
+
         return index;
     }
 

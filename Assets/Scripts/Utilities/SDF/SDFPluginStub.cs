@@ -1,8 +1,16 @@
+/**
+ * Copyright (c) 2021 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
 using UnityEngine;
 using System.Collections.Generic;
 using System;
 using System.Reflection;
 using System.Xml.Linq;
+
 public class SDFPluginStub : MonoBehaviour
 {
     static protected Dictionary<string, Type> pluginParsers = null;
@@ -46,9 +54,8 @@ public class SDFPluginStub : MonoBehaviour
             }
 #endif
         }
-
-
     }
+
     void Awake()
     {
         CheckParsers();
@@ -66,5 +73,4 @@ public class SDFPluginStub : MonoBehaviour
             Debug.LogWarning("plugin not implemented: " + pluginElement);
         }
     }
-
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -24,13 +24,13 @@ namespace Simulator.Api.Commands
                 var sticky = args["sticky"].AsBool;
                 var control = args["control"];
 
-                var vc = obj.GetComponent<VehicleController>();
+                var vc = obj.GetComponent<IAgentController>();
                 var va = obj.GetComponent<IVehicleActions>();
                 var vd = obj.GetComponent<IVehicleDynamics>();
 
                 if (vc == null)
                 {
-                    api.SendError(this, $"{nameof(VehicleController)} component not found in agent '{uid}'.");
+                    api.SendError(this, $"{nameof(IAgentController)} component not found in agent '{uid}'.");
                     return;
                 }
 

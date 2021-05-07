@@ -13,8 +13,9 @@ namespace Simulator.FMU
 {
     public class ExampleVehicleFMU : VehicleFMU, IVehicleDynamics
     {
-        public Rigidbody RB { get; set; }
-
+        private Rigidbody RB;
+        public Vector3 Velocity => RB.velocity;
+        public Vector3 AngularVelocity => RB.angularVelocity;
         public Transform BaseLink { get { return BaseLinkTransform; } }
         public Transform BaseLinkTransform;
 
@@ -51,12 +52,12 @@ namespace Simulator.FMU
 
         public IgnitionStatus CurrentIgnitionStatus { get; set; }
 
-        private VehicleController VehicleController;
+        private IAgentController Controller;
 
         public void Awake()
         {
             RB = GetComponent<Rigidbody>();
-            VehicleController = GetComponent<VehicleController>();
+            Controller = GetComponent<IAgentController>();
 
             if (UnitySolver)
             {
@@ -211,10 +212,10 @@ namespace Simulator.FMU
 
         private void GetInput()
         {
-            if (VehicleController != null)
+            if (Controller != null)
             {
-                SteerInput = VehicleController.SteerInput;
-                AccellInput = VehicleController.AccelInput;
+                SteerInput = Controller.SteerInput;
+                AccellInput = Controller.AccelInput;
             }
 
             if (HandBrake)

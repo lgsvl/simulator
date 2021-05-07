@@ -186,7 +186,7 @@ public class SensorsController : MonoBehaviour, ISensorsController, IMessageSend
             {string.Empty, gameObject},
         };
 
-        var agentController = GetComponent<IAgentController>();
+        var Controller = GetComponent<IAgentController>();
         var requested = sensors.ToList();
         var baseLink = transform.GetComponentInChildren<BaseLink>();
 
@@ -248,7 +248,7 @@ public class SensorsController : MonoBehaviour, ISensorsController, IMessageSend
                 }
 
                 sensorInstanceController.Enable();
-                agentController?.AgentSensors.Add(sensorBase);
+                Controller?.AgentSensors.Add(sensorBase);
                 sensorsInstances.Add(name, sensorInstanceController);
             }
 

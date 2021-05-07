@@ -24,7 +24,9 @@ namespace Simulator.Sensors
 
     public class CarMakerSMI : MonoBehaviour, IVehicleDynamics
     {
-        public Rigidbody RB { get; set; }
+        private Rigidbody RB;
+        public Vector3 Velocity => RB.velocity;
+        public Vector3 AngularVelocity => RB.angularVelocity;
         public Transform BaseLink { get { return BaseLinkTransform; } }
         public Transform BaseLinkTransform;
 
@@ -39,7 +41,7 @@ namespace Simulator.Sensors
         public float MaxSteeringAngle { get; set; } = 39.4f;
         public IgnitionStatus CurrentIgnitionStatus { get; set; } = IgnitionStatus.On;
 
-        private VehicleController VehicleController;
+        private IAgentController Controller;
         private bool IsInitVehicleSMI = false;
 
         public float CraOffsetZ = 2.5f;
@@ -122,7 +124,7 @@ namespace Simulator.Sensors
         {
             RB = GetComponent<Rigidbody>();
             RB.isKinematic = true;
-            VehicleController = GetComponent<VehicleController>();
+            Controller = GetComponent<IAgentController>();
 
             var wheelColliders = GetComponentsInChildren<WheelCollider>().ToList();
             foreach (var wc in wheelColliders)
@@ -195,10 +197,10 @@ namespace Simulator.Sensors
 
         private void GetInput()
         {
-            if (VehicleController != null)
+            if (Controller != null)
             {
-                SteerInput = VehicleController.SteerInput;
-                AccellInput = VehicleController.AccelInput;
+                SteerInput = Controller.SteerInput;
+                AccellInput = Controller.AccelInput;
             }
 
             if (HandBrake)

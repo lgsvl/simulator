@@ -39,6 +39,10 @@ public abstract class AgentController : MonoBehaviour, IAgentController
 
     public virtual List<SensorBase> AgentSensors { get; } = new List<SensorBase>();
 
+    public virtual float AccelInput { get; set; }
+    public virtual float SteerInput { get; set; }
+    public virtual float BrakeInput { get; set; }
+
     public ISensorsController AgentSensorsController
     {
         get => sensorsController;
@@ -57,15 +61,17 @@ public abstract class AgentController : MonoBehaviour, IAgentController
     public abstract Vector3 Velocity { get; }
     public abstract Vector3 Acceleration { get; }
     public event Action<IAgentController> SensorsChanged;
-    
+
     #region ITriggerAgent
     Transform ITriggerAgent.AgentTransform => transform;
     float ITriggerAgent.MovementSpeed => Velocity.magnitude;
     #endregion
-    
+
     public abstract void ResetPosition();
     public abstract void ResetSavedPosition(Vector3 pos, Quaternion rot);
     public abstract void Init();
+
+    public abstract void ApplyControl(bool sticky, float steering, float acceleration);
 
     protected virtual void SensorsControllerOnSensorsChanged()
     {

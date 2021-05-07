@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -30,12 +30,12 @@ public class TimeToCollisionEffector : TriggerEffector
         IAgentController collisionEgo = null;
         foreach (var ego in egos)
         {
-            var agentController = ego.AgentGO.GetComponentInChildren<IAgentController>();
-            var ttc = CalculateTTC(agentController, agent);
+            var controller = ego.AgentGO.GetComponentInChildren<IAgentController>();
+            var ttc = CalculateTTC(controller, agent);
             if (ttc >= lowestTTC || ttc < 0.0f) continue;
             
             lowestTTC = ttc;
-            collisionEgo = agentController;
+            collisionEgo = controller;
         }
 
         //If there is no collision detected don't wait

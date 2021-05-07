@@ -228,8 +228,8 @@ namespace Simulator.Editor
                             throw new Exception($"Build failed: Rigidbody or ArticulationBody on {prefabEntry.mainAssetFile} not found. Please add a Rigidbody component and rebuild.");
                         }
 
-                        var agentController = vehiclePrefab.GetComponent<IAgentController>();
-                        if (agentController == null)
+                        var controller = vehiclePrefab.GetComponent<IAgentController>();
+                        if (controller == null)
                         {
                             throw new Exception($"Build failed: IAgentController implementation on {prefabEntry.mainAssetFile} not found. Please add a component implementing IAgentController and rebuild.");
                         }

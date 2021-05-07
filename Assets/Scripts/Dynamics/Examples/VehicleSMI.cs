@@ -13,7 +13,9 @@ using UnityEngine;
 
 public class VehicleSMI : MonoBehaviour, IVehicleDynamics
 {
-    public Rigidbody RB { get; set; }
+    private Rigidbody RB;
+    public Vector3 Velocity => RB.velocity;
+    public Vector3 AngularVelocity => RB.angularVelocity;
 
     public Transform BaseLink { get { return BaseLinkTransform; } }
     public Transform BaseLinkTransform;
@@ -133,12 +135,12 @@ public class VehicleSMI : MonoBehaviour, IVehicleDynamics
     private float WheelsRPM = 0f;
     private float MileTicker = 0f;
 
-    private VehicleController VehicleController;
+    private IAgentController Controller;
 
     public void Awake()
     {
         RB = GetComponent<Rigidbody>();
-        VehicleController = GetComponent<VehicleController>();
+        Controller = GetComponent<IAgentController>();
 
         RB.centerOfMass = CenterOfMass;
         NumberOfDrivingWheels = Axles.Where(a => a.Motor).Count() * 2;
@@ -151,6 +153,7 @@ public class VehicleSMI : MonoBehaviour, IVehicleDynamics
             axle.Right.wheelDampingRate = WheelDamping;
         }
     }
+
     private void Update()
     {
         UpdateWheelVisuals();
@@ -522,10 +525,10 @@ public class VehicleSMI : MonoBehaviour, IVehicleDynamics
 
     private void GetInput()
     {
-        if (VehicleController != null)
+        if (Controller != null)
         {
-            SteerInput = VehicleController.SteerInput;
-            AccellInput = VehicleController.AccelInput;
+            SteerInput = Controller.SteerInput;
+            AccellInput = Controller.AccelInput;
         }
 
         if (HandBrake)

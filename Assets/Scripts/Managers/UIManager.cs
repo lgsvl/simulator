@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -559,17 +559,17 @@ public class UIManager : MonoBehaviour
 
         //Set new agent
         CurrentAgent = agent;
-        IAgentController agentController = null;
+        IAgentController Controller = null;
                 
         //Attach to the new agent events
         if (CurrentAgent != null)
         {
-            agentController = CurrentAgent.GetComponent<IAgentController>();
-            if (agentController != null)
-                agentController.SensorsChanged += AgentControllerOnSensorsChanged;
+            Controller = CurrentAgent.GetComponent<IAgentController>();
+            if (Controller != null)
+                Controller.SensorsChanged += AgentControllerOnSensorsChanged;
         }
 
-        AgentControllerOnSensorsChanged(agentController);
+        AgentControllerOnSensorsChanged(Controller);
         AgentDropdown.value = SimulatorManager.Instance.AgentManager.GetCurrentActiveAgentIndex();
     }
 

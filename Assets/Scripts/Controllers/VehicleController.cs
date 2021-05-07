@@ -5,7 +5,6 @@
  *
  */
 
-using System;
 using UnityEngine;
 using System.Collections.Generic;
 using Simulator.Api;
@@ -14,7 +13,7 @@ public class VehicleController : AgentController
 {
     private IVehicleDynamics Dynamics;
     private VehicleActions Actions;
-    private IAgentController AgentController;
+    private IAgentController Controller;
     private List<IVehicleInputs> Inputs = new List<IVehicleInputs>();
 
     private Vector3 InitialPosition;
@@ -22,10 +21,6 @@ public class VehicleController : AgentController
     private Vector3 LastRBPosition;
     private Vector3 SimpleVelocity;
     private Vector3 SimpleAcceleration;
-
-    public float AccelInput { get; set; } = 0f;
-    public float SteerInput { get; set; } = 0f;
-    public float BrakeInput { get; set; } = 0f;
 
     public override Vector3 Velocity => SimpleVelocity;
     public override Vector3 Acceleration => SimpleAcceleration;
@@ -63,7 +58,7 @@ public class VehicleController : AgentController
     {
         Dynamics = GetComponent<IVehicleDynamics>();
         Actions = GetComponent<VehicleActions>();
-        AgentController = GetComponent<IAgentController>();
+        Controller = GetComponent<IAgentController>();
         Inputs.AddRange(GetComponentsInChildren<IVehicleInputs>());
         InitialPosition = transform.position;
         InitialRotation = transform.rotation;
@@ -183,7 +178,7 @@ public class VehicleController : AgentController
     }
 
     // api
-    public void ApplyControl(bool sticky, float steering, float acceleration)
+    public override void ApplyControl(bool sticky, float steering, float acceleration)
     {
         this.Sticky = sticky;
         StickySteering = steering;
@@ -200,26 +195,26 @@ public class VehicleController : AgentController
         int layerMask = LayerMask.GetMask("Obstacle", "Agent", "Pedestrian", "NPC");
         int layer = collision.gameObject.layer;
         string otherLayer = LayerMask.LayerToName(layer);
-        var otherRB = collision.gameObject.GetComponent<Rigidbody>();
-        var otherVel = otherRB != null ? otherRB.velocity : Vector3.zero;
+        var otherRB = collision.gameObject.GetComponent<IAgentController>();
+        var otherVel = otherRB != null ? otherRB.Velocity : Vector3.zero;
         if ((layerMask & (1 << layer)) != 0)
         {
             ApiManager.Instance?.AddCollision(gameObject, collision.gameObject, collision);
-            SimulatorManager.Instance.AnalysisManager.IncrementEgoCollision(AgentController.GTID, transform.position, Dynamics.RB.velocity, otherVel, otherLayer);
+            SimulatorManager.Instance.AnalysisManager.IncrementEgoCollision(Controller.GTID, transform.position, Dynamics.Velocity, otherVel, otherLayer);
         }
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider collision)
     {
         int layerMask = LayerMask.GetMask("Obstacle", "Agent", "Pedestrian", "NPC");
-        int layer = other.gameObject.layer;
+        int layer = collision.gameObject.layer;
         string otherLayer = LayerMask.LayerToName(layer);
-        var otherRB = other.gameObject.GetComponent<Rigidbody>();
-        var otherVel = otherRB != null ? otherRB.velocity : Vector3.zero;
+        var otherRB = collision.gameObject.GetComponent<IAgentController>();
+        var otherVel = otherRB != null ? otherRB.Velocity : Vector3.zero;
         if ((layerMask & (1 << layer)) != 0)
         {
-            ApiManager.Instance?.AddCollision(gameObject, other.attachedRigidbody.gameObject);
-            SimulatorManager.Instance.AnalysisManager.IncrementEgoCollision(AgentController.GTID, transform.position, Dynamics.RB.velocity, otherVel, otherLayer);
+            ApiManager.Instance?.AddCollision(gameObject, collision.gameObject);
+            SimulatorManager.Instance.AnalysisManager.IncrementEgoCollision(Controller.GTID, transform.position, Dynamics.Velocity, otherVel, otherLayer);
         }
     }
 }

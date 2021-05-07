@@ -165,14 +165,20 @@ public class SDFImportMenu : EditorWindow
                 info.Description = PrefabDescription;
 
                 string PrefabPath = $"Assets/External/Vehicles/{PrefabName}";
+
                 if (!Directory.Exists(PrefabPath))
                 {
                     Directory.CreateDirectory(PrefabPath);
                 }
 
-                if (model.GetComponent<VehicleController>() == null)
+                if (model.GetComponent<IAgentController>() == null)
                 {
-                    model.AddComponent<VehicleController>();
+                    Debug.LogWarning("Please add Controller component");
+                }
+
+                if (model.GetComponent<IVehicleDynamics>() == null)
+                {
+                    Debug.LogWarning("Please add Dynamics component");
                 }
 
                 var prefab = PrefabUtility.SaveAsPrefabAsset(model, $"{PrefabPath}/{PrefabName}.prefab", out bool success);

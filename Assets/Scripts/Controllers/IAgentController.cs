@@ -24,10 +24,14 @@ public interface IAgentController : ITriggerAgent
     List<Transform> CinematicCameraTransforms { get; }
     Transform DriverViewTransform { get; set; }
     List<SensorBase> AgentSensors { get; }
-
+    float AccelInput { get; set; }
+    float SteerInput { get; set; }
+    float BrakeInput { get; set; }
     event Action<IAgentController> SensorsChanged;
-    
+
     void ResetPosition();
     void ResetSavedPosition(Vector3 pos, Quaternion rot);
     void Init();
+
+    void ApplyControl(bool sticky, float steering, float acceleration);
 }

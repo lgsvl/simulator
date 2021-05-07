@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -23,7 +23,7 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
     public Texture lowCookie;
     public Texture highCookie;
 
-    private IAgentController agentController;
+    private IAgentController Controller;
     private Rigidbody RB;
 
     private Renderer headLightRenderer;
@@ -62,7 +62,7 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
         get => _currentHeadLightState;
         set
         {
-            if (!agentController.Active && !Loader.Instance.Network.IsClient)
+            if (!Controller.Active && !Loader.Instance.Network.IsClient)
                 return;
 
             _currentHeadLightState = value;
@@ -120,7 +120,7 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
         get => _currentWiperState;
         set
         {
-            if (!agentController.Active && !Loader.Instance.Network.IsClient)
+            if (!Controller.Active && !Loader.Instance.Network.IsClient)
                 return;
 
             _currentWiperState = value;
@@ -143,7 +143,7 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
         get => _leftTurnSignal;
         set
         {
-            if (!agentController.Active && !Loader.Instance.Network.IsClient)
+            if (!Controller.Active && !Loader.Instance.Network.IsClient)
                 return;
 
             _leftTurnSignal = value;
@@ -161,7 +161,7 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
         get => _rightTurnSignal;
         set
         {
-            if (!agentController.Active && !Loader.Instance.Network.IsClient)
+            if (!Controller.Active && !Loader.Instance.Network.IsClient)
                 return;
 
             _rightTurnSignal = value;
@@ -179,7 +179,7 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
         get => _hazardLights;
         set
         {
-            if (!agentController.Active && !Loader.Instance.Network.IsClient)
+            if (!Controller.Active && !Loader.Instance.Network.IsClient)
                 return;
 
             _hazardLights = value;
@@ -227,7 +227,7 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
         get => _fogLights;
         set
         {
-            if (!agentController.Active && !Loader.Instance.Network.IsClient)
+            if (!Controller.Active && !Loader.Instance.Network.IsClient)
                 return;
 
             _fogLights = value;
@@ -266,7 +266,7 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
         get => _interiorLights;
         set
         {
-            if (!agentController.Active && !Loader.Instance.Network.IsClient)
+            if (!Controller.Active && !Loader.Instance.Network.IsClient)
                 return;
 
             _interiorLights = value;
@@ -344,7 +344,7 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
     private void SetNeededComponents()
     {
         var dynamics = GetComponent<VehicleSMI>();
-        agentController = GetComponent<IAgentController>();
+        Controller = GetComponent<IAgentController>();
         var allRenderers = GetComponentsInChildren<Renderer>(true);
         var animators = GetComponentsInChildren<Animator>(true); // TODO wipers doors windows
 
@@ -402,7 +402,7 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
             bounds.Encapsulate(child.bounds);
         }
 
-        agentController.Bounds = bounds;
+        Controller.Bounds = bounds;
 
         CreateCinematicTransforms();
         CreateDriverViewTransform();
@@ -457,51 +457,51 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
 
     private void CreateCinematicTransforms()
     {
-        var bound = agentController.Bounds;
+        var bound = Controller.Bounds;
         var cinematicT = new GameObject("CenterFront").transform;
         cinematicT.position = new Vector3(bound.center.x, bound.min.y + 1f, bound.center.z + bound.max.z * 2);
         cinematicT.SetParent(transform, true);
         cinematicT.LookAt(bound.center);
-        agentController.CinematicCameraTransforms.Add(cinematicT);
+        Controller.CinematicCameraTransforms.Add(cinematicT);
         cinematicT = new GameObject("CenterTop").transform;
         cinematicT.position = new Vector3(bound.center.x, bound.max.y * 10f, bound.center.z);
         cinematicT.SetParent(transform, true);
         cinematicT.LookAt(bound.center);
-        agentController.CinematicCameraTransforms.Add(cinematicT);
+        Controller.CinematicCameraTransforms.Add(cinematicT);
         cinematicT = new GameObject("RightFront").transform;
         cinematicT.position = new Vector3(bound.center.x + bound.max.x + 1f, bound.min.y + 0.5f, bound.center.z + bound.max.z);
         cinematicT.SetParent(transform, true);
         cinematicT.LookAt(bound.center + new Vector3(0f, 0.25f, 0f));
-        agentController.CinematicCameraTransforms.Add(cinematicT);
+        Controller.CinematicCameraTransforms.Add(cinematicT);
         cinematicT = new GameObject("LeftFront").transform;
         cinematicT.position = new Vector3(bound.center.x - bound.max.x - 1f, bound.min.y + 0.5f, bound.center.z + bound.max.z);
         cinematicT.SetParent(transform, true);
         cinematicT.LookAt(bound.center + new Vector3(0f, 0.25f, 0f));
-        agentController.CinematicCameraTransforms.Add(cinematicT);
+        Controller.CinematicCameraTransforms.Add(cinematicT);
         cinematicT = new GameObject("RightBack").transform;
         cinematicT.position = new Vector3(bound.center.x + bound.max.x + 1f, bound.min.y + 0.5f, bound.center.z - bound.max.z);
         cinematicT.SetParent(transform, true);
         cinematicT.LookAt(bound.center + new Vector3(0f, 0.25f, 0f));
-        agentController.CinematicCameraTransforms.Add(cinematicT);
+        Controller.CinematicCameraTransforms.Add(cinematicT);
         cinematicT = new GameObject("LeftBack").transform;
         cinematicT.position = new Vector3(bound.center.x - bound.max.x - 1f, bound.min.y + 0.5f, bound.center.z - bound.max.z);
         cinematicT.SetParent(transform, true);
         cinematicT.LookAt(bound.center + new Vector3(0f, 0.25f, 0f));
-        agentController.CinematicCameraTransforms.Add(cinematicT);
+        Controller.CinematicCameraTransforms.Add(cinematicT);
     }
 
     private void CreateDriverViewTransform()
     {
-        if (agentController.DriverViewTransform != null) return;
+        if (Controller.DriverViewTransform != null) return;
         // raycast down to 
-        var bounds = agentController.Bounds;
+        var bounds = Controller.Bounds;
         if (Physics.Raycast(new Vector3(bounds.center.x, bounds.max.y * 2f, bounds.center.z + bounds.max.z / 4f), Vector3.down, out RaycastHit hit, LayerMask.GetMask("Agent")))
         {
             var view = new GameObject("DriverView").transform;
             view.position = hit.point;
             view.rotation = Quaternion.identity;
             view.SetParent(transform, true);
-            agentController.DriverViewTransform = view;
+            Controller.DriverViewTransform = view;
         }
     }
 

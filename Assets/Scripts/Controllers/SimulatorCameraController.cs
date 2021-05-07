@@ -343,11 +343,11 @@ public class SimulatorCameraController : MonoBehaviour
         CurrentCameraState = CameraStateType.Follow;
         targetObject = target.transform;
 
-        var agentController = target.GetComponent<IAgentController>();
-        if (agentController != null)
+        var controller = target.GetComponent<IAgentController>();
+        if (controller != null)
         {
-            BoundsY = agentController.Bounds.size.y;
-            BoundsZ = agentController.Bounds.size.z;
+            BoundsY = controller.Bounds.size.y;
+            BoundsZ = controller.Bounds.size.z;
             BoundsZ = BoundsZ < 1f ? 1f : BoundsZ;
             offset = new Vector3(0f, BoundsY, -BoundsZ);
             cinematicOffset = new Vector3(0f, BoundsY * 3f, 0f);

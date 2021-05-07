@@ -89,7 +89,7 @@ namespace Simulator
                 Console.WriteLine("[PROC][{0}] Send signal done with status {1}", Id, proc.ExitCode);
             }
 #else
-            UnityEngine.Debug.LogError($"[PROC] TestCaseProcess.SendSignal is supported on {Application.platform}");
+            UnityEngine.Debug.LogWarning($"[PROC] TestCaseProcess.SendSignal is supported on {Application.platform}");
 #endif
         }
 
@@ -200,7 +200,8 @@ namespace Simulator
 
         public bool StartProcess(string runtimeType, IDictionary<string,string> environment, string workingDirectory)
         {
-            if (Process != null) {
+            if (Process != null)
+            {
                 UnityEngine.Debug.LogError($"[PROC][main] Failed to start test case process: process is already running");
                 return false;
             }

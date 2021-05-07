@@ -171,7 +171,7 @@ namespace Simulator.Bridge.Ros
             if (!args.WasClean)
             {
                 Status = Status.UnexpectedlyDisconnected;
-                UnityEngine.Debug.LogError("RosBridge socket was unexpectedly disconnected. Connection was: " + Socket.Url);
+                UnityEngine.Debug.LogWarning("RosBridge socket was unexpectedly disconnected. Connection was: " + Socket.Url);
             }
             else
             {

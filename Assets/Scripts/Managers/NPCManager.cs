@@ -108,7 +108,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     {
         if (!DespawnCallbacks.Remove(callback))
         {
-            Debug.LogError("Error in DeregisterDespawnCallback. " + callback + " is not registered before.");
+            Debug.LogWarning("Error in DeregisterDespawnCallback. " + callback + " is not registered before.");
         }
     }
 

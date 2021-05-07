@@ -101,7 +101,7 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         else
         {
             var sceneName = SceneManager.GetActiveScene().name;
-            Debug.LogError($"{sceneName} is missing Pedestrian NavMesh");
+            Debug.LogWarning($"{sceneName} missing NavMesh at {pt} please create navmesh at this point. Pedestrian manager disabled");
             gameObject.SetActive(false);
         }
     }

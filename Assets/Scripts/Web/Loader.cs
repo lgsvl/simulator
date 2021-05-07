@@ -179,6 +179,8 @@ namespace Simulator
 
         public bool EditorLoader { get; set; } = false;
 
+        public SentrySdk Sentry;
+
         string reportedStatus(SimulatorStatus status)
         {
             switch(status)
@@ -273,12 +275,13 @@ namespace Simulator
 
             if (!string.IsNullOrEmpty(info?.SentryDSN))
             {
-                var sentry = gameObject.AddComponent<SentrySdk>();
-                sentry.Dsn = info.SentryDSN;
-                sentry.Version = $"{info?.Version}-{info?.GitCommit}";
-                sentry.SendDefaultPii = false;
-                sentry.Debug = false;
-                sentry.AutoGenerateBreadcrumb = false;
+                Sentry = gameObject.AddComponent<SentrySdk>();
+                Sentry.Dsn = info.SentryDSN;
+                Sentry.Version = $"{info?.Version}-{info?.GitCommit}";
+                Sentry.SendDefaultPii = false;
+                Sentry.Debug = false;
+                Sentry.AutoGenerateBreadcrumb = false;
+                Sentry.Reset();
             }
         }
 
@@ -523,6 +526,16 @@ namespace Simulator
 
         public static void StopAsync()
         {
+            if (Instance.Status == SimulatorStatus.Stopping)
+            {
+                return;
+            }
+
+            if (Instance.Sentry != null)
+            {
+                Instance.Sentry.Reset();
+            }
+
             Instance.Actions.Enqueue(async () =>
             {
                 //Check if simulation scene was initialized
@@ -581,6 +594,7 @@ namespace Simulator
                         {
                             SceneManager.MoveGameObjectToScene(ApiManager.Instance.gameObject, SceneManager.GetActiveScene());
                         }
+
                         var loader = SceneManager.LoadSceneAsync(Instance.LoaderScene);
                         loader.completed += op =>
                         {
@@ -588,7 +602,11 @@ namespace Simulator
                             {
                                 AssetBundle.UnloadAllAssetBundles(false);
                                 Instance.ConnectionUI.SetLoaderUIState(ConnectionUI.LoaderUIStateType.START);
-                                Instance.reportStatus(SimulatorStatus.Idle);
+
+                                if (Instance.Status == SimulatorStatus.Stopping)
+                                {
+                                    Instance.reportStatus(SimulatorStatus.Idle);
+                                }
                             }
                         };
                     }
@@ -596,7 +614,11 @@ namespace Simulator
                     {
                         Debug.Log($"Failed to stop '{Instance.CurrentSimulation.Name}' simulation");
                         Debug.LogException(ex);
-                        Instance.reportStatus(SimulatorStatus.Idle);
+
+                        if (Instance.Status == SimulatorStatus.Stopping)
+                        {
+                            Instance.reportStatus(SimulatorStatus.Idle);
+                        }
                     }
                 }
             });
@@ -886,14 +908,14 @@ namespace Simulator
             if (SimulatorManager.InstanceAvailable || ApiManager.Instance)
             {
                 Instance.ConnectionUI.UpdateStatusText("Cannot enter Scenario Editor during a simulation.");
-                Debug.LogError("Cannot enter Scenario Editor during a simulation.");
+                Debug.LogWarning("Cannot enter Scenario Editor during a simulation.");
                 return;
             }
 
             if (ConnectionManager.Status != ConnectionManager.ConnectionStatus.Online)
             {
                 Instance.ConnectionUI.UpdateStatusText("Cannot enter Scenario Editor when connection is not established.");
-                Debug.LogError("Cannot enter Scenario Editor when connection is not established.");
+                Debug.LogWarning("Cannot enter Scenario Editor when connection is not established.");
                 return;
             }
 
@@ -901,7 +923,7 @@ namespace Simulator
             if (maps.Length == 0)
             {
                 Instance.ConnectionUI.UpdateStatusText("Scenario Editor requires at least one map added to the library.");
-                Debug.LogError("Scenario Editor requires at least one map added to the library.");
+                Debug.LogWarning("Scenario Editor requires at least one map added to the library.");
                 return;
             }
 
@@ -909,7 +931,7 @@ namespace Simulator
             if (egos.Length == 0)
             {
                 Instance.ConnectionUI.UpdateStatusText("Scenario Editor requires at least one ego vehicle added to the library.");
-                Debug.LogError("Scenario Editor requires at least one ego vehicle added to the library.");
+                Debug.LogWarning("Scenario Editor requires at least one ego vehicle added to the library.");
                 return;
             }
 
@@ -965,7 +987,7 @@ namespace Simulator
 
             if (manager == null)
             {
-                Debug.LogError($"[LOADER] Can't Instantiate TestCaseProcessManager");
+                Debug.LogWarning($"[LOADER] Can't Instantiate TestCaseProcessManager");
             }
             else
             {

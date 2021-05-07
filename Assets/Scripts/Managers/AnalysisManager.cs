@@ -389,7 +389,7 @@ namespace Simulator.Analysis
             else
             {
                 Console.WriteLine("[ANMGR] Skip sending report: TestReportId is null");
-                Debug.LogError("AnalysisSend faild due to null TestReportId");
+                Debug.LogWarning("AnalysisSend faild due to null TestReportId");
             }
         }
 

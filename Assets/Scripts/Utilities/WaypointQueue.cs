@@ -98,7 +98,7 @@ namespace Simulator.Utilities
                 }
                 else
                 {
-                    Debug.LogError("currentLane is not set for the waypoint queue.");
+                    Debug.LogWarning("currentLane is not set for the waypoint queue.");
                 }
             }
             return this.Q.Dequeue();

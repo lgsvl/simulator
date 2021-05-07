@@ -416,7 +416,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
                         {
                             if (currentMapLane.yieldToLanes[k] == null)
                             {
-                                Debug.LogError($"MapLane YieldToLane index {k} is missing please fix", currentMapLane.gameObject);
+                                Debug.LogWarning($"MapLane YieldToLane index {k} is missing please fix", currentMapLane.gameObject);
                                 return false;
                             }
                             for (int j = 0; j < currentMapLane.yieldToLanes[k].prevConnectedLanes.Count; j++) // checks each active NPC if it is approaching a yieldTo lane

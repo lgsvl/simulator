@@ -26,7 +26,7 @@ public class SimulatorManager : MonoBehaviour
         get
         {
             if (!InstanceAvailable)
-                Debug.LogError("<color=red>SimulatorManager Not Found!</color>");
+                Debug.LogWarning("SimulatorManager not found");
             return _instance;
         }
     }
@@ -360,7 +360,7 @@ public class SimulatorManager : MonoBehaviour
                             {
                                 if (sharedMaterials[i] == null)
                                 {
-                                    Debug.LogError($"{renderer.gameObject.name} has null material", renderer.gameObject);
+                                    Debug.LogWarning($"{renderer.gameObject.name} has null material", renderer.gameObject);
                                 }
                                 else
                                 {
@@ -463,7 +463,7 @@ public class SimulatorManager : MonoBehaviour
                                 {
                                     if (sharedMaterials[i] == null)
                                     {
-                                        Debug.LogError($"{renderer.gameObject.name} has null material", renderer.gameObject);
+                                        Debug.LogWarning($"{renderer.gameObject.name} has null material", renderer.gameObject);
                                     }
                                     else
                                     {
@@ -533,7 +533,7 @@ public class SimulatorManager : MonoBehaviour
                             {
                                 if (sharedMaterials[i] == null)
                                 {
-                                    Debug.LogError($"{renderer.gameObject.name} has null material", renderer.gameObject);
+                                    Debug.LogWarning($"{renderer.gameObject.name} has null material", renderer.gameObject);
                                 }
                                 else
                                 {

@@ -26,7 +26,7 @@ namespace Simulator.Sensors.Postprocessing
             }
             else
             {
-                Debug.LogError($"Unable to find shader {ShaderName}. Post Process Volume {nameof(GreyScaleFX)} is unable to load.");
+                Debug.LogWarning($"Unable to find shader {ShaderName}. Post Process Volume {nameof(GreyScaleFX)} is unable to load.");
             }
         }
 

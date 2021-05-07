@@ -129,7 +129,7 @@ namespace Simulator.Controllable
             if (controllable == null)
             {
                 Destroy(obj);
-                Debug.LogError($"Prefab missing IControllable component, spawning {prefab.name} aborted");
+                Debug.LogWarning($"Prefab missing IControllable component, spawning {prefab.name} aborted");
                 return null;
             }
 

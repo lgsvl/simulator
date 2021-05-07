@@ -172,7 +172,7 @@ namespace Simulator.Map
         {
             if (!ValidStates.Contains(state))
             {
-                Debug.LogError($"'{state}' is an invalid state for '{ControlType}'");
+                Debug.LogWarning($"'{state}' is an invalid state for '{ControlType}'");
                 return;
             }
 
@@ -228,7 +228,7 @@ namespace Simulator.Map
                         i = -1;
                         break;
                     default:
-                        Debug.LogError($"'{action}' is an invalid action for '{ControlType}'");
+                        Debug.LogWarning($"'{action}' is an invalid action for '{ControlType}'");
                         break;
                 }
             }

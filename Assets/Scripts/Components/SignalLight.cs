@@ -45,7 +45,7 @@ public class SignalLight : MonoBehaviour
 
         if (SignalLightRenderers.Count == 0)
         {
-            Debug.LogError("SignalLight cannot find child mesh renderers named 'SignalLight'", gameObject);
+            Debug.LogWarning("SignalLight cannot find child mesh renderers named 'SignalLight'", gameObject);
             return;
         }
 
@@ -68,13 +68,13 @@ public class SignalLight : MonoBehaviour
         }
         if (index == -1)
         {
-            Debug.LogError($"No signal color '{state}' found", gameObject);
+            Debug.LogWarning($"No signal color '{state}' found", gameObject);
             return;
         }
 
         if (SignalLightRenderers.Count == 0)
         {
-            Debug.LogError("SignalLight has no mesh renderers to set light emission", gameObject);
+            Debug.LogWarning("SignalLight has no mesh renderers to set light emission", gameObject);
             return;
         }
 

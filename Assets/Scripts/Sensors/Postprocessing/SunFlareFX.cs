@@ -67,13 +67,13 @@ namespace Simulator.Sensors.Postprocessing
             }
             else
             {
-                Debug.LogError($"Unable to find shader {ShaderName}. Post Process Volume {nameof(SunFlareFX)} is unable to load.");
+                Debug.LogWarning($"Unable to find shader {ShaderName}. Post Process Volume {nameof(SunFlareFX)} is unable to load.");
             }
 
             computeShader = Resources.Load("PostProcessShaders/SunFlareOcclusion") as ComputeShader;
             if (computeShader == null)
             {
-                Debug.LogError($"Unable to find shader SunFlareOcclusion in Resources. Post Process Volume {nameof(SunFlareFX)} is unable to load.");
+                Debug.LogWarning($"Unable to find shader SunFlareOcclusion in Resources. Post Process Volume {nameof(SunFlareFX)} is unable to load.");
             }
             else
             {

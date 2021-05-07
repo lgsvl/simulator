@@ -92,15 +92,6 @@ namespace Simulator.Web
             AssetBundle.UnloadAllAssetBundles(false);
             Sensors = new List<SensorConfig>();
             SensorPrefabs = new List<SensorBase>();
-            if (SensorPrefabs.Any(s=> s == null))
-            {
-                Debug.LogError("!!! Null Sensor Prefab Detected - Check RuntimeSettings SensorPrefabs List for missing Sensor Prefab");
-#if UNITY_EDITOR
-                UnityEditor.EditorApplication.isPlaying = false;
-#else
-                Application.Quit(1); // return non-zero exit code
-#endif
-            }
 
             BridgePlugins.Load();
             LoadBuiltinAssets();
@@ -617,7 +608,7 @@ namespace Simulator.Web
                         break;
                     default:
                         // skip unknown arguments to allow to pass default Unity Player args
-                        Debug.LogError($"Unknown argument {args[i]}, skipping it");
+                        Debug.LogWarning($"Unknown argument {args[i]}, skipping it");
                         break;
                 }
             }

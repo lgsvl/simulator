@@ -241,7 +241,7 @@ namespace Simulator.Bridge.Ros2
                 }
                 else
                 {
-                    Debug.LogError($"Unknown ros2-lgsvl-bridge operation {op} received, disconnecting");
+                    Debug.LogWarning($"Unknown ros2-lgsvl-bridge operation {op} received, disconnecting");
                     Disconnect();
                     return;
                 }

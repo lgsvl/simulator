@@ -201,7 +201,7 @@ namespace Simulator.Web
                                 }
                                 else
                                 {
-                                    Debug.LogError("malformed ipv4 connection string: " + vehicle.Bridge.ConnectionString);
+                                    Debug.LogWarning("malformed ipv4 connection string: " + vehicle.Bridge.ConnectionString);
                                 }
                             }
                             i++;

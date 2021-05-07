@@ -164,7 +164,7 @@ namespace Simulator.PointCloud.Trees
                 Thread.Sleep(10);
                 if (current++ > safety)
                 {
-                    Debug.LogError("Point cloud loader is taking too long, unlocking main thread.");
+                    Debug.LogWarning("Point cloud loader is taking too long, unlocking main thread.");
                     break;
                 }
             }
@@ -237,7 +237,7 @@ namespace Simulator.PointCloud.Trees
             
             if (!File.Exists(nodePath))
             {
-                Debug.LogError($"Data for node {node.Identifier} not found.");
+                Debug.LogWarning($"Data for node {node.Identifier} not found.");
                 return false;
             }
 
@@ -248,7 +248,7 @@ namespace Simulator.PointCloud.Trees
                 
                 if (size != itemSize * expectedPointCount)
                 {
-                    Debug.LogError($"Mismatch between declared ({expectedPointCount}) and actual ({size/itemSize}) point count for node {node.Identifier}.");
+                    Debug.LogWarning($"Mismatch between declared ({expectedPointCount}) and actual ({size/itemSize}) point count for node {node.Identifier}.");
                     return false;
                 }
 

@@ -67,7 +67,10 @@ namespace Simulator.PointCloud.Trees
                     {
                         var notBundleScene = Application.isPlaying && gameObject.scene.buildIndex != -1 || !Application.isPlaying;
                         if (verboseLoad || notBundleScene)
+                        {
                             Debug.LogError($"Unable to load octree under path {dataPath}. Check files.");
+                        }
+
                         corrupted = true;
                         tree = null;
                     }

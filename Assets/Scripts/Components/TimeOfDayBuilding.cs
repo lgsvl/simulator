@@ -36,7 +36,7 @@ public class TimeOfDayBuilding : MonoBehaviour
                 {
                     if (sharedMaterials[i] == null)
                     {
-                        Debug.LogError($"{renderer.gameObject.name} has null material", renderer.gameObject);
+                        Debug.LogWarning($"{renderer.gameObject.name} has null material", renderer.gameObject);
                     }
                     else
                     {

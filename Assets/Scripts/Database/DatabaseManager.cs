@@ -76,7 +76,7 @@ namespace Simulator.Database
                 }
                 catch (SqliteException ex)
                 {
-                    Debug.LogError(ex);
+                    Debug.LogWarning(ex);
                     Debug.Log("Cannot open database, removing it and replacing with backup");
                     try
                     {
@@ -85,7 +85,7 @@ namespace Simulator.Database
                     }
                     catch (Exception backupEx)
                     {
-                        Debug.LogError(backupEx);
+                        Debug.LogWarning(backupEx);
                         Debug.Log("Cannot open backup, deleting");
                         File.Delete(GetDatabasePath());
                         File.Delete(GetBackupPath());

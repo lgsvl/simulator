@@ -131,7 +131,7 @@ namespace Simulator.ScenarioEditor.Agents
         {
             if (variant.Prefab == null)
             {
-                Debug.LogError("Variant has to be prepared before getting it's instance.");
+                Debug.LogWarning("Variant has to be prepared before getting it's instance.");
                 return null;
             }
 

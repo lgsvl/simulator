@@ -135,7 +135,7 @@ namespace Simulator.Sensors.Postprocessing
                 var genericArgs = effectType.BaseType.GetGenericArguments();
                 if (genericArgs.Length != 1)
                 {
-                    Debug.LogError($"Unexpected generic argument type count on type {effectType.Name}. Effect won't work.");
+                    Debug.LogWarning($"Unexpected generic argument type count on type {effectType.Name}. Effect won't work.");
                     continue;
                 }
 
@@ -143,7 +143,7 @@ namespace Simulator.Sensors.Postprocessing
                 {
                     if (dataToEffectDict.ContainsKey(dataType))
                     {
-                        Debug.LogError($"{dataType.Name} is used by multiple effects - this is not supported. Only {dataToEffectDict[dataType].effectType.Name} will be used.");
+                        Debug.LogWarning($"{dataType.Name} is used by multiple effects - this is not supported. Only {dataToEffectDict[dataType].effectType.Name} will be used.");
                         continue;
                     }
 
@@ -172,7 +172,7 @@ namespace Simulator.Sensors.Postprocessing
 
                 if (!typeof(CustomPass).IsAssignableFrom(type))
                 {
-                    Debug.LogError($"Type {type.Name} is not derived from {nameof(CustomPass)}.");
+                    Debug.LogWarning($"Type {type.Name} is not derived from {nameof(CustomPass)}.");
                     continue;
                 }
 

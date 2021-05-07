@@ -948,7 +948,7 @@ namespace Simulator.ScenarioEditor.Input
         {
             if (this.addElementsHandler != addElementsHandler)
             {
-                Debug.LogError("Cannot cancel adding elements as passed element is currently not handled.");
+                Debug.LogWarning("Cannot cancel adding elements as passed element is currently not handled.");
                 return false;
             }
 
@@ -983,7 +983,7 @@ namespace Simulator.ScenarioEditor.Input
         {
             if (this.markElementsHandler != markElementsHandler)
             {
-                Debug.LogError("Cannot cancel marking elements as passed element is currently not handled.");
+                Debug.LogWarning("Cannot cancel marking elements as passed element is currently not handled.");
                 return false;
             }
 

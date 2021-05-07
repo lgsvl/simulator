@@ -66,7 +66,9 @@ namespace Simulator.PointCloud
             }
 
             if (unlitPass == null)
-                Debug.LogError("Unable to initialize custom pass volumes for point clouds.");
+            {
+                Debug.LogWarning("Unable to initialize custom pass volumes for point clouds.");
+            }
 
             RefreshRenderers();
         }

@@ -254,8 +254,7 @@ public class ConnectionManager : MonoBehaviour
                                         simData = deserialized["data"].ToObject<SimulationData>();
                                         SimulationConfigUtils.ProcessKnownTemplates(ref simData);
                                     }
-                                    catch (Exception e) when (e is InvalidCastException 
-                                                              || e is NullReferenceException)
+                                    catch (Exception e) when (e is InvalidCastException || e is NullReferenceException)
                                     {
                                         Debug.LogError($"[CONN] Failed to parse Config data: '{s}'");
                                         Debug.LogException(e);
@@ -290,7 +289,7 @@ public class ConnectionManager : MonoBehaviour
                                 Loader.StopAsync();
                                 break;
                             default:
-                                Debug.LogError($"Unknown Status '{status.ToString()}'! Disconnecting.");
+                                Debug.LogWarning($"Unknown Status '{status.ToString()}'! Disconnecting.");
                                 RunOnUnityThread(() =>
                                 {
                                     Disconnect();

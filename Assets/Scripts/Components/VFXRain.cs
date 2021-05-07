@@ -85,7 +85,7 @@ namespace Simulator.Components
         {
             if (trackedEntities.Contains(entity))
             {
-                Debug.LogError($"Entity {entity.gameObject.name} is already tracked.");
+                Debug.LogWarning($"Entity {entity.gameObject.name} is already tracked.");
                 return;
             }
 
@@ -96,7 +96,7 @@ namespace Simulator.Components
         {
             if (!trackedEntities.Contains(entity))
             {
-                Debug.LogError($"Entity {entity.gameObject.name} is not tracked.");
+                Debug.LogWarning($"Entity {entity.gameObject.name} is not tracked.");
                 return;
             }
 
@@ -118,7 +118,7 @@ namespace Simulator.Components
             if (activeChunks.Count > 64)
             {
                 killswitch = true;
-                Debug.LogError("Unexpectedly high amount of active rain chunks. Disabling rain.");
+                Debug.LogWarning("Unexpectedly high amount of active rain chunks. Disabling rain.");
                 
                 foreach (var activeChunk in activeChunks)
                     pool.Release(activeChunk.Value);

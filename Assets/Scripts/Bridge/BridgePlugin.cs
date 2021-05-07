@@ -128,7 +128,7 @@ namespace Simulator.Bridge
             var name = GetNameFromFactory(factory.GetType());
             if (All.ContainsKey(name))
             {
-                Debug.LogError($"Bridge {name} already registered, ignoring duplicate(?) plugin");
+                Debug.LogWarning($"Bridge {name} already registered, ignoring duplicate(?) plugin");
             }
             else
             {

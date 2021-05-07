@@ -75,7 +75,7 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
     {
         if (!SpawnCallbacks.Remove(callback))
         {
-            Debug.LogError("Error in DeregisterDespawnCallback. " + callback + " is not registered before.");
+            Debug.LogWarning("Error in DeregisterDespawnCallback. " + callback + " is not registered before.");
         }
     }
 
@@ -93,7 +93,7 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
     {
         if (!DespawnCallbacks.Remove(callback))
         {
-            Debug.LogError("Error in DeregisterDespawnCallback. " + callback + " is not registered before.");
+            Debug.LogWarning("Error in DeregisterDespawnCallback. " + callback + " is not registered before.");
         }
     }
 
@@ -186,7 +186,7 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         else
         {
             var sceneName = SceneManager.GetActiveScene().name;
-            Debug.LogError($"{sceneName} is missing Pedestrian NavMesh");
+            Debug.LogWarning($"{sceneName} missing NavMesh at {pt} please create navmesh at this point. Pedestrian manager disabled");
             gameObject.SetActive(false);
         }
     }

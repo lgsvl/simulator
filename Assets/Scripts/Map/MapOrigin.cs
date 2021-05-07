@@ -72,7 +72,7 @@ namespace Simulator.Map
             var origin = FindObjectOfType<MapOrigin>();
             if (origin == null)
             {
-                Debug.LogError("Map is missing MapOrigin component! Adding temporary MapOrigin. Please add to scene and set origin");
+                Debug.LogWarning("Map is missing MapOrigin component! Adding temporary MapOrigin. Please add to scene and set origin");
                 origin = new GameObject("MapOrigin").AddComponent<MapOrigin>();
             }
 

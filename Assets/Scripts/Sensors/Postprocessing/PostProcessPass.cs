@@ -107,7 +107,7 @@ namespace Simulator.Sensors.Postprocessing
 
             if (!(data is TData tData))
             {
-                Debug.LogError($"Attempting to render postprocess with invalid data type (required {typeof(TData).Name}, got {data.GetType().Name})");
+                Debug.LogWarning($"Attempting to render postprocess with invalid data type (required {typeof(TData).Name}, got {data.GetType().Name})");
                 PostProcessSystem.Skip(ctx.cmd, ctx.cameraColorBuffer, sensor, true, lateQueue);
                 return;
             }

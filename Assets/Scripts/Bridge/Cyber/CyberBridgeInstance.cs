@@ -241,7 +241,7 @@ namespace Simulator.Bridge.Cyber
                 }
                 else
                 {
-                    Debug.LogError($"Unknown CyberBridge operation {op} received, disconnecting");
+                    Debug.LogWarning($"Unknown CyberBridge operation {op} received, disconnecting");
                     Disconnect();
                     return;
                 }

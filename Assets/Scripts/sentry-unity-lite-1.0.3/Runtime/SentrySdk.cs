@@ -1,7 +1,4 @@
 using System;
-#if UNITY_5
-using System.Collections;
-#endif
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
@@ -11,6 +8,8 @@ using UnityDebug = UnityEngine.Debug;
 
 public class SentrySdk : MonoBehaviour
 {
+    private int ExceptionCount = 0;
+
     private float _timeLastError = 0;
     private const float MinTime = 0.5f;
     private Breadcrumb[] _breadcrumbs;
@@ -33,6 +32,11 @@ public class SentrySdk : MonoBehaviour
     private bool _initialized = false;
 
     private static SentrySdk _instance = null;
+
+    public void Reset()
+    {
+        ExceptionCount = 0;
+    }
 
     public void Start()
     {
@@ -182,6 +186,17 @@ public class SentrySdk : MonoBehaviour
             UnityDebug.LogWarning("Sentry exception condition not valid");
             return;
         }
+
+        if (ExceptionCount > 5)
+        {
+            UnityDebug.LogError("Too many errors, please debug before running");
+            return;
+        }
+        else
+        {
+            ExceptionCount++;
+        }
+
         var excType = exc[0];
         var excValue = exc[1].Substring(1); // strip the space
 

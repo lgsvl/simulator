@@ -121,6 +121,9 @@ namespace Simulator.Editor
                 ? Object.Instantiate(vehiclePrefab, vehicleParent.transform)
                 : Object.Instantiate(vehiclePrefab);
 
+            vehicle.transform.localRotation = Quaternion.identity;
+            vehicle.transform.localPosition = Vector3.zero;
+
             // adjust camera distance based on hit distance
             RaycastHit hit;
             var start = cameraObj.transform.position;

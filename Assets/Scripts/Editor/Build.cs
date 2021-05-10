@@ -13,10 +13,8 @@ using System.Net;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.Compilation;
-using UnityEditor.Formats.Fbx.Exporter;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
@@ -255,32 +253,13 @@ namespace Simulator.Editor
                         Dictionary<string, object> files = new Dictionary<string, object>();
                         manifest.attachments = files;
 
-                        var prefab = AssetDatabase.LoadAssetAtPath(prefabEntry.mainAssetFile, typeof(GameObject));
-                        var tempObj = Instantiate(prefab) as GameObject;
-
-                        FbxExportHelper.PrepareObject(tempObj);
-
-                        string glbFilename = $"{manifest.assetGuid}_vehicle_{manifest.assetName}.glb";
-                        string export = ModelExporter.ExportObject(Path.Combine("Assets", "External", "Vehicles", manifest.assetName, $"{manifest.assetName}.fbx"), tempObj);
-                        var glbOut = Path.Combine(outputFolder, glbFilename);
-                        System.Diagnostics.Process p = new System.Diagnostics.Process();
-                        p.EnableRaisingEvents = true;
-                        p.StartInfo.FileName = Path.Combine(Application.dataPath, "Plugins", "FBX2glTF",
-                            SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "FBX2glTF-windows-x64.exe" : "FBX2glTF-linux-x64");
-                        p.StartInfo.Arguments = $"--binary --input {export} --output {glbOut}";
-                        p.OutputDataReceived += new System.Diagnostics.DataReceivedEventHandler((o, e) => Debug.Log(e.Data));
-                        p.ErrorDataReceived += new System.Diagnostics.DataReceivedEventHandler((o, e) => Debug.Log(e.Data));
-                        p.Exited += new EventHandler((o, e) =>
+                        using (var exporter = new GltfExporter(prefabEntry.mainAssetFile, manifest.assetGuid, manifest.assetName))
                         {
-                            Debug.Log("Successfully Exited");
-                            buildArtifacts.Add((glbOut, Path.Combine("gltf", glbFilename)));
-                            File.Delete(export);
-                            File.Delete($"{export}.meta");
-                            files.Add("gltf", ZipPath("gltf", glbFilename));
-                        });
-
-                        p.Start();
-                        CoreUtils.Destroy(tempObj);
+                            var fileName = exporter.Export(outputFolder);
+                            var glbOut = Path.Combine(outputFolder, fileName);
+                            buildArtifacts.Add((glbOut, Path.Combine("gltf", fileName)));
+                            files.Add("gltf", ZipPath("gltf", fileName));
+                        }
 
                         var textures = new BundlePreviewRenderer.PreviewTextures();
                         BundlePreviewRenderer.RenderVehiclePreview(prefabEntry.mainAssetFile, textures);

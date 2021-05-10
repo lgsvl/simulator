@@ -665,8 +665,9 @@ namespace Simulator
                 {
                     zip.Close();
 
-                    // TODO: proper exception
-                    throw new ZipException("BundleFormat version mismatch");
+                    throw new ZipException($"BundleFormat version {manifest.assetFormat} mismatch " +
+                                           $"expected {BundleConfig.Versions[BundleConfig.BundleTypes.Environment]}" +
+                                           $"for {manifest.assetName} {manifest.assetGuid}");
                 }
 
                 if (zip.FindEntry($"{manifest.assetGuid}_environment_textures", false) != -1)
@@ -806,8 +807,9 @@ namespace Simulator
                 {
                     zip.Close();
 
-                    // TODO: proper exception
-                    throw new ZipException("BundleFormat version mismatch");
+                    throw new ZipException($"BundleFormat version {manifest.assetFormat} mismatch " +
+                                           $"expected {BundleConfig.Versions[BundleConfig.BundleTypes.Vehicle]}" +
+                                           $"for {manifest.assetName} {manifest.assetGuid}");
                 }
 
                 if (zip.FindEntry($"{manifest.assetGuid}_vehicle_textures", true) != -1)

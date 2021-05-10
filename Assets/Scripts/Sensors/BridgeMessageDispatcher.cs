@@ -8,6 +8,7 @@
     using System.Text;
     using Bridge;
     using Bridge.Data;
+    using Network.Core.Threading;
     using UnityEngine;
 
     public class BridgeMessageDispatcher : IDisposable
@@ -54,7 +55,7 @@
         /// <summary>
         /// Returns currently active instance of thread pool, managed by <see cref="SimulatorManager"/>.
         /// </summary>
-        public static BridgeMessageDispatcher Instance => SimulatorManager.Instance.Sensors.BridgeMessageDispatcher;
+        public static BridgeMessageDispatcher Instance => SimulatorManager.Instance.BridgeMessageDispatcher;
 
         private readonly LinkedList<Thread> workerThreads = new LinkedList<Thread>();
         private readonly LinkedList<Request> requests = new LinkedList<Request>();
@@ -140,7 +141,7 @@
 
         /// <summary>
         /// <para>Creates and returns subscriber delegate that can be subscribed to bridge instance.</para>
-        /// <para>Provided function will be executed synchronously on main thread.</para> 
+        /// <para>Provided function will be executed synchronously on calling thread.</para> 
         /// </summary>
         /// <param name="func">Function to execute when data is received.</param>
         /// <typeparam name="T">Type of data used by the sensor.</typeparam>
@@ -148,7 +149,7 @@
         {
             return data =>
             {
-                if (Mathf.Approximately(Time.timeScale, 0f))
+                if (Mathf.Approximately(ThreadingUtilities.LastTimeScale, 0f))
                     return;
 
                 func?.Invoke(data);
@@ -169,7 +170,7 @@
         {
             return data =>
             {
-                if (Mathf.Approximately(Time.timeScale, 0f))
+                if (Mathf.Approximately(ThreadingUtilities.LastTimeScale, 0f))
                     return;
 
                 lock (requests)
@@ -225,7 +226,7 @@
         public bool TryQueueTask<T>(Publisher<T> publisher, T data, Action<bool> callback = null, object exclusiveToken = null) where T : class, new()
         {
             // Simulator is paused - drop message
-            if (Mathf.Approximately(Time.timeScale, 0f))
+            if (Mathf.Approximately(ThreadingUtilities.LastTimeScale, 0f))
             {
                 callback?.Invoke(false);
                 return false;

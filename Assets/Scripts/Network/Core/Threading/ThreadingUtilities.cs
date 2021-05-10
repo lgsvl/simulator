@@ -27,6 +27,11 @@ namespace Simulator.Network.Core.Threading
         public static MainThreadDispatcher Dispatcher { get; internal set; }
 
         /// <summary>
+        /// Last Time.timeScale value checked from Update on main thread.
+        /// </summary>
+        public static float LastTimeScale => Dispatcher == null ? 0f : Dispatcher.LastTimeScale;
+
+        /// <summary>
         /// Invokes callback after requested milliseconds from a new thread
         /// </summary>
         /// <param name="milliseconds">Milliseconds delaying the callback</param>

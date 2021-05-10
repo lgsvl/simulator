@@ -14,6 +14,26 @@ namespace Simulator.Network.Core.Threading
     /// </summary>
     public class MainThreadDispatcher : MonoBehaviour
     {
+        private readonly object timeLock = new object();
+        private float lastTimeScale;
+
+        /// <summary>
+        /// Last Time.timeScale value checked from Update on main thread.
+        /// </summary>
+        internal float LastTimeScale
+        {
+            get
+            {
+                lock (timeLock)
+                    return lastTimeScale;
+            }
+            private set
+            {
+                lock (timeLock)
+                    lastTimeScale = value;
+            }
+        }
+
         /// <summary>
         /// Unity Awake method
         /// </summary>
@@ -36,6 +56,7 @@ namespace Simulator.Network.Core.Threading
         /// </summary>
         private void Update()
         {
+            LastTimeScale = Time.timeScale;
             ThreadingUtilities.InvokeDispatchedEvents();
         }
     }

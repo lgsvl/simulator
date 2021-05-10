@@ -42,8 +42,6 @@ public class SensorsManager : IMessageSender, IMessageReceiver
 
 	public SensorPostProcessSystem PostProcessSystem { get; private set; }
 
-	public BridgeMessageDispatcher BridgeMessageDispatcher { get; private set; }
-
 	private List<SensorMetaData> sensors = new List<SensorMetaData>();
 
 	private Dictionary<SensorBase, SensorMetaData> instanceToMetaData = new Dictionary<SensorBase, SensorMetaData>();
@@ -57,7 +55,6 @@ public class SensorsManager : IMessageSender, IMessageReceiver
 		Loader.Instance.Network.MessagesManager?.RegisterObject(this);
 		PostProcessSystem = new SensorPostProcessSystem();
 		PostProcessSystem.Initialize();
-		BridgeMessageDispatcher = new BridgeMessageDispatcher();
 	}
 
 	public void Deinitialize()
@@ -65,7 +62,6 @@ public class SensorsManager : IMessageSender, IMessageReceiver
 		ClearSensorsRegistry();
 		Loader.Instance.Network.MessagesManager?.UnregisterObject(this);
 		PostProcessSystem?.Deinitialize();
-		BridgeMessageDispatcher?.Dispose();
 	}
 
 	public void RegisterSensor(SensorBase sensorBase)

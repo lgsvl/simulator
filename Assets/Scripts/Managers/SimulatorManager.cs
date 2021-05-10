@@ -14,7 +14,7 @@ using Simulator.Api;
 using Simulator.Controllable;
 using Simulator.Analysis;
 using Simulator.Network.Core.Messaging.Data;
-
+using Simulator.Sensors;
 using UnityEngine.SceneManagement;
 
 public class SimulatorManager : MonoBehaviour
@@ -68,6 +68,8 @@ public class SimulatorManager : MonoBehaviour
     public UIManager UIManager { get; private set; }
     public SimulatorTimeManager TimeManager { get;  } = new SimulatorTimeManager();
     public SensorsManager Sensors { get; } = new SensorsManager();
+
+    public BridgeMessageDispatcher BridgeMessageDispatcher { get; private set; }
 
     private GameObject ManagerHolder;
 
@@ -172,6 +174,7 @@ public class SimulatorManager : MonoBehaviour
 
         ManagerHolder = new GameObject("ManagerHolder");
         ManagerHolder.transform.SetParent(transform);
+        BridgeMessageDispatcher = new BridgeMessageDispatcher();
         AnalysisManager = Instantiate(analysisManagerPrefab, ManagerHolder.transform);
         AgentManager = Instantiate(agentManagerPrefab, ManagerHolder.transform);
         CameraManager = Instantiate(cameraManagerPrefab, ManagerHolder.transform);
@@ -292,6 +295,7 @@ public class SimulatorManager : MonoBehaviour
         TimeManager.Deinitialize();
         Sensors.Deinitialize();
         RenderLimiter.RenderLimitEnabled();
+        BridgeMessageDispatcher?.Dispose();
 
         DestroyImmediate(ManagerHolder);
     }

@@ -35,6 +35,7 @@ pipeline {
     CODE_SIGNING_FILE = "/dev/urandom"
     FORCE_REBUILD = "${FORCE_REBUILD}"
     SENTRY_DSN = credentials("SIMULATOR_SENTRY_DSN_RELEASE")
+    SIMULATOR_CONTROLLABLES = "${SIMULATOR_CONTROLLABLES_RELEASE}"
   }
 
   stages {
@@ -125,8 +126,10 @@ pipeline {
               ])
             }
             def repo_names = repo_names_list.join(",")
+            env.SIM_CONTROLLABLES = repo_names
             echo "INFO: Checked out following ${repo_prefix}: ${repo_names}"
           } else {
+            env.SIM_CONTROLLABLES = ""
             echo "INFO: No ${repo_prefix} to checkout"
           }
         }

@@ -134,8 +134,10 @@ pipeline {
               ])
             }
             def repo_names = repo_names_list.join(",")
+            env.SIM_CONTROLLABLES = repo_names
             echo "INFO: Checked out following ${repo_prefix}: ${repo_names}"
           } else {
+            env.SIM_CONTROLLABLES = ""
             echo "INFO: No ${repo_prefix} to checkout"
           }
         }

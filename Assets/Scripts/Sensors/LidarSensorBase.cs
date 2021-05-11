@@ -170,7 +170,7 @@ namespace Simulator.Sensors
         private ShaderTagId passId;
         protected ComputeShader cs;
 
-        public override SensorDistributionType DistributionType => SensorDistributionType.UltraHighLoad;
+        public override SensorDistributionType DistributionType => SensorDistributionType.ClientOnly;
 
         public override void OnBridgeSetup(BridgeInstance bridge)
         {
@@ -186,7 +186,7 @@ namespace Simulator.Sensors
             CommandBufferPool.Release(cmd);
         }
 
-        public virtual void Init()
+        protected override void Initialize()
         {
             var hd = SensorCamera.GetComponent<HDAdditionalCameraData>();
             hd.hasPersistentHistory = true;
@@ -199,9 +199,30 @@ namespace Simulator.Sensors
             Reset();
         }
 
-        private void Start()
+        protected override void Deinitialize()
         {
-            Init();
+            Active.ForEach(req =>
+            {
+                req.TextureSet.Release();
+            });
+
+            foreach (var tex in AvailableRenderTextures)
+            {
+                tex.Release();
+            }
+            foreach (var tex in AvailableTextures)
+            {
+                DestroyImmediate(tex);
+            }
+
+            PointCloudBuffer?.Release();
+            CosLatitudeAnglesBuffer?.Release();
+            SinLatitudeAnglesBuffer?.Release();
+
+            if (PointCloudMaterial != null)
+            {
+                DestroyImmediate(PointCloudMaterial);
+            }
         }
 
         protected float CalculateFovAngle(float latitudeAngle, float logitudeAngle)
@@ -321,32 +342,6 @@ namespace Simulator.Sensors
             }
 
             UpdateMarker.End();
-        }
-
-        public virtual void OnDestroy()
-        {
-            Active.ForEach(req =>
-            {
-                req.TextureSet.Release();
-            });
-
-            foreach (var tex in AvailableRenderTextures)
-            {
-                tex.Release();
-            }
-            foreach (var tex in AvailableTextures)
-            {
-                DestroyImmediate(tex);
-            }
-
-            PointCloudBuffer?.Release();
-            CosLatitudeAnglesBuffer?.Release();
-            SinLatitudeAnglesBuffer?.Release();
-
-            if (PointCloudMaterial != null)
-            {
-                DestroyImmediate(PointCloudMaterial);
-            }
         }
 
         bool BeginReadRequest(int count, ref ReadRequest req)

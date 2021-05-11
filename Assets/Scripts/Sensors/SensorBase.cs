@@ -9,7 +9,6 @@ using UnityEngine;
 using Simulator.Bridge;
 using Simulator.Utilities;
 using Simulator.Sensors.UI;
-using System.Collections;
 using Simulator.Analysis;
 using System.Collections.Generic;
 using System;
@@ -20,11 +19,12 @@ namespace Simulator.Sensors
     {
         public enum SensorDistributionType
         {
-            DoNotDistribute = 0,
-            LowLoad = 1,
-            HighLoad = 2,
-            UltraHighLoad = 3
+            MainOnly = 0,
+            MainOrClient = 1,
+            ClientOnly = 2
         }
+
+        protected bool isInitialized;
 
         public List<AnalysisReportItem> SensorAnalysisData;
         public string Name;
@@ -34,7 +34,8 @@ namespace Simulator.Sensors
         [SensorParameter]
         public string Frame;
 
-        public virtual SensorDistributionType DistributionType => SensorDistributionType.DoNotDistribute;
+        public virtual SensorDistributionType DistributionType => SensorDistributionType.MainOnly;
+        public virtual float PerformanceLoad { get; } = 0.1f;
 
         [HideInInspector]
         public Transform ParentTransform;
@@ -43,6 +44,28 @@ namespace Simulator.Sensors
         {
             return null;
         }
+
+        protected virtual void Start()
+        {
+            if (isInitialized)
+                return;
+
+            Initialize();
+            isInitialized = true;
+        }
+
+        protected virtual void OnDestroy()
+        {
+            if (!isInitialized)
+                return;
+
+            Deinitialize();
+            isInitialized = false;
+        }
+
+        protected abstract void Initialize();
+
+        protected abstract void Deinitialize();
 
         public abstract void OnBridgeSetup(BridgeInstance bridge);
         public abstract void OnVisualize(Visualizer visualizer);

@@ -495,7 +495,7 @@ public class SensorsController : MonoBehaviour, ISensorsController, IMessageSend
         //Order sensors by distribution type, so ultra high loads will be handled first
         var sensorsByDistributionType =
             sensorsInstances.Values.Where(controller =>
-                    controller.Instance.DistributionType != SensorBase.SensorDistributionType.DoNotDistribute)
+                    controller.Instance.DistributionType != SensorBase.SensorDistributionType.MainOnly)
                 .OrderByDescending(controller => controller.Instance.DistributionType);
 
         var loadBalancer = master.LoadBalancer;
@@ -504,13 +504,11 @@ public class SensorsController : MonoBehaviour, ISensorsController, IMessageSend
             IPeerManager sensorPeer;
             switch (sensorData.Instance.DistributionType)
             {
-                case SensorBase.SensorDistributionType.DoNotDistribute:
-                    const float masterSensorLoad = 0.15f;
-                    loadBalancer.AppendMasterLoad(masterSensorLoad);
+                case SensorBase.SensorDistributionType.MainOnly:
+                    loadBalancer.AppendMasterLoad(sensorData.Instance.PerformanceLoad);
                     break;
-                case SensorBase.SensorDistributionType.LowLoad:
-                    var lowLoadValue = 0.05f;
-                    sensorPeer = loadBalancer.AppendLoad(lowLoadValue, true);
+                case SensorBase.SensorDistributionType.MainOrClient:
+                    sensorPeer = loadBalancer.AppendLoad(sensorData.Instance.PerformanceLoad, true);
                     if (sensorPeer != null)
                     {
                         //Sensor will be distributed to lowest load client
@@ -519,20 +517,8 @@ public class SensorsController : MonoBehaviour, ISensorsController, IMessageSend
                         SimulatorManager.Instance.Sensors.AppendEndPoint(sensorData.Instance, sensorPeer.PeerEndPoint);
                     }
                     break;
-                case SensorBase.SensorDistributionType.HighLoad:
-                    const float highLoadValue = 0.1f;
-                    sensorPeer = loadBalancer.AppendLoad(highLoadValue, true);
-                    if (sensorPeer != null)
-                    {
-                        //Sensor will be distributed to lowest load client
-                        clientsSensors[sensorPeer].Add(sensorData.Configuration.Name);
-                        sensorData.Disable();
-                        SimulatorManager.Instance.Sensors.AppendEndPoint(sensorData.Instance, sensorPeer.PeerEndPoint);
-                    }
-                    break;
-                case SensorBase.SensorDistributionType.UltraHighLoad:
-                    const float ultraHighLoadValue = 1.0f;
-                    sensorPeer = loadBalancer.AppendLoad(ultraHighLoadValue, false);
+                case SensorBase.SensorDistributionType.ClientOnly:
+                    sensorPeer = loadBalancer.AppendLoad(sensorData.Instance.PerformanceLoad, false);
                     //Sensor will be distributed to lowest load client
                     clientsSensors[sensorPeer].Add(sensorData.Configuration.Name);
                     SimulatorManager.Instance.Sensors.AppendEndPoint(sensorData.Instance, sensorPeer.PeerEndPoint);

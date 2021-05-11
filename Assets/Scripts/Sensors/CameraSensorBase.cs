@@ -118,7 +118,8 @@ namespace Simulator.Sensors
 
         protected RenderTextureReadWrite CameraTargetTextureReadWriteType = RenderTextureReadWrite.sRGB;
 
-        public override SensorDistributionType DistributionType => SensorDistributionType.UltraHighLoad;
+        public override SensorDistributionType DistributionType => SensorDistributionType.ClientOnly;
+        public override float PerformanceLoad { get; } = 1.0f;
 
         protected SensorRenderTarget renderTarget;
 
@@ -164,13 +165,13 @@ namespace Simulator.Sensors
         private bool LowFPS = false;
         #endregion
 
-        public virtual void Start()
+        protected override void Initialize()
         {
             SensorCamera.enabled = false;
             HDAdditionalCameraData.hasPersistentHistory = true;
         }
 
-        public void OnDestroy()
+        protected override void Deinitialize()
         {
             renderTarget?.Release();
             DistortedHandle?.Release();

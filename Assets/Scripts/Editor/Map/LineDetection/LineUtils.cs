@@ -10,7 +10,7 @@ namespace Simulator.Editor.MapLineDetection
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Simulator.Map.LineDetection;
+    using Map.LineDetection;
     using UnityEngine;
     using UnityEngine.Rendering;
 
@@ -26,57 +26,30 @@ namespace Simulator.Editor.MapLineDetection
             return Mathf.Min(Vector2.Angle(a.Vector, b.Vector), Vector2.Angle(a.Vector, -b.Vector));
         }
 
-        public static float LineLineDistance(Vector2 a0, Vector2 a1, Vector2 b0, Vector2 b1)
+        private static float LineLineDistance(Vector2 a0, Vector2 a1, Vector2 b0, Vector2 b1)
         {
-            return LineLineDistance(a0, a1, b0, b1, out _, out _);
-        }
-
-        private static float LineLineDistance(
-            Vector2 a0, Vector2 a1, Vector2 b0, Vector2 b1,
-            out Vector2 aClosest, out Vector2 bClosest)
-        {
-            LineLineIntersection(a0, a1, b0, b1, out _, out var segmentsIntersecting, out var intersection, out aClosest, out bClosest);
+            LineLineIntersection(a0, a1, b0, b1, out _, out var segmentsIntersecting, out var intersection);
 
             if (segmentsIntersecting)
-            {
-                aClosest = intersection;
-                bClosest = intersection;
                 return 0;
-            }
 
             var bestDist = float.MaxValue;
 
             var currentDist = PointLineDistance(a0, b0, b1, out var closest);
             if (currentDist < bestDist)
-            {
                 bestDist = currentDist;
-                aClosest = a0;
-                bClosest = closest;
-            }
 
             currentDist = PointLineDistance(a1, b0, b1, out closest);
             if (currentDist < bestDist)
-            {
                 bestDist = currentDist;
-                aClosest = a1;
-                bClosest = closest;
-            }
 
             currentDist = PointLineDistance(b0, a0, a1, out closest);
             if (currentDist < bestDist)
-            {
                 bestDist = currentDist;
-                aClosest = closest;
-                bClosest = b0;
-            }
 
             currentDist = PointLineDistance(b1, a0, a1, out closest);
             if (currentDist < bestDist)
-            {
                 bestDist = currentDist;
-                aClosest = closest;
-                bClosest = b1;
-            }
 
             return bestDist;
         }
@@ -84,7 +57,7 @@ namespace Simulator.Editor.MapLineDetection
         public static void LineLineIntersection(
             Vector2 a0, Vector2 a1, Vector2 b0, Vector2 b1,
             out bool linesIntersect, out bool segmentsIntersect,
-            out Vector2 intersection, out Vector2 aClosest, out Vector2 bClosest)
+            out Vector2 intersection)
         {
             var aX = a1.x - a0.x;
             var aY = a1.y - a0.y;
@@ -97,7 +70,7 @@ namespace Simulator.Editor.MapLineDetection
             {
                 linesIntersect = false;
                 segmentsIntersect = false;
-                intersection = aClosest = bClosest = new Vector2(float.NaN, float.NaN);
+                intersection = new Vector2(float.NaN, float.NaN);
                 return;
             }
 
@@ -108,12 +81,6 @@ namespace Simulator.Editor.MapLineDetection
 
             intersection = new Vector2(a0.x + aX * t1, a0.y + aY * t1);
             segmentsIntersect = t1 >= 0 && t1 <= 1 && t2 >= 0 && t2 <= 1;
-
-            t1 = Mathf.Clamp01(t1);
-            t2 = Mathf.Clamp01(t2);
-
-            aClosest = new Vector2(a0.x + aX * t1, a0.y + aY * t1);
-            bClosest = new Vector2(b0.x + bX * t2, b0.y + bY * t2);
         }
 
         public static float PointLineDistance(Vector2 point, Line line)

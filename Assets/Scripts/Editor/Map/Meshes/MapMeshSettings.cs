@@ -53,6 +53,12 @@ namespace Simulator.Editor.MapMeshes
         public float pushDistance = 1f;
 
         /// <summary>
+        /// If true, intersecting polygon edges will be untangled (if possible).
+        /// </summary>
+        [Tooltip("If true, intersecting polygon edges will be untangled (if possible).")]
+        public bool fixInvalidPolygons = true;
+
+        /// <summary>
         /// Distance in meters within which lane ends will be snapped together (if enabled).
         /// </summary>
         [Tooltip("Distance in meters within which lane ends will be snapped together (if enabled).")]

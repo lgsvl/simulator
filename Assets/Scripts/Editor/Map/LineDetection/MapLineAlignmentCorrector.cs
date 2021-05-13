@@ -174,7 +174,7 @@ namespace Simulator.Editor.MapLineDetection
                     if (Angle(lnEnd2D - lnStart2D, nVec) < 90 - angleThreshold)
                         continue;
 
-                    LineUtils.LineLineIntersection(nVec0, nVec1, lnStart2D, lnEnd2D, out var _, out var segmentsIntersect, out var intersection, out _, out _);
+                    LineUtils.LineLineIntersection(nVec0, nVec1, lnStart2D, lnEnd2D, out var _, out var segmentsIntersect, out var intersection);
                     if (!segmentsIntersect)
                         continue;
 

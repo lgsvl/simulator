@@ -11,8 +11,8 @@ namespace Simulator.Editor.MapMeshes
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
-    using Simulator.Map;
-    using Simulator.Map.LineDetection;
+    using Map;
+    using Map.LineDetection;
     using UnityEditor;
     using UnityEditor.SceneManagement;
     using UnityEngine;
@@ -451,6 +451,8 @@ namespace Simulator.Editor.MapMeshes
         {
             var name = intersection.gameObject.name;
             var intersectionLanes = intersection.GetComponentsInChildren<MapTrafficLane>();
+            if (intersectionLanes.Length == 0)
+                return null;
 
             var optimizedLanePolys = new List<List<Vertex>>();
 
@@ -592,6 +594,8 @@ namespace Simulator.Editor.MapMeshes
 
                 if (useSeparateMesh)
                     pushedMesh = targetPoly.Count > 0 ? targetPoly : null;
+                else
+                    poly = targetPoly;
             }
 
             if (!worldSpace)
@@ -606,7 +610,68 @@ namespace Simulator.Editor.MapMeshes
             ListPool<LineVert>.Release(leftPoints);
             ListPool<LineVert>.Release(rightPoints);
 
+            if (settings.fixInvalidPolygons)
+            {
+                var changed = false;
+                foreach (var subPoly in poly)
+                {
+                    if (TryFixSubPoly(subPoly, lane.name))
+                        changed = true;
+                }
+
+                if (changed)
+                    Debug.Log($"Mesh changed vertices ordering to fix intersecting edges ({lane.name})");
+            }
+
             return poly;
+        }
+
+        private bool TryFixSubPoly(List<Vertex> poly, string debugName)
+        {
+            if (poly.Count < 4)
+                return false;
+
+            var safety = 32;
+            var changed = true;
+            var atLeastOneChanged = false;
+
+            List<Vertex> original = null;
+
+            while (safety-- > 0 && changed)
+            {
+                changed = false;
+
+                for (var i0 = 0; i0 < poly.Count; ++i0)
+                {
+                    var i1 = MeshUtils.LoopIndex(i0 + 1, poly.Count);
+                    var i2 = MeshUtils.LoopIndex(i0 + 2, poly.Count);
+                    var i3 = MeshUtils.LoopIndex(i0 + 3, poly.Count);
+
+                    if (MeshUtils.AreLinesIntersecting(poly[i0], poly[i1], poly[i2], poly[i3]))
+                    {
+                        original ??= new List<Vertex>(poly);
+                        var tmp = poly[i1];
+                        poly[i1] = poly[i2];
+                        poly[i2] = tmp;
+                        changed = true;
+                        atLeastOneChanged = true;
+                    }
+                }
+            }
+
+            if (safety == 0)
+            {
+                Debug.LogWarning($"Unable to fix intersecting edges - polygon might fall back to convex hull ({debugName})");
+                if (original != null)
+                {
+                    poly.Clear();
+                    poly.AddRange(original);
+                }
+
+                return false;
+            }
+
+            return atLeastOneChanged;
         }
 
         private void AddRoadsidePolygons(ref List<List<Vertex>> poly, List<LineVert> linePoints)
@@ -782,6 +847,9 @@ namespace Simulator.Editor.MapMeshes
 
             var points = ListPool<Vector3>.Get();
             points.AddRange(linesData[line].worldPoints.Select(x => x.position));
+
+            if (points.Count < 2)
+                return null;
 
             for (var i = 0; i < points.Count; ++i)
                 points[i] = CorrectPointToMesh(line, points[i]);

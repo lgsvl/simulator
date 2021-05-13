@@ -328,9 +328,9 @@ namespace Simulator.Editor.MapLineDetection
             var uvEnd = uvStart + uvDir * 50f;
             uvStart = uvStart - uvDir * 50f;
 
-            LineUtils.LineLineIntersection(uv1, uv2, uvStart, uvEnd, out _, out var ints12, out var pos12, out _, out _);
-            LineUtils.LineLineIntersection(uv2, uv3, uvStart, uvEnd, out _, out var ints23, out var pos23, out _, out _);
-            LineUtils.LineLineIntersection(uv3, uv1, uvStart, uvEnd, out _, out var ints31, out var pos31, out _, out _);
+            LineUtils.LineLineIntersection(uv1, uv2, uvStart, uvEnd, out _, out var ints12, out var pos12);
+            LineUtils.LineLineIntersection(uv2, uv3, uvStart, uvEnd, out _, out var ints23, out var pos23);
+            LineUtils.LineLineIntersection(uv3, uv1, uvStart, uvEnd, out _, out var ints31, out var pos31);
 
             var indexA = -1;
             var indexB = -1;

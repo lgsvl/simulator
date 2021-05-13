@@ -40,6 +40,9 @@ namespace Simulator.Editor.MapMeshes
 
         public static List<List<Vertex>> ClipVatti(List<List<Vertex>> polys)
         {
+            if (polys.Count == 0)
+                return polys;
+
             var first = polys[0];
             var others = new List<List<Vertex>>();
             for (var i = 1; i < polys.Count; ++i)

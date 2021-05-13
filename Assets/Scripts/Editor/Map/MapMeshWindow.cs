@@ -7,8 +7,8 @@
 
 namespace Simulator.Editor
 {
-    using Simulator.Editor.MapMeshes;
-    using Simulator.Map;
+    using MapMeshes;
+    using Map;
     using UnityEditor;
     using UnityEngine;
 
@@ -32,6 +32,7 @@ namespace Simulator.Editor
         private SerializedProperty pushOuterVerts;
         private SerializedProperty separateOuterMesh;
         private SerializedProperty pushDistance;
+        private SerializedProperty fixInvalidPolygons;
         private SerializedProperty snapThreshold;
         private SerializedProperty roadUvUnit;
         private SerializedProperty lineUvUnit;
@@ -113,6 +114,7 @@ namespace Simulator.Editor
             pushOuterVerts = serializedSettings.FindProperty(nameof(MapMeshSettings.pushOuterVerts));
             separateOuterMesh = serializedSettings.FindProperty(nameof(MapMeshSettings.separateOuterMesh));
             pushDistance = serializedSettings.FindProperty(nameof(MapMeshSettings.pushDistance));
+            fixInvalidPolygons = serializedSettings.FindProperty(nameof(MapMeshSettings.fixInvalidPolygons));
             snapThreshold = serializedSettings.FindProperty(nameof(MapMeshSettings.snapThreshold));
             roadUvUnit = serializedSettings.FindProperty(nameof(MapMeshSettings.roadUvUnit));
             lineUvUnit = serializedSettings.FindProperty(nameof(MapMeshSettings.lineUvUnit));
@@ -179,6 +181,8 @@ namespace Simulator.Editor
             EditorGUILayout.PropertyField(separateOuterMesh);
             EditorGUILayout.PropertyField(pushDistance);
             EditorGUI.EndDisabledGroup();
+            
+            EditorGUILayout.PropertyField(fixInvalidPolygons);
 
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Rendering Settings", EditorStyles.boldLabel);

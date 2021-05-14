@@ -82,8 +82,8 @@ Shader "Hidden/Shader/SunFlare"
 
     float SampleRayIntensity(float2 ouv)
     {
-	    float2 couv = ouv - 0.5;
-        float ang = atan2(couv.y, couv.x);
+	    const float2 couv = ouv - 0.5;
+	    const float ang = atan2(couv.y, couv.x);
         float index = ang * 64 / 3.141569;
         index = index < 0 ? index + 128 : index;
     	int iLow = floor(index);
@@ -98,25 +98,19 @@ Shader "Hidden/Shader/SunFlare"
 
     float3 CalcSunFlare(float2 ouv, float2 cuv, float2 pos, uint2 posSS, uint2 sunPosSS)
 	{
-		float2 vec = cuv - pos;
-		float2 fuv = cuv * length(cuv);
-		
-		float ang = atan2(vec.y, vec.x);
-		float dist = pow(length(vec), 0.1);
+		const float2 fuv = cuv * length(cuv);
 
-    	float globalOccl = tex2D(_OcclusionTexIn, float2(0, 0)).r;
-    	float rayOccl = SampleRayIntensity(ouv);
-    	float occl = rayOccl;
-    	float depth = Linear01Depth(LoadCameraDepth(posSS), _ZBufferParams);
-    	
-		float texOccl = depth;
-		occl = rayOccl * texOccl;
-		float fOccl = lerp(globalOccl, 1, occl);
+		const float globalOccl = tex2D(_OcclusionTexIn, float2(0, 0)).r;
+		const float rayOccl = SampleRayIntensity(ouv);
+		const float depth = Linear01Depth(LoadCameraDepth(posSS), _ZBufferParams);
+
+		const float texOccl = depth;
+		const float occl = rayOccl * texOccl;
+		const float fOccl = lerp(globalOccl, 1, occl);
 
 		float sunDisk = 1 / (length(cuv - pos) * 25 + 1);
-		sunDisk = sunDisk + max(sunDisk, 0.2) * (0.2 + 0.1 * dist + 0.04 * sin(ang * 6.0));
-    	if (occl < 0.1)
-    		sunDisk = clamp(sunDisk, 0, 0.5);
+		sunDisk = sunDisk + max(sunDisk, 0.2);
+    	sunDisk = clamp(sunDisk, 0, 0.1);
     	sunDisk *= fOccl;
     	sunDisk *= _SunSettings.x;
 
@@ -127,11 +121,11 @@ Shader "Hidden/Shader/SunFlare"
     	halo *= _SunSettings.y;
 
 		float2 luv = lerp(cuv, fuv, -0.5);
-  		float3 g0 = CalcGhost(luv, pos, ghost_offsets0, ghost_sizes0, ghost_intensities0);
+		const float3 g0 = CalcGhost(luv, pos, ghost_offsets0, ghost_sizes0, ghost_intensities0);
 		luv = lerp(cuv,fuv,-0.4);
-    	float3 g1 = CalcGhost(luv, pos, ghost_offsets1, ghost_sizes1, ghost_intensities1);
+		const float3 g1 = CalcGhost(luv, pos, ghost_offsets1, ghost_sizes1, ghost_intensities1);
 		luv = lerp(cuv,fuv,-0.5);
-    	float3 g2 = CalcGhost(luv, pos, ghost_offsets2, ghost_sizes2, ghost_intensities2);
+		const float3 g2 = CalcGhost(luv, pos, ghost_offsets2, ghost_sizes2, ghost_intensities2);
 
     	float3 g = g0 + g1 + g2;
     	g *= _SunSettings.z;
@@ -161,7 +155,6 @@ Shader "Hidden/Shader/SunFlare"
 		float3 color = tint * CalcSunFlare(ouv, uv, pos, positionSS, sunPosSS);
     	color *= _SunSettings.w;
 		float4 result = float4(inColor + color ,1.0);
-    	
         return result;
     }
 

@@ -76,7 +76,7 @@ namespace Simulator.Web
 
         public static FileStream LockFile;
 
-        public static bool SensorDebugModeEnabled = false;
+        public static bool DeveloperDebugModeEnabled = false;
 
         public static string SentryDSN = "";
 
@@ -247,7 +247,7 @@ namespace Simulator.Web
         {
 #if UNITY_EDITOR
             //if (SensorDebugModeEnabled == true) // TODO Why is this not working?
-            if (EditorPrefs.GetBool("Simulator/Sensor Debug Mode", false) == true)
+            if (EditorPrefs.GetBool("Simulator/Developer Debug Mode", false) == true)
             {
                 if (File.Exists(Path.Combine(BundleConfig.ExternalBase, "Sensors", manifest.assetName, $"{manifest.assetName}.prefab")))
                 {
@@ -358,6 +358,29 @@ namespace Simulator.Web
             //Find a prefab with main asset name ignoring the characters case
             var mainPrefabName = pluginAssets.First(name => name.IndexOf(prefabName, StringComparison.InvariantCultureIgnoreCase) >= 0);
             var controllable = pluginBundle.LoadAsset<GameObject>(mainPrefabName).GetComponent<IControllable>();
+
+#if UNITY_EDITOR
+            if (EditorPrefs.GetBool("Simulator/Developer Debug Mode", false) == true)
+            {
+                if (File.Exists(Path.Combine(BundleConfig.ExternalBase, "Controllables", manifest.assetName, $"{manifest.assetName}.prefab")))
+                {
+                    var prefab = (GameObject)AssetDatabase.LoadAssetAtPath(Path.Combine(BundleConfig.ExternalBase, "Controllables", manifest.assetName, $"{manifest.assetName}.prefab"), typeof(GameObject));
+                    Controllables.Add(manifest.assetName, prefab.GetComponent<IControllable>());
+
+                    var debugAssets = new List<GameObject>();
+                    foreach (var pluginAsset in pluginAssets)
+                    {
+                        if (pluginAsset == mainPrefabName)
+                            continue;
+                        debugAssets.Add(pluginBundle.LoadAsset<GameObject>(pluginAsset));
+                    }
+                    ControllableAssets.Add(controllable, debugAssets);
+
+                    return;
+                }
+            }
+#endif
+
             Controllables.Add(manifest.assetName, controllable);
             var additionalAssets = new List<GameObject>();
             foreach (var pluginAsset in pluginAssets)
@@ -406,6 +429,48 @@ namespace Simulator.Web
 
             string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
             var pluginEntry = dir.Find($"{manifest.assetGuid}_npc_main_{platform}");
+
+#if UNITY_EDITOR
+            if (EditorPrefs.GetBool("Simulator/Developer Debug Mode", false) == true)
+            {
+                foreach (var NPCDir in Directory.EnumerateDirectories(Path.Combine(BundleConfig.ExternalBase, BundleConfig.pluralOf(BundleConfig.BundleTypes.NPC))))
+                {
+                    var assembly = Assembly.Load("Simulator.NPCs");
+                    if (File.Exists(Path.Combine(NPCDir, manifest.assetName, $"{manifest.assetName}.prefab")))
+                    {
+                        var prefab = (GameObject)AssetDatabase.LoadAssetAtPath(Path.Combine(NPCDir, manifest.assetName, $"{manifest.assetName}.prefab"), typeof(GameObject));
+
+                        Map.NPCSizeType size = Map.NPCSizeType.MidSize;
+                        var meta = prefab.GetComponent<NPCMetaData>();
+
+                        if (meta != null)
+                        {
+                            size = meta.SizeType;
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"NPC {manifest.assetName} missing meta info, setting default type");
+                        }
+
+                        NPCVehicles.Add(manifest.assetName, new NPCAssetData()
+                        {
+                            Prefab = prefab,
+                            Name = manifest.assetName,
+                            AssetGuid = manifest.assetGuid,
+                            NPCType = size,
+                        });
+
+                        if (textureBundle && !AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
+                        {
+                            textureBundle.LoadAllAssets();
+                        }
+
+                        return;
+                    }
+                }
+            }
+#endif
+
             if (pluginEntry != null)
             {
                 AssetBundle pluginBundle = AssetBundle.LoadFromStream(pluginEntry.SeekableStream());
@@ -464,6 +529,35 @@ namespace Simulator.Web
 
             string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
             var pluginEntry = dir.Find($"{manifest.assetGuid}_pedestrian_main_{platform}");
+
+#if UNITY_EDITOR
+            if (EditorPrefs.GetBool("Simulator/Developer Debug Mode", false) == true)
+            {
+                var assembly = Assembly.Load("Simulator.Pedestrians");
+                foreach (var PedDir in Directory.EnumerateDirectories(Path.Combine(BundleConfig.ExternalBase, BundleConfig.pluralOf(BundleConfig.BundleTypes.Pedestrian))))
+                {
+                    if (File.Exists(Path.Combine(PedDir, manifest.assetName, $"{manifest.assetName}.prefab")))
+                    {
+                        var prefab = (GameObject)AssetDatabase.LoadAssetAtPath(Path.Combine(PedDir, manifest.assetName, $"{manifest.assetName}.prefab"), typeof(GameObject));
+
+                        Pedestrians.Add(manifest.assetName, new PedAssetData()
+                        {
+                            Prefab = prefab,
+                            Name = manifest.assetName,
+                            AssetGuid = manifest.assetGuid,
+                        });
+
+                        if (textureBundle && !AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
+                        {
+                            textureBundle.LoadAllAssets();
+                        }
+
+                        return;
+                    }
+                }
+            }
+#endif
+
             if (pluginEntry != null)
             {
                 AssetBundle pluginBundle = AssetBundle.LoadFromStream(pluginEntry.SeekableStream());

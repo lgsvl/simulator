@@ -9,42 +9,42 @@ using Simulator.Web;
 using UnityEditor;
 
 [InitializeOnLoad]
-public static class SensorDebugModeToggle
+public static class DeveloperDebugModeToggle
 {
-    private const string MENU_NAME = "Simulator/Sensor Debug Mode";
+    private const string MENU_NAME = "Simulator/Developer Debug Mode";
 
     private static bool enabled_;
     /// Called on load thanks to the InitializeOnLoad attribute
-    static SensorDebugModeToggle()
+    static DeveloperDebugModeToggle()
     {
-        SensorDebugModeToggle.enabled_ = EditorPrefs.GetBool(SensorDebugModeToggle.MENU_NAME, false);
+        DeveloperDebugModeToggle.enabled_ = EditorPrefs.GetBool(DeveloperDebugModeToggle.MENU_NAME, false);
         //SensorDebugModeToggle.enabled_ = Config.SensorDebugModeEnabled; // TODO why this not working?
         /// Set checkmark on menu item
-        Menu.SetChecked(SensorDebugModeToggle.MENU_NAME, Config.SensorDebugModeEnabled);
+        Menu.SetChecked(DeveloperDebugModeToggle.MENU_NAME, Config.DeveloperDebugModeEnabled);
 
         /// Delaying until first editor tick so that the menu
         /// will be populated before setting check state, and
         /// re-apply correct action
         EditorApplication.delayCall += () => {
-            PerformAction(SensorDebugModeToggle.enabled_);
+            PerformAction(DeveloperDebugModeToggle.enabled_);
         };
     }
 
-    [MenuItem(SensorDebugModeToggle.MENU_NAME)]
+    [MenuItem(DeveloperDebugModeToggle.MENU_NAME)]
     private static void ToggleAction()
     {
         /// Toggling action
-        PerformAction(!SensorDebugModeToggle.enabled_);
+        PerformAction(!DeveloperDebugModeToggle.enabled_);
     }
 
     public static void PerformAction(bool enabled)
     {
         /// Set checkmark on menu item
-        Menu.SetChecked(SensorDebugModeToggle.MENU_NAME, enabled);
+        Menu.SetChecked(DeveloperDebugModeToggle.MENU_NAME, enabled);
         /// Saving editor state
-        EditorPrefs.SetBool(SensorDebugModeToggle.MENU_NAME, enabled);
+        EditorPrefs.SetBool(DeveloperDebugModeToggle.MENU_NAME, enabled);
         //Config.SensorDebugModeEnabled = enabled; // TODO why this not working?
 
-        SensorDebugModeToggle.enabled_ = enabled;
+        DeveloperDebugModeToggle.enabled_ = enabled;
     }
 }

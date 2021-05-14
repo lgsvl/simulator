@@ -31,6 +31,7 @@ using VirtualFileSystem;
 namespace Simulator
 {
     using System.Reflection;
+    using UnityEditor;
 
     public class AgentConfig
     {
@@ -734,13 +735,23 @@ namespace Simulator
                 foreach (var agentConfig in Instance.SimConfig.Agents)
                 {
                     var bundlePath = agentConfig.AssetBundle;
+
                     if (cachedVehicles.ContainsKey(agentConfig.AssetGuid))
                     {
                         agentConfig.Prefab = cachedVehicles[agentConfig.AssetGuid];
                         continue;
                     }
 #if UNITY_EDITOR
-                    if(bundlePath.EndsWith(".prefab"))
+                    if (EditorPrefs.GetBool("Simulator/Developer Debug Mode", false) == true)
+                    {
+                        string filePath = Path.Combine(BundleConfig.ExternalBase, "Vehicles", agentConfig.Name, $"{agentConfig.Name}.prefab");
+                        if (File.Exists(filePath))
+                        {
+                            bundlePath = filePath;
+                        }
+                    }
+
+                    if (bundlePath.EndsWith(".prefab"))
                     {
                         agentConfig.Prefab = (GameObject) UnityEditor.AssetDatabase.LoadAssetAtPath(bundlePath, typeof(GameObject));
                     }

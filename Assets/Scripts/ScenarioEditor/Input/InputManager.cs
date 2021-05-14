@@ -13,6 +13,7 @@ namespace Simulator.ScenarioEditor.Input
     using Elements;
     using Managers;
     using Network.Core.Threading;
+    using UI.Inspector;
     using Undo;
     using Undo.Records;
     using UnityEngine;
@@ -167,6 +168,11 @@ namespace Simulator.ScenarioEditor.Input
         private Camera scenarioCamera;
 
         /// <summary>
+        /// Cached rect transform of the scenario editor inspector
+        /// </summary>
+        private RectTransform inspectorTransform;
+
+        /// <summary>
         /// Cached simulator input controls
         /// </summary>
         private SimulatorControls controls;
@@ -264,7 +270,7 @@ namespace Simulator.ScenarioEditor.Input
         /// <summary>
         /// Can the drag event finish over UI elements, cancel is called if it's not allowed
         /// </summary>
-        private bool canDragFinishOverUI;
+        private bool canDragFinishOverInspector;
 
         /// <summary>
         /// Current cancel mode selected for the operation
@@ -453,6 +459,7 @@ namespace Simulator.ScenarioEditor.Input
             scenarioCamera = ScenarioManager.Instance.ScenarioCamera;
             if (scenarioCamera == null)
                 throw new ArgumentException("Scenario camera reference is required in the ScenarioManager.");
+            inspectorTransform = FindObjectOfType<Inspector>().transform as RectTransform;
             controls = new SimulatorControls();
             InitControls();
             raycastDistance = scenarioCamera.farClipPlane - scenarioCamera.nearClipPlane;
@@ -570,7 +577,8 @@ namespace Simulator.ScenarioEditor.Input
 
                         MouseRaycastPosition = lastHitPosition;
                         MouseViewportPosition = scenarioCamera.ScreenToViewportPoint(Input.mousePosition);
-                        if (!canDragFinishOverUI && EventSystem.current.IsPointerOverGameObject())
+                        if (!canDragFinishOverInspector && EventSystem.current.IsPointerOverGameObject() &&
+                            inspectorTransform.rect.Contains(inspectorTransform.InverseTransformPoint(Input.mousePosition)))
                         {
                             dragHandler.DragCancelled();
                         }
@@ -890,7 +898,7 @@ namespace Simulator.ScenarioEditor.Input
             CancelMode cancelMode = CancelMode.CancelOnRelease)
         {
             if (Mode != InputModeType.Idle) return;
-            canDragFinishOverUI = canFinishOverUI;
+            canDragFinishOverInspector = canFinishOverUI;
             this.cancelMode = cancelMode;
             Mode = InputModeType.DraggingElement;
             this.dragHandler = dragHandler;

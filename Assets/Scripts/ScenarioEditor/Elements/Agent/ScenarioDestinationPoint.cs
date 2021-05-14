@@ -111,9 +111,9 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         }
 
         /// <inheritdoc/>
-        protected override void OnMoved(bool notifyOthers = true)
+        public override void ForceMove(Vector3 requestedPosition)
         {
-            base.OnMoved(notifyOthers);
+            base.ForceMove(requestedPosition);
             var mapManager = ScenarioManager.Instance.GetExtension<ScenarioMapManager>();
             switch (ParentAgent.Type)
             {
@@ -125,7 +125,12 @@ namespace Simulator.ScenarioEditor.Elements.Agents
                     mapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian, TransformToMove, TransformToRotate);
                     break;
             }
+        }
 
+        /// <inheritdoc/>
+        protected override void OnMoved(bool notifyOthers = true)
+        {
+            base.OnMoved(notifyOthers);
             Refresh();
         }
 

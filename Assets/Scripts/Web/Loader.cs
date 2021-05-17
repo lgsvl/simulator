@@ -744,7 +744,30 @@ namespace Simulator
 #if UNITY_EDITOR
                     if (EditorPrefs.GetBool("Simulator/Developer Debug Mode", false) == true)
                     {
-                        string filePath = Path.Combine(BundleConfig.ExternalBase, "Vehicles", agentConfig.Name, $"{agentConfig.Name}.prefab");
+                        string assetName = "";
+                        using (ZipFile zip = new ZipFile(bundlePath))
+                        {
+                            Manifest manifest;
+                            ZipEntry entry = zip.GetEntry("manifest.json");
+                            using (var ms = zip.GetInputStream(entry))
+                            {
+                                int streamSize = (int)entry.Size;
+                                byte[] buffer = new byte[streamSize];
+                                streamSize = ms.Read(buffer, 0, streamSize);
+
+                                try
+                                {
+                                    manifest = Newtonsoft.Json.JsonConvert.DeserializeObject<Manifest>(Encoding.UTF8.GetString(buffer, 0, streamSize));
+                                    assetName = manifest.assetName;
+                                }
+                                catch
+                                {
+                                    throw new Exception("Out of date AssetBundle, rebuild or download latest AssetBundle.");
+                                }
+                            }
+                        }
+                        
+                        string filePath = Path.Combine(BundleConfig.ExternalBase, "Vehicles", assetName, $"{assetName}.prefab");
                         if (File.Exists(filePath))
                         {
                             bundlePath = filePath;

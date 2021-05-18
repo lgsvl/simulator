@@ -73,6 +73,30 @@ public abstract class AgentController : MonoBehaviour, IAgentController
 
     public abstract void ApplyControl(bool sticky, float steering, float acceleration);
 
+    public virtual void DisableControl()
+    {
+        //Disable rigidbodies physics simulations
+        var rigidbodies = GetComponentsInChildren<Rigidbody>();
+        foreach (var rb in rigidbodies)
+        {
+            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+            rb.isKinematic = true;
+        }
+        
+        //Disable articulation bodies physics simulations
+        var articulationBodies = gameObject.GetComponentsInChildren<ArticulationBody>();
+        foreach (var articulationBody in articulationBodies)
+        {
+            articulationBody.enabled = false;
+        }
+        
+        //Disable controller and dynamics so they will not perform physics updates
+        Enabled = false;
+        var vehicleDynamics = gameObject.GetComponent<IVehicleDynamics>() as MonoBehaviour;
+        if (vehicleDynamics != null)
+            vehicleDynamics.enabled = false;
+    }
+
     protected virtual void SensorsControllerOnSensorsChanged()
     {
         SensorsChanged?.Invoke(this);

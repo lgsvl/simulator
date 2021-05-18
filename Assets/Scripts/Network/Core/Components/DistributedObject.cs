@@ -67,7 +67,7 @@ namespace Simulator.Network.Core.Components
         public bool IsInitialized { get; private set; }
 
         /// <summary>
-        /// Is this distributed component authoritative (sends data to other components)
+        /// Is this distributed object authoritative (sends data to other components)
         /// </summary>
         public bool IsAuthoritative
         {

@@ -9,9 +9,8 @@ namespace Simulator.Network.Core.Components
 {
     using System;
     using System.Collections;
-
+    using System.Collections.Generic;
     using Messaging.Data;
-    using Threading;
     using UnityEngine;
 
     /// <summary>
@@ -51,127 +50,27 @@ namespace Simulator.Network.Core.Components
         protected override bool DestroyWithoutParent { get; } = true;
 
         /// <inheritdoc/>
-        protected override int SnapshotMaxSize { get; } = ByteCompression.PositionRequiredBytes + ByteCompression.RotationMaxRequiredBytes;
+        protected override int SnapshotMaxSize { get; } =
+            ByteCompression.PositionRequiredBytes + ByteCompression.RotationMaxRequiredBytes;
 
         /// <summary>
         /// Last snapshot data which has been sent
         /// </summary>
         private SnapshotData lastSentSnapshot;
 
-        /// <summary>
-        /// Coroutine of the UpdateSnapshots method
-        /// </summary>
-        private IEnumerator updateSnapshotsCoroutine;
-
-        /// <summary>
-        /// Is the update snapshots coroutine running on the dispatcher
-        /// </summary>
-        private bool coroutineOnDispatcher;
-
         /// <inheritdoc/>
-        public override void Initialize()
+        protected override List<IEnumerator> GetRequiredCoroutines()
         {
-            base.Initialize();
-            ParentObject.IsAuthoritativeChanged += ParentObjectOnIsAuthoritativeChanged;
-            ParentObjectOnIsAuthoritativeChanged(ParentObject.IsAuthoritative);
-        }
-
-        /// <inheritdoc/>
-        public override void Deinitialize()
-        {
-            if (this == null || !IsInitialized)
-                return;
-
-            //Check if this object is currently being destroyed
-            base.Deinitialize();
-            ParentObject.IsAuthoritativeChanged -= ParentObjectOnIsAuthoritativeChanged;
-
-            if (updateSnapshotsCoroutine == null)
-            	return;
-            if (coroutineOnDispatcher)
-            {
-                ThreadingUtilities.Dispatcher.StopCoroutine(updateSnapshotsCoroutine);
-                updateSnapshotsCoroutine = null;
-            }
-            else
-            {
-                StopCoroutine(updateSnapshotsCoroutine);
-                updateSnapshotsCoroutine = null;
-            }
-        }
-
-        /// <summary>
-        /// Method that starts or stops required coroutines
-        /// </summary>
-        /// <param name="isAuthoritative">Is the parent <see cref="DistributedObject"/> authoritative</param>
-        private void ParentObjectOnIsAuthoritativeChanged(bool isAuthoritative)
-        {
-            if (isAuthoritative)
-            {
-                if (updateSnapshotsCoroutine != null) 
-                    return;
-
-                updateSnapshotsCoroutine = UpdateSnapshots();
-                if (isActiveAndEnabled)
-                {
-                    StartCoroutine(updateSnapshotsCoroutine);
-                    coroutineOnDispatcher = false;
-                }
-                else
-                {
-                    ThreadingUtilities.Dispatcher.StartCoroutine(updateSnapshotsCoroutine);
-                    coroutineOnDispatcher = true;
-                }
-            }
-            else
-            {
-                if (updateSnapshotsCoroutine == null)
-                    return;
-
-                if (coroutineOnDispatcher)
-                {
-                    ThreadingUtilities.Dispatcher.StopCoroutine(updateSnapshotsCoroutine);
-                    updateSnapshotsCoroutine = null;
-                }
-                else
-                {
-                    StopCoroutine(updateSnapshotsCoroutine);
-                    updateSnapshotsCoroutine = null;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Unity OnEnable method
-        /// </summary>
-        protected void OnEnable()
-        {
-            if (ParentObject!=null && ParentObject.IsAuthoritative)
-            {
-                if (updateSnapshotsCoroutine != null)
-                    return;
-
-                updateSnapshotsCoroutine = UpdateSnapshots();
-                StartCoroutine(updateSnapshotsCoroutine);
-                coroutineOnDispatcher = false;
-            }
-        }
-
-        /// <summary>
-        /// Unity OnDisable method
-        /// </summary>
-        protected void OnDisable()
-        {
-            if (!coroutineOnDispatcher)
-            {
-                updateSnapshotsCoroutine = null;
-            }
+            var coroutines = new List<IEnumerator>();
+            if (IsAuthoritative)
+                coroutines.Add(UpdateSnapshots());
+            return coroutines;
         }
 
         /// <summary>
         /// Coroutine that sends updated snapshots if snapshot changes
         /// </summary>
-        protected IEnumerator UpdateSnapshots()
+        private IEnumerator UpdateSnapshots()
         {
             BroadcastSnapshot(true);
             yield return null;
@@ -183,9 +82,9 @@ namespace Simulator.Network.Core.Components
                     BroadcastSnapshot();
                     lastSentSnapshotTime = Time.unscaledTime;
                 }
+
                 yield return null;
             }
-            updateSnapshotsCoroutine = null;
         }
 
         /// <summary>
@@ -224,19 +123,29 @@ namespace Simulator.Network.Core.Components
         }
 
         /// <inheritdoc/>
-        protected override void PushSnapshot(BytesStack messageContent)
+        protected override bool PushSnapshot(BytesStack messageContent)
         {
             //Reverse order when writing to the stack
             var thisTransform = transform;
             var localRotation = thisTransform.localRotation;
             var localPosition = thisTransform.localPosition;
             var localScale = thisTransform.localScale;
-            messageContent.PushUncompressedVector3(localScale);
-            messageContent.PushCompressedRotation(localRotation);
-            messageContent.PushCompressedPosition(localPosition);
-            lastSentSnapshot.LocalRotation = localRotation;
+            try
+            {
+                messageContent.PushUncompressedVector3(localScale);
+                messageContent.PushCompressedRotation(localRotation);
+                messageContent.PushCompressedPosition(localPosition);
+                lastSentSnapshot.LocalRotation = localRotation;
+            }
+            catch (ArgumentException exception)
+            {
+                Debug.LogError($"{GetType().Name} could not push a snapshot. Exception: {exception.Message}.");
+                return false;
+            }
+
             lastSentSnapshot.LocalPosition = localPosition;
             lastSentSnapshot.LocalScale = localScale;
+            return true;
         }
 
         /// <inheritdoc/>

@@ -441,6 +441,7 @@ namespace Simulator.Network.Client
             ui.RainSlider.value = state.Rain;
             ui.WetSlider.value = state.Wet;
             ui.CloudSlider.value = state.Cloud;
+            ui.DamageSlider.value = state.Damage;
             ui.TimeOfDaySlider.value = state.TimeOfDay;
             Log.Info($"{GetType().Name} received environment state update.");
         }

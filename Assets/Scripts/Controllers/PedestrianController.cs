@@ -722,11 +722,12 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
     #region network
     protected override string ComponentKey { get; } = "PedestrianController";
 
-    protected override void PushSnapshot(BytesStack messageContent)
+    protected override bool PushSnapshot(BytesStack messageContent)
     {
         messageContent.PushEnum<PedestrianState>((int)ThisPedState);
         messageContent.PushEnum<ControlType>((int)Control);
         messageContent.PushFloat(MovementSpeed);
+        return true;
     }
 
     protected override void ApplySnapshot(DistributedMessage distributedMessage)

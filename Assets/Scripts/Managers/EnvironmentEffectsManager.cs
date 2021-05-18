@@ -150,12 +150,14 @@ public class EnvironmentEffectsManager : MonoBehaviour
         if (Loader.Instance.Network.IsMaster)
         {
             var masterManager = Loader.Instance.Network.Master;
-            if (State.Fog != Fog || State.Rain != Rain || State.Wet != Wet || State.Cloud != Cloud || State.TimeOfDay != CurrentTimeOfDay)
+            if (State.Fog != Fog || State.Rain != Rain || State.Wet != Wet || State.Cloud != Cloud ||
+                State.Damage != Damage || State.TimeOfDay != CurrentTimeOfDay)
             {
                 State.Fog = Fog;
                 State.Rain = Rain;
                 State.Wet = Wet;
                 State.Cloud = Cloud;
+                State.Damage = Damage;
                 State.TimeOfDay = CurrentTimeOfDay;
 
                 var writer = new NetDataWriter();
@@ -594,6 +596,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
         State.Rain = Rain;
         State.Wet = Wet;
         State.Cloud = Cloud;
+        State.Damage = Damage;
         State.TimeOfDay = CurrentTimeOfDay;
     }
 }

@@ -109,19 +109,15 @@ namespace Simulator.ScenarioEditor.Agents
             foreach (var collider in colliders)
                 collider.isTrigger = true;
 
+            var agent = instance.GetComponent<IAgentController>();
+            agent?.DisableControl();
+
             //Destroy all the custom components from the ego vehicle
             var allComponents = instance.GetComponents<MonoBehaviour>();
             for (var i = 0; i < allComponents.Length; i++)
             {
                 var component = allComponents[i];
                 DestroyImmediate(component);
-            }
-
-            var rigidbody = instance.GetComponent<Rigidbody>();
-            if (rigidbody != null)
-            {
-                rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
-                rigidbody.isKinematic = true;
             }
             return instance;
         }

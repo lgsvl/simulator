@@ -9,9 +9,10 @@ namespace Simulator.Network.Core.Components
 {
     using System;
     using System.Collections;
-    using UnityEngine;
+    using System.Collections.Generic;
     using Messaging;
     using Messaging.Data;
+    using UnityEngine;
 
     /// <summary>
     /// Distributed rigidbody component
@@ -57,7 +58,8 @@ namespace Simulator.Network.Core.Components
         /// <summary>
         /// Type of the simulation applied in corresponding mocked rigidbodies
         /// </summary>
-        [SerializeField] private MockingSimulationType simulationType;
+        [SerializeField]
+        private MockingSimulationType simulationType;
 #pragma warning restore 0649
 
         /// <summary>
@@ -84,16 +86,6 @@ namespace Simulator.Network.Core.Components
         /// Cached rigidbody component reference
         /// </summary>
         private Rigidbody cachedRigidbody;
-
-        /// <summary>
-        /// Coroutine of the UpdateSnapshots method
-        /// </summary>
-        private IEnumerator updateSnapshotsCoroutine;
-
-        /// <summary>
-        /// Coroutine of the ExtrapolateVelocities method
-        /// </summary>
-        private IEnumerator extrapolateCoroutine;
 
         /// <summary>
         /// Cached rigidbody component reference
@@ -138,62 +130,34 @@ namespace Simulator.Network.Core.Components
             if (!IsInitialized) return;
 
             if (ParentObject.IsAuthoritative)
-            {
-                if (updateSnapshotsCoroutine != null) return;
-
-                updateSnapshotsCoroutine = UpdateSnapshots();
-                StartCoroutine(updateSnapshotsCoroutine);
                 return;
-            }
 
             CachedRigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
             CachedRigidbody.isKinematic = true;
             CachedRigidbody.interpolation = RigidbodyInterpolation.None;
-
-            if (SimulationType != MockingSimulationType.ApplySnapshotsOnly &&
-                extrapolateCoroutine == null)
-            {
-                extrapolateCoroutine = ExtrapolateSnapshots();
-                StartCoroutine(extrapolateCoroutine);
-            }
         }
 
-        /// <summary>
-        /// Unity OnEnable method
-        /// </summary>
-        protected void OnEnable()
+        /// <inheritdoc/>
+        protected override List<IEnumerator> GetRequiredCoroutines()
         {
-            if (ParentObject == null) return;
+            var coroutines = new List<IEnumerator>();
             if (ParentObject.IsAuthoritative)
             {
-                if (updateSnapshotsCoroutine != null) return;
-
-                updateSnapshotsCoroutine = UpdateSnapshots();
-                StartCoroutine(updateSnapshotsCoroutine);
+                coroutines.Add(UpdateSnapshots());
             }
             else
             {
-                if (SimulationType == MockingSimulationType.ApplySnapshotsOnly ||
-                    extrapolateCoroutine != null) return;
-
-                extrapolateCoroutine = ExtrapolateSnapshots();
-                StartCoroutine(extrapolateCoroutine);
+                if (SimulationType == MockingSimulationType.ApplySnapshotsOnly) return coroutines;
+                coroutines.Add(ExtrapolateSnapshots());
             }
+
+            return coroutines;
         }
 
         /// <summary>
-        /// Unity OnDisable method
+        /// Coroutine that sends updated snapshots if snapshot changes
         /// </summary>
-        protected void OnDisable()
-        {
-            updateSnapshotsCoroutine = null;
-            extrapolateCoroutine = null;
-        }
-
-        /// <summary>
-        /// Unity LateUpdate method
-        /// </summary>
-        protected IEnumerator UpdateSnapshots()
+        private IEnumerator UpdateSnapshots()
         {
             var waitForEndOffFrame = new WaitForEndOfFrame();
             while (IsInitialized)
@@ -229,8 +193,6 @@ namespace Simulator.Network.Core.Components
                 lastSnapshotTime = Time.unscaledTime;
                 yield return waitForEndOffFrame;
             }
-
-            updateSnapshotsCoroutine = null;
         }
 
         /// <summary>
@@ -270,8 +232,8 @@ namespace Simulator.Network.Core.Components
                     newestSnapshot.AngularVelocity,
                     t);
                 CachedRigidbody.MoveRotation(newestSnapshot.Rotation *
-                                           Quaternion.Euler(
-                                               angularVelocity * (Mathf.Rad2Deg * timeAfterNewestSnapshot)));
+                                             Quaternion.Euler(
+                                                 angularVelocity * (Mathf.Rad2Deg * timeAfterNewestSnapshot)));
 
                 var velocity = Estimations.LinearInterpolation(
                     previousSnapshot.Velocity,
@@ -294,28 +256,36 @@ namespace Simulator.Network.Core.Components
 
                 yield return null;
             }
-
-            extrapolateCoroutine = null;
         }
 
         /// <inheritdoc/>
-        protected override void PushSnapshot(BytesStack messageContent)
+        protected override bool PushSnapshot(BytesStack messageContent)
         {
             //Reverse order when writing to the stack
             var localPosition = CachedRigidbody.position - transform.parent.position;
-            switch (SimulationType)
+            try
             {
-                case MockingSimulationType.ExtrapolateVelocities:
-                    messageContent.PushCompressedVector3(CachedRigidbody.angularVelocity, -10.0f, 10.0f, 2);
-                    messageContent.PushCompressedVector3(CachedRigidbody.velocity, -200.0f, 200.0f, 2);
-                    messageContent.PushCompressedRotation(CachedRigidbody.rotation);
-                    messageContent.PushCompressedPosition(localPosition);
-                    break;
-                default:
-                    messageContent.PushCompressedRotation(CachedRigidbody.rotation);
-                    messageContent.PushCompressedPosition(localPosition);
-                    break;
+                switch (SimulationType)
+                {
+                    case MockingSimulationType.ExtrapolateVelocities:
+                        messageContent.PushCompressedVector3(CachedRigidbody.angularVelocity, -10.0f, 10.0f, 2);
+                        messageContent.PushCompressedVector3(CachedRigidbody.velocity, -200.0f, 200.0f, 2);
+                        messageContent.PushCompressedRotation(CachedRigidbody.rotation);
+                        messageContent.PushCompressedPosition(localPosition);
+                        break;
+                    default:
+                        messageContent.PushCompressedRotation(CachedRigidbody.rotation);
+                        messageContent.PushCompressedPosition(localPosition);
+                        break;
+                }
             }
+            catch (ArgumentException exception)
+            {
+                Debug.LogError($"{GetType().Name} could not push a snapshot. Exception: {exception.Message}.");
+                return false;
+            }
+
+            return true;
         }
 
         /// <inheritdoc/>

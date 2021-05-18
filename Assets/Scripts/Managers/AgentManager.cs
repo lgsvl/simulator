@@ -94,35 +94,19 @@ public class AgentManager : MonoBehaviour
         if (network.IsClusterSimulation)
         {
             HierarchyUtilities.ChangeToUniqueName(go);
-            if (network.IsClient)
-            {
-                //Disable controller and dynamics on clients so it will not interfere mocked components
-                if (controller!=null)
-                    controller.Enabled = false;
-                var vehicleDynamics = go.GetComponent<IVehicleDynamics>() as MonoBehaviour;
-                if (vehicleDynamics != null)
-                    vehicleDynamics.enabled = false;
-            }
-            
-            //Change the simulation type only if it's not set in the prefab
-            var distributedRigidbody = go.GetComponent<DistributedRigidbody>();
-            if (distributedRigidbody == null)
-            {
-                distributedRigidbody = go.AddComponent<DistributedRigidbody>();
-                distributedRigidbody.SimulationType = DistributedRigidbody.MockingSimulationType.ExtrapolateVelocities;
-            }
 
             //Add the rest required components for cluster simulation
             ClusterSimulationUtilities.AddDistributedComponents(go);
+            if (network.IsClient)
+            {
+                controller?.DisableControl();
+            }
         }
 
         go.transform.position = config.Position;
         go.transform.rotation = config.Rotation;
         sensorsController.SetupSensors(config.Sensors);
-        if (controller != null)
-        {
-            controller.Init();
-        }
+        controller?.Init();
 
         go.SetActive(true);
         return go;

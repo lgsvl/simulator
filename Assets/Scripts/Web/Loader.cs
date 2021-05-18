@@ -705,9 +705,10 @@ namespace Simulator
                 {
                     zip.Close();
 
-                    throw new ZipException($"BundleFormat version {manifest.assetFormat} mismatch " +
-                                           $"expected {BundleConfig.Versions[BundleConfig.BundleTypes.Environment]}" +
-                                           $"for {manifest.assetName} {manifest.assetGuid}");
+                    throw new ZipException($"BundleFormat: {manifest.assetName} ({manifest.assetGuid}) is for bundle" +
+                                           $" version {manifest.assetFormat}, but currently running simulator supports" +
+                                           $" only {BundleConfig.Versions[BundleConfig.BundleTypes.Environment]} bundle" +
+                                           $" version");
                 }
 
                 if (zip.FindEntry($"{manifest.assetGuid}_environment_textures", false) != -1)
@@ -880,9 +881,10 @@ namespace Simulator
                 {
                     zip.Close();
 
-                    throw new ZipException($"BundleFormat version {manifest.assetFormat} mismatch " +
-                                           $"expected {BundleConfig.Versions[BundleConfig.BundleTypes.Vehicle]}" +
-                                           $"for {manifest.assetName} {manifest.assetGuid}");
+                    throw new ZipException($"BundleFormat: {manifest.assetName} ({manifest.assetGuid}) is for bundle" +
+                                           $" version {manifest.assetFormat}, but currently running simulator supports" +
+                                           $" only {BundleConfig.Versions[BundleConfig.BundleTypes.Environment]} bundle" +
+                                           $" version");
                 }
 
                 if (zip.FindEntry($"{manifest.assetGuid}_vehicle_textures", true) != -1)

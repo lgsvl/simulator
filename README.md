@@ -82,7 +82,7 @@ See the full installation guide [here](https://svlsimulator.com/docs/installatio
 If you would like to customize the simulator, build simulation content, or access specific features available in [Developer Mode](https://www.svlsimulator.com/docs/running-simulations/developer-mode), you can clone the project with Unity Editor, and build the project from source.
 
 Check out our instructions for getting started with building from source [here](https://www.svlsimulator.com/docs/installation-guide/build-instructions).
-
+**Note:** Please checkout the "release-*" branches or release tags for stable (ready features) and "master" branch for unstable (preview of work in progress).
 
 
 ## Simulator Instructions (from 2021.1 release onwards)

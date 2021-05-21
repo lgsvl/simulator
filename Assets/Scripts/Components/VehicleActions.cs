@@ -55,7 +55,7 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
     private MessagesManager messagesManager;
     private string key;
     public string Key => key ?? (key = $"{HierarchyUtilities.GetPath(transform)}VehicleActions");
-    
+
     private HeadLightState _currentHeadLightState = HeadLightState.OFF;
     public HeadLightState CurrentHeadLightState
     {
@@ -492,28 +492,40 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
 
     private void CreateDriverViewTransform()
     {
-        if (Controller.DriverViewTransform != null) return;
-        // raycast down to 
-        var bounds = Controller.Bounds;
-        if (Physics.Raycast(new Vector3(bounds.center.x, bounds.max.y * 2f, bounds.center.z + bounds.max.z / 4f), Vector3.down, out RaycastHit hit, LayerMask.GetMask("Agent")))
+        if (Controller.DriverViewTransform != null)
         {
-            var view = new GameObject("DriverView").transform;
-            view.position = hit.point;
-            view.rotation = Quaternion.identity;
-            view.SetParent(transform, true);
-            Controller.DriverViewTransform = view;
+            return;
         }
+
+        var bounds = Controller.Bounds;
+        var origin = new Vector3(bounds.center.x, bounds.max.y * 2f, bounds.center.z + bounds.max.z / 4f);
+        var direction = Vector3.down * 10f;
+
+        var view = new GameObject("DriverView").transform;
+        view.position = origin;
+        view.rotation = Quaternion.identity;
+
+        if (Physics.Raycast(origin, direction, out RaycastHit hit, 10f, LayerMask.GetMask("Agent")))
+        {
+            view.position = hit.point;
+        }
+
+        view.SetParent(transform, true);
+        Controller.DriverViewTransform = view;
     }
 
     public void IncrementHeadLightState()
     {
         CurrentHeadLightState = (int)CurrentHeadLightState == System.Enum.GetValues(typeof(HeadLightState)).Length - 1 ? HeadLightState.OFF : CurrentHeadLightState + 1;
     }
-    
+
     private void StartIndicatorLeftStatus()
     {
         if (indicatorLeftIE != null)
+        {
             StopCoroutine(indicatorLeftIE);
+        }
+
         indicatorLeftIE = RunIndicatorLeftStatus();
         StartCoroutine(indicatorLeftIE);
     }
@@ -527,6 +539,7 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
             SetIndicatorLeftLights(false);
             yield return new WaitForSeconds(0.5f);
         }
+
         SetIndicatorLeftLights(false);
     }
 
@@ -535,13 +548,18 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
         indicatorLeftLights.ForEach(x => x.enabled = state);
         indicatorLeftLights.ForEach(x => x.intensity = state ? 200f : 0f);
         if (indicatorLeftLightRenderer != null)
+        {
             indicatorLeftLightRenderer.material.SetFloat("_EmitIntensity", state ? 6f : 0f);
+        }
     }
     
     private void StartIndicatorRightStatus()
     {
         if (indicatorRightIE != null)
+        {
             StopCoroutine(indicatorRightIE);
+        }
+
         indicatorRightIE = RunIndicatorRightStatus();
         StartCoroutine(indicatorRightIE);
     }
@@ -555,6 +573,7 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
             SetIndicatorRightLights(false);
             yield return new WaitForSeconds(0.5f);
         }
+
         SetIndicatorRightLights(false);
     }
 
@@ -563,13 +582,18 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
         indicatorRightLights.ForEach(x => x.enabled = state);
         indicatorRightLights.ForEach(x => x.intensity = state ? 200f : 0f);
         if (indicatorRightLightRenderer != null)
+        {
             indicatorRightLightRenderer.material.SetFloat("_EmitIntensity", state ? 6f : 0f);
+        }
     }
 
     private void StartIndicatorHazardStatus()
     {
         if (indicatorHazardIE != null)
+        {
             StopCoroutine(indicatorHazardIE);
+        }
+
         indicatorHazardIE = RunIndicatorHazardStatus();
         StartCoroutine(indicatorHazardIE);
     }
@@ -583,6 +607,7 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
             SetIndicatorHazardLights(false);
             yield return new WaitForSeconds(0.5f);
         }
+
         SetIndicatorHazardLights(false);
     }
 
@@ -591,11 +616,16 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
         indicatorLeftLights.ForEach(x => x.enabled = state);
         indicatorLeftLights.ForEach(x => x.intensity = state ? 200f : 0f);
         if (indicatorLeftLightRenderer != null)
+        {
             indicatorLeftLightRenderer.material.SetFloat("_EmitIntensity", state ? 6f : 0f);
+        }
+
         indicatorRightLights.ForEach(x => x.enabled = state);
         indicatorRightLights.ForEach(x => x.intensity = state ? 200f : 0f);
         if (indicatorRightLightRenderer != null)
+        {
             indicatorRightLightRenderer.material.SetFloat("_EmitIntensity", state ? 6f : 0f);
+        }
     }
 
     public void IncrementWiperState()
@@ -608,8 +638,10 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
     {
         //Ignore messages if this component is marked as destroyed
         if (this == null)
+        {
             return;
-        
+        }
+
         var propertyName = distributedMessage.Content.PopEnum<VehicleActionsPropertyName>();
         switch (propertyName)
         {
@@ -649,14 +681,18 @@ public class VehicleActions : MonoBehaviour, IVehicleActions, IMessageSender, IM
     void IMessageSender.UnicastMessage(IPEndPoint endPoint, DistributedMessage distributedMessage)
     {
         if (Key != null)
+        {
             messagesManager?.UnicastMessage(endPoint, distributedMessage);
+        }
     }
 
     /// <inheritdoc/>
     void IMessageSender.BroadcastMessage(DistributedMessage distributedMessage)
     {
         if (Key != null)
+        {
             messagesManager?.BroadcastMessage(distributedMessage);
+        }
     }
 
     /// <inheritdoc/>

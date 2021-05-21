@@ -136,8 +136,11 @@ namespace Simulator.Api.Commands
                     }
 
                     var rb = agentGO.GetComponent<Rigidbody>();
-                    rb.velocity = velocity;
-                    rb.angularVelocity = angular_velocity;
+                    if (rb != null)
+                    {
+                        rb.velocity = velocity;
+                        rb.angularVelocity = angular_velocity;
+                    }
 
                     Debug.Assert(agentGO != null);
                     api.Agents.Add(uid, agentGO);

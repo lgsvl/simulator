@@ -52,8 +52,7 @@ public class SensorsController : MonoBehaviour, ISensorsController, IMessageSend
                 distributedObject.ForwardMessages = Loader.Instance.Network.IsMaster;
                 distributedObject.DistributeIsActive = false;
                 distributedObject.CallInitialize();
-                var distributedTransform = instance.gameObject.AddComponent<DistributedTransform>();
-                distributedTransform.Initialize();
+                instance.gameObject.AddComponent<DistributedTransform>();
             }
 
             //Negate current value so proper method can be called

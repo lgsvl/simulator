@@ -204,7 +204,7 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
             ActiveBehaviour.PhysicsUpdate();
         }
 
-        if (currentSpeed > 0.1f)
+        if (currentSpeed > 0.1f && wheels != null && wheels.Count > 0)
         {
             WheelMovement();
         }
@@ -892,6 +892,19 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
             transformToDistribute.gameObject.AddComponent<DistributedTransform>();
     }
 
+    /// <summary>
+    /// Broadcasts current speed to all clients
+    /// </summary>
+    public void BroadcastCurrentSpeed()
+    {
+        var message = MessagesPool.Instance.GetMessage(8);
+        message.AddressKey = Key;
+        message.Content.PushFloat(currentSpeed);
+        message.Content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.SetSpeed);
+        message.Type = DistributedMessageType.ReliableOrdered;
+        BroadcastMessage(message);
+    }
+
     /// <inheritdoc/>
     public void ReceiveMessage(IPeerManager sender, DistributedMessage distributedMessage)
     {
@@ -915,6 +928,9 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
                 break;
             case NPCControllerMethodName.ResetLights:
                 ResetLights();
+                break;
+            case NPCControllerMethodName.SetSpeed:
+                ActiveBehaviour.currentSpeed = distributedMessage.Content.PopFloat();
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -952,7 +968,8 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
         SetNPCTurnSignal = 2,
         SetNPCHazards = 3,
         SetIndicatorReverse = 4,
-        ResetLights = 5
+        ResetLights = 5,
+        SetSpeed = 6
     }
     #endregion
 }
@@ -988,11 +1005,10 @@ public abstract class NPCBehaviourBase : MonoBehaviour
         {
             controller.currentSpeed = value;
             controller.SetAnimationControllerParameters();
-            // TODO
-            //if (Loader.Instance.Network.IsMaster)
-            //    BroadcastSnapshot();
-            //if (!Loader.Instance.Network.IsClient)
-            //    SetAnimationControllerParameters();
+            if (Loader.Instance.Network.IsMaster)
+            {
+                controller.BroadcastCurrentSpeed();
+            }
         }
     }
 

@@ -44,6 +44,27 @@ namespace Simulator.Network.Core.Components
         }
 
         /// <summary>
+        /// Current initialization state of this component
+        /// </summary>
+        public enum InitializationState
+        {
+            /// <summary>
+            /// Component is currently deinitialized
+            /// </summary>
+            Deinitialized,
+            
+            /// <summary>
+            /// Component is initializing asynchronously
+            /// </summary>
+            Initializing,
+            
+            /// <summary>
+            /// Component is initialized
+            /// </summary>
+            Initialized
+        }
+
+        /// <summary>
         /// Cached IMessageReceiver key
         /// </summary>
         private string key;
@@ -52,11 +73,16 @@ namespace Simulator.Network.Core.Components
         /// Parent distributed object of this component
         /// </summary>
         private DistributedObject parentObject;
+        
+        /// <summary>
+        /// Current initialization state of this component
+        /// </summary>
+        public InitializationState State { get; protected set; }
 
         /// <summary>
         /// Is this distributed component initialized
         /// </summary>
-        public bool IsInitialized { get; private set; }
+        public bool IsInitialized => State == InitializationState.Initialized;
 
         /// <summary>
         /// Component key required to bind with corresponding mocked component
@@ -103,6 +129,25 @@ namespace Simulator.Network.Core.Components
         /// </summary>
         protected virtual void Start()
         {
+            CallInitialize();
+        }
+
+        /// <summary>
+        /// Unity OnDestroy method
+        /// </summary>
+        protected virtual void OnDestroy()
+        {
+            Deinitialize();
+        }
+
+        /// <summary>
+        /// Calls the initialize method, can be delayed if parent object is not initialized
+        /// </summary>
+        public virtual void CallInitialize()
+        {
+            if (State != InitializationState.Deinitialized)
+                return;
+            
             if (ParentObject == null)
             {
                 if (DestroyWithoutParent)
@@ -119,18 +164,11 @@ namespace Simulator.Network.Core.Components
                 }
                 else
                 {
+                    State = InitializationState.Initializing;
                     ParentObject.Initialized += Initialize;
                     ParentObject.DestroyCalled += SelfDestroy;
                 }
             }
-        }
-
-        /// <summary>
-        /// Unity OnDestroy method
-        /// </summary>
-        protected virtual void OnDestroy()
-        {
-            Deinitialize();
         }
 
         /// <summary>
@@ -171,10 +209,14 @@ namespace Simulator.Network.Core.Components
         {
             if (IsInitialized)
                 return;
-            ParentObject.Initialized -= Initialize;
-            ParentObject.DestroyCalled -= SelfDestroy;
+            if (State == InitializationState.Initializing)
+            {
+                ParentObject.Initialized -= Initialize;
+                ParentObject.DestroyCalled -= SelfDestroy;
+            }
+
             ParentObject.RegisterComponent(this);
-            IsInitialized = true;
+            State = InitializationState.Initialized;
             BroadcastSnapshot(true);
             ParentObject.IsAuthoritativeChanged += ParentObjectOnIsAuthoritativeChanged;
             ParentObjectOnIsAuthoritativeChanged(ParentObject.IsAuthoritative);
@@ -185,19 +227,31 @@ namespace Simulator.Network.Core.Components
         /// </summary>
         public virtual void Deinitialize()
         {
-            if (!IsInitialized)
-                return;
-            //Check if this object is currently being destroyed
-            if (this != null)
+            switch (State)
             {
-                ParentObject.UnregisterComponent(this);
-                ParentObject.Initialized -= Initialize;
-                ParentObject.DestroyCalled -= SelfDestroy;
-                ParentObject.IsAuthoritativeChanged -= ParentObjectOnIsAuthoritativeChanged;
-            }
+                case InitializationState.Deinitialized:
+                    return;
+                
+                case InitializationState.Initializing:
+                    ParentObject.Initialized -= Initialize;
+                    ParentObject.DestroyCalled -= SelfDestroy;
+                    State = InitializationState.Deinitialized;
+                    return;
+                
+                case InitializationState.Initialized:
+                    //Check if this object is currently being destroyed
+                    if (this != null)
+                    {
+                        ParentObject.UnregisterComponent(this);
+                        ParentObject.Initialized -= Initialize;
+                        ParentObject.DestroyCalled -= SelfDestroy;
+                        ParentObject.IsAuthoritativeChanged -= ParentObjectOnIsAuthoritativeChanged;
+                    }
 
-            StopCoroutines();
-            IsInitialized = false;
+                    StopCoroutines();
+                    State = InitializationState.Deinitialized;
+                    break;
+            }
         }
 
         /// <summary>

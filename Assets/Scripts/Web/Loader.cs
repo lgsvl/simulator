@@ -358,11 +358,13 @@ namespace Simulator
                     {
                         foreach (var plugin in data.Sensors)
                         {
+#if UNITY_EDITOR
                             if (EditorPrefs.GetBool("Simulator/Developer Debug Mode", false) == true && Config.Sensors.FirstOrDefault(s => s.Name == plugin.Name) != null)
                             {
                                 Debug.Log($"Sensor {plugin.Name} is not being downloaded, but used from cache or local sources. (Developer Debug Mode)");
                                 continue;
                             }
+#endif
 
                             if (plugin.Plugin.AssetGuid != null
                                 && sensorsToDownload.FirstOrDefault(s => s.Plugin.AssetGuid == plugin.Plugin.AssetGuid) == null

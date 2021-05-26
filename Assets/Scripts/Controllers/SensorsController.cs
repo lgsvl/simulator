@@ -101,13 +101,13 @@ public class SensorsController : MonoBehaviour, ISensorsController, IMessageSend
             {
                 Instance.gameObject.SetActive(false);
             }
-            
+
             if (Loader.Instance.Network.IsClusterSimulation)
             {
                 var distributedObject = instance.gameObject.GetComponent<DistributedObject>();
                 distributedObject.IsAuthoritative = false;
             }
-            
+
             enabled = false;
         }
     }
@@ -226,7 +226,7 @@ public class SensorsController : MonoBehaviour, ISensorsController, IMessageSend
 
                 if (prefab == null)
                 {
-                    throw new Exception($"Issue loading {type} for {gameObject.name} check logs");
+                    throw new Exception($"Issue loading sensor type {type} for gameobject {gameObject.name} check logs");
                 }
 
                 var sensor = CreateSensor(gameObject, parentObject, prefab, item, baseLink);
@@ -310,7 +310,7 @@ public class SensorsController : MonoBehaviour, ISensorsController, IMessageSend
                 {
                     try
                     {
-                        var obj = Enum.Parse(field.FieldType, (string) value);
+                        var obj = Enum.Parse(field.FieldType, (string)value);
                         field.SetValue(sb, obj);
                     }
                     catch (ArgumentException ex)
@@ -320,7 +320,7 @@ public class SensorsController : MonoBehaviour, ISensorsController, IMessageSend
                 }
                 else if (field.FieldType == typeof(Color))
                 {
-                    if (ColorUtility.TryParseHtmlString((string) value, out var color))
+                    if (ColorUtility.TryParseHtmlString((string)value, out var color))
                     {
                         field.SetValue(sb, color);
                     }
@@ -333,8 +333,8 @@ public class SensorsController : MonoBehaviour, ISensorsController, IMessageSend
                 {
                     var type = field.FieldType.GetGenericArguments()[0];
                     Type listType = typeof(List<>).MakeGenericType(type);
-                    IList list = (IList) Activator.CreateInstance(listType);
-                    var jarray = (Newtonsoft.Json.Linq.JArray) value;
+                    IList list = (IList)Activator.CreateInstance(listType);
+                    var jarray = (Newtonsoft.Json.Linq.JArray)value;
 
                     if (type.IsEnum)
                     {
@@ -372,7 +372,7 @@ public class SensorsController : MonoBehaviour, ISensorsController, IMessageSend
                             if (sbType.Assembly.GetName().Name == item.Type)
                                 jArrStr = Regex.Replace(jArrStr, "(\"\\$type\"\\:[^,]*, )(Simulator.Sensors)", $"$1{item.Type}");
 
-                            list = JsonConvert.DeserializeObject(jArrStr, typeof(List<>).MakeGenericType(type), new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto}) as IList;
+                            list = JsonConvert.DeserializeObject(jArrStr, typeof(List<>).MakeGenericType(type), new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto }) as IList;
                         }
                         // Shortened type name used, e.g. "type": "SunFlare"
                         else
@@ -429,7 +429,7 @@ public class SensorsController : MonoBehaviour, ISensorsController, IMessageSend
                     if (sbType.Assembly.GetName().Name == item.Type)
                         jObjStr = Regex.Replace(jObjStr, "(\"\\$type\"\\:[^,]*, )(Simulator.Sensors)", $"$1{item.Type}");
 
-                    var instance = JsonConvert.DeserializeObject(jObjStr, field.FieldType, new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto});
+                    var instance = JsonConvert.DeserializeObject(jObjStr, field.FieldType, new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto });
                     field.SetValue(sb, instance);
                 }
             }
@@ -537,12 +537,12 @@ public class SensorsController : MonoBehaviour, ISensorsController, IMessageSend
         {
             var client = network.Master.Clients[i];
             var enabledSensors = JsonConvert.SerializeObject(clientsSensors[client.Peer], JsonSettings.camelCase);
-            var message = MessagesPool.Instance.GetMessage(sensorsLength+BytesStack.GetMaxByteCount(enabledSensors));
+            var message = MessagesPool.Instance.GetMessage(sensorsLength + BytesStack.GetMaxByteCount(enabledSensors));
             message.AddressKey = Key;
             message.Content.PushString(enabledSensors);
             message.Content.PushString(allSensors);
             message.Type = DistributedMessageType.ReliableOrdered;
-            ((IMessageSender) this).UnicastMessage(client.Peer.PeerEndPoint, message);
+            ((IMessageSender)this).UnicastMessage(client.Peer.PeerEndPoint, message);
         }
 
         SensorsChanged?.Invoke();

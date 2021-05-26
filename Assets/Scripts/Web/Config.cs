@@ -159,7 +159,8 @@ namespace Simulator.Web
                     }
                     catch (Exception ex)
                     {
-                        Debug.LogWarning($"failed to load asset from {manifestFile.Path}: {ex.Message} STACK: {ex.StackTrace}");
+                        Debug.LogWarning($"failed to load asset from {manifestFile.Path}");
+                        Debug.LogException(ex);
                     }
                 }
             }
@@ -251,10 +252,16 @@ namespace Simulator.Web
             {
                 if (File.Exists(Path.Combine(BundleConfig.ExternalBase, "Sensors", manifest.assetName, $"{manifest.assetName}.prefab")))
                 {
-                    Debug.LogWarning($"Loading {manifest.assetName} in Sensor Debug Mode. If you wish to use this sensor plugin from WISE, disable Sensor Debug Mode in Simulator->Sensor Debug Mode or remove the sensor from Assets/External/Sensors");
-                    var prefab = (GameObject)AssetDatabase.LoadAssetAtPath(Path.Combine(BundleConfig.ExternalBase, "Sensors", manifest.assetName, $"{manifest.assetName}.prefab"), typeof(GameObject));
+                    Debug.LogWarning($"Loading {manifest.assetName} ({manifest.assetGuid}) in Sensor Debug Mode. If you wish to use this sensor plugin from WISE, disable Sensor Debug Mode in Simulator->Sensor Debug Mode or remove the sensor from Assets/External/Sensors");
+                    var path = Path.Combine(BundleConfig.ExternalBase, "Sensors", manifest.assetName, $"{manifest.assetName}.prefab");
+                    var prefab = (GameObject)AssetDatabase.LoadAssetAtPath(path, typeof(GameObject));
+                    if(prefab == null) {
+                        Debug.LogWarning("prefab is null for "+path);
+                    }
                     SensorPrefabs.Add(prefab.GetComponent<SensorBase>());
-                    Sensors.Add(SensorTypes.GetConfig(prefab.GetComponent<SensorBase>()));
+                    var sensorConfig = SensorTypes.GetConfig(prefab.GetComponent<SensorBase>());
+                    sensorConfig.AssetGuid = manifest.assetGuid;
+                    Sensors.Add(sensorConfig);
                     if (!SensorTypeLookup.ContainsKey(manifest.assetGuid))
                     {
                         SensorTypeLookup.Add(manifest.assetGuid, prefab.GetComponent<SensorBase>());
@@ -284,7 +291,7 @@ namespace Simulator.Web
                 throw new Exception($"Manifest version mismatch, expected {BundleConfig.Versions[BundleConfig.BundleTypes.Sensor]}, got {manifest.assetFormat}");
             }
 
-            if (Sensors.FirstOrDefault(s => s.Guid == manifest.assetGuid) != null)
+            if (Sensors.FirstOrDefault(s => s.AssetGuid == manifest.assetGuid) != null)
             {
                 return;
             }
@@ -320,7 +327,7 @@ namespace Simulator.Web
 
             SensorBase pluginBase = pluginBundle.LoadAsset<GameObject>(pluginAssets[0]).GetComponent<SensorBase>();
             SensorConfig config = SensorTypes.GetConfig(pluginBase);
-            config.Guid = manifest.assetGuid;
+            config.AssetGuid = manifest.assetGuid;
             Sensors.Add(config);
             SensorPrefabs.Add(pluginBase);
             if (!SensorTypeLookup.ContainsKey(manifest.assetGuid))

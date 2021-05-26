@@ -173,7 +173,9 @@ namespace Simulator.Editor
                 if (string.IsNullOrEmpty(Config.CloudProxy))
                 {
                     API = new CloudAPI(new Uri(Config.CloudUrl), Config.SimID);
-                } else {
+                }
+                else
+                {
                     API = new CloudAPI(new Uri(Config.CloudUrl), new Uri(Config.CloudProxy), Config.SimID);
                 }
 
@@ -389,7 +391,7 @@ namespace Simulator.Editor
 
             if (EditorGUI.EndChangeCheck())
             {
-                SaveAssetTime = Time.realtimeSinceStartup + .25f;
+                SaveAssetTime = Time.realtimeSinceStartup + 3.0f;
             }
         }
 
@@ -478,6 +480,27 @@ namespace Simulator.Editor
 
                         if (string.IsNullOrEmpty(sensor.Plugin.AssetGuid))
                         {
+                            Utilities.SensorConfig offlineCandidate = null;
+                            foreach (var config in Config.Sensors)
+                            {
+                                Debug.Log($" {config.Name}: assetguid: {config.AssetGuid} params {string.Join(", ", config.Parameters.Select(p=>p.Name))}");
+                            }
+
+                            if (!string.IsNullOrEmpty(sensor.Plugin.AssetGuid))
+                            {
+                                offlineCandidate = Config.Sensors.FirstOrDefault(p => p.AssetGuid == sensor.Plugin.AssetGuid);
+                            }
+                            if (offlineCandidate == null && !string.IsNullOrEmpty(sensor.Name))
+                            {
+                                offlineCandidate = Config.Sensors.FirstOrDefault(p => p.Name == sensor.Name);
+                            }
+                            if(offlineCandidate != null)
+                            {
+                                sensor.Plugin.AssetGuid = offlineCandidate.AssetGuid;
+                                Debug.Log($"Updated details for sensor {sensor.Name}:  AssetGuid {offlineCandidate.AssetGuid} name: {offlineCandidate.Name}");
+                                continue;
+                            }
+
                             if (sensorsLibrary == null)
                             {
                                 sensorsLibrary = (await API.GetLibrary<PluginDetailData>())

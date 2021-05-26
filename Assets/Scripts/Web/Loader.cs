@@ -48,7 +48,7 @@ namespace Simulator
         public SensorData[] Sensors;
         public Vector3 Position;
         public Quaternion Rotation;
-        public AgentConfig(){}
+        public AgentConfig() { }
         public AgentConfig(VehicleData vehicleData)
         {
             Name = vehicleData.Name;
@@ -66,12 +66,12 @@ namespace Simulator
                 AssetBundle = Web.WebUtilities.GenerateLocalPath(vehicleData.AssetGuid, BundleConfig.BundleTypes.Vehicle);
             }
             Sensors = vehicleData.Sensors;
-            
+
             //Load sensors from the configuration if no sensors are set
-            if ((Sensors == null || Sensors.Length == 0) && 
-                vehicleData.SensorsConfigurations!=null && vehicleData.SensorsConfigurations.Length>0)
+            if ((Sensors == null || Sensors.Length == 0) &&
+                vehicleData.SensorsConfigurations != null && vehicleData.SensorsConfigurations.Length > 0)
                 Sensors = vehicleData.SensorsConfigurations[0].Sensors;
-            
+
 
             if (vehicleData.Bridge != null && !string.IsNullOrEmpty(vehicleData.Bridge.Type))
             {
@@ -163,7 +163,8 @@ namespace Simulator
 
         // NOTE: When simulation is not running this reference will be null.
         private SimulationData currentSimulation;
-        public SimulationData CurrentSimulation {
+        public SimulationData CurrentSimulation
+        {
             get { return currentSimulation; }
         }
 
@@ -186,7 +187,7 @@ namespace Simulator
 
         string reportedStatus(SimulatorStatus status)
         {
-            switch(status)
+            switch (status)
             {
                 case SimulatorStatus.Idle: return "Idle";
                 // WISE does not care about Loading, just Starting
@@ -318,7 +319,9 @@ namespace Simulator
                     if (string.IsNullOrEmpty(Config.CloudProxy))
                     {
                         API = new CloudAPI(new Uri(Config.CloudUrl), Config.SimID);
-                    } else {
+                    }
+                    else
+                    {
                         API = new CloudAPI(new Uri(Config.CloudUrl), new Uri(Config.CloudProxy), Config.SimID);
                     }
 
@@ -336,7 +339,7 @@ namespace Simulator
                 {
                     if (simData.Map != null)
                     {
-                        var progressUpdate = new Progress<Tuple<string,float>> (p => { ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2); });
+                        var progressUpdate = new Progress<Tuple<string, float>>(p => { ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2); });
                         var task = DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, simData.Map.AssetGuid, simData.Map.Name, progressUpdate);
                         downloads.Add(task);
                         Instance.assetDownloads.TryAdd(task, simData.Map.AssetGuid);
@@ -344,25 +347,33 @@ namespace Simulator
 
                     foreach (var vehicle in simData.Vehicles.Where(v => !v.Id.EndsWith(".prefab")).Select(v => v.AssetGuid).Distinct())
                     {
-                        var progressUpdate = new Progress<Tuple<string,float>> (p => { ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2); });
+                        var progressUpdate = new Progress<Tuple<string, float>>(p => { ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2); });
                         var task = DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicle, simData.Vehicles.First(v => v.AssetGuid == vehicle).Name, progressUpdate);
                         downloads.Add(task);
                         Instance.assetDownloads.TryAdd(task, vehicle);
                     }
 
                     List<SensorData> sensorsToDownload = new List<SensorData>();
-                    foreach(var data in simData.Vehicles)
+                    foreach (var data in simData.Vehicles)
                     {
                         foreach (var plugin in data.Sensors)
                         {
-                            if (plugin.Plugin.AssetGuid != null && sensorsToDownload.FirstOrDefault(s => s.Plugin.AssetGuid == plugin.Plugin.AssetGuid) == null)
+                            if (EditorPrefs.GetBool("Simulator/Developer Debug Mode", false) == true && Config.Sensors.FirstOrDefault(s => s.Name == plugin.Name) != null)
+                            {
+                                Debug.Log($"Sensor {plugin.Name} is not being downloaded, but used from cache or local sources. (Developer Debug Mode)");
+                                continue;
+                            }
+
+                            if (plugin.Plugin.AssetGuid != null
+                                && sensorsToDownload.FirstOrDefault(s => s.Plugin.AssetGuid == plugin.Plugin.AssetGuid) == null
+                            )
                             {
                                 sensorsToDownload.Add(plugin);
                             }
                         }
                     }
 
-                    foreach(var sensor in sensorsToDownload)
+                    foreach (var sensor in sensorsToDownload)
                     {
                         var pluginProgress = ConnectionUI.instance != null ?
                             new Progress<Tuple<string, float>>(p => ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2))
@@ -645,7 +656,7 @@ namespace Simulator
                 ZipEntry entry = zip.GetEntry("manifest.json");
                 using (var ms = zip.GetInputStream(entry))
                 {
-                    int streamSize = (int) entry.Size;
+                    int streamSize = (int)entry.Size;
                     byte[] buffer = new byte[streamSize];
                     streamSize = ms.Read(buffer, 0, streamSize);
                     manfile = Encoding.UTF8.GetString(buffer);
@@ -742,7 +753,7 @@ namespace Simulator
                         continue;
                     }
 #if UNITY_EDITOR
-                    if (EditorPrefs.GetBool("Simulator/Developer Debug Mode", false) == true)
+                    if (EditorPrefs.GetBool("Simulator/Developer Debug Mode", false) == true && !bundlePath.EndsWith(".prefab"))
                     {
                         string assetName = "";
                         using (ZipFile zip = new ZipFile(bundlePath))
@@ -766,7 +777,7 @@ namespace Simulator
                                 }
                             }
                         }
-                        
+
                         string filePath = Path.Combine(BundleConfig.ExternalBase, "Vehicles", assetName, $"{assetName}.prefab");
                         if (File.Exists(filePath))
                         {
@@ -776,7 +787,7 @@ namespace Simulator
 
                     if (bundlePath.EndsWith(".prefab"))
                     {
-                        agentConfig.Prefab = (GameObject) UnityEditor.AssetDatabase.LoadAssetAtPath(bundlePath, typeof(GameObject));
+                        agentConfig.Prefab = (GameObject)UnityEditor.AssetDatabase.LoadAssetAtPath(bundlePath, typeof(GameObject));
                     }
                     else
 #endif
@@ -869,7 +880,7 @@ namespace Simulator
                     {
                         throw new Exception($"Unsupported '{manifest.assetName}' vehicle asset bundle, only 1 asset expected");
                     }
-                    
+
                     //Import main assembly
                     var assembly = zip.GetEntry($"{manifest.assetName}.dll");
                     if (assembly != null)
@@ -877,7 +888,7 @@ namespace Simulator
                         using (var s = zip.GetInputStream(assembly))
                         {
                             byte[] buffer = new byte[s.Length];
-                            s.Read(buffer, 0, (int) s.Length);
+                            s.Read(buffer, 0, (int)s.Length);
                             Assembly.Load(buffer);
                         }
                     }
@@ -1125,7 +1136,7 @@ namespace Simulator
 
         async void WaitOnStop()
         {
-            while(Instance.status != SimulatorStatus.Idle)
+            while (Instance.status != SimulatorStatus.Idle)
             {
                 await Task.Delay(1000);
             }

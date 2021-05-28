@@ -54,6 +54,16 @@ namespace Simulator.Database.Services
             }
         }
 
+        public int Delete(SimulationData data)
+        {
+            using (var db = DatabaseManager.Open())
+            {
+                var sql = Sql.Builder.Where("simid = @0", data.Id);
+                Simulation sim = db.SingleOrDefault<Simulation>(sql);
+                int result = db.Delete<Simulation>(sql);
+                return result;
+            }
+        }
 
         public IEnumerable<SimulationData> List()
         {

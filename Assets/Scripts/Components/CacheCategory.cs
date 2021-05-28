@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -23,9 +23,12 @@ public class CacheCategory : MonoBehaviour
 
     private BundleConfig.BundleTypes CategoryType;
     private List<AssetModel> CategoryAssets;
-    private AssetService Service = new AssetService();
+    private List<SimulationData> SimulationsData;
 
-    public void Init(BundleConfig.BundleTypes type)
+    private AssetService Service = new AssetService();
+    private SimulationService SimulationService = new SimulationService();
+
+    public void InitBundles(BundleConfig.BundleTypes type)
     {
         CategoryDropdown = GetComponentInChildren<Dropdown>();
         CategoryDeleteButton = GetComponentInChildren<Button>();
@@ -34,6 +37,15 @@ public class CacheCategory : MonoBehaviour
         CategoryType = type;
         CategoryText.text = CategoryType.ToString();
         RefreshOptions();
+    }
+
+    public void InitSimulations()
+    {
+        CategoryDropdown = GetComponentInChildren<Dropdown>();
+        CategoryDeleteButton = GetComponentInChildren<Button>();
+        CategoryDeleteButton.onClick.AddListener(DeleteOption);
+        CategoryText.text = "Simulations";
+        RefreshSimulationsOptions();
     }
 
     public void RefreshOptions()
@@ -45,29 +57,57 @@ public class CacheCategory : MonoBehaviour
         CategoryDropdown.transform.parent.gameObject.SetActive(CategoryAssets.Count != 0);
     }
 
+    public void RefreshSimulationsOptions()
+    {
+        SimulationsData = SimulationService.List().ToList();
+        CategoryDropdown.ClearOptions();
+        CategoryDropdown.AddOptions(SimulationsData.Select(s => s.Name).ToList());
+        CategoryDropdown.value = 0;
+        CategoryDropdown.transform.parent.gameObject.SetActive(SimulationsData.Count != 0);
+    }
+
     public void DeleteOption()
     {
-        string assetGuid = CategoryAssets[CategoryDropdown.value].AssetGuid;
-        string assetPath = Path.Combine(Config.PersistentDataPath, CategoryType.ToString() + "s", assetGuid); // TODO align types with path
-        Service.Delete(assetGuid);
-        if (File.Exists(assetPath))
+        if (SimulationsData != null)
         {
-            File.Delete(assetPath);
+            SimulationService.Delete(SimulationsData[CategoryDropdown.value]);
+            RefreshSimulationsOptions();
         }
-        RefreshOptions();
+        else
+        {
+            string assetGuid = CategoryAssets[CategoryDropdown.value].AssetGuid;
+            string assetPath = Path.Combine(Config.PersistentDataPath, CategoryType.ToString() + "s", assetGuid); // TODO align types with path
+            Service.Delete(assetGuid);
+            if (File.Exists(assetPath))
+            {
+                File.Delete(assetPath);
+            }
+            RefreshOptions();
+        }
     }
 
     public void DeleteCategory()
     {
-        Service.DeleteCategory(CategoryType);
-        if (Directory.Exists(Path.Combine(Config.PersistentDataPath, CategoryType.ToString() + "s")))
+        if (SimulationsData != null)
         {
-            DirectoryInfo di = new DirectoryInfo(Path.Combine(Config.PersistentDataPath, CategoryType.ToString() + "s"));
-            foreach (FileInfo file in di.GetFiles())
+            foreach (var sim in SimulationsData)
             {
-                file.Delete();
+                SimulationService.Delete(sim);
             }
+            RefreshSimulationsOptions();
         }
-        RefreshOptions();
+        else
+        {
+            Service.DeleteCategory(CategoryType);
+            if (Directory.Exists(Path.Combine(Config.PersistentDataPath, CategoryType.ToString() + "s")))
+            {
+                DirectoryInfo di = new DirectoryInfo(Path.Combine(Config.PersistentDataPath, CategoryType.ToString() + "s"));
+                foreach (FileInfo file in di.GetFiles())
+                {
+                    file.Delete();
+                }
+            }
+            RefreshOptions();
+        }
     }
 }

@@ -51,9 +51,13 @@ public class CacheControlWindow : MonoBehaviour
         foreach (BundleConfig.BundleTypes cat in Enum.GetValues(typeof(BundleConfig.BundleTypes)))
         {
             var go = Instantiate(CategoryHolderPrefab, Content);
-            go.GetComponent<CacheCategory>().Init(cat);
+            go.GetComponent<CacheCategory>().InitBundles(cat);
             Categories.Add(go);
         }
+
+        var simGO = Instantiate(CategoryHolderPrefab, Content);
+        simGO.GetComponent<CacheCategory>().InitSimulations();
+        Categories.Add(simGO);
     }
 
     private void ClearCategories()

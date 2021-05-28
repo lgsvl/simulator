@@ -4,7 +4,7 @@ pipeline {
 
   agent {
     node {
-      label "unity3d-2019.4-vulkan"
+      label "gpu-vulkan"
       customWorkspace "/home/jenkins/workspace/simulator-cloud-bundles-release-2020.3.3f1-unityci"
     }
   }

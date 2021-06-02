@@ -98,27 +98,29 @@ namespace Simulator.Map
 
         public void GetNorthingEasting(double3 position, out double northing, out double easting, bool ignoreMapOrigin = false)
         {
-            northing = -position.x;
-            easting = position.z;
+            var mapOriginRelative = transform.InverseTransformPoint(new Vector3((float)position.x, (float)position.y, (float)position.z));
+
+            northing = mapOriginRelative.z;
+            easting = mapOriginRelative.x;
 
             if (!ignoreMapOrigin)
             {
-                easting += OriginEasting;
                 northing += OriginNorthing;
+                easting += OriginEasting;
             }
         }
 
         public Vector3 FromNorthingEasting(double northing, double easting, bool ignoreMapOrigin = false)
         {
-            double x = -northing;
-            double z = easting;
             if (!ignoreMapOrigin)
             {
-                x -= -OriginNorthing;
-                z -= OriginEasting;
+                northing -= OriginNorthing;
+                easting -= OriginEasting;
             }
 
-            return new Vector3((float)x, 0, (float)z);
+            var worldPosition = transform.TransformPoint(new Vector3((float)easting, 0, (float)northing));
+
+            return new Vector3(worldPosition.x, 0, worldPosition.z);
         }
 
         public static int GetZoneNumberFromLatLon(double latitude, double longitude)

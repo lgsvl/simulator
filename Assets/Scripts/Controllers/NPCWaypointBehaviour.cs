@@ -169,6 +169,7 @@ public class NPCWaypointBehaviour : NPCBehaviourBase
         {
             CurrentTarget = LaneData[CurrentIndex];
             controller.MovementSpeed = LaneSpeed[CurrentIndex];
+            controller.currentSpeed = LaneSpeed[CurrentIndex];
         }
 
         if (CurrentIndex == LaneData.Count)

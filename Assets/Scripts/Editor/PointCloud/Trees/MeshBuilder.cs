@@ -11,8 +11,9 @@ namespace Simulator.Editor.PointCloud.Trees
     using System.Collections.Generic;
     using System.IO;
     using Simulator.PointCloud.Trees;
-    using Simulator.Utilities;
     using UnityEngine;
+    using Utilities;
+    using Vert = MeshGenerationData.Vert;
 
     public class MeshBuilder : ParallelProcessor
     {
@@ -85,7 +86,7 @@ namespace Simulator.Editor.PointCloud.Trees
 
         private MeshGenerationData voxelData;
 
-        private readonly Dictionary<Vector3Int, MeshGenerationData> NeighborData = new Dictionary<Vector3Int, MeshGenerationData>();
+        private readonly Dictionary<Vector3Int, MeshGenerationData> neighborData = new Dictionary<Vector3Int, MeshGenerationData>();
 
         private string dataPath;
         private string tmpDataPath;
@@ -95,6 +96,13 @@ namespace Simulator.Editor.PointCloud.Trees
         private TreeImportData importData;
 
         private Vector3?[] cube = new Vector3?[8];
+
+        private Vector3Int[] cubeCoords = new Vector3Int[8];
+
+        // private Vector3[] cubePos = new Vector3[8];
+        private Vert[] cubeVerts = new Vert[8];
+        private Vert[] triVerts = new Vert[3];
+        private Vector3Int[] triCoords = new Vector3Int[3];
 
         public int VoxelsDone { get; private set; }
 
@@ -108,7 +116,7 @@ namespace Simulator.Editor.PointCloud.Trees
             voxelData = new MeshGenerationData();
 
             for (var i = 1; i < LutOffsets.Length; ++i)
-                NeighborData.Add(LutOffsets[i], new MeshGenerationData());
+                neighborData.Add(LutOffsets[i], new MeshGenerationData());
         }
 
         private static bool TryGetNeighbourId(string baseId, Vector3Int offset, out string neighbourId)
@@ -154,7 +162,7 @@ namespace Simulator.Editor.PointCloud.Trees
             var mainFilePath = Path.Combine(tmpDataPath, $"{record.Identifier}.meshdata");
 
             EditorTreeUtility.LoadMeshGenerationData(mainFilePath, voxelData);
-            var output = new MeshData();
+            var intermediateMesh = new MeshData();
 
             for (var i = 1; i < LutOffsets.Length; ++i)
             {
@@ -163,15 +171,18 @@ namespace Simulator.Editor.PointCloud.Trees
                     var edgePath = Path.Combine(tmpDataPath, $"{neighbourId}.meshedge");
                     if (!File.Exists(edgePath))
                     {
-                        NeighborData[LutOffsets[i]].Clear();
+                        neighborData[LutOffsets[i]].Clear();
                         continue;
                     }
 
-                    EditorTreeUtility.LoadMeshGenerationData(edgePath, NeighborData[LutOffsets[i]]);
+                    EditorTreeUtility.LoadMeshGenerationData(edgePath, neighborData[LutOffsets[i]]);
                 }
                 else
-                    NeighborData[LutOffsets[i]].Clear();
+                    neighborData[LutOffsets[i]].Clear();
             }
+
+            for (var i = 0; i < settings.erosionPasses; ++i)
+                ProcessErode(record);
 
             var step = Mathf.Min(record.Bounds.size.x, record.Bounds.size.z) /
                        settings.rootNodeSubdivision;
@@ -194,30 +205,246 @@ namespace Simulator.Editor.PointCloud.Trees
                         for (var i = 0; i < LutOffsets.Length; i++)
                         {
                             var pos = coord + LutOffsets[i];
-                            var val = GetCellValue(pos);
-                            if (val == null)
+                            if (!TryGetBuilderVert(pos, out var vert))
                                 cube[i] = null;
-                            else if (!roadBounds.Contains((Vector3) val))
+                            else if (!roadBounds.Contains(vert.position))
                                 cube[i] = null;
                             else
                             {
-                                var rel = (Vector3) val - alignedBounds.min;
+                                var rel = vert.position - alignedBounds.min;
                                 var value = rel - (Vector3) pos * step - centerOffset;
                                 cube[i] = value;
                             }
                         }
 
-                        ProcessCube(coord, alignedBounds.min, step, output);
+                        ProcessCube(coord, intermediateMesh);
                         VoxelsDone++;
                     }
                 }
             }
 
+            for (var i = 0; i < settings.erosionPasses; ++i)
+                LevelPoints();
+
+            var finalMesh = ProcessFinalMesh(intermediateMesh);
+
             var filePath = Path.Combine(dataPath, record.Identifier + TreeUtility.MeshFileExtension);
-            output.SaveToFile(filePath);
+            finalMesh.SaveToFile(filePath);
         }
 
-        private Vector3? GetCellValue(Vector3Int pos)
+        private void ProcessErode(NodeRecord record)
+        {
+            var step = Mathf.Min(record.Bounds.size.x, record.Bounds.size.z) /
+                       settings.rootNodeSubdivision;
+
+            var roadBounds = importData.RoadBounds;
+
+            for (var x = 0; x < voxelData.gridSize[0]; x++)
+            {
+                for (var y = 0; y < voxelData.gridSize[1]; y++)
+                {
+                    for (var z = 0; z < voxelData.gridSize[2]; z++)
+                    {
+                        if (cancelFlag)
+                            return;
+
+                        var coord = new Vector3Int(x, y, z);
+
+                        for (var i = 0; i < LutOffsets.Length; i++)
+                        {
+                            var cubeCoord = coord + LutOffsets[i];
+                            if (!TryGetBuilderVert(cubeCoord, out var val))
+                                cubeVerts[i] = null;
+                            else if (!roadBounds.Contains(val.position))
+                                cubeVerts[i] = null;
+                            else
+                            {
+                                cubeVerts[i] = val;
+                                cubeCoords[i] = cubeCoord;
+                            }
+                        }
+
+                        ProcessCubeErode(step);
+                    }
+                }
+            }
+        }
+
+        private void LevelPoints()
+        {
+            foreach (var vert in voxelData.builderVerts)
+                LevelVert(vert.Value);
+
+            foreach (var neighbor in neighborData)
+            {
+                foreach (var neighborVert in neighbor.Value.builderVerts)
+                    LevelVert(neighborVert.Value);
+            }
+        }
+
+        private void LevelVert(Vert vert)
+        {
+            if (!vert.needsLeveling)
+                return;
+
+            var sum = 0f;
+            var count = 0;
+            foreach (var link in vert.links)
+            {
+                if (TryGetBuilderVert(link, out var linkedVert))
+                {
+                    if (linkedVert.needsLeveling)
+                        continue;
+
+                    sum += linkedVert.position.y;
+                    count++;
+                }
+            }
+
+            if (count == 0)
+                return;
+
+            var pos = vert.position;
+            pos.y = sum / count;
+            vert.position = pos;
+            vert.needsLeveling = false;
+        }
+
+        private MeshData ProcessFinalMesh(MeshData intermediateMesh)
+        {
+            var doRemove = settings.removeSmallSurfaces;
+            var threshold = settings.smallSurfaceTriangleThreshold;
+            if (threshold < 1)
+                doRemove = false;
+
+            var result = new MeshData();
+
+            var indexReplacementDict = new Dictionary<int, int>();
+            var vertDict = new Dictionary<int, Vert>();
+            var count = 0;
+
+            var tmpVerts = new List<Vert>();
+            var stack = new Stack<Vert>();
+
+            foreach (var vert in voxelData.builderVerts)
+            {
+                var i = count++;
+                vert.Value.assignedIndex = i;
+
+                var pos = vert.Value.position;
+                if (pos.x == 0 || pos.z == 0)
+                    vert.Value.chunkEdge = true;
+
+                vertDict.Add(i, vert.Value);
+                foreach (var index in vert.Value.indices)
+                    indexReplacementDict[index] = vert.Value.assignedIndex;
+            }
+
+            foreach (var neighbor in neighborData)
+            {
+                foreach (var vert in neighbor.Value.builderVerts)
+                {
+                    var i = count++;
+                    vert.Value.assignedIndex = i;
+                    vert.Value.chunkEdge = true;
+                    vertDict.Add(i, vert.Value);
+                    foreach (var index in vert.Value.indices)
+                        indexReplacementDict[index] = vert.Value.assignedIndex;
+                }
+            }
+
+            if (doRemove)
+            {
+                var safety = 1024;
+                while (safety-- > 0)
+                {
+                    Vert start = null;
+
+                    foreach (var vert in vertDict)
+                    {
+                        if (vert.Value.connectedCount == 0)
+                        {
+                            start = vert.Value;
+                            break;
+                        }
+                    }
+
+                    if (start == null)
+                        break;
+
+                    tmpVerts.Clear();
+                    stack.Clear();
+                    stack.Push(start);
+                    var chunkEdge = false;
+
+                    while (stack.Count > 0)
+                    {
+                        var vert = stack.Pop();
+                        tmpVerts.Add(vert);
+                        vert.connectedCount = -1;
+                        if (vert.chunkEdge)
+                            chunkEdge = true;
+
+                        foreach (var link in vert.links)
+                        {
+                            if (TryGetBuilderVert(link, out var linkedVert))
+                            {
+                                if (linkedVert.connectedCount == 0)
+                                    stack.Push(linkedVert);
+                            }
+                        }
+                    }
+
+                    // Verts from neighboring chunks are not counted - always assume that triangles adjacent to chunk
+                    // edges are above removal threshold.
+                    var vertCount = tmpVerts.Count;
+                    if (chunkEdge)
+                        vertCount += threshold;
+
+                    foreach (var vert in tmpVerts)
+                        vert.connectedCount = vertCount;
+                }
+
+                if (safety == 0)
+                    Debug.LogWarning("Failed to remove small meshes, emergency break.");
+            }
+
+            foreach (var index in intermediateMesh.indices)
+            {
+                var vert = vertDict[indexReplacementDict[index]];
+                if (doRemove && vert.connectedCount < threshold)
+                    continue;
+
+                result.verts.Add(vert.position);
+                result.indices.Add(index);
+            }
+
+            return result;
+        }
+
+        private bool TryGetBuilderVert(Vector3Int pos, out Vert vert)
+        {
+            vert = null;
+
+            var dx = pos.x - voxelData.gridSize[0];
+            var dy = pos.y - voxelData.gridSize[1];
+            var dz = pos.z - voxelData.gridSize[2];
+
+            if (dx < 0 && dy < 0 && dz < 0)
+            {
+                return voxelData.builderVerts.TryGetValue(pos, out vert);
+            }
+
+            var neighborOffset = new Vector3Int(Math.Max(dx + 1, 0), Math.Max(dy + 1, 0), Math.Max(dz + 1, 0));
+            var lNeighborData = neighborData[neighborOffset];
+            if (lNeighborData.builderVerts.Count == 0)
+                return false;
+
+            var nPos = (Vector3Int.one - neighborOffset) * pos;
+            return lNeighborData.builderVerts.TryGetValue(nPos, out vert);
+        }
+
+        private void ClearCellValue(Vector3Int pos)
         {
             var dx = pos.x - voxelData.gridSize[0];
             var dy = pos.y - voxelData.gridSize[1];
@@ -225,26 +452,24 @@ namespace Simulator.Editor.PointCloud.Trees
 
             if (dx < 0 && dy < 0 && dz < 0)
             {
-                var flat = TreeUtility.Flatten(pos, voxelData.gridSize);
-                return voxelData.cells.TryGetValue(flat, out var val) ? val : (Vector3?) null;
+                if (voxelData.builderVerts.ContainsKey(pos))
+                    voxelData.builderVerts.Remove(pos);
+                return;
             }
 
             var neighborOffset = new Vector3Int(Math.Max(dx + 1, 0), Math.Max(dy + 1, 0), Math.Max(dz + 1, 0));
-            var neighborData = NeighborData[neighborOffset];
-            if (neighborData.cells.Count == 0)
-                return null;
+            var lNeighborData = neighborData[neighborOffset];
+            if (lNeighborData.builderVerts.Count == 0)
+                return;
 
             var nPos = (Vector3Int.one - neighborOffset) * pos;
-            var nFlat = TreeUtility.Flatten(nPos, neighborData.gridSize);
-            return neighborData.cells.TryGetValue(nFlat, out var nVal) ? nVal : (Vector3?) null;
+            if (lNeighborData.builderVerts.ContainsKey(nPos))
+                lNeighborData.builderVerts.Remove(nPos);
         }
 
-        private void ProcessCube(Vector3Int coord, Vector3 boundsMin, float step, MeshData output)
+        private void ProcessCube(Vector3Int coord, MeshData output)
         {
-            // int j, vert, idx;
             int flagIndex = 0;
-            var offset = Vector3.one * (step * 0.5f);
-
             for (var i = 0; i < 8; i++)
             {
                 if (cube[i] != null)
@@ -261,11 +486,91 @@ namespace Simulator.Editor.PointCloud.Trees
                     for (var j = 0; j < tris.Length; ++j)
                     {
                         var gId = tris[j];
-                        var localOffset = cube[gId] ?? Vector3.zero;
-                        var vPos = boundsMin + offset + localOffset + (coord + (Vector3) LutOffsets[gId]) * step;
+                        var vCoord = coord + LutOffsets[gId];
+                        TryGetBuilderVert(vCoord, out var vertData);
+                        var vPos = vertData.position;
+                        var index = count + j;
 
                         output.verts.Add(vPos);
-                        output.indices.Add(count + j);
+                        output.indices.Add(index);
+                        vertData.AddIndex(index);
+                        triCoords[j % 3] = vCoord;
+                        triVerts[j % 3] = vertData;
+                        if (j % 3 == 2)
+                        {
+                            for (var k = 0; k < 3; ++k)
+                            {
+                                triVerts[k].AddLink(triCoords[Utility.LoopIndex(k + 1, 3)]);
+                                triVerts[k].AddLink(triCoords[Utility.LoopIndex(k + 2, 3)]);
+                            }
+                        }
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        private void ProcessCubeErode(float step)
+        {
+            int flagIndex = 0;
+
+            for (var i = 0; i < 8; i++)
+            {
+                if (cubeVerts[i] != null)
+                    flagIndex |= 1 << i;
+            }
+
+            for (var i = LutMask.Length - 1; i >= 0; --i)
+            {
+                var clearedIndex = flagIndex & ~LutClear[i];
+                if (clearedIndex == LutMask[i])
+                {
+                    var btmMin = float.MaxValue;
+                    var btmMax = float.MinValue;
+                    var topMax = float.MinValue;
+
+                    for (var j = 0; j < 4; ++j)
+                    {
+                        var btm = cubeVerts[j];
+                        if (btm != null)
+                        {
+                            btmMin = Mathf.Min(btmMin, btm.position.y);
+                            btmMax = Mathf.Max(btmMax, btm.position.y);
+                        }
+
+                        var top = cubeVerts[j + 4];
+                        if (top != null)
+                        {
+                            topMax = Mathf.Max(topMax, top.position.y);
+                        }
+                    }
+
+                    var diff = topMax - btmMin;
+                    var angle = Mathf.Atan2(diff, step) * Mathf.Rad2Deg;
+                    var botDiff = btmMax - btmMin;
+                    var botAngle = Mathf.Atan2(botDiff, step) * Mathf.Rad2Deg;
+
+                    if (i == 0 && botAngle > settings.erosionAngleThreshold)
+                    {
+                        for (var j = 0; j < 4; ++j)
+                            cubeVerts[j].needsLeveling = true;
+                    }
+                    else if (angle > settings.erosionAngleThreshold)
+                    {
+                        for (var j = 4; j < 8; ++j)
+                        {
+                            if (cubeVerts[j] != null)
+                            {
+                                if (TryGetBuilderVert(cubeCoords[j] + Vector3Int.down, out var below))
+                                {
+                                    ClearCellValue(cubeCoords[j]);
+                                    below.needsLeveling = true;
+                                }
+                                else
+                                    cubeVerts[j].needsLeveling = true;
+                            }
+                        }
                     }
 
                     break;

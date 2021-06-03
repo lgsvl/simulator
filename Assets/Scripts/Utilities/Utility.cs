@@ -595,5 +595,10 @@ namespace Simulator.Utilities
              new Plane(farBottomRight,farBottomLeft,farTopLeft)};
             return planes;
         }
+        
+        public static int LoopIndex(int index, int count)
+        {
+            return (index % count + count) % count;
+        }
     }
 }

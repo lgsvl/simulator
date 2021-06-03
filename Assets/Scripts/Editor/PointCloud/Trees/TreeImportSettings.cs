@@ -107,6 +107,32 @@ namespace Simulator.Editor.PointCloud.Trees
         public int meshDetailLevel = 3;
 
         /// <summary>
+        /// Amount of passes eroding mesh obstacles. Can be used to flatten generated mesh.
+        /// </summary>
+        [Range(0, 8)]
+        [Tooltip("Amount of passes eroding mesh obstacles. Can be used to flatten generated mesh.")]
+        public int erosionPasses = 0;
+
+        /// <summary>
+        /// Mesh triangles below this threshold will not be affected by erosion passes.
+        /// </summary>
+        [Range(0f, 30f)]
+        [Tooltip("Mesh triangles below this threshold will not be affected by erosion passes.")]
+        public float erosionAngleThreshold = 10f;
+
+        /// <summary>
+        /// If true, small groups of triangles will be removed from mesh.
+        /// </summary>
+        [Tooltip("Mesh triangles below this threshold will not be affected by erosion passes.")]
+        public bool removeSmallSurfaces;
+
+        /// <summary>
+        /// Group of triangles above this threshold will not be removed if removeSmallSurfaces is set to true.
+        /// </summary>
+        [Tooltip("Mesh triangles below this threshold will not be affected by erosion passes.")]
+        public int smallSurfaceTriangleThreshold = 50;
+
+        /// <summary>
         /// <para>Amount of worker threads used for building the tree.</para>
         /// <para>Note: each thread allocates additional memory.</para>
         /// </summary>

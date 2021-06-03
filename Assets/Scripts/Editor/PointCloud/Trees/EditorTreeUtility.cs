@@ -80,6 +80,8 @@ namespace Simulator.Editor.PointCloud.Trees
                     }
                 }
             }
+
+            output.UpdateVolatileData();
         }
 
         public static float GetStepAtTreeLevel(Bounds rootBounds, TreeImportSettings settings, int level)

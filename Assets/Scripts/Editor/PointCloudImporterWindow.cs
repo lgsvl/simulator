@@ -91,6 +91,10 @@ namespace Simulator.Editor
         private SerializedProperty minPointDistance;
         private SerializedProperty generateMesh;
         private SerializedProperty roadOnlyMesh;
+        private SerializedProperty erosionPasses;
+        private SerializedProperty erosionAngleThreshold;
+        private SerializedProperty removeSmallSurfaces;
+        private SerializedProperty smallSurfaceTriangleThreshold;
         private SerializedProperty meshDetailLevel;
         private SerializedProperty threadCount;
         private SerializedProperty chunkSize;
@@ -180,6 +184,10 @@ namespace Simulator.Editor
             minPointDistance = serializedSettings.FindProperty(nameof(TreeImportSettings.minPointDistance));
             generateMesh = serializedSettings.FindProperty(nameof(TreeImportSettings.generateMesh));
             roadOnlyMesh = serializedSettings.FindProperty(nameof(TreeImportSettings.roadOnlyMesh));
+            erosionPasses = serializedSettings.FindProperty(nameof(TreeImportSettings.erosionPasses));
+            erosionAngleThreshold = serializedSettings.FindProperty(nameof(TreeImportSettings.erosionAngleThreshold));
+            removeSmallSurfaces = serializedSettings.FindProperty(nameof(TreeImportSettings.removeSmallSurfaces));
+            smallSurfaceTriangleThreshold = serializedSettings.FindProperty(nameof(TreeImportSettings.smallSurfaceTriangleThreshold));
             meshDetailLevel = serializedSettings.FindProperty(nameof(TreeImportSettings.meshDetailLevel));
             threadCount = serializedSettings.FindProperty(nameof(TreeImportSettings.threadCount));
             chunkSize = serializedSettings.FindProperty(nameof(TreeImportSettings.chunkSize));
@@ -253,6 +261,11 @@ namespace Simulator.Editor
                         EditorGUILayout.HelpBox("Road detection is not suitable for all data sets. If you experience problems, try again with this option off.", MessageType.Info);
                     
                     EditorGUILayout.PropertyField(meshDetailLevel);
+                    EditorGUILayout.PropertyField(erosionPasses);
+                    EditorGUILayout.PropertyField(erosionAngleThreshold);
+                    EditorGUILayout.PropertyField(removeSmallSurfaces);
+                    if (removeSmallSurfaces.boolValue)
+                        EditorGUILayout.PropertyField(smallSurfaceTriangleThreshold);
                 }
                 EditorGUI.EndDisabledGroup();
             }

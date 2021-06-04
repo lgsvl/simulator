@@ -163,7 +163,8 @@ namespace Simulator.Web
                             AssetGuid = assetGuid,
                             Type = typeString,
                             Name = name,
-                            LocalPath = localPath
+                            LocalPath = localPath,
+                            DateAdded = DateTime.UtcNow.ToString()
                         };
                         assetService.Add(model);
                         Debug.Log($"{name} Download Complete.");

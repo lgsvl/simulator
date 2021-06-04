@@ -18,6 +18,8 @@ namespace Simulator.Database
         public string Type { get; set; }
         public string Name { get; set; }
         public string LocalPath { get; set; }
+
+        public string DateAdded { get; set; }
     }
 
     [TableName("clientSettings")]

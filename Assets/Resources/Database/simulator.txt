@@ -10,7 +10,8 @@ CREATE TABLE assets (
 	assetGuid VARCHAR(512) NOT NULL PRIMARY KEY,
 	type VARCHAR(256) NOT NULL,
 	name VARCHAR(512) DEFAULT NULL,
-	localPath VARCHAR(4096) NOT NULL
+	localPath VARCHAR(4096) NOT NULL,
+	ADD DateAdded VARCHAR(512) DEFAULT NULL
 );
 
 DROP TABLE IF EXISTS clientSettings;
@@ -26,7 +27,7 @@ CREATE TABLE simulations (
 	simData TEXT NOT NULL
 );
 
-PRAGMA user_version = 7;
+PRAGMA user_version = 8;
 PRAGMA table_info(assets);
 PRAGMA table_info(clientSettings);
 PRAGMA table_info(simulations);

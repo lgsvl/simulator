@@ -52,7 +52,7 @@ public class CacheCategory : MonoBehaviour
     {
         CategoryAssets = Service.List(CategoryType).ToList();
         CategoryDropdown.ClearOptions();
-        CategoryDropdown.AddOptions(CategoryAssets.Select(e => e.Name).ToList());
+        CategoryDropdown.AddOptions(CategoryAssets.Select(e => e.Name + " " + e.DateAdded).ToList());
         CategoryDropdown.value = 0;
         CategoryDropdown.transform.parent.gameObject.SetActive(CategoryAssets.Count != 0);
     }

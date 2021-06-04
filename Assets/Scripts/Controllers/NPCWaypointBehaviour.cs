@@ -170,6 +170,7 @@ public class NPCWaypointBehaviour : NPCBehaviourBase
             CurrentTarget = LaneData[CurrentIndex];
             controller.MovementSpeed = LaneSpeed[CurrentIndex];
             controller.currentSpeed = LaneSpeed[CurrentIndex];
+            controller.steerVector = (CurrentTarget - controller.frontCenter.position).normalized;
         }
 
         if (CurrentIndex == LaneData.Count)

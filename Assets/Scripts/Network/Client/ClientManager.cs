@@ -42,6 +42,11 @@ namespace Simulator.Network.Client
         private IEnumerator timeoutCoroutine;
 
         /// <summary>
+        /// Coroutine to iterate master ip adresses to try
+        /// </summary>
+        private Coroutine masterEndpointsCouroutine;
+
+        /// <summary>
         /// Current state of the simulation
         /// </summary>
         private SimulationState State { get; set; } = SimulationState.Initial;
@@ -216,6 +221,7 @@ namespace Simulator.Network.Client
         {
             Debug.Assert(State == SimulationState.Connecting);
             Connection.DroppedAllConnections -= TryConnectToMasterEndPoints;
+            StopCoroutine(masterEndpointsCouroutine);
             MasterPeer = peer;
 
             Log.Info($"Peer {peer.PeerEndPoint} connected.");
@@ -282,22 +288,32 @@ namespace Simulator.Network.Client
         /// <summary>
         /// Tries to connect to any master end point
         /// </summary>
-        private void TryConnectToMasterEndPoints()
+        private void TryConnectToMasterEndPoints() {
+            masterEndpointsCouroutine =  StartCoroutine(IterateMasterEndpoints());
+        }
+
+        /// <summary>
+        ///  Iterates through master endpoint adresses
+        /// </summary>
+        private IEnumerator IterateMasterEndpoints()
         {
             var network = Loader.Instance.Network;
             //Check if this simulation was not deinitialized
             if (!network.IsClient)
-                return;
+                yield break;
             var masterEndPoints = network.MasterAddresses;
             var identifier = network.LocalIdentifier;
             foreach (var masterEndPoint in masterEndPoints)
             {
+                if(State == SimulationState.Connected)
+                    yield break;
                 //Check if client is already connected
                 if (MasterPeer != null)
-                    return;
+                    yield break;
                 if (!IPAddress.IsLoopback(masterEndPoint.Address))
                 {
                     Connection.Connect(masterEndPoint, identifier);
+                    yield return new WaitForSecondsRealtime(2.0f);
                 }
             }
         }

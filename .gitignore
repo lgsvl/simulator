@@ -52,3 +52,9 @@
 /svlsimulator-bundles*.html
 /svlsimulator-*.zip
 /UserSettings/EditorUserSettings.asset*
+
+# Houdini Engine Unity
+/heu_session.txt
+/heu_settings.ini
+**/HoudiniEngineUnity/
+**/HoudiniEngineUnity.meta

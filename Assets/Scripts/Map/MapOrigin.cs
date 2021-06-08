@@ -96,6 +96,13 @@ namespace Simulator.Map
             return location;
         }
 
+        public Vector3 FromGpsLocation(double latitude, double longitude)
+        {
+            FromLatitudeLongitude(latitude, longitude, out var northing, out var easting);
+            var x = FromNorthingEasting(northing, easting);
+            return x;
+        }
+
         public void GetNorthingEasting(double3 position, out double northing, out double easting, bool ignoreMapOrigin = false)
         {
             var mapOriginRelative = transform.InverseTransformPoint(new Vector3((float)position.x, (float)position.y, (float)position.z));
@@ -125,7 +132,7 @@ namespace Simulator.Map
 
         public static int GetZoneNumberFromLatLon(double latitude, double longitude)
         {
-            int zoneNumber = (int)(Math.Floor((longitude + 180)/6) + 1);
+            int zoneNumber = (int)(Math.Floor((longitude + 180) / 6) + 1);
             if (latitude >= 56.0 && latitude < 64.0 && longitude >= 3.0 && longitude < 12.0)
             {
                 zoneNumber = 32;

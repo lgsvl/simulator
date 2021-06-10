@@ -203,6 +203,7 @@ namespace Simulator
 
         public void reportStatus(SimulatorStatus value, string message = "")
         {
+            Debug.Log($"loader status: {status}->{value} {message}");
             Console.WriteLine($"[LOADER] Update simulation status {status} -> {value}");
 
             var previous = reportedStatus(status);
@@ -218,7 +219,9 @@ namespace Simulator
             if (previous == newStatus)
                 return;
 
-            if (ConnectionManager.instance != null)
+            if (ConnectionManager.instance != null &&
+                ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline &&
+                CurrentSimulation != null)
             {
                 ConnectionManager.instance.UpdateStatus(newStatus, CurrentSimulation.Id, message);
             }
@@ -307,7 +310,7 @@ namespace Simulator
             CloudAPI API = null;
             if (Instance.Status != SimulatorStatus.Idle)
             {
-                Debug.LogWarning("Received start simulation command while Simulator is not idle.");
+                Debug.LogWarning($"Received start simulation command while Simulator is not idle. (status: {Instance.Status})");
                 return;
             }
             try
@@ -534,7 +537,7 @@ namespace Simulator
 
                     Instance.reportStatus(SimulatorStatus.Error, ex.Message);
 
-                    if (SceneManager.GetActiveScene().name != Instance.LoaderScene && ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline)
+                    if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
                     {
                         Instance.reportStatus(SimulatorStatus.Stopping);
                         SceneManager.LoadScene(Instance.LoaderScene);
@@ -552,6 +555,7 @@ namespace Simulator
             {
                 return;
             }
+            Instance.reportStatus(SimulatorStatus.Stopping);
 
             if (Instance.Sentry != null)
             {
@@ -572,7 +576,6 @@ namespace Simulator
                     }
 
                     Instance.assetDownloads.Clear();
-                    Instance.reportStatus(SimulatorStatus.Stopping);
                     await Instance.Network.Deinitialize();
                     Instance.ConnectionUI.SetLoaderUIState(ConnectionUI.LoaderUIStateType.START);
                     Instance.reportStatus(SimulatorStatus.Idle);
@@ -583,7 +586,6 @@ namespace Simulator
                 if (ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline)
                 {
                     Instance.Network?.BroadcastStopCommand();
-                    Instance.reportStatus(SimulatorStatus.Stopping);
                 }
 
                 if (SimulatorManager.InstanceAvailable)
@@ -802,7 +804,7 @@ namespace Simulator
                 var sim = CreateSimulatorManager();
                 sim.Init(simulation.Seed);
 
-                if (Instance.CurrentSimulation != null && ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline)
+                if (Instance.CurrentSimulation != null)
                 {
                     Instance.reportStatus(SimulatorStatus.Running);
                 }
@@ -961,7 +963,7 @@ namespace Simulator
 
         public static void ResetLoaderScene(SimulationData simulation)
         {
-            if (SceneManager.GetActiveScene().name != Instance.LoaderScene && ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline)
+            if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
             {
                 Instance.reportStatus(SimulatorStatus.Stopping);
 

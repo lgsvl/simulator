@@ -111,7 +111,7 @@ namespace Simulator.Api.Commands
                 var sim = Loader.CreateSimulatorManager();
                 sim.Init(seed);
 
-                if (Loader.Instance.CurrentSimulation != null && ConnectionManager.Status != ConnectionManager.ConnectionStatus.Offline)
+                if (Loader.Instance.CurrentSimulation != null)
                 {
                     Loader.Instance.reportStatus(SimulatorStatus.Running);
                 }

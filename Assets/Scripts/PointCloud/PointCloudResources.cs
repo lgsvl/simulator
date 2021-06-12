@@ -38,7 +38,7 @@ namespace Simulator.PointCloud
                 circlesDepthPrepass = circlesMat.FindPass("Point Cloud Circles Depth Prepass");
                 lidarCompose = solidComposeMat.FindPass("Point Cloud Lidar Compose");
                 depthCompose = solidComposeMat.FindPass("Point Cloud Depth Compose");
-                depthCircles = solidComposeMat.FindPass("Point Cloud Depth Circles");
+                depthCircles = circlesMat.FindPass("Point Cloud Circles Depth");
                 solidCompose = solidComposeMat.FindPass("Point Cloud Default Compose");
                 circlesShadowcaster = circlesMat.FindPass("Point Cloud Circles ShadowCaster");
                 lidarCircles = circlesMat.FindPass("Point Cloud Circles Lidar");

@@ -61,6 +61,20 @@ namespace Simulator.PointCloud
             Lidar = 1 << 2,
             Default = Camera | Lidar
         }
+
+        private struct ViewportSettings
+        {
+            public readonly int width;
+            public readonly int height;
+            public readonly float fieldOfView;
+
+            public ViewportSettings(int width, int height, float fieldOfView)
+            {
+                this.width = width;
+                this.height = height;
+                this.fieldOfView = fieldOfView;
+            }
+        }
 #endregion
 
         public ColorizeType Colorize = ColorizeType.RainbowIntensity;
@@ -279,13 +293,13 @@ namespace Simulator.PointCloud
             }
         }
 
-        public void RenderLidar(CommandBuffer cmd, HDCamera targetCamera, RTHandle colorBuffer, RTHandle depthBuffer)
+        public void RenderLidar(CommandBuffer cmd, HDCamera targetCamera, RTHandle colorBuffer, RTHandle depthBuffer, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
             var solid = RenderMode == RenderType.Solid;
-            RenderLidar(cmd, targetCamera, colorBuffer, depthBuffer, solid);
+            RenderLidar(cmd, targetCamera, colorBuffer, depthBuffer, solid, cubemapFace);
         }
 
-        public void RenderLidar(CommandBuffer cmd, HDCamera targetCamera, RTHandle colorBuffer, RTHandle depthBuffer, bool solid)
+        public void RenderLidar(CommandBuffer cmd, HDCamera targetCamera, RTHandle colorBuffer, RTHandle depthBuffer, bool solid, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
 #if UNITY_EDITOR
             if (targetCamera.camera.cameraType == CameraType.SceneView)
@@ -296,65 +310,87 @@ namespace Simulator.PointCloud
                 return;
 
             if (solid)
-                RenderLidarSolid(cmd, targetCamera, colorBuffer, depthBuffer);
+                RenderLidarSolid(cmd, targetCamera, colorBuffer, depthBuffer, cubemapFace);
             else
-                RenderLidarPoints(cmd, targetCamera, colorBuffer, depthBuffer);
+                RenderLidarPoints(cmd, targetCamera, colorBuffer, depthBuffer, cubemapFace);
         }
         
-        public void RenderDepth(CommandBuffer cmd, HDCamera targetCamera, RTHandle colorBuffer, RTHandle depthBuffer)
+        public void RenderDepth(CommandBuffer cmd, HDCamera targetCamera, RTHandle colorBuffer, RTHandle depthBuffer, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
             var solid = RenderMode == RenderType.Solid;
-            RenderDepth(cmd, targetCamera, colorBuffer, depthBuffer, solid);
+            RenderDepth(cmd, targetCamera, colorBuffer, depthBuffer, solid, cubemapFace);
         }
 
-        public void RenderDepth(CommandBuffer cmd, HDCamera targetCamera, RTHandle colorBuffer, RTHandle depthBuffer, bool solid)
+        public void RenderDepth(CommandBuffer cmd, HDCamera targetCamera, RTHandle colorBuffer, RTHandle depthBuffer, bool solid, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
             if ((Mask & RenderMask.Camera) == 0 || Buffer == null || PointCount == 0 || !isActiveAndEnabled)
                 return;
 
             if (solid)
-                RenderDepthSolid(cmd, targetCamera, colorBuffer, depthBuffer);
+                RenderDepthSolid(cmd, targetCamera, colorBuffer, depthBuffer, cubemapFace);
             else
-                RenderDepthPoints(cmd, targetCamera, colorBuffer, depthBuffer);
+                RenderDepthPoints(cmd, targetCamera, colorBuffer, depthBuffer, cubemapFace);
         }
 
-        private void RenderLidarSolid(CommandBuffer cmd, HDCamera targetCamera, RTHandle colorBuffer, RTHandle depthBuffer)
+        private void RenderLidarSolid(CommandBuffer cmd, HDCamera targetCamera, RTHandle colorBuffer, RTHandle depthBuffer, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
             // This value changes multiple times per frame, so it has to be set through command buffer, hence global
             CoreUtils.SetKeyword(cmd, PointCloudShaderIDs.SolidCompose.TargetGBufferKeyword, false);
 
-            RenderSolidCore(cmd, targetCamera, null, false, false);
+            var viewportSettings = cubemapFace == CubemapFace.Unknown 
+                ? new ViewportSettings(targetCamera.actualWidth, targetCamera.actualHeight, targetCamera.camera.fieldOfView) 
+                : new ViewportSettings(colorBuffer.rt.width, colorBuffer.rt.height, 90f);
+
+            RenderSolidCore(cmd, targetCamera, null, false, false, viewportSettings, cubemapFace);
 
             // One texture can't be set as target and read from at the same time - copy needed
             var rtLidarCopy = Resources.GetCustomSizedDepthRT(depthBuffer.referenceSize);
-            cmd.CopyTexture(depthBuffer, rtLidarCopy);
+            if (cubemapFace != CubemapFace.Unknown)
+            {
+                // No need to allocate cubemap with depth - just reuse single face
+                cmd.CopyTexture(depthBuffer, (int) cubemapFace, 0, 0, 0, depthBuffer.rt.width,
+                    depthBuffer.rt.height, rtLidarCopy, 0, 0, 0, 0);
+            }
+            else
+                cmd.CopyTexture(depthBuffer, rtLidarCopy);
 
             cmd.SetGlobalTexture(PointCloudShaderIDs.SolidCompose.ColorTexture, Resources.GetRTHandle(RTUsage.ColorBuffer));
             cmd.SetGlobalTexture(PointCloudShaderIDs.SolidCompose.OriginalDepth, rtLidarCopy);
-            cmd.SetGlobalVector(PointCloudShaderIDs.SolidCompose.ReprojectionVector, GetFovReprojectionVector(targetCamera.camera));
+            cmd.SetGlobalVector(PointCloudShaderIDs.SolidCompose.ReprojectionVector, GetFovReprojectionVector(viewportSettings));
             var lidarComposePass = Resources.Passes.lidarCompose;
 
-            CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer);
+            CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer, cubemapFace: cubemapFace);
             CoreUtils.DrawFullScreen(cmd, Resources.SolidComposeMaterial, shaderPassId: lidarComposePass);
         }
 
-        private void RenderDepthSolid(CommandBuffer cmd, HDCamera targetCamera, RTHandle colorBuffer, RTHandle depthBuffer)
+        private void RenderDepthSolid(CommandBuffer cmd, HDCamera targetCamera, RTHandle colorBuffer, RTHandle depthBuffer, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
             // This value changes multiple times per frame, so it has to be set through command buffer, hence global
             CoreUtils.SetKeyword(cmd, PointCloudShaderIDs.SolidCompose.TargetGBufferKeyword, false);
 
-            RenderSolidCore(cmd, targetCamera, null, false, false);
+            var viewportSettings = cubemapFace == CubemapFace.Unknown 
+                ? new ViewportSettings(targetCamera.actualWidth, targetCamera.actualHeight, targetCamera.camera.fieldOfView) 
+                : new ViewportSettings(colorBuffer.rt.width, colorBuffer.rt.height, 90f);
+
+            RenderSolidCore(cmd, targetCamera, null, false, false, viewportSettings, cubemapFace);
 
             // One texture can't be set as target and read from at the same time - copy needed
             var rtDepthCopy = Resources.GetCustomSizedDepthRT(depthBuffer.referenceSize);
-            cmd.CopyTexture(depthBuffer, rtDepthCopy);
+            if (cubemapFace != CubemapFace.Unknown)
+            {
+                // No need to allocate cubemap with depth - just reuse single face
+                cmd.CopyTexture(depthBuffer, (int) cubemapFace, 0, 0, 0, depthBuffer.rt.width,
+                    depthBuffer.rt.height, rtDepthCopy, 0, 0, 0, 0);
+            }
+            else
+                cmd.CopyTexture(depthBuffer, rtDepthCopy);
 
             cmd.SetGlobalTexture(PointCloudShaderIDs.SolidCompose.ColorTexture, Resources.GetRTHandle(RTUsage.ColorBuffer));
             cmd.SetGlobalTexture(PointCloudShaderIDs.SolidCompose.OriginalDepth, rtDepthCopy);
-            cmd.SetGlobalVector(PointCloudShaderIDs.SolidCompose.ReprojectionVector, GetFovReprojectionVector(targetCamera.camera));
+            cmd.SetGlobalVector(PointCloudShaderIDs.SolidCompose.ReprojectionVector, GetFovReprojectionVector(viewportSettings));
             var depthComposePass = Resources.Passes.depthCompose;
 
-            CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer);
+            CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer, cubemapFace: cubemapFace);
             CoreUtils.DrawFullScreen(cmd, Resources.SolidComposeMaterial, shaderPassId: depthComposePass);
         }
 
@@ -365,11 +401,12 @@ namespace Simulator.PointCloud
             var calculateNormals = CalculateNormals;
             var smoothNormals = SmoothNormals && calculateNormals;
             var unlitShadows = CalculateNormals && Lighting == LightingMode.ShadowReceiver;
-            
+            var viewportSettings = new ViewportSettings(targetCamera.actualWidth, targetCamera.actualHeight, targetCamera.camera.fieldOfView);
+
             CoreUtils.SetKeyword(cmd, PointCloudShaderIDs.SolidCompose.TargetGBufferKeyword, targetGBuffer);
             CoreUtils.SetKeyword(cmd, PointCloudShaderIDs.SolidCompose.UnlitShadowsKeyword, unlitShadows);
-            
-            RenderSolidCore(cmd, targetCamera, cameraColorBuffer, calculateNormals, smoothNormals);
+
+            RenderSolidCore(cmd, targetCamera, cameraColorBuffer, calculateNormals, smoothNormals, viewportSettings);
 
             // One texture can't be set as target and read from at the same time - copy needed depth data
             var depthCopy = Resources.GetRTHandle(RTUsage.DepthCopy);
@@ -378,7 +415,7 @@ namespace Simulator.PointCloud
             cmd.SetGlobalTexture(PointCloudShaderIDs.SolidCompose.ColorTexture, Resources.GetRTHandle(RTUsage.ColorBuffer));
             cmd.SetGlobalTexture(PointCloudShaderIDs.SolidCompose.NormalTexture, Resources.GetRTHandle(RTUsage.Generic0));
             cmd.SetGlobalTexture(PointCloudShaderIDs.SolidCompose.OriginalDepth, depthCopy);
-            cmd.SetGlobalVector(PointCloudShaderIDs.SolidCompose.ReprojectionVector, GetFovReprojectionVector(targetCamera.camera));
+            cmd.SetGlobalVector(PointCloudShaderIDs.SolidCompose.ReprojectionVector, GetFovReprojectionVector(viewportSettings));
             var composePass = Resources.Passes.solidCompose;
 
             CoreUtils.SetRenderTarget(cmd, rtIds, depthBuffer);
@@ -394,7 +431,14 @@ namespace Simulator.PointCloud
             // CoreUtils.DrawFullScreen(cmd, SolidBlitMaterial, shaderPassId: composePass);
         }
 
-        private void RenderSolidCore(CommandBuffer cmd, HDCamera targetCamera, RTHandle cameraColorBuffer, bool calculateNormals, bool smoothNormals)
+        private void RenderSolidCore(
+            CommandBuffer cmd,
+            HDCamera targetCamera,
+            RTHandle cameraColorBuffer,
+            bool calculateNormals,
+            bool smoothNormals,
+            ViewportSettings viewportSettings,
+            CubemapFace cubemapFace = CubemapFace.Unknown)
         {
             var rt = Resources.GetRTHandle(RTUsage.PointRender);
             var rt1 = Resources.GetRTHandle(RTUsage.Generic0);
@@ -403,8 +447,10 @@ namespace Simulator.PointCloud
             var rtDepth = Resources.GetRTHandle(RTUsage.DepthBuffer);
             var rtDepth2 = Resources.GetRTHandle(RTUsage.DepthBuffer2);
 
-            var width = targetCamera.actualWidth;
-            var height = targetCamera.actualHeight;
+            // TODO: handle resolutions above reference size
+            // Custom cubemap target can have resolution higher than RT reference size, in which case it will be cut
+            var width = viewportSettings.width;
+            var height = viewportSettings.height;
             var refSize = rt.referenceSize;
 
             var msaaSamples = ((HDRenderPipeline) RenderPipelineManager.currentPipeline).MSAASamples;
@@ -415,7 +461,7 @@ namespace Simulator.PointCloud
 
             var resolution = new Vector2Int(width, height);
 
-            var fov = targetCamera.camera.fieldOfView;
+            var fov = viewportSettings.fieldOfView;
             if (SolidFovReprojection)
                 fov *= ReprojectionRatio;
 
@@ -427,7 +473,7 @@ namespace Simulator.PointCloud
                 maxLevel++;
             }
 
-            CalculateMatrices(targetCamera, out var projMatrix, out var invProjMatrix, out var invViewMatrix, out var invViewProjMatrix, out var solidRenderMvp);
+            CalculateMatrices(targetCamera, viewportSettings, out var projMatrix, out var invProjMatrix, out var invViewMatrix, out var invViewProjMatrix, out var solidRenderMvp);
 
             var cs = Resources.SolidComputeShader;
 
@@ -438,7 +484,7 @@ namespace Simulator.PointCloud
             cmd.SetComputeMatrixParam(cs, PointCloudShaderIDs.SolidCompute.InverseProjectionMatrix, invProjMatrix);
             cmd.SetComputeMatrixParam(cs, PointCloudShaderIDs.SolidCompute.InverseViewMatrix, invViewMatrix);
             cmd.SetComputeMatrixParam(cs, PointCloudShaderIDs.SolidCompute.InverseVPMatrix, invViewProjMatrix);
-            cmd.SetComputeVectorParam(cs, PointCloudShaderIDs.SolidCompute.InverseReprojectionVector, GetInverseUvFovReprojectionVector(targetCamera.camera));
+            cmd.SetComputeVectorParam(cs, PointCloudShaderIDs.SolidCompute.InverseReprojectionVector, GetInverseUvFovReprojectionVector(viewportSettings));
             
             cmd.SetGlobalBuffer(PointCloudShaderIDs.Shared.Buffer, GetBufferForCamera(targetCamera));
             cmd.SetGlobalInt(PointCloudShaderIDs.Shared.Colorize, (int)Colorize);
@@ -649,20 +695,18 @@ namespace Simulator.PointCloud
             }
         }
 
-        private void RenderLidarPoints(CommandBuffer cmd, HDCamera targetCamera, RTHandle colorBuffer, RTHandle depthBuffer)
+        private void RenderLidarPoints(CommandBuffer cmd, HDCamera targetCamera, RTHandle colorBuffer, RTHandle depthBuffer, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
             SetCirclesMaterialProperties(cmd, targetCamera);
-
-            CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer);
+            CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer, cubemapFace: cubemapFace);
             var pass = Resources.Passes.lidarCircles;
             cmd.DrawProcedural(Matrix4x4.identity, Resources.CirclesMaterial, pass, MeshTopology.Points, PointCount);
         }
         
-        private void RenderDepthPoints(CommandBuffer cmd, HDCamera targetCamera, RTHandle colorBuffer, RTHandle depthBuffer)
+        private void RenderDepthPoints(CommandBuffer cmd, HDCamera targetCamera, RTHandle colorBuffer, RTHandle depthBuffer, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
             SetCirclesMaterialProperties(cmd, targetCamera);
-
-            CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer);
+            CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer, cubemapFace: cubemapFace);
             var pass = Resources.Passes.depthCircles;
             cmd.DrawProcedural(Matrix4x4.identity, Resources.CirclesMaterial, pass, MeshTopology.Points, PointCount);
         }
@@ -672,7 +716,6 @@ namespace Simulator.PointCloud
             CoreUtils.SetKeyword(cmd, PointCloudShaderIDs.PointsRender.ConesKeyword, RenderMode == RenderType.Cones);
             cmd.SetGlobalBuffer(PointCloudShaderIDs.Shared.Buffer, GetBufferForCamera(targetCamera));
             cmd.SetGlobalMatrix(PointCloudShaderIDs.PointsRender.ModelMatrix, transform.localToWorldMatrix);
-            cmd.SetGlobalMatrix(PointCloudShaderIDs.PointsRender.VPMatrix, targetCamera.mainViewConstants.viewProjMatrix);
             cmd.SetGlobalInt(PointCloudShaderIDs.Shared.Colorize, (int)Colorize);
             cmd.SetGlobalFloat(PointCloudShaderIDs.PointsRender.MinHeight, Bounds.min.y);
             cmd.SetGlobalFloat(PointCloudShaderIDs.PointsRender.MaxHeight, Bounds.max.y);
@@ -708,25 +751,25 @@ namespace Simulator.PointCloud
             cmd.DrawProcedural(Matrix4x4.identity, Resources.CirclesMaterial, pass, MeshTopology.Points, PointCount);
         }
 
-        private float GetFovReprojectionMultiplier(Camera usedCamera)
+        private float GetFovReprojectionMultiplier(ViewportSettings viewportSettings)
         {
             if (!SolidFovReprojection)
                 return 1f;
 
-            var originalFov = usedCamera.fieldOfView;
+            var originalFov = viewportSettings.fieldOfView;
             var extendedFov = originalFov * ReprojectionRatio;
 
             return Mathf.Tan(0.5f * extendedFov * Mathf.Deg2Rad) / Mathf.Tan(0.5f * originalFov * Mathf.Deg2Rad);
         }
 
-        private Vector4 GetFovReprojectionVector(Camera usedCamera)
+        private Vector4 GetFovReprojectionVector(ViewportSettings viewportSettings)
         {
             if (!SolidFovReprojection)
                 return new Vector4(1f, 0f, 0f, 0f);
 
-            var mult = GetFovReprojectionMultiplier(usedCamera);
-            var width = usedCamera.pixelWidth;
-            var height = usedCamera.pixelHeight;
+            var mult = GetFovReprojectionMultiplier(viewportSettings);
+            var width = viewportSettings.width;
+            var height = viewportSettings.height;
 
             var revMult = 1f / mult;
             var border = 0.5f * (1 - revMult);
@@ -734,31 +777,31 @@ namespace Simulator.PointCloud
             return new Vector4(revMult, width * border, height * border, 0f);
         }
 
-        private Vector4 GetInverseUvFovReprojectionVector(Camera usedCamera)
+        private Vector4 GetInverseUvFovReprojectionVector(ViewportSettings viewportSettings)
         {
             if (!SolidFovReprojection)
                 return new Vector4(1f, 0f, 0f, 0f);
 
-            var vec = GetFovReprojectionVector(usedCamera);
-            var width = usedCamera.pixelWidth;
-            var height = usedCamera.pixelHeight;
+            var vec = GetFovReprojectionVector(viewportSettings);
+            var width = viewportSettings.width;
+            var height = viewportSettings.height;
             return new Vector4(1.0f / vec.x, -vec.y / vec.x / width, -vec.z / vec.x / height);
         }
 
         private void CalculateMatrices(
             HDCamera targetCamera,
+            ViewportSettings viewportSettings,
             out Matrix4x4 proj,
             out Matrix4x4 invProj,
             out Matrix4x4 invView,
             out Matrix4x4 invViewProj,
             out Matrix4x4 solidRenderMvp)
         {
-            proj = targetCamera.mainViewConstants.projMatrix;
-            var cameraView = targetCamera.mainViewConstants.viewMatrix;
+            ((HDRenderPipeline) RenderPipelineManager.currentPipeline).GetGlobalShaderMatrices(out var cameraView, out proj);
 
             if (SolidFovReprojection)
             {
-                var mul = 1 / GetFovReprojectionMultiplier(targetCamera.camera);
+                var mul = 1 / GetFovReprojectionMultiplier(viewportSettings);
 
                 proj[0, 0] *= mul;
                 proj[1, 1] *= mul;

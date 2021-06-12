@@ -202,7 +202,8 @@ Shader "Simulator/PointCloud/HDRP/Circles"
                 //     discard;
                 // }
 
-                float depth = 1.0 / (_ZBufferParams.x * Input.Position.z + _ZBufferParams.y);
+                float depth = length(GetPrimaryCameraPosition() - Input.WorldPos);
+                depth *= _ZBufferParams.w;
 
                 float3 color = PointCloudColor(Input.Color, 1).rgb;
                 float intensity = (color.r + color.g + color.b) / 3;

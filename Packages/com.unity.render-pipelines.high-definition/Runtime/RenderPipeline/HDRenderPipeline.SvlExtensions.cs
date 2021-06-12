@@ -53,11 +53,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Projection matrix used for rendering a single cubemap face.
-        /// </summary>
-        private static readonly Matrix4x4 CubeProj = Matrix4x4.Perspective(90.0f, 1.0f, 0.1f, 1000.0f);
-
-        /// <summary>
         /// <para>
         /// Event called after each shadow request rendering is done. State is set up to render to proper viewport
         /// in shadow map. See <see cref="HDShadowAtlas.RenderShadows"/> for available GPU variables.
@@ -111,19 +106,22 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Updates parameters in global shader variables CBuffer for subsequent rendering of cubemap face.
         /// </summary>
         /// <param name="cmd">Buffer used to queue commands.</param>
-        /// <param name="view">View matrix that will be used.</param>
+        /// <param name="hdCamera">HD Camera that will be used to render the cubemap.</param>
         /// <param name="cubemapSize">Size (in pixels) of the cubemap face.</param>
-        public void SetupGlobalParamsForCubemap(CommandBuffer cmd, Matrix4x4 view, int cubemapSize)
+        /// <param name="proj">Projection matrix calculated for current settings.</param>
+        public void SetupGlobalParamsForCubemap(CommandBuffer cmd, HDCamera hdCamera, int cubemapSize, out Matrix4x4 proj)
         {
-            SetupGlobalParamsForCubemapInternal(cmd, view, cubemapSize, ref m_ShaderVariablesGlobalCB);
+            SetupGlobalParamsForCubemapInternal(cmd, hdCamera, cubemapSize, ref m_ShaderVariablesGlobalCB, out proj);
         }
 
-        private void SetupGlobalParamsForCubemapInternal(CommandBuffer cmd, Matrix4x4 view, int cubemapSize, ref ShaderVariablesGlobal cb)
+        private void SetupGlobalParamsForCubemapInternal(CommandBuffer cmd, HDCamera hdCamera, int cubemapSize, ref ShaderVariablesGlobal cb, out Matrix4x4 proj)
         {
-            var gpuView = view;
+            var gpuView = hdCamera.camera.worldToCameraMatrix;
             if (ShaderConfig.s_CameraRelativeRendering != 0)
                 gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
-            var gpuProj = GL.GetGPUProjectionMatrix(CubeProj, false);
+            var cubeProj =  Matrix4x4.Perspective(90.0f, 1.0f, hdCamera.camera.nearClipPlane, hdCamera.camera.farClipPlane);
+            proj = cubeProj;
+            var gpuProj = GL.GetGPUProjectionMatrix(cubeProj, false);
             var vp = gpuProj * gpuView;
 
             cb._ViewMatrix = gpuView;
@@ -147,6 +145,17 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             camera.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB);
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
+        }
+
+        /// <summary>
+        /// Returns view and projection matrices currently set in global CBuffer.
+        /// </summary>
+        /// <param name="view"></param>
+        /// <param name="proj"></param>
+        public void GetGlobalShaderMatrices(out Matrix4x4 view, out Matrix4x4 proj)
+        {
+            view = m_ShaderVariablesGlobalCB._ViewMatrix;
+            proj = m_ShaderVariablesGlobalCB._ProjMatrix;
         }
 
         internal void InvokeShadowMapRender(CommandBuffer cmd, float worldTexelSize)

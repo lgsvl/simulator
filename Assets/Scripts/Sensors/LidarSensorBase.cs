@@ -181,8 +181,13 @@ namespace Simulator.Sensors
         public void CustomRender(ScriptableRenderContext context, HDCamera hd)
         {
             var cmd = CommandBufferPool.Get();
-            SensorPassRenderer.Render(context, cmd, hd, activeTarget, passId, Color.clear);
-            PointCloudManager.RenderLidar(context, cmd, hd, activeTarget.ColorHandle, activeTarget.DepthHandle);
+
+            void RenderPointCloud(CubemapFace face)
+            {
+                PointCloudManager.RenderLidar(context, cmd, hd, activeTarget.ColorHandle, activeTarget.DepthHandle, face);
+            }
+
+            SensorPassRenderer.Render(context, cmd, hd, activeTarget, passId, Color.clear, RenderPointCloud);
             CommandBufferPool.Release(cmd);
         }
 

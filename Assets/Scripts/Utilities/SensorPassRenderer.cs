@@ -7,6 +7,7 @@
 
 namespace Simulator.Utilities
 {
+    using System;
     using Sensors;
     using Sensors.Postprocessing;
     using UnityEngine;
@@ -15,8 +16,6 @@ namespace Simulator.Utilities
 
     public static class SensorPassRenderer
     {
-        private static readonly Matrix4x4 CubeProj = Matrix4x4.Perspective(90.0f, 1.0f, 0.1f, 1000.0f);
-
         private static readonly int[] CubemapFaceOrder =
         {
             (int) CubemapFace.PositiveZ, (int) CubemapFace.NegativeZ, (int) CubemapFace.PositiveX,
@@ -32,27 +31,26 @@ namespace Simulator.Utilities
         /// <param name="target">Render target to which image will be rendered.</param>
         /// <param name="pass">Pass to use for rendering.</param>
         /// <param name="clearColor">Color that will be used for clearing color buffer.</param>
-        public static void Render(ScriptableRenderContext context, CommandBuffer cmd, HDCamera hd, SensorRenderTarget target, ShaderTagId pass, Color clearColor)
+        /// <param name="postRender">Delegate that will be called after pass was rendered. Called for each face if <see cref="target"/> is a cubemap.</param>
+        public static void Render(ScriptableRenderContext context, CommandBuffer cmd, HDCamera hd, SensorRenderTarget target, ShaderTagId pass, Color clearColor, Action<CubemapFace> postRender = null)
         {
             if (target.IsCube)
-                RenderToCubemap(context, cmd, hd, target, pass, clearColor);
+                RenderToCubemap(context, cmd, hd, target, pass, clearColor, postRender);
             else
-                RenderToTexture(context, cmd, hd, target, pass, clearColor);
+                RenderToTexture(context, cmd, hd, target, pass, clearColor, postRender);
         }
 
-        private static void RenderToCubemap(ScriptableRenderContext context, CommandBuffer cmd, HDCamera hd, SensorRenderTarget target, ShaderTagId pass, Color clearColor)
+        private static void RenderToCubemap(ScriptableRenderContext context, CommandBuffer cmd, HDCamera hd, SensorRenderTarget target, ShaderTagId pass, Color clearColor, Action<CubemapFace> postRender)
         {
             var hdrp = (HDRenderPipeline) RenderPipelineManager.currentPipeline;
             hdrp.UpdateShaderVariablesForCamera(cmd, hd);
             context.SetupCameraProperties(hd.camera);
 
+            var originalProj = hd.camera.projectionMatrix;
+
             var transform = hd.camera.transform;
             var rot = transform.rotation;
             var localRot = transform.localRotation;
-
-            var originalProj = hd.camera.projectionMatrix;
-            hd.camera.projectionMatrix = CubeProj;
-
             var sensor = hd.camera.GetComponent<CameraSensorBase>();
             var renderPostprocess = sensor != null && sensor.Postprocessing != null && sensor.Postprocessing.Count > 0;
 
@@ -67,8 +65,8 @@ namespace Simulator.Utilities
                     continue;
 
                 transform.localRotation = localRot * Quaternion.LookRotation(CoreUtils.lookAtList[faceIndex], CoreUtils.upVectorList[faceIndex]);
-                var view = hd.camera.worldToCameraMatrix;
-                hdrp.SetupGlobalParamsForCubemap(cmd, view, target.ColorHandle.rt.width);
+                hdrp.SetupGlobalParamsForCubemap(cmd, hd, target.ColorHandle.rt.width, out var proj);
+                hd.camera.projectionMatrix = proj;
 
                 CoreUtils.SetRenderTarget(cmd, target.ColorHandle, target.DepthHandle, ClearFlag.None, 0, (CubemapFace) faceIndex);
                 cmd.ClearRenderTarget(true, true, clearColor);
@@ -92,17 +90,24 @@ namespace Simulator.Utilities
                         SimulatorManager.Instance.Sensors.PostProcessSystem.RenderForSensor(ctx, sensor, (CubemapFace) i);
                     }
                 }
+
+                if (postRender != null)
+                {
+                    cmd.SetInvertCulling(false);
+                    postRender.Invoke((CubemapFace) faceIndex);
+                    cmd.SetInvertCulling(true);
+                }
             }
 
             cmd.SetInvertCulling(false);
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
 
-            transform.rotation = rot;
             hd.camera.projectionMatrix = originalProj;
+            transform.rotation = rot;
         }
 
-        private static void RenderToTexture(ScriptableRenderContext context, CommandBuffer cmd, HDCamera hd, SensorRenderTarget target, ShaderTagId pass, Color clearColor)
+        private static void RenderToTexture(ScriptableRenderContext context, CommandBuffer cmd, HDCamera hd, SensorRenderTarget target, ShaderTagId pass, Color clearColor, Action<CubemapFace> postRender)
         {
             var hdrp = (HDRenderPipeline) RenderPipelineManager.currentPipeline;
             hdrp.UpdateShaderVariablesForCamera(cmd, hd);
@@ -133,6 +138,8 @@ namespace Simulator.Utilities
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
             }
+
+            postRender?.Invoke(CubemapFace.Unknown);
         }
     }
 }

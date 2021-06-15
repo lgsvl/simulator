@@ -228,6 +228,8 @@ namespace Simulator.Web
 
         public static void LoadBridgePlugin(Manifest manifest, VfsEntry dir)
         {
+#if UNITY_EDITOR
+
             if (EditorPrefs.GetBool("Simulator/Developer Debug Mode", false) == true)
             {
                 var assembly = Assembly.Load("Simulator.Bridge");
@@ -244,6 +246,7 @@ namespace Simulator.Web
                     return;
                 }
             }
+#endif
 
             if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Bridge])
             {

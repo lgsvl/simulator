@@ -30,7 +30,7 @@ namespace Simulator
             [BundleTypes.Sensor]      = "com.svlsimulator.5",
             [BundleTypes.Controllable]= "com.svlsimulator.2",
             [BundleTypes.NPC]         = "com.svlsimulator.2",
-            [BundleTypes.Bridge]      = "com.svlsimulator.1",
+            [BundleTypes.Bridge]      = "com.svlsimulator.2",
             [BundleTypes.Pedestrian]  = "com.svlsimulator.2",
         };
 

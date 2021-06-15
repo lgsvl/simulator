@@ -356,6 +356,19 @@ namespace Simulator
                         Instance.assetDownloads.TryAdd(task, vehicle);
                     }
 
+                    List<string> bridgeGUIDs = new List<string>();
+                    foreach (var vehicle in simData.Vehicles)
+                    {
+                        if (vehicle.Bridge != null && !bridgeGUIDs.Contains(vehicle.Bridge.AssetGuid))
+                        {
+                            bridgeGUIDs.Add(vehicle.Bridge.AssetGuid);
+                            var progressUpdate = new Progress<Tuple<string, float>>(p => { ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2); });
+                            var task = DownloadManager.GetAsset(BundleConfig.BundleTypes.Bridge, vehicle.Bridge.AssetGuid, vehicle.Bridge.Name, progressUpdate);
+                            downloads.Add(task);
+                            Instance.assetDownloads.TryAdd(task, vehicle.Bridge.AssetGuid);
+                        }
+                    }
+
                     List<SensorData> sensorsToDownload = new List<SensorData>();
                     foreach (var data in simData.Vehicles)
                     {

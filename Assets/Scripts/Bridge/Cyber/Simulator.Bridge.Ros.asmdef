@@ -1,10 +1,10 @@
 {
-    "name": "Simulator.Bridge.Ros",
+    "name": "Simulator.Bridge.Cyber",
+    "rootNamespace": "",
     "references": [
         "Simulator.Bridge",
         "Unity.Mathematics"
     ],
-    "optionalUnityReferences": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": true,
@@ -12,5 +12,6 @@
     "precompiledReferences": [],
     "autoReferenced": false,
     "defineConstraints": [],
-    "versionDefines": []
+    "versionDefines": [],
+    "noEngineReferences": false
 }

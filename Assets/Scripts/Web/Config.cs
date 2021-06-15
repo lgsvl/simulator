@@ -228,6 +228,23 @@ namespace Simulator.Web
 
         public static void LoadBridgePlugin(Manifest manifest, VfsEntry dir)
         {
+            if (EditorPrefs.GetBool("Simulator/Developer Debug Mode", false) == true)
+            {
+                var assembly = Assembly.Load("Simulator.Bridge");
+                if (File.Exists(Path.Combine(BundleConfig.ExternalBase, "Bridges", manifest.assetName, $"{manifest.assetName}.cs")))
+                {
+                    foreach (Type ty in assembly.GetTypes())
+                    {
+                        if (typeof(IBridgeFactory).IsAssignableFrom(ty))
+                        {
+                            var bridgeFactory = Activator.CreateInstance(ty) as IBridgeFactory;
+                            BridgePlugins.Add(bridgeFactory);
+                        }
+                    }
+                    return;
+                }
+            }
+
             if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Bridge])
             {
                 throw new Exception($"Manifest version mismatch, expected {BundleConfig.Versions[BundleConfig.BundleTypes.Bridge]}, got {manifest.assetFormat}");
@@ -247,7 +264,6 @@ namespace Simulator.Web
         public static void LoadSensorPlugin(Manifest manifest, VfsEntry dir)
         {
 #if UNITY_EDITOR
-            //if (SensorDebugModeEnabled == true) // TODO Why is this not working?
             if (EditorPrefs.GetBool("Simulator/Developer Debug Mode", false) == true)
             {
                 if (File.Exists(Path.Combine(BundleConfig.ExternalBase, "Sensors", manifest.assetName, $"{manifest.assetName}.prefab")))

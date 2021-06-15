@@ -23,6 +23,7 @@ namespace Simulator
         public Dictionary<string, object> attachments;
         public List<Simulator.Utilities.SensorParam> sensorParams;
         public string[] bridgeDataTypes;
+        public string[] supportedBridgeTypes;
     }
 
     public struct Images

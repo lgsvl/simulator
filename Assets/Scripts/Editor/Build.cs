@@ -732,6 +732,14 @@ namespace Simulator.Editor
                                     }
                                     asset = null;
                                 }
+
+                                manifest.supportedBridgeTypes = sensor.SupportedBridgeTypes.ToArray();
+
+                                if(sensor.SupportedBridgeTypes.Count == 0)
+                                {
+                                    Debug.LogWarning($"{manifest.assetName} has no enumerated supported bridge types. Please make sure you list your supported bridge types.");
+                                }
+
                                 EditorUtility.UnloadUnusedAssetsImmediate();
                             }
 

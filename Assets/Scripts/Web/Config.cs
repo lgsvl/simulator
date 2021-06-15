@@ -671,7 +671,7 @@ namespace Simulator.Web
 
             PersistentDataPath = config.data_path;
 
-            CloudUrl = config.cloud_url;
+            CloudUrl = config.cloud_url.TrimEnd('/');
             string cloudUrl = Environment.GetEnvironmentVariable("SIMULATOR_CLOUDURL");
             if (!string.IsNullOrEmpty(cloudUrl))
             {

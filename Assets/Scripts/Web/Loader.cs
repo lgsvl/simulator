@@ -564,7 +564,8 @@ namespace Simulator
 
         public static void StopAsync()
         {
-            if (Instance.Status == SimulatorStatus.Stopping)
+            if (Instance.Status == SimulatorStatus.Stopping ||
+                Instance.Status == SimulatorStatus.Idle)
             {
                 return;
             }

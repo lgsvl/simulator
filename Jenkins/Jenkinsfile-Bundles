@@ -27,6 +27,7 @@ pipeline {
     string(name: "BUILD_SIMULATOR_ENVIRONMENTS", defaultValue: "${SIMULATOR_ENVIRONMENTS}", description: "Environments to build")
     string(name: "BUILD_SIMULATOR_VEHICLES", defaultValue: "${SIMULATOR_VEHICLES}", description: "Vehicles to build")
     string(name: "BUILD_SIMULATOR_SENSORS", defaultValue: "${SIMULATOR_SENSORS}", description: "Sensors to build")
+    string(name: "BUILD_SIMULATOR_BRIDGES", defaultValue: "${SIMULATOR_BRIDGES}", description: "Bridges to build")
     string(name: "WISE_URL", defaultValue: "${SIMULATOR_WISE_DEV_URL}", description: "Url to use with wise-cli for uploading assets, CLOUD_URL should be used later, not it's separate to test against dev instead of staging")
     credentials(name: "WISE_CONTENT_UPLOAD_CREDENTIALS_ID", required: true, defaultValue: "WISE_CONTENT_UPLOAD_DEV", description: 'The credentials to be used for uploading asset bundles', credentialType: 'com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl')
     credentials( name: 'S3_CREDENTIALS_ID', required: true, defaultValue: "s3--aws-credentials", description: 'The credentials to be used for uploading to S3 bucket', credentialType: 'com.cloudbees.jenkins.plugins.awscredentials.AWSCredentialsImpl')
@@ -234,6 +235,63 @@ pipeline {
       }
     }
 
+    stage("Checkout Bridges") {
+      steps {
+        script {
+          def repo_list = env.BUILD_SIMULATOR_BRIDGES
+          def repo_prefix = "Bridges"
+
+          if (repo_list) {
+            def repos = repo_list.split(',')
+            def repo_names_list = []
+
+            for (int i=0; i<repos.size(); i++) {
+              def repo_parts = repos[i].split(":")
+
+              def repo_git_ref = "refs/heads/master"
+              if (repo_parts.size() > 1) {
+                  repo_git_ref = repo_parts[1]
+              }
+
+              def repo_path = repo_parts[0]
+              def repo_path_parts = repo_path.split('/')
+              def repo_name = repo_path_parts.last()
+
+              repo_names_list.add(repo_name)
+              echo "INFO: Checking out ${repo_prefix}: ${repo_name} ref ${repo_git_ref} from HDRP/${repo_prefix}/${repo_path} to Assets/External/${repo_prefix}/${repo_name}"
+
+              checkout([
+                $class: "GitSCM",
+                branches: [[name: "${repo_git_ref}"]],
+                browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/${repo_prefix}/${repo_path}", version: env.GITLAB_VERSION],
+                extensions: [
+                  [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/${repo_prefix}/${repo_name}"],
+                  [$class: "LocalBranch"],
+                  [$class: "GitLFSPull"]
+                ],
+                userRemoteConfigs: [[
+                  credentialsId: "auto-gitlab",
+                  url: "git@${GITLAB_HOST}:HDRP/${repo_prefix}/${repo_path}.git"
+                ]]
+              ])
+            }
+            def repo_names = repo_names_list.join(",")
+            echo "INFO: Checked out following ${repo_prefix}: ${repo_names}"
+            env.SIM_BRIDGES = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/${repo_prefix} ${S3_DOWNLOAD_HOST} bridge 0 ${repo_names}").trim()
+          } else {
+            echo "INFO: No ${repo_prefix} to checkout"
+            env.SIM_BRIDGES = ""
+          }
+        }
+        sh "printenv SIM_BRIDGES | tee bridges.txt"
+      }
+      post {
+        success {
+            archiveArtifacts "bridges.txt"
+        }
+      }
+    }
+
     stage("Docker") {
       environment {
         DOCKERHUB_DOCKER_REGISTRY = credentials("dockerhub-docker-registry")
@@ -263,6 +321,9 @@ pipeline {
           not {
             environment name: "SIM_SENSORS", value: ""
           }
+          not {
+            environment name: "SIM_BRIDGES", value: ""
+          }
         }
       }
       steps {
@@ -284,6 +345,9 @@ pipeline {
           }
           not {
             environment name: "SIM_SENSORS", value: ""
+          }
+          not {
+            environment name: "SIM_BRIDGES", value: ""
           }
         }
       }
@@ -313,6 +377,9 @@ pipeline {
           }
           not {
             environment name: "SIM_SENSORS", value: ""
+          }
+          not {
+            environment name: "SIM_BRIDGES", value: ""
           }
         }
       }

@@ -35,3 +35,7 @@ fi
 if [ ! -z ${SIM_SENSORS+x} ]; then
   uploadAssets "${SIM_SENSORS}" ${BUNDLES}/Sensors sensor
 fi
+
+if [ ! -z ${SIM_BRIDGES+x} ]; then
+  uploadAssets "${SIM_BRIDGES}" ${BUNDLES}/Bridges bridge
+fi

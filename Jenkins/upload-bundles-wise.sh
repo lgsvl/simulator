@@ -83,6 +83,10 @@ if [ ! -z ${SIM_SENSORS+x} ]; then
   uploadAssets "${SIM_SENSORS}" Sensors sensor plugin
 fi
 
+if [ ! -z ${SIM_BRIDGES+x} ]; then
+  uploadAssets "${SIM_BRIDGES}" Bridges bridge plugin
+fi
+
 echo "INFO: ${ASSETS} assets were processed"
 
 if [ "${RESULT}" -ne 0 ] ; then

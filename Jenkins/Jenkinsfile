@@ -131,6 +131,7 @@ pipeline {
 
           // Disable build-in sensors
           SIM_SENSORS = ""
+          SIM_BRIDGES = ""
         }
       }
     }

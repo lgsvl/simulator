@@ -23,8 +23,8 @@ if [ ! -v UNITY_SERIAL ]; then
   exit 1
 fi
 
-if [ -z ${SIM_ENVIRONMENTS+x} ] && [ -z ${SIM_VEHICLES+x} ] && [ -z ${SIM_SENSORS+x} ]; then
-  echo All environments, vehicles and sensors are up to date!
+if [ -z ${SIM_ENVIRONMENTS+x} ] && [ -z ${SIM_VEHICLES+x} ] && [ -z ${SIM_SENSORS+x} ] && [ -z ${SIM_BRIDGES+x} ]; then
+  echo All environments, vehicles, sensors and bridges are up to date!
   exit 0
 fi
 
@@ -69,6 +69,13 @@ fi
 if [ ! -z ${SIM_SENSORS+x} ]; then
   getAssets "${SIM_SENSORS}"
   SENSORS="-buildSensors ${ASSETS}"
+else
+  SENSORS=
+fi
+
+if [ ! -z ${SIM_BRIDGES+x} ]; then
+  getAssets "${SIM_BRIDGES}"
+  SENSORS="-buildBridges ${ASSETS}"
 else
   SENSORS=
 fi

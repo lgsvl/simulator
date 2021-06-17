@@ -11,6 +11,7 @@ services:
       - SIM_VEHICLES
       - SIM_CONTROLLABLES
       - SIM_SENSORS
+      - SIM_BRIDGES
       - SIMULATOR_NPCS
       - SIMULATOR_PEDESTRIANS
       - CLOUD_URL
@@ -18,7 +19,7 @@ services:
       - GIT_COMMIT
       - GIT_BRANCH
       - GIT_TAG
-      - FORCE_DEV_BUILD 
+      - FORCE_DEV_BUILD
       - SENTRY_DSN
       - UNITY_USERNAME
       - UNITY_PASSWORD
@@ -44,6 +45,7 @@ services:
       - SIM_ENVIRONMENTS
       - SIM_VEHICLES
       - SIM_SENSORS
+      - SIM_BRIDGES
       - JENKINS_BUILD_ID
       - GIT_COMMIT
       - GIT_BRANCH
@@ -69,6 +71,7 @@ services:
       - SIM_ENVIRONMENTS
       - SIM_VEHICLES
       - SIM_SENSORS
+      - SIM_BRIDGES
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
       - S3_BUCKET_NAME
@@ -85,6 +88,7 @@ services:
       - SIM_ENVIRONMENTS
       - SIM_VEHICLES
       - SIM_SENSORS
+      - SIM_BRIDGES
       - WISE_USERNAME
       - WISE_PASSWORD
       - WISE_URL

@@ -79,6 +79,7 @@ pipeline {
           env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 1").trim()
           env.SIM_VEHICLES = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 1").trim()
           env.SIM_SENSORS = ""
+          env.SIM_BRIDGES = ""
           env.SIM_CONTROLLABLES = env.BUILD_SIMULATOR_CONTROLLABLES
         }
 

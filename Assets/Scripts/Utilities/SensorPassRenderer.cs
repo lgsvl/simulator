@@ -31,8 +31,22 @@ namespace Simulator.Utilities
         /// <param name="target">Render target to which image will be rendered.</param>
         /// <param name="pass">Pass to use for rendering.</param>
         /// <param name="clearColor">Color that will be used for clearing color buffer.</param>
+        public static void Render(ScriptableRenderContext context, CommandBuffer cmd, HDCamera hd, SensorRenderTarget target, ShaderTagId pass, Color clearColor)
+        {
+            Render(context, cmd, hd, target, pass, clearColor, null);
+        }
+
+        /// <summary>
+        /// Renders objects with specified pass to given <see cref="SensorRenderTarget"/>.
+        /// </summary>
+        /// <param name="context">Current rendering context.</param>
+        /// <param name="cmd">Command buffer for queueing commands. Will be executed and cleared.</param>
+        /// <param name="hd">HD camera to use for rendering.</param>
+        /// <param name="target">Render target to which image will be rendered.</param>
+        /// <param name="pass">Pass to use for rendering.</param>
+        /// <param name="clearColor">Color that will be used for clearing color buffer.</param>
         /// <param name="postRender">Delegate that will be called after pass was rendered. Called for each face if <see cref="target"/> is a cubemap.</param>
-        public static void Render(ScriptableRenderContext context, CommandBuffer cmd, HDCamera hd, SensorRenderTarget target, ShaderTagId pass, Color clearColor, Action<CubemapFace> postRender = null)
+        public static void Render(ScriptableRenderContext context, CommandBuffer cmd, HDCamera hd, SensorRenderTarget target, ShaderTagId pass, Color clearColor, Action<CubemapFace> postRender)
         {
             if (target.IsCube)
                 RenderToCubemap(context, cmd, hd, target, pass, clearColor, postRender);

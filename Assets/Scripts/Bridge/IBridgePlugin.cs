@@ -36,6 +36,8 @@ namespace Simulator.Bridge
 
         // adds data type that bridge supports
         // bridgeTypeNanme is used only for displaying it in UI
+        BridgeNameAttribute GetBridgeNameAttribute();
+
         void AddType<DataType>(string bridgeTypeName);
 
         void AddSubscriberCreator<DataType>(SubscriberCreator<DataType> subscriber);

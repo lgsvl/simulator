@@ -66,6 +66,10 @@ namespace Simulator.Bridge
         }
 
         // interface implementation
+        public BridgeNameAttribute GetBridgeNameAttribute()
+        {
+            return Factory.GetType().GetCustomAttribute<BridgeNameAttribute>();
+        }
 
         public void AddType<Type>(string bridgeTypeName)
         {

@@ -420,6 +420,16 @@ namespace Simulator
                 {
                     foreach (var vehicle in simData.Vehicles)
                     {
+                        if (vehicle.Bridge != null)
+                        {
+                            if (vehicle.Bridge.AssetGuid != null)
+                            {
+                                var dir = Path.Combine(Config.PersistentDataPath, "Bridges");
+                                var vfs = VfsEntry.makeRoot(dir);
+                                Config.CheckDir(vfs.GetChild(vehicle.Bridge.AssetGuid), Config.LoadBridgePlugin);
+                            }
+                        }
+
                         foreach (var sensor in vehicle.Sensors)
                         {
                             if (sensor.Plugin.AssetGuid != null) // TODO remove after WISE update

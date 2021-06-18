@@ -1140,10 +1140,22 @@ namespace Simulator.Editor
         private static void Run()
         {
             var hasQuitArg = Environment.GetCommandLineArgs().Contains("-quit");
-            RunImpl(!hasQuitArg);
+
+            try {
+                RunImpl();
+            }
+            catch (Exception e) {
+                Debug.LogError(e);
+            }
+            finally {
+                if (!hasQuitArg)
+                {
+                    EditorApplication.Exit(0);
+                }
+            }
         }
 
-        private static void RunImpl(bool forceExit = false)
+        private static void RunImpl()
         {
             BuildTarget? buildTarget = null;
 
@@ -1284,10 +1296,6 @@ namespace Simulator.Editor
             finally
             {
                 Running = false;
-                if (forceExit)
-                {
-                    EditorApplication.Exit(0);
-                }
             }
         }
 

@@ -1,0 +1,20 @@
+#pragma kernel Initialize
+
+StructuredBuffer<float> _VoxelBuffer;
+RWTexture3D<half4> _Texture;
+
+float4 _TexSize;
+
+[numthreads(8,8,8)]
+void Initialize (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= (uint) _TexSize.x || id.y >= (uint) _TexSize.y || id.z >= (uint) _TexSize.z)
+        return;
+
+    const uint flatPos = id.x + id.y * _TexSize.x + id.z * _TexSize.x * _TexSize.y;
+    half d = _VoxelBuffer[flatPos];
+
+    // We don't really need full SDF - collision are triggered by entering object interior, so negative value is enough
+    d = d > 0.5f ? -1 : 1;
+    _Texture[id] = half4(d,d,d,d);
+}

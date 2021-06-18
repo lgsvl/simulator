@@ -40,5 +40,7 @@ namespace Simulator.Utilities
         public ComputeShader LensDistortion;
 
         public ComputeShader LidarComputeShader;
+
+        public ComputeShader SignedDistanceFieldShader;
     }
 }

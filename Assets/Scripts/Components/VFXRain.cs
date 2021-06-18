@@ -2,11 +2,19 @@ namespace Simulator.Components
 {
     using System;
     using System.Collections.Generic;
+    using global::Components;
     using UnityEngine;
     using UnityEngine.VFX;
 
     public class VFXRain : MonoBehaviour
     {
+        private static class Properties
+        {
+            public static readonly int SDFTexture = Shader.PropertyToID("_SDF_Tex");
+            public static readonly int SDFOffset = Shader.PropertyToID("_SDF_Offset");
+            public static readonly int SDFScale = Shader.PropertyToID("_SDF_Scale");
+        }
+
         private class EffectPool
         {
             private readonly VisualEffect prefab;
@@ -58,14 +66,19 @@ namespace Simulator.Components
 
         private readonly List<Transform> trackedEntities = new List<Transform>();
         private readonly Dictionary<Vector2Int, VisualEffect> activeChunks = new Dictionary<Vector2Int, VisualEffect>();
+        private readonly Dictionary<VisualEffect, Texture> currentSDFs = new Dictionary<VisualEffect, Texture>();
 
         private EffectPool pool;
+
+        private RainCollider[] colliders;
+
+        private Texture3D defaultSDF;
 
         private readonly List<Vector2Int> toRelease = new List<Vector2Int>();
         private readonly List<Vector2Int> toSpawn = new List<Vector2Int>();
         private readonly Stack<VisualEffect> reusable = new Stack<VisualEffect>();
 
-        private bool killswitch = false;
+        private bool killswitch;
 
         private void Start()
         {
@@ -79,6 +92,14 @@ namespace Simulator.Components
                 },
                 effect => effect.gameObject.SetActive(false),
                 9);
+
+            colliders = FindObjectsOfType<RainCollider>();
+
+            defaultSDF = new Texture3D(1, 1, 1, TextureFormat.ARGB32, false);
+            defaultSDF.name = name;
+            defaultSDF.wrapMode = TextureWrapMode.Clamp;
+            defaultSDF.SetPixel(0, 0, 0, Color.white, 0);
+            defaultSDF.Apply(false);
         }
 
         public void RegisterTrackedEntity(Transform entity)
@@ -114,19 +135,20 @@ namespace Simulator.Components
         {
             if (killswitch)
                 return;
-            
+
             if (activeChunks.Count > 64)
             {
                 killswitch = true;
                 Debug.LogWarning("Unexpectedly high amount of active rain chunks. Disabling rain.");
-                
+
                 foreach (var activeChunk in activeChunks)
                     pool.Release(activeChunk.Value);
-                
+
                 activeChunks.Clear();
+                currentSDFs.Clear();
                 return;
             }
-            
+
             if (trackedEntities.Count == 0)
                 return;
 
@@ -134,8 +156,9 @@ namespace Simulator.Components
             {
                 foreach (var activeChunk in activeChunks)
                     pool.Release(activeChunk.Value);
-                
+
                 activeChunks.Clear();
+                currentSDFs.Clear();
                 return;
             }
 
@@ -144,7 +167,7 @@ namespace Simulator.Components
 
             foreach (var entity in trackedEntities)
             {
-                var worldPos3d = entity.localPosition;
+                var worldPos3d = entity.position;
                 var worldPos = new Vector2(worldPos3d.x, worldPos3d.z);
                 var min = GetChunkPosition(worldPos - chunkBoundaryOffsetVector);
                 var max = GetChunkPosition(worldPos + chunkBoundaryOffsetVector);
@@ -187,8 +210,12 @@ namespace Simulator.Components
 
             while (reusable.Count > 0)
             {
-                pool.Release(reusable.Pop());
+                var item = reusable.Pop();
+                currentSDFs.Remove(item);
+                pool.Release(item);
             }
+
+            UpdateRainCollision();
 
             toSpawn.Clear();
             toRelease.Clear();
@@ -202,6 +229,56 @@ namespace Simulator.Components
         private void FitToChunk(VisualEffect effect, Vector2Int chunk)
         {
             effect.transform.localPosition = new Vector3(chunk.x + 0.5f, 0f, chunk.y + 0.5f) * chunkSize;
+        }
+
+        private void UpdateRainCollision()
+        {
+            // This will track first registered tracked entity as a source for rain collision.
+            // Since only one SDF is enabled per node, we can't have multiple areas active at once
+            RainCollider activeCollider = null;
+            var bestDist = float.MaxValue;
+            foreach (var rainCollider in colliders)
+            {
+                var dist = SqrDistance(rainCollider.Data.bounds, trackedEntities[0].position);
+                if (dist < bestDist)
+                {
+                    bestDist = dist;
+                    activeCollider = rainCollider;
+                }
+            }
+
+            var textureToUse = activeCollider == null ? defaultSDF : (Texture) activeCollider.Data.texture;
+
+            foreach (var chunk in activeChunks)
+            {
+                if (!currentSDFs.TryGetValue(chunk.Value, out var tex) || tex != textureToUse)
+                {
+                    currentSDFs[chunk.Value] = textureToUse;
+
+                    var effect = chunk.Value;
+                    effect.SetTexture(Properties.SDFTexture, textureToUse);
+
+                    if (activeCollider != null)
+                    {
+                        var offset = activeCollider.Data.bounds.center - effect.transform.position;
+                        effect.SetVector3(Properties.SDFOffset, offset);
+                        effect.SetVector3(Properties.SDFScale, activeCollider.Data.bounds.size);
+                    }
+                }
+            }
+        }
+
+        private float SqrDistance(Bounds rect, Vector3 p)
+        {
+            var dx = Max(rect.min.x - p.x, 0, p.x - rect.max.x);
+            var dy = Max(rect.min.y - p.y, 0, p.y - rect.max.y);
+            var dz = Max(rect.min.z - p.z, 0, p.z - rect.max.z);
+            return dx * dx + dy * dy + dz * dz;
+        }
+
+        private float Max(float f0, float f1, float f2)
+        {
+            return Mathf.Max(Mathf.Max(f0, f1), f2);
         }
 
         private void OnDrawGizmosSelected()

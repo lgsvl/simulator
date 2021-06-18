@@ -24,3 +24,5 @@ MonoBehaviour:
   PointCloudShader: {fileID: 4800000, guid: f4f8cf0585f6c5e4f9b9f1ccb82908ee, type: 3}
   LensDistortion: {fileID: 7200000, guid: e4b91d1426a38e147adb9d9901e38273, type: 3}
   LidarComputeShader: {fileID: 7200000, guid: 3453acc130e86ea4cbba2e7ed0a63450, type: 3}
+  SignedDistanceFieldShader: {fileID: 7200000, guid: aeb358e36000a874fa4206478f0ea9f6,
+    type: 3}

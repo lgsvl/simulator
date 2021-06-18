@@ -75,9 +75,9 @@ fi
 
 if [ ! -z ${SIM_BRIDGES+x} ]; then
   getAssets "${SIM_BRIDGES}"
-  SENSORS="-buildBridges ${ASSETS}"
+  BRIDGES="-buildBridges ${ASSETS}"
 else
-  SENSORS=
+  BRIDGES=
 fi
 
 function get_unity_license {
@@ -129,6 +129,7 @@ rm -Rf /mnt/AssetBundles || true
   ${ENVIRONMENTS} \
   ${VEHICLES} \
   ${SENSORS} \
+  ${BRIDGES} \
   -logFile /dev/stdout | tee unity-build-bundles.log
 
 check_unity_log unity-build-bundles.log

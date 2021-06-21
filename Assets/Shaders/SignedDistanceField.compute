@@ -1,7 +1,7 @@
 #pragma kernel Initialize
 
 StructuredBuffer<float> _VoxelBuffer;
-RWTexture3D<half4> _Texture;
+RWTexture3D<float> _Texture;
 
 float4 _TexSize;
 
@@ -16,5 +16,5 @@ void Initialize (uint3 id : SV_DispatchThreadID)
 
     // We don't really need full SDF - collision are triggered by entering object interior, so negative value is enough
     d = d > 0.5f ? -1 : 1;
-    _Texture[id] = half4(d,d,d,d);
+    _Texture[id] = d;
 }

@@ -1,7 +1,14 @@
-﻿namespace Components
+﻿/**
+ * Copyright (c) 2021 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
+namespace Simulator.Components
 {
-    using Simulator.PointCloud.Trees;
-    using Simulator.Utilities;
+    using PointCloud.Trees;
+    using Utilities;
     using UnityEngine;
     using UnityEngine.Rendering;
 
@@ -20,7 +27,7 @@
             public readonly Vector3 v0, v1, v2;
             public readonly Bounds bounds;
 
-            public Triangle (Vector3 v0, Vector3 v1, Vector3 v2)
+            public Triangle(Vector3 v0, Vector3 v1, Vector3 v2)
             {
                 this.v0 = v0;
                 this.v1 = v1;
@@ -33,19 +40,19 @@
             }
         }
 
-        public static SignedDistanceFieldData Generate(GameObject obj, ComputeShader cs, int maxResolution = 32)
+        public static void CalculateSize(GameObject obj, int maxResolution, out Vector3Int resolution, out Bounds bounds, out float step)
         {
             var meshFilters = obj.GetComponentsInChildren<MeshFilter>();
-            var bounds = new Bounds();
+            var aabb = new Bounds();
 
             foreach (var meshFilter in meshFilters)
-                EncapsulateWorldSpace(meshFilter, ref bounds);
+                EncapsulateWorldSpace(meshFilter, ref aabb);
 
-            bounds.Expand(2f);
-            var maxDist = Mathf.Max(Mathf.Max(bounds.size.x, bounds.size.y), bounds.size.z);
-            var step = maxDist / maxResolution;
+            aabb.Expand(2f);
+            var maxDist = Mathf.Max(Mathf.Max(aabb.size.x, aabb.size.y), aabb.size.z);
+            step = maxDist / maxResolution;
 
-            var size = bounds.size;
+            var size = aabb.size;
             var add = Vector3.zero;
             for (var i = 0; i < 3; ++i)
             {
@@ -53,12 +60,24 @@
                 add[i] = diff;
             }
 
-            bounds.Expand(add);
-            size = bounds.size;
+            aabb.Expand(add);
+            size = aabb.size;
 
             var width = Mathf.CeilToInt(size.x / step);
             var height = Mathf.CeilToInt(size.y / step);
             var depth = Mathf.CeilToInt(size.z / step);
+
+            resolution = new Vector3Int(width, height, depth);
+            bounds = aabb;
+        }
+
+        public static SignedDistanceFieldData Generate(GameObject obj, ComputeShader cs, Vector3Int resolution, Bounds bounds, float step)
+        {
+            var width = resolution.x;
+            var height = resolution.y;
+            var depth = resolution.z;
+
+            var meshFilters = obj.GetComponentsInChildren<MeshFilter>();
 
             var voxelRes = new[] {width, height, depth};
 
@@ -73,7 +92,7 @@
             }
 
             foreach (var meshFilter in meshFilters)
-                Voxelize(meshFilter, bounds, maxResolution, resVoxels);
+                Voxelize(meshFilter, bounds, resolution, step, resVoxels);
 
             var count = width * height * depth;
             var bufferCpu = new float[count];
@@ -99,7 +118,7 @@
             var buffer = new ComputeBuffer(count, sizeof(float));
             buffer.SetData(bufferCpu);
 
-            var texture = new RenderTexture(width, height, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Default)
+            var texture = new RenderTexture(width, height, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Default)
             {
                 dimension = TextureDimension.Tex3D,
                 volumeDepth = depth,
@@ -126,15 +145,11 @@
             };
         }
 
-        private static void Voxelize (MeshFilter meshFilter, Bounds bounds, int resolution, bool[][][] voxels) {
-
-            var maxLength = Mathf.Max(bounds.size.x, Mathf.Max(bounds.size.y, bounds.size.z));
-            var step = maxLength / resolution;
-            var size = bounds.size;
-
-            var width = Mathf.CeilToInt(size.x / step);
-            var height = Mathf.CeilToInt(size.y / step);
-            var depth = Mathf.CeilToInt(size.z / step);
+        private static void Voxelize(MeshFilter meshFilter, Bounds bounds, Vector3Int resolution, float step, bool[][][] voxels)
+        {
+            var width = resolution.x;
+            var height = resolution.y;
+            var depth = resolution.z;
 
             var voxelBounds = new Bounds[width][][];
             for (var i = 0; i < width; ++i)
@@ -246,7 +261,7 @@
         {
             return Mathf.Max(Mathf.Max(f0, f1), f2);
         }
-        
+
         private static float Min(float f0, float f1, float f2)
         {
             return Mathf.Min(Mathf.Min(f0, f1), f2);
@@ -276,8 +291,8 @@
 
             if (bounds == default)
                 bounds = new Bounds(trans.TransformPoint(verts[0]), Vector3.zero);
-            
-            foreach(var vert in verts)
+
+            foreach (var vert in verts)
                 bounds.Encapsulate(trans.TransformPoint(vert));
         }
     }

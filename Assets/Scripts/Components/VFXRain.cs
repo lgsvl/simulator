@@ -1,8 +1,14 @@
+/**
+ * Copyright (c) 2021 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
 namespace Simulator.Components
 {
     using System;
     using System.Collections.Generic;
-    using global::Components;
     using UnityEngine;
     using UnityEngine.VFX;
 
@@ -239,6 +245,9 @@ namespace Simulator.Components
             var bestDist = float.MaxValue;
             foreach (var rainCollider in colliders)
             {
+                if (!rainCollider.IsReady)
+                    continue;
+
                 var dist = SqrDistance(rainCollider.Data.bounds, trackedEntities[0].position);
                 if (dist < bestDist)
                 {

@@ -11,7 +11,7 @@ using Simulator.Components;
 
 namespace Simulator.Api.Commands
 {
-    class BridgeConnect : ICommand
+    class BridgeConnect : IDistributedCommand
     {
         public string Name => "vehicle/bridge/connect";
 

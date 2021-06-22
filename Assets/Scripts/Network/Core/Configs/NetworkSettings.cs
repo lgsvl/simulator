@@ -27,6 +27,12 @@ namespace Simulator.Network.Core.Configs
         [SerializeField]
         private int timeout = 30000;
 
+        /// <summary>
+        /// Defines how many times client can retry connecting to the main, can be limited by the timeout value 
+        /// </summary>
+        [SerializeField]
+        private int maximumConnectionRetries = 3;
+
 //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
 #pragma warning disable 0649
         /// <summary>
@@ -50,5 +56,10 @@ namespace Simulator.Network.Core.Configs
         /// Prefabs of distributed objects which can be instantiated in a distributed objects root
         /// </summary>
         public GameObject[] DistributedObjectPrefabs => distributedObjectPrefabs;
+
+        /// <summary>
+        /// Maxi
+        /// </summary>
+        public int MaximumConnectionRetries => maximumConnectionRetries;
     }
 }

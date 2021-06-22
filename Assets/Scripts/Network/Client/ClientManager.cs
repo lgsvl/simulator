@@ -47,6 +47,11 @@ namespace Simulator.Network.Client
         private Coroutine masterEndpointsCouroutine;
 
         /// <summary>
+        /// Count of current connection requests to the main ip address
+        /// </summary>
+        private int connectionRequests;
+
+        /// <summary>
         /// Current state of the simulation
         /// </summary>
         private SimulationState State { get; set; } = SimulationState.Initial;
@@ -219,8 +224,8 @@ namespace Simulator.Network.Client
         /// <param name="peer">Peer that has connected</param>
         public void OnPeerConnected(IPeerManager peer)
         {
+            connectionRequests--;
             Debug.Assert(State == SimulationState.Connecting);
-            Connection.DroppedAllConnections -= TryConnectToMasterEndPoints;
             StopCoroutine(masterEndpointsCouroutine);
             MasterPeer = peer;
 
@@ -238,7 +243,12 @@ namespace Simulator.Network.Client
         public void OnPeerDisconnected(IPeerManager peer)
         {
             if (peer != MasterPeer)
+            {
+                Log.Info($"Could not connect to the {peer.PeerEndPoint} endpoint.");
+                connectionRequests--;
                 return;
+            }
+
             MasterPeer = null;
             Log.Info($"Peer {peer.PeerEndPoint} disconnected.");
         }
@@ -277,9 +287,8 @@ namespace Simulator.Network.Client
 
             State = SimulationState.Connecting;
             Log.Info("Client tries to connect to the master.");
-            Connection.DroppedAllConnections += TryConnectToMasterEndPoints;
             TryConnectToMasterEndPoints();
-            if (timeoutCoroutine!=null)
+            if (timeoutCoroutine != null)
                 StopCoroutine(timeoutCoroutine);
             timeoutCoroutine = CheckInitialTimeout();
             StartCoroutine(timeoutCoroutine);
@@ -288,8 +297,9 @@ namespace Simulator.Network.Client
         /// <summary>
         /// Tries to connect to any master end point
         /// </summary>
-        private void TryConnectToMasterEndPoints() {
-            masterEndpointsCouroutine =  StartCoroutine(IterateMasterEndpoints());
+        private void TryConnectToMasterEndPoints()
+        {
+            masterEndpointsCouroutine = StartCoroutine(IterateMasterEndpoints());
         }
 
         /// <summary>
@@ -297,23 +307,30 @@ namespace Simulator.Network.Client
         /// </summary>
         private IEnumerator IterateMasterEndpoints()
         {
-            var network = Loader.Instance.Network;
             //Check if this simulation was not deinitialized
+            var network = Loader.Instance.Network;
             if (!network.IsClient)
                 yield break;
             var masterEndPoints = network.MasterAddresses;
             var identifier = network.LocalIdentifier;
-            foreach (var masterEndPoint in masterEndPoints)
+            
+            //Try connecting to every endpoint multiple times if it is needed
+            for (var i = 0; i < settings.MaximumConnectionRetries; i++)
             {
-                if(State == SimulationState.Connected)
-                    yield break;
-                //Check if client is already connected
-                if (MasterPeer != null)
-                    yield break;
-                if (!IPAddress.IsLoopback(masterEndPoint.Address))
+                foreach (var masterEndPoint in masterEndPoints)
                 {
-                    Connection.Connect(masterEndPoint, identifier);
-                    yield return new WaitForSecondsRealtime(2.0f);
+                    if (State == SimulationState.Connected)
+                        yield break;
+                    //Check if client is already connected
+                    if (MasterPeer != null)
+                        yield break;
+                    if (!IPAddress.IsLoopback(masterEndPoint.Address))
+                    {
+                        connectionRequests++;
+                        Connection.Connect(masterEndPoint, identifier);
+                        while (connectionRequests > 0)
+                            yield return null;
+                    }
                 }
             }
         }
@@ -401,15 +418,15 @@ namespace Simulator.Network.Client
 
             var dataWriter = new NetDataWriter();
             PacketsProcessor.Write(dataWriter, new Commands.Stop
-                {
-                    SimulationId = Loader.Instance.Network.CurrentSimulation.Id
-                });
+            {
+                SimulationId = Loader.Instance.Network.CurrentSimulation.Id
+            });
             var message = MessagesPool.Instance.GetMessage(dataWriter.Length);
             message.AddressKey = Key;
             message.Content.PushBytes(dataWriter.CopyData());
             message.Type = DistributedMessageType.ReliableOrdered;
             BroadcastMessage(message);
-            
+
             State = SimulationState.Stopping;
         }
 

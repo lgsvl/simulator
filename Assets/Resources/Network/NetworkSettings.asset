@@ -14,4 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   connectionPort: 28349
   timeout: 30000
+  maximumConnectionRetries: 3
   distributedObjectPrefabs: []

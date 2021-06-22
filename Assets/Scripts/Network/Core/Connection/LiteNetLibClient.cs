@@ -200,8 +200,10 @@ namespace Simulator.Network.Core.Connection
         /// <inheritdoc/>
         public void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
         {
-            if (MasterPeer == null || MasterPeer.PeerEndPoint != peer.EndPoint)
+            if (MasterPeer == null || !Equals(MasterPeer.PeerEndPoint, peer.EndPoint))
             {
+                if (peers.TryGetValue(peer.EndPoint, out var peerManager))
+                    PeerDisconnected?.Invoke(peerManager);
                 peers.Remove(peer.EndPoint);
                 if (peers.Count==0)
                     DroppedAllConnections?.Invoke();

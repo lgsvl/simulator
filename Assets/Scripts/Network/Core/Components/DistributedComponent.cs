@@ -398,7 +398,7 @@ namespace Simulator.Network.Core.Components
                 return null;
             message.AddressKey = Key;
             message.Type = reliableSnapshot
-                ? DistributedMessageType.ReliableUnordered
+                ? DistributedMessageType.ReliableOrdered
                 : DistributedMessageType.Unreliable;
             return message;
         }

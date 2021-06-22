@@ -275,11 +275,15 @@ namespace Simulator.Api
                 }
             }
 
-            Server = new WebSocketServer(address, Config.ApiPort);
-            Server.AddWebSocketService<SimulatorClient>("/");
-            Server.KeepClean = false;
-            Server.Start();
-            Loader.Instance.Network.MessagesManager?.RegisterObject(this);
+            var network = Loader.Instance.Network;
+            if (network.IsClusterSimulation && network.IsMaster)
+            {
+                Server = new WebSocketServer(address, Config.ApiPort);
+                Server.AddWebSocketService<SimulatorClient>("/");
+                Server.KeepClean = false;
+                Server.Start();
+            }
+            network.MessagesManager?.RegisterObject(this);
             ApiLock.Initialize();
         }
 

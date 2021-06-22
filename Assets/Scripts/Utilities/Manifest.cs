@@ -26,13 +26,6 @@ namespace Simulator
         public string[] supportedBridgeTypes;
     }
 
-    public struct Images
-    {
-        public string small;
-        public string medium;
-        public string large;
-    }
-
     public struct HdMaps
     {
         public string apollo30;

@@ -264,27 +264,19 @@ namespace Simulator.Editor
                         var textures = new BundlePreviewRenderer.PreviewTextures();
                         BundlePreviewRenderer.RenderVehiclePreview(prefabEntry.mainAssetFile, textures);
                         var bytesLarge = textures.large.EncodeToPNG();
-                        var bytesMedium = textures.medium.EncodeToPNG();
-                        var bytesSmall = textures.small.EncodeToPNG();
                         textures.Release();
 
                         string tmpdir = Path.Combine(outputFolder, $"{manifest.assetName}_pictures");
                         Directory.CreateDirectory(tmpdir);
-                        File.WriteAllBytes(Path.Combine(tmpdir, "small.png"), bytesSmall);
-                        File.WriteAllBytes(Path.Combine(tmpdir, "medium.png"), bytesMedium);
-                        File.WriteAllBytes(Path.Combine(tmpdir, "large.png"), bytesLarge);
+                        File.WriteAllBytes(Path.Combine(tmpdir, "preview-1.png"), bytesLarge);
 
-                        var images = new Images()
+                        var images = new string[]
                         {
-                            small = ZipPath("images", "small.png"),
-                            medium = ZipPath("images", "medium.png"),
-                            large = ZipPath("images", "large.png"),
+                            ZipPath("images", "preview-1.png"),
                         };
                         manifest.attachments.Add("images", images);
 
-                        buildArtifacts.Add((Path.Combine(tmpdir, "small.png"), images.small));
-                        buildArtifacts.Add((Path.Combine(tmpdir, "medium.png"), images.medium));
-                        buildArtifacts.Add((Path.Combine(tmpdir, "large.png"), images.large));
+                        buildArtifacts.Add((Path.Combine(tmpdir, "preview-1.png"), images[0]));
                         buildArtifacts.Add((tmpdir, null));
                     }
                 }
@@ -426,26 +418,18 @@ namespace Simulator.Editor
                             var textures = new BundlePreviewRenderer.PreviewTextures();
                             BundlePreviewRenderer.RenderScenePreview(previewOrigin, textures);
                             var bytesLarge = textures.large.EncodeToPNG();
-                            var bytesMedium = textures.medium.EncodeToPNG();
-                            var bytesSmall = textures.small.EncodeToPNG();
                             textures.Release();
 
                             tmpdir = Path.Combine(outputFolder, $"{name}_pictures");
                             Directory.CreateDirectory(tmpdir);
-                            File.WriteAllBytes(Path.Combine(tmpdir, "small.png"), bytesSmall);
-                            File.WriteAllBytes(Path.Combine(tmpdir, "medium.png"), bytesMedium);
-                            File.WriteAllBytes(Path.Combine(tmpdir, "large.png"), bytesLarge);
+                            File.WriteAllBytes(Path.Combine(tmpdir, "preview-1.png"), bytesLarge);
 
-                            var images = new Images()
+                            var images = new string[]
                             {
-                                small = ZipPath("images", "small.png"),
-                                medium = ZipPath("images", "medium.png"),
-                                large = ZipPath("images", "large.png"),
+                                ZipPath("images", "preview-1.png"),
                             };
                             manifest.attachments.Add("images", images);
-                            buildArtifacts.Add((Path.Combine(tmpdir, "small.png"), images.small));
-                            buildArtifacts.Add((Path.Combine(tmpdir, "medium.png"), images.medium));
-                            buildArtifacts.Add((Path.Combine(tmpdir, "large.png"), images.large));
+                            buildArtifacts.Add((Path.Combine(tmpdir, "preview-1.png"), images[0]));
                             buildArtifacts.Add((tmpdir, null));
 
                             foreach (Tuple<string, string> t in loaderPaths)

@@ -546,7 +546,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
         if (Wet != PrevWet)
         {
             var puddle = Mathf.Clamp01((Wet - 1 / 3f) * 3 / 2f);
-            var damp = Mathf.Clamp01(Wet * 3 / 2f);
+            var damp = Mathf.Clamp01(Wet);
 
             foreach (var m in WetMaterials)
             {

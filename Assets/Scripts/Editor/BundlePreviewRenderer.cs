@@ -72,6 +72,28 @@ namespace Simulator.Editor
 
             ReinitializeRenderPipeline();
 
+            var hasReflectionProbes = Object.FindObjectOfType<ReflectionProbe>() != null;
+
+            var volumes = Object.FindObjectsOfType<Volume>();
+            Volume volume = null;
+            IndirectLightingController indirectLightingController = null;
+
+            foreach (var vol in volumes)
+            {
+                if (vol.isGlobal && volume == null)
+                {
+                    volume = vol;
+                    continue;
+                }
+
+                var collider = vol.GetComponent<Collider>();
+                if (collider.bounds.Contains(pos))
+                {
+                    volume = vol;
+                    break;
+                }
+            }
+
             var previewRootPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/ScenePreviewRoot.prefab");
             var previewRoot = Object.Instantiate(previewRootPrefab);
             previewRoot.transform.rotation = rot;
@@ -85,13 +107,37 @@ namespace Simulator.Editor
             var hdSettings = camera.GetComponent<HDAdditionalCameraData>();
             hdSettings.hasPersistentHistory = true;
             var hd = HDCamera.GetOrCreate(camera);
-            var volume = previewRoot.GetComponentInChildren<Volume>();
+
+            if (volume == null)
+                volume = previewRoot.GetComponentInChildren<Volume>();
+
+            // CullingResults in first frame after loading scene does not contain aby data about reflection probes.
+            // Light loop will use further options, which usually means skybox indirect reflections. This ignores
+            // occlusion and will break interior lighting. Due to lack of other options, just disable indirect specular
+            // lighting for preview rendering.
+            indirectLightingController = volume.profile.components.FirstOrDefault(x => x is IndirectLightingController) as IndirectLightingController;
+            var indirectControllerAdded = hasReflectionProbes && indirectLightingController == null;
+
+            if (indirectControllerAdded)
+                indirectLightingController = volume.profile.Add<IndirectLightingController>();
+
+            var indirectMultiplier = indirectLightingController == null ? 0f : indirectLightingController.reflectionLightingMultiplier.value;
+
+            if (hasReflectionProbes && indirectLightingController != null)
+                indirectLightingController.reflectionLightingMultiplier.value = 0f;
+
             var pointCloudRenderers = Object.FindObjectsOfType<NodeTreeRenderer>();
 
             foreach (var pointCloudRenderer in pointCloudRenderers)
                 pointCloudRenderer.UpdateImmediate(camera);
 
             Render(hd, textures, volume);
+
+            if (hasReflectionProbes && indirectLightingController != null)
+                indirectLightingController.reflectionLightingMultiplier.value = indirectMultiplier;
+
+            if (indirectControllerAdded && indirectLightingController != null)
+                volume.profile.Remove<IndirectLightingController>();
 
             Object.DestroyImmediate(previewRoot);
         }
@@ -155,7 +201,8 @@ namespace Simulator.Editor
             if (pbrSky == null)
             {
                 var hdriSky = volume.profile.components.FirstOrDefault(x => x is HDRISky) as HDRISky;
-                return hdriSky != null;
+                if (hdriSky != null)
+                    return true;
             }
 
             var skyUpdateContext = hd.GetType().GetProperty("visualSky", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(hd);
@@ -179,7 +226,7 @@ namespace Simulator.Editor
                 frameField.SetValue(precomputedData, prev - 1);
             }
 
-            var targetBounces = pbrSky.numberOfBounces.value;
+            var targetBounces = pbrSky == null ? 8 : pbrSky.numberOfBounces.value;
             var bouncesVal = currentBounces is int bounces ? bounces : 0;
             return bouncesVal >= targetBounces;
         }

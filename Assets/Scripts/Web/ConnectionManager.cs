@@ -68,13 +68,15 @@ public class ConnectionManager : MonoBehaviour
         if (string.IsNullOrEmpty(Config.CloudProxy))
         {
             API = new CloudAPI(new Uri(Config.CloudUrl), Config.SimID);
-        } else {
-            API = new CloudAPI(new Uri(Config.CloudUrl), new Uri(Config.CloudProxy), Config.SimID);
+        }
+        else
+        {
+            API = new CloudAPI(new Uri(Config.CloudUrl), Config.SimID, new Uri(Config.CloudProxy));
         }
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         EditorApplication.playModeStateChanged += HandlePlayMode;
-        #endif
+#endif
 
         if (settings.onlineStatus)
         {
@@ -378,6 +380,7 @@ public class ConnectionManager : MonoBehaviour
 public class CloudAPI
 {
     HttpClient client;
+    HttpClientHandler handler;
     CancellationTokenSource requestTokenSource;
 
     Uri CloudURL;
@@ -390,36 +393,76 @@ public class CloudAPI
     // TODO: rename this property to something more appropritate
     public string CloudType { get => CloudURL.AbsoluteUri; }
 
-    public CloudAPI(Uri cloudURL, string simId)
+    public CloudAPI(Uri cloudURL, CookieContainer cookieContainer, Uri proxyURL = null)
     {
         CloudURL = cloudURL;
-        ProxyURL = null;
-        SimId = simId;
-
-        client = new HttpClient();
+        ProxyURL = proxyURL;
+        SimId = null;
+        handler = new HttpClientHandler();
+        handler.CookieContainer = cookieContainer;
+        handler.AllowAutoRedirect = false;
+        handler.UseCookies = true;
+        if (proxyURL != null)
+        {
+            WebProxy webProxy = new WebProxy(new Uri(Config.CloudProxy));
+            handler.Proxy = webProxy;
+            Console.WriteLine("[CONN] Cloud URL {0}, cookie auth, via proxy {1}", CloudURL.AbsoluteUri, ProxyURL.AbsolutePath);
+        }
+        client = new HttpClient(handler);
         requestTokenSource = new CancellationTokenSource();
 
-        Console.WriteLine("[CONN] Cloud URL {0}", CloudURL.AbsoluteUri);
+        Console.WriteLine("[CONN] Cloud URL {0}, cookie auth", CloudURL.AbsoluteUri);
     }
 
-    public CloudAPI(Uri cloudURL, Uri proxyURL, string simId)
+    public CloudAPI(Uri cloudURL, string simId, Uri proxyURL = null)
     {
         CloudURL = cloudURL;
         ProxyURL = proxyURL;
         SimId = simId;
 
-        WebProxy webProxy = new WebProxy(new Uri(Config.CloudProxy));
         HttpClientHandler handler = new HttpClientHandler();
-        handler.Proxy = webProxy;
+        if (proxyURL != null)
+        {
+            WebProxy webProxy = new WebProxy(new Uri(Config.CloudProxy));
+            handler.Proxy = webProxy;
+            Console.WriteLine("[CONN] Cloud URL {0} via proxy {1}", CloudURL.AbsoluteUri, ProxyURL.AbsolutePath);
+        }
+        else
+        {
+            Console.WriteLine("[CONN] Cloud URL {0}", CloudURL.AbsoluteUri);
+        }
         client = new HttpClient(handler);
         requestTokenSource = new CancellationTokenSource();
 
-        Console.WriteLine("[CONN] Cloud URL {0} via proxy {1}", CloudURL.AbsoluteUri, ProxyURL.AbsolutePath);
     }
 
-    public class NoSuccessException: Exception
+    public async Task<bool> Login(string email, string password)
     {
-        public NoSuccessException(string status) :base(status) { }
+        var login = new
+        {
+            email,
+            password
+        };
+
+        var json = Newtonsoft.Json.JsonConvert.SerializeObject(login, JsonSettings.camelCase);
+        HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, new Uri(CloudURL, "/api/v1/auth/login"));
+        message.Content = new StringContent(json, Encoding.UTF8, "application/json");
+        var response = await client.SendAsync(message, HttpCompletionOption.ResponseContentRead, requestTokenSource.Token);
+        // work around for bug where cookies do not happen to be set by the client
+        if (response.Headers.TryGetValues("Set-Cookie", out IEnumerable<string> cookies))
+        {
+            handler.CookieContainer.SetCookies(CloudURL, string.Join(",", cookies));
+        }
+
+        return response.IsSuccessStatusCode;
+    }
+
+    public class NoSuccessException : Exception
+    {
+        public NoSuccessException(string status, HttpStatusCode statusCode) : base(status) {
+            StatusCode = statusCode;
+         }
+        public readonly HttpStatusCode StatusCode;
     }
 
     public async Task<StreamReader> Connect(SimulatorInfo simInfo)
@@ -446,7 +489,7 @@ public class CloudAPI
         {
             Console.WriteLine("[CONN] Failed to connect to WISE");
             var content = await response.Content.ReadAsStringAsync();
-            throw new NoSuccessException($"{content} ({(int)response.StatusCode})");
+            throw new NoSuccessException($"{content} ({(int)response.StatusCode})", response.StatusCode);
         }
         Console.WriteLine("[CONN] Connected to WISE.");
         onlineStream = new StreamReader(await response.Content.ReadAsStreamAsync());
@@ -533,7 +576,7 @@ public class CloudAPI
     public async Task<ApiModelType> GetApi<ApiModelType>(string routeAndParams)
     {
         HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Get, new Uri(CloudURL, routeAndParams));
-        message.Headers.Add("SimId", SimId);
+        if (!string.IsNullOrEmpty(SimId)) message.Headers.Add("SimId", SimId);
         message.Headers.Add("Accept", "application/json");
 
         Console.WriteLine($"[CONN] GET {routeAndParams}");
@@ -542,7 +585,7 @@ public class CloudAPI
 
         if (!response.IsSuccessStatusCode)
         {
-            throw new NoSuccessException(response.StatusCode.ToString());
+            throw new NoSuccessException(response.StatusCode.ToString(), response.StatusCode);
         }
         using (var stream = await response.Content.ReadAsStreamAsync())
         {
@@ -575,7 +618,7 @@ public class CloudAPI
     {
         HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, new Uri(CloudURL, route));
         message.Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(data, JsonSettings.camelCase), Encoding.UTF8, "application/json");
-        message.Headers.Add("SimId", Config.SimID);
+        if (!string.IsNullOrEmpty(SimId)) message.Headers.Add("SimId", Config.SimID);
         message.Headers.Add("Accept", "application/json");
 
         Console.WriteLine($"[CONN] POST {route}");

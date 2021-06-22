@@ -325,7 +325,7 @@ namespace Simulator
                     }
                     else
                     {
-                        API = new CloudAPI(new Uri(Config.CloudUrl), new Uri(Config.CloudProxy), Config.SimID);
+                        API = new CloudAPI(new Uri(Config.CloudUrl), Config.SimID, new Uri(Config.CloudProxy));
                     }
 
                     var simInfo = CloudAPI.GetInfo();

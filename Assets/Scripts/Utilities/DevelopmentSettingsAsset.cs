@@ -17,5 +17,7 @@ namespace Simulator.Editor
     public class DevelopmentSettingsAsset: ScriptableObject
     {
         public string developerSimulationJson;
+        public string VehicleConfigId;
+        public string APICookie;
     }
 }

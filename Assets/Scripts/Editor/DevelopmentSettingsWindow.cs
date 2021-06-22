@@ -38,6 +38,13 @@ namespace Simulator.Editor
         private bool NPCSelectEnable = false;
         private float SaveAssetTime = float.MaxValue;
 
+        private string loginUser = string.Empty;
+        private string loginPassword = string.Empty;
+        private bool authenticated = false;
+        private bool updateVehicleDetails = true;
+
+        System.Net.CookieContainer cookieContainer = new System.Net.CookieContainer();
+
         [MenuItem("Simulator/Development Settings...", false, 50)]
         public static void Open()
         {
@@ -50,7 +57,6 @@ namespace Simulator.Editor
         {
             Instance = this;
             EditorApplication.playModeStateChanged += HandlePlayMode;
-            AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
             EditorApplication.update += OnEditorUpdate;
 
             Settings = (DevelopmentSettingsAsset)AssetDatabase.LoadAssetAtPath("Assets/Resources/Editor/DeveloperSettings.asset", typeof(DevelopmentSettingsAsset));
@@ -72,42 +78,22 @@ namespace Simulator.Editor
                 {
                     Name = "DeveloperSettings",
                     TimeOfDay = DateTime.Now,
-                    Cluster = new ClusterData()
-                    {
-                        Name = "DeveloperSettingsDummy",
-                        Instances = new[]
-                        {
-                            new InstanceData
-                            {
-                                HostName="dummy.developer.settings",
-                                Ip = new []{ "127.0.0.1" },
-                                MacAddress="00:00:00:00:00:00"
-                            }
-                        }
-                    }
                 };
             }
 
+            LoadCookie();
             Refresh();
         }
+
+
 
         void OnDisable()
         {
             EditorApplication.playModeStateChanged -= HandlePlayMode;
-            AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeAssemblyReload;
-        }
-
-        public void OnBeforeAssemblyReload()
-        {
-            API.Disconnect();
         }
 
         void OnDestroy()
         {
-            if (API != null)
-            {
-                API.Disconnect();
-            }
             Instance = null;
         }
 
@@ -121,10 +107,6 @@ namespace Simulator.Editor
 
         private static void HandlePlayMode(PlayModeStateChange state)
         {
-            if (state == PlayModeStateChange.ExitingEditMode && Instance != null && Instance.API != null)
-            {
-                Instance.API.Disconnect();
-            }
             if (state == PlayModeStateChange.ExitingPlayMode && Instance != null)
             {
                 Instance.Refresh();
@@ -133,10 +115,33 @@ namespace Simulator.Editor
 
         bool updating = false;
 
-        List<(string idOrPath, object data, string display)> VehicleChoices =>
-                             LocalVehicles.Select(g => (idOrPath: g, data: (object)g, display: "local: " + Path.GetFileName(g))).Concat(
-                             CloudVehicles.Select(v => (idOrPath: v.Id, data: (object)v, display: "cloud: " + v.Name)))
+        class VehicleChoiceEntry
+        {
+            public string cloudIdOrPrefabPath;
+            public string configId = null;
+            public VehicleDetailData vehicleDetailData = null;
+            public string display;
+            public bool IsLocal => cloudIdOrPrefabPath.EndsWith(".prefab");
+        }
+
+        List<VehicleChoiceEntry> VehicleChoices =>
+                             LocalVehicles.Select(prefabPath =>
+                             new VehicleChoiceEntry
+                             {
+                                 cloudIdOrPrefabPath = prefabPath,
+                                 display = "local: " + Path.GetFileName(prefabPath)
+                             }).Concat(
+                             CloudVehicles.SelectMany(
+                                 vehicle => vehicle.SensorsConfigurations, (detailData, config) => new VehicleChoiceEntry
+                                 {
+                                     cloudIdOrPrefabPath = detailData.Id,
+                                     configId = config.Id,
+                                     vehicleDetailData = detailData,
+                                     display = "cloud: " + detailData.Name + "/" + config.Name
+                                 }
+                                     ))
                              .ToList();
+
         async void Refresh()
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode)
@@ -149,6 +154,32 @@ namespace Simulator.Editor
                 updating = true;
                 ErrorMessage = "";
                 Simulator.Web.Config.ParseConfigFile();
+
+                if (DeveloperSimulation.Cluster == null)
+                {
+                    DeveloperSimulation.Cluster = new ClusterData()
+                    {
+                        Name = "DeveloperSettingsDummy",
+                        Instances = new[]
+                        {
+                            new InstanceData
+                            {
+                                HostName="dummy.developer.settings",
+                                Ip = new []{ "127.0.0.1" },
+                                MacAddress="00:00:00:00:00:00"
+                            }
+                        }
+                    };
+                }
+
+                if (string.IsNullOrEmpty(Config.CloudProxy))
+                {
+                    API = new CloudAPI(new Uri(Config.CloudUrl), cookieContainer);
+                }
+                else
+                {
+                    API = new CloudAPI(new Uri(Config.CloudUrl), cookieContainer, new Uri(Config.CloudProxy));
+                }
 
                 DatabaseManager.Init();
                 var csservice = new Simulator.Database.Services.ClientSettingsService();
@@ -165,25 +196,20 @@ namespace Simulator.Editor
                     return;
                 }
 
-                if (API != null)
+                if (cookieContainer.GetCookies(new Uri(Config.CloudUrl)).Count == 0)
                 {
-                    API.Disconnect();
+                    authenticated = false;
                 }
 
-                if (string.IsNullOrEmpty(Config.CloudProxy))
+                if (authenticated)
                 {
-                    API = new CloudAPI(new Uri(Config.CloudUrl), Config.SimID);
+                    var ret = await API.GetLibrary<VehicleDetailData>();
+                    CloudVehicles = ret.ToList();
                 }
                 else
                 {
-                    API = new CloudAPI(new Uri(Config.CloudUrl), new Uri(Config.CloudProxy), Config.SimID);
+                    CloudVehicles = new List<VehicleDetailData>();
                 }
-
-                var simInfo = CloudAPI.GetInfo();
-                var reader = await API.Connect(simInfo);
-                await API.EnsureConnectSuccess();
-                var ret = await API.GetLibrary<VehicleDetailData>();
-                CloudVehicles = ret.ToList();
 
                 string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/External/Vehicles" });
                 LocalVehicles = guids.Select(g => AssetDatabase.GUIDToAssetPath(g)).ToList();
@@ -198,14 +224,21 @@ namespace Simulator.Editor
                 if (idOrPath != null)
                 {
                     // find index of previously selected thing in new dataset
-                    var vehicleChoices = VehicleChoices;
-                    var selected = vehicleChoices.FindIndex(v => v.idOrPath == idOrPath);
-                    SetVehicleFromSelectionIndex(vehicleChoices, selected);
+                    var foundIndex = VehicleChoices.FindIndex(v => v.cloudIdOrPrefabPath == idOrPath && (v.IsLocal || v.configId == Settings.VehicleConfigId));
+                    SetVehicleFromSelectionIndex(foundIndex);
 
                     await UpdateCloudVehicleDetails();
                 }
 
                 DeveloperSimulation.NPCs = Config.NPCVehicles.Values.ToArray(); // TODO get from cloud and refresh config.cs LoadExternalAssets()
+            }
+            catch (CloudAPI.NoSuccessException ex)
+            {
+                if (ex.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    authenticated = false;
+                    ClearCookie();
+                }
             }
             catch (Exception ex)
             {
@@ -215,7 +248,6 @@ namespace Simulator.Editor
                 {
                     ErrorMessage += "\n" + ex.InnerException.Message;
                 }
-                API.Disconnect();
             }
             finally
             {
@@ -249,9 +281,16 @@ namespace Simulator.Editor
 
             EditorGUI.BeginChangeCheck();
 
-            if (GUILayout.Button("Disconnect"))
+            if (!authenticated)
             {
-                API.Disconnect();
+                loginUser = EditorGUILayout.TextField("user", loginUser);
+                loginPassword = EditorGUILayout.PasswordField("password", loginPassword);
+
+                if (GUILayout.Button("Login"))
+                {
+                    Debug.Log("Development settings connecting...");
+                    DoLogin(loginUser, loginPassword);
+                }
             }
 
             if (GUILayout.Button("Refresh"))
@@ -306,14 +345,11 @@ namespace Simulator.Editor
                     VehicleSetup = EditorGUILayout.Foldout(VehicleSetup, "EGO Setup");
                     if (VehicleSetup)
                     {
-                        // a list of tuples (display:"name to show", data:string or VehicleDetailData )
-                        var vehicleChoices = VehicleChoices;
-
-                        if (vehicleChoices.Count > 0)
+                        if (VehicleChoices.Count > 0)
                         {
                             EditorGUI.indentLevel++;
-                            var newIndex = EditorGUILayout.Popup(CurrentVehicleIndex, vehicleChoices.Select(v => v.display).ToArray());
-                            var vehicle = SetVehicleFromSelectionIndex(vehicleChoices, newIndex);
+                            var newIndex = EditorGUILayout.Popup(CurrentVehicleIndex, VehicleChoices.Select(v => v.display).ToArray());
+                            var vehicle = SetVehicleFromSelectionIndex(newIndex);
 
                             if (vehicle.Id.EndsWith(".prefab"))
                             {
@@ -341,14 +377,12 @@ namespace Simulator.Editor
                                 if (vehicle.Bridge != null)
                                 {
                                     vehicle.Bridge.ConnectionString = EditorGUILayout.TextField("Bridge Connection", vehicle.Bridge.ConnectionString);
-                                    EditorGUI.BeginDisabledGroup(true);
                                     EditorGUILayout.TextField("Bridge Type", vehicle.Bridge.Type);
                                     EditorGUILayout.TextField("Bridge Name", vehicle.Bridge.Name);
                                     EditorGUILayout.TextField("Bridge AssetGuid", vehicle.Bridge.AssetGuid);
-                                    EditorGUILayout.LabelField("json sensor config");
-                                    EditorGUILayout.TextArea(Newtonsoft.Json.JsonConvert.SerializeObject(vehicle.Sensors, JsonSettings.camelCase), GUILayout.Height(200));
-                                    EditorGUI.EndDisabledGroup();
                                 }
+                                EditorGUILayout.LabelField("json sensor config");
+                                EditorGUILayout.TextArea(JsonConvert.SerializeObject(vehicle.Sensors, JsonSettings.camelCasePretty), GUILayout.ExpandHeight(true));
                             }
                             EditorGUI.indentLevel--;
                         }
@@ -395,48 +429,58 @@ namespace Simulator.Editor
             }
         }
 
-        private VehicleData SetVehicleFromSelectionIndex(List<(string idOrPath, object data, string display)> vehicleChoices, int newSelectionIndex)
+        private VehicleData SetVehicleFromSelectionIndex(int newSelectionIndex)
         {
             VehicleData previousVehicle = DeveloperSimulation.Vehicles?[0];
 
-            if (newSelectionIndex < 0 || newSelectionIndex > vehicleChoices.Count)
+            if (newSelectionIndex < 0 || newSelectionIndex >= VehicleChoices.Count)
             {
-                Debug.Log("previously selected vehicle missing.");
+                Debug.Log($"previously selected vehicle missing. {newSelectionIndex}/{VehicleChoices.Count}");
                 newSelectionIndex = 0;
             }
+            var selection = VehicleChoices[newSelectionIndex];
+            updateVehicleDetails = CurrentVehicleIndex != newSelectionIndex && !selection.IsLocal;
             CurrentVehicleIndex = newSelectionIndex;
-            object selection = vehicleChoices[CurrentVehicleIndex].data;
+
             VehicleData vehicle;
 
-            if (selection.GetType() == typeof(string))
+            if (selection.IsLocal)
             {
-                if (previousVehicle != null && (string)selection == previousVehicle.Id)
+                Settings.VehicleConfigId = null;
+                if (previousVehicle != null && selection.cloudIdOrPrefabPath == previousVehicle.Id)
                 {
                     return previousVehicle;
                 }
 
                 vehicle = new VehicleData
                 {
-                    Id = (string)selection,
+                    Id = selection.cloudIdOrPrefabPath,
                     Bridge = previousVehicle?.Bridge ?? new BridgeData()
                 };
             }
             else // Cloud Vehicle
             {
-                vehicle = ((VehicleDetailData)selection).ToVehicleData();
-                if (previousVehicle != null && vehicle.Id == previousVehicle.Id)
+                vehicle = selection.vehicleDetailData.ToVehicleData();
+                vehicle.Sensors = vehicle.SensorsConfigurations.First(config => config.Id == selection.configId).Sensors;
+                if (previousVehicle != null && vehicle.Id == previousVehicle.Id && selection.configId == Settings.VehicleConfigId)
                 {
                     return previousVehicle;
                 }
+                Settings.VehicleConfigId = selection.configId;
             }
 
             DeveloperSimulation.Vehicles = new VehicleData[] { vehicle };
+            Task.Run(() => UpdateCloudVehicleDetails());
             return vehicle;
         }
 
         async Task UpdateCloudVehicleDetails()
         {
-            if (API == null)
+            if (!updateVehicleDetails)
+                return;
+            updateVehicleDetails = false;
+
+            if (API == null || !authenticated)
                 return;
 
             if (DeveloperSimulation.Vehicles == null) return;
@@ -445,12 +489,16 @@ namespace Simulator.Editor
             {
                 try
                 {
+                    var selection = VehicleChoices[CurrentVehicleIndex];
                     // vehicle list does not give us sensor data, so we have to get it later.
                     // I do not want to query each vehicle individually and I can't block the UI, so
                     // we do it after a change was made to the settings in this fire and forget async function
-                    var data = await API.Get<VehicleDetailData>(DeveloperSimulation.Vehicles[0].Id);
+                    var data = await API.Get<VehicleDetailData>(selection.cloudIdOrPrefabPath);
+                    var selectedConfig = data.SensorsConfigurations.First(c => c.Id == selection.configId);
+                    data.Sensors = selectedConfig.Sensors;
+                    data.Bridge = selectedConfig.Bridge;
                     // copy previous bridge data as it is not saved with the vehicle
-                    if (DeveloperSimulation.Vehicles[0].Bridge != null)
+                    if (DeveloperSimulation.Vehicles[0].Bridge != null && selectedConfig.Bridge != null)
                     {
                         data.Bridge.ConnectionString = DeveloperSimulation.Vehicles[0].Bridge.ConnectionString;
                     }
@@ -483,7 +531,7 @@ namespace Simulator.Editor
                             Utilities.SensorConfig offlineCandidate = null;
                             foreach (var config in Config.Sensors)
                             {
-                                Debug.Log($" {config.Name}: assetguid: {config.AssetGuid} params {string.Join(", ", config.Parameters.Select(p=>p.Name))}");
+                                Debug.Log($" {config.Name}: assetguid: {config.AssetGuid} params {string.Join(", ", config.Parameters.Select(p => p.Name))}");
                             }
 
                             if (!string.IsNullOrEmpty(sensor.Plugin.AssetGuid))
@@ -494,7 +542,7 @@ namespace Simulator.Editor
                             {
                                 offlineCandidate = Config.Sensors.FirstOrDefault(p => p.Name == sensor.Name);
                             }
-                            if(offlineCandidate != null)
+                            if (offlineCandidate != null)
                             {
                                 sensor.Plugin.AssetGuid = offlineCandidate.AssetGuid;
                                 Debug.Log($"Updated details for sensor {sensor.Name}:  AssetGuid {offlineCandidate.AssetGuid} name: {offlineCandidate.Name}");
@@ -542,22 +590,69 @@ namespace Simulator.Editor
             }
         }
 
+        async void DoLogin(string email, string password)
+        {
+            ClearCookie();
+            authenticated = await API.Login(email, password);
+            if (!authenticated)
+            {
+                ErrorMessage = "Development settings login failed, be sure email and password are correct";
+                Debug.LogWarning(ErrorMessage);
+            }
+        }
+
         async void UpdateAsset()
         {
-            SaveAssetTime = float.MaxValue;
-            updating = true;
-            await UpdateCloudVehicleDetails();
-            Settings.developerSimulationJson = JsonConvert.SerializeObject(DeveloperSimulation, JsonSettings.camelCase);
-            EditorUtility.SetDirty(Settings);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-            updating = false;
-            Debug.Log("Saved DeveloperSettings.");
+            try
+            {
+                SaveAssetTime = float.MaxValue;
+                updating = true;
+                await UpdateCloudVehicleDetails();
+                Settings.developerSimulationJson = JsonConvert.SerializeObject(DeveloperSimulation, JsonSettings.camelCase);
+                SaveCookie();
+                EditorUtility.SetDirty(Settings);
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+                Debug.Log("Saved DeveloperSettings.");
+            }
+            finally
+            {
+                updating = false;
+
+            }
         }
 
         private void OnLostFocus()
         {
             UpdateAsset();
+        }
+
+        private void LoadCookie()
+        {
+            // cannot deserialize directly to cookiecontainer unfortunately
+            if (!string.IsNullOrEmpty(Settings.APICookie))
+            {
+                var collection = JsonConvert.DeserializeObject<List<System.Net.Cookie>>(Settings.APICookie);
+                foreach (var cookie in collection)
+                {
+                    cookieContainer.Add(cookie);
+                }
+            }
+        }
+
+        private void SaveCookie()
+        {
+            var cookies = cookieContainer.GetCookies(new Uri(Config.CloudUrl));
+            Settings.APICookie = JsonConvert.SerializeObject(cookies);
+        }
+
+        private void ClearCookie()
+        {
+            var cookies = cookieContainer.GetCookies(new Uri(Config.CloudUrl));
+            foreach (System.Net.Cookie cookie in cookies)
+            {
+                cookie.Expired = true;
+            }
         }
     }
 }

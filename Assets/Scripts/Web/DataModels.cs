@@ -101,6 +101,7 @@ namespace Simulator.Web
         public bool IsOwned { get; set; }
         public string VehicleId { get; set; }
         public string BridgePluginId { get; set; }
+        public BridgeData Bridge { get; set; }
         public SensorData[] Sensors { get; set; }
     }
 
@@ -112,10 +113,9 @@ namespace Simulator.Web
         public BridgeData Bridge { get; set; }
         public string Fmu { get; set; }
         public string BridgePluginId { get; set; }
-        
+
         public VehicleData ToVehicleData()
         {
-            var ret = new VehicleData();
             return new VehicleData {
                 Id = Id,
                 Name = Name,

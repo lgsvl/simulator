@@ -97,7 +97,7 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
                 return;
             CurrentSpeed = value;
             if (Loader.Instance.Network.IsMaster)
-                BroadcastSnapshot();
+                BroadcastSnapshot(true);
             if (!Loader.Instance.Network.IsClient)
                 SetAnimationControllerParameters();
         }

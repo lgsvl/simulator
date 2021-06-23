@@ -276,7 +276,7 @@ namespace Simulator.Api
             }
 
             var network = Loader.Instance.Network;
-            if (network.IsClusterSimulation && network.IsMaster)
+            if (!network.IsClusterSimulation && network.IsMaster)
             {
                 Server = new WebSocketServer(address, Config.ApiPort);
                 Server.AddWebSocketService<SimulatorClient>("/");

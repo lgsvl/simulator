@@ -20,6 +20,8 @@ using Simulator.Network.Core.Messaging;
 using Simulator.Network.Shared;
 using UnityEngine.Rendering.HighDefinition;
 using Simulator.Bridge;
+using System.IO;
+using VirtualFileSystem;
 
 public class AgentManager : MonoBehaviour
 {
@@ -71,18 +73,6 @@ public class AgentManager : MonoBehaviour
             baseLink.transform.SetParent(go.transform, false);
         }
 
-        BridgeClient bridgeClient = null;
-        if (config.Bridge != null)
-        {
-            bridgeClient = go.AddComponent<BridgeClient>();
-            bridgeClient.Init(config.Bridge);
-
-            if (!String.IsNullOrEmpty(config.Connection))
-            {
-                bridgeClient.Connect(config.Connection);
-            }
-        }
-
         var sensorsController = go.GetComponent<ISensorsController>() ?? go.AddComponent<SensorsController>();
         if (controller != null)
         {
@@ -103,9 +93,27 @@ public class AgentManager : MonoBehaviour
             }
         }
 
+        BridgeClient bridgeClient = null;
+        if (config.Bridge != null)
+        {
+            var dir = Path.Combine(Simulator.Web.Config.PersistentDataPath, "Bridges");
+            var vfs = VfsEntry.makeRoot(dir);
+            Simulator.Web.Config.CheckDir(vfs.GetChild(config.BridgeData.AssetGuid), Simulator.Web.Config.LoadBridgePlugin);
+
+            bridgeClient = go.AddComponent<BridgeClient>();
+            bridgeClient.Init(config.Bridge);
+
+            if (!String.IsNullOrEmpty(config.Connection))
+            {
+                bridgeClient.Connect(config.Connection);
+            }
+        }
+
         go.transform.position = config.Position;
         go.transform.rotation = config.Rotation;
         sensorsController.SetupSensors(config.Sensors);
+
+
         controller?.Init();
 
         go.SetActive(true);

@@ -108,6 +108,18 @@ namespace Simulator.Api.Commands
                         }
                     }
 
+                    if(config.BridgeData != null)
+                    {
+                        var pluginProgress = ConnectionUI.instance != null ?
+                        new Progress<Tuple<string, float>>(p => ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2))
+                        : new Progress<Tuple<string, float>>(p => Debug.Log($"Download: {p.Item1}: {p.Item2}"));
+
+                        var pluginTask = DownloadManager.GetAsset(BundleConfig.BundleTypes.Bridge, config.BridgeData.AssetGuid,
+                            config.BridgeData.Name, pluginProgress);
+                        downloads.Add(pluginTask);
+                        assetDownloads.TryAdd(pluginTask, config.BridgeData.Type);
+                    }
+
                     foreach (var sensor in sensorsToDownload)
                     {
                         var pluginProgress = ConnectionUI.instance != null ?

@@ -43,6 +43,7 @@ namespace Simulator
         public GameObject Prefab;
         [NonSerialized]
         public GameObject AgentGO;
+        public BridgeData BridgeData;
         public BridgePlugin Bridge;
         public string Connection;
         public SensorData[] Sensors;
@@ -66,6 +67,8 @@ namespace Simulator
                 AssetBundle = Web.WebUtilities.GenerateLocalPath(vehicleData.AssetGuid, BundleConfig.BundleTypes.Vehicle);
             }
             Sensors = vehicleData.Sensors;
+
+            BridgeData = vehicleData.Bridge;
 
             //Load sensors from the configuration if no sensors are set
             if ((Sensors == null || Sensors.Length == 0) &&

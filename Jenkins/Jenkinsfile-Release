@@ -63,6 +63,7 @@ pipeline {
     string(name: 'WISE_AWS_ECR_ACCOUNT_ID', defaultValue: '853285614468', description: 'The AWS account ID whose ECR will be used', trim: true)
     string(name: 'WISE_AWS_ECR_REGION', defaultValue: 'us-east-1', description: 'The AWS region where the ECR is located', trim: true)
     credentials( name: 'WISE_AWS_ECR_CREDENTIALS_ID', required: true, defaultValue: "simulator--aws-credentials", description: 'The credentials to be used for accessing the ECR', credentialType: 'com.cloudbees.jenkins.plugins.awscredentials.AWSCredentialsImpl')
+    booleanParam(name: "FORCE_DEV_BUILD", defaultValue: false, description: "Enables DEVELOPMENT_BUILD")
 
     string(name: "SIMULATOR_CONTROLLABLES_REPOS", defaultValue: "HDRP/Controllables/TrafficCone,HDRP/Controllables/ChargingStation,HDRP/Controllables/TriggerZone", description: "Controllables repos to checkout")
     string(name: "SIM_CONTROLLABLES", defaultValue: "${SIMULATOR_CONTROLLABLES}", description: "Controllables to build")

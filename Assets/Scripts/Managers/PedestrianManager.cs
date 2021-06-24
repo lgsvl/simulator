@@ -274,8 +274,8 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
     {
         GameObject ped = Instantiate(pedPrefab, Vector3.zero, Quaternion.identity, transform);
         var pedController = ped.GetComponent<PedestrianController>();
-        pedController.SetGroundTruthBox();
         Instantiate(spawnData.Model, ped.transform);
+        pedController.SetGroundTruthBox();
         ped.SetActive(spawnData.Active);
 
         pedController.GUID = spawnData.GenId;
@@ -418,9 +418,9 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         pedController.GUID = GUID;
         //Add required components for cluster simulation
         ClusterSimulationUtilities.AddDistributedComponents(ped);
-        pedController.SetGroundTruthBox();
         var model = PedestrianData[modelIndex].Prefab;
         Instantiate(model, ped.transform);
+        pedController.SetGroundTruthBox();
         pedController.Control = PedestrianController.ControlType.None;
         pedController.enabled = false;
         //Force distributed component initialization, as gameobject will stay disabled

@@ -232,7 +232,7 @@ namespace Simulator.Web
 
             if (EditorPrefs.GetBool("Simulator/Developer Debug Mode", false) == true)
             {
-                var assembly = Assembly.Load("Simulator.Bridge");
+                var assembly = Assembly.Load("Simulator.Bridges");
                 if (File.Exists(Path.Combine(BundleConfig.ExternalBase, "Bridges", manifest.assetName, $"{manifest.assetName}.cs")))
                 {
                     foreach (Type ty in assembly.GetTypes())

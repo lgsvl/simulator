@@ -94,13 +94,14 @@ public class AgentManager : MonoBehaviour
         }
 
         BridgeClient bridgeClient = null;
-        if (config.Bridge != null)
+        if (config.BridgeData != null)
         {
             var dir = Path.Combine(Simulator.Web.Config.PersistentDataPath, "Bridges");
             var vfs = VfsEntry.makeRoot(dir);
             Simulator.Web.Config.CheckDir(vfs.GetChild(config.BridgeData.AssetGuid), Simulator.Web.Config.LoadBridgePlugin);
 
             bridgeClient = go.AddComponent<BridgeClient>();
+            config.Bridge = BridgePlugins.Get(config.BridgeData.Type);
             bridgeClient.Init(config.Bridge);
 
             if (!String.IsNullOrEmpty(config.Connection))

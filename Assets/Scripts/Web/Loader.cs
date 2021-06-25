@@ -50,7 +50,7 @@ namespace Simulator
         public Vector3 Position;
         public Quaternion Rotation;
         public AgentConfig() { }
-        public AgentConfig(VehicleData vehicleData)
+        public AgentConfig(VehicleData vehicleData) // TODO refactor this
         {
             Name = vehicleData.Name;
             Connection = vehicleData.Bridge != null ? vehicleData.Bridge.ConnectionString : "";
@@ -71,18 +71,9 @@ namespace Simulator
             BridgeData = vehicleData.Bridge;
 
             //Load sensors from the configuration if no sensors are set
-            if ((Sensors == null || Sensors.Length == 0) &&
-                vehicleData.SensorsConfigurations != null && vehicleData.SensorsConfigurations.Length > 0)
-                Sensors = vehicleData.SensorsConfigurations[0].Sensors;
-
-
-            if (vehicleData.Bridge != null && !string.IsNullOrEmpty(vehicleData.Bridge.Type))
+            if ((Sensors == null || Sensors.Length == 0) && vehicleData.SensorsConfigurations != null && vehicleData.SensorsConfigurations.Length > 0)
             {
-                Bridge = BridgePlugins.Get(vehicleData.Bridge.Type);
-                if (Bridge == null)
-                {
-                    throw new Exception($"Bridge {vehicleData.Bridge.Type} not found");
-                }
+                Sensors = vehicleData.SensorsConfigurations[0].Sensors;
             }
         }
     }

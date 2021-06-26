@@ -47,6 +47,28 @@ public class CameraManager : MonoBehaviour
         CameraController.SetFreeCameraState(pos, rot);
     }
 
+    /// <summary>
+    /// API command to set camera state
+    /// </summary>
+    public void SetCameraState(CameraStateType state)
+    {
+        switch (state)
+        {
+            case CameraStateType.Free:
+                CameraController.SetFreeCameraState();
+                break;
+            case CameraStateType.Follow:
+                CameraController.SetFollowCameraState(SimulatorManager.Instance.AgentManager.CurrentActiveAgent);
+                break;
+            case CameraStateType.Cinematic:
+                CameraController.SetCinematicCameraState();
+                break;
+            case CameraStateType.Driver:
+                CameraController.SetDriverViewCameraState();
+                break;
+        }
+    }
+
     public void ToggleCameraState()
     {
         CameraController.IncrementCameraState();

@@ -17,6 +17,7 @@ namespace Simulator.PointCloud
 
         private RenderTargetIdentifier[] rtiCache1;
         private RenderTargetIdentifier[] rtiCache4;
+        private RenderTargetIdentifier[] rtiCache5;
 
         private HDRenderPipeline RenderPipeline => RenderPipelineManager.currentPipeline as HDRenderPipeline;
 
@@ -42,11 +43,14 @@ namespace Simulator.PointCloud
             else
                 rtiCache1[0] = ctx.cameraColorBuffer.nameID;
 
+            var rendered = false;
+
             foreach (var pcr in pointCloudRenderers)
             {
                 if (pcr.SupportsLighting)
                     continue;
 
+                rendered = true;
                 pcr.Render(ctx.cmd, ctx.hdCamera, rtiCache1, ctx.cameraDepthBuffer, ctx.cameraColorBuffer);
             }
 
@@ -54,7 +58,7 @@ namespace Simulator.PointCloud
             // Mark the copy as invalid after point cloud rendering, as depth buffer was changed.
             // Point cloud render should probably take part in depth prepass and be included in copy, but it can be
             // done at a later time.
-            if (ctx.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
+            if (rendered && ctx.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
                 RenderPipeline.InvalidateDepthBufferCopy();
         }
 
@@ -76,12 +80,32 @@ namespace Simulator.PointCloud
             if (!doLitPass)
                 return;
 
-            // TODO: Add support for multiple GBuffer texture count (up to 6)
-            if (rtiCache4 == null)
-                rtiCache4 = new RenderTargetIdentifier[4];
+            var lightLayers = data.camera.frameSettings.IsEnabled(FrameSettingsField.LightLayers);
+            RenderTargetIdentifier[] rtiCache;
 
-            for (var i = 0; i < rtiCache4.Length; ++i)
-                rtiCache4[i] = data.gBuffer[i];
+            if (lightLayers)
+            {
+                if (rtiCache5 == null)
+                    rtiCache5 = new RenderTargetIdentifier[5];
+
+                for (var i = 0; i < rtiCache5.Length; ++i)
+                    rtiCache5[i] = data.gBuffer[i];
+
+                rtiCache = rtiCache5;
+
+                // Note: GBuffer5 can still be present if shadowmasking is enabled, but we can't bake static shadows
+                //       into point cloud data anyway, so it's safe to ignore it in this context.
+            }
+            else
+            {
+                if (rtiCache4 == null)
+                    rtiCache4 = new RenderTargetIdentifier[4];
+
+                for (var i = 0; i < rtiCache4.Length; ++i)
+                    rtiCache4[i] = data.gBuffer[i];
+
+                rtiCache = rtiCache4;
+            }
 
             RenderPipeline.ForceRenderSky(data.camera, data.context.cmd, data.customPassColorBuffer, data.customPassDepthBuffer);
 
@@ -91,7 +115,7 @@ namespace Simulator.PointCloud
                     continue;
 
                 PointCloudManager.Resources.UpdateSHCoefficients(data.context.cmd, pcr.transform.position);
-                pcr.Render(data.context.cmd, data.camera, rtiCache4, data.depthBuffer, data.customPassColorBuffer);
+                pcr.Render(data.context.cmd, data.camera, rtiCache, data.depthBuffer, data.customPassColorBuffer);
             }
         }
 

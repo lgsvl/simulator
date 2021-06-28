@@ -8,17 +8,13 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEngine;
 using Simulator;
-using Simulator.Sensors;
 using Simulator.Utilities;
 using Simulator.Components;
 using Simulator.Network.Core;
-using Simulator.Network.Core.Components;
 using Simulator.Network.Core.Messaging;
 using Simulator.Network.Shared;
-using UnityEngine.Rendering.HighDefinition;
 using Simulator.Bridge;
 using System.IO;
 using VirtualFileSystem;
@@ -113,9 +109,13 @@ public class AgentManager : MonoBehaviour
         go.transform.position = config.Position;
         go.transform.rotation = config.Rotation;
         sensorsController.SetupSensors(config.Sensors);
-
-
+        
         controller?.Init();
+
+        if (SimulatorManager.Instance.IsAPI)
+        {
+            SimulatorManager.Instance.EnvironmentEffectsManager.InitRainVFX(go.transform);
+        }
 
         go.SetActive(true);
         return go;
@@ -208,6 +208,11 @@ public class AgentManager : MonoBehaviour
 
     public void DestroyAgent(GameObject go)
     {
+        if (SimulatorManager.Instance.IsAPI)
+        {
+            SimulatorManager.Instance.EnvironmentEffectsManager.ClearRainVFX(go.transform);
+        }
+
         ActiveAgents.RemoveAll(config => config.AgentGO == go);
         Destroy(go);
 

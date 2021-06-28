@@ -424,6 +424,16 @@ public class EnvironmentEffectsManager : MonoBehaviour
         }
     }
 
+    public void InitRainVFX(Transform transform)
+    {
+        VFXRain.RegisterTrackedEntity(transform); // API
+    }
+
+    public void ClearRainVFX(Transform transform)
+    {
+        VFXRain.UnregisterTrackedEntity(transform); // API
+    }
+
     private void UpdateRain()
     {
         if (Rain != PrevRain)

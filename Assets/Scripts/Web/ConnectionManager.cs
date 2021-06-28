@@ -112,7 +112,7 @@ public class ConnectionManager : MonoBehaviour
             DisconnectReason = null;
             RunOnUnityThread(() =>
             {
-                ConnectionUI.instance.UpdateStatus();
+                ConnectionUI.instance?.UpdateStatus();
             });
             
             foreach (var timeOut in timeOutSequence)
@@ -234,21 +234,21 @@ public class ConnectionManager : MonoBehaviour
                                 RunOnUnityThread(() =>
                                 {
                                     Status = ConnectionStatus.Connected;
-                                    ConnectionUI.instance.UpdateStatus();
+                                    ConnectionUI.instance?.UpdateStatus();
                                 });
                                 break;
                             case "OK":
                                 RunOnUnityThread(() =>
                                 {
                                     Status = ConnectionStatus.Online;
-                                    ConnectionUI.instance.UpdateStatus();
+                                    ConnectionUI.instance?.UpdateStatus();
                                 });
                                 break;
                             case "Config":
                                 RunOnUnityThread(() =>
                                 {
                                     Status = ConnectionStatus.Online;
-                                    ConnectionUI.instance.UpdateStatus();
+                                    ConnectionUI.instance?.UpdateStatus();
 
                                     SimulationData simData;
                                     try 

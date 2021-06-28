@@ -336,7 +336,7 @@ namespace Simulator
                 {
                     if (simData.Map != null)
                     {
-                        var progressUpdate = new Progress<Tuple<string, float>>(p => { ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2); });
+                        var progressUpdate = new Progress<Tuple<string, float>>(p => { ConnectionUI.instance?.UpdateDownloadProgress(p.Item1, p.Item2); });
                         var task = DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, simData.Map.AssetGuid, simData.Map.Name, progressUpdate);
                         downloads.Add(task);
                         Instance.assetDownloads.TryAdd(task, simData.Map.AssetGuid);
@@ -344,7 +344,7 @@ namespace Simulator
 
                     foreach (var vehicle in simData.Vehicles.Where(v => !v.Id.EndsWith(".prefab")).Select(v => v.AssetGuid).Distinct())
                     {
-                        var progressUpdate = new Progress<Tuple<string, float>>(p => { ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2); });
+                        var progressUpdate = new Progress<Tuple<string, float>>(p => { ConnectionUI.instance?.UpdateDownloadProgress(p.Item1, p.Item2); });
                         var task = DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicle, simData.Vehicles.First(v => v.AssetGuid == vehicle).Name, progressUpdate);
                         downloads.Add(task);
                         Instance.assetDownloads.TryAdd(task, vehicle);
@@ -356,7 +356,7 @@ namespace Simulator
                         if (vehicle.Bridge != null && !bridgeGUIDs.Contains(vehicle.Bridge.AssetGuid))
                         {
                             bridgeGUIDs.Add(vehicle.Bridge.AssetGuid);
-                            var progressUpdate = new Progress<Tuple<string, float>>(p => { ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2); });
+                            var progressUpdate = new Progress<Tuple<string, float>>(p => { ConnectionUI.instance?.UpdateDownloadProgress(p.Item1, p.Item2); });
                             var task = DownloadManager.GetAsset(BundleConfig.BundleTypes.Bridge, vehicle.Bridge.AssetGuid, vehicle.Bridge.Name, progressUpdate);
                             downloads.Add(task);
                             Instance.assetDownloads.TryAdd(task, vehicle.Bridge.AssetGuid);

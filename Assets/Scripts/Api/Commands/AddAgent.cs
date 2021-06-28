@@ -83,7 +83,7 @@ namespace Simulator.Api.Commands
                     }
                     else
                     {
-                        var progressUpdate = new Progress<Tuple<string,float>> (p => { ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2); });
+                        var progressUpdate = new Progress<Tuple<string,float>> (p => { ConnectionUI.instance?.UpdateDownloadProgress(p.Item1, p.Item2); });
                         var assetModel = await DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicleData.AssetGuid, vehicleData.Name, progressUpdate);
                         config.Prefab = Loader.LoadVehicleBundle(assetModel.LocalPath);
                     }

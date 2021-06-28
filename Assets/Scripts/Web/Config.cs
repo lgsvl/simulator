@@ -226,19 +226,22 @@ namespace Simulator.Web
             return Assembly.Load(buffer);
         }
 
+
         public static void LoadBridgePlugin(Manifest manifest, VfsEntry dir)
         {
 #if UNITY_EDITOR
 
             if (EditorPrefs.GetBool("Simulator/Developer Debug Mode", false) == true)
             {
-                var assembly = Assembly.Load("Simulator.Bridges");
+                Assembly bridgesAssembly = null;
                 if (File.Exists(Path.Combine(BundleConfig.ExternalBase, "Bridges", manifest.assetName, $"{manifest.assetName}.cs")))
                 {
-                    foreach (Type ty in assembly.GetTypes())
+                    if (bridgesAssembly == null) bridgesAssembly = Assembly.Load("Simulator.Bridges");
+                    foreach (Type ty in bridgesAssembly.GetTypes())
                     {
-                        if (typeof(IBridgeFactory).IsAssignableFrom(ty))
+                        if (typeof(IBridgeFactory).IsAssignableFrom(ty) && !ty.IsAbstract)
                         {
+                            Debug.LogWarning($"Loading {manifest.assetName} ({manifest.assetGuid}) in Developer Debug Mode. If you wish to use this bridge plugin from WISE, disable Developer Debug Mode in Simulator->Developer Debug Mode or remove the bridge from Assets/External/Bridges");
                             var bridgeFactory = Activator.CreateInstance(ty) as IBridgeFactory;
                             BridgePlugins.Add(bridgeFactory);
                         }
@@ -256,7 +259,8 @@ namespace Simulator.Web
             var pluginSource = LoadAssembly(dir, $"{manifest.assetName}.dll");
             foreach (Type ty in pluginSource.GetTypes())
             {
-                if (typeof(IBridgeFactory).IsAssignableFrom(ty))
+
+                if (typeof(IBridgeFactory).IsAssignableFrom(ty) && !ty.IsAbstract)
                 {
                     var bridgeFactory = Activator.CreateInstance(ty) as IBridgeFactory;
                     BridgePlugins.Add(bridgeFactory);
@@ -271,11 +275,12 @@ namespace Simulator.Web
             {
                 if (File.Exists(Path.Combine(BundleConfig.ExternalBase, "Sensors", manifest.assetName, $"{manifest.assetName}.prefab")))
                 {
-                    Debug.LogWarning($"Loading {manifest.assetName} ({manifest.assetGuid}) in Sensor Debug Mode. If you wish to use this sensor plugin from WISE, disable Sensor Debug Mode in Simulator->Sensor Debug Mode or remove the sensor from Assets/External/Sensors");
+                    Debug.LogWarning($"Loading {manifest.assetName} ({manifest.assetGuid}) in Developer Debug Mode. If you wish to use this sensor plugin from WISE, disable Developer Debug Mode in Simulator->Developer Debug Mode or remove the sensor from Assets/External/Sensors");
                     var path = Path.Combine(BundleConfig.ExternalBase, "Sensors", manifest.assetName, $"{manifest.assetName}.prefab");
                     var prefab = (GameObject)AssetDatabase.LoadAssetAtPath(path, typeof(GameObject));
-                    if(prefab == null) {
-                        Debug.LogWarning("prefab is null for "+path);
+                    if (prefab == null)
+                    {
+                        Debug.LogWarning("prefab is null for " + path);
                     }
                     SensorPrefabs.Add(prefab.GetComponent<SensorBase>());
                     var sensorConfig = SensorTypes.GetConfig(prefab.GetComponent<SensorBase>());
@@ -318,7 +323,7 @@ namespace Simulator.Web
             Assembly pluginSource = LoadAssembly(dir, $"{manifest.assetName}.dll");
             foreach (Type ty in pluginSource.GetTypes())
             {
-                if (typeof(ISensorBridgePlugin).IsAssignableFrom(ty))
+                if (typeof(ISensorBridgePlugin).IsAssignableFrom(ty) && !ty.IsAbstract)
                 {
                     var sensorBridgePlugin = Activator.CreateInstance(ty) as ISensorBridgePlugin;
                     foreach (var kv in BridgePlugins.All)
@@ -502,7 +507,7 @@ namespace Simulator.Web
                 AssetBundle pluginBundle = AssetBundle.LoadFromStream(pluginEntry.SeekableStream());
                 var pluginAssets = pluginBundle.GetAllAssetNames();
                 var prefabName = $"{manifest.assetName}.prefab";
-                var mainPrefabName = 
+                var mainPrefabName =
                     pluginAssets.First(name => name.IndexOf(prefabName, StringComparison.InvariantCultureIgnoreCase) >= 0);
                 GameObject prefab = pluginBundle.LoadAsset<GameObject>(mainPrefabName);
 
@@ -529,7 +534,7 @@ namespace Simulator.Web
 
             if (pluginEntry == null && pluginSource == null)
             {
-                Debug.LogWarning("Neither assembly nor prefab found in "+manifest.assetName);
+                Debug.LogWarning("Neither assembly nor prefab found in " + manifest.assetName);
             }
 
             if (textureBundle && !AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
@@ -735,7 +740,7 @@ namespace Simulator.Web
                         break;
                     case "--data":
                     case "-d":
-                        if(i == args.Length - 1)
+                        if (i == args.Length - 1)
                         {
                             Debug.LogError("No value for data path provided!");
                             Application.Quit(1);

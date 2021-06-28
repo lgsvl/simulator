@@ -18,7 +18,7 @@ public static class DeveloperDebugModeToggle
     static DeveloperDebugModeToggle()
     {
         DeveloperDebugModeToggle.enabled_ = EditorPrefs.GetBool(DeveloperDebugModeToggle.MENU_NAME, false);
-        //SensorDebugModeToggle.enabled_ = Config.SensorDebugModeEnabled; // TODO why this not working?
+        //DeveloperDebugModeToggle.enabled_ = Config.DeveloperDebugModeEnabled; // TODO why this not working?
         /// Set checkmark on menu item
         Menu.SetChecked(DeveloperDebugModeToggle.MENU_NAME, Config.DeveloperDebugModeEnabled);
 
@@ -43,7 +43,7 @@ public static class DeveloperDebugModeToggle
         Menu.SetChecked(DeveloperDebugModeToggle.MENU_NAME, enabled);
         /// Saving editor state
         EditorPrefs.SetBool(DeveloperDebugModeToggle.MENU_NAME, enabled);
-        //Config.SensorDebugModeEnabled = enabled; // TODO why this not working?
+        //Config.DeveloperDebugModeEnabled = enabled; // TODO why this not working?
 
         DeveloperDebugModeToggle.enabled_ = enabled;
     }

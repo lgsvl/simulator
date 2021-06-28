@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
+using System.Reflection;
 using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEditor.SceneManagement;
@@ -732,6 +733,25 @@ namespace Simulator.Editor
                                 // gather information about bridge plugin
 
                                 IBridgeFactory bridgeFactory = null;
+
+                                System.Reflection.Assembly bridgesAssembly = null;
+                                if (File.Exists(Path.Combine(BundleConfig.ExternalBase, "Bridges", entry.name, $"{manifest.assetName}.cs")))
+                                {
+                                    if (bridgesAssembly == null)
+                                    {
+                                        bridgesAssembly = System.Reflection.Assembly.Load("Simulator.Bridges");
+                                    }
+
+                                    foreach (Type ty in bridgesAssembly.GetTypes())
+                                    {
+                                        if (typeof(IBridgeFactory).IsAssignableFrom(ty) && !ty.IsAbstract)
+                                        {
+                                            bridgeFactory = Activator.CreateInstance(ty) as IBridgeFactory;
+                                            BridgePlugins.Add(bridgeFactory);
+                                        }
+                                    }
+                                }
+
                                 foreach (var factoryType in BridgePlugins.GetBridgeFactories())
                                 {
                                     if (BridgePlugins.GetNameFromFactory(factoryType) == entry.name)
@@ -740,8 +760,7 @@ namespace Simulator.Editor
                                         break;
                                     }
                                 }
-                                if (bridgeFactory == null)
-                                {
+                                if (bridgeFactory == null) { 
                                     throw new Exception($"Cannot find IBridgeFactory for {entry.name} bridge plugin");
                                 }
 

@@ -11,6 +11,7 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using UnityEngine;
+using UnityEngine.Assertions;
 using System.Linq;
 using Simulator.Database.Services;
 using Simulator.Database;
@@ -119,6 +120,8 @@ namespace Simulator.Web
         public static Task<AssetModel> GetAsset(BundleConfig.BundleTypes type, string assetGuid, string name = null,
             IProgress<Tuple<string, float>> progressCallback = null)
         {
+            Assert.IsNotNull(assetGuid, $"{nameof(assetGuid)} must not be null when trying to get ${BundleConfig.singularOf(type)} asset.");
+
             Init();
             var assetService = new AssetService();
             var found = assetService.Get(assetGuid);

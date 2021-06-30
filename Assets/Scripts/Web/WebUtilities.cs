@@ -1,10 +1,11 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
  */
 
+using UnityEngine.Assertions;
 using System;
 using System.IO;
 
@@ -14,6 +15,7 @@ namespace Simulator.Web
     {
         public static string GenerateLocalPath(string assetGuid, BundleConfig.BundleTypes type)
         {
+            Assert.IsNotNull(assetGuid, $"{nameof(assetGuid)} must not be null when trying to get LocalPath of ${BundleConfig.singularOf(type)}.");
             string directoryPath = Path.Combine(Config.PersistentDataPath, BundleConfig.pluralOf(type));
             if (!Directory.Exists(directoryPath))
             {

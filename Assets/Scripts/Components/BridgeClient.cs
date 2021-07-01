@@ -65,7 +65,12 @@ namespace Simulator.Components
             }
 
             // do not reconnect in non interactive mode
-            if (BridgeStatus == Status.UnexpectedlyDisconnected && Loader.Instance.CurrentSimulation.Interactive == false)
+            // do not reconnect in simulation error state
+            // do not reconnect in simulation stopping state
+            if (BridgeStatus == Status.UnexpectedlyDisconnected &&
+                (   Loader.Instance.CurrentSimulation.Interactive == false
+                 || Loader.Instance.Status == SimulatorStatus.Error
+                 || Loader.Instance.Status == SimulatorStatus.Stopping))
             {
                 Loader.Instance.reportStatus(SimulatorStatus.Error, "Bridge socket was unexpectedly disconnected");
                 Bridge.Disconnect();

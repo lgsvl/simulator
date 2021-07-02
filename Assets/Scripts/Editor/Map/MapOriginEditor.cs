@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -48,14 +48,11 @@ public class MapOriginEditor : Editor
         origin.AltitudeOffset = EditorGUILayout.FloatField("Altitude Offset", origin.AltitudeOffset);
 
         int currentlySelected = -1;
-        if (origin.TimeZoneSerialized != null)
+        currentlySelected = Array.FindIndex(TimeZones, tz => tz.DisplayName == origin.TimeZoneString);
+        if (currentlySelected == -1)
         {
-            currentlySelected = Array.FindIndex(TimeZones, tz => tz.DisplayName == origin.TimeZoneString);
-            if (currentlySelected == -1)
-            {
-                var timeZone = origin.TimeZone;
-                currentlySelected = Array.FindIndex(TimeZones, tz => tz.BaseUtcOffset == timeZone.BaseUtcOffset);
-            }
+            var timeZone = origin.TimeZone;
+            currentlySelected = Array.FindIndex(TimeZones, tz => tz.BaseUtcOffset == timeZone.BaseUtcOffset);
         }
 
         var values = TimeZones.Select(tz => tz.DisplayName.Replace("&", "&&")).ToArray();
@@ -66,9 +63,12 @@ public class MapOriginEditor : Editor
             {
                 origin.TimeZoneSerialized = TimeZones[currentlySelected].ToSerializedString();
                 origin.TimeZoneString = TimeZones[currentlySelected].DisplayName;
+
                 EditorUtility.SetDirty(origin);
+                Repaint();
             }
         }
+
         if (GUILayout.Button("Add Reference Point"))
         {
             AddReferencePoint(origin);

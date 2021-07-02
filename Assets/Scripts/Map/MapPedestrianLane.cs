@@ -21,7 +21,7 @@ namespace Simulator.Map
         {
             if (mapLocalPositions.Count < 2) return;
 
-            AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, pedestrianColor + selectedColor);
+            AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.WAYPOINT_SIZE, pedestrianColor + selectedColor);
             AnnotationGizmos.DrawLines(transform, mapLocalPositions, pedestrianColor + selectedColor);
             AnnotationGizmos.DrawArrowHeads(transform, mapLocalPositions, pedestrianColor + selectedColor);
             if (MapAnnotationTool.SHOW_HELP)

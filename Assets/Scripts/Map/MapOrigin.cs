@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -42,7 +42,7 @@ namespace Simulator.Map
         public double OriginEasting;
         public double OriginNorthing;
         public int UTMZoneId;
-        public float AltitudeOffset;
+        public float AltitudeOffset = 0f;
 
         [HideInInspector]
         public string TimeZoneSerialized;
@@ -58,7 +58,7 @@ namespace Simulator.Map
         public bool IgnorePedBounds = false;
         [HideInInspector]
         public bool IgnorePedVisible = false; // TODO fix this disabled for now in SpawnManager
-        public int NPCSizeMask = 1;
+        public int NPCSizeMask = 1<<0 | 1<<1 | 1<<2 | 1<<3| 1<<4 | 1<<5 | 1<<6 | 1<<7 | 1<<8 | 1<<9 | 1<<11 | 1<<12;
         public int NPCMaxCount = 10;
         public int NPCSpawnBoundSize = 200;
 
@@ -74,6 +74,10 @@ namespace Simulator.Map
             {
                 Debug.LogWarning("Map is missing MapOrigin component! Adding temporary MapOrigin. Please add to scene and set origin");
                 origin = new GameObject("MapOrigin").AddComponent<MapOrigin>();
+                origin.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+                origin.OriginEasting = 592720;
+                origin.OriginNorthing = 4134479;
+                origin.UTMZoneId = 10;
             }
 
             return origin;

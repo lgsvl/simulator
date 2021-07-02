@@ -316,7 +316,7 @@ namespace Simulator.Map
 
                 var signalColor = GetTypeColor(signalData[i]) + selectedColor;
 
-                AnnotationGizmos.DrawWaypoint(start, MapAnnotationTool.PROXIMITY * 0.15f, signalColor);
+                AnnotationGizmos.DrawWaypoint(start, MapAnnotationTool.WAYPOINT_SIZE * 0.25f, signalColor);
                 Gizmos.color = signalColor;
                 Gizmos.DrawLine(start, end);
                 AnnotationGizmos.DrawArrowHead(start, end, signalColor, arrowHeadScale: MapAnnotationTool.ARROWSIZE, arrowPositionRatio: 1f);

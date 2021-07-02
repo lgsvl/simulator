@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using UnityEngine;
-using Simulator.Controllable;
 using Simulator.Utilities;
 
 namespace Simulator.Map
@@ -35,7 +34,6 @@ namespace Simulator.Map
 
         [System.NonSerialized]
         List<MapSignal> signalGroup = new List<MapSignal>();
-        private MonoBehaviour FixedUpdateManager;
         public bool isStopSignIntersection = false;
 
         public void SetIntersectionData()
@@ -268,7 +266,7 @@ namespace Simulator.Map
             var start = transform.position;
             var end = start + transform.up * 6f;
 
-            AnnotationGizmos.DrawWaypoint(transform.position, MapAnnotationTool.PROXIMITY * 0.5f, intersectionColor + selectedColor);
+            AnnotationGizmos.DrawWaypoint(transform.position, MapAnnotationTool.WAYPOINT_SIZE, intersectionColor + selectedColor);
             Gizmos.color = intersectionColor + selectedColor;
             Gizmos.DrawLine(start, end);
             AnnotationGizmos.DrawArrowHead(start, end, intersectionColor + selectedColor, arrowHeadScale: MapAnnotationTool.ARROWSIZE, arrowPositionRatio: 1f);

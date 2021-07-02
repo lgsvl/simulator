@@ -1,12 +1,10 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
  */
 
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Simulator.Map
@@ -15,5 +13,7 @@ namespace Simulator.Map
     {
         public Transform trafficLanesHolder;
         public Transform intersectionsHolder;
+        [HideInInspector]
+        public float MapWaypointSize = 0.5f;
     }
 }

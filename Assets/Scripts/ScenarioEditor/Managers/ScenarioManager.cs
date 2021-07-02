@@ -307,8 +307,7 @@ namespace Simulator.ScenarioEditor.Managers
 
         private void StopInitialization()
         {
-            IsInitializing = false;
-            IsInitialized = true;
+            isInitialized = true;
             Deinitialize();
             Loader.ExitScenarioEditor();
         }

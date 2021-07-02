@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -170,7 +170,7 @@ namespace Simulator.Map
         {
             var start = transform.position;
             var end = start + transform.up * 2f;
-            var size = new Vector3(MapAnnotationTool.PROXIMITY * 0.75f, MapAnnotationTool.PROXIMITY * 0.75f, MapAnnotationTool.PROXIMITY * 0.75f);
+            var size = new Vector3(MapAnnotationTool.WAYPOINT_SIZE, MapAnnotationTool.WAYPOINT_SIZE, MapAnnotationTool.WAYPOINT_SIZE);
             AnnotationGizmos.DrawCubeWaypoint(transform.position, size, laneColor + selectedColor);
             Gizmos.color = laneColor + selectedColor;
             Gizmos.DrawLine(start, end);

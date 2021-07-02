@@ -274,15 +274,42 @@ namespace Simulator.ScenarioEditor.Managers
                     scenarioEditorExtensions.Add(scenarioManagerType, scenarioManager);
                 }
             }
-            await Task.WhenAll(tasks);
-            
+
+            try
+            {
+                await Task.WhenAll(tasks);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError(ex.Message);
+                StopInitialization();
+                return;
+            }
+
             //Initialize map
             var mapManager = GetExtension<ScenarioMapManager>();
             mapManager.MapChanged += OnMapLoaded;
-            await mapManager.LoadMapAsync();
+            try
+            {
+                await mapManager.LoadMapAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError(ex.Message);
+                StopInitialization();
+                return;
+            }
+            
             inspector.Initialize();
             loadingProcess.Update("Visual Scenario Editor has been loaded.");
             loadingProcess.NotifyCompletion();
+        }
+
+        private void StopInitialization()
+        {
+            isInitialized = true;
+            Deinitialize();
+            Loader.ExitScenarioEditor();
         }
 
         /// <summary>

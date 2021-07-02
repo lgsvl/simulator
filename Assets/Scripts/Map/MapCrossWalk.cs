@@ -1,14 +1,9 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
  */
-
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using Simulator.Map;
 
 namespace Simulator.Map
 {
@@ -23,7 +18,7 @@ namespace Simulator.Map
         {
             if (mapLocalPositions.Count < 3) return;
 
-            AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, crossWalkColor + selectedColor);
+            AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.WAYPOINT_SIZE, crossWalkColor + selectedColor);
             AnnotationGizmos.DrawLines(transform, mapLocalPositions, crossWalkColor + selectedColor);
 
             if (MapAnnotationTool.SHOW_HELP)

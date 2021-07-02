@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -16,6 +16,7 @@ using UnityEditorInternal;
 using UnityEngine.SceneManagement;
 using System.Text.RegularExpressions;
 using Simulator.Editor;
+using UnityEditor.SceneManagement;
 
 public class MapAnnotations : EditorWindow
 {
@@ -83,6 +84,8 @@ public class MapAnnotations : EditorWindow
     private SerializedProperty mapLaneProperty;
     private Vector2 scrollPos;
     private int ExtraLinesCnt;
+
+    private Scene CurrentActiveScene;
 
     [MenuItem("Simulator/Annotate HD Map #&m", false, 100)]
     public static void Open()
@@ -231,6 +234,7 @@ public class MapAnnotations : EditorWindow
         if (targetWaypointGO != null)
             DestroyImmediate(targetWaypointGO);
         mapHolder = FindObjectOfType<MapHolder>();
+        CurrentActiveScene = EditorSceneManager.GetActiveScene();
     }
 
     private void OnSelectionChange()
@@ -271,6 +275,13 @@ public class MapAnnotations : EditorWindow
 
     private void Update()
     {
+        if (CurrentActiveScene != EditorSceneManager.GetActiveScene())
+        {
+            CurrentActiveScene = EditorSceneManager.GetActiveScene();
+            mapHolder = FindObjectOfType<MapHolder>();
+            OnSelectionChange();
+        }
+
         switch (MapAnnotationTool.createMode)
         {
             case MapAnnotationTool.CreateMode.NONE:
@@ -367,6 +378,28 @@ public class MapAnnotations : EditorWindow
             GUI.backgroundColor = Color.white;
         GUILayout.EndHorizontal();
         GUILayout.Space(20);
+
+        if (mapHolder)
+        {
+            MapAnnotationTool.WAYPOINT_SIZE = mapHolder.MapWaypointSize;
+            EditorGUILayout.LabelField("Gizmo Size", titleLabelStyle, GUILayout.ExpandWidth(true));
+            GUILayout.BeginHorizontal("box");
+            if (!EditorGUIUtility.isProSkin)
+                GUI.backgroundColor = nonProColor;
+            GUILayout.Space(10);
+            var prevSize = MapAnnotationTool.WAYPOINT_SIZE;
+            MapAnnotationTool.WAYPOINT_SIZE = EditorGUILayout.Slider(MapAnnotationTool.WAYPOINT_SIZE, 0.02f, 1f, GUILayout.ExpandWidth(true));
+            mapHolder.MapWaypointSize = MapAnnotationTool.WAYPOINT_SIZE;
+            if (prevSize != MapAnnotationTool.WAYPOINT_SIZE)
+            {
+                SceneView.RepaintAll();
+                EditorUtility.SetDirty(mapHolder);
+            }
+            if (!EditorGUIUtility.isProSkin)
+                GUI.backgroundColor = Color.white;
+            GUILayout.EndHorizontal();
+            GUILayout.Space(20);
+        }
 
         EditorGUILayout.LabelField("Create Modes", titleLabelStyle, GUILayout.ExpandWidth(true));
         if (!EditorGUIUtility.isProSkin)
@@ -981,6 +1014,8 @@ public class MapAnnotations : EditorWindow
     {
         MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
 
+        MapOrigin.Find();
+
         var tempGO = new GameObject("Map" + SceneManager.GetActiveScene().name);
         tempGO.transform.position = Vector3.zero;
         tempGO.transform.rotation = Quaternion.identity;
@@ -994,7 +1029,7 @@ public class MapAnnotations : EditorWindow
         Undo.RegisterCreatedObjectUndo(tempGO, nameof(tempGO));
 
         SceneView.RepaintAll();
-        Debug.Log("Holder object for this scenes annotations, intersections and lanes created");
+        Debug.Log("MapHolder object for this scenes annotations created", tempGO);
     }
 
     private void CreateIntersectionHolder()

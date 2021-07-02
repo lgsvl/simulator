@@ -64,7 +64,7 @@ namespace Simulator.Map
         {
             if (mapLocalPositions.Count < 2) return;
 
-            AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, laneColor + selectedColor);
+            AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.WAYPOINT_SIZE, laneColor + selectedColor);
             AnnotationGizmos.DrawLines(transform, mapLocalPositions, laneColor + selectedColor);
             AnnotationGizmos.DrawArrowHeads(transform, mapLocalPositions, laneColor + selectedColor);
             if (MapAnnotationTool.SHOW_HELP)
@@ -81,7 +81,7 @@ namespace Simulator.Map
                 {
                     if (yl != null)
                     {
-                        AnnotationGizmos.DrawWaypoints(yl.transform, yl.mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.25f, new Color(1f, 1f, 0f, 0.5f));
+                        AnnotationGizmos.DrawWaypoints(yl.transform, yl.mapLocalPositions, MapAnnotationTool.WAYPOINT_SIZE * 0.25f, new Color(1f, 1f, 0f, 0.5f));
                         AnnotationGizmos.DrawLines(yl.transform, yl.mapLocalPositions, new Color(1f, 1f, 0f, 0.5f));
                         AnnotationGizmos.DrawArrowHeads(yl.transform, yl.mapLocalPositions, new Color(1f, 1f, 0f, 0.5f));
                     }

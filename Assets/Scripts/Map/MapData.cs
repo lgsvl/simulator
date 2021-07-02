@@ -1,14 +1,12 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
  */
 
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Simulator.Map;
 
 namespace Simulator.Map
 {
@@ -195,7 +193,7 @@ namespace Simulator.Map
                 {
                     var start = mainTrans.TransformPoint(localPoints[i]);
                     var end = mainTrans.TransformPoint(localPoints[i + 1]);
-                    DrawArrowHead(start, end, lineColor, arrowHeadScale: MapAnnotationTool.ARROWSIZE * 1f, arrowPositionRatio: 0.5f); // TODO why reference map annotation tool?
+                    DrawArrowHead(start, end, lineColor, arrowHeadScale: MapAnnotationTool.ARROWSIZE, arrowPositionRatio: 0.5f);
                 }
             }
 

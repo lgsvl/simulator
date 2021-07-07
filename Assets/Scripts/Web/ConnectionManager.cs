@@ -90,6 +90,7 @@ public class ConnectionManager : MonoBehaviour
         if (state == PlayModeStateChange.ExitingPlayMode)
         {
             Debug.Log("Disconnecting before leaving playmode");
+            Status = ConnectionStatus.Offline;
             API.Disconnect();
         }
     }
@@ -184,11 +185,19 @@ public class ConnectionManager : MonoBehaviour
     {
         await Task.Run(async () =>
         {
-            while (!reader.EndOfStream)
+            try
             {
-                //We are ready to read the stream
-                var line = await reader.ReadLineAsync();
-                await Parse(line);
+                while (!reader.EndOfStream)
+                {
+                    //We are ready to read the stream
+                    var line = await reader.ReadLineAsync();
+                    await Parse(line);
+                }
+            }
+            catch (WebException ex)
+            {
+                if (Status != ConnectionStatus.Offline) throw ex;
+                // when disconnecting, it is expected the task is cancelled.
             }
             Debug.Log("WISE connection closed");
             reader.Dispose();
@@ -199,10 +208,10 @@ public class ConnectionManager : MonoBehaviour
     {
         try
         {
+            Status = ConnectionStatus.Offline;
             API.Disconnect();
             RunOnUnityThread(() =>
             {
-                Status = ConnectionStatus.Offline;
                 ConnectionUI.instance?.UpdateStatus();
             });
         }
@@ -627,7 +636,7 @@ public class CloudAPI
 
         Console.WriteLine($"[CONN] HTTP {(int)response.StatusCode} {response.StatusCode}");
 
-        if (response.IsSuccessStatusCode)
+        if (!response.IsSuccessStatusCode)
         {
             Debug.Log("Receiving response of " + response.StatusCode + " " + response.Content);
         }

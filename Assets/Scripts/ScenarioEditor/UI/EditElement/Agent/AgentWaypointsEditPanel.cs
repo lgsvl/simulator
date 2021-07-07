@@ -7,6 +7,8 @@
 
 namespace Simulator.ScenarioEditor.UI.EditElement.Agent
 {
+    using System;
+    using System.Collections.Generic;
     using Agents;
     using Effectors;
     using Elements;
@@ -14,15 +16,29 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
     using Input;
     using Managers;
     using ScenarioEditor.Utilities;
+    using Simulator.Utilities;
     using Undo;
     using Undo.Records;
     using UnityEngine;
+    using UnityEngine.UI;
 
     /// <summary>
     /// Edit panel for the agent's waypoints
     /// </summary>
     public class AgentWaypointsEditPanel : ParameterEditPanel, IAddElementsHandler
     {
+        /// <summary>
+        /// Toggle for switching loop options
+        /// </summary>
+        [SerializeField]
+        private Toggle loopToggle;
+        
+        /// <summary>
+        /// Dropdown that allows selecting the waypoints path type
+        /// </summary>
+        [SerializeField]
+        private Dropdown pathTypeDropdown;
+        
         /// <summary>
         /// Is this panel initialized
         /// </summary>
@@ -48,6 +64,10 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
         /// </summary>lo
         private ScenarioWaypoint newWaypointInstance;
 
+        /// <summary>
+        /// Precached list of available waypoints path type enums
+        /// </summary>
+        private readonly List<WaypointsPathType> pathTypeEnums = new List<WaypointsPathType>();
 
         /// <inheritdoc/>
         public override void Initialize()
@@ -55,6 +75,17 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
             if (isInitialized)
                 return;
             ScenarioManager.Instance.SelectedOtherElement += OnSelectedOtherElement;
+            pathTypeDropdown.ClearOptions();
+            pathTypeEnums.Clear();
+            var enumValues =  Enum.GetValues(typeof(WaypointsPathType));
+            var options = new List<string>();
+            foreach (var enumValue in enumValues)
+            {
+                var pathType = (WaypointsPathType) enumValue;
+                pathTypeEnums.Add(pathType);
+                options.Add(pathType.ToString());
+            }
+            pathTypeDropdown.AddOptions(options);
             isInitialized = true;
             OnSelectedOtherElement(ScenarioManager.Instance.SelectedElement);
         }
@@ -64,6 +95,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
         {
             if (!isInitialized)
                 return;
+            pathTypeDropdown.ClearOptions();
+            pathTypeEnums.Clear();
             var scenarioManager = ScenarioManager.Instance;
             if (scenarioManager != null)
                 scenarioManager.SelectedOtherElement -= OnSelectedOtherElement;
@@ -107,6 +140,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
         public void Show()
         {
             gameObject.SetActive(true);
+            pathTypeDropdown.SetValueWithoutNotify(pathTypeEnums.IndexOf(agentWaypoints.PathType));
+            loopToggle.SetIsOnWithoutNotify(agentWaypoints.Loop);
             UnityUtilities.LayoutRebuild(transform as RectTransform);
         }
 
@@ -140,6 +175,32 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
             if (selectedAgent == null)
                 return;
             ScenarioManager.Instance.GetExtension<InputManager>().StartAddingElements(this);
+        }
+
+        /// <summary>
+        /// Changes the waypoints path type
+        /// </summary>
+        /// <param name="dropdownOption">Selected dropdown option</param>
+        public void ChangePathType(int dropdownOption)
+        {
+            var previousPathType = agentWaypoints.PathType;
+            var undoCallback = new Action<WaypointsPathType>(prev =>
+            {
+                agentWaypoints.ChangePathType(previousPathType);
+                pathTypeDropdown.SetValueWithoutNotify(pathTypeEnums.IndexOf(agentWaypoints.PathType));
+            });
+            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
+                .RegisterRecord(new GenericUndo<WaypointsPathType>(previousPathType, "Reverting path type selection", undoCallback));
+            agentWaypoints.ChangePathType(pathTypeEnums[dropdownOption]);
+        }
+
+        /// <summary>
+        /// Changes the waypoint loop option
+        /// </summary>
+        /// <param name="value">Loop option value</param>
+        public void ChangeLoopValue(bool value)
+        {
+            agentWaypoints.Loop = value;
         }
 
         /// <inheritdoc/>

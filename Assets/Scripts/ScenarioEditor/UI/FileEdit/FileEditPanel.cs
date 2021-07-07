@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -21,6 +21,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
     using SimpleJSON;
     using Undo;
     using UnityEngine;
+    using UnityEngine.Serialization;
     using UnityEngine.UI;
     using Utilities;
     using Toggle = UnityEngine.UI.Toggle;
@@ -75,6 +76,12 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         /// </summary>
         [SerializeField]
         private Toggle invertedYRotationToggle;
+
+        /// <summary>
+        /// Toggle for enabling and disabling the height occluder scrollbar
+        /// </summary>
+        [SerializeField]
+        private Toggle heightOccluderScrollbarToggle;
 #pragma warning restore 0649
 
         /// <inheritdoc/>
@@ -85,6 +92,8 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
             snapToLanesToggle.SetIsOnWithoutNotify(ScenarioManager.Instance.GetExtension<ScenarioMapManager>().LaneSnapping.SnappingEnabled);
             invertedXRotationToggle.SetIsOnWithoutNotify(inputManager.InvertedXRotation);
             invertedYRotationToggle.SetIsOnWithoutNotify(inputManager.InvertedYRotation);
+            var inspector = ScenarioManager.Instance.inspector;
+            heightOccluderScrollbarToggle.SetIsOnWithoutNotify(inspector.HeightOccluderScroll.IsEnabled);
         }
         
         /// <inheritdoc/>
@@ -271,6 +280,15 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         public void ChangeRotationYInversion(bool value)
         {
             ScenarioManager.Instance.GetExtension<InputManager>().InvertedYRotation = value;
+        }
+
+        /// <summary>
+        /// Changes the height occluder scrollbar state
+        /// </summary>
+        /// <param name="value">Current value for height occluder scrollbar state</param>
+        public void ChangeHeightOccluderScrollbarState(bool value)
+        {
+            ScenarioManager.Instance.inspector.HeightOccluderScroll.IsEnabled = value;
         }
     }
 }

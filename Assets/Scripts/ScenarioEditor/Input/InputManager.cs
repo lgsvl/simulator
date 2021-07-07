@@ -524,7 +524,7 @@ namespace Simulator.ScenarioEditor.Input
         /// <param name="obj">Callback context</param>
         private void MouseScrollOnPerformed(InputAction.CallbackContext obj)
         {
-            if (!ScenarioManager.Instance.IsInitialized)
+            if (ScenarioManager.Instance.State != ScenarioManager.InitializationState.Initialized)
                 return;
             if (EventSystem.current.IsPointerOverGameObject() || !IsMouseOverGameWindow) return;
 
@@ -539,19 +539,19 @@ namespace Simulator.ScenarioEditor.Input
         /// <param name="obj">Callback context</param>
         private void MouseLeftOnPerformed(InputAction.CallbackContext obj)
         {
-            if (!ScenarioManager.Instance.IsInitialized)
+            if (ScenarioManager.Instance.State != ScenarioManager.InitializationState.Initialized)
                 return;
             leftMouseButtonPressed = obj.ReadValue<float>() > 0.0f;
 
-            RaycastHit? furthestHit;
+            RaycastHit? closestHit;
             switch (Mode)
             {
                 case InputModeType.Idle:
                     if (leftMouseButtonPressed && ElementSelectingSemaphore.IsUnlocked &&
                         !EventSystem.current.IsPointerOverGameObject())
                     {
-                        furthestHit = GetFurthestHit();
-                        if (furthestHit == null)
+                        closestHit = GetClosestHit();
+                        if (closestHit == null)
                             return;
 
                         ScenarioElement element = null;
@@ -577,8 +577,10 @@ namespace Simulator.ScenarioEditor.Input
 
                         MouseRaycastPosition = lastHitPosition;
                         MouseViewportPosition = scenarioCamera.ScreenToViewportPoint(Input.mousePosition);
-                        if (!canDragFinishOverInspector && EventSystem.current.IsPointerOverGameObject() &&
-                            inspectorTransform.rect.Contains(inspectorTransform.InverseTransformPoint(Input.mousePosition)))
+                        closestHit = GetClosestHit();
+                        if (closestHit == null ||
+                            (!canDragFinishOverInspector && EventSystem.current.IsPointerOverGameObject() &&
+                            inspectorTransform.rect.Contains(inspectorTransform.InverseTransformPoint(Input.mousePosition))))
                         {
                             dragHandler.DragCancelled();
                         }
@@ -596,10 +598,10 @@ namespace Simulator.ScenarioEditor.Input
                     if (leftMouseButtonPressed && !EventSystem.current.IsPointerOverGameObject())
                     {
                         //Apply current adding state
-                        furthestHit = GetFurthestHit(true);
-                        if (furthestHit == null)
+                        closestHit = GetFurthestHit(true);
+                        if (closestHit == null)
                             break;
-                        var furthestPoint = furthestHit.Value.point;
+                        var furthestPoint = closestHit.Value.point;
                         ScenarioManager.Instance.IsScenarioDirty = true;
                         addElementsHandler.AddElement(furthestPoint);
                     }
@@ -608,8 +610,8 @@ namespace Simulator.ScenarioEditor.Input
                     if (leftMouseButtonPressed && ElementSelectingSemaphore.IsUnlocked &&
                         !EventSystem.current.IsPointerOverGameObject())
                     {
-                        furthestHit = GetFurthestHit();
-                        if (furthestHit == null)
+                        closestHit = GetFurthestHit();
+                        if (closestHit == null)
                             return;
 
                         ScenarioElement element = null;
@@ -630,7 +632,7 @@ namespace Simulator.ScenarioEditor.Input
         /// <param name="obj">Callback context</param>
         private void MouseRightOnPerformed(InputAction.CallbackContext obj)
         {
-            if (!ScenarioManager.Instance.IsInitialized)
+            if (ScenarioManager.Instance.State != ScenarioManager.InitializationState.Initialized)
                 return;
             rightMouseButtonPressed = obj.ReadValue<float>() > 0.0f;
 
@@ -661,15 +663,14 @@ namespace Simulator.ScenarioEditor.Input
         /// <param name="obj">Callback context</param>
         private void MouseMiddleOnPerformed(InputAction.CallbackContext obj)
         {
-            if (!ScenarioManager.Instance.IsInitialized)
+            if (ScenarioManager.Instance.State != ScenarioManager.InitializationState.Initialized)
                 return;
             middleMouseButtonPressed = obj.ReadValue<float>() > 0.0f;
             if (!middleMouseButtonPressed || EventSystem.current.IsPointerOverGameObject())
                 cameraMoveStart = null;
             else
             {
-                var furthestHit = GetFurthestHit(true);
-                cameraMoveStart = furthestHit?.point;
+                cameraMoveStart = GetFurthestHit(true)?.point;
             }
         }
 
@@ -755,6 +756,38 @@ namespace Simulator.ScenarioEditor.Input
         }
 
         /// <summary>
+        /// Selects the closest hit from the current raycast hits
+        /// </summary>
+        /// <param name="ignoreRigidbodies">Should the colliders with rigidbodies be ignored</param>
+        /// <returns>Furthest hit, null if there was no valid raycast hit</returns>
+        private RaycastHit? GetClosestHit(bool ignoreRigidbodies = false)
+        {
+            return GetClosestHit(raycastHits, raycastHitsCount, ignoreRigidbodies);
+        }
+
+        /// <summary>
+        /// Selects the closest hit from the current raycast hits
+        /// </summary>
+        /// <param name="hits">Prealocated raycast hits array</param>
+        /// <param name="hitsCount">Count of the valid raycast hits</param>
+        /// <param name="ignoreRigidbodies">Should the colliders with rigidbodies be ignored</param>
+        /// <returns>Furthest hit, null if there was no valid raycast hit</returns>
+        public RaycastHit? GetClosestHit(RaycastHit[] hits, int hitsCount, bool ignoreRigidbodies = false)
+        {
+            RaycastHit? closestHit = null;
+            var closestDistance = float.MaxValue;
+            for (var i = 0; i < hitsCount; i++)
+                if (hits[i].distance < closestDistance &&
+                    (!ignoreRigidbodies || hits[i].rigidbody == null))
+                {
+                    closestHit = hits[i];
+                    closestDistance = closestHit.Value.distance;
+                }
+
+            return closestHit;
+        }
+
+        /// <summary>
         /// Handle keyboard actions
         /// </summary>
         private void HandleKeyboardActions()
@@ -792,7 +825,7 @@ namespace Simulator.ScenarioEditor.Input
 
                 if (Input.GetKeyDown(KeyCode.V))
                 {
-                    var hit = GetFurthestHit(true);
+                    var hit = GetClosestHit(true);
                     if (hit.HasValue)
                         ScenarioManager.Instance.PlaceElementCopy(hit.Value.point);
                     return;
@@ -807,10 +840,11 @@ namespace Simulator.ScenarioEditor.Input
         private void HandleMapInput()
         {
             Transform cameraTransform = scenarioCamera.transform;
+            var closestHit = GetClosestHit(true);
             var furthestHit = GetFurthestHit(true);
-            Vector3? furthestPoint = null;
-            if (furthestHit != null)
-                furthestPoint = furthestHit.Value.point;
+            Vector3? closestPoint = null;
+            if (closestHit != null)
+                closestPoint = closestHit.Value.point;
 
             //Move camera with the mouse and key inputs 
             if (cameraMoveStart != null && IsMouseOverGameWindow && mouseMoved && raycastHitsCount > 0 &&
@@ -831,19 +865,19 @@ namespace Simulator.ScenarioEditor.Input
             switch (Mode)
             {
                 case InputModeType.DraggingElement:
-                    if (furthestPoint == null)
+                    if (closestPoint == null)
                         break;
-                    MouseRaycastPosition = furthestPoint.Value;
+                    MouseRaycastPosition = closestPoint.Value;
                     MouseViewportPosition = scenarioCamera.ScreenToViewportPoint(Input.mousePosition);
                     if (mouseMoved)
                         dragHandler.DragMoved();
                     break;
 
                 case InputModeType.AddingElement:
-                    if (furthestPoint == null)
+                    if (closestPoint == null)
                         break;
                     if (mouseMoved)
-                        addElementsHandler.AddingMoved(furthestPoint.Value);
+                        addElementsHandler.AddingMoved(closestPoint.Value);
                     break;
             }
 
@@ -871,8 +905,8 @@ namespace Simulator.ScenarioEditor.Input
                 }
             }
 
-            if (furthestPoint != null)
-                lastHitPosition = furthestPoint.Value;
+            if (closestPoint != null)
+                lastHitPosition = closestPoint.Value;
         }
 
         /// <summary>
@@ -903,9 +937,9 @@ namespace Simulator.ScenarioEditor.Input
             Mode = InputModeType.DraggingElement;
             this.dragHandler = dragHandler;
             RaycastAll();
-            var furthestHit = GetFurthestHit();
-            if (furthestHit != null)
-                MouseRaycastPosition = furthestHit.Value.point;
+            var closestHit = GetClosestHit();
+            if (closestHit != null)
+                MouseRaycastPosition = closestHit.Value.point;
             MouseViewportPosition = scenarioCamera.ScreenToViewportPoint(Input.mousePosition);
             this.dragHandler.DragStarted();
         }
@@ -923,9 +957,9 @@ namespace Simulator.ScenarioEditor.Input
             }
 
             RaycastAll();
-            var furthestHit = GetFurthestHit();
-            if (furthestHit != null)
-                MouseRaycastPosition = furthestHit.Value.point;
+            var closestHit = GetClosestHit();
+            if (closestHit != null)
+                MouseRaycastPosition = closestHit.Value.point;
             this.dragHandler.DragCancelled();
             this.dragHandler = null;
             Mode = InputModeType.Idle;
@@ -943,8 +977,8 @@ namespace Simulator.ScenarioEditor.Input
             Mode = InputModeType.AddingElement;
             this.addElementsHandler = addElementsHandler;
             RaycastAll();
-            var furthestHit = GetFurthestHit();
-            this.addElementsHandler.AddingStarted(furthestHit?.point ?? Vector3.zero);
+            var closestHit = GetClosestHit();
+            this.addElementsHandler.AddingStarted(closestHit?.point ?? Vector3.zero);
             return true;
         }
 
@@ -961,8 +995,8 @@ namespace Simulator.ScenarioEditor.Input
             }
 
             RaycastAll();
-            var furthestHit = GetFurthestHit();
-            this.addElementsHandler.AddingCancelled(furthestHit?.point ?? Vector3.zero);
+            var closestHit = GetClosestHit();
+            this.addElementsHandler.AddingCancelled(closestHit?.point ?? Vector3.zero);
             this.addElementsHandler = null;
             Mode = InputModeType.Idle;
             return true;

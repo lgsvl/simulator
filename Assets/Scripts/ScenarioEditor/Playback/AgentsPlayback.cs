@@ -7,10 +7,12 @@
 
 namespace Simulator.ScenarioEditor.Playback
 {
+    using System;
     using System.Collections.Generic;
     using Agents;
     using Elements.Agents;
     using Managers;
+    using Simulator.Utilities;
     using UnityEngine;
 
     /// <summary>
@@ -40,12 +42,17 @@ namespace Simulator.ScenarioEditor.Playback
             /// <summary>
             /// Path positions that will be traversed by this agent
             /// </summary>
-            private List<Vector3> pathPositions = new List<Vector3>();
+            private readonly List<Vector3> pathPositions = new List<Vector3>();
+
+            /// <summary>
+            /// Path angles that will be applies when reaching corresponding positions
+            /// </summary>
+            private readonly List<Quaternion> pathAngles = new List<Quaternion>();
 
             /// <summary>
             /// Path arrival times at which agent will reach the path position
             /// </summary>
-            private List<float> pathArrivals = new List<float>();
+            private readonly List<float> pathArrivals = new List<float>();
 
             /// <summary>
             /// Duration of traversing the whole path
@@ -69,24 +76,55 @@ namespace Simulator.ScenarioEditor.Playback
                 pathArrivals.Clear();
                 var previousPosition = agent.TransformForPlayback.position;
                 pathPositions.Add(previousPosition);
+                pathAngles.Add(agent.TransformToRotate.rotation);
                 var arrival = 0.0f;
                 pathArrivals.Add(arrival);
                 var waypointsExtension = agent.GetExtension<AgentWaypoints>();
-                if (waypointsExtension!=null)
-                    for (var i = 0; i < waypointsExtension.Waypoints.Count; i++)
+                if (waypointsExtension != null)
+                {
+                    switch (waypointsExtension.PathType)
                     {
-                        var waypoint = waypointsExtension.Waypoints[i];
-                        var speed = waypoint.Speed;
-                        //Agent won't move further after stopping
-                        if (speed <= 0.0f)
+                        case WaypointsPathType.Linear:
+                            for (var i = 0; i < waypointsExtension.Waypoints.Count; i++)
+                            {
+                                var waypoint = waypointsExtension.Waypoints[i];
+                                var speed = waypoint.Speed;
+                                //Agent won't move further after stopping
+                                if (speed <= 0.0f)
+                                    break;
+                                var position = waypoint.transform.position;
+                                pathPositions.Add(position);
+                                pathAngles.Add(Quaternion.LookRotation((position - previousPosition).normalized));
+                                var distance = Vector3.Distance(previousPosition, position);
+                                arrival += distance / speed;
+                                pathArrivals.Add(arrival);
+                                previousPosition = position;
+                            }
+
                             break;
-                        var position = waypoint.transform.position;
-                        pathPositions.Add(position);
-                        var distance = Vector3.Distance(previousPosition, position);
-                        arrival += distance / speed;
-                        pathArrivals.Add(arrival);
-                        previousPosition = position;
+                        case WaypointsPathType.BezierSpline:
+                            var waypoints = waypointsExtension.CachedBezierSpline.GetBezierWaypoints();
+                            for (var i = 1; i < waypoints.Count; i++)
+                            {
+                                var waypoint = waypoints[i];
+                                var speed = waypoint.Speed;
+                                //Agent won't move further after stopping
+                                if (speed <= 0.0f)
+                                    break;
+                                var position = waypoint.Position + agent.transform.position;
+                                pathPositions.Add(position);
+                                pathAngles.Add(Quaternion.Euler(waypoint.Angle));
+                                var distance = Vector3.Distance(previousPosition, position);
+                                arrival += distance / speed;
+                                pathArrivals.Add(arrival);
+                                previousPosition = position;
+                            }
+
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
+                }
 
                 duration = pathArrivals[pathArrivals.Count - 1];
             }
@@ -114,10 +152,7 @@ namespace Simulator.ScenarioEditor.Playback
                 if (time >= duration)
                 {
                     agent.TransformForPlayback.position = pathPositions[pathPositions.Count - 1];
-                    if (pathPositions.Count > 1)
-                        agent.TransformForPlayback.rotation = Quaternion.LookRotation(
-                            (pathPositions[pathPositions.Count - 1] - pathPositions[pathPositions.Count - 2])
-                            .normalized);
+                    agent.TransformForPlayback.rotation = pathAngles[pathAngles.Count - 1];
                 }
                 else
                 {
@@ -127,8 +162,7 @@ namespace Simulator.ScenarioEditor.Playback
 
                     var t = 1.0f - (pathArrivals[idx] - time) / (pathArrivals[idx] - pathArrivals[idx - 1]);
                     agent.TransformForPlayback.position = Vector3.Lerp(pathPositions[idx - 1], pathPositions[idx], t);
-                    agent.TransformForPlayback.rotation = Quaternion.LookRotation(
-                        (pathPositions[idx] - pathPositions[idx - 1]).normalized);
+                    agent.TransformForPlayback.rotation = pathAngles[idx];
                 }
             }
         }

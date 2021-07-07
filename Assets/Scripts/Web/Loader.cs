@@ -753,10 +753,9 @@ namespace Simulator
             {
                 zip.Close();
                 if (textureBundle != null)
-                    textureBundle.Unload(false);
+                    textureBundle.Unload(true);
                 if (mapBundle != null)
-                    mapBundle.Unload(false);
-                AssetBundle.UnloadAllAssetBundles(true);
+                    mapBundle.Unload(true);
                 throw;
             }
         }

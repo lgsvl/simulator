@@ -9,12 +9,9 @@ namespace Simulator.ScenarioEditor.Managers
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
-    using System.Text;
     using System.Threading.Tasks;
     using Database;
-    using ICSharpCode.SharpZipLib.Zip;
     using Database.Services;
     using UI.Utilities;
     using UnityEngine;
@@ -77,6 +74,11 @@ namespace Simulator.ScenarioEditor.Managers
         private string loadedSceneName;
 
         /// <summary>
+        /// Currently loaded scene
+        /// </summary>
+        private Scene? loadedScene;
+
+        /// <summary>
         /// Map GUID which is currently being downloaded
         /// </summary>
         private string mapBeingDownloaded;
@@ -108,6 +110,11 @@ namespace Simulator.ScenarioEditor.Managers
 
         /// <inheritdoc/>
         public bool IsInitialized { get; private set; }
+
+        /// <summary>
+        /// Currently loaded scene
+        /// </summary>
+        public Scene? LoadedScene => loadedScene;
 
         /// <summary>
         /// Event invoked when the currently loaded map changes
@@ -286,6 +293,7 @@ namespace Simulator.ScenarioEditor.Managers
             LaneSnapping.Deinitialize();
             SceneManager.UnloadSceneAsync(loadedSceneName);
             loadedSceneName = null;
+            loadedScene = null;
         }
 
         /// <summary>
@@ -307,9 +315,11 @@ namespace Simulator.ScenarioEditor.Managers
                     if (Loader.Instance.SimConfig != null)
                         Loader.Instance.SimConfig.MapName = CurrentMapMetaData.name;
 
+                    DisableGravity(scene);
                     CurrentMapBounds = CalculateMapBounds(scene);
                     LaneSnapping.Initialize();
                     loadedSceneName = sceneName;
+                    loadedScene = scene;
                     PlayerPrefs.SetString(MapPersistenceKey, CurrentMapMetaData.name);
                     loading = false;
                     MapChanged?.Invoke(CurrentMapMetaData);
@@ -321,6 +331,7 @@ namespace Simulator.ScenarioEditor.Managers
             catch (Exception ex)
             {
                 ScenarioManager.Instance.logPanel.EnqueueError(ex.Message);
+                loading = false;
             }
         }
 
@@ -336,7 +347,7 @@ namespace Simulator.ScenarioEditor.Managers
             for (var i = 0; i < gameObjectsOnScene.Length; i++)
             {
                 var gameObjectOnScene = gameObjectsOnScene[i];
-                foreach (Renderer r in gameObjectOnScene.GetComponentsInChildren<Renderer>())
+                foreach (var r in gameObjectOnScene.GetComponentsInChildren<Renderer>())
                 {
                     b.Encapsulate(r.bounds);
                 }
@@ -345,6 +356,23 @@ namespace Simulator.ScenarioEditor.Managers
             //Add margin to the bounds
             b.size += Vector3.one * 10;
             return b;
+        }
+
+        /// <summary>
+        /// Disable gravity for the scene objects
+        /// </summary>
+        /// <param name="scene">Scene which bounds will be calculated</param>
+        private void DisableGravity(Scene scene)
+        {
+            var gameObjectsOnScene = scene.GetRootGameObjects();
+            for (var i = 0; i < gameObjectsOnScene.Length; i++)
+            {
+                var gameObjectOnScene = gameObjectsOnScene[i];
+                foreach (var r in gameObjectOnScene.GetComponentsInChildren<Rigidbody>())
+                {
+                    r.useGravity = false;
+                }
+            }
         }
     }
 }

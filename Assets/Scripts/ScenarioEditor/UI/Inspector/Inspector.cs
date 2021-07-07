@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -12,6 +12,8 @@ namespace Simulator.ScenarioEditor.UI.Inspector
     using System.Collections.Generic;
     using Network.Core;
     using UnityEngine;
+    using UnityEngine.Serialization;
+    using Utilities;
 
     /// <summary>
     /// Visual scenario editor inspector menu that can switch between different panels
@@ -55,6 +57,12 @@ namespace Simulator.ScenarioEditor.UI.Inspector
         /// </summary>
         [SerializeField]
         private GameObject showPanel;
+        
+        /// <summary>
+        /// Height occluder scrollbar for limiting the objects visibility
+        /// </summary>
+        [SerializeField]
+        private HeightOccluderScrollbar heightOccluderScrollbar;
 #pragma warning restore 0649
 
         /// <summary>
@@ -71,6 +79,11 @@ namespace Simulator.ScenarioEditor.UI.Inspector
         /// Game object where all the instantiated content panels will be stored
         /// </summary>
         public GameObject Content => content;
+
+        /// <summary>
+        /// Height occluder scrollbar for limiting the objects visibility
+        /// </summary>
+        public HeightOccluderScrollbar HeightOccluderScroll => heightOccluderScrollbar;
 
         /// <summary>
         /// Current progress of showing the inspector, 1.0f hidden, 0.0f shown
@@ -97,6 +110,7 @@ namespace Simulator.ScenarioEditor.UI.Inspector
         /// </summary>
         public void Initialize()
         {
+            HeightOccluderScroll.Initialize();
             for (var i = 0; i < menuItemsPrefabs.Count; i++)
             {
                 var menuItem = Instantiate(menuItemsPrefabs[i], menu.transform);
@@ -118,6 +132,7 @@ namespace Simulator.ScenarioEditor.UI.Inspector
             for (var i = 0; i < menuItems.Count; i++)
                 menuItems[i].Deinitialize();
             menuItems.Clear();
+            heightOccluderScrollbar.Deinitialize();
         }
 
         /// <summary>

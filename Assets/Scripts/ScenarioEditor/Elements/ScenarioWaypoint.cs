@@ -10,6 +10,7 @@ namespace Simulator.ScenarioEditor.Elements
     using Agents;
     using Managers;
     using UnityEngine;
+    using UnityEngine.Rendering;
 
     /// <inheritdoc cref="Simulator.ScenarioEditor.Elements.ScenarioElement" />
     /// <remarks>
@@ -36,6 +37,11 @@ namespace Simulator.ScenarioEditor.Elements
         /// Name of the gameobject containing trigger
         /// </summary>
         private static string triggerObjectName = "Trigger";
+
+        /// <summary>
+        /// Speed that will be applied when agent reach this waypoint
+        /// </summary>
+        private float speed = 6.0f;
 
         /// <summary>
         /// Trigger that is linked to this waypoint
@@ -84,7 +90,17 @@ namespace Simulator.ScenarioEditor.Elements
         /// <summary>
         /// Speed that will be applied when agent reach this waypoint
         /// </summary>
-        public float Speed { get; set; } = 6.0f;
+        public float Speed
+        {
+            get => speed;
+            set
+            {
+                if (Mathf.Approximately(speed, value))
+                    return;
+                speed = value;
+                ParentAgentWaypoints?.WaypointSpeedChanged(this);
+            }
+        }
 
         /// <summary>
         /// Time that agent will wait on this waypoint before continuing the movement

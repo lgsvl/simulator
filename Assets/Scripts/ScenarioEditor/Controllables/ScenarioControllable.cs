@@ -51,10 +51,8 @@ namespace Simulator.ScenarioEditor.Controllables
         /// </summary>
         public ControllableVariant Variant => variant as ControllableVariant;
 
-        /// <summary>
-        /// Checks if this scenario controllable object can be edited
-        /// </summary>
-        public bool IsEditableOnMap => Variant.controllable.Spawned;
+        /// <inheritdoc/>
+        public override bool IsEditableOnMap => Variant != null && Variant.controllable.Spawned;
         
         /// <summary>
         /// Currently set policy for this controllable

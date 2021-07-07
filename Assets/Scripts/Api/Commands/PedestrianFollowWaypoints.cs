@@ -11,16 +11,31 @@ using System.Collections.Generic;
 
 namespace Simulator.Api.Commands
 {
+    using System;
+    using Utilities;
+
     class PedestrianWaypoints : ICommand
     {
         public string Name => "pedestrian/follow_waypoints";
 
         public void Execute(JSONNode args)
         {
+            var api = ApiManager.Instance;
             var uid = args["uid"].Value;
             var waypoints = args["waypoints"].AsArray;
+            // Try parse the path type, set linear as default
+            var pathTypeNode = args["waypoints_path_type"];
+            WaypointsPathType waypointsPathType;
+            if (pathTypeNode == null)
+            {
+                waypointsPathType = WaypointsPathType.Linear;
+            }
+            else if (!Enum.TryParse(pathTypeNode, true, out waypointsPathType))
+            {
+                waypointsPathType = WaypointsPathType.Linear;
+                api.SendError(this, $"Could not parse the waypoints path type \"{waypointsPathType}\".");
+            }
             var loop = args["loop"].AsBool;
-            var api = ApiManager.Instance;
 
             if (waypoints.Count == 0)
             {
@@ -50,7 +65,7 @@ namespace Simulator.Api.Commands
                     });
                 }
 
-                ped.FollowWaypoints(wp, loop);
+                ped.FollowWaypoints(wp, loop, waypointsPathType);
                 api.RegisterAgentWithWaypoints(ped.gameObject);
                 api.SendResult(this);
             }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -18,7 +18,6 @@ namespace Simulator.ScenarioEditor.Agents
     using Undo;
     using Undo.Records;
     using UnityEngine;
-    using Utilities;
     using Web;
 
     /// <inheritdoc/>
@@ -83,6 +82,11 @@ namespace Simulator.ScenarioEditor.Agents
         public override GameObject GetModelInstance(SourceVariant variant)
         {
             var instance = base.GetModelInstance(variant);
+            if (instance == null)
+            {
+                ScenarioManager.Instance.logPanel.EnqueueError($"Could not instantiate a prefab for the {variant.Name} NPC variant.");
+                return null;
+            }
             if (instance.GetComponent<BoxCollider>() == null)
             {
                 var collider = instance.AddComponent<BoxCollider>();

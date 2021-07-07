@@ -11,6 +11,7 @@ namespace Simulator.ScenarioEditor.Agents.Triggers
     using Elements;
     using Managers;
     using UnityEngine;
+    using UnityEngine.Rendering;
 
     /// <summary>
     /// Object that represents the activation zone of the waiting point effector in the scenario
@@ -58,9 +59,11 @@ namespace Simulator.ScenarioEditor.Agents.Triggers
                 pathRenderer.useWorldSpace = false;
                 pathRenderer.positionCount = 2;
                 pathRenderer.textureMode = LineTextureMode.Tile;
+                pathRenderer.shadowCastingMode = ShadowCastingMode.Off;
                 pathRenderer.sortingLayerName = "Ignore Raycast";
                 pathRenderer.widthMultiplier = 0.1f;
                 pathRenderer.SetPosition(0, lineRendererPositionOffset);
+                trigger.OnModelChanged();
                 return pathRenderer;
             }
         }

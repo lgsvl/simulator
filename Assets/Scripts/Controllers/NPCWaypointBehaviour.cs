@@ -5,6 +5,7 @@
  *
  */
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -103,12 +104,28 @@ public class NPCWaypointBehaviour : NPCBehaviourBase
         WaypointState = WaypointDriveState.Drive;
     }
 
-    public void SetFollowWaypoints(List<DriveWaypoint> waypoints, bool loop)
+    public void SetFollowWaypoints(List<DriveWaypoint> waypoints, bool loop, WaypointsPathType pathType)
     {
         InitPos = transform.position;
         InitRot = transform.rotation;
 
         WaypointLoop = loop;
+
+        // Process waypoints according to the selected waypoint path
+        switch (pathType)
+        {
+            case WaypointsPathType.Linear:
+                break;
+            case WaypointsPathType.BezierSpline:
+                var initWaypoint = ((IWaypoint) waypoints[0]).Clone();
+                initWaypoint.Position = InitPos;
+                waypoints.Insert(0, (DriveWaypoint)initWaypoint);
+                var bezier = new BezierSpline<DriveWaypoint>(waypoints.ToArray(), 0.01f);
+                waypoints = bezier.GetBezierWaypoints();
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(pathType), pathType, null);
+        }
 
         LaneData = waypoints.Select(wp => wp.Position).ToList();
         LaneSpeed = waypoints.Select(wp => wp.Speed).ToList();

@@ -422,9 +422,25 @@ public class PedestrianController : DistributedComponent, ITriggerAgent, IGlobal
         SetPedState(PedestrianState.Walking);
     }
 
-    public void FollowWaypoints(List<WalkWaypoint> waypoints, bool loop)
+    public void FollowWaypoints(List<WalkWaypoint> waypoints, bool loop, WaypointsPathType pathType)
     {
         Reset();
+        
+        // Process waypoints according to the selected waypoint path
+        switch (pathType)
+        {
+            case WaypointsPathType.Linear:
+                break;
+            case WaypointsPathType.BezierSpline:
+                var initWaypoint = ((IWaypoint) waypoints[0]).Clone();
+                initWaypoint.Position = transform.position;
+                waypoints.Insert(0, (WalkWaypoint)initWaypoint);
+                var bezier = new BezierSpline<WalkWaypoint>(waypoints.ToArray(), 0.01f);
+                waypoints = bezier.GetBezierWaypoints();
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(pathType), pathType, null);
+        }
 
         Agent.avoidancePriority = 0;
         Targets = waypoints.Select(wp => wp.Position).ToList();

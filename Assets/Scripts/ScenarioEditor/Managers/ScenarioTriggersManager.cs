@@ -37,7 +37,7 @@ namespace Simulator.ScenarioEditor.Managers
         {
             if (IsInitialized)
                 return Task.CompletedTask;
-            ScenarioManager.Instance.NewScenarioElement += OnNewElementActivation;
+            ScenarioManager.Instance.ScenarioElementActivated += OnElementActivatedActivation;
             IsInitialized = true;
             Debug.Log($"{GetType().Name} scenario editor extension has been initialized.");
             return Task.CompletedTask;
@@ -48,7 +48,7 @@ namespace Simulator.ScenarioEditor.Managers
         {
             if (!IsInitialized)
                 return;
-            ScenarioManager.Instance.NewScenarioElement -= OnNewElementActivation;
+            ScenarioManager.Instance.ScenarioElementActivated -= OnElementActivatedActivation;
             IsInitialized = false;
         }
 
@@ -56,7 +56,7 @@ namespace Simulator.ScenarioEditor.Managers
         /// Method called when new scenario element has been activated
         /// </summary>
         /// <param name="selectedElement">Scenario element that has been activated</param>
-        private void OnNewElementActivation(ScenarioElement selectedElement)
+        private void OnElementActivatedActivation(ScenarioElement selectedElement)
         {
             if (!(selectedElement is ScenarioWaypoint waypoint)) return;
             var trigger = waypoint.LinkedTrigger;

@@ -11,7 +11,9 @@ namespace Simulator.ScenarioEditor.Elements.Agents
     using System.Collections.Generic;
     using Managers;
     using SimpleJSON;
+    using Simulator.Utilities;
     using UnityEngine;
+    using UnityEngine.Rendering;
 
     /// <summary>
     /// Scenario agent extension that handles the waypoints
@@ -19,9 +21,45 @@ namespace Simulator.ScenarioEditor.Elements.Agents
     public class AgentWaypoints : ScenarioAgentExtension
     {
         /// <summary>
+        /// Minimal waypoint implementation for Bezier calculations
+        /// </summary>
+        public struct Waypoint : IWaypoint
+        {
+            /// <inheritdoc/>
+            public Vector3 Position { get; set; }
+
+            /// <inheritdoc/>
+            public Vector3 Angle { get; set; }
+
+            public float Speed { get; set; }
+
+            /// <inheritdoc/>
+            public IWaypoint Clone()
+            {
+                return new Waypoint()
+                {
+                    Position = Position,
+                    Angle = Angle,
+                    Speed = Speed
+                };
+            }
+
+            /// <inheritdoc/>
+            public IWaypoint GetControlPoint()
+            {
+                return new Waypoint()
+                {
+                    Position = Position,
+                    Angle = Angle,
+                    Speed = Speed
+                };
+            }
+        }
+
+        /// <summary>
         /// The position offset that will be applied to the line renderer of waypoints
         /// </summary>
-        private static readonly Vector3 LineRendererPositionOffset = new Vector3(0.0f, 0.1f, 0.0f);
+        public static readonly Vector3 LineRendererPositionOffset = new Vector3(0.0f, 0.1f, 0.0f);
 
         /// <summary>
         /// Name for the gameobject containing waypoints
@@ -39,6 +77,21 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         private Transform waypointsParent;
 
         /// <summary>
+        /// Waypoints path type
+        /// </summary>
+        private WaypointsPathType pathType;
+
+        /// <summary>
+        /// Should this waypoints path be looped
+        /// </summary>
+        private bool loop;
+
+        /// <summary>
+        /// Precalculated bezier spline
+        /// </summary>
+        private BezierSpline<Waypoint> bezierSpline;
+
+        /// <summary>
         /// Included waypoints that this agent will follow
         /// </summary>
         private readonly List<ScenarioWaypoint> waypoints = new List<ScenarioWaypoint>();
@@ -52,7 +105,6 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         /// Included waypoints that this agent will follow
         /// </summary>
         public List<ScenarioWaypoint> Waypoints => waypoints;
-
 
         /// <summary>
         /// Waypoints parent where inherited waypoints objects will be added
@@ -97,11 +149,32 @@ namespace Simulator.ScenarioEditor.Elements.Agents
                     pathRenderer.widthMultiplier = 0.1f;
                     pathRenderer.generateLightingData = false;
                     pathRenderer.textureMode = LineTextureMode.Tile;
+                    pathRenderer.shadowCastingMode = ShadowCastingMode.Off;
+                    ParentAgent.OnModelChanged();
                 }
 
                 return pathRenderer;
             }
         }
+
+        /// <summary>
+        /// Waypoints path type
+        /// </summary>
+        public WaypointsPathType PathType => pathType;
+
+        /// <summary>
+        /// Should this waypoints path be looped
+        /// </summary>
+        public bool Loop
+        {
+            get => loop;
+            set => loop = value;
+        }
+
+        /// <summary>
+        /// Precalculated bezier spline
+        /// </summary>
+        public BezierSpline<Waypoint> CachedBezierSpline => bezierSpline;
 
         /// <summary>
         /// Event invoked when the is active state of waypoints has changed.
@@ -115,7 +188,7 @@ namespace Simulator.ScenarioEditor.Elements.Agents
             ParentAgent.ExtensionAdded += ParentAgentOnExtensionAdded;
             ParentAgent.ExtensionRemoved += ParentAgentOnExtensionRemoved;
             var behaviourExtension = ParentAgent.GetExtension<AgentBehaviour>();
-            if (behaviourExtension!=null)
+            if (behaviourExtension != null)
                 behaviourExtension.BehaviourChanged += ParentAgentOnBehaviourChanged;
         }
 
@@ -125,7 +198,7 @@ namespace Simulator.ScenarioEditor.Elements.Agents
             ParentAgent.ExtensionAdded -= ParentAgentOnExtensionAdded;
             ParentAgent.ExtensionRemoved -= ParentAgentOnExtensionRemoved;
             var behaviourExtension = ParentAgent.GetExtension<AgentBehaviour>();
-            if (behaviourExtension!=null)
+            if (behaviourExtension != null)
                 behaviourExtension.BehaviourChanged -= ParentAgentOnBehaviourChanged;
             for (var i = waypoints.Count - 1; i >= 0; i--)
             {
@@ -157,6 +230,36 @@ namespace Simulator.ScenarioEditor.Elements.Agents
                 behaviourExtension.BehaviourChanged -= ParentAgentOnBehaviourChanged;
         }
 
+        /// <summary>
+        /// Changes the waypoints path type
+        /// </summary>
+        /// <param name="newPathType">New waypoints path type</param>
+        public void ChangePathType(WaypointsPathType newPathType)
+        {
+            if (Equals(pathType, newPathType))
+                return;
+            pathType = newPathType;
+            switch (pathType)
+            {
+                case WaypointsPathType.Linear:
+                    var positions = new Vector3[waypoints.Count + 1];
+                    positions[0] = LineRendererPositionOffset;
+                    for (var i = 0; i < waypoints.Count; i++)
+                    {
+                        positions[i + 1] = LineRendererPositionOffset + waypoints[i].transform.localPosition;
+                    }
+
+                    PathRenderer.positionCount = waypoints.Count + 1;
+                    PathRenderer.SetPositions(positions);
+                    UpdateDirectionTransforms();
+                    break;
+                case WaypointsPathType.BezierSpline:
+                    RecalculateBezierSpline();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
 
         /// <inheritdoc/>
         public override void SerializeToJson(JSONNode agentNode)
@@ -164,6 +267,8 @@ namespace Simulator.ScenarioEditor.Elements.Agents
             var waypointsNode = agentNode.GetValueOrDefault("waypoints", new JSONArray());
             if (!agentNode.HasKey("waypoints"))
                 agentNode.Add("waypoints", waypointsNode);
+            agentNode.Add("waypoints_path_type", new JSONString(pathType.ToString()));
+            agentNode.Add("waypoints_loop", new JSONBool(loop));
 
             var angle = Vector3.zero;
             for (var i = 0; i < Waypoints.Count; i++)
@@ -175,8 +280,8 @@ namespace Simulator.ScenarioEditor.Elements.Agents
                 var hasPreviousWaypoint = i > 0;
                 angle = hasNextWaypoint
                     ? Quaternion.LookRotation(Waypoints[i + 1].transform.position - position).eulerAngles
-                    : (hasPreviousWaypoint ? 
-                        Quaternion.LookRotation(position - Waypoints[i - 1].transform.position).eulerAngles
+                    : (hasPreviousWaypoint
+                        ? Quaternion.LookRotation(position - Waypoints[i - 1].transform.position).eulerAngles
                         : ParentAgent.transform.eulerAngles);
                 waypointNode.Add("ordinalNumber", new JSONNumber(i));
                 waypointNode.Add("position", position);
@@ -206,6 +311,18 @@ namespace Simulator.ScenarioEditor.Elements.Agents
             var waypointsNode = agentNode["waypoints"] as JSONArray;
             if (waypointsNode == null)
                 return;
+            // Try parse the path type, set linear if parsing fails
+            var pathTypeNode = agentNode["waypoints_path_type"];
+            if (pathTypeNode == null || !Enum.TryParse(pathTypeNode, true, out pathType))
+            {
+                pathType = WaypointsPathType.Linear;
+            }
+
+            var loopNode = agentNode["waypoints_loop"] as JSONBool;
+            if (loopNode != null)
+            {
+                loop = loopNode;
+            }
 
             foreach (var waypointNode in waypointsNode.Children)
             {
@@ -249,6 +366,8 @@ namespace Simulator.ScenarioEditor.Elements.Agents
             if (origin == null) return;
 
             PathRenderer.positionCount = 0;
+            pathType = origin.pathType;
+            bezierSpline = origin.CachedBezierSpline;
             for (var i = 0; i < ParentAgent.transform.childCount; i++)
             {
                 var child = ParentAgent.transform.GetChild(i);
@@ -311,12 +430,27 @@ namespace Simulator.ScenarioEditor.Elements.Agents
             var waypointTransform = waypoint.transform;
             waypointTransform.SetParent(WaypointsParent);
             waypointTransform.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
-            PathRenderer.positionCount = waypoints.Count + 1;
             for (var i = index; i < waypoints.Count; i++)
             {
-                var position = LineRendererPositionOffset + waypoints[i].transform.localPosition;
-                PathRenderer.SetPosition(i + 1, position);
                 waypoints[i].IndexInAgent = i;
+            }
+
+            switch (pathType)
+            {
+                case WaypointsPathType.Linear:
+                    PathRenderer.positionCount = waypoints.Count + 1;
+                    for (var i = index; i < waypoints.Count; i++)
+                    {
+                        var position = LineRendererPositionOffset + waypoints[i].transform.localPosition;
+                        PathRenderer.SetPosition(i + 1, position);
+                    }
+
+                    break;
+                case WaypointsPathType.BezierSpline:
+                    RecalculateBezierSpline();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
 
             WaypointPositionChanged(waypoint);
@@ -335,12 +469,26 @@ namespace Simulator.ScenarioEditor.Elements.Agents
             RemoveTrigger(waypoint.LinkedTrigger);
             for (var i = index; i < waypoints.Count; i++)
             {
-                var position = LineRendererPositionOffset + waypoints[i].transform.transform.localPosition;
-                PathRenderer.SetPosition(i + 1, position);
                 waypoints[i].IndexInAgent = i;
             }
 
-            PathRenderer.positionCount = waypoints.Count + 1;
+            switch (pathType)
+            {
+                case WaypointsPathType.Linear:
+                    for (var i = index; i < waypoints.Count; i++)
+                    {
+                        var position = LineRendererPositionOffset + waypoints[i].transform.transform.localPosition;
+                        PathRenderer.SetPosition(i + 1, position);
+                    }
+
+                    PathRenderer.positionCount = waypoints.Count + 1;
+                    break;
+                case WaypointsPathType.BezierSpline:
+                    RecalculateBezierSpline();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
 
             //Update position after removing an element
             if (index < waypoints.Count)
@@ -349,31 +497,136 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         }
 
         /// <summary>
-        /// Method that updates line rendered, has to be called every time when waypoint changes the position
+        /// Method that updates line renderer, has to be called every time when waypoint changes the position
         /// </summary>
         /// <param name="waypoint">Waypoint that changed it's position</param>
         public void WaypointPositionChanged(ScenarioWaypoint waypoint)
         {
             var index = waypoints.IndexOf(waypoint);
-            var position = LineRendererPositionOffset + waypoint.transform.transform.localPosition;
-            PathRenderer.SetPosition(index + 1, position);
 
-            //Update waypoint direction indicator
-            var previousPosition = PathRenderer.GetPosition(index) - position;
-            waypoint.directionTransform.localPosition = previousPosition / 2.0f;
-            waypoint.directionTransform.localRotation = previousPosition.sqrMagnitude > 0.0f
-                ? Quaternion.LookRotation(-previousPosition)
-                : Quaternion.Euler(0.0f, 0.0f, 0.0f);
-
-            if (index + 1 < waypoints.Count)
+            switch (pathType)
             {
-                var nextPosition = position - PathRenderer.GetPosition(index + 2);
-                var nextWaypoint = waypoints[index + 1];
-                nextWaypoint.directionTransform.localPosition = nextPosition / 2.0f;
-                nextWaypoint.directionTransform.localRotation = nextPosition.sqrMagnitude > 0.0f
-                    ? Quaternion.LookRotation(-nextPosition)
-                    : Quaternion.Euler(0.0f, 0.0f, 0.0f);
+                case WaypointsPathType.Linear:
+                    var position = LineRendererPositionOffset + waypoint.transform.transform.localPosition;
+                    PathRenderer.SetPosition(index + 1, position);
+                    UpdateDirectionTransforms(index, index + 1);
+                    break;
+                case WaypointsPathType.BezierSpline:
+                    RecalculateBezierSpline();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
+        }
+
+        /// <summary>
+        /// Method that updates cached data, which uses speed from waypoints
+        /// </summary>
+        /// <param name="waypoint">Waypoint that changed it's speed</param>
+        public void WaypointSpeedChanged(ScenarioWaypoint waypoint)
+        {
+            switch (pathType)
+            {
+                case WaypointsPathType.Linear:
+                    break;
+                case WaypointsPathType.BezierSpline:
+                    RecalculateBezierSpline();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        /// <summary>
+        /// Updates direction arrows transforms according to the current state
+        /// </summary>
+        /// <param name="startIndex">Start index of waypoints range that will be updated</param>
+        /// <param name="endIndex">End index of waypoints range that will be updated</param>
+        private void UpdateDirectionTransforms(int startIndex = 0, int endIndex = -1)
+        {
+            if (startIndex < 0 || startIndex >= waypoints.Count)
+                return;
+            if (endIndex < 0)
+                endIndex = waypoints.Count - 1;
+            endIndex = Mathf.Clamp(endIndex, startIndex, waypoints.Count - 1);
+            //Update waypoint direction indicator
+            switch (pathType)
+            {
+                case WaypointsPathType.Linear:
+                    for (var i = startIndex; i <= endIndex; i++)
+                    {
+                        var position = PathRenderer.GetPosition(i + 1);
+                        var previousPosition = PathRenderer.GetPosition(i);
+                        var directionVector = previousPosition - position;
+                        var waypoint = waypoints[i];
+                        waypoint.directionTransform.localPosition = directionVector / 2.0f;
+                        waypoint.directionTransform.localRotation = directionVector.sqrMagnitude > 0.0f
+                            ? Quaternion.LookRotation(-directionVector)
+                            : Quaternion.Euler(0.0f, 0.0f, 0.0f);
+                        waypoint.directionTransform.gameObject.SetActive(true);
+                    }
+
+                    break;
+                case WaypointsPathType.BezierSpline:
+                    for (var i = startIndex; i <= endIndex; i++)
+                    {
+                        var waypoint = waypoints[i];
+
+                        var position = waypoint.TransformToMove.position;
+                        var previousPosition =
+                            i == 0 ? ParentAgent.transform.position : waypoints[i - 1].TransformToMove.position;
+                        var directionVector = previousPosition - position;
+                        waypoint.directionTransform.localPosition =
+                            waypoint.transform.InverseTransformPoint(position + directionVector / 2.0f);
+                        waypoint.directionTransform.localRotation = directionVector.sqrMagnitude > 0.0f
+                            ? Quaternion.LookRotation(-directionVector)
+                            : Quaternion.Euler(0.0f, 0.0f, 0.0f);
+                        waypoint.directionTransform.gameObject.SetActive(true);
+                    }
+
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        /// <summary>
+        /// Recalculates Bezier spline
+        /// </summary>
+        private void RecalculateBezierSpline()
+        {
+            if (waypoints.Count < 1)
+            {
+                bezierSpline = new BezierSpline<Waypoint>(new Waypoint[0], 0.01f);
+                return;
+            }
+
+            var inputWaypoints = new Waypoint[waypoints.Count + 1];
+            inputWaypoints[0] = new Waypoint
+            {
+                Position = Vector3.zero,
+                Speed = waypoints[0].Speed
+            };
+            for (var i = 0; i < waypoints.Count; i++)
+            {
+                inputWaypoints[i + 1] = new Waypoint
+                {
+                    Position = waypoints[i].transform.localPosition,
+                    Speed = waypoints[i].Speed
+                };
+            }
+
+            bezierSpline = new BezierSpline<Waypoint>(inputWaypoints, 0.01f);
+
+            var bezierWaypoints = CachedBezierSpline.GetBezierWaypoints();
+            if (bezierWaypoints != null)
+            {
+                PathRenderer.positionCount = bezierWaypoints.Count;
+                for (var i = 0; i < bezierWaypoints.Count; i++)
+                    PathRenderer.SetPosition(i, bezierWaypoints[i].Position + LineRendererPositionOffset);
+            }
+
+            UpdateDirectionTransforms();
         }
 
         /// <summary>

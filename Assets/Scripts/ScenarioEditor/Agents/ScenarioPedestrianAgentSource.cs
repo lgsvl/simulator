@@ -9,7 +9,6 @@ namespace Simulator.ScenarioEditor.Agents
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading.Tasks;
     using Elements.Agents;
     using Input;
@@ -17,7 +16,6 @@ namespace Simulator.ScenarioEditor.Agents
     using Undo;
     using Undo.Records;
     using UnityEngine;
-    using Utilities;
     using Web;
 
     /// <inheritdoc/>
@@ -73,6 +71,11 @@ namespace Simulator.ScenarioEditor.Agents
         public override GameObject GetModelInstance(SourceVariant variant)
         {
             var instance = base.GetModelInstance(variant);
+            if (instance == null)
+            {
+                ScenarioManager.Instance.logPanel.EnqueueError($"Could not instantiate a prefab for the {variant.Name} pedestrian variant.");
+                return null;
+            }
             if (instance.GetComponent<BoxCollider>() == null)
             {
                 var collider = instance.AddComponent<BoxCollider>();

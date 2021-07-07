@@ -1,5 +1,5 @@
 ﻿/**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -99,6 +99,7 @@ namespace Simulator.ScenarioEditor.Elements
             }
 
             VariantChanged?.Invoke(variant);
+            OnModelChanged();
         }
 
         /// <summary>

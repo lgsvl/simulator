@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -111,9 +111,14 @@ namespace Simulator.ScenarioEditor.Elements
         /// </summary>
         public virtual string Uid
         {
-            get => uid ?? (uid = Guid.NewGuid().ToString());
+            get => uid ??= Guid.NewGuid().ToString();
             set => uid = value;
         }
+        
+        /// <summary>
+        /// Checks if this scenario element can be edited on the map
+        /// </summary>
+        public virtual bool IsEditableOnMap => true;
 
         /// <summary>
         /// Name of this scenario element type
@@ -166,19 +171,24 @@ namespace Simulator.ScenarioEditor.Elements
         public virtual Transform TransformForPlayback => transform;
 
         /// <summary>
-        /// Event called when the scenario element is moved
+        /// Event invoked when the scenario element is moved
         /// </summary>
         public event Action Moved;
 
         /// <summary>
-        /// Event called when the scenario element is rotated
+        /// Event invoked when the scenario element is rotated
         /// </summary>
         public event Action Rotated;
 
         /// <summary>
-        /// Event called when the scenario element is resized
+        /// Event invoked when the scenario element is resized
         /// </summary>
         public event Action Resized;
+
+        /// <summary>
+        /// Event invoked when the scenario element's model changes
+        /// </summary>
+        public event Action ModelChanged;
         
 
         /// <summary>
@@ -219,7 +229,8 @@ namespace Simulator.ScenarioEditor.Elements
                 child.parentElements.Add(this);
                 this.childElements.Add(child);
             }
-            ScenarioManager.Instance.NewElementActivated(this);
+            ScenarioManager.Instance.ReportActivatedElement(this);
+            ModelChanged?.Invoke();
         }
 
         /// <summary>
@@ -236,6 +247,8 @@ namespace Simulator.ScenarioEditor.Elements
             foreach (var child in childElements)
                 child.parentElements.Remove(this);
             childElements.Clear();
+            if (ScenarioManager.Instance != null)
+                ScenarioManager.Instance.ReportDeactivatedElement(this);
         }
 
         /// <summary>
@@ -290,7 +303,7 @@ namespace Simulator.ScenarioEditor.Elements
             pos.y += 100.0f;
             var ray = new Ray(pos, Vector3.down);
             var hits = inputManager.RaycastAll(ray);
-            var furthestHit = inputManager.GetFurthestHit(hits, hits.Length, true);
+            var furthestHit = inputManager.GetClosestHit(hits, hits.Length, true);
             if (!furthestHit.HasValue)
                 return;
             ForceMove(furthestHit.Value.point);
@@ -479,7 +492,7 @@ namespace Simulator.ScenarioEditor.Elements
         }
 
         /// <summary>
-        /// Method called every time position is updated while dragging
+        /// Method called every time when the position is updated while dragging
         /// </summary>
         /// <param name="notifyOthers">Should this call notify siblings and children</param>
         protected virtual void OnMoved(bool notifyOthers = true)
@@ -494,7 +507,7 @@ namespace Simulator.ScenarioEditor.Elements
         }
 
         /// <summary>
-        /// Method called every time rotation is updated while rotating
+        /// Method called every time when the rotation is updated while rotating
         /// </summary>
         /// <param name="notifyOthers">Should this call notify siblings and children</param>
         protected virtual void OnRotated(bool notifyOthers = true)
@@ -509,7 +522,7 @@ namespace Simulator.ScenarioEditor.Elements
         }
 
         /// <summary>
-        /// Method called every time scale is updated while resizing
+        /// Method called every time when the scale is updated while resizing
         /// </summary>
         /// <param name="notifyOthers">Should this call notify siblings and children</param>
         protected virtual void OnResized(bool notifyOthers = true)
@@ -521,6 +534,14 @@ namespace Simulator.ScenarioEditor.Elements
                 siblingElement.OnResized(false);
             foreach (var childElement in childElements)
                 childElement.OnResized(false);
+        }
+
+        /// <summary>
+        /// Method called every time when the model changes
+        /// </summary>
+        public virtual void OnModelChanged()
+        {
+            ModelChanged?.Invoke();
         }
     }
 }

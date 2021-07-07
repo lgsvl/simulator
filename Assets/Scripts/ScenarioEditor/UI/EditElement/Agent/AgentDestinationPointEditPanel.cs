@@ -177,7 +177,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
                 inputManager.RaycastAll(inputManager.ScenarioCamera.ViewportPointToRay(new Vector3(0.35f, 0.5f, 0.5f)));
             if (raycastHitsInCenter.Length == 0)
                 return;
-            var furthestHit = inputManager.GetFurthestHit(raycastHitsInCenter, raycastHitsInCenter.Length, true);
+            var furthestHit = inputManager.GetClosestHit(raycastHitsInCenter, raycastHitsInCenter.Length, true);
             if (!furthestHit.HasValue)
                 return;
             var cameraTransform = inputManager.ScenarioCamera.transform;

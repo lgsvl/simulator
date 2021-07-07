@@ -9,8 +9,9 @@ using UnityEngine;
 
 namespace Simulator.Api
 {
+    using Utilities;
 
-    public struct DriveWaypoint
+    public struct DriveWaypoint : IWaypoint
     {
         public Vector3 Position;
         public float Speed;
@@ -20,14 +21,90 @@ namespace Simulator.Api
         public float TriggerDistance;
         public float TimeStamp;
         public WaypointTrigger Trigger;
+        Vector3 IWaypoint.Position
+        {
+            get => Position;
+            set => Position = value;
+        }
+        Vector3 IWaypoint.Angle
+        {
+            get => Angle;
+            set => Angle = value;
+        }
+
+        IWaypoint IWaypoint.Clone()
+        {
+            return new DriveWaypoint()
+            {
+                Position = Position,
+                Speed = Speed,
+                Angle = Angle,
+                Idle = Idle,
+                Deactivate = Deactivate,
+                TimeStamp = TimeStamp,
+                Trigger = Trigger,
+                TriggerDistance = TriggerDistance
+            };
+        }
+
+        IWaypoint IWaypoint.GetControlPoint()
+        {
+            return new DriveWaypoint()
+            {
+                Position = Position,
+                Speed = Speed,
+                Angle = Angle,
+                Idle = 0.0f,
+                Deactivate = false,
+                TimeStamp = -1.0f,
+                Trigger = null,
+                TriggerDistance = 0.0f
+            };
+        }
     }
 
-    public struct WalkWaypoint
+    public struct WalkWaypoint : IWaypoint
     {
         public Vector3 Position;
         public float Speed;
         public float Idle;
         public float TriggerDistance;
         public WaypointTrigger Trigger;
+        
+        Vector3 IWaypoint.Position
+        {
+            get => Position;
+            set => Position = value;
+        }
+        
+        Vector3 IWaypoint.Angle { get; set; }
+
+        IWaypoint IWaypoint.Clone()
+        {
+            var clone = new WalkWaypoint()
+            {
+                Position = Position,
+                Speed = Speed,
+                Idle = Idle,
+                Trigger = Trigger,
+                TriggerDistance = TriggerDistance
+            };
+            ((IWaypoint) clone).Angle = ((IWaypoint) this).Angle;
+            return clone;
+        }
+
+        IWaypoint IWaypoint.GetControlPoint()
+        {
+            var clone = new WalkWaypoint()
+            {
+                Position = Position,
+                Speed = Speed,
+                Idle = Idle,
+                Trigger = null,
+                TriggerDistance = 0.0f
+            };
+            ((IWaypoint) clone).Angle = ((IWaypoint) this).Angle;
+            return clone;
+        }
     }
 }

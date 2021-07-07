@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -21,6 +21,7 @@ namespace Simulator.ScenarioEditor.Managers
     using Undo;
     using Undo.Records;
     using UnityEngine;
+    using UnityEngine.SceneManagement;
     using Utilities;
 
     /// <summary>
@@ -28,6 +29,32 @@ namespace Simulator.ScenarioEditor.Managers
     /// </summary>
     public class ScenarioManager : MonoBehaviour
     {
+        /// <summary>
+        /// Possible state of the manager initialization
+        /// </summary>
+        public enum InitializationState
+        {
+            /// <summary>
+            /// Manager is deinitialized and cannot be used
+            /// </summary>
+            Deinitialized = 0,
+            
+            /// <summary>
+            /// Manager is during the initialization process
+            /// </summary>
+            Initializing = 1,
+            
+            /// <summary>
+            /// Manager is initialized and ready to be used
+            /// </summary>
+            Initialized = 2,
+            
+            /// <summary>
+            /// Manage is during the deinitialization process
+            /// </summary>
+            Deinitializing = 3
+        }
+
         /// <summary>
         /// Singleton instance of the scenario manager
         /// </summary>
@@ -57,22 +84,23 @@ namespace Simulator.ScenarioEditor.Managers
         //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
 #pragma warning disable 0649
         /// <summary>
+        /// Prefabs that will be instantiated inside this editor object
+        /// </summary>
+        [SerializeField]
+        private List<GameObject> extensions;
+        
+        /// <summary>
         /// Camera used to render the scenario world
         /// </summary>
         [SerializeField]
         private Camera scenarioCamera;
 
         /// <summary>
-        /// Prefabs that will be instantiated inside this editor object
+        /// Lights object that is instantiated on the loaded map
         /// </summary>
         [SerializeField]
-        private List<GameObject> extensions;
+        private GameObject lightsPrefab;
 #pragma warning restore 0649
-
-        /// <summary>
-        /// Is the manager initialized
-        /// </summary>
-        private bool isInitialized;
 
         /// <summary>
         /// Available scenario editor extensions for the visual scenario editor
@@ -180,7 +208,12 @@ namespace Simulator.ScenarioEditor.Managers
         /// <summary>
         /// Is the manager initialized
         /// </summary>
-        public bool IsInitialized => isInitialized;
+        public InitializationState State { get; private set; }
+
+        /// <summary>
+        /// Event invoked when the scenario manager finishes the initialization
+        /// </summary>
+        public event Action Initialized;
 
         /// <summary>
         /// Event invoked when the scenario is being reset
@@ -188,9 +221,15 @@ namespace Simulator.ScenarioEditor.Managers
         public event Action ScenarioReset;
 
         /// <summary>
-        /// Event invoked when the new scenario element is created and activated in scenario
+        /// Event invoked when the new scenario element is activated in scenario
         /// </summary>
-        public event Action<ScenarioElement> NewScenarioElement;
+        public event Action<ScenarioElement> ScenarioElementActivated;
+        
+        /// <summary>
+        /// Event invoked when the new scenario element is deactivated in scenario
+        /// </summary>
+        public event Action<ScenarioElement> ScenarioElementDeactivated;
+        
 
         /// <summary>
         /// Event invoked when the selected scenario element changes
@@ -230,9 +269,9 @@ namespace Simulator.ScenarioEditor.Managers
         /// </summary>
         private async Task Initialize()
         {
-            if (IsInitialized)
+            if (State != InitializationState.Deinitialized)
                 return;
-            isInitialized = true;
+            State = InitializationState.Initializing;
             var loadingProcess = loadingPanel.AddProgress();
 
             //Initialize all the scenario editor extensions
@@ -303,11 +342,13 @@ namespace Simulator.ScenarioEditor.Managers
             inspector.Initialize();
             loadingProcess.Update("Visual Scenario Editor has been loaded.");
             loadingProcess.NotifyCompletion();
+            State = InitializationState.Initialized;
+            Initialized?.Invoke();
         }
 
         private void StopInitialization()
         {
-            isInitialized = true;
+            if (State == InitializationState.Initializing)
             Deinitialize();
             Loader.ExitScenarioEditor();
         }
@@ -317,15 +358,16 @@ namespace Simulator.ScenarioEditor.Managers
         /// </summary>
         private void Deinitialize()
         {
-            if (!IsInitialized)
+            if (State == InitializationState.Deinitialized || State == InitializationState.Deinitializing)
                 return;
+            State = InitializationState.Deinitializing;
             selectedElement = null;
             if (inspector!=null)
                 inspector.Deinitialize();
             foreach (var scenarioManager in scenarioEditorExtensions)
                 scenarioManager.Value.Deinitialize();
             GetExtension<ScenarioMapManager>().MapChanged -= OnMapLoaded;
-            isInitialized = false;
+            State = InitializationState.Deinitialized;
         }
 
         /// <summary>
@@ -443,19 +485,31 @@ namespace Simulator.ScenarioEditor.Managers
         /// Method called when new map has been loaded, resets the camera position and hides loading panel
         /// </summary>
         /// <param name="mapMetaData">The loaded map meta data</param>
+        /// <param name="scene">The loaded map scene</param>
         public void OnMapLoaded(ScenarioMapManager.MapMetaData mapMetaData)
         {
             var spawnInfo = FindObjectOfType<SpawnInfo>();
             ScenarioCamera.transform.position = (spawnInfo == null ? Vector3.zero : spawnInfo.transform.position)+new Vector3(0.0f, 30.0f, 0.0f);
+            var lights = Instantiate(lightsPrefab);
+            lights.SetActive(true);
         }
 
         /// <summary>
-        /// Invoked by <see cref="ScenarioElement"/> Start method notifying scenario about new element
+        /// Invoked by <see cref="ScenarioElement"/> Start method notifying scenario about activated element
         /// </summary>
         /// <param name="scenarioElement">Scenario element that was just activated</param>
-        public void NewElementActivated(ScenarioElement scenarioElement)
+        public void ReportActivatedElement(ScenarioElement scenarioElement)
         {
-            NewScenarioElement?.Invoke(scenarioElement);
+            ScenarioElementActivated?.Invoke(scenarioElement);
+        }
+        
+        /// <summary>
+        /// Invoked by <see cref="ScenarioElement"/> Start method notifying scenario about deactivated element
+        /// </summary>
+        /// <param name="scenarioElement">Scenario element that was just deactivated</param>
+        public void ReportDeactivatedElement(ScenarioElement scenarioElement)
+        {
+            ScenarioElementDeactivated?.Invoke(scenarioElement);
         }
     }
 }

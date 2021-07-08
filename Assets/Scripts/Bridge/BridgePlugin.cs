@@ -130,6 +130,7 @@ namespace Simulator.Bridge
         public static void Add(IBridgeFactory factory)
         {
             var name = GetNameFromFactory(factory.GetType());
+            Debug.Log($"adding Bridge {name} from {factory.GetType().Assembly.GetName().Name} {factory.GetType().Assembly.CodeBase}");
             if (All.ContainsKey(name))
             {
                 Debug.LogWarning($"Bridge {name} already registered, ignoring duplicate(?) plugin");

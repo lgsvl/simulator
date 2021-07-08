@@ -203,6 +203,7 @@ namespace Simulator.Web
         {
             var sw = System.Diagnostics.Stopwatch.StartNew();
             var dir = Path.Combine(Application.dataPath, "..", "AssetBundles");
+            Debug.Log("Pre-loading Assetbundles from root path "+dir);
             var vfs = VfsEntry.makeRoot(dir);
 
             // descend into each known dir looking for only specific asset types. todo: add asset type to manifest?
@@ -230,7 +231,6 @@ namespace Simulator.Web
         public static void LoadBridgePlugin(Manifest manifest, VfsEntry dir)
         {
 #if UNITY_EDITOR
-
             if (EditorPrefs.GetBool("Simulator/Developer Debug Mode", false) == true)
             {
                 Assembly bridgesAssembly = null;
@@ -239,7 +239,7 @@ namespace Simulator.Web
                     if (bridgesAssembly == null) bridgesAssembly = Assembly.Load("Simulator.Bridges");
                     foreach (Type ty in bridgesAssembly.GetTypes())
                     {
-                        if (typeof(IBridgeFactory).IsAssignableFrom(ty) && !ty.IsAbstract)
+                        if (typeof(IBridgeFactory).IsAssignableFrom(ty) && !ty.IsAbstract && ty.GetCustomAttribute<BridgeNameAttribute>().Name == manifest.assetName)
                         {
                             Debug.LogWarning($"Loading {manifest.assetName} ({manifest.assetGuid}) in Developer Debug Mode. If you wish to use this bridge plugin from WISE, disable Developer Debug Mode in Simulator->Developer Debug Mode or remove the bridge from Assets/External/Bridges");
                             var bridgeFactory = Activator.CreateInstance(ty) as IBridgeFactory;

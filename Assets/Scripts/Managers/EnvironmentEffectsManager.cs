@@ -477,16 +477,16 @@ public class EnvironmentEffectsManager : MonoBehaviour
             }
             if (Rain >= 0.25f || Cloud >= 0.25f)
             {
-                SunHD.shadowDimmer = Mathf.Lerp(0.8f, 0.6f, (factor - 0.25f) * 4f); // Controls shadow density when rain or clouds are on.
+                SunHD.shadowDimmer = Mathf.Lerp(1f, 0.6f, (factor - 0.25f) * 4f); // Controls shadow density when rain or clouds are on.
             }
             else
             {
-                SunHD.shadowDimmer = 0.8f;
+                SunHD.shadowDimmer = 1f;
             }
         }
         else
         {
-            SunHD.shadowDimmer = 0.8f;
+            SunHD.shadowDimmer = 1f;
         }
     }
 

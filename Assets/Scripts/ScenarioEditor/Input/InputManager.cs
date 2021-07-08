@@ -35,18 +35,18 @@ namespace Simulator.ScenarioEditor.Input
             /// Texture used for this cursor
             /// </summary>
             public Texture2D texture;
-            
+
             /// <summary>
             /// Mode applied while using this cursor
             /// </summary>
             public CursorMode cursorMode;
-            
+
             /// <summary>
             /// Position of the cursor on the texture
             /// </summary>
             public Vector2 hotSpot;
         }
-        
+
         /// <summary>
         /// Input mode type that determines input behaviour
         /// </summary>
@@ -564,6 +564,7 @@ namespace Simulator.ScenarioEditor.Input
                             break;
                         }
                     }
+
                     break;
                 case InputModeType.DraggingElement:
                     //Check for drag finish
@@ -577,10 +578,11 @@ namespace Simulator.ScenarioEditor.Input
 
                         MouseRaycastPosition = lastHitPosition;
                         MouseViewportPosition = scenarioCamera.ScreenToViewportPoint(Input.mousePosition);
-                        closestHit = GetClosestHit();
+                        closestHit = GetClosestHit(true);
                         if (closestHit == null ||
                             (!canDragFinishOverInspector && EventSystem.current.IsPointerOverGameObject() &&
-                            inspectorTransform.rect.Contains(inspectorTransform.InverseTransformPoint(Input.mousePosition))))
+                             inspectorTransform.rect.Contains(
+                                 inspectorTransform.InverseTransformPoint(Input.mousePosition))))
                         {
                             dragHandler.DragCancelled();
                         }
@@ -593,6 +595,7 @@ namespace Simulator.ScenarioEditor.Input
                         dragHandler = null;
                         Mode = InputModeType.Idle;
                     }
+
                     break;
                 case InputModeType.AddingElement:
                     if (leftMouseButtonPressed && !EventSystem.current.IsPointerOverGameObject())
@@ -605,6 +608,7 @@ namespace Simulator.ScenarioEditor.Input
                         ScenarioManager.Instance.IsScenarioDirty = true;
                         addElementsHandler.AddElement(furthestPoint);
                     }
+
                     break;
                 case InputModeType.MarkingElements:
                     if (leftMouseButtonPressed && ElementSelectingSemaphore.IsUnlocked &&
@@ -620,8 +624,10 @@ namespace Simulator.ScenarioEditor.Input
                             element = raycastHits[i].collider.gameObject.GetComponentInParent<ScenarioElement>();
                             if (element != null) break;
                         }
+
                         markElementsHandler.MarkElement(element);
                     }
+
                     break;
             }
         }
@@ -726,27 +732,33 @@ namespace Simulator.ScenarioEditor.Input
         /// <summary>
         /// Selects the furthest hit from the current raycast hits
         /// </summary>
+        /// <param name="ignoreSelectedElement">Should the colliders inside selected element be ignored</param>
         /// <param name="ignoreRigidbodies">Should the colliders with rigidbodies be ignored</param>
         /// <returns>Furthest hit, null if there was no valid raycast hit</returns>
-        private RaycastHit? GetFurthestHit(bool ignoreRigidbodies = false)
+        private RaycastHit? GetFurthestHit(bool ignoreSelectedElement = false, bool ignoreRigidbodies = false)
         {
-            return GetFurthestHit(raycastHits, raycastHitsCount, ignoreRigidbodies);
+            return GetFurthestHit(raycastHits, raycastHitsCount, ignoreSelectedElement, ignoreRigidbodies);
         }
 
         /// <summary>
         /// Selects the furthest hit from the current raycast hits
         /// </summary>
-        /// <param name="hits">Prealocated raycast hits array</param>
+        /// <param name="hits">Pre-allocated raycast hits array</param>
         /// <param name="hitsCount">Count of the valid raycast hits</param>
+        /// <param name="ignoreSelectedElement">Should the colliders inside selected element be ignored</param>
         /// <param name="ignoreRigidbodies">Should the colliders with rigidbodies be ignored</param>
         /// <returns>Furthest hit, null if there was no valid raycast hit</returns>
-        public RaycastHit? GetFurthestHit(RaycastHit[] hits, int hitsCount, bool ignoreRigidbodies = false)
+        public RaycastHit? GetFurthestHit(RaycastHit[] hits, int hitsCount, bool ignoreSelectedElement = false,
+            bool ignoreRigidbodies = false)
         {
             RaycastHit? furthestHit = null;
             var furthestDistance = 0.0f;
             for (var i = 0; i < hitsCount; i++)
                 if (hits[i].distance > furthestDistance &&
-                    (!ignoreRigidbodies || hits[i].rigidbody == null))
+                    (!ignoreRigidbodies || hits[i].rigidbody == null) &&
+                    (!ignoreSelectedElement || ScenarioManager.Instance.SelectedElement == null ||
+                     hits[i].transform.GetComponentInParent<ScenarioElement>() !=
+                     ScenarioManager.Instance.SelectedElement))
                 {
                     furthestHit = hits[i];
                     furthestDistance = furthestHit.Value.distance;
@@ -758,27 +770,33 @@ namespace Simulator.ScenarioEditor.Input
         /// <summary>
         /// Selects the closest hit from the current raycast hits
         /// </summary>
+        /// <param name="ignoreSelectedElement">Should the colliders inside selected element be ignored</param>
         /// <param name="ignoreRigidbodies">Should the colliders with rigidbodies be ignored</param>
         /// <returns>Furthest hit, null if there was no valid raycast hit</returns>
-        private RaycastHit? GetClosestHit(bool ignoreRigidbodies = false)
+        private RaycastHit? GetClosestHit(bool ignoreSelectedElement = false, bool ignoreRigidbodies = false)
         {
-            return GetClosestHit(raycastHits, raycastHitsCount, ignoreRigidbodies);
+            return GetClosestHit(raycastHits, raycastHitsCount, ignoreSelectedElement, ignoreRigidbodies);
         }
 
         /// <summary>
         /// Selects the closest hit from the current raycast hits
         /// </summary>
-        /// <param name="hits">Prealocated raycast hits array</param>
+        /// <param name="hits">Pre-allocated raycast hits array</param>
         /// <param name="hitsCount">Count of the valid raycast hits</param>
+        /// <param name="ignoreSelectedElement">Should the colliders inside selected element be ignored</param>
         /// <param name="ignoreRigidbodies">Should the colliders with rigidbodies be ignored</param>
         /// <returns>Furthest hit, null if there was no valid raycast hit</returns>
-        public RaycastHit? GetClosestHit(RaycastHit[] hits, int hitsCount, bool ignoreRigidbodies = false)
+        public RaycastHit? GetClosestHit(RaycastHit[] hits, int hitsCount, bool ignoreSelectedElement = false,
+            bool ignoreRigidbodies = false)
         {
             RaycastHit? closestHit = null;
             var closestDistance = float.MaxValue;
             for (var i = 0; i < hitsCount; i++)
                 if (hits[i].distance < closestDistance &&
-                    (!ignoreRigidbodies || hits[i].rigidbody == null))
+                    (!ignoreRigidbodies || hits[i].rigidbody == null) &&
+                    (!ignoreSelectedElement || ScenarioManager.Instance.SelectedElement == null ||
+                     hits[i].transform.GetComponentInParent<ScenarioElement>() !=
+                     ScenarioManager.Instance.SelectedElement))
                 {
                     closestHit = hits[i];
                     closestDistance = closestHit.Value.distance;
@@ -840,8 +858,8 @@ namespace Simulator.ScenarioEditor.Input
         private void HandleMapInput()
         {
             Transform cameraTransform = scenarioCamera.transform;
-            var closestHit = GetClosestHit(true);
-            var furthestHit = GetFurthestHit(true);
+            var closestHit = GetClosestHit(true, true);
+            var furthestHit = GetFurthestHit(true, true);
             Vector3? closestPoint = null;
             if (closestHit != null)
                 closestPoint = closestHit.Value.point;
@@ -937,7 +955,7 @@ namespace Simulator.ScenarioEditor.Input
             Mode = InputModeType.DraggingElement;
             this.dragHandler = dragHandler;
             RaycastAll();
-            var closestHit = GetClosestHit();
+            var closestHit = GetClosestHit(true);
             if (closestHit != null)
                 MouseRaycastPosition = closestHit.Value.point;
             MouseViewportPosition = scenarioCamera.ScreenToViewportPoint(Input.mousePosition);
@@ -957,7 +975,7 @@ namespace Simulator.ScenarioEditor.Input
             }
 
             RaycastAll();
-            var closestHit = GetClosestHit();
+            var closestHit = GetClosestHit(true);
             if (closestHit != null)
                 MouseRaycastPosition = closestHit.Value.point;
             this.dragHandler.DragCancelled();

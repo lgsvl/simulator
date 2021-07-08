@@ -303,7 +303,7 @@ namespace Simulator.ScenarioEditor.Elements
             pos.y += 100.0f;
             var ray = new Ray(pos, Vector3.down);
             var hits = inputManager.RaycastAll(ray);
-            var furthestHit = inputManager.GetClosestHit(hits, hits.Length, true);
+            var furthestHit = inputManager.GetClosestHit(hits, hits.Length, true, true);
             if (!furthestHit.HasValue)
                 return;
             ForceMove(furthestHit.Value.point);

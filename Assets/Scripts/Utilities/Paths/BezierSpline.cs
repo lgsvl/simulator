@@ -67,7 +67,7 @@ namespace Simulator.Utilities
                 // Create control and key points
                 for (var i = 0; i < controlPositions.Count; i++)
                 {
-                    var point = nextKnot.GetControlPoint();
+                    var point = i == controlPositions.Count - 1 ? nextKnot.Clone() : nextKnot.GetControlPoint();
                     //Rotate to next position, keep previous angle at the last control point
                     point.Position = controlPositions[i];
                     var angle = Quaternion.LookRotation(controlPositions[i] - previousPoint.Position).eulerAngles;

@@ -32,13 +32,13 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
         /// </summary>
         [SerializeField]
         private Toggle loopToggle;
-        
+
         /// <summary>
         /// Dropdown that allows selecting the waypoints path type
         /// </summary>
         [SerializeField]
         private Dropdown pathTypeDropdown;
-        
+
         /// <summary>
         /// Is this panel initialized
         /// </summary>
@@ -77,7 +77,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
             ScenarioManager.Instance.SelectedOtherElement += OnSelectedOtherElement;
             pathTypeDropdown.ClearOptions();
             pathTypeEnums.Clear();
-            var enumValues =  Enum.GetValues(typeof(WaypointsPathType));
+            var enumValues = Enum.GetValues(typeof(WaypointsPathType));
             var options = new List<string>();
             foreach (var enumValue in enumValues)
             {
@@ -85,6 +85,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
                 pathTypeEnums.Add(pathType);
                 options.Add(pathType.ToString());
             }
+
             pathTypeDropdown.AddOptions(options);
             isInitialized = true;
             OnSelectedOtherElement(ScenarioManager.Instance.SelectedElement);
@@ -190,7 +191,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
                 pathTypeDropdown.SetValueWithoutNotify(pathTypeEnums.IndexOf(agentWaypoints.PathType));
             });
             ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
-                .RegisterRecord(new GenericUndo<WaypointsPathType>(previousPathType, "Reverting path type selection", undoCallback));
+                .RegisterRecord(new GenericUndo<WaypointsPathType>(previousPathType, "Reverting path type selection",
+                    undoCallback));
             agentWaypoints.ChangePathType(pathTypeEnums[dropdownOption]);
         }
 
@@ -200,6 +202,11 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
         /// <param name="value">Loop option value</param>
         public void ChangeLoopValue(bool value)
         {
+            if (agentWaypoints.Loop == value)
+                return;
+            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
+                .RegisterRecord(new UndoToggle(loopToggle, agentWaypoints.Loop,
+                    v => agentWaypoints.Loop = v));
             agentWaypoints.Loop = value;
         }
 

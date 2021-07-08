@@ -254,6 +254,7 @@ namespace Simulator.Api.Commands
             }
             catch (Exception e)
             {
+                Debug.LogException(e);
                 api.SendError(this, e.Message);
             }
             finally

@@ -257,9 +257,9 @@ namespace Simulator.Web
                     if (bridgesAssembly == null) bridgesAssembly = Assembly.Load("Simulator.Bridges");
                     foreach (Type ty in bridgesAssembly.GetTypes())
                     {
-                        if (typeof(IBridgeFactory).IsAssignableFrom(ty) && !ty.IsAbstract && ty.GetCustomAttribute<BridgeNameAttribute>().Name == manifest.assetName)
+                        if (typeof(IBridgeFactory).IsAssignableFrom(ty) && !ty.IsAbstract && ty.GetCustomAttribute<BridgeNameAttribute>().Name == manifest.bridgeType)
                         {
-                            Debug.LogWarning($"Loading {manifest.assetName} ({manifest.assetGuid}) in Developer Debug Mode. If you wish to use this bridge plugin from WISE, disable Developer Debug Mode in Simulator->Developer Debug Mode or remove the bridge from Assets/External/Bridges");
+                            Debug.LogWarning($"Loading {manifest.bridgeType} ({manifest.assetGuid}) in Developer Debug Mode. If you wish to use this bridge plugin from WISE, disable Developer Debug Mode in Simulator->Developer Debug Mode or remove the bridge from Assets/External/Bridges");
                             var bridgeFactory = Activator.CreateInstance(ty) as IBridgeFactory;
                             BridgePlugins.Add(bridgeFactory);
                         }

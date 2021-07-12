@@ -766,6 +766,7 @@ namespace Simulator.Editor
 
                                 var plugin = new BridgePlugin(bridgeFactory);
                                 manifest.bridgeDataTypes = plugin.GetSupportedDataTypes();
+                                manifest.bridgeType = bridgeFactory.GetType().GetCustomAttribute<BridgeNameAttribute>().Type;
                             }
 
                             var manifestOutput = Path.Combine(outputFolder, "manifest.json");

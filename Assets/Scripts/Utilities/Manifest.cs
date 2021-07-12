@@ -24,6 +24,7 @@ namespace Simulator
         public List<Simulator.Utilities.SensorParam> sensorParams;
         public string[] bridgeDataTypes;
         public string[] supportedBridgeTypes;
+        public string bridgeType;
     }
 
     public struct HdMaps

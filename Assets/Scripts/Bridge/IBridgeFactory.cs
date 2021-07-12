@@ -14,9 +14,11 @@ namespace Simulator.Bridge
     {
         public string Name { get; private set; }
 
-        public BridgeNameAttribute(string name)
+        public string Type { get; private set; }
+        public BridgeNameAttribute(string name, string type)
         {
             Name = name;
+            Type = type;
         }
     }
 

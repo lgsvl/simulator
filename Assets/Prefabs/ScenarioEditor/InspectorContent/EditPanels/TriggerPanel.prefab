@@ -1536,14 +1536,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6aa5241a7fcfab47994b9c2dd578f28, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  triggerSelectDropdown: {fileID: 4829266643989492183}
-  defaultEffectorEditPanelPanel: {fileID: 6395874330789565774, guid: 4b6647c7c0481704e87456a8f264bb98,
-    type: 3}
-  customEffectorEditPanels:
-  - {fileID: 5105052238870940250, guid: 3378416b18a0fce4c91adb88b7b5585f, type: 3}
-  - {fileID: 1165295971152456071, guid: 77a7ed51d508717438e2a081dd9795a2, type: 3}
-  - {fileID: 316833919219690781, guid: 09bf30847475ca243b8ab2b836d3a7bd, type: 3}
-  - {fileID: 2069073144304504945, guid: fc37f83688da65f45aef90ac10854472, type: 3}
+  effectorSelectDropdown: {fileID: 4829266643989492183}
 --- !u!222 &4829266645482332994
 CanvasRenderer:
   m_ObjectHideFlags: 0

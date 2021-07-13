@@ -676,7 +676,7 @@ public class CloudAPI
 
         var buildVersion = "Development";
         var buildInfo = Resources.Load<BuildInfo>("BuildInfo");
-        if (buildInfo != null)
+        if (buildInfo != null && !string.IsNullOrWhiteSpace(buildInfo.Version))
         {
             buildVersion = buildInfo.Version;
         }

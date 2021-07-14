@@ -71,12 +71,18 @@ namespace Simulator.Web
             UpdateDropdown();
             offlineDropdown.onValueChanged.AddListener(OnDropdownValueChanged);
             UpdateStatus();
+            TaskProgressManager.Instance.OnUpdate += UpdateDownloadProgress;
         }
 
-        public void UpdateDownloadProgress(string name, float percentage)
+        public void UpdateDownloadProgress()
         {
+            var text = string.Empty;
+            foreach (var item in TaskProgressManager.Instance.Tasks)
+            {
+                text += $"{item.Description} {Mathf.Floor(item.Progress * 100)}%\n";
+            }
             if (statusText != null)
-                statusText.text = $"Downloading {name}... {percentage}%";
+                statusText.text = text;
         }
 
         public void UpdateStatus()

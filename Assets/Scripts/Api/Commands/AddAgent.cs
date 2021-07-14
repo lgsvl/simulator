@@ -83,8 +83,7 @@ namespace Simulator.Api.Commands
                     }
                     else
                     {
-                        var progressUpdate = new Progress<Tuple<string,float>> (p => { ConnectionUI.instance?.UpdateDownloadProgress(p.Item1, p.Item2); });
-                        var assetModel = await DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicleData.AssetGuid, vehicleData.Name, progressUpdate);
+                        var assetModel = await DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, vehicleData.AssetGuid, vehicleData.Name);
                         config.Prefab = Loader.LoadVehicleBundle(assetModel.LocalPath);
                     }
 
@@ -110,24 +109,16 @@ namespace Simulator.Api.Commands
 
                     if(config.BridgeData != null)
                     {
-                        var pluginProgress = ConnectionUI.instance != null ?
-                        new Progress<Tuple<string, float>>(p => ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2))
-                        : new Progress<Tuple<string, float>>(p => Debug.Log($"Download: {p.Item1}: {p.Item2}"));
-
                         var pluginTask = DownloadManager.GetAsset(BundleConfig.BundleTypes.Bridge, config.BridgeData.AssetGuid,
-                            config.BridgeData.Name, pluginProgress);
+                            config.BridgeData.Name);
                         downloads.Add(pluginTask);
                         assetDownloads.TryAdd(pluginTask, config.BridgeData.Type);
                     }
 
                     foreach (var sensor in sensorsToDownload)
                     {
-                        var pluginProgress = ConnectionUI.instance != null ?
-                        new Progress<Tuple<string, float>>(p => ConnectionUI.instance.UpdateDownloadProgress(p.Item1, p.Item2))
-                        : new Progress<Tuple<string, float>>(p => Debug.Log($"Download: {p.Item1}: {p.Item2}"));
-
                         var pluginTask = DownloadManager.GetAsset(BundleConfig.BundleTypes.Sensor, sensor.Plugin.AssetGuid,
-                            sensor.Name, pluginProgress);
+                            sensor.Name);
                         downloads.Add(pluginTask);
                         assetDownloads.TryAdd(pluginTask, sensor.Type);
                     }

@@ -309,7 +309,7 @@ namespace Simulator.ScenarioEditor.Managers
         {
             isInitialized = true;
             Deinitialize();
-            Loader.ExitScenarioEditor();
+            Loader.Instance.ExitScenarioEditor();
         }
 
         /// <summary>

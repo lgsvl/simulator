@@ -370,7 +370,7 @@ namespace Simulator.Network.Client
                 $"{GetType().Name} could not establish the connection to the master. This client ip addresses: '{localAddressesSb}', master ip addresses: '{masterAddressesSb}', current UTC time: {DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)}.");
 
             //Stop the simulation
-            Loader.StopAsync();
+            Loader.Instance.StopAsync();
         }
 
         /// <summary>
@@ -440,7 +440,7 @@ namespace Simulator.Network.Client
             if (State == SimulationState.Loading || State == SimulationState.Running)
                 return;
             Debug.Assert(State == SimulationState.Ready);
-            Loader.StartAsync(Loader.Instance.Network.CurrentSimulation);
+            Loader.Instance.StartAsync(Loader.Instance.Network.CurrentSimulation);
             State = SimulationState.Loading;
             Log.Info(
                 $"{GetType().Name} received run command and started the simulation. Local UTC time: {DateTime.UtcNow}, remote UTC time: {Connection.MasterPeer.RemoteUtcTime}, time difference {Connection.MasterPeer.RemoteTimeTicksDifference}.");
@@ -458,7 +458,7 @@ namespace Simulator.Network.Client
 
             Log.Info($"{GetType().Name} received stop command and stops the simulation.");
             State = SimulationState.Stopping;
-            Loader.StopAsync();
+            Loader.Instance.StopAsync();
         }
 
         /// <summary>

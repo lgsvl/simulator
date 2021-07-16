@@ -193,7 +193,7 @@ namespace Simulator.Web
 
         public void OnOfflineStartButtonClicked()
         {
-            Loader.StartSimulation(simulationData[selectedSim]);
+            Loader.Instance.StartSimulation(simulationData[selectedSim]);
             if (simulationData[selectedSim].ApiOnly)
             {
                 offlineStopButton.gameObject.SetActive(true);
@@ -202,7 +202,7 @@ namespace Simulator.Web
 
         public void OnOfflineStopButtonClicked()
         {
-            Loader.StopAsync();
+            Loader.Instance.StopAsync();
         }
 
         public void SetLinkingButtonActive(bool active)
@@ -263,7 +263,7 @@ namespace Simulator.Web
 
         public void EnterScenarioEditor()
         {
-            Loader.EnterScenarioEditor();
+            Loader.Instance.EnterScenarioEditor();
         }
     }
 }

@@ -271,7 +271,7 @@ public class ConnectionManager : MonoBehaviour
                                         Debug.LogException(e);
                                         throw;
                                     }
-                                    Loader.StartSimulation(simData);
+                                    Loader.Instance.StartSimulation(simData);
                                 });
                                 break;
                             case "Disconnect":
@@ -297,7 +297,7 @@ public class ConnectionManager : MonoBehaviour
                                     await API.UpdateStatus("Idle", simData.Id, "");
                                     return;
                                 }
-                                Loader.StopAsync();
+                                Loader.Instance.StopAsync();
                                 break;
                             default:
                                 Debug.LogWarning($"Unknown Status '{status.ToString()}'! Disconnecting.");

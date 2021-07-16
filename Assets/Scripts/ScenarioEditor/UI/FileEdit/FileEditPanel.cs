@@ -194,7 +194,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         {
             yield return null;
             loadingProcess.Update("Exiting the visual scenario editor.");
-            Loader.ExitScenarioEditor();
+            Loader.Instance.ExitScenarioEditor();
             //Do not turn off loading process - loading panel will be destroyed within the scene
             //loadingProcess.Update("Exited Visual scenario editor.", true);
         }

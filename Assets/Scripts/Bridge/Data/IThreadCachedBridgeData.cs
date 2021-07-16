@@ -19,5 +19,10 @@
         /// </summary>
         /// <param name="target">Pooled object that will be used as a cache.</param>
         void CopyToCache(T target);
+
+        /// <summary>
+        /// <para>Returns hash that groups instances into compatible sub-pools.</para>
+        /// </summary>
+        int GetHash();
     }
 }

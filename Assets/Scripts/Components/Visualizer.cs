@@ -29,12 +29,16 @@ namespace Simulator.Sensors.UI
         public GameObject HeaderGO;
         public GameObject CameraVisualGO;
         public GameObject ValuesVisualGO;
+        public Button ToggleLetfButton;
+        public Button ToggleRightButton;
 
         public VisualizerToggle VisualizerToggle { get; set; }
         public SensorBase Sensor { get; set; }
         public RawImage CameraRawImage { get; private set; }
 
         public Text ValuesText { get; private set; }
+
+        public int CurrentIndex { get; private set; }
 
         private StringBuilder sb = new StringBuilder();
         private float elapsedTime = 1f;
@@ -63,6 +67,8 @@ namespace Simulator.Sensors.UI
 
             ExitButton.onClick.AddListener(ExitButtonOnClick);
             ResizeButton.onClick.AddListener(ResizeOnClick);
+            ToggleLetfButton.onClick.AddListener(ToggleLeftButtonOnClick);
+            ToggleRightButton.onClick.AddListener(ToggleRightButtonOnClick);
         }
 
         public void OnPointerDown(PointerEventData eventData)
@@ -106,6 +112,13 @@ namespace Simulator.Sensors.UI
             }
 
             UpdateWindowSize((int)CurrentWindowSizeType, true);
+        }
+
+        public void UpdateNameSuffix(string suffix)
+        {
+            var full = $"{this.name} ({suffix})";
+            if (!string.Equals(full, VisualizerNameText.text))
+                VisualizerNameText.text = full;
         }
 
         private void OnEnable()
@@ -160,9 +173,14 @@ namespace Simulator.Sensors.UI
 
         public void UpdateRenderTexture(RenderTexture renderTexture, float aspectRatio)
         {
+            UpdateRenderTexture(renderTexture, aspectRatio, 1);
+        }
+
+        public void UpdateRenderTexture(RenderTexture renderTexture, float aspectRatio, int availableElements)
+        {
             Debug.Assert(renderTexture != null);
 
-            ToggleVisualizerElements(true);
+            ToggleVisualizerElements(true, availableElements);
 
             fitter.aspectRatio = aspectRatio;
             CameraRawImage.texture = renderTexture;
@@ -172,7 +190,7 @@ namespace Simulator.Sensors.UI
         {
             Debug.Assert(ValuesText != null);
 
-            ToggleVisualizerElements(false);
+            ToggleVisualizerElements(false, 1);
 
             if (elapsedTime >= 1)
             {
@@ -190,7 +208,7 @@ namespace Simulator.Sensors.UI
             }
         }
 
-        private void ToggleVisualizerElements(bool isCamera)
+        private void ToggleVisualizerElements(bool isCamera, int availableElements)
         {
             if (!HeaderGO.activeInHierarchy)
             {
@@ -199,6 +217,17 @@ namespace Simulator.Sensors.UI
             if (!bgImage.enabled)
             {
                 bgImage.enabled = true;
+            }
+
+            if (availableElements > 1)
+            {
+                ToggleLetfButton.gameObject.SetActive(true);
+                ToggleRightButton.gameObject.SetActive(true);
+            }
+            else
+            {
+                ToggleLetfButton.gameObject.SetActive(false);
+                ToggleRightButton.gameObject.SetActive(false);
             }
 
             if (isCamera)
@@ -225,6 +254,16 @@ namespace Simulator.Sensors.UI
         private void ResizeOnClick()
         {
             UpdateWindowSize();
+        }
+
+        private void ToggleLeftButtonOnClick()
+        {
+            CurrentIndex--;
+        }
+
+        private void ToggleRightButtonOnClick()
+        {
+            CurrentIndex++;
         }
 
         public void UpdateWindowSize(int type = -1, bool isSaved = false)

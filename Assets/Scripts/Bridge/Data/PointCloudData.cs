@@ -45,5 +45,10 @@ namespace Simulator.Bridge.Data
 
             target.PointCount = PointCount;
         }
+
+        public int GetHash()
+        {
+            return 0;
+        }
     }
 }

@@ -20,12 +20,17 @@
 
         private class ConcurrentPool<T> : IPoolDebugDataProvider where T : class, new()
         {
-            private readonly ConcurrentStack<T> stack = new ConcurrentStack<T>();
+            private readonly Dictionary<int, ConcurrentStack<T>> subStacks = new Dictionary<int, ConcurrentStack<T>>();
 
             private int poolSize;
 
-            public T Get()
+            public T Get(int hash)
             {
+                ConcurrentStack<T> stack;
+
+                if (!subStacks.TryGetValue(hash, out stack))
+                    stack = subStacks[hash] = new ConcurrentStack<T>();
+
                 if (stack.TryPop(out var element))
                     return element;
 
@@ -33,14 +38,14 @@
                 return new T();
             }
 
-            public void Release(T element)
+            public void Release(T element, int hash)
             {
-                stack.Push(element);
+                subStacks[hash].Push(element);
             }
 
             public string LogData()
             {
-                return $"Type: {typeof(T).Name}, pool size: {poolSize}";
+                return $"Type: {typeof(T).Name}, pool size: {poolSize}, sub-pools: {subStacks.Count}";
             }
         }
 
@@ -259,12 +264,14 @@
                 {
                     // This type has pool with temporary cache objects - move data to cache and use it instead
                     var pool = (ConcurrentPool<T>) pools[msgType];
-                    var item = pool.Get();
+                    var itcbd = ((IThreadCachedBridgeData<T>) data);
+                    var hash = itcbd.GetHash();
+                    var item = pool.Get(hash);
 
-                    ((IThreadCachedBridgeData<T>)data).CopyToCache(item);
+                    itcbd.CopyToCache(item);
 
                     data = item;
-                    internalCallback = () => pool.Release(item);
+                    internalCallback = () => pool.Release(item, hash);
                 }
 
                 QueueTask(() => publisher(data), callback, internalCallback, exclusiveToken);

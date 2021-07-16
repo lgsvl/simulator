@@ -217,6 +217,7 @@ namespace Simulator.Sensors
                     colorFormat,
                     dimension: TextureDimension.Tex2D,
                     useDynamicScale: true,
+                    enableRandomWrite: true,
                     name: "SRT_UI",
                     wrapMode: TextureWrapMode.Clamp);
             }

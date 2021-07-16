@@ -350,7 +350,7 @@ namespace Simulator.ScenarioEditor.Managers
         {
             if (State == InitializationState.Initializing)
             Deinitialize();
-            Loader.ExitScenarioEditor();
+            Loader.Instance.ExitScenarioEditor();
         }
 
         /// <summary>

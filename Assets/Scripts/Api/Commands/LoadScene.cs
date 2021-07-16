@@ -106,7 +106,7 @@ namespace Simulator.Api.Commands
                     Loader.Instance.SimConfig.MapAssetGuid = map.AssetGuid;
                 }
 
-                var sim = Loader.CreateSimulatorManager();
+                var sim = Loader.Instance.CreateSimulatorManager();
                 sim.Init(seed);
 
                 if (Loader.Instance.CurrentSimulation != null)

@@ -197,15 +197,20 @@ namespace Simulator.Map
                 }
             }
 
-            public static void DrawLines(Transform mainTrans, List<Vector3> localPoints, Color lineColor)
+            public static void DrawLines(Transform mainTrans, List<Vector3> localPoints, Color lineColor, bool closed=false)
             {
-                var pointCount = localPoints.Count;
-                for (int i = 0; i < pointCount - 1; i++)
+                var pointCount = localPoints.Count - 1;
+                Gizmos.color = lineColor;
+                for (int i = 0; i < pointCount; i++)
                 {
                     var start = mainTrans.TransformPoint(localPoints[i]);
                     var end = mainTrans.TransformPoint(localPoints[i + 1]);
-                    Gizmos.color = lineColor;
+                   
                     Gizmos.DrawLine(start, end);
+                }
+                if (closed)
+                {
+                    Gizmos.DrawLine(mainTrans.TransformPoint(localPoints[0]), mainTrans.TransformPoint(localPoints[pointCount]));
                 }
             }
 

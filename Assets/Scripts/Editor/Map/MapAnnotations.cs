@@ -701,6 +701,10 @@ public class MapAnnotations : EditorWindow
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = Color.white;
                 GUILayout.EndHorizontal();
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button(new GUIContent("Set Names", "Set unique name for every parking space")))
+                    SetNamesForParkignSpaces();
+                GUILayout.EndHorizontal();
                 EditorGUILayout.TextArea(@"
                 Sequence of vertices of rectangle for parking space:
                 [2]-----[3]
@@ -1773,6 +1777,18 @@ public class MapAnnotations : EditorWindow
         tool.tempWaypoints.Clear();
 
         Selection.activeObject = newGo;
+    }
+
+    private static void SetNamesForParkignSpaces()
+    {
+        var parkings = FindObjectsOfType<MapParkingSpace>();
+        parkings=parkings.OrderBy(s => s.transform.GetSiblingIndex() + s.transform.parent?.GetSiblingIndex() * 1e3 +
+                              s.transform.parent?.parent?.GetSiblingIndex() * 1e6).ToArray();
+        for (var i = 0; i < parkings.Length; i++)
+        {
+            var space = parkings[i];
+            space.name = "MapParkingSpace" + i;
+        }
     }
 
     private static void CreateSpeedBump()

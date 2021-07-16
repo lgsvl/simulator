@@ -55,6 +55,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     protected float maxSpeedAdjustRate = 4f;
     protected float elapsedAccelerateTime = 0f;
     protected float turnAdjustRate = 10.0f;
+    protected float frontDetectRadius = 1.5f;
 
     public float stopHitDistance = 5f;
     public float stopLineDistance = 15f;
@@ -79,7 +80,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     protected float stopSignWaitTime = 1f; // TODO 3sec
     protected float currentStopTime = 0f;
 
-    private Collider[] MaxHitColliders = new Collider[5];
+    protected Collider[] MaxHitColliders = new Collider[5];
     #endregion
 
     #region mono
@@ -145,15 +146,15 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     #region spawn
     protected void EvaluateDistanceFromFocus()
     {
-        if (!SimulatorManager.Instance.NPCManager.spawnsManager.WithinSpawnArea(transform.position) && 
-            !SimulatorManager.Instance.NPCManager.spawnsManager.IsVisible(controller.Bounds) && 
+        if (!SimulatorManager.Instance.NPCManager.SpawnsManager.WithinSpawnArea(transform.position) && 
+            !SimulatorManager.Instance.NPCManager.SpawnsManager.IsVisible(controller.Bounds) && 
             !controller.IsUserSpecified)
         {
             Despawn();
         }
     }
 
-    protected void Despawn()
+    public virtual void Despawn()
     {
         if (AutomaticMode)
         {
@@ -463,7 +464,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         // check for npc
         var currentLayer = gameObject.layer;
         controller.MainCollider.gameObject.layer = 2; // move collider off raycast layer to check
-        if (Physics.OverlapSphereNonAlloc(controller.frontCenter.position, 1.5f, MaxHitColliders, 1 << LayerMask.NameToLayer("NPC")) > 0)
+        if (Physics.OverlapSphereNonAlloc(controller.frontCenter.position, frontDetectRadius, MaxHitColliders, 1 << LayerMask.NameToLayer("NPC")) > 0)
         {
             state = true;
         }
@@ -474,7 +475,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
     #endregion
 
     #region targeting
-    public void SetLaneData(List<Vector3> data)
+    public virtual void SetLaneData(List<Vector3> data)
     {
         currentIndex = 0;
         laneData = new List<Vector3>(data);
@@ -483,7 +484,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         currentTarget = laneData[++currentIndex];
     }
 
-    protected void SetChangeLaneData(List<Vector3> data)
+    protected virtual void SetChangeLaneData(List<Vector3> data)
     {
         laneData = new List<Vector3>(data);
         currentIndex = SimulatorManager.Instance.MapManager.GetLaneNextIndex(transform.position, currentMapLane);
@@ -514,7 +515,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         Gizmos.DrawSphere(stopTarget, 0.5f);
     }
 
-    protected void EvaluateTarget()
+    protected virtual void EvaluateTarget()
     {
         distanceToCurrentTarget = Vector3.Distance(new Vector3(controller.frontCenter.position.x, 0f, controller.frontCenter.position.z), new Vector3(currentTarget.x, 0f, currentTarget.z));
         distanceToStopTarget = Vector3.Distance(new Vector3(controller.frontCenter.position.x, 0f, controller.frontCenter.position.z), new Vector3(stopTarget.x, 0f, stopTarget.z));
@@ -616,7 +617,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         SetLaneChange();
     }
 
-    protected void SetLaneChange()
+    protected virtual void SetLaneChange()
     {
         if (currentMapLane == null) // Prevent null if despawned during wait
             return;

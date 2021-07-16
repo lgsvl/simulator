@@ -63,6 +63,12 @@ namespace Simulator.Map
             ProcessPedestrianData(pedLanes);
             return pedLanes;
         }
+        public List<MapParkingSpace> GetParkingSpaces()
+        {
+            var parkings = new List<MapParkingSpace>(GameObject.FindObjectsOfType<MapParkingSpace>());
+            ProcessParkingSpaceData(parkings);
+            return parkings;
+        }
 
         public List<MapLaneSection> GetLaneSections()
         {

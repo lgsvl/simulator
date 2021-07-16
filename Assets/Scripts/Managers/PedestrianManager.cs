@@ -42,10 +42,9 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
     public bool PedestriansActive { get; set; } = false;
     [HideInInspector]
     public List<PedestrianController> CurrentPooledPeds = new List<PedestrianController>();
-    private bool DebugSpawnArea = false;
     private LayerMask PedSpawnCheckBitmask;
     public SpawnsManager spawnsManager;
-    
+
     public string Key => "PedestrianManager"; //Network IMessageSender key
 
     private int PedMaxCount = 0;
@@ -57,9 +56,6 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
     private MapOrigin MapOrigin;
 
-    private CameraManager SimCameraManager;
-    private Camera SimulatorCamera;
-    private MapManager MapManager;
     public delegate void SpawnCallbackType(PedestrianController controller);
     List<SpawnCallbackType> SpawnCallbacks = new List<SpawnCallbackType>();
 
@@ -115,9 +111,6 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         spawnsManager = GetComponent<SpawnsManager>();
         PedSpawnCheckBitmask = LayerMask.GetMask("Pedestrian", "Agent", "NPC");
         PedMaxCount = MapOrigin.PedMaxCount;
-        SimCameraManager = SimulatorManager.Instance.CameraManager;
-        SimulatorCamera = SimCameraManager.SimulatorCamera;
-        MapManager = SimulatorManager.Instance.MapManager;
 
         PedestrianData.Clear();
 
@@ -370,15 +363,6 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         return RandomGenerator.Next(max);
     }
 
-    private void OnDrawGizmosSelected()
-    {
-        if (!DebugSpawnArea)
-        {
-            return;
-        }
-
-        spawnsManager.DrawSpawnArea();
-    }
     #endregion
 
     #region network

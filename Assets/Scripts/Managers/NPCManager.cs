@@ -57,7 +57,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     // loosely based on ppg 2017 trends https://news.ppg.com/automotive-color-trends/
     public List<NPCColors> NPCColorData = new List<NPCColors>();
 
-    public SpawnsManager spawnsManager;
+    public SpawnsManager SpawnsManager;
 
     [Serializable]
     public struct NPCSpawnData
@@ -71,37 +71,28 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         public int Seed;
     };
 
-    // startTime kept for recording when Simulator starts.
-    // Used for deciding when to record log file.
-    [System.NonSerialized]
-    public double StartTime = 0f;
     private MapOrigin MapOrigin;
 
     public bool NPCActive { get; set; } = false;
     [HideInInspector]
     public List<NPCController> CurrentPooledNPCs = new List<NPCController>();
-    private bool DebugSpawnArea = false;
-    private int NPCMaxCount = 0;
-    private  int ActiveNPCCount = 0;
+    protected int NPCMaxCount = 0;
+
+    protected virtual int NPCPoolSize => NPCMaxCount;
+
+    protected int ActiveNPCCount = 0;
     private System.Random RandomGenerator;
     public System.Random NPCSeedGenerator { get; private set; } // Only use this for initializing a new NPC
     private int Seed = new System.Random().Next();
-    private List<NPCController> APINPCs = new List<NPCController>();
     public string Key => "NPCManager"; //Network IMessageSender key
-
-    private CameraManager SimCameraManager;
-    private Camera SimulatorCamera;
-    private MapManager MapManager;
-
-    private bool InitSpawn = true;
-    private Ray TestRay;
-    private RaycastHit[] RayCastHits = new RaycastHit[1];
 
     public delegate void SpawnCallbackType(NPCController controller);
     List<SpawnCallbackType> SpawnCallbacks = new List<SpawnCallbackType>();
 
     public delegate void DespawnCallbackType(NPCController controller);
-    List<DespawnCallbackType> DespawnCallbacks = new List<DespawnCallbackType>();
+    protected List<DespawnCallbackType> DespawnCallbacks = new List<DespawnCallbackType>();
+
+    private bool InitialSpawn = false;
 
     public void RegisterSpawnCallback(SpawnCallbackType callback)
     {
@@ -146,17 +137,13 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         NPCSeedGenerator = new System.Random(Seed);
     }
 
-    private void Start()
+    protected virtual void Start()
     {
         MapOrigin = MapOrigin.Find();
-        spawnsManager = GetComponent<SpawnsManager>();
+        SpawnsManager = GetComponent<SpawnsManager>();
         NPCMaxCount = MapOrigin.NPCMaxCount;
-        SimCameraManager = SimulatorManager.Instance.CameraManager;
-        SimulatorCamera = SimCameraManager.SimulatorCamera;
-        MapManager = SimulatorManager.Instance.MapManager;
-        InitSpawn = true;
-
         NPCVehicles.Clear();
+        InitialSpawn = false;
 
         if (Loader.Instance.CurrentSimulation == null)
         {
@@ -195,11 +182,9 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
         var network = Loader.Instance.Network;
         network.MessagesManager?.RegisterObject(this);
-        if (!SimulatorManager.Instance.IsAPI && !network.IsClient)
+        if (!SimulatorManager.Instance.IsAPI && !network.IsClient) // TODO API mode always remove need to pool check
         {
             SpawnNPCPool();
-            if (NPCActive)
-                SetNPCOnMap(true);
         }
     }
 
@@ -294,8 +279,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         }
         CurrentPooledNPCs.Clear();
         ActiveNPCCount = 0;
-
-        for (int i = 0; i < NPCMaxCount; i++)
+        for (int i = 0; i < NPCPoolSize; i++)
         {
             var template = GetWeightedRandomNPC();
             if (template == null)
@@ -322,10 +306,16 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         return pooledNPCs;
     }
 
-    public void SetNPCOnMap(bool isInitialSpawn = false)
+    public virtual void SetNPCOnMap(bool isInitialSpawn = false)
     {
+        if (!InitialSpawn)
+        {
+            isInitialSpawn = true;
+            InitialSpawn = true;
+        }
+
         //Wait 1s if spawning failed to limit the raycasting checks
-        if (!isInitialSpawn && spawnsManager.FailedSpawnTime + 1.0f > Time.time)
+        if (!isInitialSpawn && SpawnsManager.FailedSpawnTime + 1.0f > Time.time)
             return;
 
         for (int i = 0; i < CurrentPooledNPCs.Count; i++)
@@ -333,10 +323,11 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             if (CurrentPooledNPCs[i].gameObject.activeInHierarchy)
                 continue;
 
-            var spawnPoint = spawnsManager.GetValidSpawnPoint(CurrentPooledNPCs[i].Bounds, !isInitialSpawn);
+            var spawnPoint = SpawnsManager.GetValidSpawnPoint(CurrentPooledNPCs[i].Bounds, !isInitialSpawn);
             if (spawnPoint == null)
                 return;
-
+            if (ActiveNPCCount > NPCMaxCount)
+                return;
             CurrentPooledNPCs[i].transform.position = spawnPoint.position;
             CurrentPooledNPCs[i].transform.LookAt(spawnPoint.lookAtPoint);
             CurrentPooledNPCs[i].InitLaneData(spawnPoint.lane as MapTrafficLane);
@@ -372,7 +363,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         return CurrentPooledNPCs[index].transform;
     }
 
-    public void DespawnNPC(NPCController npc)
+    public virtual void DespawnNPC(NPCController npc)
     {
         npc.gameObject.SetActive(false);
         npc.transform.position = transform.position;
@@ -431,7 +422,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         }
 
         ActiveNPCCount = 0;
-        InitSpawn = true;
+        InitialSpawn = false;
     }
 
     public void Reset()
@@ -529,14 +520,6 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             return true;
         }
         return false;
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        if (!DebugSpawnArea)
-            return;
-
-        spawnsManager.DrawSpawnArea();
     }
     #endregion
 

@@ -7,7 +7,7 @@
 
 namespace Simulator.Map
 {
-    public class MapLane : MapDataPoints, IMapType
+    public class MapLane : MapDataPoints, IMapType, ISpawnable
     {
         public string id
         {
@@ -15,8 +15,13 @@ namespace Simulator.Map
             set;
         }
 
-        [System.NonSerialized]
-        public bool Spawnable = false;
+        public bool Spawnable { get; set; } = false;
         public bool DenySpawn = false; // to deny spawns in odd lanes on ramps etc.
+
+    }
+
+    public interface ISpawnable
+    {
+        bool Spawnable { get; set; }
     }
 }

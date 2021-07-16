@@ -20,6 +20,8 @@ public class MapManager : MonoBehaviour
     public List<MapTrafficLane> allLanes = new List<MapTrafficLane>();
     [System.NonSerialized]
     public List<MapPedestrianLane> pedestrianLanes = new List<MapPedestrianLane>();
+    [System.NonSerialized]
+    public List<MapParkingSpace> parkingSpaces = new List<MapParkingSpace>();
 
     private MapManagerData mapData;
 
@@ -42,6 +44,7 @@ public class MapManager : MonoBehaviour
         trafficLanes = mapData.GetTrafficLanes();
         intersections = mapData.GetIntersections();
         pedestrianLanes = mapData.GetPedestrianLanes();
+        parkingSpaces = mapData.GetParkingSpaces();
 
         allLanes.AddRange(trafficLanes);
         foreach (MapIntersection itersection in intersections)
@@ -204,5 +207,21 @@ public class MapManager : MonoBehaviour
                 intersection.ExitStopSignQueue(npc);
             }
         }
+    }
+
+    public MapParkingSpace GetClosestParking(Vector3 position)
+    {
+        float min = float.MaxValue;
+        MapParkingSpace closest = null;
+        foreach (var parking in parkingSpaces)
+        {
+            var dist = (parking.mapWorldPositions[0] - position).sqrMagnitude;
+            if (dist < min)
+            {
+                min = dist;
+                closest = parking;
+            }
+        }
+        return closest;
     }
 }

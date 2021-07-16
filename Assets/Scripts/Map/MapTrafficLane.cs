@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using UnityEngine;
-using HD = apollo.hdmap;
 
 namespace Simulator.Map
 {

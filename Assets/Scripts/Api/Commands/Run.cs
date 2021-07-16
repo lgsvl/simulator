@@ -42,11 +42,6 @@ namespace Simulator.Api.Commands
                 api.FrameLimit = 0;
             }
 
-            if (sim.NPCManager.StartTime == 0f)
-            {
-                sim.NPCManager.StartTime = sim.CurrentTime;
-            }
-
             sim.AnalysisManager.AnalysisInit();
         }
     }

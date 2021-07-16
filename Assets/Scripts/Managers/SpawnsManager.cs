@@ -5,7 +5,6 @@
  *
  */
 
-using System;
 using System.Collections.Generic;
 using Simulator;
 using Simulator.Map;
@@ -13,10 +12,12 @@ using UnityEngine;
 
 public class SpawnsManager : MonoBehaviour
 {
+    // TODO different class for each spawn type
     public enum SpawnAreaType
     {
         TrafficLanes = 0,
-        PedestrianLanes = 1
+        PedestrianLanes = 1,
+        ParkingSpaces = 2
     }
     
     public class SpawnPoint
@@ -24,7 +25,7 @@ public class SpawnsManager : MonoBehaviour
         public Vector3 position;
         public int spawnIndex;
         public Vector3 lookAtPoint;
-        public MapLane lane;
+        public ISpawnable lane;
     }
 
     private const float SightDistanceLimit = 200.0f;
@@ -32,24 +33,24 @@ public class SpawnsManager : MonoBehaviour
     //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
 #pragma warning disable 0649
     [SerializeField]
-    private SpawnAreaType spawnAreaType;
+    protected SpawnAreaType spawnAreaType;
     
     [SerializeField]
-    private float spawnRadius = 6.0f;
+    protected float spawnRadius = 6.0f;
 #pragma warning restore 0649
 
     private bool IsInitialized;
-    private MapOrigin MapOrigin;
-    private List<SpawnPoint> SpawnPoints = new List<SpawnPoint>();
+    protected MapOrigin MapOrigin;
+    protected List<SpawnPoint> SpawnPoints = new List<SpawnPoint>();
     private Vector3 SpawnBoundsSize;
-    private int CurrentIndex;
+    protected int CurrentIndex;
     private LayerMask VisibleLM;
-    private LayerMask NPCSpawnCheckBitmask;
+    public LayerMask NPCSpawnCheckBitmask { get; protected set; }
     private RaycastHit[] RaycastHits = new RaycastHit[5];
 
-    public float FailedSpawnTime { get; private set; }
+    public float FailedSpawnTime { get; protected set; }
 
-    private void Initialize()
+    protected virtual void Initialize()
     {
         if (IsInitialized)
             return;
@@ -61,7 +62,7 @@ public class SpawnsManager : MonoBehaviour
         CacheSpawnPoints();
         IsInitialized = true;
     }
-    
+
     private void CacheSpawnPoints()
     {
         switch (spawnAreaType)
@@ -73,6 +74,10 @@ public class SpawnsManager : MonoBehaviour
             case SpawnAreaType.PedestrianLanes:
                 foreach (var lane in SimulatorManager.Instance.MapManager.pedestrianLanes)
                     CacheLane(lane);
+                break;
+            case SpawnAreaType.ParkingSpaces:
+                foreach (var lane in SimulatorManager.Instance.MapManager.parkingSpaces)
+                    CacheParkingSpace(lane);
                 break;
         }
         if (SpawnPoints.Count == 0)
@@ -98,7 +103,22 @@ public class SpawnsManager : MonoBehaviour
         SpawnPoints.Add(spawnPoint);
     }
 
-    public SpawnPoint GetValidSpawnPoint(Bounds bounds, bool checkVisibility)
+    private void CacheParkingSpace(MapParkingSpace space)
+    {
+        if (space.mapWorldPositions.Count < 4)
+            return;
+
+        var spawnPoint = new SpawnPoint()
+        {
+            position = space.Center,
+            spawnIndex = SpawnPoints.Count,
+            lookAtPoint = space.MiddleExit,
+            lane = space
+        };
+        SpawnPoints.Add(spawnPoint);
+    }
+
+    public virtual SpawnPoint GetValidSpawnPoint(Bounds bounds, bool checkVisibility)
     {
         Initialize();
         if (SpawnPoints.Count == 0)
@@ -186,7 +206,7 @@ public class SpawnsManager : MonoBehaviour
         return spawnBounds.Contains(pos);
     }
 
-    public void DrawSpawnArea()
+    private void OnDrawGizmosSelected()
     {
         var spawnT = SimulatorManager.Instance.AgentManager.CurrentActiveAgent?.transform;
         spawnT = spawnT ?? transform;

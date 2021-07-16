@@ -783,6 +783,11 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
         }
     }
 
+    public Light[] GetLights()
+    {
+        return allLights;
+    }
+
     public void ResetLights()
     {
         currentNPCLightState = NPCLightStateTypes.Off;

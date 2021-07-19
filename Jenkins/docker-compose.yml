@@ -65,7 +65,7 @@ services:
     entrypoint: "/mnt/Jenkins/build-bundles.sh"
 
   upload-bundles:
-    image: amazon/aws-cli
+    image: amazon/aws-cli:2.2.20
     user: ${UID}
     environment:
       - SIM_ENVIRONMENTS
@@ -99,7 +99,7 @@ services:
     entrypoint: "/mnt/Jenkins/upload-bundles-wise.sh"
 
   aws-cli:
-    image: amazon/aws-cli
+    image: amazon/aws-cli:2.2.20
     user: ${UID}
     environment:
       - AWS_ACCESS_KEY_ID

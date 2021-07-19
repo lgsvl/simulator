@@ -276,16 +276,11 @@ Shader "Simulator/PointCloud/HDRP/Circles"
                 }
             }
 
-            void Frag(g2fd Input, out float4 outColor : SV_Target0, out float outDepth : SV_Depth)
+            void Frag(g2fd Input, out float4 outColor : SV_Target0)
             {
                 if (dot(Input.TexCoord, Input.TexCoord) > 1)
                     discard;
 
-                float3 view = Input.ViewPos;
-                float4 pos = mul(UNITY_MATRIX_P, float4(view, 1));
-                pos /= pos.w;
-                float depth = pos.z;
-                outDepth = depth;
                 outColor = float4(0, 0, 0, 0);
             }
 

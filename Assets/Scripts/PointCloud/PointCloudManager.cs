@@ -30,7 +30,15 @@ namespace Simulator.PointCloud
 
         private static PointCloudManager activeInstance;
 
-        public static PointCloudResources Resources => activeInstance.resources ?? (activeInstance.resources = new PointCloudResources());
+        public static PointCloudResources Resources
+        {
+            get
+            {
+                var instance = activeInstance.resources ?? (activeInstance.resources = new PointCloudResources());
+                instance.VerifyResolution();
+                return instance;
+            }
+        }
 
         private void VerifyPassVolume()
         {

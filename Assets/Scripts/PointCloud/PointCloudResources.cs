@@ -176,6 +176,8 @@ namespace Simulator.PointCloud
 
         private float lastValidationTime;
 
+        private Vector2Int referenceSize;
+
         public PointCloudPasses Passes { get; private set; }
 
         public PointCloudKernels Kernels { get; private set; }
@@ -204,6 +206,7 @@ namespace Simulator.PointCloud
 
         private void AllocRTHandles()
         {
+            referenceSize = new Vector2Int(RTHandles.maxWidth, RTHandles.maxHeight);
             customSizeDepthRTs = new List<CustomSizeDepthRT>();
 
             handles = new RTHandle[(int) RTUsage.Count];
@@ -298,6 +301,18 @@ namespace Simulator.PointCloud
             customSizeDepthRTs = null;
 
             handles = null;
+        }
+
+        public void VerifyResolution()
+        {
+            var maxWidth = RTHandles.maxWidth;
+            var maxHeight = RTHandles.maxHeight;
+
+            if (maxWidth != referenceSize.x || maxHeight != referenceSize.y)
+            {
+                ReleaseRTHandles();
+                AllocRTHandles();
+            }
         }
 
         private void CreateMaterials()

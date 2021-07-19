@@ -53,6 +53,7 @@ namespace Simulator.PointCloud
         public static class SolidCompute
         {
             public static readonly int TextureSize = Shader.PropertyToID("_TexSize");
+            public static readonly int RefSizeMult = Shader.PropertyToID("_RefSizeMult");
             public static readonly int FullRTSize = Shader.PropertyToID("_FullRTSize");
             public static readonly int MipTextureSize = Shader.PropertyToID("_MipTexSize");
             public static readonly int HigherMipTextureSize = Shader.PropertyToID("_HigherMipTexSize");

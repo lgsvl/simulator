@@ -39,7 +39,8 @@ static const uint BLOCKSIZE = 8;
 
 CBUFFER_START(cb0)
     // Shared lookup variables
-    float4 _TexSize;                // Rendering resolution: x: width-1, y: height-1, z: 1/width, w: 1/height
+    float4 _TexSize;                // Rendering resolution: x: width, y: height, z: 1/width, w: 1/height
+    float4 _RefSizeMult;            // TexSize to RTHandle reference size multiplier: xy: direct, zw: reverse 
     float4 _FullRTSize;             // Full resolution of RT (xyzw like _TexSize)
     float4 _MipTexSize;             // Max position on currently processed mip level (xyzw like _TexSize)
     float4 _HigherMipTexSize;       // Max position on one level higher mip (xyzw like _TexSize)
@@ -108,7 +109,7 @@ RWTexture2D<float4> _SetupCopyPosition;
 [numthreads(BLOCKSIZE, BLOCKSIZE, 1)]
 void SetupCopy(uint3 id : SV_DispatchThreadID)
 {
-    if (id.x > (uint) _TexSize.x || id.y > (uint) _TexSize.y)
+    if (id.x >= (uint) _TexSize.x || id.y >= (uint) _TexSize.y)
         return;
 
     uint3 input = uint3(id.xy, 0);
@@ -139,7 +140,7 @@ TEXTURE2D_X(_PostSkyPreRenderColorTexture);
 [numthreads(BLOCKSIZE, BLOCKSIZE, 1)]
 void SKY_BLEND(uint3 id : SV_DispatchThreadID)
 {
-    if (id.x > (uint) _TexSize.x || id.y > (uint) _TexSize.y)
+    if (id.x >= (uint) _TexSize.x || id.y >= (uint) _TexSize.y)
         return;
 
     uint3 input = uint3(id.xy, 0);
@@ -152,15 +153,15 @@ void SKY_BLEND(uint3 id : SV_DispatchThreadID)
     float z = _SkyBlendRoughDepth.Load(int3(id.xy >> depthLevel, depthLevel)).z;
     #endif
 
-    float2 uv = id.xy * _TexSize.zw + 0.5 * _TexSize.zw;
-
     float skyVal = 1;
-    if (color.w == 0 && id.x <= (uint) _TexSize.x && id.y <= (uint) _TexSize.y)
+    if (color.w == 0)
     {
         viewPos.z = _FarPlane;
         #ifndef SKIP_SKY
-        float2 skyUv = uv * _InverseSRMulVec.x + _InverseSRMulVec.yz;
-        float3 sky = SAMPLE_TEXTURE2D_X_LOD(_PostSkyPreRenderColorTexture, sampler_LinearClamp, skyUv, 0).rgb;
+        float2 baseuv = id.xy * _TexSize.zw + 0.5 * _TexSize.zw;
+        float2 repruv = baseuv * _InverseSRMulVec.x + _InverseSRMulVec.yz;
+        float2 skyuv = repruv * _RefSizeMult.zw;
+        float3 sky = SAMPLE_TEXTURE2D_X_LOD(_PostSkyPreRenderColorTexture, sampler_LinearClamp, skyuv, 0).rgb;
         color.rgb = sky;
         #endif
         skyVal = 0;
@@ -172,7 +173,7 @@ void SKY_BLEND(uint3 id : SV_DispatchThreadID)
     float3 positionWS = mul(_InverseView, viewPos).xyz;
     float3 worldDir = normalize(positionWS - GetPrimaryCameraPosition());
     #ifdef FILL_DEPTH
-    if (worldDir.y > _HorizonThreshold || z > _FarPlane * 0.99)
+    if (worldDir.y > _HorizonThreshold || z > min(_FarPlane, 1000) * 0.99)
     #else
     if (worldDir.y > _HorizonThreshold)
     #endif    
@@ -195,7 +196,7 @@ RWTexture2D<float4> _DownsampleOutput;
 [numthreads(BLOCKSIZE, BLOCKSIZE, 1)]
 void Downsample(uint3 id : SV_DispatchThreadID)
 {
-    uint2 maxPos = _MipTexSize.xy;
+    uint2 maxPos = _MipTexSize.xy - 1;
     uint2 pos = min(id.xy*2, maxPos);
 
     float4 a = _DownsampleInput.Load(min(pos + uint2(0, 0), maxPos));
@@ -241,8 +242,8 @@ float GetRoughDepth(uint2 base, int2 delta, out float bin)
 void FillRoughHoles(uint3 id : SV_DispatchThreadID)
 {
     const uint2 size = (uint2) _MipTexSize.xy;
-    
-    if (id.x > (uint) size.x || id.y > (uint) size.y)
+
+    if (id.x >= size.x || id.y >= size.y)
         return;
 
     const uint3 input = uint3(id.xy, 4);
@@ -308,7 +309,7 @@ float GetMinOcclusion(float4 pix, uint2 base, int2 delta, int maxlevel)
 
         for (int level = 1; level <= maxlevel; level++)
         {
-            maxPos = ((int2)_TexSize.xy + 1) >> level;
+            maxPos = ((int2)_TexSize.xy) >> level;
             pos = ((int2)base >> level) + delta;
 
             if (pos.x >= maxPos.x || pos.y >= maxPos.y || pos.x < 0 || pos.y < 0)
@@ -388,10 +389,8 @@ void RemoveHiddenDepthPrepass(uint3 id : SV_DispatchThreadID)
     float4 viewPos = mul(_InverseProj, projPos);
     viewPos /= viewPos.w;
     float earlyZ = -viewPos.z;
-    
-    float linMul = (1.0 - (earlyZ / _FarPlane));
-    float threshold = _PointScale * 2 / sqrt(earlyDepth);
     float offset = abs(pix.z - earlyZ);
+    float threshold = _PointScale * 2 / sqrt(earlyDepth);
 
     if (offset > threshold)
     {
@@ -418,7 +417,7 @@ Texture2D<float4> _PrevPosCurrentIn;
 void ApplyPreviousFrame(uint3 id : SV_DispatchThreadID)
 {
     int3 input = int3(min(id.xy, (uint2) _TexSize.xy), 0);
-    int2 fullTexSize = _TexSize.xy + 1;
+    int2 fullTexSize = _TexSize.xy;
 
     float4 cameraPos = _PrevPosSaved.Load(input);
     // W coordinate is normalized to 1, but channel was used to store something else
@@ -582,7 +581,7 @@ void PullKernel(uint3 id : SV_DispatchThreadID, uint2 groupId : SV_GroupID, uint
         float depth;
         float sky;
 
-        if (input.x < 0 || input.y < 0 || input.x > size.x || input.y > size.y)
+        if (input.x < 0 || input.y < 0 || input.x >= size.x || input.y >= size.y)
         {
             rgbw = float4(0,0,0,0);
             depth = 0.0;
@@ -673,7 +672,7 @@ float4 SampleInBounds(RWTexture2D<float4> tex, int2 coord, int2 maxPos, float we
 [numthreads(BLOCKSIZE, BLOCKSIZE, 1)]
 void PushKernel(uint3 id : SV_DispatchThreadID)
 {
-    if (id.x > (uint) _MipTexSize.x || id.y > (uint) _MipTexSize.y)
+    if (id.x >= (uint) _MipTexSize.x || id.y >= (uint) _MipTexSize.y)
         return;
 
     uint2 maxPos = _HigherMipTexSize.xy;
@@ -748,7 +747,7 @@ float3 ReconstructPosition(int2 pos, float z)
 [numthreads(8, 8, 1)]
 void CALCULATE_NORMALS(uint3 id : SV_DispatchThreadID)
 {
-    uint2 size = (uint2) _MipTexSize.xy;
+    uint2 size = (uint2) _MipTexSize.xy - 1;
     if (id.x > size.x || id.y > size.y)
         return;
 

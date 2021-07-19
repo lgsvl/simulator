@@ -204,21 +204,12 @@ namespace Simulator.PointCloud
             {
                 var x = Math.Max(1, (resolution.x + 1) >> mipLevel);
                 var y = Math.Max(1, (resolution.y + 1) >> mipLevel);
-
-                // NOTE: This is workaround for invalid rendering of some odd mip resolutions
-                // TODO: Find and fix underlying issue
-                if (x * (1 << mipLevel) != resolution.x)
-                    x--;
-
-                if (y * (1 << mipLevel) != resolution.y)
-                    y--;
-
                 mipResolution = new Vector2Int(x, y);
             }
 
             gpuMipTexSize = new Vector4(
-                mipResolution.x - 1,
-                mipResolution.y - 1,
+                mipResolution.x,
+                mipResolution.y,
                 1f / mipResolution.x,
                 1f / mipResolution.y);
         }
@@ -341,7 +332,7 @@ namespace Simulator.PointCloud
                 ? new ViewportSettings(targetCamera.actualWidth, targetCamera.actualHeight, targetCamera.camera.fieldOfView) 
                 : new ViewportSettings(colorBuffer.rt.width, colorBuffer.rt.height, 90f);
 
-            RenderSolidCore(cmd, targetCamera, null, false, false, viewportSettings, cubemapFace);
+            RenderSolidCore(cmd, targetCamera, null, false, false, viewportSettings);
 
             // One texture can't be set as target and read from at the same time - copy needed
             var rtLidarCopy = Resources.GetCustomSizedDepthRT(depthBuffer.referenceSize);
@@ -372,7 +363,7 @@ namespace Simulator.PointCloud
                 ? new ViewportSettings(targetCamera.actualWidth, targetCamera.actualHeight, targetCamera.camera.fieldOfView) 
                 : new ViewportSettings(colorBuffer.rt.width, colorBuffer.rt.height, 90f);
 
-            RenderSolidCore(cmd, targetCamera, null, false, false, viewportSettings, cubemapFace);
+            RenderSolidCore(cmd, targetCamera, null, false, false, viewportSettings);
 
             // One texture can't be set as target and read from at the same time - copy needed
             var rtDepthCopy = Resources.GetCustomSizedDepthRT(depthBuffer.referenceSize);
@@ -437,8 +428,7 @@ namespace Simulator.PointCloud
             RTHandle cameraColorBuffer,
             bool calculateNormals,
             bool smoothNormals,
-            ViewportSettings viewportSettings,
-            CubemapFace cubemapFace = CubemapFace.Unknown)
+            ViewportSettings viewportSettings)
         {
             var rt = Resources.GetRTHandle(RTUsage.PointRender);
             var rt1 = Resources.GetRTHandle(RTUsage.Generic0);
@@ -460,6 +450,8 @@ namespace Simulator.PointCloud
             RTHandles.SetReferenceSize(width, height, msaaSamples);
 
             var resolution = new Vector2Int(width, height);
+            var rtHandleRefSize = new Vector2Int(RTHandles.maxWidth, RTHandles.maxHeight);
+            var refToCurrent = new Vector2((float) rtHandleRefSize.x / width, (float) rtHandleRefSize.y / height);
 
             var fov = viewportSettings.fieldOfView;
             if (SolidFovReprojection)
@@ -477,7 +469,8 @@ namespace Simulator.PointCloud
 
             var cs = Resources.SolidComputeShader;
 
-            cmd.SetComputeVectorParam(cs, PointCloudShaderIDs.SolidCompute.TextureSize, new Vector4(width - 1, height - 1, 1f / width, 1f / height));
+            cmd.SetComputeVectorParam(cs, PointCloudShaderIDs.SolidCompute.TextureSize, new Vector4(width, height, 1f / width, 1f / height));
+            cmd.SetComputeVectorParam(cs, PointCloudShaderIDs.SolidCompute.RefSizeMult, new Vector4(refToCurrent.x, refToCurrent.y, 1 / refToCurrent.x, 1 / refToCurrent.y));
             cmd.SetComputeVectorParam(cs, PointCloudShaderIDs.SolidCompute.FullRTSize, new Vector4(refSize.x - 1, refSize.y - 1, 1f / refSize.x, 1f / refSize.y));
             cmd.SetComputeFloatParam(cs, PointCloudShaderIDs.SolidCompute.FarPlane, targetCamera.camera.farClipPlane);
             cmd.SetComputeMatrixParam(cs, PointCloudShaderIDs.SolidCompute.ProjectionMatrix, projMatrix);
@@ -510,7 +503,6 @@ namespace Simulator.PointCloud
 
                 // Prepare rough depth with hole fixing
                 var downsample = Resources.Kernels.Downsample;
-                // TODO: only go down to MIP3
                 for (var i = 1; i <= maxLevel + 3; i++)
                 {
                     GetMipData(resolution, i - 1, out var mipRes, out var mipVec);
@@ -735,7 +727,16 @@ namespace Simulator.PointCloud
 
         public void RenderShadows(CommandBuffer cmd, float worldTexelSize)
         {
-            if ((Mask & RenderMask.Shadowcaster) == 0 || Buffer == null || PointCount == 0 || !isActiveAndEnabled)
+#if UNITY_EDITOR
+            // Camera is unknown at this stage, try to render scene view shadows if main buffer is empty
+            var buffer = PointCount == 0 ? sceneViewBuffer : Buffer;
+            var pointCount = PointCount == 0 ? SceneViewPointCount : PointCount;
+#else
+            var buffer = Buffer;
+            var pointCount = PointCount;
+#endif            
+
+            if ((Mask & RenderMask.Shadowcaster) == 0 || buffer == null || pointCount == 0 || !isActiveAndEnabled)
                 return;
 
             var scale = ShadowPointSize * 0.001f / worldTexelSize;
@@ -743,12 +744,12 @@ namespace Simulator.PointCloud
             var shadowVector = new Vector4(scale, biasPush, 0, 0);
 
             // Only use the game view buffer, skip shadows for scene view culled points to save performance
-            cmd.SetGlobalBuffer(PointCloudShaderIDs.Shared.Buffer, Buffer);
+            cmd.SetGlobalBuffer(PointCloudShaderIDs.Shared.Buffer, buffer);
             cmd.SetGlobalMatrix(PointCloudShaderIDs.PointsRender.ModelMatrix, transform.localToWorldMatrix);
             cmd.SetGlobalVector(PointCloudShaderIDs.PointsRender.ShadowVector, shadowVector);
 
             var pass = Resources.Passes.circlesShadowcaster;
-            cmd.DrawProcedural(Matrix4x4.identity, Resources.CirclesMaterial, pass, MeshTopology.Points, PointCount);
+            cmd.DrawProcedural(Matrix4x4.identity, Resources.CirclesMaterial, pass, MeshTopology.Points, pointCount);
         }
 
         private float GetFovReprojectionMultiplier(ViewportSettings viewportSettings)

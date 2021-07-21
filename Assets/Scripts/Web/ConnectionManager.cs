@@ -674,7 +674,7 @@ public class CloudAPI
             }
         }
 
-        var buildVersion = "Development";
+        var buildVersion = Application.version;
         var buildInfo = Resources.Load<BuildInfo>("BuildInfo");
         if (buildInfo != null && !string.IsNullOrWhiteSpace(buildInfo.Version))
         {

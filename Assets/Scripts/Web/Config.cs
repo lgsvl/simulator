@@ -89,6 +89,7 @@ namespace Simulator.Web
         {
             Root = Path.Combine(Application.dataPath, "..");
             PersistentDataPath = Application.persistentDataPath;
+            PersistentDataPath += "-" + CloudAPI.GetInfo().version;
 
             ParseConfigFile();
             if (!Application.isEditor)
@@ -105,6 +106,23 @@ namespace Simulator.Web
             LoadBuiltinAssets();
             LoadExternalAssets();
             Sensors = SensorTypes.ListSensorFields(SensorPrefabs);
+
+            if (!Directory.Exists(PersistentDataPath))
+            {
+                try
+                {
+                    Directory.CreateDirectory(PersistentDataPath);
+                }
+                catch
+                {
+                    Debug.LogError($"Cannot create directory at {PersistentDataPath}");
+#if UNITY_EDITOR
+                    UnityEditor.EditorApplication.isPlaying = false;
+#else
+                    Application.Quit(1);
+#endif
+                }
+            }
 
             DatabaseManager.Init();
 

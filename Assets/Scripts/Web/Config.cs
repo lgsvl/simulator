@@ -95,6 +95,12 @@ namespace Simulator.Web
             if (!Application.isEditor)
             {
                 ParseCommandLine();
+            }
+
+            CreatePersistentPath();
+
+            if (!Application.isEditor)
+            {
                 CreateLockFile();
             }
 
@@ -106,23 +112,6 @@ namespace Simulator.Web
             LoadBuiltinAssets();
             LoadExternalAssets();
             Sensors = SensorTypes.ListSensorFields(SensorPrefabs);
-
-            if (!Directory.Exists(PersistentDataPath))
-            {
-                try
-                {
-                    Directory.CreateDirectory(PersistentDataPath);
-                }
-                catch
-                {
-                    Debug.LogError($"Cannot create directory at {PersistentDataPath}");
-#if UNITY_EDITOR
-                    UnityEditor.EditorApplication.isPlaying = false;
-#else
-                    Application.Quit(1);
-#endif
-                }
-            }
 
             DatabaseManager.Init();
 
@@ -773,6 +762,26 @@ namespace Simulator.Web
                         // skip unknown arguments to allow to pass default Unity Player args
                         Debug.LogWarning($"Unknown argument {args[i]}, skipping it");
                         break;
+                }
+            }
+        }
+
+        static void CreatePersistentPath()
+        {
+            if (!Directory.Exists(PersistentDataPath))
+            {
+                try
+                {
+                    Directory.CreateDirectory(PersistentDataPath);
+                }
+                catch
+                {
+                    Debug.LogError($"Cannot create directory at {PersistentDataPath}");
+#if UNITY_EDITOR
+                    UnityEditor.EditorApplication.isPlaying = false;
+#else
+                    Application.Quit(1);
+#endif
                 }
             }
         }

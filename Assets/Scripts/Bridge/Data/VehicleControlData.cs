@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -28,6 +28,7 @@ namespace Simulator.Bridge.Data
         public float? Velocity;
         public float? SteerAngularVelocity;
         public float? SteerAngle;
+        public GearPosition? TargetGear;
         public bool ShiftGearUp;
         public bool ShiftGearDown;
 

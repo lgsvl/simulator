@@ -1,12 +1,11 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
  */
 
 using SimpleJSON;
-using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace Simulator.Api.Commands
@@ -25,6 +24,8 @@ namespace Simulator.Api.Commands
                 return;
             }
 
+            var sceneName = SceneManager.GetActiveScene().name;
+
             var agentType = (AgentType)args["type"].AsInt;
             switch (agentType)
             {
@@ -36,12 +37,27 @@ namespace Simulator.Api.Commands
                         api.SendError(this, "No npcs to spawn");
                         return;
                     }
+                    if (SimulatorManager.Instance.MapManager.trafficLanes.Count == 0)
+                    {
+                        api.SendError(this, $"{sceneName} missing traffic lane annotation");
+                        return;
+                    }
                     npcManager.NPCActive = true;
                     npcManager.SetNPCOnMap(true);
                     api.SendResult(this);
                     break;
                 case AgentType.Pedestrian:
                     var pedManager = SimulatorManager.Instance.PedestrianManager;
+                    if (!pedManager.gameObject.activeSelf)
+                    {
+                        api.SendError(this, $"{sceneName} missing nav mesh");
+                        return;
+                    }
+                    if (SimulatorManager.Instance.MapManager.pedestrianLanes.Count == 0)
+                    {
+                        api.SendError(this, $"{sceneName} missing pedestrian annotation");
+                        return;
+                    }
                     var pooledPeds = pedManager.SpawnPedPool();
                     if (pooledPeds == null)
                     {

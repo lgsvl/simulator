@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using UnityEditor;
@@ -9,6 +10,7 @@
     using UnityEngine;
     using UnityEngine.Rendering;
     using Utilities;
+    using Debug = UnityEngine.Debug;
 
     /// <summary>
     /// Class used to export meshes to glTF format. 
@@ -192,11 +194,26 @@
             p.StartInfo.FileName = Path.Combine(Application.dataPath, "Plugins", "FBX2glTF",
                 SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "FBX2glTF-windows-x64.exe" : "FBX2glTF-linux-x64");
             p.StartInfo.Arguments = $"--binary --input {fbxObjectPath} --output {glbOut}";
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.RedirectStandardOutput = true;
+            p.StartInfo.RedirectStandardError = true;
             p.OutputDataReceived += (o, e) => Debug.Log(e.Data);
             p.ErrorDataReceived += (o, e) => Debug.Log(e.Data);
 
             p.Start();
+
+            var infoOut = p.StandardOutput.ReadToEnd();
+            var errOut = p.StandardError.ReadToEnd();
+            if (!string.IsNullOrEmpty(infoOut))
+                Debug.Log($"[glTF] {infoOut}");
+            if (!string.IsNullOrEmpty(errOut))
+                Debug.LogError($"[glTF] {errOut}");
+
             p.WaitForExit();
+
+            var exitCode = p.ExitCode;
+            if (exitCode != 0)
+                throw new Exception($"glTF converter failed with exit code: {exitCode}");
 
             return glbFilename;
         }

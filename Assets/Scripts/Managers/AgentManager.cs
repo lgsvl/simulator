@@ -106,8 +106,7 @@ public class AgentManager : MonoBehaviour
             }
         }
 
-        go.transform.position = config.Position;
-        go.transform.rotation = config.Rotation;
+        go.transform.SetPositionAndRotation(config.Position, config.Rotation);
         sensorsController.SetupSensors(config.Sensors);
         
         controller?.Init();

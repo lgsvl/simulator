@@ -76,6 +76,8 @@ namespace Simulator.Api.Commands
 
                     VehicleDetailData vehicleData = await ConnectionManager.API.GetByIdOrName<VehicleDetailData>(name);
                     var config = new AgentConfig(vehicleData.ToVehicleData());
+                    config.Position = position;
+                    config.Rotation = Quaternion.Euler(rotation);
 
                     if (ApiManager.Instance.CachedVehicles.ContainsKey(vehicleData.Name))
                     {
@@ -107,10 +109,9 @@ namespace Simulator.Api.Commands
                         }
                     }
 
-                    if(config.BridgeData != null)
+                    if (config.BridgeData != null)
                     {
-                        var pluginTask = DownloadManager.GetAsset(BundleConfig.BundleTypes.Bridge, config.BridgeData.AssetGuid,
-                            config.BridgeData.Name);
+                        var pluginTask = DownloadManager.GetAsset(BundleConfig.BundleTypes.Bridge, config.BridgeData.AssetGuid, config.BridgeData.Name);
                         downloads.Add(pluginTask);
                         assetDownloads.TryAdd(pluginTask, config.BridgeData.Type);
                     }
@@ -130,8 +131,6 @@ namespace Simulator.Api.Commands
                     }
 
                     agentGO = agents.SpawnAgent(config);
-                    agentGO.transform.position = position;
-                    agentGO.transform.rotation = Quaternion.Euler(rotation);
 
                     if (agents.ActiveAgents.Count == 1)
                     {

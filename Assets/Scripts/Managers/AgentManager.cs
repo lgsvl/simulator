@@ -97,7 +97,7 @@ public class AgentManager : MonoBehaviour
             Simulator.Web.Config.CheckDir(vfs.GetChild(config.BridgeData.AssetGuid), Simulator.Web.Config.LoadBridgePlugin);
 
             bridgeClient = go.AddComponent<BridgeClient>();
-            config.Bridge = BridgePlugins.Get(config.BridgeData.Type);
+            config.Bridge = BridgePlugins.Get(config.BridgeData.Name);
             bridgeClient.Init(config.Bridge);
 
             if (!String.IsNullOrEmpty(config.Connection))

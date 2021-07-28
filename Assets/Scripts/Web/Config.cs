@@ -473,7 +473,21 @@ namespace Simulator.Web
             {
                 foreach (var NPCDir in Directory.EnumerateDirectories(Path.Combine(BundleConfig.ExternalBase, BundleConfig.pluralOf(BundleConfig.BundleTypes.NPC))))
                 {
-                    var assembly = Assembly.Load("Simulator.NPCs");
+                    var assemblyExists = true;
+                    try
+                    {
+                        // Try loading into reflection context before loading into AppDomain. If this fails, it means
+                        // there are no scripts in the assembly and it was not compiled - skip loading it.
+                        Assembly.ReflectionOnlyLoad("Simulator.NPCs");
+                    }
+                    catch
+                    {
+                        assemblyExists = false;
+                    }
+
+                    if (assemblyExists)
+                        Assembly.Load("Simulator.NPCs");
+
                     if (File.Exists(Path.Combine(NPCDir, manifest.assetName, $"{manifest.assetName}.prefab")))
                     {
                         var prefab = (GameObject)AssetDatabase.LoadAssetAtPath(Path.Combine(NPCDir, manifest.assetName, $"{manifest.assetName}.prefab"), typeof(GameObject));
@@ -571,7 +585,21 @@ namespace Simulator.Web
 #if UNITY_EDITOR
             if (EditorPrefs.GetBool("Simulator/Developer Debug Mode", false) == true)
             {
-                var assembly = Assembly.Load("Simulator.Pedestrians");
+                var assemblyExists = true;
+                try
+                {
+                    // Try loading into reflection context before loading into AppDomain. If this fails, it means
+                    // there are no scripts in the assembly and it was not compiled - skip loading it.
+                    Assembly.ReflectionOnlyLoad("Simulator.Pedestrians");
+                }
+                catch
+                {
+                    assemblyExists = false;
+                }
+
+                if (assemblyExists)
+                    Assembly.Load("Simulator.Pedestrians");
+
                 foreach (var PedDir in Directory.EnumerateDirectories(Path.Combine(BundleConfig.ExternalBase, BundleConfig.pluralOf(BundleConfig.BundleTypes.Pedestrian))))
                 {
                     if (File.Exists(Path.Combine(PedDir, manifest.assetName, $"{manifest.assetName}.prefab")))

@@ -237,7 +237,7 @@ check_unity_log unity-build-player-${BUILD_TARGET}.log
 
 if [ ! -f /tmp/${BUILD_OUTPUT}/${BUILD_CHECK} ]; then
   echo "ERROR: *****************************************************************"
-  echo "ERROR: Simulator executable was not build, scroll up to see actual error"
+  echo "ERROR: Simulator executable '/tmp/${BUILD_OUTPUT}/${BUILD_CHECK}' was not build, scroll up to see actual error"
   echo "ERROR: *****************************************************************"
   exit 1
 fi

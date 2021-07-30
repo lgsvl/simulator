@@ -411,13 +411,24 @@ namespace Simulator.Editor
 
                             var previewOrigin = origin.transform;
                             var spawns = FindObjectsOfType<SpawnInfo>().OrderBy(spawn => spawn.name).ToList();
-                            if (spawns.Count > 0)
+                            var mapPreview = FindObjectOfType<MapPreview>();
+                            var forcePreview = false;
+                            if (mapPreview != null)
+                            {
+                                previewOrigin = mapPreview.transform;
+                                forcePreview = true;
+                            }
+                            else if (spawns.Count > 0)
+                            {
                                 previewOrigin = spawns[0].transform;
+                            }
                             else
-                                Debug.LogError("No spawns found, preview will be rendered from origin.");
+                            {
+                                Debug.LogError("No spawns or map preview found, preview will be rendered from origin.");
+                            }
 
                             var textures = new BundlePreviewRenderer.PreviewTextures();
-                            BundlePreviewRenderer.RenderScenePreview(previewOrigin, textures);
+                            BundlePreviewRenderer.RenderScenePreview(previewOrigin, textures, forcePreview);
                             var bytesLarge = textures.large.EncodeToPNG();
                             textures.Release();
 

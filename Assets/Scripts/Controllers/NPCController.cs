@@ -39,13 +39,16 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
     public Vector3 simpleAngularVelocity;
     public Vector3 simpleAcceleration;
     private GameObject wheelColliderHolder;
-    class WheelData
+
+    [Serializable]
+    public class WheelData
     {
         public Transform transform;
         public WheelCollider collider;
         public bool steering;
-        public Vector3 origPos;
+        public Vector3 origPos => transform.localPosition;
     }
+
     private List<WheelData> wheels = new List<WheelData>();
 
     private float wheelDampingRate = 1f;
@@ -134,6 +137,8 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
     public Color NPCColor { get; set; } = Color.black;
     private int _seed;
     public MapIntersection currentIntersection = null;
+
+    private NPCMetaData MetaData;
     #endregion
 
     #region mono
@@ -254,7 +259,21 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
 
     private void SetNeededComponents()
     {
+        MetaData = GetComponentInChildren<NPCMetaData>();
         rb = GetComponent<Rigidbody>();
+        if (MetaData.RefRB != null)
+        {
+            rb.mass = MetaData.RefRB.mass;
+            rb.drag = MetaData.RefRB.drag;
+            rb.angularDrag = MetaData.RefRB.angularDrag;
+            rb.useGravity = MetaData.RefRB.useGravity;
+            rb.isKinematic = MetaData.RefRB.isKinematic;
+            rb.interpolation = MetaData.RefRB.interpolation;
+            rb.collisionDetectionMode = MetaData.RefRB.collisionDetectionMode;
+            rb.constraints = MetaData.RefRB.constraints;
+            Destroy(MetaData.RefRB);
+        }
+
         allRenderers = GetComponentsInChildren<Renderer>().ToList();
         allLights = GetComponentsInChildren<Light>();
 
@@ -266,15 +285,32 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
         MainCollider = GetComponentInChildren<MeshCollider>();
 
         // wheel collider holder
-        wheelColliderHolder = new GameObject("WheelColliderHolder");
-        wheelColliderHolder.transform.SetParent(transform.GetChild(0));
-        wheelColliderHolder.SetActive(true);
+        var hasWheelColliders = true;
+        wheelColliderHolder = MetaData.WheelColliderHolder;
+        if (wheelColliderHolder == null)
+        {
+            wheelColliderHolder = new GameObject("WheelColliderHolder");
+            wheelColliderHolder.transform.SetParent(transform.GetChild(0));
+            wheelColliderHolder.SetActive(true);
+            hasWheelColliders = false;
+        }
+        else
+        {
+            foreach (var data in MetaData.WheelData)
+            {
+                wheels.Add(data);
+                DistributeTransform(data.transform);
+            }
+        }
 
         foreach (Renderer child in allRenderers)
         {
-            if (child.name.Contains("Wheel") && !child.name.Contains("Spare"))
+            if (!hasWheelColliders)
             {
-                AddWheel(child.transform);
+                if (child.name.Contains("Wheel") && !child.name.Contains("Spare"))
+                {
+                    AddWheel(child.transform);
+                }
             }
 
             if (child.name.Contains("Body"))
@@ -363,19 +399,19 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
 
         // front transforms
         GameObject go = new GameObject("Front");
-        go.transform.position = new Vector3(Bounds.center.x, Bounds.min.y + 0.5f, Bounds.center.z + Bounds.max.z);
+        go.transform.position = new Vector3(Bounds.center.x, Mathf.Clamp(Bounds.min.y + (Bounds.max.y / 2), 0.01f, 1f), Bounds.center.z + Bounds.max.z);
         go.transform.SetParent(transform, true);
         frontCenter = go.transform;
         go = new GameObject("FrontHigh");
-        go.transform.position = new Vector3(Bounds.center.x, Bounds.max.y, Bounds.center.z + Bounds.max.z);
+        go.transform.position = new Vector3(Bounds.center.x, Mathf.Clamp(Bounds.max.y, 0.01f, 1.5f), Bounds.center.z + Bounds.max.z);
         go.transform.SetParent(transform, true);
         frontCenterHigh = go.transform;
         go = new GameObject("Right");
-        go.transform.position = new Vector3(Bounds.center.x + Bounds.max.x, Bounds.min.y + 0.5f, Bounds.center.z + Bounds.max.z);
+        go.transform.position = new Vector3(Bounds.center.x + Bounds.max.x, Mathf.Clamp(Bounds.min.y + (Bounds.max.y / 2), 0.01f, 1f), Bounds.center.z + Bounds.max.z);
         go.transform.SetParent(transform, true);
         frontRight = go.transform;
         go = new GameObject("Left");
-        go.transform.position = new Vector3(Bounds.center.x - Bounds.max.x, Bounds.min.y + 0.5f, Bounds.center.z + Bounds.max.z);
+        go.transform.position = new Vector3(Bounds.center.x - Bounds.max.x, Mathf.Clamp(Bounds.min.y + (Bounds.max.y / 2), 0.01f, 1f), Bounds.center.z + Bounds.max.z);
         go.transform.SetParent(transform, true);
         frontLeft = go.transform;
 
@@ -426,7 +462,6 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
         {
             transform = wheel,
             collider = wheelCollider,
-            origPos = wheelColliderHolder.transform.InverseTransformPoint(wheel.position),
             steering = wheel.name.Contains("Front")
         };
         wheels.Add(data);

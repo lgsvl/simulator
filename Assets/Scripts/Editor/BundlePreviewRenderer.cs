@@ -65,7 +65,7 @@ namespace Simulator.Editor
             }
         }
 
-        public static void RenderScenePreview(Transform origin, PreviewTextures textures)
+        public static void RenderScenePreview(Transform origin, PreviewTextures textures, bool forcePreview)
         {
             var pos = origin.position;
             var rot = origin.rotation;
@@ -95,10 +95,15 @@ namespace Simulator.Editor
             }
 
             var previewRootPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/ScenePreviewRoot.prefab");
-            var previewRoot = Object.Instantiate(previewRootPrefab);
-            previewRoot.transform.rotation = rot;
-            previewRoot.transform.position = pos;
+            var previewRoot = Object.Instantiate(previewRootPrefab, pos, rot);
             var camera = previewRoot.GetComponentInChildren<Camera>();
+
+            if (forcePreview)
+            {
+                previewRoot.transform.SetPositionAndRotation(pos, Quaternion.Euler(new Vector3(0f, rot.eulerAngles.y, 0f)));
+                camera.transform.SetParent(null);
+                camera.transform.SetPositionAndRotation(pos, rot);
+            }
 
             // This will trigger HDCamera.Update, which must be done before calling HDCamera.GetOrCreate
             // Otherwise m_AdditionalCameraData will not be set and HDCamera will be discarded after first frame

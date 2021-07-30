@@ -122,6 +122,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         speedAdjustRate = 2 + 2 * aggression;
         maxSpeedAdjustRate = speedAdjustRate; // more aggressive NPCs will accelerate faster
         turnAdjustRate = 50 * aggression;
+        frontDetectRadius = Mathf.Clamp(controller.Bounds.max.x * 0.75f, 0.01f, 1.2f);
         ResetData();
     }
 
@@ -134,13 +135,14 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
             aggressionAdjustRate = laneSpeedLimit / 11.176f; // give more space at faster speeds
             stopHitDistance = 12 / aggression * aggressionAdjustRate;
         }
-        normalSpeed = RandomGenerator.NextFloat(laneSpeedLimit - 3 + aggression, laneSpeedLimit + 1 + aggression);
+
+        normalSpeed = RandomGenerator.NextFloat(laneSpeedLimit, laneSpeedLimit + 1 + aggression);
+
         currentMapLane = lane;
         SetLaneData(currentMapLane.mapWorldPositions);
         controller.SetLastPosRot(transform.position, transform.rotation);
         isLaneDataSet = true;
     }
-
     #endregion
 
     #region spawn
@@ -510,9 +512,13 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         }
 
         Gizmos.color = Color.yellow;
-        Gizmos.DrawSphere(currentTarget, 0.5f);
+        Gizmos.DrawSphere(currentTarget, frontDetectRadius);
         Gizmos.color = Color.red;
-        Gizmos.DrawSphere(stopTarget, 0.5f);
+        Gizmos.DrawSphere(stopTarget, frontDetectRadius);
+
+        Gizmos.color = Color.magenta;
+        Gizmos.DrawSphere(controller.frontLeft.position - (controller.frontLeft.right * controller.Bounds.max.x), frontDetectRadius);
+        Gizmos.DrawSphere(controller.frontRight.position + (controller.frontRight.right * controller.Bounds.max.x), frontDetectRadius);
     }
 
     protected virtual void EvaluateTarget()
@@ -558,7 +564,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
                     aggressionAdjustRate = laneSpeedLimit / 11.176f; // 11.176 m/s corresponds to 25 mph
                     normalSpeed = APIMaxSpeed > 0 ?
                         Mathf.Min(APIMaxSpeed, laneSpeedLimit) :
-                        RandomGenerator.NextFloat(laneSpeedLimit - 3 + aggression, laneSpeedLimit + 1 + aggression); // API set max speed or lane speed limit
+                        RandomGenerator.NextFloat(laneSpeedLimit, laneSpeedLimit + 1 + aggression); // API set max speed or lane speed limit
                     SetLaneData(currentMapLane.mapWorldPositions);
                     SetTurnSignal();
                 }
@@ -874,8 +880,8 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
         Physics.Raycast(controller.frontCenterHigh.position, controller.frontCenterHigh.forward, out frontHighClosestHitInfo, frontRaycastDistance, carCheckBlockBitmask);
         Physics.Raycast(controller.frontRight.position, controller.frontRight.forward, out rightClosestHitInfo, frontRaycastDistance / 2, carCheckBlockBitmask);
         Physics.Raycast(controller.frontLeft.position, controller.frontLeft.forward, out leftClosestHitInfo, frontRaycastDistance / 2, carCheckBlockBitmask);
-        isFrontLeftDetect = Physics.CheckSphere(controller.frontLeft.position - (controller.frontLeft.right * 2), 1f, carCheckBlockBitmask);
-        isFrontRightDetect = Physics.CheckSphere(controller.frontRight.position + (controller.frontRight.right * 2), 1f, carCheckBlockBitmask);
+        isFrontLeftDetect = Physics.CheckSphere(controller.frontLeft.position - (controller.frontLeft.right * controller.Bounds.max.x), frontDetectRadius, carCheckBlockBitmask);
+        isFrontRightDetect = Physics.CheckSphere(controller.frontRight.position + (controller.frontRight.right * controller.Bounds.max.x), frontDetectRadius, carCheckBlockBitmask);
 
         if ((currentMapLane.isIntersectionLane || Vector3.Distance(transform.position, currentMapLane.mapWorldPositions[currentMapLane.mapWorldPositions.Count - 1]) < 10) && !isRightTurn && !isLeftTurn)
         {

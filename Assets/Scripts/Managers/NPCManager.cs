@@ -37,6 +37,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         [NPCSizeType.Trailer]       = 0,
         [NPCSizeType.Motorcycle]    = 1,
         [NPCSizeType.Bicycle]       = 1,
+        [NPCSizeType.F1Tenth]       = 1,
     };
 
     [System.Serializable]
@@ -498,6 +499,10 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     public Color GetWeightedRandomColor(NPCSizeType type)
     {
         var colors = NPCColorData.Find(colorData => colorData.Type == type).TypeColors;
+        if (colors == null)
+        {
+            colors = new List<NPCTypeColors>() { new NPCTypeColors { Color = Color.black, Weight = 10 } };
+        }
         int totalWeight = colors.Sum(c => c.Weight);
         int rnd = RandomGenerator.Next(totalWeight);
 

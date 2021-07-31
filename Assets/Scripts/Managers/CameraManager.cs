@@ -11,8 +11,8 @@ public class CameraManager : MonoBehaviour
 {
     public GameObject SimulatorCameraPrefab;
     public Camera SimulatorCamera { get; private set; }
-    private SimulatorCameraController CameraController;
-    
+    public SimulatorCameraController CameraController { get; private set; }
+
     private void Awake()
     {
         SimulatorCamera = Instantiate(SimulatorCameraPrefab, transform).GetComponentInChildren<Camera>();

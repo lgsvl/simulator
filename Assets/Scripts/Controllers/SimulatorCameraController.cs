@@ -71,6 +71,8 @@ public class SimulatorCameraController : MonoBehaviour
 
     private Transform DriverViewCameraTransform;
 
+    public bool UseFixedUpdate { get; set; } = false;
+
     private void Awake()
     {
         thisCamera = GetComponentInChildren<Camera>();
@@ -171,22 +173,46 @@ public class SimulatorCameraController : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.BackQuote)) SetFreeCameraState();
         }
 
-        switch (CurrentCameraState)
+        if (!UseFixedUpdate)
         {
-            case CameraStateType.Free:
-                UpdateFreeCamera();
-                break;
-            case CameraStateType.Follow:
-                UpdateFollowCamera();
-                break;
-            case CameraStateType.Cinematic:
-                UpdateCinematicCamera();
-                break;
-            case CameraStateType.Driver:
-                break;
+            switch (CurrentCameraState)
+            {
+                case CameraStateType.Free:
+                    UpdateFreeCamera();
+                    break;
+                case CameraStateType.Follow:
+                    UpdateFollowCamera();
+                    break;
+                case CameraStateType.Cinematic:
+                    UpdateCinematicCamera();
+                    break;
+                case CameraStateType.Driver:
+                    break;
+            }
         }
     }
-    
+
+    private void FixedUpdate()
+    {
+        if (UseFixedUpdate)
+        {
+            switch (CurrentCameraState)
+            {
+                case CameraStateType.Free:
+                    UpdateFreeCamera();
+                    break;
+                case CameraStateType.Follow:
+                    UpdateFollowCamera();
+                    break;
+                case CameraStateType.Cinematic:
+                    UpdateCinematicCamera();
+                    break;
+                case CameraStateType.Driver:
+                    break;
+            }
+        }
+    }
+
     private void UpdateFreeCamera()
     {
         if (mouseRight == 1)

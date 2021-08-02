@@ -33,9 +33,9 @@ public class VehicleLaneFollowSMI : MonoBehaviour, IVehicleDynamics
     {
         get
         {
-            if (wheels != null && wheels.Count > 0 && wheels[0] != null)
+            if (Wheels != null && Wheels.Count > 0 && Wheels[0] != null)
             {
-                return (wheels[0].collider.steerAngle + wheels[1].collider.steerAngle) * 0.5f;
+                return (Wheels[0].collider.steerAngle + Wheels[1].collider.steerAngle) * 0.5f;
             }
             return 0.0f;
         }
@@ -62,18 +62,16 @@ public class VehicleLaneFollowSMI : MonoBehaviour, IVehicleDynamics
     public IgnitionStatus CurrentIgnitionStatus { get; set; } = IgnitionStatus.On;
 
     #region controller vars
-    [HideInInspector]
-    public MeshCollider MainCollider;
-    public Vector3 lastRBPosition;
-    public Quaternion lastRBRotation;
-    public Bounds Bounds;
+    protected MeshCollider MainCollider { get; private set; }
+    protected Vector3 lastRBPosition { get; private set; }
+    protected Quaternion lastRBRotation { get; private set; }
+    protected Bounds Bounds { get; private set; }
 
-    public Vector3 simpleVelocity;
-    public Vector3 simpleAngularVelocity;
-    public Vector3 simpleAcceleration;
+    protected Vector3 simpleVelocity { get; private set; }
+    protected Vector3 simpleAngularVelocity { get; private set; }
+    protected Vector3 simpleAcceleration { get; private set; }
     private Transform wheelColliderHolder;
 
-    // wheel[0].FL wheel[1].FR wheel[2].RL wheel[3].RR
     [System.Serializable]
     public class WheelData
     {
@@ -83,97 +81,93 @@ public class VehicleLaneFollowSMI : MonoBehaviour, IVehicleDynamics
         [HideInInspector]
         public Vector3 origPos;
     }
-    public List<WheelData> wheels = new List<WheelData>();
+    [Header("Wheels[0].FL Wheels[1].FR Wheels[2].RL Wheels[3].RR")]
+    public List<WheelData> Wheels = new List<WheelData>();
 
     // map data
     public string id { get; set; }
     public Transform AgentTransform => transform;
 
     // targeting
-    public Transform frontCenter;
-    public Transform frontCenterHigh;
-    public Transform frontLeft;
-    public Transform frontRight;
+    private Transform frontCenter;
+    private Transform frontCenterHigh;
+    private Transform frontLeft;
+    private Transform frontRight;
 
-    public float currentSpeed;
-    public Vector3 steerVector = Vector3.forward;
-
-    public float dampenFactor = 10f; // this value requires tuning
-    public float adjustFactor = 10f; // this value requires tuning
-
-    public bool isForcedStop = false;
+    public float currentSpeed { get; private set; }
+    public Vector3 steerVector { get; private set; } = Vector3.forward;
     public bool isLeftTurn = false;
     public bool isRightTurn = false;
-    private IEnumerator turnSignalIE;
-    private IEnumerator hazardSignalIE;
+    protected bool isForcedStop = false;
 
-    public NPCManager NPCManager;
-    public System.Random RandomGenerator = new System.Random();
-    public MonoBehaviour FixedUpdateManager;
-    private int _seed;
-    public HashSet<Coroutine> Coroutines = new HashSet<Coroutine>();
-    public MapIntersection currentIntersection = null;
+    private NPCManager NPCManager;
+    private System.Random RandomGenerator = new System.Random();
+    private MonoBehaviour FixedUpdateManager;
+    protected int _seed;
+    protected HashSet<Coroutine> Coroutines = new HashSet<Coroutine>();
+    private MapIntersection currentIntersection = null; // TODO
     #endregion
 
     #region behavior vars
     // physics
-    public LayerMask groundHitBitmask;
-    public LayerMask carCheckBlockBitmask;
+    private LayerMask groundHitBitmask;
+    private LayerMask carCheckBlockBitmask;
     protected RaycastHit frontClosestHitInfo = new RaycastHit();
     protected RaycastHit frontHighClosestHitInfo = new RaycastHit();
     protected RaycastHit leftClosestHitInfo = new RaycastHit();
     protected RaycastHit rightClosestHitInfo = new RaycastHit();
     protected RaycastHit groundCheckInfo = new RaycastHit();
     protected float frontRaycastDistance = 20f;
-    protected bool atStopTarget;
+    public bool atStopTarget;
 
     // map data
     public MapTrafficLane currentMapLane;
     public MapTrafficLane prevMapLane;
-    public List<Vector3> laneData;
+    protected List<Vector3> laneData;
 
     // targeting
     protected Vector3 currentTarget;
     protected int currentIndex = 0;
     protected float distanceToCurrentTarget = 0f;
-    public float distanceToStopTarget = 0;
+    protected float distanceToStopTarget = 0;
     protected Vector3 stopTarget = Vector3.zero;
     protected float minTargetDistance = 1f;
 
-    protected float laneSpeedLimit = 0f;
-    protected float normalSpeed = 0f;
-    protected float APIMaxSpeed = 0f;
+    private float laneSpeedLimit = 0f;
+    private float normalSpeed = 0f;
+
     public float targetSpeed = 0f;
     public float targetTurn = 0f;
     public float currentTurn = 0f;
-    public float speedAdjustRate = 4.0f;
-    protected float minSpeedAdjustRate = 1f;
-    protected float maxSpeedAdjustRate = 4f;
-    protected float elapsedAccelerateTime = 0f;
-    protected float turnAdjustRate = 10.0f;
 
-    public float stopHitDistance = 5f;
-    public float stopLineDistance = 15f;
-    public float aggressionAdjustRate;
-    public int aggression;
+    private float speedAdjustRate = 4.0f;
+    private float minSpeedAdjustRate = 1f;
+    private float maxSpeedAdjustRate = 4f;
+    private float elapsedAccelerateTime = 0f;
+    private float turnAdjustRate = 10.0f;
 
-    public bool isLaneDataSet = false;
-    public bool isFrontDetectWithinStopDistance = false;
-    public bool isFrontDetectHighWithinStopDistance = false;
-    public bool isRightDetectWithinStopDistance = false;
-    public bool isLeftDetectWithinStopDistance = false;
-    public bool isFrontLeftDetect = false;
-    public bool isFrontRightDetect = false;
-    public bool hasReachedStopSign = false;
-    public bool isStopLight = false;
-    public bool isStopSign = false;
-    public bool isCurve = false;
-    public bool laneChange = false;
-    public bool isDodge = false;
-    public bool isWaitingToDodge = false;
+    private float stopHitDistance = 5f;
+    private float stopLineDistance = 15f;
+    private float stopSignWaitTime = 1f; // TODO 3sec
+    private float currentStopTime = 0f;
 
-    protected float stopSignWaitTime = 1f; // TODO 3sec
-    protected float currentStopTime = 0f;
+    private float aggressionAdjustRate;
+    private int aggression;
+
+    private bool isLaneDataSet = false;
+    private bool isFrontDetectWithinStopDistance = false;
+    private bool isFrontDetectHighWithinStopDistance = false;
+    private bool isRightDetectWithinStopDistance = false;
+    private bool isLeftDetectWithinStopDistance = false;
+    private bool isFrontLeftDetect = false;
+    private bool isFrontRightDetect = false;
+    private bool hasReachedStopSign = false;
+    private bool isStopLight = false;
+    private bool isStopSign = false;
+    private bool isCurve = false;
+    private bool laneChange = false;
+    private bool isDodge = false;
+    private bool isWaitingToDodge = false;
 
     private Collider[] MaxHitColliders = new Collider[5];
     #endregion
@@ -229,7 +223,7 @@ public class VehicleLaneFollowSMI : MonoBehaviour, IVehicleDynamics
             NPCMove();
         }
 
-        if (currentSpeed > 0.1f && wheels != null && wheels.Count > 0)
+        if (currentSpeed > 0.1f && Wheels != null && Wheels.Count > 0)
         {
             WheelMovement();
         }
@@ -263,7 +257,7 @@ public class VehicleLaneFollowSMI : MonoBehaviour, IVehicleDynamics
             aggressionAdjustRate = laneSpeedLimit / 11.176f; // give more space at faster speeds
             stopHitDistance = 12 / aggression * aggressionAdjustRate;
         }
-        normalSpeed = RandomGenerator.NextFloat(laneSpeedLimit - 3 + aggression, laneSpeedLimit + 1 + aggression);
+        normalSpeed = RandomGenerator.NextFloat(laneSpeedLimit, laneSpeedLimit + 1 + aggression);
         currentMapLane = lane;
 
         int index = -1;
@@ -315,7 +309,7 @@ public class VehicleLaneFollowSMI : MonoBehaviour, IVehicleDynamics
     private void SetNeededComponents()
     {
         wheelColliderHolder = transform.Find("WheelColliderHolder");
-        foreach (var wheel in wheels)
+        foreach (var wheel in Wheels)
         {
             wheel.origPos = wheelColliderHolder.transform.InverseTransformPoint(wheel.transform.position);
         }
@@ -776,9 +770,7 @@ public class VehicleLaneFollowSMI : MonoBehaviour, IVehicleDynamics
                     currentMapLane = currentMapLane.nextConnectedLanes[RandomGenerator.Next(currentMapLane.nextConnectedLanes.Count)];
                     laneSpeedLimit = currentMapLane.speedLimit;
                     aggressionAdjustRate = laneSpeedLimit / 11.176f; // 11.176 m/s corresponds to 25 mph
-                    normalSpeed = APIMaxSpeed > 0 ?
-                        Mathf.Min(APIMaxSpeed, laneSpeedLimit) :
-                        RandomGenerator.NextFloat(laneSpeedLimit - 3 + aggression, laneSpeedLimit + 1 + aggression); // API set max speed or lane speed limit
+                    normalSpeed = RandomGenerator.NextFloat(laneSpeedLimit, laneSpeedLimit + 1 + aggression);
                     SetLaneData(currentMapLane.mapWorldPositions);
                     SetTurnSignal();
                 }
@@ -1067,12 +1059,12 @@ public class VehicleLaneFollowSMI : MonoBehaviour, IVehicleDynamics
     #region utility
     public void WheelMovement()
     {
-        float theta = (simpleVelocity.magnitude * Time.fixedDeltaTime / wheels[0].collider.radius) * Mathf.Rad2Deg;
+        float theta = (simpleVelocity.magnitude * Time.fixedDeltaTime / Wheels[0].collider.radius) * Mathf.Rad2Deg;
         Quaternion finalQ = Quaternion.LookRotation(steerVector);
         Vector3 finalE = finalQ.eulerAngles;
         finalQ = Quaternion.Euler(0f, finalE.y, 0f);
 
-        foreach (var wheel in wheels)
+        foreach (var wheel in Wheels)
         {
             MoveWheel(wheel.transform, wheel.collider, wheel.origPos, theta, finalQ, wheel.steering);
         }
@@ -1231,7 +1223,7 @@ public class VehicleLaneFollowSMI : MonoBehaviour, IVehicleDynamics
         RB.MovePosition(pos);
         RB.MoveRotation(rot);
         transform.SetPositionAndRotation(pos, rot);
-        foreach (var wheel in wheels)
+        foreach (var wheel in Wheels)
         {
             wheel.collider.brakeTorque = Mathf.Infinity;
             wheel.collider.brakeTorque = Mathf.Infinity;

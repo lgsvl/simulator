@@ -235,7 +235,7 @@ namespace Simulator.Editor
 
                         var info = vehiclePrefab.GetComponent<VehicleInfo>();
                         var fmu = vehiclePrefab.GetComponent<VehicleFMU>();
-                        var baseLink = vehiclePrefab.GetComponent<BaseLink>();
+                        var baseLink = vehiclePrefab.GetComponentInChildren<BaseLink>();
 
                         if (info == null)
                         {

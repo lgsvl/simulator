@@ -25,7 +25,7 @@ namespace Simulator
 
         public static Dictionary<BundleTypes, string> Versions = new Dictionary<BundleTypes, string>()
         {
-            [BundleTypes.Vehicle]     = "com.svlsimulator.5",
+            [BundleTypes.Vehicle]     = "com.svlsimulator.6",
             [BundleTypes.Environment] = "com.svlsimulator.4",
             [BundleTypes.Sensor]      = "com.svlsimulator.5",
             [BundleTypes.Controllable]= "com.svlsimulator.2",

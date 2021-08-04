@@ -38,7 +38,7 @@ public class ConnectionManager : MonoBehaviour
         Connected,
         Online
     }
-    
+
     public static ConnectionStatus Status = ConnectionStatus.Offline;
     public static string DisconnectReason = null;
     public static ConnectionManager instance;
@@ -46,7 +46,7 @@ public class ConnectionManager : MonoBehaviour
     public SimulatorInfo simInfo;
     static int unityThread;
     static Queue<Action> runInUpdate = new Queue<Action>();
-    static int[] timeOutSequence = new[] { 1, 5, 15, 30};
+    static int[] timeOutSequence = new[] { 1, 5, 15, 30 };
     int timeoutAttempts;
     ClientSettingsService service;
     public string LinkUrl => Config.CloudUrl + "/clusters/link?token=" + simInfo.linkToken;
@@ -115,20 +115,24 @@ public class ConnectionManager : MonoBehaviour
             {
                 ConnectionUI.instance?.UpdateStatus();
             });
-            
+
             foreach (var timeOut in timeOutSequence)
             {
                 try
                 {
                     var reader = await API.Connect(simInfo);
-                    await ReadResponse(reader);
+                    await ReadResponseLoop(reader);
                     break;
                 }
                 catch (HttpRequestException ex)
                 {
                     // temporary network issue, we'll retry
-                    Debug.Log(ex.Message+", reconnecting after "+timeOut+" seconds");
+                    Debug.Log(ex.Message + ", reconnecting after " + timeOut + " seconds");
                     await Task.Delay(1000 * timeOut);
+                }
+                finally
+                {
+                    API.Disconnect();
                 }
                 if (Status == ConnectionStatus.Offline)
                 {
@@ -143,15 +147,19 @@ public class ConnectionManager : MonoBehaviour
                 {
                     try
                     {
-                        var reader = await API.Connect(simInfo);
-                        await ReadResponse(reader);
+                        var stream = await API.Connect(simInfo);
+                        await ReadResponseLoop(stream);
                         break;
                     }
                     catch (CloudAPI.NoSuccessException ex)
                     {
                         Debug.Log(ex.Message + ", reconnecting after " + timeOutSequence[timeOutSequence.Length - 1] + " seconds");
                         DisconnectReason = ex.Message;
-                        await Task.Delay(1000 * timeOutSequence[timeOutSequence.Length-1]);
+                        await Task.Delay(1000 * timeOutSequence[timeOutSequence.Length - 1]);
+                    }
+                    finally
+                    {
+                        API.Disconnect();
                     }
                 }
             }
@@ -181,16 +189,15 @@ public class ConnectionManager : MonoBehaviour
         Disconnect();
     }
 
-    async Task ReadResponse(StreamReader reader)
+    async Task ReadResponseLoop(Stream stream)
     {
-        await Task.Run(async () =>
+        using (var reader = new StreamReader(stream))
         {
             try
             {
-                while (!reader.EndOfStream)
+                string line;
+                while ((line = await reader.ReadLineAsync()) != null)
                 {
-                    //We are ready to read the stream
-                    var line = await reader.ReadLineAsync();
                     await Parse(line);
                 }
             }
@@ -199,17 +206,17 @@ public class ConnectionManager : MonoBehaviour
                 if (Status != ConnectionStatus.Offline) throw ex;
                 // when disconnecting, it is expected the task is cancelled.
             }
-            Debug.Log("WISE connection closed");
-            reader.Dispose();
-        });
+        }
+
+        Debug.Log("WISE connection closed");
     }
 
     public void Disconnect()
     {
         try
         {
-            Status = ConnectionStatus.Offline;
             API.Disconnect();
+            Status = ConnectionStatus.Offline;
             RunOnUnityThread(() =>
             {
                 ConnectionUI.instance?.UpdateStatus();
@@ -260,7 +267,7 @@ public class ConnectionManager : MonoBehaviour
                                     ConnectionUI.instance?.UpdateStatus();
 
                                     SimulationData simData;
-                                    try 
+                                    try
                                     {
                                         simData = deserialized["data"].ToObject<SimulationData>();
                                         SimulationConfigUtils.ProcessKnownTemplates(ref simData);
@@ -397,7 +404,7 @@ public class CloudAPI
     string SimId;
 
     private const uint fetchLimit = 50;
-    StreamReader onlineStream;
+    Stream onlineStream;
 
     // TODO: rename this property to something more appropritate
     public string CloudType { get => CloudURL.AbsoluteUri; }
@@ -468,13 +475,14 @@ public class CloudAPI
 
     public class NoSuccessException : Exception
     {
-        public NoSuccessException(string status, HttpStatusCode statusCode) : base(status) {
+        public NoSuccessException(string status, HttpStatusCode statusCode) : base(status)
+        {
             StatusCode = statusCode;
-         }
+        }
         public readonly HttpStatusCode StatusCode;
     }
 
-    public async Task<StreamReader> Connect(SimulatorInfo simInfo)
+    public async Task<Stream> Connect(SimulatorInfo simInfo)
     {
         if (onlineStream != null)
         {
@@ -501,17 +509,20 @@ public class CloudAPI
             throw new NoSuccessException($"{content} ({(int)response.StatusCode})", response.StatusCode);
         }
         Console.WriteLine("[CONN] Connected to WISE.");
-        onlineStream = new StreamReader(await response.Content.ReadAsStreamAsync());
+        Debug.Log("connected");
+        onlineStream = await response.Content.ReadAsStreamAsync();
         return onlineStream;
     }
 
     // use this if you waqnt to make sure the connection succeeded but don't care about
     // messages before the connection ok message
-    public async Task EnsureConnectSuccess()
+    public async Task<StreamReader> EnsureConnectSuccess()
     {
-        while (!onlineStream.EndOfStream)
+        string line;
+        var reader = new StreamReader(onlineStream);
+
+        while ((line = await reader.ReadLineAsync()) != null)
         {
-            var line = await onlineStream.ReadLineAsync();
             if (line.StartsWith("data:") && !string.IsNullOrEmpty(line.Substring(6)))
             {
                 JObject deserialized = JObject.Parse(line.Substring(5));
@@ -519,28 +530,30 @@ public class CloudAPI
                 {
                     switch (deserialized.GetValue("status").ToString())
                     {
-                        case "OK": return;
+                        case "OK": return reader;
                         case "Unrecognized": throw new Exception("Simulator is not linked. Enter play mode to re-link.");
                     }
                 }
             }
         }
+
+        onlineStream.Close();
         throw new Exception("Connection Closed");
     }
 
-    public Task<DetailData> Get<DetailData>(string cloudId) where DetailData: CloudAssetDetails
+    public Task<DetailData> Get<DetailData>(string cloudId) where DetailData : CloudAssetDetails
     {
-        var meta = (CloudData) Attribute.GetCustomAttribute(typeof(DetailData), typeof (CloudData));
+        var meta = (CloudData)Attribute.GetCustomAttribute(typeof(DetailData), typeof(CloudData));
         return GetApi<DetailData>($"{meta.ApiPath}/{cloudId}");
     }
 
-    public async Task<LibraryList<DetailData>> GetLibraryPage<DetailData>(uint offset, uint limit = fetchLimit) where DetailData: CloudAssetDetails
+    public async Task<LibraryList<DetailData>> GetLibraryPage<DetailData>(uint offset, uint limit = fetchLimit) where DetailData : CloudAssetDetails
     {
         var meta = (CloudData)Attribute.GetCustomAttribute(typeof(DetailData), typeof(CloudData));
         return await GetApi<LibraryList<DetailData>>($"{meta.ApiPath}?display=sim&limit={limit}&offset={offset}");
     }
 
-    public async Task<DetailData[]> GetLibrary<DetailData>() where DetailData: CloudAssetDetails
+    public async Task<DetailData[]> GetLibrary<DetailData>() where DetailData : CloudAssetDetails
     {
         List<DetailData> result = new List<DetailData>();
         LibraryList<DetailData> data;
@@ -554,9 +567,9 @@ public class CloudAPI
         return result.ToArray();
     }
 
-    public async Task<DetailData> GetByIdOrName<DetailData>(string cloudIdOrName) where DetailData: CloudAssetDetails
+    public async Task<DetailData> GetByIdOrName<DetailData>(string cloudIdOrName) where DetailData : CloudAssetDetails
     {
-        var meta = (CloudData) Attribute.GetCustomAttribute(typeof(DetailData), typeof (CloudData));
+        var meta = (CloudData)Attribute.GetCustomAttribute(typeof(DetailData), typeof(CloudData));
         if (!Guid.TryParse(cloudIdOrName, out Guid guid))
         {
             var library = await GetLibrary<DetailData>();
@@ -646,6 +659,7 @@ public class CloudAPI
     {
         Console.WriteLine("[CONN] Disconnecting");
         onlineStream?.Close();
+        onlineStream?.Dispose();
         onlineStream = null;
         requestTokenSource?.Cancel();
         requestTokenSource?.Dispose();
@@ -664,7 +678,7 @@ public class CloudAPI
         {
             if (device.OperationalStatus != OperationalStatus.Up)
                 continue;
-            
+
             foreach (UnicastIPAddressInformation info in device.GetIPProperties().UnicastAddresses)
             {
                 string address = info.Address.ToString();
@@ -675,6 +689,14 @@ public class CloudAPI
         }
 
         var buildVersion = Application.version;
+#if UNITY_EDITOR
+        var DevSettings = (Simulator.Editor.DevelopmentSettingsAsset)AssetDatabase.LoadAssetAtPath("Assets/Resources/Editor/DeveloperSettings.asset", typeof
+        (Simulator.Editor.DevelopmentSettingsAsset));
+        if (!string.IsNullOrWhiteSpace(DevSettings.VersionOverride))
+        {
+            buildVersion = DevSettings.VersionOverride;
+        }
+#endif
         var buildInfo = Resources.Load<BuildInfo>("BuildInfo");
         if (buildInfo != null && !string.IsNullOrWhiteSpace(buildInfo.Version))
         {

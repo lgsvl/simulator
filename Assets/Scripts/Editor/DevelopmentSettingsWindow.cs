@@ -16,16 +16,28 @@ using System.Reflection;
 using Simulator.Database;
 using Simulator.Web;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Simulator.Bridge;
 
 namespace Simulator.Editor
 {
     public class DevelopmentSettingsWindow : EditorWindow
     {
+        struct VersionEntry
+        {
+            public string display;
+            public string version;
+        }
+        private List<VersionEntry> SimulatorVersions = null;
+
+        private int versionIndex = -1;
         private List<VehicleDetailData> CloudVehicles = new List<VehicleDetailData>();
         private List<string> LocalVehicles = new List<string>();
 
         private DevelopmentSettingsAsset Settings;
         private SimulationData DeveloperSimulation = null;
+
+        private VehicleData EgoVehicle => DeveloperSimulation.Vehicles?[0];
 
         private CloudAPI API;
         private string ErrorMessage;
@@ -38,12 +50,9 @@ namespace Simulator.Editor
         private bool NPCSelectEnable = false;
         private float SaveAssetTime = float.MaxValue;
 
-        private string loginUser = string.Empty;
-        private string loginPassword = string.Empty;
-        private bool authenticated = false;
+        private bool linked = true;
         private bool updateVehicleDetails = true;
-
-        System.Net.CookieContainer cookieContainer = new System.Net.CookieContainer();
+        private string[] Bridges = new string[] { };
 
         [MenuItem("Simulator/Development Settings...", false, 50)]
         public static void Open()
@@ -64,6 +73,7 @@ namespace Simulator.Editor
             {
                 Settings = (DevelopmentSettingsAsset)CreateInstance(typeof(DevelopmentSettingsAsset));
                 Debug.Log("Initialized new developer settings");
+                Settings.VersionOverride = Application.version;
                 AssetDatabase.CreateAsset(Settings, "Assets/Resources/Editor/DeveloperSettings.asset");
             }
 
@@ -81,11 +91,8 @@ namespace Simulator.Editor
                 };
             }
 
-            LoadCookie();
             Refresh();
         }
-
-
 
         void OnDisable()
         {
@@ -99,7 +106,7 @@ namespace Simulator.Editor
 
         protected virtual void OnEditorUpdate()
         {
-            if (Time.realtimeSinceStartup > SaveAssetTime)
+            if (Time.realtimeSinceStartup > SaveAssetTime + 3.0f)
             {
                 UpdateAsset();
             }
@@ -107,9 +114,15 @@ namespace Simulator.Editor
 
         private static void HandlePlayMode(PlayModeStateChange state)
         {
-            if (state == PlayModeStateChange.ExitingPlayMode && Instance != null)
+            if (Instance == null) return;
+
+            if (state == PlayModeStateChange.ExitingPlayMode)
             {
                 Instance.Refresh();
+            }
+            else if (state == PlayModeStateChange.ExitingEditMode)
+            {
+                Instance.API.Disconnect();
             }
         }
 
@@ -155,6 +168,18 @@ namespace Simulator.Editor
                 ErrorMessage = "";
                 Simulator.Web.Config.ParseConfigFile();
 
+                await UpdateVersions();
+
+                try
+                {
+                    // FIXME also list and find bundles and cloud bridges?
+                    var bridgesAssembly = Assembly.Load("Simulator.Bridges");
+                    Bridges = bridgesAssembly.GetTypes()
+                    .Where(ty => typeof(IBridgeFactory).IsAssignableFrom(ty) && !ty.IsAbstract)
+                    .Select(ty => BridgePlugins.GetNameFromFactory(ty)).ToArray();
+                }
+                catch { }
+
                 if (DeveloperSimulation.Cluster == null)
                 {
                     DeveloperSimulation.Cluster = new ClusterData()
@@ -174,42 +199,31 @@ namespace Simulator.Editor
 
                 if (string.IsNullOrEmpty(Config.CloudProxy))
                 {
-                    API = new CloudAPI(new Uri(Config.CloudUrl), cookieContainer);
+                    API = new CloudAPI(new Uri(Config.CloudUrl), Config.SimID);
                 }
                 else
                 {
-                    API = new CloudAPI(new Uri(Config.CloudUrl), cookieContainer, new Uri(Config.CloudProxy));
+                    API = new CloudAPI(new Uri(Config.CloudUrl), Config.SimID, new Uri(Config.CloudProxy));
                 }
 
                 DatabaseManager.Init();
                 var csservice = new Simulator.Database.Services.ClientSettingsService();
                 ClientSettings cls = csservice.GetOrMake();
                 Config.SimID = cls.simid;
-                if (String.IsNullOrEmpty(Config.CloudUrl))
+                if (string.IsNullOrEmpty(Config.CloudUrl))
                 {
                     ErrorMessage = "Cloud URL not set";
                     return;
                 }
-                if (String.IsNullOrEmpty(Config.SimID))
+                if (string.IsNullOrEmpty(Config.SimID))
                 {
+                    linked = false;
                     ErrorMessage = "Simulator not linked";
                     return;
                 }
 
-                if (cookieContainer.GetCookies(new Uri(Config.CloudUrl)).Count == 0)
-                {
-                    authenticated = false;
-                }
-
-                if (authenticated)
-                {
-                    var ret = await API.GetLibrary<VehicleDetailData>();
-                    CloudVehicles = ret.ToList();
-                }
-                else
-                {
-                    CloudVehicles = new List<VehicleDetailData>();
-                }
+                var ret = await API.GetLibrary<VehicleDetailData>();
+                CloudVehicles = ret.ToList();
 
                 string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/External/Vehicles" });
                 LocalVehicles = guids.Select(g => AssetDatabase.GUIDToAssetPath(g)).ToList();
@@ -218,7 +232,7 @@ namespace Simulator.Editor
                 if (DeveloperSimulation.Vehicles != null) // get previously selected thing
                 {
                     // we abuse VehicleData.Id to store the prefab path
-                    idOrPath = DeveloperSimulation.Vehicles[0].Id;
+                    idOrPath = EgoVehicle.Id;
                 }
 
                 if (idOrPath != null)
@@ -234,10 +248,14 @@ namespace Simulator.Editor
             }
             catch (CloudAPI.NoSuccessException ex)
             {
-                if (ex.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
-                    authenticated = false;
-                    ClearCookie();
+                    ErrorMessage = "This instance requires linking to a cluster on "+Config.CloudUrl;
+                    linked = false;
+                }
+                else
+                {
+                    Debug.LogException(ex);
                 }
             }
             catch (Exception ex)
@@ -254,15 +272,125 @@ namespace Simulator.Editor
                 updating = false;
                 Repaint();
             }
+        }
 
+        static readonly System.Text.RegularExpressions.Regex versionRegExp = new System.Text.RegularExpressions.Regex(@"^(\d+)\.(\d+)(-rc\d+)?$");
+        public static Task<List<string>> GetGitVersionTags()
+        {
+            var tcs = new TaskCompletionSource<List<string>>();
+            var lines = new List<string>();
+            string errorString = string.Empty;
+            try
+            {
+                var process = new System.Diagnostics.Process
+                {
+                    StartInfo = new System.Diagnostics.ProcessStartInfo
+                    {
+                        CreateNoWindow = true,
+                        RedirectStandardOutput = true,
+                        RedirectStandardInput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        FileName = "git",
+                        Arguments = "tag --sort=creatordate --merged",
+                    },
+                    EnableRaisingEvents = true
+                };
+                process.ErrorDataReceived += new System.Diagnostics.DataReceivedEventHandler(
+                    delegate (object sender, System.Diagnostics.DataReceivedEventArgs e)
+                    {
+                        if (string.IsNullOrWhiteSpace(e.Data)) return;
+                        errorString += e.Data + "\n";
+                    }
+                );
+                process.OutputDataReceived += new System.Diagnostics.DataReceivedEventHandler
+                (
+                    delegate (object sender, System.Diagnostics.DataReceivedEventArgs e)
+                    {
+                        var match = versionRegExp.Match(e.Data);
+                        if (!match.Success) return;
+                        lines.Add(e.Data);
+                    }
+                );
+                process.Start();
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+
+                process.Exited += (sender, args) =>
+                {
+                    if (!string.IsNullOrEmpty(errorString))
+                    {
+                        tcs.SetException(new Exception(errorString));
+                    }
+                    else
+                    {
+                        tcs.SetResult(lines);
+                    }
+                    process.CancelOutputRead();
+                    process.CancelErrorRead();
+                    process.Dispose();
+                };
+            }
+            catch (Exception e)
+            {
+                tcs.SetException(e);
+            }
+            return tcs.Task;
+        }
+
+        async Task UpdateVersions()
+        {
+            var tags = new List<string>();
+            try
+            {
+                tags = await GetGitVersionTags();
+            }
+            catch (Exception e)
+            {
+                ErrorMessage += $"Error invoking git to get tags: ({e.Message})";
+            }
+
+            SimulatorVersions = new List<VersionEntry>();
+            SimulatorVersions.Add(new VersionEntry { display = "Enter version manually" });
+            if (!tags.Contains(Application.version))
+            {
+                SimulatorVersions.Add(new VersionEntry { display = Application.version + " (Project Settings Version)", version = Application.version });
+            }
+
+            var currentReleaseIndex = 0;
+            tags.Reverse();
+            foreach (var tag in tags)
+            {
+                if (!tag.Contains("-rc"))
+                {
+                    SimulatorVersions.Add(new VersionEntry { display = tag + " (last release)", version = tag });
+                    currentReleaseIndex = SimulatorVersions.Count - 1;
+                    // stop with first release found and do not list older tags
+                    // user should check out tag instead as only that provides all the changed dependency to match
+                    break;
+                }
+                SimulatorVersions.Add(new VersionEntry { display = tag, version = tag });
+            }
+
+            // if no version was selected, select last release as development target
+            if (string.IsNullOrWhiteSpace(Settings.VersionOverride))
+            {
+                Settings.VersionOverride = SimulatorVersions[currentReleaseIndex].version;
+                versionIndex = currentReleaseIndex;
+            }
+            else
+            {
+                versionIndex = SimulatorVersions.FindIndex((e) => e.version == Settings.VersionOverride);
+                if (versionIndex == -1) versionIndex = 0;
+            }
         }
 
         void OnGUI()
         {
             EditorGUILayout.HelpBox("Cloud URL: " + Config.CloudUrl, MessageType.Info);
-            EditorGUILayout.HelpBox("SimID: " + Config.SimID, MessageType.None);
+            EditorGUILayout.HelpBox(new GUIContent("SimID: " + Config.SimID, "Identifies this instance"));
 
-            if (!String.IsNullOrEmpty(ErrorMessage))
+            if (!string.IsNullOrEmpty(ErrorMessage))
             {
                 EditorGUILayout.HelpBox(ErrorMessage, MessageType.Warning);
             }
@@ -281,27 +409,53 @@ namespace Simulator.Editor
 
             EditorGUI.BeginChangeCheck();
 
-            if (!authenticated)
+            EditorGUILayout.BeginHorizontal();
+            if (!linked && GUILayout.Button(new GUIContent("Link", "Add this instance to a cluster or create a cluster.")))
             {
-                loginUser = EditorGUILayout.TextField("user", loginUser);
-                loginPassword = EditorGUILayout.PasswordField("password", loginPassword);
-
-                if (GUILayout.Button("Login"))
-                {
-                    Debug.Log("Development settings connecting...");
-                    DoLogin(loginUser, loginPassword);
-                }
+                var simInfo = CloudAPI.GetInfo();
+                LinkTask(simInfo);
             }
-
-            if (GUILayout.Button("Refresh"))
+            if (GUILayout.Button(new GUIContent("Refresh", "Refresh displayed local and cloud asset data in this window.")))
             {
                 Refresh();
             }
+            if (GUILayout.Button(new GUIContent("Manage clusters", "Visit cluster page on "+Config.CloudUrl)))
+            {
+                Application.OpenURL(Config.CloudUrl + "/clusters");
+            }
+
+            EditorGUILayout.EndHorizontal();
 
             ScrollPos = EditorGUILayout.BeginScrollView(ScrollPos);
+
+            if (SimulatorVersions != null && SimulatorVersions.Count > 0)
+            {
+
+                if (versionIndex < 0 || versionIndex >= SimulatorVersions.Count)
+                {
+                    versionIndex = SimulatorVersions.FindIndex(e => e.version == Settings.VersionOverride);
+                    if (versionIndex < 0) versionIndex = 0;
+                }
+
+                versionIndex = EditorGUILayout.Popup(new GUIContent("Version", "Influences which compatible asset which will be downloaded from wise"), versionIndex, SimulatorVersions.Select(v => v.display).ToArray());
+                if (versionIndex < 0 || versionIndex >= SimulatorVersions.Count)
+                {
+                    versionIndex = SimulatorVersions.Count - 1;
+                }
+
+                if (versionIndex == 0)
+                {
+                    Settings.VersionOverride = EditorGUILayout.TextField(new GUIContent("Version", "Influences which compatible asset which will be downloaded from wise"), Settings.VersionOverride);
+                }
+                else
+                {
+                    Settings.VersionOverride = SimulatorVersions[versionIndex].version;
+                }
+            }
+
             foreach (PropertyInfo prop in typeof(SimulationData).GetProperties())
             {
-                if (prop.Name == "Id" || prop.Name == "UpdatedAt" || prop.Name == "CreatedAt" || prop.Name == "OwnerId" || prop.Name == "TestReportId")
+                if (prop.Name == "Id" || prop.Name == "UpdatedAt" || prop.Name == "CreatedAt" || prop.Name == "OwnerId" || prop.Name == "TestReportId" || prop.Name == "Version")
                     continue;
 
                 object value = prop.GetValue(DeveloperSimulation);
@@ -342,7 +496,7 @@ namespace Simulator.Editor
                 }
                 else if (prop.PropertyType == typeof(VehicleData[]))
                 {
-                    VehicleSetup = EditorGUILayout.Foldout(VehicleSetup, "EGO Setup");
+                    VehicleSetup = EditorGUILayout.Foldout(VehicleSetup, "EGO Vehicle Setup");
                     if (VehicleSetup)
                     {
                         if (VehicleChoices.Count > 0)
@@ -353,9 +507,31 @@ namespace Simulator.Editor
 
                             if (vehicle.Id.EndsWith(".prefab"))
                             {
-                                vehicle.Bridge.Type = EditorGUILayout.TextField("Bridge Type", vehicle.Bridge.Type);
-                                vehicle.Bridge.ConnectionString = EditorGUILayout.TextField("Bridge Connection", vehicle.Bridge.ConnectionString);
+                                if (Bridges.Length == 0)
+                                {
+                                    EditorGUILayout.LabelField("no local bridges available");
+                                }
+                                else
+                                {
+                                    var wantBridge = EditorGUILayout.ToggleLeft("Enable Bridge", vehicle.Bridge != null);
+                                    if (!wantBridge)
+                                    {
+                                        vehicle.Bridge = null;
+                                    }
+                                    else if (vehicle.Bridge == null)
+                                    {
+                                        vehicle.Bridge = new BridgeData { };
+                                    }
 
+                                    if (vehicle.Bridge != null)
+                                    {
+                                        var bridgeIndex = Array.IndexOf(Bridges, vehicle.Bridge.Type);
+                                        if (bridgeIndex < 0) bridgeIndex = 0;
+                                        bridgeIndex = EditorGUILayout.Popup("Bridge Type", bridgeIndex, Bridges);
+                                        vehicle.Bridge.Type = Bridges[bridgeIndex];
+                                        vehicle.Bridge.ConnectionString = EditorGUILayout.TextField("Bridge Connection", vehicle.Bridge.ConnectionString);
+                                    }
+                                }
                                 EditorGUILayout.LabelField("json sensor config");
                                 SensorScratchPad = EditorGUILayout.TextArea(SensorScratchPad, GUILayout.ExpandHeight(true));
 
@@ -379,7 +555,7 @@ namespace Simulator.Editor
                                     vehicle.Bridge.ConnectionString = EditorGUILayout.TextField("Bridge Connection", vehicle.Bridge.ConnectionString);
                                     EditorGUILayout.TextField("Bridge Type", vehicle.Bridge.Type);
                                     EditorGUILayout.TextField("Bridge Name", vehicle.Bridge.Name);
-                                    EditorGUILayout.TextField("Bridge AssetGuid", vehicle.Bridge.AssetGuid);
+                                    EditorGUILayout.TextField("Bridge Id", vehicle.Bridge.Id);
                                 }
                                 EditorGUILayout.LabelField("json sensor config");
                                 EditorGUILayout.TextArea(JsonConvert.SerializeObject(vehicle.Sensors, JsonSettings.camelCasePretty), GUILayout.ExpandHeight(true));
@@ -425,7 +601,7 @@ namespace Simulator.Editor
 
             if (EditorGUI.EndChangeCheck())
             {
-                SaveAssetTime = Time.realtimeSinceStartup + 3.0f;
+                SaveAssetTime = Time.realtimeSinceStartup;
             }
         }
 
@@ -455,7 +631,7 @@ namespace Simulator.Editor
                 vehicle = new VehicleData
                 {
                     Id = selection.cloudIdOrPrefabPath,
-                    Bridge = previousVehicle?.Bridge ?? new BridgeData()
+                    Bridge = previousVehicle?.Bridge
                 };
             }
             else // Cloud Vehicle
@@ -480,12 +656,15 @@ namespace Simulator.Editor
                 return;
             updateVehicleDetails = false;
 
-            if (API == null || !authenticated)
+            if (API == null)
                 return;
 
             if (DeveloperSimulation.Vehicles == null) return;
+            var pluginLibrary = await API.GetLibrary<PluginDetailData>();
+            var bridgeLibrary = pluginLibrary.Where(p => p.Category == "bridge");
 
-            if (!DeveloperSimulation.Vehicles[0].Id.EndsWith(".prefab"))
+
+            if (!EgoVehicle.Id.EndsWith(".prefab"))
             {
                 try
                 {
@@ -497,29 +676,40 @@ namespace Simulator.Editor
                     var selectedConfig = data.SensorsConfigurations.First(c => c.Id == selection.configId);
                     data.Sensors = selectedConfig.Sensors;
                     data.Bridge = selectedConfig.Bridge;
-                    // copy previous bridge data as it is not saved with the vehicle
-                    if (DeveloperSimulation.Vehicles[0].Bridge != null && selectedConfig.Bridge != null)
+
+                    if (data.Bridge != null && string.IsNullOrEmpty(data.Bridge.AssetGuid))
                     {
-                        data.Bridge.ConnectionString = DeveloperSimulation.Vehicles[0].Bridge.ConnectionString;
+                        var candidate = bridgeLibrary.FirstOrDefault(p => p.Id == selectedConfig.BridgePluginId);
+                        if (candidate != null)
+                        {
+                            data.Bridge.AssetGuid = candidate.AssetGuid;
+                        }
+                    }
+
+                    // copy previous bridge data as it is not saved with the vehicle
+                    if (EgoVehicle.Bridge != null && selectedConfig.Bridge != null)
+                    {
+                        data.Bridge.ConnectionString = EgoVehicle.Bridge.ConnectionString;
                     }
                     DeveloperSimulation.Vehicles = new VehicleData[] { data.ToVehicleData() };
 
                     // splice in fetched data (containing extended data like bridge) for matching id
-                    CloudVehicles = CloudVehicles.Select(v => v.Id == DeveloperSimulation.Vehicles[0].Id ? data : v).ToList();
+                    CloudVehicles = CloudVehicles.Select(v => v.Id == EgoVehicle.Id ? data : v).ToList();
                 }
                 catch (Exception e)
                 {
-                    Debug.Log($"Failed to get details of vehicle {DeveloperSimulation.Vehicles[0].Id}: {e.Message}");
+                    Debug.LogException(e);
+                    Debug.LogWarning($"Failed to get details of vehicle {EgoVehicle.Id}: {e.Message}");
                 }
             }
 
-            if (DeveloperSimulation.Vehicles[0].Sensors != null)
+            if (EgoVehicle.Sensors != null)
             {
                 try
                 {
-                    PluginDetailData[] sensorsLibrary = null;
+                    var sensorsLibrary = pluginLibrary.Where(p => p.Category == "sensor");
 
-                    foreach (var sensor in DeveloperSimulation.Vehicles[0].Sensors)
+                    foreach (var sensor in EgoVehicle.Sensors)
                     {
                         if (sensor.Plugin == null)
                         {
@@ -549,11 +739,6 @@ namespace Simulator.Editor
                                 continue;
                             }
 
-                            if (sensorsLibrary == null)
-                            {
-                                sensorsLibrary = (await API.GetLibrary<PluginDetailData>())
-                                    .Where(p => p.Category == "sensor").ToArray();
-                            }
                             PluginDetailData candidate = null;
                             if (!string.IsNullOrEmpty(sensor.Plugin.Id))
                             {
@@ -581,23 +766,12 @@ namespace Simulator.Editor
                             }
                         }
                     }
-                    SensorScratchPad = JsonConvert.SerializeObject(DeveloperSimulation.Vehicles[0].Sensors, JsonSettings.camelCasePretty);
+                    SensorScratchPad = JsonConvert.SerializeObject(EgoVehicle.Sensors, JsonSettings.camelCasePretty);
                 }
                 catch (Exception e)
                 {
                     Debug.Log($"Failed update complete sensor configuration: {e.Message}");
                 }
-            }
-        }
-
-        async void DoLogin(string email, string password)
-        {
-            ClearCookie();
-            authenticated = await API.Login(email, password);
-            if (!authenticated)
-            {
-                ErrorMessage = "Development settings login failed, be sure email and password are correct";
-                Debug.LogWarning(ErrorMessage);
             }
         }
 
@@ -609,7 +783,6 @@ namespace Simulator.Editor
                 updating = true;
                 await UpdateCloudVehicleDetails();
                 Settings.developerSimulationJson = JsonConvert.SerializeObject(DeveloperSimulation, JsonSettings.camelCase);
-                SaveCookie();
                 EditorUtility.SetDirty(Settings);
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
@@ -624,34 +797,69 @@ namespace Simulator.Editor
 
         private void OnLostFocus()
         {
-            UpdateAsset();
-        }
-
-        private void LoadCookie()
-        {
-            // cannot deserialize directly to cookiecontainer unfortunately
-            if (!string.IsNullOrEmpty(Settings.APICookie))
+            if (Time.realtimeSinceStartup >= SaveAssetTime)
             {
-                var collection = JsonConvert.DeserializeObject<List<System.Net.Cookie>>(Settings.APICookie);
-                foreach (var cookie in collection)
-                {
-                    cookieContainer.Add(cookie);
-                }
+               UpdateAsset();
             }
         }
 
-        private void SaveCookie()
+        async void LinkTask(SimulatorInfo simInfo)
         {
-            var cookies = cookieContainer.GetCookies(new Uri(Config.CloudUrl));
-            Settings.APICookie = JsonConvert.SerializeObject(cookies);
-        }
-
-        private void ClearCookie()
-        {
-            var cookies = cookieContainer.GetCookies(new Uri(Config.CloudUrl));
-            foreach (System.Net.Cookie cookie in cookies)
+            try
             {
-                cookie.Expired = true;
+                var stream = await API.Connect(simInfo);
+                string line;
+                using var reader = new StreamReader(stream);
+                while (true)
+                {
+                    var lineTask = reader.ReadLineAsync();
+                    if (await Task.WhenAny(lineTask, Task.Delay(30000)) != lineTask)
+                    {
+                        Debug.Log("Took to long to link to cluster, aborting");
+                        return;
+                    }
+                    line = lineTask.Result;
+
+                    if (line == null)
+                    {
+                        break;
+                    }
+
+                    if (line.StartsWith("data:") && !string.IsNullOrEmpty(line.Substring(6)))
+                    {
+                        JObject deserialized = JObject.Parse(line.Substring(5));
+                        if (deserialized != null && deserialized.HasValues)
+                        {
+                            var status = deserialized.GetValue("status");
+                            if (status != null)
+                            {
+                                switch (status.ToString())
+                                {
+                                    case "Unrecognized":
+                                        Application.OpenURL(Config.CloudUrl + "/clusters/link?token=" + simInfo.linkToken);
+                                        break;
+                                    case "OK":
+                                        Debug.Log("appear to be linked!");
+                                        Refresh();
+                                        linked = true;
+                                        return;
+                                    default:
+                                        return;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("error linking editor instance to wise");
+                Debug.LogException(e);
+            }
+            finally
+            {
+                Debug.Log("closing api");
+                API.Disconnect();
             }
         }
     }

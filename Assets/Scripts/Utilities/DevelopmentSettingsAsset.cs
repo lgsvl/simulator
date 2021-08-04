@@ -19,5 +19,6 @@ namespace Simulator.Editor
         public string developerSimulationJson;
         public string VehicleConfigId;
         public string APICookie;
+        public string VersionOverride;
     }
 }

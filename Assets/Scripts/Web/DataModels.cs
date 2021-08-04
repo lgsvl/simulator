@@ -139,6 +139,7 @@ namespace Simulator.Web
 
     public class BridgeData
     {
+        public string Id { get; set; }
         public string Name { get; set; }
         public string AssetGuid { get; set; }
         public string Type { get; set; }

@@ -324,7 +324,16 @@ namespace Simulator
 
                     var simInfo = CloudAPI.GetInfo();
                     var reader = await API.Connect(simInfo);
-                    await API.EnsureConnectSuccess();
+                    var streamReader = await API.EnsureConnectSuccess();
+                    EditorApplication.playModeStateChanged += (PlayModeStateChange state) =>
+                    {
+                        if (state == PlayModeStateChange.ExitingPlayMode)
+                        {
+                            streamReader.Close();
+                            streamReader.Dispose();
+                            API.Disconnect();
+                        }
+                    };
                 }
 #endif
                 currentSimulation = simData;
@@ -349,10 +358,27 @@ namespace Simulator
                     }
 
                     List<string> bridgeGUIDs = new List<string>();
-                    foreach (var vehicle in simData.Vehicles)
+                    foreach (var vehicle in simData.Vehicles.Where(v => v.Bridge != null))
                     {
-                        if (vehicle.Bridge != null && !bridgeGUIDs.Contains(vehicle.Bridge.AssetGuid))
+#if UNITY_EDITOR
+                        // as of now, developer settings cannot look up bridge assetguid while offline.
+                        if (string.IsNullOrEmpty(vehicle.Bridge.AssetGuid))
                         {
+                            Debug.Log("missing assetguid on bridge, looking up by id " + vehicle.Bridge.Id);
+                            var bridge = await API.GetByIdOrName<PluginDetailData>(vehicle.Bridge.Id);
+                            if (bridge != null)
+                            {
+                                vehicle.Bridge.AssetGuid = bridge.AssetGuid;
+                            }
+                            else
+                            {
+                                Debug.LogWarning("bridge assetguid lookup failed.");
+                            }
+                        }
+#endif
+                        if (!bridgeGUIDs.Contains(vehicle.Bridge.AssetGuid))
+                        {
+                            Debug.Log($"adding bridge for vehicle {vehicle.Name}: {vehicle.Bridge.AssetGuid}");
                             bridgeGUIDs.Add(vehicle.Bridge.AssetGuid);
                             var task = DownloadManager.GetAsset(BundleConfig.BundleTypes.Bridge, vehicle.Bridge.AssetGuid, vehicle.Bridge.Name);
                             downloads.Add(task);
@@ -371,8 +397,14 @@ namespace Simulator
                                 Debug.Log($"Sensor {plugin.Name} is not being downloaded, but used from cache or local sources. (Developer Debug Mode)");
                                 continue;
                             }
+                            // WISE stopped sending us assetGuids when in edit mode (no simId),
+                            // so we have to look up while in play mode.
+                            if (plugin.Plugin.AssetGuid == null)
+                            {
+                                var detail = await API.GetByIdOrName<PluginDetailData>(plugin.Plugin.Id);
+                                plugin.Plugin.AssetGuid = detail.AssetGuid;
+                            }
 #endif
-
                             if (plugin.Plugin.AssetGuid != null
                                 && sensorsToDownload.FirstOrDefault(s => s.Plugin.AssetGuid == plugin.Plugin.AssetGuid) == null
                             )

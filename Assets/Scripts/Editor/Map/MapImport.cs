@@ -1,11 +1,10 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
  */
 
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using Simulator.Editor;
@@ -13,13 +12,18 @@ using Simulator.Map;
 
 public class MapImport : EditorWindow
 {
-    [SerializeField] int Selected = 0;
-    [SerializeField] string FileName;
-    [SerializeField] float DownSampleDistanceThreshold = 10.0f; // DownSample distance threshold for points to keep
-    [SerializeField] float DownSampleDeltaThreshold = 0.35f; // For down sampling, delta threshold for curve points
-    [SerializeField] bool IsMeshNeeded = true; // Boolean value for traffic light/sign mesh importing.
-    [SerializeField] bool IsConnectLanes = true; // Boolean value for whether to connect lanes based on links in OpenDRIVE.
-
+    [SerializeField]
+    private int Selected = 0;
+    [SerializeField]
+    private string FileName;
+    [SerializeField]
+    private float DownSampleDistanceThreshold = 10.0f; // DownSample distance threshold for points to keep
+    [SerializeField]
+    private float DownSampleDeltaThreshold = 0.35f; // For down sampling, delta threshold for curve points
+    [SerializeField]
+    private bool IsMeshNeeded = true; // Boolean value for traffic light/sign mesh importing.
+    [SerializeField]
+    private bool IsConnectLanes = true; // Boolean value for whether to connect lanes based on links in OpenDRIVE.
 
     string[] importFormats = new string[]
     {
@@ -55,71 +59,93 @@ public class MapImport : EditorWindow
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
         GUILayout.Space(10);
 
-        EditorGUILayout.HelpBox("Settings", UnityEditor.MessageType.Info);
-        var selectedNew = EditorGUILayout.Popup("Import Format", Selected, importFormats);
-        GUILayout.Space(10);
+        if (!FindObjectOfType<MapHolder>())
+        {
+            var selectedNew = EditorGUILayout.Popup("Import Format", Selected, importFormats);
+            GUILayout.Space(10);
 
-
-        if (Selected != selectedNew)
-        {
-            FileName = "";
-            Selected = selectedNew;
-        }
-
-        IsMeshNeeded = GUILayout.Toggle(IsMeshNeeded, " Create Signal/sign Mesh?");
-        if (importFormats[Selected] == "Apollo 5 HD Map")
-        {
-            DownSampleDistanceThreshold = EditorGUILayout.FloatField(
-                new GUIContent("Distance Threshold", "distance threshold to down sample imported points"), 
-                DownSampleDistanceThreshold);
-            DownSampleDeltaThreshold = EditorGUILayout.FloatField(
-                new GUIContent("Delta Threshold", "delta threshold to down sample imported turning lines"),
-                DownSampleDeltaThreshold);
-            SelectFile(importFormats[Selected], "bin");
-        }
-        else if (importFormats[Selected] == "Lanelet2 Map")
-        {
-            SelectFile(importFormats[Selected], "osm");
-        }
-        else if (importFormats[Selected] == "OpenDRIVE Map")
-        {
-            IsConnectLanes = GUILayout.Toggle(IsConnectLanes, " Connect Lanes based on Links?");
-            DownSampleDistanceThreshold = EditorGUILayout.FloatField(
-                new GUIContent("Distance Threshold", "distance threshold to down sample imported points"), 
-                DownSampleDistanceThreshold);
-            DownSampleDeltaThreshold = EditorGUILayout.FloatField(
-                new GUIContent("Delta Threshold", "delta threshold to down sample imported turning lines"),
-                DownSampleDeltaThreshold);
-            SelectFile(importFormats[Selected], "xodr");
-        }
-
-        if (GUILayout.Button(new GUIContent("Import", $"Import {importFormats[Selected]}")))
-        {
-            if (string.IsNullOrEmpty(FileName))
+            if (Selected != selectedNew)
             {
-                EditorUtility.DisplayDialog("Error", "Please specify input file/folder name!", "OK");
-                return;
+                FileName = "";
+                Selected = selectedNew;
             }
+
+            IsMeshNeeded = GUILayout.Toggle(IsMeshNeeded, " Create Signal/sign Mesh?");
 
             if (importFormats[Selected] == "Apollo 5 HD Map")
             {
-                ApolloMapImporter ApolloMapImporter = new ApolloMapImporter(
-                    DownSampleDistanceThreshold, DownSampleDeltaThreshold, IsMeshNeeded);
-                ApolloMapImporter.Import(FileName);
+                DownSampleDistanceThreshold = EditorGUILayout.FloatField(
+                    new GUIContent("Distance Threshold", "distance threshold to down sample imported points"),
+                    DownSampleDistanceThreshold);
+                DownSampleDeltaThreshold = EditorGUILayout.FloatField(
+                    new GUIContent("Delta Threshold", "delta threshold to down sample imported turning lines"),
+                    DownSampleDeltaThreshold);
+                SelectFile(importFormats[Selected], "bin");
             }
             else if (importFormats[Selected] == "Lanelet2 Map")
             {
-                Lanelet2MapImporter laneLet2MapImporter = new Lanelet2MapImporter(IsMeshNeeded);
-                laneLet2MapImporter.Import(FileName);
+                SelectFile(importFormats[Selected], "osm");
+            }
+            else if (importFormats[Selected] == "OpenDRIVE Map")
+            {
+                IsConnectLanes = GUILayout.Toggle(IsConnectLanes, " Connect Lanes based on Links?");
+                DownSampleDistanceThreshold = EditorGUILayout.FloatField(
+                    new GUIContent("Distance Threshold", "distance threshold to down sample imported points"),
+                    DownSampleDistanceThreshold);
+                DownSampleDeltaThreshold = EditorGUILayout.FloatField(
+                    new GUIContent("Delta Threshold", "delta threshold to down sample imported turning lines"),
+                    DownSampleDeltaThreshold);
+                SelectFile(importFormats[Selected], "xodr");
             }
 
-            if (importFormats[Selected] == "OpenDRIVE Map")
+            if (GUILayout.Button(new GUIContent("Import", $"Import {importFormats[Selected]}")))
             {
-                OpenDriveMapImporter openDriveMapImporter = new OpenDriveMapImporter(
-                                        DownSampleDistanceThreshold, DownSampleDeltaThreshold,
-                                        IsMeshNeeded, IsConnectLanes);
-                openDriveMapImporter.Import(FileName);
+                if (string.IsNullOrEmpty(FileName))
+                {
+                    EditorUtility.DisplayDialog("Error", "Please specify input file/folder name!", "OK");
+                    return;
+                }
+
+                if (importFormats[Selected] == "Apollo 5 HD Map")
+                {
+                    ApolloMapImporter ApolloMapImporter = new ApolloMapImporter(
+                        DownSampleDistanceThreshold, DownSampleDeltaThreshold, IsMeshNeeded);
+                    ApolloMapImporter.Import(FileName);
+                }
+                else if (importFormats[Selected] == "Lanelet2 Map")
+                {
+                    Lanelet2MapImporter laneLet2MapImporter = new Lanelet2MapImporter(IsMeshNeeded);
+                    laneLet2MapImporter.Import(FileName);
+                }
+
+                if (importFormats[Selected] == "OpenDRIVE Map")
+                {
+                    OpenDriveMapImporter openDriveMapImporter = new OpenDriveMapImporter(
+                                            DownSampleDistanceThreshold, DownSampleDeltaThreshold,
+                                            IsMeshNeeded, IsConnectLanes);
+                    openDriveMapImporter.Import(FileName);
+                }
             }
+        }
+        else
+        {
+            EditorGUILayout.HelpBox("Please delete current map data before importing new data", MessageType.Warning);
+            GUILayout.Space(10);
+            if (GUILayout.Button(new GUIContent("Delete Map Data", "Delete map annotation holder in scene"), GUILayout.ExpandWidth(true)))
+            {
+                DeleteMapHolder();
+            }
+        }
+    }
+
+    private void DeleteMapHolder()
+    {
+        var map = FindObjectOfType<MapHolder>().gameObject;
+        if (map != null)
+        {
+            Undo.DestroyObjectImmediate(map);
+            SceneView.RepaintAll();
+            Debug.Log("MapHolder object destroyed Ctrl+Z to undo");
         }
     }
 

@@ -15,10 +15,12 @@ using Simulator.Map;
 using Unity.Mathematics;
 using Utility = Simulator.Utilities.Utility;
 using UnityEditor.SceneManagement;
+using UnityEditor;
 
 namespace Simulator.Editor
 {
-using apollo.hdmap;
+    using apollo.hdmap;
+
     public class ApolloMapImporter
     {
         EditorSettings Settings;
@@ -65,6 +67,11 @@ using apollo.hdmap;
             else
             {
                 Debug.LogError("Failed to import Apollo HD Map.");
+                var mapObj = GameObject.FindObjectOfType<MapHolder>().gameObject;
+                if (mapObj != null)
+                {
+                    GameObject.DestroyImmediate(mapObj);
+                }
             }
         }
 
@@ -125,6 +132,7 @@ using apollo.hdmap;
             }
 
             GameObject map = new GameObject(mapName);
+            Undo.RegisterCreatedObjectUndo(map, "MapHolderUndo");
             var mapHolder = map.AddComponent<MapHolder>();
 
             // Create TrafficLanes and Intersections under Map
@@ -144,6 +152,7 @@ using apollo.hdmap;
         // read map origin, update MapOrigin
         bool CreateOrUpdateMapOrigin(Map apolloMap, MapOrigin mapOrigin)
         {
+            Undo.RegisterCompleteObjectUndo(mapOrigin, "MapOriginEdit");
             var header = apolloMap.header;
             var geoReference = header.projection.proj;
             var items = geoReference.Split('+')

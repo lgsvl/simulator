@@ -14,6 +14,7 @@ using Simulator.Map;
 using OsmSharp;
 using Utility = Simulator.Utilities.Utility;
 using UnityEditor.SceneManagement;
+using UnityEditor;
 
 namespace Simulator.Editor
 {
@@ -52,7 +53,12 @@ namespace Simulator.Editor
             }
             else
             {
-                Debug.Log("Failed to import lanelet2 map.");
+                Debug.LogError("Failed to import lanelet2 map.");
+                var mapObj = GameObject.FindObjectOfType<MapHolder>().gameObject;
+                if (mapObj != null)
+                {
+                    GameObject.DestroyImmediate(mapObj);
+                }
             }
         }
 
@@ -158,6 +164,7 @@ namespace Simulator.Editor
 
         void UpdateMapOrigin(IEnumerable<OsmGeo> Lanelet2Map)
         {
+            Undo.RegisterCompleteObjectUndo(MapOrigin, "MapOriginEdit");
             // Get first node as the origin
             Node originNode = null;
             foreach (var element in Lanelet2Map)
@@ -218,6 +225,7 @@ namespace Simulator.Editor
                 }
 
                 GameObject map = new GameObject(mapName);
+                Undo.RegisterCreatedObjectUndo(map, "MapHolderUndo");
                 var mapHolder = map.AddComponent<MapHolder>();
 
                 // Create TrafficLanes and Intersections under Map

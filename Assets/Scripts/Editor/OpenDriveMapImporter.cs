@@ -20,6 +20,7 @@ using Schemas;
 using Unity.Mathematics;
 using Utility = Simulator.Utilities.Utility;
 using UnityEditor.SceneManagement;
+using UnityEditor;
 
 namespace Simulator.Editor
 {
@@ -91,7 +92,12 @@ namespace Simulator.Editor
             }
             else
             {
-                Debug.Log("Failed to import OpenDRIVE map.");
+                Debug.LogError("Failed to import OpenDRIVE map.");
+                var mapObj = GameObject.FindObjectOfType<MapHolder>().gameObject;
+                if (mapObj != null)
+                {
+                    GameObject.DestroyImmediate(mapObj);
+                }
             }
         }
 
@@ -230,6 +236,7 @@ namespace Simulator.Editor
             }
 
             Map = new GameObject(mapName);
+            Undo.RegisterCreatedObjectUndo(Map, "MapHolderUndo");
             MapHolder = Map.AddComponent<MapHolder>();
 
             // Create TrafficLanes and Intersections under Map
@@ -249,6 +256,7 @@ namespace Simulator.Editor
         // read map origin, update MapOrigin
         bool CreateOrUpdateMapOrigin(OpenDRIVE openDRIVEMap, MapOrigin mapOrigin)
         {
+            Undo.RegisterCompleteObjectUndo(mapOrigin, "MapOriginEdit");
             var header = openDRIVEMap.header;
             var geoReference = header.geoReference;
             if (geoReference == null)

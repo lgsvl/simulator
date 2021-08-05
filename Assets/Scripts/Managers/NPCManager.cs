@@ -172,6 +172,8 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
                 {
                     NPCType = data.NPCType,
                     Prefab = obj,
+                    Name = data.Name,
+                    AssetGuid = data.AssetGuid
                 });
 
                 if (NPCColorData.Count(d => d.Type == data.NPCType) == 0)

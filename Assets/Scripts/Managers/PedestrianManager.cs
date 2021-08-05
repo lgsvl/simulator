@@ -140,6 +140,7 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
                 {
                     Prefab = obj,
                     Name = obj.name,
+                    AssetGuid = data.AssetGuid
                 });
             }
         }

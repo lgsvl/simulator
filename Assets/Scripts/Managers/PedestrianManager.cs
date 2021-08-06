@@ -275,8 +275,6 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         pedController.GUID = spawnData.GenId;
         CurrentPooledPeds.Add(pedController);
 
-        SimulatorManager.Instance.UpdateSegmentationColors(ped);
-
         if (spawnData.API)
         {
             pedController.InitAPIPed(spawnData);
@@ -315,6 +313,8 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
             CurrentPooledPeds[i].InitPed(spawnPoint.position, spawnPoint.spawnIndex, pedLane.mapWorldPositions, PEDSeedGenerator.Next(), pedLane);
             CurrentPooledPeds[i].gameObject.SetActive(true);
             ActivePedCount++;
+
+            SimulatorManager.Instance.UpdateSegmentationColors(CurrentPooledPeds[i].gameObject, CurrentPooledPeds[i].GTID);
         }
     }
 
@@ -324,6 +324,8 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         ActivePedCount--;
         ped.transform.position = transform.position;
         ped.transform.rotation = Quaternion.identity;
+
+        SimulatorManager.Instance.SegmentationIdMapping.RemoveSegmentationId(ped.GTID);
     }
 
     public void DespawnAllPeds()
@@ -351,7 +353,10 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         PEDSeedGenerator = new System.Random(Seed);
 
         List<PedestrianController> peds = new List<PedestrianController>(CurrentPooledPeds);
-        peds.ForEach(x => DespawnPedestrianApi(x));
+        peds.ForEach(x =>
+        {
+            DespawnPedestrianApi(x);
+        });
         CurrentPooledPeds.Clear();
         ClearSpawnCallbacks();
         ClearDespawnCallbacks();

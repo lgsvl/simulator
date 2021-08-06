@@ -38,6 +38,8 @@ namespace Simulator.Utilities
         public float LineWidth = 5f;
         public Camera Camera;
 
+        public bool IgnoreUpdates;
+
         void Start()
         {
             Vertices = new List<Vertex>(BufferGranularity);
@@ -78,6 +80,9 @@ namespace Simulator.Utilities
         // min/max is in (0,0) - (width,height) coordinates
         public void DrawBox(Vector2 min, Vector2 max, Color color)
         {
+            if (Vertices == null)
+                return;
+
             min = 2f * min * new Vector2(1f / Camera.pixelWidth, 1f / Camera.pixelHeight) - Vector2.one;
             max = 2f * max * new Vector2(1f / Camera.pixelWidth, 1f / Camera.pixelHeight) - Vector2.one;
 
@@ -113,6 +118,9 @@ namespace Simulator.Utilities
         // start-end will be clipped by (0,0) - (width,height) window
         public void DrawClippedLine(Vector2 start, Vector2 end, Color color)
         {
+            if (Vertices == null)
+                return;
+
             //Debug.Log("start: " + start.ToString() + ", end: " + end.ToString());
             // defining variables
             float p1 = -(end.x - start.x);
@@ -191,18 +199,22 @@ namespace Simulator.Utilities
         // start/end is in (0,0) - (width,height) coordinates
         public void DrawLine(Vector2 start, Vector2 end, Color color)
         {
+            if (Vertices == null)
+                return;
+
             start = 2f * start * new Vector2(1f / Camera.pixelWidth, 1f / Camera.pixelHeight) - Vector2.one;
             end = 2f * end * new Vector2(1f / Camera.pixelWidth, 1f / Camera.pixelHeight) - Vector2.one;
 
             DrawLineCamera(start, end, color);
         }
 
-        void LateUpdate()
+        private void LateUpdate()
         {
-            if (Vertices.Count == 0)
-            {
+            if (IgnoreUpdates)
                 return;
-            }
+
+            if (Vertices.Count == 0)
+                return;
 
             if (Buffer == null || Vertices.Count > Buffer.count)
             {
@@ -219,6 +231,31 @@ namespace Simulator.Utilities
             var bounds = new Bounds(Vector3.zero, new Vector3(10000, 10000, 10000));
             Graphics.DrawProcedural(Material, bounds, MeshTopology.Triangles, Vertices.Count, 1, Camera, null, ShadowCastingMode.Off, false, layer: 1);
             Vertices.Clear();
+        }
+
+        public void Draw(CommandBuffer cmd)
+        {
+            if (Vertices == null || Vertices.Count == 0)
+                return;
+
+            if (Buffer == null || Vertices.Count > Buffer.count)
+            {
+                Buffer?.Release();
+
+                int newCount = ((Vertices.Count + BufferGranularity - 1) / BufferGranularity) * BufferGranularity;
+                Buffer = new ComputeBuffer(newCount, UnsafeUtility.SizeOf<Vertex>());
+                Material.SetBuffer("_Vertices", Buffer);
+            }
+
+            Buffer.SetData(Vertices, 0, 0, Vertices.Count);
+
+            cmd.SetRenderTarget(Camera.targetTexture);
+            cmd.DrawProcedural(Matrix4x4.identity, Material, 0, MeshTopology.Triangles, Vertices.Count);
+        }
+
+        public void Clear()
+        {
+            Vertices?.Clear();
         }
     }
 }

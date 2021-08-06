@@ -26,3 +26,4 @@ MonoBehaviour:
   LidarComputeShader: {fileID: 7200000, guid: 3453acc130e86ea4cbba2e7ed0a63450, type: 3}
   SignedDistanceFieldShader: {fileID: 7200000, guid: aeb358e36000a874fa4206478f0ea9f6,
     type: 3}
+  ComputeUtils: {fileID: 7200000, guid: 3d4c029a2bf5f7841b220228461cb19e, type: 3}

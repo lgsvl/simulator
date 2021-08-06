@@ -116,6 +116,11 @@ public class AgentManager : MonoBehaviour
             SimulatorManager.Instance.EnvironmentEffectsManager.InitRainVFX(go.transform);
         }
 
+        if (controller != null)
+        {
+            SimulatorManager.Instance.UpdateSegmentationColors(go, controller.GTID);
+        }
+
         go.SetActive(true);
         return go;
     }
@@ -210,6 +215,12 @@ public class AgentManager : MonoBehaviour
         if (SimulatorManager.Instance.IsAPI)
         {
             SimulatorManager.Instance.EnvironmentEffectsManager.ClearRainVFX(go.transform);
+        }
+
+        var controller = go.GetComponent<IAgentController>();
+        if (controller != null)
+        {
+            SimulatorManager.Instance.SegmentationIdMapping.RemoveSegmentationId(controller.GTID);
         }
 
         ActiveAgents.RemoveAll(config => config.AgentGO == go);

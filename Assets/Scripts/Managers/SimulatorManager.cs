@@ -13,6 +13,7 @@ using Simulator;
 using Simulator.Api;
 using Simulator.Controllable;
 using Simulator.Analysis;
+using Simulator.Components;
 using Simulator.Network.Core.Messaging.Data;
 using Simulator.Sensors;
 using UnityEngine.SceneManagement;
@@ -110,6 +111,10 @@ public class SimulatorManager : MonoBehaviour
     public uint SignalIDs { get; set; }
     private System.Random RandomGenerator;
     private HashSet<Color> InstanceColorSet = new HashSet<Color>();
+
+    private readonly SegmentationIdMapping segmentationIdMapping = new SegmentationIdMapping();
+
+    public SegmentationIdMapping SegmentationIdMapping => segmentationIdMapping;
 
     private void Awake()
     {
@@ -342,60 +347,79 @@ public class SimulatorManager : MonoBehaviour
 
         foreach (var item in SegmentationColors)
         {
-            foreach (var obj in GameObject.FindGameObjectsWithTag(item.Tag))
+            // "Car" and "Pedestrian" may be inactive, and thus cannot be found by tag.
+            // So we deal with these two tags separately by loop over the corresponding pools.
+            if (item.Tag == "Car")
             {
-                Color segmentationColor = item.IsInstanceSegmenation ? GenerateSimilarColor(item.Color) : item.Color;
-
-                obj.GetComponentsInChildren(true, renderers);
-                renderers.ForEach(renderer =>
+                foreach (NPCController npcController in NPCManager.CurrentPooledNPCs)
                 {
-                    if (item.IsInstanceSegmenation)
-                        renderer.GetMaterials(materials);
-                    else
+                    UpdateSegmentationColors(npcController.gameObject, npcController.GTID);
+                }
+            }
+            else if (item.Tag == "Pedestrian")
+            {
+                foreach (PedestrianController pedestrianController in PedestrianManager.CurrentPooledPeds)
+                {
+                    UpdateSegmentationColors(pedestrianController.gameObject, pedestrianController.GTID);
+                }
+            }
+            else
+            {
+                foreach (var obj in GameObject.FindGameObjectsWithTag(item.Tag))
+                {
+                    Color segmentationColor = item.IsInstanceSegmenation ? GenerateSimilarColor(item.Color) : item.Color;
+
+                    obj.GetComponentsInChildren(true, renderers);
+                    renderers.ForEach(renderer =>
                     {
-                        if (Application.isEditor)
-                        {
-                            renderer.GetSharedMaterials(sharedMaterials);
+                        if (item.IsInstanceSegmenation)
                             renderer.GetMaterials(materials);
-
-                            Debug.Assert(sharedMaterials.Count == materials.Count);
-
-                            for (int i = 0; i < materials.Count; i++)
+                        else
+                        {
+                            if (Application.isEditor)
                             {
-                                if (sharedMaterials[i] == null)
+                                renderer.GetSharedMaterials(sharedMaterials);
+                                renderer.GetMaterials(materials);
+
+                                Debug.Assert(sharedMaterials.Count == materials.Count);
+
+                                for (int i = 0; i < materials.Count; i++)
                                 {
-                                    Debug.LogWarning($"{renderer.gameObject.name} has null material", renderer.gameObject);
-                                }
-                                else
-                                {
-                                    if (mapping.TryGetValue(sharedMaterials[i], out var mat))
+                                    if (sharedMaterials[i] == null)
                                     {
-                                        DestroyImmediate(materials[i]);
-                                        materials[i] = mat;
+                                        Debug.LogWarning($"{renderer.gameObject.name} has null material", renderer.gameObject);
                                     }
                                     else
                                     {
-                                        mapping.Add(sharedMaterials[i], materials[i]);
+                                        if (mapping.TryGetValue(sharedMaterials[i], out var mat))
+                                        {
+                                            DestroyImmediate(materials[i]);
+                                            materials[i] = mat;
+                                        }
+                                        else
+                                        {
+                                            mapping.Add(sharedMaterials[i], materials[i]);
+                                        }
                                     }
                                 }
+
+                                renderer.materials = materials.ToArray();
                             }
+                            else
+                            {
+                                renderer.GetSharedMaterials(materials);
+                            }
+                        }
 
-                            renderer.materials = materials.ToArray();
-                        }
-                        else
+                        materials.ForEach(material =>
                         {
-                            renderer.GetSharedMaterials(materials);
-                        }
-                    }
-
-                    materials.ForEach(material =>
-                    {
-                        if (material != null)
-                        {
-                            material.SetColor("_SegmentationColor", segmentationColor);
-                        }
+                            if (material != null)
+                            {
+                                material.SetColor("_SegmentationColor", segmentationColor);
+                            }
+                        });
                     });
-                });
+                }
             }
         }
     }
@@ -431,14 +455,14 @@ public class SimulatorManager : MonoBehaviour
             {
                 foreach (NPCController npcController in NPCManager.CurrentPooledNPCs)
                 {
-                    UpdateSegmentationColors(npcController.gameObject);
+                    UpdateSegmentationColors(npcController.gameObject, npcController.GTID);
                 }
             }
             else if (item.Tag == "Pedestrian")
             {
                 foreach (PedestrianController pedestrianController in PedestrianManager.CurrentPooledPeds)
                 {
-                    UpdateSegmentationColors(pedestrianController.gameObject);
+                    UpdateSegmentationColors(pedestrianController.gameObject, pedestrianController.GTID);
                 }
             }
             else
@@ -504,23 +528,29 @@ public class SimulatorManager : MonoBehaviour
         }
     }
 
-    public void UpdateSegmentationColors(GameObject obj)
+    public void UpdateSegmentationColors(GameObject obj, uint? gtid = null)
     {
         var renderers = new List<Renderer>(1024);
         var sharedMaterials = new List<Material>(8);
         var materials = new List<Material>(8);
         var mapping = new Dictionary<Material, Material>();
 
+        var segId = gtid != null ? SegmentationIdMapping.AddSegmentationId(obj, gtid.Value) : -1;
+
         foreach (var item in SegmentationColors)
         {
             if (item.Tag == obj.tag)
             {
                 Color segmentationColor = item.IsInstanceSegmenation ? GenerateSimilarColor(item.Color) : item.Color;
+                if (segId > 0)
+                {
+                    segmentationColor.a = segId / 255f;
+                }
 
                 obj.GetComponentsInChildren(true, renderers);
                 renderers.ForEach(renderer =>
                 {
-                    if (item.IsInstanceSegmenation)
+                    if (item.IsInstanceSegmenation || segId > 0)
                     {
                         renderer.GetMaterials(materials);
                     }

@@ -251,8 +251,6 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         NPCController.SetBehaviour<NPCLaneFollowBehaviour>();
         CurrentPooledNPCs.Add(NPCController);
 
-        SimulatorManager.Instance.UpdateSegmentationColors(go);
-
         //Add required components for distributing rigidbody from master to clients
         if (Loader.Instance.Network.IsClusterSimulation)
         {
@@ -339,6 +337,8 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             CurrentPooledNPCs[i].enabled = true;
             ActiveNPCCount++;
 
+            SimulatorManager.Instance.UpdateSegmentationColors(CurrentPooledNPCs[i].gameObject, CurrentPooledNPCs[i].GTID);
+
             //Force snapshots resend after changing the transform position
             if (Loader.Instance.Network.IsMaster)
             {
@@ -374,6 +374,8 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
         npc.StopNPCCoroutines();
         npc.enabled = false;
+
+        SimulatorManager.Instance.SegmentationIdMapping.RemoveSegmentationId(npc.GTID);
 
         if (NPCActive)
         {

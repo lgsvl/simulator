@@ -42,5 +42,7 @@ namespace Simulator.Utilities
         public ComputeShader LidarComputeShader;
 
         public ComputeShader SignedDistanceFieldShader;
+
+        public ComputeShader ComputeUtils;
     }
 }

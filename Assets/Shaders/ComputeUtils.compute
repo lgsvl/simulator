@@ -1,0 +1,51 @@
+/**
+* Copyright (c) 2021 LG Electronics, Inc.
+*
+* This software contains code licensed as described in LICENSE.
+*
+*/
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
+#pragma only_renderers d3d11 vulkan metal
+
+#pragma kernel FillAlpha
+#pragma kernel FillAlphaXR
+
+CBUFFER_START(cb0)
+    float4 _TexSize;                // Rendering resolution: x: width, y: height, z: 1/width, w: 1/height
+CBUFFER_END
+
+Texture2D<float4> _Input;
+RWTexture2D<float4> _Output;
+TEXTURE2D_X(_InputXR);
+RW_TEXTURE2D_X(float4, _OutputXR);
+
+[numthreads(8,8,1)]
+void FillAlpha (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= (uint) _TexSize.x || id.y >= (uint) _TexSize.y)
+        return;
+
+    float4 col = _Output.Load(id.xy);
+    col.a = 1;
+    _Output[id.xy] = col;
+}
+
+// LOAD_TEXTURE2D_X called on RW_TEXTURE2D_X will issue warning about implicitly truncating vector type
+// Binding single texture as both read and RW does not work on DX11
+// Suppress warning to avoid new texture allocation and useless copy
+#pragma warning( disable : 3206 )
+
+[numthreads(8,8,1)]
+void FillAlphaXR (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= (uint) _TexSize.x || id.y >= (uint) _TexSize.y)
+        return;
+
+    float4 col = LOAD_TEXTURE2D_X(_OutputXR, id.xy);
+    col.a = 1;
+    _OutputXR[COORD_TEXTURE2D_X(id.xy)] = col;
+}
+
+#pragma warning( default : 3206 )

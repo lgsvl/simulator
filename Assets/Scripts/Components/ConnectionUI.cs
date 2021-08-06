@@ -26,6 +26,7 @@ namespace Simulator.Web
         public Button unlinkButton;
         public Button linkButton;
         public Button clearAssetCacheButton;
+        public Button LoadedAssetsButton;
         public Button quitButton;
         public Text linkButtonText;
         public static ConnectionUI instance;
@@ -35,8 +36,11 @@ namespace Simulator.Web
         public Button offlineStartButton;
         public Button offlineStopButton;
         public Text CloudTypeText;
+        public Text SimulatorVersionText;
+        public Text UnityVersionText;
         public Button VSEButton;
         public CacheControlWindow CacheControlWindow;
+        public GameObject LoadedAssetsWindow;
 
         public enum LoaderUIStateType { START, PROGRESS, READY };
         public LoaderUIStateType LoaderUIState = LoaderUIStateType.START;
@@ -53,6 +57,8 @@ namespace Simulator.Web
                 return;
             }
 
+            SimulatorVersionText.text = $"Simulator Version: {Application.version}";
+            UnityVersionText.text = $"Unity Version: {Application.unityVersion}";
             ColorUtility.TryParseHtmlString("#1F2940", out offlineColor);
             ColorUtility.TryParseHtmlString("#FFFFFF", out onlineColor);
             statusButtonIcon.material.color = Color.white;
@@ -65,6 +71,10 @@ namespace Simulator.Web
             clearAssetCacheButton.onClick.AddListener(() =>
             {
                 CacheControlWindow.gameObject.SetActive(true);
+            });
+            LoadedAssetsButton.onClick.AddListener(() =>
+            {
+                LoadedAssetsWindow.SetActive(true);
             });
             unlinkButton.onClick.AddListener(OnUnlinkButtonClicked);
             quitButton.onClick.AddListener(OnQuitButtonClicked);
@@ -100,7 +110,7 @@ namespace Simulator.Web
                     offlineDropdown.gameObject.SetActive(false);
                     offlineStartButton.gameObject.SetActive(false);
                     VSEButton.gameObject.SetActive(false);
-                    CloudTypeText.text = ConnectionManager.API?.CloudType;
+                    CloudTypeText.text = $"URL: {ConnectionManager.API?.CloudType}";
                     break;
                 case ConnectionManager.ConnectionStatus.Connected:
                     statusText.text = "";
@@ -113,7 +123,7 @@ namespace Simulator.Web
                     offlineDropdown.gameObject.SetActive(false);
                     offlineStartButton.gameObject.SetActive(false);
                     VSEButton.gameObject.SetActive(false);
-                    CloudTypeText.text = ConnectionManager.API?.CloudType;
+                    CloudTypeText.text = $"URL: {ConnectionManager.API?.CloudType}";
                     break;
                 case ConnectionManager.ConnectionStatus.Offline:
                     statusButtonText.text = "Offline";
@@ -146,7 +156,7 @@ namespace Simulator.Web
                     offlineDropdown.gameObject.SetActive(false);
                     offlineStartButton.gameObject.SetActive(false);
                     VSEButton.gameObject.SetActive(true);
-                    CloudTypeText.text = ConnectionManager.API?.CloudType;
+                    CloudTypeText.text = $"URL: {ConnectionManager.API?.CloudType}";
                     break;
             }
         }

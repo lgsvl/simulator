@@ -43,6 +43,7 @@ namespace Simulator.Web
         public static string Root;
         public static string PersistentDataPath;
 
+        public static List<Manifest> LoadedAssets = new List<Manifest>();
         public static List<SensorBase> SensorPrefabs;
         public static List<SensorConfig> Sensors;
         public static Dictionary<string, SensorBase> SensorTypeLookup = new Dictionary<string, SensorBase>();
@@ -80,6 +81,8 @@ namespace Simulator.Web
 
         public static string SentryDSN = "";
 
+        private static AssetService AssetService;
+
 #if UNITY_EDITOR
         [UnityEditor.InitializeOnLoadMethod]
 #else
@@ -90,6 +93,8 @@ namespace Simulator.Web
             Root = Path.Combine(Application.dataPath, "..");
             PersistentDataPath = Application.persistentDataPath;
             PersistentDataPath += "-" + CloudAPI.GetInfo().version;
+
+            AssetService = new AssetService();
 
             ParseConfigFile();
             if (!Application.isEditor)
@@ -251,6 +256,8 @@ namespace Simulator.Web
                             Debug.LogWarning($"Loading {manifest.bridgeType} ({manifest.assetGuid}) in Developer Debug Mode. If you wish to use this bridge plugin from WISE, disable Developer Debug Mode in Simulator->Developer Debug Mode or remove the bridge from Assets/External/Bridges");
                             var bridgeFactory = Activator.CreateInstance(ty) as IBridgeFactory;
                             BridgePlugins.Add(bridgeFactory);
+
+                            LoadedAssets.Add(manifest);
                         }
                     }
                     return;
@@ -271,6 +278,7 @@ namespace Simulator.Web
                 {
                     var bridgeFactory = Activator.CreateInstance(ty) as IBridgeFactory;
                     BridgePlugins.Add(bridgeFactory);
+                    LoadedAssets.Add(manifest);
                 }
             }
         }
@@ -293,6 +301,7 @@ namespace Simulator.Web
                     var sensorConfig = SensorTypes.GetConfig(prefab.GetComponent<SensorBase>());
                     sensorConfig.AssetGuid = manifest.assetGuid;
                     Sensors.Add(sensorConfig);
+                    LoadedAssets.Add(manifest);
                     if (!SensorTypeLookup.ContainsKey(manifest.assetGuid))
                     {
                         SensorTypeLookup.Add(manifest.assetGuid, prefab.GetComponent<SensorBase>());
@@ -361,6 +370,7 @@ namespace Simulator.Web
             config.AssetGuid = manifest.assetGuid;
             Sensors.Add(config);
             SensorPrefabs.Add(pluginBase);
+            LoadedAssets.Add(manifest);
             if (!SensorTypeLookup.ContainsKey(manifest.assetGuid))
             {
                 SensorTypeLookup.Add(manifest.assetGuid, pluginBase);
@@ -413,6 +423,7 @@ namespace Simulator.Web
                         debugAssets.Add(pluginBundle.LoadAsset<GameObject>(pluginAsset));
                     }
                     ControllableAssets.Add(controllable, debugAssets);
+                    LoadedAssets.Add(manifest);
 
                     return;
                 }
@@ -428,6 +439,7 @@ namespace Simulator.Web
                 additionalAssets.Add(pluginBundle.LoadAsset<GameObject>(pluginAsset));
             }
             ControllableAssets.Add(controllable, additionalAssets);
+            LoadedAssets.Add(manifest);
         }
 
         private static void LoadNPCAsset(Manifest manifest, VfsEntry dir)
@@ -517,6 +529,7 @@ namespace Simulator.Web
                             textureBundle.LoadAllAssets();
                         }
 
+                        LoadedAssets.Add(manifest);
                         return;
                     }
                 }
@@ -562,6 +575,8 @@ namespace Simulator.Web
             {
                 textureBundle.LoadAllAssets();
             }
+
+            LoadedAssets.Add(manifest);
         }
 
         private static void LoadPedestrianAsset(Manifest manifest, VfsEntry dir)
@@ -618,6 +633,7 @@ namespace Simulator.Web
                             textureBundle.LoadAllAssets();
                         }
 
+                        LoadedAssets.Add(manifest);
                         return;
                     }
                 }
@@ -649,6 +665,8 @@ namespace Simulator.Web
             {
                 textureBundle.LoadAllAssets();
             }
+
+            LoadedAssets.Add(manifest);
         }
 
         private class YamlConfig

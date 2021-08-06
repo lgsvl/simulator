@@ -12,21 +12,21 @@ using UnityEditor;
 using UnityEngine.SceneManagement;
 using UnityEditor.SceneManagement;
 using System.IO;
-using System.Reflection;
+using System;
+
 public class SDFImportMenu : EditorWindow
 {
     [SerializeField]
     string WorldFileName;
 
     SDFDocument sdfRoot = null;
-    bool[] spawnLocationSelection = null;
+    HashSet<GameObject> spawnLocationSelection = new HashSet<GameObject>();
 
     [MenuItem("Simulator/Import SDF", false, 500)]
     public static void Open()
     {
         var window = GetWindow(typeof(SDFImportMenu), false, "SDF Import");
         var data = EditorPrefs.GetString("Simulator/SDFImport", JsonUtility.ToJson(window, false));
-        Debug.Log("data " + data);
         JsonUtility.FromJsonOverwrite(data, window);
         window.Show();
     }
@@ -34,6 +34,19 @@ public class SDFImportMenu : EditorWindow
     string SelectedPrefabModel = "";
     string PrefabDescription = "";
     private string PrefabName;
+
+    public static string MakeRelativePath(string fromPath, string toPath)
+    {
+        if (string.IsNullOrWhiteSpace(fromPath) || string.IsNullOrWhiteSpace(toPath)) throw new ArgumentException("path should not be null or whitespace");
+
+        var from = new Uri(fromPath);
+        var to = new Uri(toPath);
+
+        var relative = from.MakeRelativeUri(to);
+        var relativePath = Uri.UnescapeDataString(relative.ToString());
+
+        return relativePath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+    }
 
     private void OnGUI()
     {
@@ -44,7 +57,7 @@ public class SDFImportMenu : EditorWindow
         GUILayout.Space(5);
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
         GUILayout.Space(10);
-        EditorGUILayout.HelpBox("Copy world and media to a subfolder in Assets/External/Environments", MessageType.Info);
+        EditorGUILayout.HelpBox("Copy world and media to a subfolder in Assets/External/Environments. Worlds should sit in 'worlds' subfolder", MessageType.Info);
 
         string sourcePath = "Assets/External/Environments";
         var options = new List<string>();
@@ -67,17 +80,45 @@ public class SDFImportMenu : EditorWindow
         var foundWorlds = options.Select(p => p.Substring(sourcePath.Length + 1).Replace('/', '\u2215')).ToArray();
         var selectedWorld = EditorGUILayout.Popup("World", selectedWorldBefore < 0 ? 0 : selectedWorldBefore, foundWorlds);
         WorldFileName = options[selectedWorld];
+        var worldDir = Path.GetDirectoryName(WorldFileName);
 
         if (selectedWorld != selectedWorldBefore || sdfRoot == null)
         {
-            var combined = Path.Combine(Application.dataPath, Path.GetDirectoryName(WorldFileName), "../models");
-            combined = Path.GetFullPath(combined);
-            var modelPath = combined.Substring(Application.dataPath.Length + 1);
+            string modelPath;
+            if (sdfRoot != null)
+            {
+                modelPath = sdfRoot.ModelPath;
+            }
+            else
+            {
+                var defaultLocations = new List<string> { "models", "../models", "assets/models", "../assets/models", "." };
+                modelPath = defaultLocations
+                .Select(p => Path.Combine(worldDir, p))
+                .FirstOrDefault(p => Directory.Exists(p));
+            }
+            // get rid of ..
+            modelPath = Path.GetFullPath(Path.Combine(Application.dataPath, modelPath)).Substring(Application.dataPath.Length + 1);
+            spawnLocationSelection.Clear();
             sdfRoot = new SDFDocument(WorldFileName, modelPath);
-            spawnLocationSelection = null;
         }
 
         EditorGUILayout.HelpBox($"version {sdfRoot.Version}", MessageType.Info);
+
+        if (sdfRoot != null)
+        {
+            GUILayout.Label("SDF model include path");
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(sdfRoot.ModelPath);
+            if (GUILayout.Button("set"))
+            {
+                var path = EditorUtility.OpenFolderPanel("Add SDF include search path", sourcePath, "");
+                if (!string.IsNullOrWhiteSpace(path))
+                {
+                    sdfRoot.ModelPath = MakeRelativePath(Application.dataPath, path + "/");
+                }
+            }
+            GUILayout.EndHorizontal();
+        }
 
         (GameObject, SDFModel)[] dynamicModels = null;
         if (GUILayout.Button("Import World"))
@@ -102,7 +143,7 @@ public class SDFImportMenu : EditorWindow
                 AssetDatabase.StartAssetEditing();
                 List<string> failedToDelete = new List<string>();
                 AssetDatabase.DeleteAssets(
-                    AssetDatabase.FindAssets("sdfgen_*", new[] { sdfRoot.modelPath })
+                    AssetDatabase.FindAssets("sdfgen_*", new[] { sdfRoot.ModelPath })
                     .Select(AssetDatabase.GUIDToAssetPath)
                     .ToArray(),
                     failedToDelete);
@@ -111,13 +152,12 @@ public class SDFImportMenu : EditorWindow
                     Debug.Log("failed to delete previously generated asset " + asset);
                 }
                 sdfRoot.LoadWorld(mapOrigin, mainCamera);
-                spawnLocationSelection = new bool[sdfRoot.models.Count];
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 Debug.LogException(e);
                 dynamicModels = null;
-                spawnLocationSelection = null;
+                spawnLocationSelection.Clear();
             }
             finally
             {
@@ -126,7 +166,7 @@ public class SDFImportMenu : EditorWindow
             Debug.Log("import completed ");
         }
 
-        dynamicModels = sdfRoot.models.Where(m => m.Item1 != null && !m.Item1.isStatic).ToArray();
+        dynamicModels = sdfRoot.Models.Where(m => m.Item1 != null && !m.Item1.isStatic).ToArray();
 
         if (sdfRoot != null && dynamicModels.Length > 0)
         {
@@ -142,7 +182,7 @@ public class SDFImportMenu : EditorWindow
             }
 
             var displayOptions = distinctModels.Select(m => $"{m.Value.name} ({m.Key})").ToArray();
-            int selectedModelBefore = System.Array.IndexOf(displayOptions, SelectedPrefabModel);
+            int selectedModelBefore = Array.IndexOf(displayOptions, SelectedPrefabModel);
             int selectedModel = EditorGUILayout.Popup("Select Vehicle", selectedModelBefore < 0 ? 0 : selectedModelBefore, displayOptions);
             SelectedPrefabModel = displayOptions[selectedModel];
             if (selectedModelBefore != selectedModel)
@@ -187,18 +227,22 @@ public class SDFImportMenu : EditorWindow
 
             GUILayout.Space(10);
             EditorGUILayout.LabelField("Convert models to spawn locations", titleLabelStyle, GUILayout.ExpandWidth(true));
-            for (int i = 0; i < dynamicModels.Length; i++)
+
+            foreach ((GameObject, SDFModel) v in dynamicModels)
             {
-                spawnLocationSelection[i] = GUILayout.Toggle(spawnLocationSelection[i], dynamicModels[i].Item1.name);
+                bool has = spawnLocationSelection.Contains(v.Item1);
+                bool want = GUILayout.Toggle(has, v.Item1.name);
+                if (want && !has) spawnLocationSelection.Add(v.Item1);
+                if (!want && has) spawnLocationSelection.Remove(v.Item1);
             }
 
             if (GUILayout.Button("convert to spawn info"))
             {
-                for (int i = 0; i < dynamicModels.Length; i++)
+                foreach ((GameObject, SDFModel) v in dynamicModels)
                 {
-                    if (spawnLocationSelection[i])
+                    var model = v.Item1;
+                    if (spawnLocationSelection.Contains(v.Item1))
                     {
-                        var model = dynamicModels[i].Item1;
                         var spawnpoint = new GameObject("spawninfo from " + model.name);
                         spawnpoint.transform.position = model.transform.position;
                         var spawnInfo = spawnpoint.AddComponent<Simulator.Utilities.SpawnInfo>();

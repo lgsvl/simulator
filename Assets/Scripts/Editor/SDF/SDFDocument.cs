@@ -11,6 +11,7 @@ using UnityEngine;
 using UnityEditor;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
+using System.IO;
 
 public class SDFDocument
 {
@@ -22,12 +23,12 @@ public class SDFDocument
     public SDFParserBase RootElement { get; set; } = null;
 
     private readonly XDocument doc;
-    public readonly string modelPath;
+    public string ModelPath;
     public string FileName { get; }
     static public float cylinderUseMeshRadiusLengthFactor = 4.0f;
     private static readonly Regex uriRegExp = new Regex(@"(\w+)://(.+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-    public List<(GameObject, SDFModel)> models = new List<(GameObject, SDFModel)>();
+    public List<(GameObject, SDFModel)> Models = new List<(GameObject, SDFModel)>();
     public PhysicMaterial DefaultPhysicMaterial { get; } = new PhysicMaterial()
     {
         name = "Stone",
@@ -41,9 +42,10 @@ public class SDFDocument
     public SDFDocument(string fileName, string modelPath)
     {
         doc = XDocument.Load(fileName);
-        this.FileName = fileName;
-        this.modelPath = modelPath;
+        FileName = fileName;
+        ModelPath = modelPath;
     }
+
 
     public GameObject LoadURI(XElement uriNode, GameObject parent)
     {
@@ -54,12 +56,18 @@ public class SDFDocument
             var path = res.Groups[2].Captures[0].Value;
             if (schema == "model")
             {
-                var loader = new SDFDocument($"{modelPath}/{path}/model.sdf", modelPath);
-                var includedObject = loader.LoadModel(parent);
-                models.Add((includedObject, (SDFModel)loader.RootElement));
-                return includedObject;
+                var fileName = Path.Combine(ModelPath, path, "model.sdf");
+                if (File.Exists(fileName))
+                {
+                    var loader = new SDFDocument(fileName, ModelPath);
+                    var includedObject = loader.Load(parent);
+                    if (typeof(SDFModel).IsAssignableFrom(loader.RootElement.GetType()))
+                        Models.Add((includedObject, (SDFModel)loader.RootElement));
+                    return includedObject;
+                }
             }
         }
+        Debug.LogError($"could not load from uri {uriNode} (model path {ModelPath})");
         return null;
     }
 
@@ -75,15 +83,24 @@ public class SDFDocument
 
         var schema = res.Groups[1].Captures[0].Value;
         var path = res.Groups[2].Captures[0].Value;
-
-        var prefabPath = modelPath + "/" + path;
-        var meshAsset = AssetDatabase.LoadAssetAtPath<T>(prefabPath);
-        if (!meshAsset)
+        if (Path.GetExtension(path) == ".stl")
         {
-            Debug.LogError("could not load mesh from " + prefabPath);
+            Debug.LogError($" Error loading {path}: STL is not supported. Convert to Unity supported mesh format (e.g. obj, fbx), then change {FileName} to reference the new mesh");
             return null;
         }
-        return meshAsset;
+
+        var prefabPath = Path.Combine(ModelPath, path);
+        if (File.Exists(prefabPath))
+        {
+            var meshAsset = AssetDatabase.LoadAssetAtPath<T>(prefabPath);
+            if (!meshAsset)
+            {
+                Debug.LogError("could not load mesh from " + prefabPath);
+                return null;
+            }
+            return meshAsset;
+        }
+        return null;
     }
 
     public void CreateAsset<T>(T asset, GameObject owner) where T : UnityEngine.Object
@@ -117,7 +134,12 @@ public class SDFDocument
             name = t.name + "_" + name;
         }
 
-        var path = AssetDatabase.GenerateUniqueAssetPath($"{modelPath}/sdfgen_{name}.{ext}");
+        var outPath = Path.Combine(Path.GetDirectoryName(FileName), "GeneratedAssets");
+        if (!Directory.Exists(outPath))
+        {
+            Directory.CreateDirectory(outPath);
+        }
+        var path = AssetDatabase.GenerateUniqueAssetPath($"{outPath}/sdfgen_{name}.{ext}");
         AssetDatabase.CreateAsset(asset, path);
     }
 
@@ -128,7 +150,7 @@ public class SDFDocument
             rootObject = new GameObject("unnamed");
         }
 
-        models.Clear();
+        Models.Clear();
 
         var worldNode = doc.Element("sdf").Element("world");
         rootObject.name = "Models";
@@ -137,7 +159,11 @@ public class SDFDocument
         if (cameraNode != null)
         {
             mainCamera.name = cameraNode.Attribute("name")?.Value ?? "unnamed";
-            SDFParserBase.ApplyPose(cameraNode, mainCamera.gameObject);
+            var pose = cameraNode.Element("pose");
+            if (pose != null)
+            {
+                SDFParserBase.HandlePose(pose, mainCamera.gameObject);
+            }
         }
         else
         {
@@ -152,6 +178,9 @@ public class SDFDocument
                     break;
                 case "gui":
                     break;
+                case "model":
+                    HandleModel(child, rootObject);
+                    break;
                 default:
                     Debug.LogWarning($"Unhandled Element: {child}");
                     break;
@@ -159,17 +188,43 @@ public class SDFDocument
         }
     }
 
-    public GameObject LoadModel(GameObject parent)
+    public GameObject Load(GameObject parent)
     {
-        var modelElement = doc.Element("sdf").Element("model");
+        var sdfNode = doc.Element("sdf");
+        foreach (var child in sdfNode.Elements())
+        {
+            switch (child.Name.ToString())
+            {
+                case "model":
+                    return HandleModel(child, parent);
+                case "light":
+                    return HandleLight(child, parent);
+                default:
+                    Debug.LogWarning($"Unhandled Element: {child}");
+                    break;
+            }
+        }
+        return null;
+    }
+    public GameObject HandleModel(XElement modelElement, GameObject parent)
+    {
         var model = new SDFModel(this);
         RootElement = model;
         return model.Parse(modelElement, parent);
     }
 
+    public GameObject HandleLight(XElement lightElement, GameObject parent)
+    {
+        var light = new SDFLight(this);
+        RootElement = light;
+        return light.Parse(lightElement, parent);
+
+    }
+
     public GameObject HandleInclude(XElement includeElement, GameObject go)
     {
         var includedObject = LoadURI(includeElement.Element("uri"), go);
+        if (includedObject == null) return null;
 
         foreach (var childElement in includeElement.Elements())
         {

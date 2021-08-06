@@ -37,6 +37,14 @@ public abstract class SDFParserBase
                             Convert.ToSingle(parts[0], CultureInfo.InvariantCulture));
     }
 
+    public static Vector3 ParseSDFSize(XElement element)
+    {
+        var parts = element.Value.Split(' ');
+        return new Vector3(Convert.ToSingle(parts[1], CultureInfo.InvariantCulture),
+                            Convert.ToSingle(parts[2], CultureInfo.InvariantCulture),
+                            Convert.ToSingle(parts[0], CultureInfo.InvariantCulture));
+    }
+
     public static float ParseSingle(XElement element, float defaultValue)
     {
         try
@@ -169,16 +177,8 @@ public abstract class SDFParserBase
         // TBD : for SDF 1.7
         // var relative_to = poseElement.Attribute("relative_to")?.Value;
         var pose = ParsePose(poseElement);
-        (go.transform.localPosition, go.transform.localRotation) = (pose.position, pose.rotation);
-    }
-
-    public static void ApplyPose(XElement element, GameObject go)
-    {
-        var poseNode = element.Element("pose");
-        if (poseNode != null)
-        {
-            HandlePose(poseNode, go);
-        }
+        // multiply in pose because we also use rotation to fix coordinate systems of imported meshes
+        (go.transform.localPosition, go.transform.localRotation) = (pose.position, go.transform.localRotation * pose.rotation);
     }
 
     public static Transform FindParentModel(Transform tr)

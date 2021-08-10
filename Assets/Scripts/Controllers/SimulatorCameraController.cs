@@ -8,6 +8,7 @@
 using Simulator.Map;
 using System.Collections.Generic;
 using UnityEngine;
+using Input = Simulator.Input;
 
 public enum CameraStateType
 {

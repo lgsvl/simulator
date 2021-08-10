@@ -12,15 +12,17 @@ namespace Simulator.Web
     using System.Text;
     using UnityEngine;
     using System.Collections.Generic;
+    using System.Linq;
 
-    public class MissedTemplateParameterError: Exception
+    public class MissedTemplateParameterError : Exception
     {
-        public MissedTemplateParameterError(string parameterName): base(parameterName) { }
+        public MissedTemplateParameterError(string parameterName) : base(parameterName) { }
     }
 
     public class SimulationConfigUtils
     {
-        public class InternalTemplateAliases {
+        public class InternalTemplateAliases
+        {
             public const String API_ONLY = "apiOnly";
             public const String RANDOM_TRAFFIC = "randomTraffic";
         }
@@ -259,7 +261,7 @@ namespace Simulator.Web
             }
         }
 
-        public static void UpdateTestCaseEnvironment(TemplateData template, IDictionary<string,string> environment)
+        public static void UpdateTestCaseEnvironment(TemplateData template, IDictionary<string, string> environment)
         {
             // Important note: Variable names are subject of further updates.
             ExtractEnvironmentVariables(template, environment);
@@ -269,6 +271,28 @@ namespace Simulator.Web
             if (!environment.ContainsKey("LGSVL__SIMULATOR_HOST"))
             {
                 var hostname = Config.ApiHost == "*" ? "localhost" : Config.ApiHost;
+                if ((Application.platform == RuntimePlatform.WindowsPlayer || Application.platform == RuntimePlatform.WindowsEditor) && !string.IsNullOrWhiteSpace(template.Alias))
+                {
+                    var devices = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces();
+                    foreach (var device in devices)
+                    {
+                        if (device.Name.Contains("vEthernet (WSL)"))
+                        {
+                            var addrs = device.GetIPProperties().UnicastAddresses;
+                            foreach (var addr in addrs)
+                            {
+                                if (addr.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                                {
+                                    Debug.Log($"overriding API address {hostname} for WSL2 virtual device address {addr.Address}");
+                                    hostname = addr.Address.ToString();
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                }
+
                 environment.Add("SIMULATOR_HOST", hostname);
                 environment.Add("LGSVL__SIMULATOR_HOST", hostname);
             }

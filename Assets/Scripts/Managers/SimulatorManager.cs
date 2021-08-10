@@ -17,6 +17,7 @@ using Simulator.Components;
 using Simulator.Network.Core.Messaging.Data;
 using Simulator.Sensors;
 using UnityEngine.SceneManagement;
+using Input = Simulator.Input;
 
 public class SimulatorManager : MonoBehaviour
 {

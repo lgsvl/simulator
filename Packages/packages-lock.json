@@ -165,6 +165,15 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.unity.textmeshpro": {
+      "version": "3.0.6",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.ugui": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
+    },
     "com.unity.timeline": {
       "version": "1.4.6",
       "depth": 0,
@@ -174,6 +183,16 @@
         "com.unity.modules.animation": "1.0.0",
         "com.unity.modules.audio": "1.0.0",
         "com.unity.modules.particlesystem": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.toolchain.linux-x86_64": {
+      "version": "0.1.18-preview",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.sysroot": "0.1.19-preview",
+        "com.unity.sysroot.linux-x86_64": "0.1.14-preview"
       },
       "url": "https://packages.unity.com"
     },

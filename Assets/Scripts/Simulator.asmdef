@@ -13,7 +13,8 @@
         "Unity.Formats.Fbx.Editor",
         "Unity.RenderPipelines.HighDefinition.Config.Runtime",
         "LiteNetLib",
-        "Sentry"
+        "Sentry",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

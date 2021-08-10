@@ -238,6 +238,7 @@ namespace Simulator
 
         private void Start()
         {
+            SimulatorConsole.Log.WriteLine("Loader Start");
             stopWatch.Start();
             var info = Resources.Load<BuildInfo>("BuildInfo");
             Application.wantsToQuit += CleanupOnExit;
@@ -647,9 +648,7 @@ namespace Simulator
                 if (TCManager)
                 {
                     Debug.Log("[LOADER] StopAsync: Terminating process");
-                    // Don't bother to stop simulation on process exit
-                    TCManager.OnFinished -= Instance.StopSimulationOnTestCaseExit;
-                    TCManager.Terminate();
+                    await TCManager.Terminate();
                 }
 
                 using (var db = DatabaseManager.Open())
@@ -1090,7 +1089,7 @@ namespace Simulator
             return manager;
         }
 
-        void RunTestCase(TemplateData template)
+        async Task RunTestCase(TemplateData template)
         {
             if (template == null)
             {
@@ -1111,46 +1110,17 @@ namespace Simulator
                 DontDestroyOnLoad(TCManager);
             }
 
-            TCManager.OnFinished += StopSimulationOnTestCaseExit;
-            TCManager.OnFinished += RemoveVolumesOnTestCaseExit;
 
-            var environment = new Dictionary<string, string>();
-
-            SimulationConfigUtils.UpdateTestCaseEnvironment(template, environment);
-            var volumesPath = SimulationConfigUtils.SaveVolumes(Instance.CurrentSimulation.Id, template);
-
-            if (!TCManager.StartProcess(template.Alias, environment, volumesPath))
+            var simulationId = CurrentSimulation.Id;
+            var volumesPath = SimulationConfigUtils.SaveVolumes(simulationId, template);
+            var args = await TCManager.StartProcess(template, volumesPath);
+            SimulationConfigUtils.CleanupVolumes(simulationId);
+            if (args.Failed)
             {
-                // TODO Report testcase error result to the cloud
-                // Stop simulation (by raising an excepton)
-                throw new Exception("Failed to launch TestCase runtime");
+                reportStatus(SimulatorStatus.Error, $"Test case exit code: {args.ExitCode}\nerror data: {args.ErrorData}");
             }
-        }
-
-        void StopSimulationOnTestCaseExit(TestCaseFinishedArgs e)
-        {
-            Console.WriteLine($"[LOADER] TestCase process exits: {e.ToString()}");
-            // Schedule real action to stop simulation
-            Actions.Enqueue(() =>
-            {
-                if (e.Failed)
-                {
-                    reportStatus(SimulatorStatus.Error, $"Test case exit code: {e.ExitCode}\nerror data: {e.ErrorData}");
-                }
-
-                Console.WriteLine($"[LOADER] Stopping simulation on TestCase process exit");
-                StopAsync();
-            });
-        }
-
-        void RemoveVolumesOnTestCaseExit(TestCaseFinishedArgs e)
-        {
-            Actions.Enqueue(() =>
-            {
-                Console.WriteLine($"[LOADER] Cleanup volumes on TestCase process exit");
-                Instance.TCManager.OnFinished -= Instance.RemoveVolumesOnTestCaseExit;
-                SimulationConfigUtils.CleanupVolumes(Instance.CurrentSimulation.Id);
-            });
+            Console.WriteLine($"[LOADER] Stopping simulation on TestCase process exit");
+            StopAsync();
         }
 
         bool CleanupOnExit()

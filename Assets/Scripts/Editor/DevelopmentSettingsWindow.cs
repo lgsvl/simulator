@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -114,7 +114,8 @@ namespace Simulator.Editor
 
         private static void HandlePlayMode(PlayModeStateChange state)
         {
-            if (Instance == null) return;
+            if (Instance == null)
+                return;
 
             if (state == PlayModeStateChange.ExitingPlayMode)
             {
@@ -240,7 +241,7 @@ namespace Simulator.Editor
                     // find index of previously selected thing in new dataset
                     var foundIndex = VehicleChoices.FindIndex(v => v.cloudIdOrPrefabPath == idOrPath && (v.IsLocal || v.configId == Settings.VehicleConfigId));
                     SetVehicleFromSelectionIndex(foundIndex);
-
+                    updateVehicleDetails = true;
                     await UpdateCloudVehicleDetails();
                 }
 
@@ -307,6 +308,7 @@ namespace Simulator.Editor
                 (
                     delegate (object sender, System.Diagnostics.DataReceivedEventArgs e)
                     {
+                        if (string.IsNullOrEmpty(e.Data)) return;
                         var match = versionRegExp.Match(e.Data);
                         if (!match.Success) return;
                         lines.Add(e.Data);
@@ -434,7 +436,10 @@ namespace Simulator.Editor
                 if (versionIndex < 0 || versionIndex >= SimulatorVersions.Count)
                 {
                     versionIndex = SimulatorVersions.FindIndex(e => e.version == Settings.VersionOverride);
-                    if (versionIndex < 0) versionIndex = 0;
+                    if (versionIndex < 0)
+                    {
+                        versionIndex = 0;
+                    }
                 }
 
                 versionIndex = EditorGUILayout.Popup(new GUIContent("Version", "Influences which compatible asset which will be downloaded from wise"), versionIndex, SimulatorVersions.Select(v => v.display).ToArray());
@@ -526,7 +531,11 @@ namespace Simulator.Editor
                                     if (vehicle.Bridge != null)
                                     {
                                         var bridgeIndex = Array.IndexOf(Bridges, vehicle.Bridge.Type);
-                                        if (bridgeIndex < 0) bridgeIndex = 0;
+                                        if (bridgeIndex < 0)
+                                        {
+                                            bridgeIndex = 0;
+                                        }
+
                                         bridgeIndex = EditorGUILayout.Popup("Bridge Type", bridgeIndex, Bridges);
                                         vehicle.Bridge.Type = Bridges[bridgeIndex];
                                         vehicle.Bridge.ConnectionString = EditorGUILayout.TextField("Bridge Connection", vehicle.Bridge.ConnectionString);
@@ -615,7 +624,6 @@ namespace Simulator.Editor
                 newSelectionIndex = 0;
             }
             var selection = VehicleChoices[newSelectionIndex];
-            updateVehicleDetails = CurrentVehicleIndex != newSelectionIndex && !selection.IsLocal;
             CurrentVehicleIndex = newSelectionIndex;
 
             VehicleData vehicle;
@@ -642,11 +650,12 @@ namespace Simulator.Editor
                 {
                     return previousVehicle;
                 }
+                updateVehicleDetails = true;
                 Settings.VehicleConfigId = selection.configId;
             }
 
             DeveloperSimulation.Vehicles = new VehicleData[] { vehicle };
-            Task.Run(() => UpdateCloudVehicleDetails());
+            UpdateCloudVehicleDetails();
             return vehicle;
         }
 
@@ -654,15 +663,17 @@ namespace Simulator.Editor
         {
             if (!updateVehicleDetails)
                 return;
+
             updateVehicleDetails = false;
 
             if (API == null)
                 return;
 
-            if (DeveloperSimulation.Vehicles == null) return;
+            if (DeveloperSimulation.Vehicles == null)
+                return;
+
             var pluginLibrary = await API.GetLibrary<PluginDetailData>();
             var bridgeLibrary = pluginLibrary.Where(p => p.Category == "bridge");
-
 
             if (!EgoVehicle.Id.EndsWith(".prefab"))
             {
@@ -791,7 +802,6 @@ namespace Simulator.Editor
             finally
             {
                 updating = false;
-
             }
         }
 

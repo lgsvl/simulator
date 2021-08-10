@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -16,7 +16,8 @@ using static Simulator.Web.Config;
 namespace Simulator.Web
 {
 
-    public static class JsonSettings {
+    public static class JsonSettings
+    {
         public static JsonSerializerSettings camelCase = new JsonSerializerSettings
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver()
@@ -43,7 +44,7 @@ namespace Simulator.Web
         public DateTime UpdatedAt { get; set; }
     }
 
-    public class CloudAssetDetails: CloudIdData
+    public class CloudAssetDetails : CloudIdData
     {
         public string AssetGuid { get; set; }
         public bool IsShared { get; set; }
@@ -59,17 +60,17 @@ namespace Simulator.Web
         public string AccessType { get; set; } // "e.g. "public"
         public TagData[] Tags { get; set; }
         public UserData Owner { get; set; }
-        public UserData[] FavoredBy {get; set; }
-        public UserData[] SharedWith {get; set; }
+        public UserData[] FavoredBy { get; set; }
+        public UserData[] SharedWith { get; set; }
     }
 
-    public class MapData: CloudIdData
+    public class MapData : CloudIdData
     {
         public string AssetGuid { get; set; }
     }
 
     [CloudData(ApiPath = "api/v1/maps")]
-    public class MapDetailData: CloudAssetDetails
+    public class MapDetailData : CloudAssetDetails
     {
         public string SupportedPlatforms { get; set; }
         public string Hdmaps { get; set; }
@@ -82,13 +83,13 @@ namespace Simulator.Web
 
     public class UserData
     {
-        public string id {get; set; }
-        public string Email {get; set; }
-        public string FirstName {get; set; }
-        public string LastName {get; set; }
+        public string id { get; set; }
+        public string Email { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
     }
 
-    public class VehicleData: CloudIdData
+    public class VehicleData : CloudIdData
     {
         public string AssetGuid { get; set; }
         public SensorData[] Sensors { get; set; }
@@ -116,7 +117,8 @@ namespace Simulator.Web
 
         public VehicleData ToVehicleData()
         {
-            return new VehicleData {
+            return new VehicleData
+            {
                 Id = Id,
                 Name = Name,
                 CreatedAt = CreatedAt,
@@ -131,7 +133,7 @@ namespace Simulator.Web
     }
 
     [CloudData(ApiPath = "api/v1/plugins")]
-    public class PluginDetailData: CloudAssetDetails
+    public class PluginDetailData : CloudAssetDetails
     {
         public string Category { get; set; } // e.g. "sensor"
         public string Type { get; set; } // e.g. "Comfort"
@@ -146,7 +148,7 @@ namespace Simulator.Web
         public string ConnectionString { get; set; }
     }
 
-    public class ClusterData: CloudIdData
+    public class ClusterData : CloudIdData
     {
         public InstanceData[] Instances { get; set; }
     }
@@ -205,7 +207,8 @@ namespace Simulator.Web
 
         public T GetValue<T>()
         {
-            try {
+            try
+            {
                 if (RawValue is JValue)
                 {
                     // Cast plain value
@@ -230,10 +233,30 @@ namespace Simulator.Web
     {
         public string Alias { get; set; }
         public TemplateParameter[] Parameters;
+        public SimulationRunner Runner;
     }
 
+    public class RunnerDockerAuth
+    {
+        public string Username;
+        public string Password;
+        public string PullToken;
+    }
+
+    public class RunnerDocker
+    {
+        public string Image;
+        public RunnerDockerAuth Auth;
+    }
+
+    public class SimulationRunner
+    {
+        public RunnerDocker Docker;
+    }
+
+
     [System.Serializable] // required for developerSettings
-    public class SimulationData: CloudIdData
+    public class SimulationData : CloudIdData
     {
         public string Version { get; set; }
         public bool ApiOnly { get; set; }
@@ -261,7 +284,7 @@ namespace Simulator.Web
 
     public class LibraryList<DetailData>
     {
-        public int Count {get; set; }
-        public DetailData[] Rows {get; set;}
+        public int Count { get; set; }
+        public DetailData[] Rows { get; set; }
     }
 }

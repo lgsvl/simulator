@@ -202,7 +202,7 @@ public class ParkingNPCManager : NPCManager
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.L)) // TODO Demo edit?
+        if (Simulator.Input.GetKeyDown(KeyCode.L)) // TODO Demo edit?
         {
             foreach (var p in CurrentPooledNPCs)
             {

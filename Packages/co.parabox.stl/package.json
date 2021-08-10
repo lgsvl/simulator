@@ -1,0 +1,8 @@
+{
+    "description": "STL file format import and export.",
+    "displayName": "STL",
+    "name": "co.parabox.stl",
+    "unity": "2018.1",
+    "version": "1.0.0",
+    "dependencies": {}
+}

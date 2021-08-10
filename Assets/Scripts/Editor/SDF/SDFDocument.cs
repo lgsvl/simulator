@@ -71,9 +71,8 @@ public class SDFDocument
         return null;
     }
 
-    public T LoadAsset<T>(XElement uriElement) where T : UnityEngine.Object
+    public T LoadAsset<T>(string uri) where T : UnityEngine.Object
     {
-        var uri = uriElement.Value;
         if (string.IsNullOrEmpty(uri))
             return null;
 
@@ -83,22 +82,47 @@ public class SDFDocument
 
         var schema = res.Groups[1].Captures[0].Value;
         var path = res.Groups[2].Captures[0].Value;
-        if (Path.GetExtension(path) == ".stl")
-        {
-            Debug.LogError($" Error loading {path}: STL is not supported. Convert to Unity supported mesh format (e.g. obj, fbx), then change {FileName} to reference the new mesh");
-            return null;
-        }
 
         var prefabPath = Path.Combine(ModelPath, path);
         if (File.Exists(prefabPath))
         {
             var meshAsset = AssetDatabase.LoadAssetAtPath<T>(prefabPath);
-            if (!meshAsset)
+            if (meshAsset != null)
+            {
+                return meshAsset;
+            }
+        }
+        Debug.LogError("could not load mesh from " + prefabPath);
+        return null;
+    }
+
+
+    public List<T> LoadSubAsset<T>(string uri) where T : UnityEngine.Object
+    {
+        if (string.IsNullOrEmpty(uri))
+            return null;
+
+        var res = uriRegExp.Match(uri);
+        if (!res.Success)
+            return null;
+
+        var schema = res.Groups[1].Captures[0].Value;
+        var path = res.Groups[2].Captures[0].Value;
+
+        var prefabPath = Path.Combine(ModelPath, path);
+        if (File.Exists(prefabPath))
+        {
+            var meshAssets = new List<T>();
+            var allAssets = AssetDatabase.LoadAllAssetsAtPath(prefabPath);
+            foreach (var asset in allAssets)
+            {
+                if (typeof(T).IsAssignableFrom(asset.GetType())) meshAssets.Add((T)asset);
+            }
+            if (meshAssets.Count == 0)
             {
                 Debug.LogError("could not load mesh from " + prefabPath);
-                return null;
             }
-            return meshAsset;
+            return meshAssets;
         }
         return null;
     }

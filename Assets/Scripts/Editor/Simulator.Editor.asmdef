@@ -1,5 +1,6 @@
 {
     "name": "Simulator.Editor",
+    "rootNamespace": "",
     "references": [
         "Simulator",
         "Simulator.Plugins",

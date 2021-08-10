@@ -54,7 +54,7 @@ public abstract class SDFParserBase
                 return defaultValue;
             }
 
-            return Convert.ToSingle(element.Value, CultureInfo.InvariantCulture);
+            return (float)Convert.ToDouble(element.Value, CultureInfo.InvariantCulture);
         }
         catch (Exception e)
         {
@@ -72,7 +72,7 @@ public abstract class SDFParserBase
                 return defaultValue;
             }
 
-            return Convert.ToSingle(attribute.Value, CultureInfo.InvariantCulture);
+            return (float)Convert.ToDouble(attribute.Value, CultureInfo.InvariantCulture);
         }
         catch (Exception e)
         {
@@ -185,5 +185,15 @@ public abstract class SDFParserBase
     {
         var go = tr.gameObject.GetComponentInParent<ModelHelper>();
         return go?.transform;
+    }
+
+    public static GameObject CreateChildObject(XElement element, GameObject parent)
+    {
+        GameObject gameObject = new GameObject(element.Attribute("name")?.Value ?? "unnamed " + element.Name);
+        gameObject.transform.parent = parent.transform;
+        gameObject.transform.localPosition = Vector3.zero;
+        gameObject.transform.localRotation = Quaternion.identity;
+        gameObject.isStatic = parent.isStatic;
+        return gameObject;
     }
 }

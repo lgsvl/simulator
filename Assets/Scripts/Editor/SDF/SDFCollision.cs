@@ -5,7 +5,7 @@
  *
  */
 
-using System;
+using System.Linq;
 using System.Xml.Linq;
 using UnityEngine;
 using System.Globalization;
@@ -21,11 +21,7 @@ class SDFCollision : SDFParserBase
     public override GameObject Parse(XElement collisionElement, GameObject parentLink)
     {
         // FIXME we should be able to collapse collision objects into a component of the parent object if there is no transform on it
-        GameObject collisionObject = new GameObject(collisionElement.Attribute("name")?.Value ?? "unnamed collision");
-        collisionObject.transform.parent = parentLink.transform;
-        collisionObject.transform.localPosition = Vector3.zero;
-        collisionObject.transform.localRotation = Quaternion.identity;
-        collisionObject.isStatic = parentLink.isStatic;
+        GameObject collisionObject = CreateChildObject(collisionElement, parentLink);
         PhysicMaterial material = document.DefaultPhysicMaterial;
 
         foreach (var childElement in collisionElement.Elements())
@@ -88,85 +84,94 @@ class SDFCollision : SDFParserBase
 
     private void HandleCollisionGeometry(XElement geometryElement, GameObject collisionObject)
     {
-        var scale = Vector3.one;
-        var rotation = Quaternion.identity;
 
-        var box = geometryElement.Element("box");
-        var cylinder = geometryElement.Element("cylinder");
-        var mesh = geometryElement.Element("mesh");
-        var plane = geometryElement.Element("plane");
-        var sphere = geometryElement.Element("sphere");
+        bool createSubObjects = geometryElement.Elements().Count() > 1;
 
-        if (mesh != null)
+        foreach (var childElement in geometryElement.Elements())
         {
-            var scaleElem = mesh.Element("scale");
-
-            if (scaleElem != null)
+            switch (childElement.Name.ToString())
             {
-                scale = ParseSDFSize(scaleElem);
-            }
+                case "mesh":
+                    {
+                        var geometryObject = CreateChildObject(geometryElement, collisionObject);
+                        var uri = childElement.Element("uri").Value;
+                        var meshAssets = document.LoadSubAsset<Mesh>(uri);
+                        foreach (var meshAsset in meshAssets)
+                        {
+                            var meshCollider = geometryObject.AddComponent<MeshCollider>();
+                            meshCollider.sharedMesh = meshAsset;
+                            meshCollider.convex = !collisionObject.isStatic;
+                        }
+                        var scaleElem = childElement.Element("scale");
+                        var scale = Vector3.one;
+                        if (scaleElem != null)
+                        {
+                            scale = ParseSDFSize(scaleElem);
+                        }
+                        if (uri.ToLower().EndsWith(".stl"))
+                        {
+                            // STL import package has weird behaviour wrt right handed coordinate system
+                            scale.Scale(new Vector3(-1, 1, 1));
+                        }
+                        geometryObject.transform.localScale = scale;
+                        geometryObject.transform.localRotation = Quaternion.Euler(-90, 90, 0);
+                        break;
+                    }
+                case "box":
+                    {
+                        var boxCollider = collisionObject.AddComponent<BoxCollider>();
+                        boxCollider.size = ParseSDFSize(childElement.Element("size"));
+                        break;
+                    }
+                case "sphere":
+                    {
+                        var sphereCollider = collisionObject.AddComponent<SphereCollider>();
+                        sphereCollider.radius = ParseSingle(childElement.Element("radius"), 1.0f);
+                        break;
+                    }
+                case "cylinder":
+                    {
+                        float length = ParseSingle(childElement.Element("length"), 1.0f);
+                        float radius = ParseSingle(childElement.Element("radius"), 1.0f);
+                        if (length < radius * SDFDocument.cylinderUseMeshRadiusLengthFactor)
+                        {
+                            var geometryObject = CreateChildObject(geometryElement, collisionObject);
+                            var meshCollider = geometryObject.AddComponent<MeshCollider>();
+                            var helper = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                            meshCollider.sharedMesh = helper.GetComponent<MeshFilter>().sharedMesh;
+                            GameObject.DestroyImmediate(helper);
+                            meshCollider.convex = !collisionObject.isStatic;
+                            geometryObject.transform.localScale = new Vector3(2 * radius, length * 0.5f, 2 * radius);
+                        }
+                        else
+                        {
+                            // FIXME a cylinder is not a capsule actually
+                            var capsuleCollider = collisionObject.AddComponent<CapsuleCollider>();
+                            capsuleCollider.height = length;
+                            capsuleCollider.radius = radius;
+                        }
+                        break;
+                    }
+                case "plane":
+                    {
+                        var geometryObject = CreateChildObject(geometryElement, collisionObject);
+                        var helper = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                        var meshCollider = geometryObject.AddComponent<MeshCollider>();
+                        meshCollider.sharedMesh = helper.GetComponent<MeshFilter>().sharedMesh;
+                        GameObject.DestroyImmediate(helper);
 
-            var meshAsset = document.LoadAsset<Mesh>(mesh.Element("uri"));
-            if (meshAsset != null)
-            {
-                var collider = collisionObject.AddComponent<MeshCollider>();
-                collider.sharedMesh = meshAsset;
-                collider.convex = !collisionObject.isStatic;
-                rotation = Quaternion.Euler(-90, 90, 0);
+                        var normal = ParseSDFVector(childElement.Element("normal"));
+                        var (scaleX, scaleZ) = ParseXY(childElement.Element("size"), (1.0f, 1.0f));
+                        geometryObject.transform.localScale = new Vector3(scaleX, 1.0f, scaleZ);
+                        geometryObject.transform.localRotation = Quaternion.LookRotation(normal != Vector3.forward ? Vector3.forward : Vector3.left, normal);
+                        break;
+                    }
+                default:
+                    Debug.Log("unhandled collision type " + childElement + " in " + geometryElement);
+                    break;
             }
-        }
-        else if (box != null)
-        {
-            var collider = collisionObject.AddComponent<BoxCollider>();
-            collider.size = ParseSDFSize(box.Element("size"));
-        }
-        else if (sphere != null)
-        {
-            var collider = collisionObject.AddComponent<SphereCollider>();
-            collider.radius = ParseSingle(sphere.Element("radius"), 1.0f);
-        }
-        else if (cylinder != null)
-        {
-            float length = Convert.ToSingle(cylinder.Element("length")?.Value, CultureInfo.InvariantCulture);
-            float radius = Convert.ToSingle(cylinder.Element("radius")?.Value, CultureInfo.InvariantCulture);
-            if (length < radius * SDFDocument.cylinderUseMeshRadiusLengthFactor)
-            {
-                var collider = collisionObject.AddComponent<MeshCollider>();
-                var helper = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                collider.sharedMesh = helper.GetComponent<MeshFilter>().sharedMesh;
-                GameObject.DestroyImmediate(helper);
-                collider.convex = !collisionObject.isStatic;
-                scale = new Vector3(2 * radius, length * 0.5f, 2 * radius);
-            }
-            else
-            {
-                // FIXME a cylinder is not a capsule actually
-                var collider = collisionObject.AddComponent<CapsuleCollider>();
-                collider.height = length;
-                collider.radius = radius;
-            }
-        }
-        else if (plane != null)
-        {
-            var helper = GameObject.CreatePrimitive(PrimitiveType.Plane);
-            var collider = collisionObject.AddComponent<MeshCollider>();
-            collider.sharedMesh = helper.GetComponent<MeshFilter>().sharedMesh;
-            GameObject.DestroyImmediate(helper);
-
-            var normal = ParseSDFVector(plane.Element("normal"));
-            var (scaleX, scaleZ) = ParseXY(plane.Element("size"), (1.0f, 1.0f));
-            scale = new Vector3(scaleX, 1.0f, scaleZ);
-            rotation = Quaternion.LookRotation(normal != Vector3.forward ? Vector3.forward : Vector3.left, normal);
-        }
-        else
-        {
-            Debug.Log("unhandled collision type in " + geometryElement);
         }
 
-        if (collisionObject.GetComponent<Collider>() != null)
-        {
-            collisionObject.transform.localScale = scale;
-            collisionObject.transform.localRotation *= rotation;
-        }
+
     }
 }

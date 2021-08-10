@@ -24,45 +24,48 @@ class SDFLink : SDFParserBase
 
     public override GameObject Parse(XElement linkElement, GameObject parentModel)
     {
-        var linkObject = new GameObject(linkElement.Attribute("name")?.Value ?? "unnamed link");
-        linkObject.transform.parent = parentModel.transform;
-        linkObject.transform.localPosition = Vector3.zero;
-        linkObject.transform.localRotation = Quaternion.identity;
-        linkObject.isStatic = parentModel.isStatic;
+        var linkObject = CreateChildObject(linkElement, parentModel);
         var body = linkObject.AddComponent<ArticulationBody>();
         body.enabled = !parentModel.isStatic;
         var helper = linkObject.AddComponent<LinkHelper>();
 
         foreach (var childElement in linkElement.Elements())
         {
-            switch (childElement.Name.ToString())
+            try
             {
-                case "visual":
-                    new SDFVisual(document).Parse(childElement, linkObject);
-                    break;
-                case "collision":
-                    new SDFCollision(document).Parse(childElement, linkObject);
-                    break;
-                case "pose":
-                    HandlePose(childElement, linkObject);
-                    break;
-                case "kinematic":
-                    HandleKinematic(childElement, linkObject);
-                    break;
-                case "gravity":
-                    HandleGravity(childElement, linkObject);
-                    break;
-                case "inertial":
-                    HandleInertial(childElement, linkObject);
-                    break;
-                case "self_collide":
-                    HandleSelfCollide(childElement, linkObject);
-                    break;
-                case "enable_wind": //unsupported
-                    break;
-                default:
-                    Debug.LogWarning("unhandled element: " + childElement + " within " + linkElement);
-                    break;
+                switch (childElement.Name.ToString())
+                {
+                    case "visual":
+                        new SDFVisual(document).Parse(childElement, linkObject);
+                        break;
+                    case "collision":
+                        new SDFCollision(document).Parse(childElement, linkObject);
+                        break;
+                    case "pose":
+                        HandlePose(childElement, linkObject);
+                        break;
+                    case "kinematic":
+                        HandleKinematic(childElement, linkObject);
+                        break;
+                    case "gravity":
+                        HandleGravity(childElement, linkObject);
+                        break;
+                    case "inertial":
+                        HandleInertial(childElement, linkObject);
+                        break;
+                    case "self_collide":
+                        HandleSelfCollide(childElement, linkObject);
+                        break;
+                    case "enable_wind": //unsupported
+                        break;
+                    default:
+                        Debug.LogWarning("unhandled element: " + childElement + " within " + linkElement);
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError("Error parsing from link " + linkElement + ": " + ex);
             }
         }
         return linkObject;
@@ -88,14 +91,14 @@ class SDFLink : SDFParserBase
             switch (childElement.Name.ToString())
             {
                 case "mass":
-                    body.mass = Convert.ToSingle(childElement.Value);
+                    body.mass = ParseSingle(childElement, 1.0f);
                     break;
                 case "inertia":
                     const float minimumInertiaTensor = 1e-6f;
 
-                    float iyy = Convert.ToSingle(childElement.Element("iyy").Value, CultureInfo.InvariantCulture);
-                    float izz = Convert.ToSingle(childElement.Element("izz").Value, CultureInfo.InvariantCulture);
-                    float ixx = Convert.ToSingle(childElement.Element("ixx").Value, CultureInfo.InvariantCulture);
+                    float iyy = ParseSingle(childElement.Element("iyy"), 0.0f);
+                    float izz = ParseSingle(childElement.Element("izz"), 0.0f);
+                    float ixx = ParseSingle(childElement.Element("ixx"), 0.0f);
 
                     body.inertiaTensor = new Vector3(
                         Mathf.Max(minimumInertiaTensor, iyy),
@@ -104,7 +107,6 @@ class SDFLink : SDFParserBase
 
                     body.inertiaTensorRotation = Quaternion.identity;
                     //FIXME what about ixy ixz iyz
-
                     break;
                 case "pose":
                     body.centerOfMass = ParseSDFVector(childElement);
@@ -125,12 +127,10 @@ class SDFLink : SDFParserBase
             return;
         }
 
-        body.useGravity = ParseIntBool(childElement, true);
-        if (body.useGravity)
-        {
-            body.gameObject.isStatic = false;
-        }
-
+        bool gravity = ParseIntBool(childElement, true);
+        body.useGravity = gravity; // Unity bug? this setter does not seem to do anything
+        if (body.useGravity != gravity)
+            Debug.Log(body.name + " gravity " + gravity + " did not work!");
     }
 
     private void HandleKinematic(XElement childElement, GameObject go)

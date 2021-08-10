@@ -21,18 +21,8 @@ public class SDFLight : SDFParserBase
 
     public override GameObject Parse(XElement lightElement, GameObject parent)
     {
-        GameObject lightObject = new GameObject(lightElement.Attribute("name")?.Value ?? "unnamed model");
+        GameObject lightObject = CreateChildObject(lightElement, parent);
         var light = lightObject.AddComponent<Light>();
-        lightObject.transform.parent = parent.transform;
-        lightObject.transform.localPosition = Vector3.zero;
-        lightObject.transform.localRotation = Quaternion.identity;
-        lightObject.isStatic = false;
-
-        // assume static is inherited from parent model
-        if (parent.GetComponent<ModelHelper>())
-        {
-            lightObject.isStatic = parent.isStatic;
-        }
 
         lightObject.isStatic = ParseIntBool(lightElement.Element("static"), lightObject.isStatic);
         light.enabled = !lightObject.isStatic;

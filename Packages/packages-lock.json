@@ -1,5 +1,11 @@
 {
   "dependencies": {
+    "co.parabox.stl": {
+      "version": "file:co.parabox.stl",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.autodesk.fbx": {
       "version": "3.1.0-preview.2",
       "depth": 1,

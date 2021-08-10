@@ -1,4 +1,3 @@
-
 /**
  * Copyright (c) 2021 LG Electronics, Inc.
  *
@@ -6,12 +5,10 @@
  *
  */
 
-using System;
 using System.Xml.Linq;
 using System.Linq;
 using UnityEngine;
 using UnityEditor;
-using System.Globalization;
 
 class SDFVisual : SDFParserBase
 {
@@ -32,7 +29,6 @@ class SDFVisual : SDFParserBase
 
         GameObject visual = HandleVisualGeometry(geometry, parentLink);
         if (visual == null) return null;
-        visual.isStatic = parentLink.isStatic;
         foreach (var childElement in visualElement.Elements())
         {
             switch (childElement.Name.ToString())
@@ -103,80 +99,77 @@ class SDFVisual : SDFParserBase
         ).ToArray();
     }
 
-
     private GameObject HandleVisualGeometry(XElement geometry, GameObject parentLink)
     {
         GameObject visual = null;
-        var scale = Vector3.one;
-        var rotation = Quaternion.identity;
 
-        var box = geometry.Element("box");
-        var cylinder = geometry.Element("cylinder");
-        var sphere = geometry.Element("sphere");
-        var mesh = geometry.Element("mesh");
-        var plane = geometry.Element("plane");
-        if (mesh != null)
+        foreach (var childElement in geometry.Elements())
         {
-            var scaleElem = mesh.Element("scale");
-
-            if (scaleElem != null)
+            var scale = Vector3.one;
+            var rotation = Quaternion.identity;
+            visual = null;
+            switch (childElement.Name.ToString())
             {
-                var parts = scaleElem.Value.Split(' ');
-                scale = new Vector3(
-                    Convert.ToSingle(parts[0], CultureInfo.InvariantCulture),
-                    Convert.ToSingle(parts[1], CultureInfo.InvariantCulture),
-                    Convert.ToSingle(parts[2], CultureInfo.InvariantCulture));
+                case "mesh":
+                    var scaleElem = childElement.Element("scale");
+                    if (scaleElem != null)
+                    {
+                        scale = ParseSDFSize(scaleElem);
+                    }
+
+                    var uri = childElement.Element("uri").Value;
+                    var prefab = document.LoadAsset<GameObject>(uri);
+                    if (prefab != null)
+                    {
+                        visual = PrefabUtility.InstantiatePrefab(prefab, parentLink.transform) as GameObject;
+                        rotation = Quaternion.Euler(-90, 90, 0);
+                        if (uri.ToLower().EndsWith(".stl"))
+                        {
+                            // STL import package has weird behaviour wrt right handed coordinate system
+                            scale.Scale(new Vector3(-1, 1, 1));
+                        }
+                    }
+                    break;
+                case "box":
+                    visual = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    scale = ParseSDFSize(childElement.Element("size"));
+                    break;
+                case "sphere":
+                    visual = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                    var r = ParseSingle(childElement.Element("radius"), 1.0f);
+                    scale = new Vector3(r, r, r);
+                    break;
+                case "cylinder":
+                    visual = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                    var radius = ParseSingle(childElement.Element("radius"), 1.0f);
+                    var length = ParseSingle(childElement.Element("length"), 1.0f);
+                    scale = new Vector3(radius * 2.0f, length * 0.5f, radius * 2.0f);
+                    break;
+                case "plane":
+                    visual = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                    var normal = ParseSDFVector(childElement.Element("normal"));
+                    var (scaleX, scaleZ) = ParseXY(childElement.Element("size"), (1.0f, 1.0f));
+                    scale = new Vector3(scaleX, 1.0f, scaleZ);
+                    rotation = Quaternion.LookRotation(normal != Vector3.forward ? Vector3.forward : Vector3.left, normal);
+                    break;
+                default:
+                    Debug.Log("unhandled visual type " + childElement + " in " + geometry);
+                    break;
             }
 
-            var prefab = document.LoadAsset<GameObject>(mesh.Element("uri"));
-            if (prefab != null)
+            if (visual != null)
             {
-                visual = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
-                rotation = Quaternion.Euler(-90, 90, 0);
+                foreach (var collider in visual.GetComponentsInChildren<Collider>())
+                {
+                    GameObject.DestroyImmediate(collider);
+                }
+                visual.isStatic = parentLink.isStatic;
+                visual.transform.SetParent(parentLink.transform, false);
+                visual.transform.localPosition = Vector3.zero;
+                visual.transform.localScale = scale;
+                visual.transform.localRotation = rotation;
             }
-        }
-        else if (box != null)
-        {
-            visual = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            GameObject.DestroyImmediate(visual.GetComponent<Collider>());
-            scale = ParseSDFSize(box.Element("size"));
-        }
-        else if (sphere != null)
-        {
-            visual = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            GameObject.DestroyImmediate(visual.GetComponent<Collider>());
-            var r = ParseSingle(sphere.Element("radius"), 1.0f);
-            scale = new Vector3(r, r, r);
-        }
-        else if (cylinder != null)
-        {
-            visual = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            GameObject.DestroyImmediate(visual.GetComponent<Collider>());
-            var radius = Convert.ToSingle(cylinder.Element("radius")?.Value, CultureInfo.InvariantCulture);
-            var length = Convert.ToSingle(cylinder.Element("length")?.Value, CultureInfo.InvariantCulture);
-            scale = new Vector3(radius * 2.0f, length * 0.5f, radius * 2.0f);
-        }
-        else if (plane != null)
-        {
-            visual = GameObject.CreatePrimitive(PrimitiveType.Plane);
-            GameObject.DestroyImmediate(visual.GetComponent<Collider>());
-            var normal = ParseSDFVector(plane.Element("normal"));
-            var (scaleX, scaleZ) = ParseXY(plane.Element("size"), (1.0f, 1.0f));
-            scale = new Vector3(scaleX, 1.0f, scaleZ);
-            visual.transform.rotation = Quaternion.LookRotation(normal != Vector3.forward ? Vector3.forward : Vector3.left, normal);
-        }
-        else
-        {
-            Debug.Log("unhandled visual type in " + geometry);
-        }
-
-        if (visual != null)
-        {
-            visual.transform.SetParent(parentLink.transform, false);
-            visual.transform.localScale = scale;
-            visual.transform.localRotation *= rotation;
         }
         return visual;
     }
-
 }

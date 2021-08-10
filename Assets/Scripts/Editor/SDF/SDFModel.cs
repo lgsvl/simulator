@@ -23,12 +23,9 @@ public class SDFModel : SDFParserBase
 
     public override GameObject Parse(XElement modelElement, GameObject parent)
     {
-        GameObject modelObject = new GameObject(modelElement.Attribute("name")?.Value ?? "unnamed model");
+        GameObject modelObject = CreateChildObject(modelElement, parent);
         var ab = modelObject.AddComponent<ArticulationBody>();
         var modelHelper = modelObject.AddComponent<ModelHelper>();
-        modelObject.transform.parent = parent.transform;
-        modelObject.transform.localPosition = Vector3.zero;
-        modelObject.transform.localRotation = Quaternion.identity;
         modelObject.isStatic = false;
 
         // assume static is inherited from parent model

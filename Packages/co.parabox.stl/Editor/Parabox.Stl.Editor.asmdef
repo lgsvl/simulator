@@ -1,0 +1,12 @@
+{
+    "name": "Parabox.Stl.Editor",
+    "references": [
+        "Parabox.Stl"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false
+}

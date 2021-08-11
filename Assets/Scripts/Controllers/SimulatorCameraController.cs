@@ -8,7 +8,8 @@
 using Simulator.Map;
 using System.Collections.Generic;
 using UnityEngine;
-using Input = Simulator.Input;
+using Input = UnityEngine.Input;
+using Random = UnityEngine.Random;
 
 public enum CameraStateType
 {
@@ -60,6 +61,7 @@ public class SimulatorCameraController : MonoBehaviour
     private Vector3 cinematicStart;
     private Vector3 cinematicEnd;
     private Vector3 cinematicOffset = new Vector3(0f, 10f, 0f);
+    private Vector3 lastTargetPosition;
 
     private float BoundsY = 3f;
     private float BoundsZ = 30f;
@@ -71,6 +73,8 @@ public class SimulatorCameraController : MonoBehaviour
     private List<Transform> cinematicCameraTransforms;
 
     private Transform DriverViewCameraTransform;
+
+    private readonly AnimationCurve velocityOffsetCurve = AnimationCurve.EaseInOut(1f, 0f, 25f, 2.2f);
 
     public bool UseFixedUpdate { get; set; } = false;
 
@@ -265,7 +269,16 @@ public class SimulatorCameraController : MonoBehaviour
                 targetTiltFree -= 360;
             }
         }
-        transform.position = Vector3.SmoothDamp(transform.position, targetObject.position, ref targetVelocity, 0.1f);
+
+        var targetPos = targetObject.transform.position;
+
+        var rigidBody = targetObject.GetComponent<Rigidbody>();
+        var velocityVec = rigidBody != null ? rigidBody.velocity : (targetPos - lastTargetPosition) / Time.unscaledDeltaTime;
+        lastTargetPosition = targetPos;
+
+        var velocity = Mathf.Clamp(velocityVec.magnitude, 0f, 25f);
+        var camOffset = velocityOffsetCurve.Evaluate(velocity);
+        transform.position = targetObject.position - velocityVec.normalized * camOffset;
     }
 
     private void UpdateCinematicCamera()
@@ -369,6 +382,7 @@ public class SimulatorCameraController : MonoBehaviour
         transform.SetParent(SimulatorManager.Instance?.CameraManager.transform);
         CurrentCameraState = CameraStateType.Follow;
         targetObject = target.transform;
+        lastTargetPosition = targetObject.transform.position;
 
         var controller = target.GetComponent<IAgentController>();
         if (controller != null)

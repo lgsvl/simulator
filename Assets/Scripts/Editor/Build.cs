@@ -39,6 +39,7 @@ namespace Simulator.Editor
         }
 
         public static bool Running;
+        public static bool BuildSuccessful;
         private static bool BuildQueued;
         private static string CurrentSelectedEntryName = "nothing";
         private static string HelpMsg = "";
@@ -500,6 +501,7 @@ namespace Simulator.Editor
                 {
                     foreach (var entry in selected)
                     {
+                        BuildSuccessful = false;
                         Manifest manifest = new Manifest();
                         var buildArtifacts = new List<(string source, string archiveName)>();
                         var persistentBuildArtifacts = new List<(string source, string archiveName)>();
@@ -794,12 +796,13 @@ namespace Simulator.Editor
 
                             archive.CommitUpdate();
                             archive.Close();
+                            BuildSuccessful = true;
                         }
                         catch (Exception e)
                         {
                             Debug.LogError($"Failed to build archive, exception follows:");
                             Debug.LogException(e);
-
+                            BuildSuccessful = false;
                         }
                         finally
                         {
@@ -939,7 +942,10 @@ namespace Simulator.Editor
                 void OnComplete()
                 {
                     Running = false;
-                    BuildCompletePopup.Init();
+                    if(BuildSuccessful && !BuildPlayer)
+                    {
+                        BuildCompletePopup.Init();
+                    }
                 }
 
                 Running = true;

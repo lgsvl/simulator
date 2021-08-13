@@ -251,6 +251,8 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         NPCController.SetBehaviour<NPCLaneFollowBehaviour>();
         CurrentPooledNPCs.Add(NPCController);
 
+        SimulatorManager.Instance.UpdateSegmentationColors(NPCController.gameObject, NPCController.GTID);
+
         //Add required components for distributing rigidbody from master to clients
         if (Loader.Instance.Network.IsClusterSimulation)
         {
@@ -329,6 +331,9 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
                 return;
             if (ActiveNPCCount > NPCMaxCount)
                 return;
+
+            SimulatorManager.Instance.SegmentationIdMapping.RemoveSegmentationId(CurrentPooledNPCs[i].GTID);
+
             CurrentPooledNPCs[i].transform.position = spawnPoint.position;
             CurrentPooledNPCs[i].transform.LookAt(spawnPoint.lookAtPoint);
             CurrentPooledNPCs[i].InitLaneData(spawnPoint.lane as MapTrafficLane);

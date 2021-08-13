@@ -41,7 +41,7 @@ namespace Simulator.Components
             }
 
             Connection = connection;
-            ConnectTime = 0;
+            ConnectTime = Stopwatch.GetTimestamp();
         }
 
         public void Update()
@@ -64,13 +64,18 @@ namespace Simulator.Components
                 return;
             }
 
-            // do not reconnect in non interactive mode
             // do not reconnect in simulation error state
             // do not reconnect in simulation stopping state
             if (BridgeStatus == Status.UnexpectedlyDisconnected &&
-                (   Loader.Instance.CurrentSimulation.Interactive == false
-                 || Loader.Instance.Status == SimulatorStatus.Error
+                (Loader.Instance.Status == SimulatorStatus.Error
                  || Loader.Instance.Status == SimulatorStatus.Stopping))
+            {
+                Bridge.Disconnect();
+                Disconnected = true;
+            }
+            // do not reconnect in non interactive mode and report error
+            else if (BridgeStatus == Status.UnexpectedlyDisconnected &&
+                   Loader.Instance.CurrentSimulation.Interactive == false)
             {
                 Loader.Instance.reportStatus(SimulatorStatus.Error, "Bridge socket was unexpectedly disconnected");
                 Bridge.Disconnect();
@@ -78,18 +83,13 @@ namespace Simulator.Components
             }
             else if (disconnectedStatus)
             {
-                if (Stopwatch.GetTimestamp() > ConnectTime || ConnectTime == 0 || Time.timeScale == 0f)
+                if (Stopwatch.GetTimestamp() >= ConnectTime)
                 {
                     Disconnected = false;
                     Bridge.Connect(Connection);
                 }
-                else
-                {
-                    return;
-                }
             }
-
-            if (BridgeStatus == Status.Connected)
+            else if (BridgeStatus == Status.Connected)
             {
                 Bridge.Update();
             }

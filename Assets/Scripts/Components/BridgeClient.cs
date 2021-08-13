@@ -6,14 +6,11 @@
  */
 
 using UnityEngine;
-using System.Diagnostics;
 using Simulator.Bridge;
+using System.Collections;
 
 namespace Simulator.Components
 {
-    using System;
-    using Debug = UnityEngine.Debug;
-
     public class BridgeClient : MonoBehaviour
     {
         public string Connection { get; private set; }
@@ -22,11 +19,9 @@ namespace Simulator.Components
 
         public BridgeInstance Bridge { get; private set; }
 
-        long ConnectTime;
-        bool Disconnected = true;
+        static readonly float reconnectInterval = 3.0f;
 
-        static long reconnectInterval = Stopwatch.Frequency * 3;
-
+        Coroutine watchDog = null;
         public void Init(BridgePlugin plugin)
         {
             Bridge = new BridgeInstance(plugin);
@@ -37,67 +32,63 @@ namespace Simulator.Components
             if (BridgeStatus != Status.Disconnected && BridgeStatus != Status.UnexpectedlyDisconnected)
             {
                 Bridge.Disconnect();
-                Disconnected = true;
             }
 
             Connection = connection;
-            ConnectTime = Stopwatch.GetTimestamp();
         }
 
-        public void Update()
+        private void OnEnable()
         {
-            bool disconnectedStatus = BridgeStatus == Status.Disconnected || BridgeStatus == Status.UnexpectedlyDisconnected;
+            watchDog = StartCoroutine(ConnectionWatchDog());
+        }
 
-            if (!disconnectedStatus)
+        private void OnDisable()
+        {
+            if (watchDog != null)
             {
-                Disconnected = false;
-            }
-
-            if (!Disconnected && disconnectedStatus)
-            {
-                ConnectTime = Stopwatch.GetTimestamp() + reconnectInterval;
-                Disconnected = true;
-            }
-
-            if (Connection == null)
-            {
-                return;
-            }
-
-            // do not reconnect in simulation error state
-            // do not reconnect in simulation stopping state
-            if (BridgeStatus == Status.UnexpectedlyDisconnected &&
-                (Loader.Instance.Status == SimulatorStatus.Error
-                 || Loader.Instance.Status == SimulatorStatus.Stopping))
-            {
-                Bridge.Disconnect();
-                Disconnected = true;
-            }
-            // do not reconnect in non interactive mode and report error
-            else if (BridgeStatus == Status.UnexpectedlyDisconnected &&
-                   Loader.Instance.CurrentSimulation.Interactive == false)
-            {
-                Loader.Instance.reportStatus(SimulatorStatus.Error, "Bridge socket was unexpectedly disconnected");
-                Bridge.Disconnect();
-                Disconnected = true;
-            }
-            else if (disconnectedStatus)
-            {
-                if (Stopwatch.GetTimestamp() >= ConnectTime)
-                {
-                    Disconnected = false;
-                    Bridge.Connect(Connection);
-                }
-            }
-            else if (BridgeStatus == Status.Connected)
-            {
-                Bridge.Update();
+                StopCoroutine(watchDog);
+                watchDog = null;
             }
         }
 
         private void OnDestroy()
         {
-            Bridge.Disconnect();
+            if (Bridge.Status != Status.Disconnected) Bridge.Disconnect();
+        }
+
+        private IEnumerator ConnectionWatchDog()
+        {
+            yield return new WaitUntil(() => Loader.Instance.Status != SimulatorStatus.Starting);
+            Bridge.Connect(Connection);
+
+            // in interactive mode we reconnect to the bridge if it gets disconnected.
+            bool reconnect = Loader.Instance.CurrentSimulation.Interactive;
+
+            while (Loader.Instance.Status == SimulatorStatus.Running)
+            {
+                if (BridgeStatus == Status.Connected)
+                {
+                    Bridge.Update();
+                }
+                else if (BridgeStatus == Status.UnexpectedlyDisconnected || BridgeStatus == Status.Disconnected)
+                {
+                    if (reconnect)
+                    {
+                        // do not report error, as doing so would cause WISE to terminate the simulation
+                        Bridge.Disconnect();
+                        yield return new WaitForSecondsRealtime(reconnectInterval);
+                        Bridge.Connect(Connection);
+                    }
+                    else
+                    {
+                        Loader.Instance.reportStatus(SimulatorStatus.Error, "Bridge socket was unexpectedly disconnected");
+                        break;
+                    }
+                }
+
+                yield return null;
+            }
+            if (Bridge.Status != Status.Disconnected) Bridge.Disconnect();
         }
     }
 }

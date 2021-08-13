@@ -57,7 +57,7 @@ namespace Simulator.Web
                 return;
             }
 
-            SimulatorVersionText.text = $"Simulator Version: {Application.version}";
+            SimulatorVersionText.text = $"Simulator Version: {CloudAPI.GetInfo().version}";
             UnityVersionText.text = $"Unity Version: {Application.unityVersion}";
             ColorUtility.TryParseHtmlString("#1F2940", out offlineColor);
             ColorUtility.TryParseHtmlString("#FFFFFF", out onlineColor);

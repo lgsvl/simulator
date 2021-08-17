@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -14,9 +14,13 @@ using Simulator.Map;
 
 namespace Simulator.Editor
 {
+    using System;
+    using Components;
+
     public class PointCloudExport : EditorWindow
     {
-        [SerializeField] int LidarTemplate = 3;
+        [SerializeField] int TemplateIndex = 3;
+        [SerializeField] int GeneratorTypeIndex = 0;
 
         [SerializeField] int LidarLaserCount;
         [SerializeField] float LidarMinDistance;
@@ -31,6 +35,10 @@ namespace Simulator.Editor
         [SerializeField] float Ratio = 0.1f;
         [SerializeField] string FileName;
 
+        private LidarTemplate currentTemplate;
+
+        private Type[] availableGeneratorTypes;
+
         [MenuItem("Simulator/Export Point Cloud", false, 130)]
         public static void Open()
         {
@@ -41,7 +49,7 @@ namespace Simulator.Editor
             window.Show();
         }
 
-        void OnDisable()
+        private void OnDisable()
         {
             var data = JsonUtility.ToJson(this, false);
             EditorPrefs.SetString("Simulator/PointCloudExport", data);
@@ -49,25 +57,24 @@ namespace Simulator.Editor
 
         public void OnEnable()
         {
-            var template = LidarSensor.Template.Templates.First(t => t.Name == "Lidar32");
+            var template = LidarTemplate.Templates.First(t => t.Name == "Lidar32");
             Apply(template);
         }
 
-        void Apply(LidarSensor.Template template)
+        private void Apply(LidarTemplate template)
         {
-            LidarLaserCount = template.LaserCount;
-            LidarMinDistance = template.MinDistance;
-            LidarMaxDistance = template.MaxDistance;
-            LidarRotationFrequency = template.RotationFrequency;
-            LidarMeasurementsPerRotation = template.MeasurementsPerRotation;
-            LidarFieldOfView = template.FieldOfView;
-            LidarCenterAngle = template.CenterAngle;
+            currentTemplate.LaserCount = template.LaserCount;
+            currentTemplate.MinDistance = template.MinDistance;
+            currentTemplate.MaxDistance = template.MaxDistance;
+            currentTemplate.RotationFrequency = template.RotationFrequency;
+            currentTemplate.MeasurementsPerRotation = template.MeasurementsPerRotation;
+            currentTemplate.FieldOfView = template.FieldOfView;
+            currentTemplate.CenterAngle = template.CenterAngle;
         }
 
         public void OnGUI()
         {
             var titleLabelStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 14 };
-            var subtitleLabelStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 10 };
 
             GUILayout.Space(10);
             EditorGUILayout.LabelField("Export Point Cloud", titleLabelStyle, GUILayout.ExpandWidth(true));
@@ -75,21 +82,40 @@ namespace Simulator.Editor
             EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
             GUILayout.Space(10);
 
-            EditorGUILayout.HelpBox("Settings", UnityEditor.MessageType.Info);
-            LidarTemplate = EditorGUILayout.Popup(LidarTemplate, LidarSensor.Template.Templates.Select(t => t.Name).ToArray());
-            if (LidarTemplate == 0)
+            EditorGUILayout.LabelField("Generator Class", EditorStyles.boldLabel);
+            if (availableGeneratorTypes == null)
+                FindPointCloudGenerators();
+
+            if (availableGeneratorTypes.Length > 0)
             {
-                LidarLaserCount = EditorGUILayout.IntSlider(new GUIContent("Laser Count"), LidarLaserCount, 1, 128);
-                LidarMinDistance = EditorGUILayout.Slider(new GUIContent("Min Distance"), LidarMinDistance, 0.0f, 10.0f);
-                LidarMaxDistance = EditorGUILayout.Slider(new GUIContent("Max Distance"), LidarMaxDistance, LidarMinDistance, 100.0f);
-                LidarRotationFrequency = EditorGUILayout.Slider(new GUIContent("Rotation Frequency"), LidarRotationFrequency, 1.0f, 30.0f);
-                LidarMeasurementsPerRotation = EditorGUILayout.IntSlider(new GUIContent("Measurements Per Rotation"), LidarMeasurementsPerRotation, 18, 6000);
-                LidarFieldOfView = EditorGUILayout.Slider(new GUIContent("Field of View"), LidarFieldOfView, 1.0f, 45.0f);
-                LidarCenterAngle = EditorGUILayout.Slider(new GUIContent("Center Angle"), LidarCenterAngle, -45.0f, 45.0f);
+                EditorGUILayout.Popup(GeneratorTypeIndex, availableGeneratorTypes.Select(x => x.Name).ToArray());
             }
             else
             {
-                Apply(LidarSensor.Template.Templates[LidarTemplate]);
+                EditorGUILayout.HelpBox($"There are no types implementing {nameof(IPointCloudGenerator)}.\nClone LidarSensor into Assets/External/Sensors to use this tool.", MessageType.Error);
+            }
+
+            if (GUILayout.Button("Refresh"))
+            {
+                FindPointCloudGenerators();
+            }
+
+            EditorGUILayout.Space(10);
+            EditorGUILayout.LabelField("Settings", EditorStyles.boldLabel);
+            TemplateIndex = EditorGUILayout.Popup(TemplateIndex, LidarTemplate.Templates.Select(t => t.Name).ToArray());
+            if (TemplateIndex == 0)
+            {
+                currentTemplate.LaserCount = EditorGUILayout.IntSlider(new GUIContent("Laser Count"), LidarLaserCount, 1, 128);
+                currentTemplate.MinDistance = EditorGUILayout.Slider(new GUIContent("Min Distance"), LidarMinDistance, 0.0f, 10.0f);
+                currentTemplate.MaxDistance = EditorGUILayout.Slider(new GUIContent("Max Distance"), LidarMaxDistance, LidarMinDistance, 100.0f);
+                currentTemplate.RotationFrequency = EditorGUILayout.Slider(new GUIContent("Rotation Frequency"), LidarRotationFrequency, 1.0f, 30.0f);
+                currentTemplate.MeasurementsPerRotation = EditorGUILayout.IntSlider(new GUIContent("Measurements Per Rotation"), LidarMeasurementsPerRotation, 18, 6000);
+                currentTemplate.FieldOfView = EditorGUILayout.Slider(new GUIContent("Field of View"), LidarFieldOfView, 1.0f, 45.0f);
+                currentTemplate.CenterAngle = EditorGUILayout.Slider(new GUIContent("Center Angle"), LidarCenterAngle, -45.0f, 45.0f);
+            }
+            else
+            {
+                Apply(LidarTemplate.Templates[TemplateIndex]);
             }
 
             if (LidarLaserCount > 32)
@@ -97,11 +123,12 @@ namespace Simulator.Editor
                 EditorGUILayout.HelpBox("Using lidar with more than 32 laser count will significantly increase generation time", UnityEditor.MessageType.Warning);
             }
 
-            Height = EditorGUILayout.FloatField(new GUIContent("Height", "Height of lidar from ground"), Height);
+            Height = EditorGUILayout.FloatField(new GUIContent("Height", "Height of lidar from ground in meters"), Height);
             Distance = EditorGUILayout.FloatField(new GUIContent("Distance", "Distance between capture positions, higher value increases generation perforamnce"), Distance);
-            Ratio = EditorGUILayout.Slider(new GUIContent("Ratio", "Fraction of points to keep, hight vealue increases saved point count"), Ratio, 0.0f, 1.0f);
+            Ratio = EditorGUILayout.Slider(new GUIContent("Ratio", "Fraction of points to keep, higher value increases saved point count"), Ratio, 0.0f, 1.0f);
 
-            EditorGUILayout.HelpBox("Save As...", UnityEditor.MessageType.Info);
+            EditorGUILayout.Space(10);
+            EditorGUILayout.LabelField("Save as...", EditorStyles.boldLabel);
             GUILayout.BeginHorizontal();
             FileName = EditorGUILayout.TextField(FileName);
             if (GUILayout.Button("...", GUILayout.ExpandWidth(false)))
@@ -114,13 +141,25 @@ namespace Simulator.Editor
             }
             GUILayout.EndHorizontal();
 
+            EditorGUI.BeginDisabledGroup(availableGeneratorTypes.Length == 0);
             if (GUILayout.Button("Generate"))
             {
                 Export();
             }
+            EditorGUI.EndDisabledGroup();
         }
 
-        void Export()
+        private void FindPointCloudGenerators()
+        {
+            GeneratorTypeIndex = 0;
+            var type = typeof(IPointCloudGenerator);
+            availableGeneratorTypes = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(s => s.GetTypes())
+                .Where(p => type.IsAssignableFrom(p) && !p.IsInterface)
+                .ToArray();
+        }
+
+        private void Export()
         {
             if (string.IsNullOrEmpty(FileName))
             {
@@ -149,26 +188,16 @@ namespace Simulator.Editor
             Debug.Log($"Point Cloud generated in {(int)elapsed.TotalMinutes} min {elapsed.Seconds} sec");
         }
 
-        void Generate(MapTrafficLane[] lanes)
+        private void Generate(MapTrafficLane[] lanes)
         {
-            var settings = EditorSettings.Load();
+            var sensorName = availableGeneratorTypes[GeneratorTypeIndex].Name;
+            var path = $"Assets/External/Sensors/{sensorName}/{sensorName}.prefab";
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            var go = Instantiate(prefab);
+            var generator = go.GetComponent<IPointCloudGenerator>();
+            generator.ApplySettings(currentTemplate);
 
-            //var lidar = Instantiate(settings.LidarSensor);
-            //lidar.Init();
-            //lidar.TemplateIndex = LidarTemplate;
-            //lidar.LaserCount = LidarLaserCount;
-            //lidar.MinDistance = LidarMinDistance;
-            //lidar.MaxDistance = LidarMaxDistance;
-            //lidar.RotationFrequency = LidarRotationFrequency;
-            //lidar.RotationFrequency = LidarRotationFrequency;
-            //lidar.MeasurementsPerRotation = LidarMeasurementsPerRotation;
-            //lidar.RotationFrequency = LidarRotationFrequency;
-            //lidar.FieldOfView = LidarFieldOfView;
-            //lidar.CenterAngle = LidarCenterAngle;
-            //lidar.ApplyTemplate();
-            //lidar.Reset();
-
-            int mapLayerMask = LayerMask.GetMask("Default");
+            int mapLayerMask = LayerMask.GetMask("Default", "Obstacle");
 
             try
             {
@@ -204,21 +233,18 @@ namespace Simulator.Editor
                                     var delta = (p1 - p0) / capturesPerSegment;
                                     for (int c = 0; c < capturesPerSegment; c++)
                                     {
-                                        var position = p0 + delta * c + hit.normal * Height;
+                                        var pos = p0 + delta * c + hit.normal * Height;
+                                        var points = generator.GeneratePoints(pos);
 
-                                        //lidar.transform.position = position;
-
-                                        //var points = lidar.Capture();
-
-                                        //for (int p = 0; p < points.Length; p++)
-                                        //{
-                                        //    var point = points[p];
-                                        //    if (point != Vector4.zero && Random.value < Ratio)
-                                        //    {
-                                        //        var pt = point;
-                                        //        writer.Write(new Vector3(pt.z, -pt.x, pt.y), point.w);  // Converting to right-handed xyz
-                                        //    }
-                                        //};
+                                        for (int p = 0; p < points.Length; p++)
+                                        {
+                                            var point = points[p];
+                                            if (point != Vector4.zero && UnityEngine.Random.Range(0f, 1f) < Ratio)
+                                            {
+                                                var pt = point;
+                                                writer.Write(new Vector3(pt.z, -pt.x, pt.y), point.w);  // Converting to right-handed xyz
+                                            }
+                                        };
                                     }
                                 }
 
@@ -230,9 +256,9 @@ namespace Simulator.Editor
             }
             finally
             {
-                //EditorUtility.ClearProgressBar();
-                //lidar.OnDestroy();
-                //DestroyImmediate(lidar.gameObject);
+                EditorUtility.ClearProgressBar();
+                generator.Cleanup();
+                DestroyImmediate(go);
             }
         }
     }

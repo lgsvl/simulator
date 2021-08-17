@@ -1449,7 +1449,7 @@ namespace Simulator.Editor
             }
 
             double originLatitude, originLongitude;
-            mapOrigin.GetLatitudeLongitude(mapOrigin.OriginNorthing, mapOrigin.OriginEasting, out originLatitude, out originLongitude);
+            mapOrigin.NorthingEastingToLatLong(mapOrigin.OriginNorthing, mapOrigin.OriginEasting, out originLatitude, out originLongitude);
             var LeftLongitude = originLongitude;
             var RightLongitude = originLongitude;
             var TopLatitude = originLatitude;

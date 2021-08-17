@@ -353,7 +353,7 @@ namespace Simulator.Editor
         private Node CreateNodeByIndex(LineData lineData, int p)
         {
             Vector3 pos = lineData.mapWorldPositions[p];
-            var location = MapOrigin.GetGpsLocation(pos);
+            var location = MapOrigin.PositionToGpsLocation(pos);
             Node node = CreateNodeFromPoint(pos);
             Id2Node[node.Id.Value] = node;
             return node;
@@ -367,7 +367,7 @@ namespace Simulator.Editor
 
         public Node CreateNodeFromPoint(Vector3 point, TagsCollection tags)
         {
-            var location = MapOrigin.GetGpsLocation(point);
+            var location = MapOrigin.PositionToGpsLocation(point);
             TagsCollection tags_xyele = new TagsCollection(
                 new Tag("x", point.z.ToString()),
                 new Tag("y", (-point.x).ToString()),

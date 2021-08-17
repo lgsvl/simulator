@@ -128,7 +128,7 @@ public class MapOriginEditor : Editor
                 p.transform.position = hit.point;
             }
         }
-        var gps = origin.GetGpsLocation(p.transform.position);
+        var gps = origin.PositionToGpsLocation(p.transform.position);
         p.latitue = gps.Latitude;
         p.longitude = gps.Longitude;
         var mapHolder = FindObjectOfType<MapHolder>().transform;
@@ -151,7 +151,7 @@ public class MapOriginEditor : Editor
         public void Init(MapOrigin origin)
         {
             this.origin = origin;
-            var gps = origin.GetGpsLocation(origin.transform.position);
+            var gps = origin.PositionToGpsLocation(origin.transform.position);
             latitude = Math.Round(gps.Latitude, 6);
             longitude = Math.Round(gps.Longitude, 6);
             minSize = new Vector2(250, 120);
@@ -171,8 +171,8 @@ public class MapOriginEditor : Editor
 
             if (GUILayout.Button("Import Coordinates"))
             {
-                origin.UTMZoneId = MapOrigin.GetZoneNumberFromLatLon(latitude, longitude);
-                origin.FromLatitudeLongitude(latitude, longitude, out var northing, out var easting);
+                origin.UTMZoneId = MapOrigin.LatLonToUTMZone(latitude, longitude);
+                origin.LatLongToNorthingEasting(latitude, longitude, out var northing, out var easting);
                 origin.OriginNorthing = Math.Round(northing, 2);
                 origin.OriginEasting = Math.Round(easting, 2);
                 this.Close();

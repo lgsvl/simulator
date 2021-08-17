@@ -68,8 +68,8 @@ namespace Simulator.Editor
             double lon = (double)node.Longitude;
             double northing, easting;
 
-            MapOrigin.FromLatitudeLongitude(lat, lon, out northing, out easting);
-            Vector3 positionVec = MapOrigin.FromNorthingEasting(northing, easting); // note here y=0 in vec
+            MapOrigin.LatLongToNorthingEasting(lat, lon, out northing, out easting);
+            Vector3 positionVec = MapOrigin.NorthingEastingToPosition(northing, easting); // note here y=0 in vec
 
             if (node.Tags?.Count > 0)
             {
@@ -185,11 +185,8 @@ namespace Simulator.Editor
             longitude = originNode.Longitude.Value;
             latitude = originNode.Latitude.Value;
 
-            int zoneNumber = MapOrigin.GetZoneNumberFromLatLon(latitude, longitude);
-
-            MapOrigin.UTMZoneId = zoneNumber;
-            double northing, easting;
-            MapOrigin.FromLatitudeLongitude(latitude, longitude, out northing, out easting);
+            MapOrigin.UTMZoneId = MapOrigin.LatLonToUTMZone(latitude, longitude);;
+            MapOrigin.LatLongToNorthingEasting(latitude, longitude, out double northing, out double easting);
             MapOrigin.OriginNorthing = northing;
             MapOrigin.OriginEasting = easting;
         }

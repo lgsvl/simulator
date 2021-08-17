@@ -173,11 +173,11 @@ namespace Simulator.Editor
             }
             else
             {
-                zoneNumber = MapOrigin.GetZoneNumberFromLatLon(latitude, longitude);
+                zoneNumber = MapOrigin.LatLonToUTMZone(latitude, longitude);
             }
 
             mapOrigin.UTMZoneId = zoneNumber;
-            mapOrigin.FromLatitudeLongitude(latitude, longitude, out mapOrigin.OriginNorthing, out mapOrigin.OriginEasting);
+            mapOrigin.LatLongToNorthingEasting(latitude, longitude, out mapOrigin.OriginNorthing, out mapOrigin.OriginEasting);
 
             return true;
         }
@@ -214,7 +214,7 @@ namespace Simulator.Editor
             var vector3List = new List<Vector3>();
             foreach (var point in double3List)
             {
-                var vector3 = MapOrigin.FromNorthingEasting(point.y, point.x, false);
+                var vector3 = MapOrigin.NorthingEastingToPosition(point.y, point.x);
                 vector3.y = (float)point.z;
                 vector3List.Add(vector3);
             }
@@ -1114,7 +1114,7 @@ namespace Simulator.Editor
         {
             // use the middle signal light location as the position of the signal.
             var centerLightPosition = signal.subsignal[1].location;
-            var position = MapOrigin.FromNorthingEasting(centerLightPosition.y, centerLightPosition.x, false);
+            var position = MapOrigin.NorthingEastingToPosition(centerLightPosition.y, centerLightPosition.x);
             // Uncomment following line to use the actual height
             position.y = (float)centerLightPosition.z - MapOrigin.AltitudeOffset;
             return position;

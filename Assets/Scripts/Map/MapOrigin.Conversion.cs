@@ -23,7 +23,7 @@ namespace Simulator.Map
 {
     public partial class MapOrigin : MonoBehaviour
     {
-        double R = 6378137;
+        const double R = 6378137;
 
         const double K0 = 0.9996;
 
@@ -50,7 +50,7 @@ namespace Simulator.Map
         static readonly double P5 = 1097.0 / 512 * _E4;
 
         //Expects Easting values where the central meridian is 500000
-        public void GetLatitudeLongitude(double northing, double easting, out double latitude, out double longitude, bool ignoreMapOrigin = false)
+        public void NorthingEastingToLatLong(double northing, double easting, out double latitude, out double longitude, bool ignoreMapOrigin = false)
         {
             double x = ignoreMapOrigin ? easting : easting - 500000d;
             double y = northing;
@@ -108,7 +108,7 @@ namespace Simulator.Map
         }
 
         //Returns Easting where the central meridian is 500000
-        public void FromLatitudeLongitude(double latitude, double longitude, out double northing, out double easting, bool ignoreMapOrigin = false)
+        public void LatLongToNorthingEasting(double latitude, double longitude, out double northing, out double easting, bool ignoreMapOrigin = false)
         {
             double lat_rad = latitude * Math.PI / 180.0;
             double lat_sin = Math.Sin(lat_rad);
@@ -145,6 +145,38 @@ namespace Simulator.Map
             northing = K0 * (m + n * lat_tan * (a2 / 2 +
                 a4 / 24 * (5 - lat_tan2 + 9 * c + 4 * c * c) +
                 a6 / 720 * (61 - 58 * lat_tan2 + lat_tan4 + 600 * c - 330 * E_P2)));
+        }
+
+        public static int LatLonToUTMZone(double latitude, double longitude)
+        {
+            int zoneNumber = (int)(Math.Floor((longitude + 180) / 6) + 1);
+            if (latitude >= 56.0 && latitude < 64.0 && longitude >= 3.0 && longitude < 12.0)
+            {
+                zoneNumber = 32;
+            }
+
+            // Special Zones for Svalbard
+            if (latitude >= 72.0 && latitude < 84.0)
+            {
+                if (longitude >= 0.0 && longitude < 9.0)
+                {
+                    zoneNumber = 31;
+                }
+                else if (longitude >= 9.0 && longitude < 21.0)
+                {
+                    zoneNumber = 33;
+                }
+                else if (longitude >= 21.0 && longitude < 33.0)
+                {
+                    zoneNumber = 35;
+                }
+                else if (longitude >= 33.0 && longitude < 42.0)
+                {
+                    zoneNumber = 37;
+                }
+            }
+
+            return zoneNumber;
         }
     }
 }

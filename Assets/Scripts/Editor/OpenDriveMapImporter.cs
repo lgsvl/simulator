@@ -273,13 +273,11 @@ namespace Simulator.Editor
                 return false;
             }
 
-            double latitude, longitude;
-            longitude = float.Parse(items["lon_0"], CultureInfo.InvariantCulture);
-            latitude = float.Parse(items["lat_0"], CultureInfo.InvariantCulture);
+            double longitude = double.Parse(items["lon_0"], CultureInfo.InvariantCulture);
+            double latitude = double.Parse(items["lat_0"], CultureInfo.InvariantCulture);
 
-            mapOrigin.UTMZoneId = MapOrigin.GetZoneNumberFromLatLon(latitude, longitude);
-            double northing, easting;
-            mapOrigin.FromLatitudeLongitude(latitude, longitude, out northing, out easting);
+            mapOrigin.UTMZoneId = MapOrigin.LatLonToUTMZone(latitude, longitude);
+            mapOrigin.LatLongToNorthingEasting(latitude, longitude, out double northing, out double easting);
             mapOrigin.OriginNorthing = northing;
             mapOrigin.OriginEasting = easting;
 

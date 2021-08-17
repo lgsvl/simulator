@@ -65,7 +65,7 @@ public class MapOriginPositionErrorOptimalizer
 
     private Vector3 ErrorForPoint(MapOriginReferencePoint p)
     {
-        var realPos = _origin.FromGpsLocation(p.latitue, p.longitude);
+        var realPos = _origin.LatLongToPosition(p.latitue, p.longitude);
         var virtualPos = p.transform.position;
         realPos.y = virtualPos.y;
         return virtualPos - realPos;

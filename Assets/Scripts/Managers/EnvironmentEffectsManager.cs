@@ -125,7 +125,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
     private void Awake()
     {
         MapOrigin = MapOrigin.Find();
-        GPSLocation = MapOrigin.GetGpsLocation(Vector3.zero);
+        GPSLocation = MapOrigin.PositionToGpsLocation(Vector3.zero);
     }
 
     void Start()

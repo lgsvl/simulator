@@ -37,7 +37,7 @@ namespace Simulator.Api.Commands
                     var northing = args["northing"].AsDouble;
                     var easting = args["easting"].AsDouble;
 
-                    position = map.FromNorthingEasting(northing, easting);
+                    position = map.NorthingEastingToPosition(northing, easting);
                 }
                 else
                 {
@@ -45,9 +45,9 @@ namespace Simulator.Api.Commands
                     var longitude = args["longitude"].AsDouble;
 
                     double northing, easting;
-                    map.FromLatitudeLongitude(latitude, longitude, out northing, out easting);
+                    map.LatLongToNorthingEasting(latitude, longitude, out northing, out easting);
 
-                    position = map.FromNorthingEasting(northing, easting);
+                    position = map.NorthingEastingToPosition(northing, easting);
                 }
 
                 var altitude = args["altitude"];

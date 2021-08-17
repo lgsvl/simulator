@@ -81,7 +81,7 @@ namespace Simulator.Editor
     {
         float FakePedestrianLaneWidth = 1.5f;
         double SideWalkHeight = 0.12;
-        MapOrigin MapOrigin;
+        MapOrigin mapOrigin;
         MapManagerData MapAnnotationData;
         OpenDRIVE Map;
         HashSet<LaneData> LanesData;
@@ -99,8 +99,8 @@ namespace Simulator.Editor
 
         public bool Calculate()
         {
-            MapOrigin = MapOrigin.Find();
-            if (MapOrigin == null)
+            mapOrigin = MapOrigin.Find();
+            if (mapOrigin == null)
             {
                 return false;
             }
@@ -137,9 +137,15 @@ namespace Simulator.Editor
 
             if (!CheckNeighborLanes(laneSegments)) return false;
 
-            var location = MapOrigin.GetGpsLocation(MapOrigin.transform.position);
-            var geoReference = " +proj=tmerc +lat_0="+ location.Latitude + " +lon_0=" + location.Longitude;
-            geoReference += " +k=1 +x_0=" + location.Easting + " +y_0=" + location.Northing + " +datum=WGS84 +units=m +no_defs "; 
+            double geoReferenceLatitude;
+            double geoReferenceLongitude;
+            mapOrigin.NorthingEastingToLatLong(mapOrigin.OriginNorthing, mapOrigin.OriginEasting, out geoReferenceLatitude, out geoReferenceLongitude);
+            var geoReference = string.Format(" +proj=tmerc +lat_0={0} +lon_0={1} +k=1 +x_0={2} +y_0={3} +datum=WGS84 +units=m +no_defs ", 
+                geoReferenceLatitude,
+                geoReferenceLongitude,
+                mapOrigin.OriginEasting,
+                mapOrigin.OriginNorthing);
+                
             Map = new OpenDRIVE()
             {
                 header = new OpenDRIVEHeader()

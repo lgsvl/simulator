@@ -84,31 +84,30 @@ namespace Simulator.Map
             return origin;
         }
 
-        public GpsLocation GetGpsLocation(Vector3 position, bool ignoreMapOrigin = false)
+        public GpsLocation PositionToGpsLocation(Vector3 position, bool ignoreMapOrigin = false)
         {
-            return GetGpsLocation((double3)(float3)position, ignoreMapOrigin);
+            return PositionToGpsLocation((double3)(float3)position, ignoreMapOrigin);
         }
 
-        public GpsLocation GetGpsLocation(double3 position, bool ignoreMapOrigin = false)
+        public GpsLocation PositionToGpsLocation(double3 position, bool ignoreMapOrigin = false)
         {
             var location = new GpsLocation();
 
-            GetNorthingEasting(position, out location.Northing, out location.Easting, ignoreMapOrigin);
-            GetLatitudeLongitude(location.Northing, location.Easting, out location.Latitude, out location.Longitude, ignoreMapOrigin);
+            PositionToNorthingEasting(position, out location.Northing, out location.Easting, ignoreMapOrigin);
+            NorthingEastingToLatLong(location.Northing, location.Easting, out location.Latitude, out location.Longitude, ignoreMapOrigin);
 
             location.Altitude = position.y + AltitudeOffset;
 
             return location;
         }
 
-        public Vector3 FromGpsLocation(double latitude, double longitude)
+        public Vector3 LatLongToPosition(double latitude, double longitude)
         {
-            FromLatitudeLongitude(latitude, longitude, out var northing, out var easting);
-            var x = FromNorthingEasting(northing, easting);
-            return x;
+            LatLongToNorthingEasting(latitude, longitude, out var northing, out var easting);
+            return NorthingEastingToPosition(northing, easting);
         }
 
-        public void GetNorthingEasting(double3 position, out double northing, out double easting, bool ignoreMapOrigin = false)
+        public void PositionToNorthingEasting(double3 position, out double northing, out double easting, bool ignoreMapOrigin = false)
         {
             var mapOriginRelative = transform.InverseTransformPoint(new Vector3((float)position.x, (float)position.y, (float)position.z));
 
@@ -122,7 +121,7 @@ namespace Simulator.Map
             }
         }
 
-        public Vector3 FromNorthingEasting(double northing, double easting, bool ignoreMapOrigin = false)
+        public Vector3 NorthingEastingToPosition(double northing, double easting, bool ignoreMapOrigin = false)
         {
             if (!ignoreMapOrigin)
             {
@@ -133,38 +132,6 @@ namespace Simulator.Map
             var worldPosition = transform.TransformPoint(new Vector3((float)easting, 0, (float)northing));
 
             return new Vector3(worldPosition.x, 0, worldPosition.z);
-        }
-
-        public static int GetZoneNumberFromLatLon(double latitude, double longitude)
-        {
-            int zoneNumber = (int)(Math.Floor((longitude + 180) / 6) + 1);
-            if (latitude >= 56.0 && latitude < 64.0 && longitude >= 3.0 && longitude < 12.0)
-            {
-                zoneNumber = 32;
-            }
-
-            // Special Zones for Svalbard
-            if (latitude >= 72.0 && latitude < 84.0)
-            {
-                if (longitude >= 0.0 && longitude < 9.0)
-                {
-                    zoneNumber = 31;
-                }
-                else if (longitude >= 9.0 && longitude < 21.0)
-                {
-                    zoneNumber = 33;
-                }
-                else if (longitude >= 21.0 && longitude < 33.0)
-                {
-                    zoneNumber = 35;
-                }
-                else if (longitude >= 33.0 && longitude < 42.0)
-                {
-                    zoneNumber = 37;
-                }
-            }
-
-            return zoneNumber;
         }
     }
 }

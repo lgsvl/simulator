@@ -31,10 +31,10 @@ namespace Simulator.Api.Commands
             var rotation = args["transform"]["rotation"].ReadDouble3();
 
             double northing, easting;
-            map.GetNorthingEasting(position, out northing, out easting);
+            map.PositionToNorthingEasting(position, out northing, out easting);
 
             double latitude, longitude;
-            map.GetLatitudeLongitude(northing, easting, out latitude, out longitude);
+            map.NorthingEastingToLatLong(northing, easting, out latitude, out longitude);
 
             var result = new JSONObject();
             result.Add("latitude", new JSONNumber(latitude));

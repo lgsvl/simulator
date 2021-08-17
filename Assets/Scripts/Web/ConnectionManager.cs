@@ -692,7 +692,7 @@ public class CloudAPI
 #if UNITY_EDITOR
         var DevSettings = (Simulator.Editor.DevelopmentSettingsAsset)AssetDatabase.LoadAssetAtPath("Assets/Resources/Editor/DeveloperSettings.asset", typeof
         (Simulator.Editor.DevelopmentSettingsAsset));
-        if (!string.IsNullOrWhiteSpace(DevSettings.VersionOverride))
+        if (DevSettings != null && !string.IsNullOrWhiteSpace(DevSettings.VersionOverride))
         {
             buildVersion = DevSettings.VersionOverride;
         }

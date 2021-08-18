@@ -38,6 +38,8 @@ namespace Simulator.Editor
         float SignalHeight = 7; // Height for imported signals.
         GameObject TrafficLanes;
         GameObject SingleLaneRoads;
+
+        // Parent for all created intersections.
         GameObject Intersections;
         MapOrigin MapOrigin;
         OpenDRIVE OpenDRIVEMap;
@@ -47,9 +49,13 @@ namespace Simulator.Editor
         Dictionary<string, MapLine> Id2MapLine = new Dictionary<string, MapLine>();
         Dictionary<string, List<string>> Id2PredecessorIds = new Dictionary<string, List<string>>();
         Dictionary<string, List<string>> Id2SuccessorIds = new Dictionary<string, List<string>>();
+
+        // Maps OD Road ID to a list of maps that bind OD lane ID to MapTrafficLane. List ordered same as in OD file.
         Dictionary<string, List<Dictionary<int, MapTrafficLane>>> Roads = new Dictionary<string, List<Dictionary<int, MapTrafficLane>>>(); // roadId: laneSectionId: laneId
         Dictionary<MapTrafficLane, BeforesAfters> Lane2BeforesAfters = new Dictionary<MapTrafficLane, BeforesAfters>();
         Dictionary<MapTrafficLane, laneType> Lane2LaneType = new Dictionary<MapTrafficLane, laneType>();
+
+        // Maps OD Junction ID to MapIntersection component.
         Dictionary<string, MapIntersection> Id2MapIntersection = new Dictionary<string, MapIntersection>();
         Dictionary<string, string> RoadId2IntersectionId = new Dictionary<string, string>();
         Dictionary<string, List<int>> RoadId2laneSections = new Dictionary<string, List<int>>(); // Store laneSections to remove
@@ -1522,7 +1528,9 @@ namespace Simulator.Editor
 
             foreach (var junction in OpenDRIVEMap.junction)
             {
+                // Create empty MapIntersection object.
                 var mapIntersection = CreateMapIntersection(junction.id);
+
                 var incomingRoadIds = new HashSet<string>();
                 foreach (var connection in junction.connection)
                 {
@@ -1542,7 +1550,8 @@ namespace Simulator.Editor
                         continue;
                     }
                     var connectingLaneSections = Roads[connectingRoadId];
-                    Dictionary<int, MapTrafficLane> incomingId2MapLane, connectingId2MapLane;
+                    Dictionary<int, MapTrafficLane> incomingId2MapLane;
+                    Dictionary<int, MapTrafficLane> connectingId2MapLane;
 
                     // First assume roads are with same directions
                     if (contactPoint == contactPoint.start)
@@ -1564,7 +1573,8 @@ namespace Simulator.Editor
                     {
                         IncomingRoadId2rightLanes[incomingRoadId] = new HashSet<MapTrafficLane>();
                     }
-                    MapTrafficLane incomingLane, connectingLane;
+                    MapTrafficLane incomingLane;
+                    MapTrafficLane connectingLane;
                     if (connection.laneLink.Length == 0)
                     {
                         // All incoming lanes are linked to lanes with identical IDs on the connecting road
@@ -1635,11 +1645,12 @@ namespace Simulator.Editor
             foreach (var roadId in incomingRoadIds)
             {
                 if (!Roads.ContainsKey(roadId))
-                {
                     continue;
-                }
                 var isLeftLanes = isLeftLanesConnected(roadId, mapIntersection);
-                if (isLeftLanes)
+                if(isLeftLanes == null)
+                    continue;
+
+                if (isLeftLanes.Value)
                 {
                     var mapLanesLeft = IncomingRoadId2leftLanes[roadId];
                     CreateStopLine(mapIntersection, roadId, mapLanesLeft);
@@ -1652,8 +1663,8 @@ namespace Simulator.Editor
             }
         }
 
-        // Check is leftLanes of this road is connected with mapIntersection
-        private bool isLeftLanesConnected(string roadId, MapIntersection mapIntersection)
+        // Check is leftLanes of this road is connected with mapIntersection.
+        private bool? isLeftLanesConnected(string roadId, MapIntersection mapIntersection)
         {
             var firstLaneSection = Roads[roadId][0];
             MapTrafficLane firstLane;
@@ -1663,9 +1674,16 @@ namespace Simulator.Editor
                 firstLane = firstLaneSection[-1];
                 isLeft = false;
             }
-            else
+            else if (firstLaneSection.ContainsKey(1))
             {
                 firstLane = firstLaneSection[1];
+                isLeft = true;
+            }
+            else
+            {
+                Debug.LogWarning($"Cant tell if left lanes connected, as roadID {roadId} have empty lane section info." +
+                    " Possibly road was too short and was skipped.");
+                return null;
             }
 
             var firstLanePositions = firstLane.mapWorldPositions.ToList();
@@ -1677,27 +1695,23 @@ namespace Simulator.Editor
             MapDataPoints anyLaneLine = null;
             foreach (Transform child in mapIntersection.transform)
             {
-                var mapDataPoints = child.gameObject.GetComponent<MapDataPoints>();
-                if (mapDataPoints != null)
-                {
-                    anyLaneLine = mapDataPoints;
-                }
+                anyLaneLine = child.gameObject.GetComponent<MapDataPoints>();
+                if (anyLaneLine != null)
+                    break;
             }
             if (anyLaneLine == null)
             {
-                var msg = $"No lane/line imported under mapIntersection, we cannot find mapIntersection location.";
-                msg += $"Please check roadId {roadId}, mapIntersection {mapIntersection.name}";
-                Debug.LogWarning(msg);
+                Debug.LogWarning($"No lane/line imported under mapIntersection, we cannot find mapIntersection location."+
+                    $"Please check roadId {roadId}, mapIntersection {mapIntersection.name}");
+                return null;
             }
             var intersectionPosition = anyLaneLine.transform.position;
-            // check is left lanes or right lanes connected with the intersection
+            
+            // Check is left lanes or right lanes connected with the intersection.
             var roadStart2Intersection = (firstLanePositions.First() - intersectionPosition).magnitude;
             var roadEnd2Intersection = (firstLanePositions.Last() - intersectionPosition).magnitude;
-            if (roadStart2Intersection < roadEnd2Intersection)
-            {
-                return true;
-            }
-            return false;
+            
+            return roadStart2Intersection < roadEnd2Intersection;
         }
 
         string GetSection(string laneName)

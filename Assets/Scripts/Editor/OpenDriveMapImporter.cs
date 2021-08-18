@@ -929,8 +929,10 @@ namespace Simulator.Editor
                     }
                     GameObject mapIntersectionObj = GetRelatedIntersectionObject(road, roadSignal.s, referenceLinePoints);
 
-                    if (roadSignal.dynamic == dynamic.yes) ImportTrafficLight(road.id, roadSignal, referenceLinePoints, mapIntersectionObj);
-                    else ImportStopSign(road.id, roadSignal, referenceLinePoints, mapIntersectionObj);
+                    if (roadSignal.dynamic == dynamic.yes) 
+                        ImportTrafficLight(road.id, roadSignal, referenceLinePoints, mapIntersectionObj);
+                    else 
+                        ImportStopSign(road.id, roadSignal, referenceLinePoints, mapIntersectionObj);
                 }
             }
         }
@@ -983,8 +985,11 @@ namespace Simulator.Editor
                 return;
             }
 
-            var id = roadSignal.id;
-            var mapSignalObj = new GameObject("MapSignal_" + id);
+            var idImported = roadSignal.id;
+            var nonEmptyId = string.IsNullOrEmpty(idImported) ? IdGenerator.AutogenerateNextId<MapSignal>(MapSignal.idPrefix) : idImported;
+            var idNumber = IdGenerator.GetIdNumberString(nonEmptyId);
+
+            var mapSignalObj = new GameObject($"MapSignal_{idNumber}");
             var signalPosition = GetSignalPositionRotation(roadSignal, referenceLinePoints, out Quaternion rotation);
             signalPosition.y += SignalHeight;
 
@@ -1002,14 +1007,17 @@ namespace Simulator.Editor
 
             mapSignal.boundScale = new Vector3(0.65f, 1.5f, 0.0f);
             mapSignal.signalType = MapData.SignalType.MIX_3_VERTICAL;
+            mapSignal.id = nonEmptyId;
 
-            CreateSignalMesh(roadId, id, mapIntersectionObj, mapSignal);
+            CreateSignalMesh(roadId, idNumber, mapIntersectionObj, mapSignal);
 
             if (mapIntersectionObj != null)
             {
                 var intersectionId = mapIntersectionObj.name.Split('_')[1];
-                if (IntersectionId2MapSignals.ContainsKey(intersectionId)) IntersectionId2MapSignals[intersectionId].Add(mapSignal);
-                else IntersectionId2MapSignals[intersectionId] = new List<MapSignal>(){mapSignal};
+                if (IntersectionId2MapSignals.ContainsKey(intersectionId)) 
+                    IntersectionId2MapSignals[intersectionId].Add(mapSignal);
+                else 
+                    IntersectionId2MapSignals[intersectionId] = new List<MapSignal>(){mapSignal};
             }
         }
 
@@ -1028,8 +1036,11 @@ namespace Simulator.Editor
 
             var stopSignLocation = GetSignalPositionRotation(roadSignal, referenceLinePoints, out Quaternion rotation);
 
-            var id = roadSignal.id;
-            var mapSignObj = new GameObject("MapStopSign_" + id);
+            var idImported = roadSignal.id;
+            var nonEmptyId = string.IsNullOrEmpty(idImported) ? IdGenerator.AutogenerateNextId<MapSign>(MapSign.idPrefix) : idImported;
+            var idNumber = IdGenerator.GetIdNumberString(nonEmptyId);
+            
+            var mapSignObj = new GameObject($"MapStopSign_{idNumber}");
             mapSignObj.transform.position = stopSignLocation;
             mapSignObj.transform.rotation = rotation;
             SetParent(mapSignObj, mapIntersectionObj, roadId);
@@ -1038,11 +1049,12 @@ namespace Simulator.Editor
             mapSign.signType = MapData.SignType.STOP;
             mapSign.boundOffsets = new Vector3(0f, 2.55f, 0f);
             mapSign.boundScale = new Vector3(0.95f, 0.95f, 0f);
+            mapSign.id = nonEmptyId;
 
             // Create stop sign mesh
             if (IsMeshNeeded)
             {
-                CreateStopSignMesh(roadId, id, mapIntersectionObj, mapSign);
+                CreateStopSignMesh(roadId, idNumber, mapIntersectionObj, mapSign);
             }
 
             if (mapIntersectionObj != null)
@@ -1118,7 +1130,7 @@ namespace Simulator.Editor
         {
             var mapSignalMesh = UnityEngine.Object.Instantiate(Settings.MapTrafficSignalPrefab, mapSignal.transform.position, mapSignal.transform.rotation);
             SetParent(mapSignalMesh, mapIntersectionObj, roadId);
-            mapSignalMesh.name = "MapSignalMeshVertical_" + id;
+            mapSignalMesh.name = "MapSignalMesh_" + id;
         }
 
         void SetParent(GameObject obj, GameObject mapIntersectionObj, string roadId)

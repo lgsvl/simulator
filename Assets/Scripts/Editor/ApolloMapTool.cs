@@ -1376,7 +1376,6 @@ namespace Simulator.Editor
 
                 if (stoplinePts != null && stoplinePts.Count >= 2)
                 {
-                    stopSign.id = $"stopsign_{stopsign_Id}";
                     var stopId = HdId(stopSign.id);
 
                     if (stopSignOverlapsInfo.ContainsKey(stopSign.id))
@@ -2849,22 +2848,12 @@ namespace Simulator.Editor
             where ADType : ADMap, new()
             where OverlapType : OverlapInfo, new()
         {
-            int count = 0;
             foreach (var item in MapAnnotationData.GetData<MapType>())
             {
-                string id;
-                if (string.IsNullOrEmpty(item.id))
-                {
-                    id = $"{name}_{count++}";
-                    item.id = id;
-                }
-                else
-                {
-                    id = item.id;
-                }
-
+                string nonEmptyId = string.IsNullOrEmpty(item.id) ? IdGenerator.AutogenerateNextId<MapType>($"{name}_") : item.id;
+                item.id = nonEmptyId;
                 ad.Add(create(item));
-                overlaps.GetOrCreate(id).id = HdId(id);
+                overlaps.GetOrCreate(nonEmptyId).id = HdId(nonEmptyId);
             }
         }
     }

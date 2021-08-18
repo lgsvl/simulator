@@ -81,8 +81,14 @@ namespace Simulator.Editor
     {
         float FakePedestrianLaneWidth = 1.5f;
         double SideWalkHeight = 0.12;
+
+        // Reference to internal map origin
         MapOrigin mapOrigin;
+
+        // Map manager used to collect internal map elements of different types.
         MapManagerData MapAnnotationData;
+        
+        // OpenDrive1.4 format structure that will be serialized into XML.
         OpenDRIVE Map;
         HashSet<LaneData> LanesData;
         HashSet<LineData> LinesData;
@@ -735,7 +741,7 @@ namespace Simulator.Editor
                     var nearestRoadId = stopLine2RoadId[mapSign.stopLine];
 
                     // Create signal from sign
-                    var signal = CreateSignalFromSign(nearestRoadId, mapSign);
+                    var signal = CreateSignalFromMapSign(nearestRoadId, mapSign);
                     roadId2Signals.CreateOrAdd(nearestRoadId, signal);
                 }
 
@@ -1031,7 +1037,7 @@ namespace Simulator.Editor
                 sSpecified = true,
                 t = t,
                 tSpecified = true,
-                id = (UniqueId++).ToString(),
+                id = mapSignal.id,
                 name = mapSignal.name,
                 dynamic = dynamic.yes,
                 dynamicSpecified = true,
@@ -1053,7 +1059,7 @@ namespace Simulator.Editor
             return signal;
         }
 
-        OpenDRIVERoadSignalsSignal CreateSignalFromSign(uint nearestRoadId, MapSign mapSign)
+        OpenDRIVERoadSignalsSignal CreateSignalFromMapSign(uint nearestRoadId, MapSign mapSign)
         {
             var signPosition = mapSign.transform.position; // note sign is on the ground
             var positions = RoadId2RefLinePositions[nearestRoadId];
@@ -1070,7 +1076,7 @@ namespace Simulator.Editor
                 sSpecified = true,
                 t = t,
                 tSpecified = true,
-                id = (UniqueId++).ToString(),
+                id = mapSign.id,
                 name = mapSign.name,
                 dynamic = dynamic.no,
                 dynamicSpecified = true,

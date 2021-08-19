@@ -52,7 +52,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
                 return;
             ScenarioManager.Instance.SelectedOtherElement += OnSelectedOtherElement;
             isInitialized = true;
-            OnSelectedOtherElement(ScenarioManager.Instance.SelectedElement);
+            OnSelectedOtherElement(null, ScenarioManager.Instance.SelectedElement);
         }
 
         /// <inheritdoc/>
@@ -69,8 +69,9 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
         /// <summary>
         /// Method called when another scenario element has been selected
         /// </summary>
+        /// <param name="previousElement">Scenario element that has been deselected</param>
         /// <param name="selectedElement">Scenario element that has been selected</param>
-        private void OnSelectedOtherElement(ScenarioElement selectedElement)
+        private void OnSelectedOtherElement(ScenarioElement previousElement, ScenarioElement selectedElement)
         {
             //Detach from current agent events
             if (selectedAgent != null)

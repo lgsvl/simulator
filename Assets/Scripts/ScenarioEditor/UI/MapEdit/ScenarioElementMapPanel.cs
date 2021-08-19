@@ -97,7 +97,7 @@ namespace Simulator.ScenarioEditor.UI.MapEdit.Buttons
             }
 
             isInitialized = true;
-            SelectedOtherElement(ScenarioManager.Instance.SelectedElement);
+            SelectedOtherElement(null, ScenarioManager.Instance.SelectedElement);
         }
 
         /// <summary>
@@ -116,8 +116,9 @@ namespace Simulator.ScenarioEditor.UI.MapEdit.Buttons
         /// <summary>
         /// Method called when another scenario element has been selected
         /// </summary>
+        /// <param name="previousElement">Scenario element that has been deselected</param>
         /// <param name="selectedElement">Scenario element that has been selected</param>
-        private void SelectedOtherElement(ScenarioElement selectedElement)
+        private void SelectedOtherElement(ScenarioElement previousElement, ScenarioElement selectedElement)
         {
             element = selectedElement;
             if (element == null)
@@ -157,7 +158,7 @@ namespace Simulator.ScenarioEditor.UI.MapEdit.Buttons
         /// <summary>
         /// Coroutine which follows selected element position on the screen
         /// </summary>
-        /// <returns>IEnumerator</returns>
+        /// <returns>Coroutine IEnumerator</returns>
         /// <exception cref="ArgumentException">Panel requires RectTransform component</exception>
         private IEnumerator FollowElement()
         {

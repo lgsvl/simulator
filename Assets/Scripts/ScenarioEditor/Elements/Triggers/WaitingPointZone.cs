@@ -9,6 +9,7 @@ namespace Simulator.ScenarioEditor.Agents.Triggers
 {
     using System;
     using Elements;
+    using Elements.Triggers;
     using Managers;
     using UnityEngine;
     using UnityEngine.Rendering;
@@ -55,7 +56,7 @@ namespace Simulator.ScenarioEditor.Agents.Triggers
                 if (pathRenderer != null)
                     return pathRenderer;
                 pathRenderer = gameObject.AddComponent<LineRenderer>();
-                pathRenderer.material = ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>().triggerPathMaterial;
+                pathRenderer.material = ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>().TriggerPathMaterial;
                 pathRenderer.useWorldSpace = false;
                 pathRenderer.positionCount = 2;
                 pathRenderer.textureMode = LineTextureMode.Tile;
@@ -91,6 +92,8 @@ namespace Simulator.ScenarioEditor.Agents.Triggers
         {
             base.OnMoved(notifyOthers);
             Refresh();
+            // Update serialized data as it can be used in the VSE
+            OnBeforeSerialize();
         }
 
         protected override void OnResized(bool notifyOthers = true)
@@ -99,6 +102,8 @@ namespace Simulator.ScenarioEditor.Agents.Triggers
             if (waitingPointEffector!=null)
                 waitingPointEffector.PointRadius = transform.localScale.x;
             Refresh();
+            // Update serialized data as it can be used in the VSE
+            OnBeforeSerialize();
         }
 
         /// <inheritdoc/>

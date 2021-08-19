@@ -17,7 +17,7 @@ namespace Simulator.Utilities
         private readonly Vector3[] controlPoints2;
         private readonly List<T> cachedPoints = new List<T>();
 
-        public List<T> Knots { get; private set; } = new List<T>();
+        public T[] Knots => knots;
         public float ApproximatedLength { get; private set; }
 
         public BezierSpline(T[] waypoints, float lineSimplifyTolerance)
@@ -37,6 +37,10 @@ namespace Simulator.Utilities
                 var knot = knots[index];
                 var nextKnot = knots[index + 1];
 
+                // Ignore knots in the same position
+                if (Vector3.Distance(knot.Position, nextKnot.Position) < Mathf.Epsilon)
+                    continue;
+                
                 // Calculate linear distance between points
                 var overestimatedLength = Vector3.Distance(knot.Position, nextKnot.Position);
 
@@ -56,7 +60,7 @@ namespace Simulator.Utilities
                 var previousPoint = knot;
                 if (controlPositions.Count == 0)
                     return;
-                
+
                 // Calculate distances between control points and cache them
                 ApproximatedLength = Vector3.Distance(previousPoint.Position, controlPositions[0]);
                 for (var i = 0; i < controlPositions.Count - 1; i++)

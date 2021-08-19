@@ -9,6 +9,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
 {
     using System;
     using Elements;
+    using Elements.Triggers;
     using Managers;
     using Undo;
     using Undo.Records;

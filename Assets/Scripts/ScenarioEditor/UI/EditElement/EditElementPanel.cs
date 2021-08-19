@@ -26,13 +26,13 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// </summary>
         [SerializeField]
         private List<ParameterEditPanel> panelsPrefabs = new List<ParameterEditPanel>();
-        
+
         /// <summary>
         /// Transform parent for the panel content
         /// </summary>
         [SerializeField]
         private Transform contentParent;
-        
+
         /// <summary>
         /// Info that is displayed when there is no scenario element selected
         /// </summary>
@@ -57,9 +57,10 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                 panel.Initialize();
                 panels.Add(panel);
             }
+
             ScenarioManager.Instance.SelectedOtherElement += OnSelectedOtherElement;
         }
-        
+
         /// <inheritdoc/>
         public override void Deinitialize()
         {
@@ -87,10 +88,11 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// <summary>
         /// Method called when another scenario element has been selected
         /// </summary>
+        /// <param name="previousElement">Scenario element that has been deselected</param>
         /// <param name="selectedElement">Scenario element that has been selected</param>
-        private void OnSelectedOtherElement(ScenarioElement selectedElement)
+        private void OnSelectedOtherElement(ScenarioElement previousElement, ScenarioElement selectedElement)
         {
-            noElementInfo.SetActive(selectedElement==null);
+            noElementInfo.SetActive(selectedElement == null);
         }
     }
 }

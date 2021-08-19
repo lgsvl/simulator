@@ -28,7 +28,7 @@ public interface ITriggerAgent
     /// <summary>
     /// Starts a coroutine
     /// </summary>
-    /// <param name="enumerator">Coroutine enumerator that will be executre</param>
+    /// <param name="enumerator">Coroutine enumerator that will be execute</param>
     /// <returns>Started Coroutine</returns>
     Coroutine StartCoroutine(IEnumerator enumerator);
 }

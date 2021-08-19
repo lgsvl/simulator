@@ -1,12 +1,14 @@
 ﻿/**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
  */
 
-namespace Simulator.ScenarioEditor.Elements.Agents
+namespace Simulator.ScenarioEditor.Elements.Waypoints
 {
+    using System;
+    using Agents;
     using Managers;
     using UnityEngine;
 
@@ -54,10 +56,32 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         /// </summary>
         public bool IsActive { get; private set; }
 
+        /// <summary>
+        /// True if the playback path is visible, false otherwise
+        /// </summary>
+        public bool IsPlaybackPathVisible { get; private set; }
+
+        /// <summary>
+        /// Waypoints path used in the playback mode
+        /// </summary>
+        public DestinationPointWaypointsPath PlaybackPath { get; } = new DestinationPointWaypointsPath();
+
+        /// <summary>
+        /// Event invoked when the IsActive property changes value
+        /// </summary>
+        public event Action<ScenarioDestinationPoint> IsActiveChanged;
+
+        /// <summary>
+        /// Event invoked when the IsPlaybackPathVisible property changes value
+        /// </summary>
+        public event Action<ScenarioDestinationPoint> IsPlaybackPathVisibilityChanged;
+        
+
         /// <inheritdoc/>
         public override void Dispose()
         {
             ScenarioManager.Instance.prefabsPools.ReturnInstance(gameObject);
+            PlaybackPath.Deinitialize();
         }
 
         /// <inheritdoc/>
@@ -65,13 +89,23 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         {
             TransformToMove.localPosition = origin.TransformToMove.localPosition;
             var originPoint = (ScenarioDestinationPoint) origin;
+            IsPlaybackPathVisible = originPoint.IsPlaybackPathVisible;
+            PlaybackPath.CopyProperties(originPoint.PlaybackPath);
             SetActive(originPoint.IsActive);
             SetVisibility(false);
         }
 
         /// <inheritdoc/>
+        public override void Selected()
+        {
+            base.Selected();
+            SetVisibility(true);
+        }
+
+        /// <inheritdoc/>
         public override void Deselected()
         {
+            base.Deselected();
             SetVisibility(false);
         }
 
@@ -81,6 +115,16 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         public void SetActive(bool active)
         {
             IsActive = active;
+            IsActiveChanged?.Invoke(this);
+        }
+
+        /// <summary>
+        /// Sets the playback path visible or invisible
+        /// </summary>
+        public void SetPlaybackPathVisible(bool visible)
+        {
+            IsPlaybackPathVisible = visible;
+            IsPlaybackPathVisibilityChanged?.Invoke(this);
         }
 
         /// <summary>
@@ -90,6 +134,8 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         public void SetVisibility(bool visible)
         {
             gameObject.SetActive(visible);
+            if (IsPlaybackPathVisible)
+                PlaybackPath.SetActive(visible);
         }
 
         /// <summary>
@@ -100,8 +146,9 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         public void AttachToAgent(ScenarioAgent agent, bool initializeTransform)
         {
             ParentAgent = agent;
+            PlaybackPath.Initialize(this);
             var extension = agent.GetExtension<AgentDestinationPoint>();
-            extension.DestinationPoint = this;
+            extension.SetDestinationPoint(this);
             if (!initializeTransform) return;
             transform.SetParent(agent.transform);
             var forward = agent.TransformToMove.forward;
@@ -113,7 +160,7 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         /// <inheritdoc/>
         public override void ForceMove(Vector3 requestedPosition)
         {
-            base.ForceMove(requestedPosition);
+            TransformToMove.position = requestedPosition;
             var mapManager = ScenarioManager.Instance.GetExtension<ScenarioMapManager>();
             switch (ParentAgent.Type)
             {
@@ -125,6 +172,7 @@ namespace Simulator.ScenarioEditor.Elements.Agents
                     mapManager.LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian, TransformToMove, TransformToRotate);
                     break;
             }
+            OnMoved();
         }
 
         /// <inheritdoc/>

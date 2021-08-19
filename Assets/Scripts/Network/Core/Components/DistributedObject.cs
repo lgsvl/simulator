@@ -234,7 +234,7 @@ namespace Simulator.Network.Core.Components
         /// Method waiting while the GUID in the guidSource is not set
         /// </summary>
         /// <param name="callback">Callback called after GUID is set</param>
-        /// <returns>IEnumerator</returns>
+        /// <returns>Coroutine IEnumerator</returns>
         private IEnumerator WaitForGUID(Action callback)
         {
             while (GuidSource != null && string.IsNullOrEmpty(GuidSource.GUID))

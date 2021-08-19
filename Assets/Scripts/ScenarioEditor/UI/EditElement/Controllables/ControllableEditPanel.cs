@@ -60,8 +60,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
             policyEditPanel.PolicyUpdated += PolicyEditPanelOnPolicyUpdated;
             ScenarioManager.Instance.SelectedOtherElement += OnSelectedOtherElement;
             var controllableManager = ScenarioManager.Instance.GetExtension<ScenarioControllablesManager>();
-            var customPanelsPrefabs = controllableManager.Source
-                .CustomEditPanels;
+            var customPanelsPrefabs = controllableManager.Source.CustomEditPanels;
             foreach (var prefab in customPanelsPrefabs)
             {
                 var panel = Instantiate(prefab.PanelObject, transform);
@@ -77,7 +76,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
             }
             controllableManager.ControllableRegistered += OnControllableRegistered;
             isInitialized = true;
-            OnSelectedOtherElement(ScenarioManager.Instance.SelectedElement);
+            OnSelectedOtherElement(null, ScenarioManager.Instance.SelectedElement);
         }
 
         /// <inheritdoc/>
@@ -124,8 +123,9 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
         /// <summary>
         /// Method called when another scenario element has been selected
         /// </summary>
+        /// <param name="previousElement">Scenario element that has been deselected</param>
         /// <param name="selectedElement">Scenario element that has been selected</param>
-        private void OnSelectedOtherElement(ScenarioElement selectedElement)
+        private void OnSelectedOtherElement(ScenarioElement previousElement, ScenarioElement selectedElement)
         {
             if (SelectedControllable != null)
                 policyEditPanel.SubmitChangedInputs();

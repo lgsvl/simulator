@@ -9,6 +9,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Behaviours
 {
     using System;
     using Data.Serializer;
+    using Elements;
     using Elements.Agents;
     using Managers;
     using Undo;
@@ -61,7 +62,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Behaviours
 
             isLaneChangeToggle.SetIsOnWithoutNotify(currentIsLaneChange);
             //Setup the maxSpeed value and input
-            maxSpeedInput.Initialize(ScenarioPersistenceKeys.SpeedUnitKey, MaxSpeedApply);
+            maxSpeedInput.Initialize(ScenarioPersistenceKeys.SpeedUnitKey, MaxSpeedApply, selectedAgent);
             float maxSpeed;
             if (behaviourExtension.BehaviourParameters.HasKey("maxSpeed"))
             {
@@ -73,7 +74,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Behaviours
                 behaviourExtension.BehaviourParameters["maxSpeed"] = maxSpeed;
             }
 
-            maxSpeedInput.ExternalValueChange(maxSpeed, false);
+            maxSpeedInput.ExternalValueChange(maxSpeed, selectedAgent, false);
         }
 
         /// <inheritdoc/>
@@ -123,15 +124,19 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Behaviours
         /// <summary>
         /// Method invoked when the max speed is changed by the input field
         /// </summary>
+        /// <param name="changedElement">Scenario element which speed has been changed</param>
         /// <param name="maxSpeed">New max speed applied</param>
-        private void MaxSpeedApply(float maxSpeed)
+        private void MaxSpeedApply(ScenarioElement changedElement, float maxSpeed)
         {
-            if (selectedAgent == null)
+            if (!(changedElement is ScenarioAgent changedAgent))
                 return;
-            if (behaviourExtension.BehaviourParameters.HasKey("maxSpeed"))
-                behaviourExtension.BehaviourParameters["maxSpeed"] = maxSpeed;
+            var behaviour = changedAgent.GetExtension<AgentBehaviour>();
+            if (behaviour == null)
+                return;
+            if (behaviour.BehaviourParameters.HasKey("maxSpeed"))
+                behaviour.BehaviourParameters["maxSpeed"] = maxSpeed;
             else
-                behaviourExtension.BehaviourParameters.Add("maxSpeed", maxSpeed);
+                behaviour.BehaviourParameters.Add("maxSpeed", maxSpeed);
         }
     }
 }

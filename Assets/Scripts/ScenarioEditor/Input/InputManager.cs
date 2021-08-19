@@ -578,7 +578,7 @@ namespace Simulator.ScenarioEditor.Input
 
                         MouseRaycastPosition = lastHitPosition;
                         MouseViewportPosition = scenarioCamera.ScreenToViewportPoint(Input.mousePosition);
-                        closestHit = GetClosestHit(true);
+                        closestHit = GetClosestHit(ignoreSelectedElement: true, ignoreTriggers: true);
                         if (closestHit == null ||
                             (!canDragFinishOverInspector && EventSystem.current.IsPointerOverGameObject() &&
                              inspectorTransform.rect.Contains(
@@ -734,10 +734,12 @@ namespace Simulator.ScenarioEditor.Input
         /// </summary>
         /// <param name="ignoreSelectedElement">Should the colliders inside selected element be ignored</param>
         /// <param name="ignoreRigidbodies">Should the colliders with rigidbodies be ignored</param>
+        /// <param name="ignoreTriggers">Should the triggers be ignored</param>
         /// <returns>Furthest hit, null if there was no valid raycast hit</returns>
-        private RaycastHit? GetFurthestHit(bool ignoreSelectedElement = false, bool ignoreRigidbodies = false)
+        private RaycastHit? GetFurthestHit(bool ignoreSelectedElement = false, bool ignoreRigidbodies = false,
+            bool ignoreTriggers = false)
         {
-            return GetFurthestHit(raycastHits, raycastHitsCount, ignoreSelectedElement, ignoreRigidbodies);
+            return GetFurthestHit(raycastHits, raycastHitsCount, ignoreSelectedElement, ignoreRigidbodies, ignoreTriggers);
         }
 
         /// <summary>
@@ -747,9 +749,10 @@ namespace Simulator.ScenarioEditor.Input
         /// <param name="hitsCount">Count of the valid raycast hits</param>
         /// <param name="ignoreSelectedElement">Should the colliders inside selected element be ignored</param>
         /// <param name="ignoreRigidbodies">Should the colliders with rigidbodies be ignored</param>
+        /// <param name="ignoreTriggers">Should the triggers be ignored</param>
         /// <returns>Furthest hit, null if there was no valid raycast hit</returns>
         public RaycastHit? GetFurthestHit(RaycastHit[] hits, int hitsCount, bool ignoreSelectedElement = false,
-            bool ignoreRigidbodies = false)
+            bool ignoreRigidbodies = false, bool ignoreTriggers = false)
         {
             RaycastHit? furthestHit = null;
             var furthestDistance = 0.0f;
@@ -758,7 +761,8 @@ namespace Simulator.ScenarioEditor.Input
                     (!ignoreRigidbodies || hits[i].rigidbody == null) &&
                     (!ignoreSelectedElement || ScenarioManager.Instance.SelectedElement == null ||
                      hits[i].transform.GetComponentInParent<ScenarioElement>() !=
-                     ScenarioManager.Instance.SelectedElement))
+                     ScenarioManager.Instance.SelectedElement) &&
+                    !(ignoreTriggers && hits[i].collider.isTrigger))
                 {
                     furthestHit = hits[i];
                     furthestDistance = furthestHit.Value.distance;
@@ -772,10 +776,13 @@ namespace Simulator.ScenarioEditor.Input
         /// </summary>
         /// <param name="ignoreSelectedElement">Should the colliders inside selected element be ignored</param>
         /// <param name="ignoreRigidbodies">Should the colliders with rigidbodies be ignored</param>
+        /// <param name="ignoreTriggers">Should the triggers be ignored</param>
         /// <returns>Furthest hit, null if there was no valid raycast hit</returns>
-        private RaycastHit? GetClosestHit(bool ignoreSelectedElement = false, bool ignoreRigidbodies = false)
+        private RaycastHit? GetClosestHit(bool ignoreSelectedElement = false, bool ignoreRigidbodies = false,
+            bool ignoreTriggers = false)
         {
-            return GetClosestHit(raycastHits, raycastHitsCount, ignoreSelectedElement, ignoreRigidbodies);
+            return GetClosestHit(raycastHits, raycastHitsCount, ignoreSelectedElement, ignoreRigidbodies,
+                ignoreTriggers);
         }
 
         /// <summary>
@@ -785,9 +792,10 @@ namespace Simulator.ScenarioEditor.Input
         /// <param name="hitsCount">Count of the valid raycast hits</param>
         /// <param name="ignoreSelectedElement">Should the colliders inside selected element be ignored</param>
         /// <param name="ignoreRigidbodies">Should the colliders with rigidbodies be ignored</param>
+        /// <param name="ignoreTriggers">Should the triggers be ignored</param>
         /// <returns>Furthest hit, null if there was no valid raycast hit</returns>
         public RaycastHit? GetClosestHit(RaycastHit[] hits, int hitsCount, bool ignoreSelectedElement = false,
-            bool ignoreRigidbodies = false)
+            bool ignoreRigidbodies = false, bool ignoreTriggers = false)
         {
             RaycastHit? closestHit = null;
             var closestDistance = float.MaxValue;
@@ -796,7 +804,8 @@ namespace Simulator.ScenarioEditor.Input
                     (!ignoreRigidbodies || hits[i].rigidbody == null) &&
                     (!ignoreSelectedElement || ScenarioManager.Instance.SelectedElement == null ||
                      hits[i].transform.GetComponentInParent<ScenarioElement>() !=
-                     ScenarioManager.Instance.SelectedElement))
+                     ScenarioManager.Instance.SelectedElement) &&
+                    !(ignoreTriggers && hits[i].collider.isTrigger))
                 {
                     closestHit = hits[i];
                     closestDistance = closestHit.Value.distance;
@@ -858,8 +867,9 @@ namespace Simulator.ScenarioEditor.Input
         private void HandleMapInput()
         {
             Transform cameraTransform = scenarioCamera.transform;
-            var closestHit = GetClosestHit(true, true);
-            var furthestHit = GetFurthestHit(true, true);
+            var closestHit = GetClosestHit(ignoreSelectedElement: true, ignoreRigidbodies: true, ignoreTriggers: true);
+            var furthestHit =
+                GetFurthestHit(ignoreSelectedElement: true, ignoreRigidbodies: true, ignoreTriggers: true);
             Vector3? closestPoint = null;
             if (closestHit != null)
                 closestPoint = closestHit.Value.point;

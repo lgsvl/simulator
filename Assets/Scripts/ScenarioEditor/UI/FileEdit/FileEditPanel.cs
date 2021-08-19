@@ -198,7 +198,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         /// <summary>
         /// Invokes visual scenario editor exit after a single frame update
         /// </summary>
-        /// <returns>IEnumerator</returns>
+        /// <returns>Coroutine IEnumerator</returns>
         private IEnumerator DelayedExitEditor(LoadingPanel.LoadingProcess loadingProcess)
         {
             yield return null;

@@ -8,6 +8,7 @@
 namespace Simulator.ScenarioEditor.Undo.Records
 {
     using Elements;
+    using Elements.Triggers;
     using Managers;
 
     /// <summary>

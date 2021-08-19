@@ -23,6 +23,7 @@ namespace Simulator.ScenarioEditor.Managers
     using UnityEngine;
     using UnityEngine.SceneManagement;
     using Utilities;
+    using Web;
 
     /// <summary>
     /// Scenario editor manager connecting all other components
@@ -109,6 +110,11 @@ namespace Simulator.ScenarioEditor.Managers
             new Dictionary<Type, IScenarioEditorExtension>();
 
         /// <summary>
+        /// List of all assets being downloaded
+        /// </summary>
+        private readonly List<string> assetsBeingDownloaded = new List<string>();
+
+        /// <summary>
         /// Is there a single popup visible in the scenario editor
         /// </summary>
         private bool viewsPopup;
@@ -170,10 +176,11 @@ namespace Simulator.ScenarioEditor.Managers
                     return;
                 if (selectedElement!=null)
                     selectedElement.Deselected();
+                var previousElement = selectedElement;
                 selectedElement = value;
                 if (selectedElement != null)
                     selectedElement.Selected();
-                SelectedOtherElement?.Invoke(selectedElement);
+                SelectedOtherElement?.Invoke(previousElement, selectedElement);
             }
         }
 
@@ -229,12 +236,13 @@ namespace Simulator.ScenarioEditor.Managers
         /// Event invoked when the new scenario element is deactivated in scenario
         /// </summary>
         public event Action<ScenarioElement> ScenarioElementDeactivated;
-        
 
         /// <summary>
         /// Event invoked when the selected scenario element changes
+        /// First parameter is deselected scenario element
+        /// Second parameter is new selected scenario element
         /// </summary>
-        public event Action<ScenarioElement> SelectedOtherElement;
+        public event Action<ScenarioElement, ScenarioElement> SelectedOtherElement;
 
         /// <summary>
         /// Unity Start method
@@ -334,12 +342,23 @@ namespace Simulator.ScenarioEditor.Managers
             }
             catch (Exception ex)
             {
-                Debug.LogError(ex.Message);
+                Debug.LogError($"Error while loading map in the VSE: {ex.Message}.");
                 StopInitialization();
                 return;
             }
             
-            inspector.Initialize();
+            //Initialize the inspector
+            try
+            {
+                inspector.Initialize();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error while loading the VSE inspector: {ex.Message}.");
+                StopInitialization();
+                return;
+            }
+            
             loadingProcess.Update("Visual Scenario Editor has been loaded.");
             loadingProcess.NotifyCompletion();
             State = InitializationState.Initialized;
@@ -349,7 +368,7 @@ namespace Simulator.ScenarioEditor.Managers
         private void StopInitialization()
         {
             if (State == InitializationState.Initializing)
-            Deinitialize();
+            	Deinitialize();
             Loader.Instance.ExitScenarioEditor();
         }
 
@@ -367,6 +386,11 @@ namespace Simulator.ScenarioEditor.Managers
             foreach (var scenarioManager in scenarioEditorExtensions)
                 scenarioManager.Value.Deinitialize();
             GetExtension<ScenarioMapManager>().MapChanged -= OnMapLoaded;
+            foreach (var assetBeingDownloaded in assetsBeingDownloaded)
+            {
+                DownloadManager.StopAssetDownload(assetBeingDownloaded);
+            }
+            assetsBeingDownloaded.Clear();
             State = InitializationState.Deinitialized;
         }
 
@@ -510,6 +534,35 @@ namespace Simulator.ScenarioEditor.Managers
         public void ReportDeactivatedElement(ScenarioElement scenarioElement)
         {
             ScenarioElementDeactivated?.Invoke(scenarioElement);
+        }
+
+        /// <summary>
+        /// Checks if asset with given guid is being downloaded
+        /// </summary>
+        /// <param name="assetGuid">Checked asset guid</param>
+        /// <returns>True if asset is being downloaded, false otherwise</returns>
+        public bool DownloadsAsset(string assetGuid)
+        {
+            return assetsBeingDownloaded.Contains(assetGuid);
+        }
+
+        /// <summary>
+        /// Reports asset guid that starts downloading
+        /// </summary>
+        /// <param name="assetGuid">Guid of the asset that starts downloading</param>
+        public void ReportAssetDownload(string assetGuid)
+        {
+            if (!DownloadsAsset(assetGuid))
+                assetsBeingDownloaded.Add(assetGuid);
+        }
+
+        /// <summary>
+        /// Reports that asset of given guid finishes downloading
+        /// </summary>
+        /// <param name="assetGuid">Guid of the asset that finishes downloading</param>
+        public void ReportAssetFinishedDownload(string assetGuid)
+        {
+            assetsBeingDownloaded.Remove(assetGuid);
         }
     }
 }

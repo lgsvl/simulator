@@ -44,7 +44,6 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
         public override void Initialize()
         {
             var nonBlockingTask = SetupButtons();
-            UnityUtilities.LayoutRebuild(transform as RectTransform);
         }
         
         /// <inheritdoc/>
@@ -90,6 +89,8 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
             rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, (buttonHeight+4)*availableMaps.Count-firstButtonY);
 
             buttonSample.gameObject.SetActive(false);
+            UnityUtilities.LayoutRebuild(rectTransform);
+            rectTransform.offsetMin = Vector2.zero;
         }
 
         /// <summary>
@@ -139,7 +140,7 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
         /// Coroutine invoking map load after a single frame update
         /// </summary>
         /// <param name="mapName">Name of map which should be loaded</param>
-        /// <returns>IEnumerator</returns>
+        /// <returns>Coroutine IEnumerator</returns>
         private async Task DelayedSelectMap(string mapName, LoadingPanel.LoadingProcess loadingProcess)
         {
             await Task.Delay(20);

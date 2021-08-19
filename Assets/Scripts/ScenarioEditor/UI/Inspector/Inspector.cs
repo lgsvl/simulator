@@ -147,7 +147,11 @@ namespace Simulator.ScenarioEditor.UI.Inspector
                 return;
             }
 
-            if (activeMenuItem !=null)
+            // Check if selected menu is currently active
+            if (activeMenuItem == menuItem)
+                return;
+
+            if (activeMenuItem != null)
                 activeMenuItem.HidePanel();
 
             menuItem.ShowPanel();
@@ -174,7 +178,7 @@ namespace Simulator.ScenarioEditor.UI.Inspector
         /// <summary>
         /// Animation for showing or hiding the inspector
         /// </summary>
-        /// <returns>Coroutine</returns>
+        /// <returns>Coroutine IEnumerator</returns>
         /// <exception cref="ArgumentException">Inspector slide animation requires RectTransform component.</exception>
         private IEnumerator SlideAnimation()
         {

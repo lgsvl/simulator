@@ -5,7 +5,7 @@
  *
  */
 
-namespace Simulator.ScenarioEditor.Elements
+namespace Simulator.ScenarioEditor.Elements.Triggers
 {
     using System.Collections.Generic;
     using System.Linq;

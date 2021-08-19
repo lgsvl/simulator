@@ -128,7 +128,7 @@ namespace Simulator.ScenarioEditor.UI.AddElement
                 var progress = new Progress<Tuple<string, float>>(p =>
                 {
                     if (text!=null && !Variant.IsPrepared)
-                        text.text = $"{p.Item2}% {UnpreparedSign} {variant.Name} {UnpreparedSign}";
+                        text.text = $"{p.Item2:F1}% {UnpreparedSign} {variant.Name} {UnpreparedSign}";
                 });
                 Variant.Prepare(progress);
             }
@@ -150,7 +150,7 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         /// <summary>
         /// Coroutine that invokes displaying the bound variant description after a short delay
         /// </summary>
-        /// <returns>Coroutine</returns>
+        /// <returns>Coroutine IEnumerator</returns>
         private IEnumerator DelayedDisplayDescription()
         {
             yield return new WaitForSecondsRealtime(addElementsPanel.DescriptionPanel.ShowDelay);

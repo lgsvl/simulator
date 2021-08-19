@@ -17,18 +17,19 @@ namespace Simulator.ScenarioEditor.Elements.Agents
     using Undo;
     using Undo.Records;
     using UnityEngine;
+    using Waypoints;
 
     /// <inheritdoc cref="Simulator.ScenarioEditor.Elements.ScenarioElement" />
     /// <remarks>
     /// Scenario agent representation
     /// </remarks>
-    public class ScenarioAgent : ScenarioElementWithVariant
+    public class ScenarioAgent : ScenarioElementWithVariant, ITriggerAgent
     {
         /// <summary>
         /// This agent extensions for additional features
         /// </summary>
-        public Dictionary<Type, ScenarioAgentExtension> Extensions { get; } =
-            new Dictionary<Type, ScenarioAgentExtension>();
+        public Dictionary<Type, IScenarioElementExtension> Extensions { get; } =
+            new Dictionary<Type, IScenarioElementExtension>();
 
         /// <inheritdoc/>
         public override string ElementType => Variant == null ? "Agent" : Variant.Name;
@@ -37,7 +38,19 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         public override bool CanBeCopied => true;
 
         /// <inheritdoc/>
+        public override Transform TransformToRotate => modelInstance.transform;
+
+        /// <inheritdoc/>
         public override Transform TransformForPlayback => modelInstance.transform;
+        
+        /// <inheritdoc/>
+        public Transform AgentTransform => TransformForPlayback;
+        
+        /// <inheritdoc/>
+        public float MovementSpeed { get; set; }
+        
+        /// <inheritdoc/>
+        public Vector3 Acceleration { get; set; }
 
         /// <summary>
         /// Parent source of this scenario agent
@@ -57,12 +70,12 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         /// <summary>
         /// Event invoked when an extension is added to the agent
         /// </summary>
-        public event Action<ScenarioAgentExtension> ExtensionAdded;
+        public event Action<IScenarioElementExtension> ExtensionAdded;
 
         /// <summary>
         /// Event invoked when an extension is removed from the agent
         /// </summary>
-        public event Action<ScenarioAgentExtension> ExtensionRemoved;
+        public event Action<IScenarioElementExtension> ExtensionRemoved;
 
         /// <inheritdoc/>
         public override void Setup(ScenarioElementSource source, SourceVariant variant)
@@ -76,7 +89,7 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         /// </summary>
         /// <typeparam name="T">Extension type to get</typeparam>
         /// <returns>Agent's extension of the given type, null if extension is not available</returns>
-        public T GetExtension<T>() where T : ScenarioAgentExtension
+        public T GetExtension<T>() where T : class, IScenarioElementExtension
         {
             var type = typeof(T);
             return GetExtension(type) as T;
@@ -87,7 +100,7 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         /// </summary>
         /// <param name="type">Extension type to get</param>
         /// <returns>Agent's extension of the given type, null if extension is not available</returns>
-        public ScenarioAgentExtension GetExtension(Type type)
+        public IScenarioElementExtension GetExtension(Type type)
         {
             if (!Extensions.TryGetValue(type, out var extension))
                 return null;
@@ -100,7 +113,7 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         /// <param name="defaultValue">Value that will be added if there is no extension available</param>
         /// <typeparam name="T">Extension type to get</typeparam>
         /// <returns>Agent's extension of the given type</returns>
-        public T GetOrAddExtension<T>(T defaultValue = null) where T : ScenarioAgentExtension
+        public T GetOrAddExtension<T>(T defaultValue = null) where T : class, IScenarioElementExtension
         {
             var type = typeof(T);
             return GetOrAddExtension(type, defaultValue) as T;
@@ -112,12 +125,12 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         /// <param name="type">Extension type to get</param>
         /// <param name="defaultValue">Value that will be added if there is no extension available</param>
         /// <returns>Agent's extension of the given type</returns>
-        public ScenarioAgentExtension GetOrAddExtension(Type type, ScenarioAgentExtension defaultValue = null)
+        public IScenarioElementExtension GetOrAddExtension(Type type, IScenarioElementExtension defaultValue = null)
         {
             if (Extensions.TryGetValue(type, out var extension))
                 return extension;
             if (defaultValue == null)
-                defaultValue = Activator.CreateInstance(type) as ScenarioAgentExtension;
+                defaultValue = Activator.CreateInstance(type) as IScenarioElementExtension;
             if (defaultValue == null)
                 return null;
             Extensions.Add(type, defaultValue);
@@ -131,7 +144,7 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         /// </summary>
         /// <typeparam name="T">Extension type to remove</typeparam>
         /// <returns>Removed extension</returns>
-        public T RemoveExtension<T>() where T : ScenarioAgentExtension
+        public T RemoveExtension<T>() where T : class, IScenarioElementExtension
         {
             var type = typeof(T);
             return RemoveExtension(type) as T;
@@ -142,7 +155,7 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         /// </summary>
         /// <param name="type">Extension type to remove</param>
         /// <returns>Removed extension</returns>
-        public ScenarioAgentExtension RemoveExtension(Type type)
+        public IScenarioElementExtension RemoveExtension(Type type)
         {
             if (!Extensions.TryGetValue(type, out var extension))
                 return null;
@@ -151,8 +164,7 @@ namespace Simulator.ScenarioEditor.Elements.Agents
             ExtensionRemoved?.Invoke(extension);
             return extension;
         }
-
-
+        
         /// <inheritdoc/>
         public override void RemoveFromMap()
         {
@@ -221,6 +233,29 @@ namespace Simulator.ScenarioEditor.Elements.Agents
                         TransformToMove, TransformToRotate);
                     break;
             }
+        }
+
+        /// <summary>
+        /// Gets the waypoints path set to this agent
+        /// </summary>
+        /// <returns>Waypoints path set to this agent</returns>
+        public WaypointsPath GetWaypointsPath()
+        {
+            switch (Type)
+            {
+                case AgentType.Unknown:
+                    break;
+                case AgentType.Ego:
+                    return GetExtension<AgentDestinationPoint>().DestinationPoint.PlaybackPath;
+                case AgentType.Npc:
+                case AgentType.Pedestrian:
+                    var waypointsExtension = GetExtension<AgentWaypointsPath>();
+                    return waypointsExtension;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            return null;
         }
     }
 }

@@ -9,7 +9,9 @@ namespace Simulator.ScenarioEditor.UI.Utilities
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
+    using Elements;
     using Managers;
     using Undo;
     using Undo.Records;
@@ -83,12 +85,17 @@ namespace Simulator.ScenarioEditor.UI.Utilities
         /// <summary>
         /// Callback invoked then the value is changed by the input field
         /// </summary>
-        private Action<float> valueApply;
+        private Action<ScenarioElement, float> valueApply;
 
         /// <summary>
         /// Input field for editing value
         /// </summary>
         public InputField UnityInputField => input;
+        
+        /// <summary>
+        /// Current scenario element which indicates the edit input context
+        /// </summary>
+        public ScenarioElement CurrentContext { get; set; }
 
         /// <summary>
         /// Unity OnDisable method
@@ -103,10 +110,13 @@ namespace Simulator.ScenarioEditor.UI.Utilities
         /// </summary>
         /// <param name="unitTypePrefsKey">Player prefs key used to same the current unit type</param>
         /// <param name="valueApply">Callback invoked then the value is changed by the input field</param>
-        public void Initialize(string unitTypePrefsKey, Action<float> valueApply)
+        /// <param name="currentContext">Current scenario element which indicates the edit input context</param>
+        public void Initialize(string unitTypePrefsKey, Action<ScenarioElement, float> valueApply,
+            ScenarioElement currentContext)
         {
             playerPrefsKey = unitTypePrefsKey;
             this.valueApply = valueApply;
+            CurrentContext = currentContext;
 
             currentUnit = PlayerPrefs.GetInt(unitTypePrefsKey, 0);
             if (currentUnit >= unitTypes.Count)
@@ -135,7 +145,7 @@ namespace Simulator.ScenarioEditor.UI.Utilities
         {
             currentUnit = unitId;
             PlayerPrefs.SetInt(playerPrefsKey, unitId);
-            UnityInputField.text = ConvertFromBase(currentValue, currentUnit).ToString("F");
+            UnityInputField.text = ConvertFromBase(currentValue, currentUnit).ToString(CultureInfo.CurrentCulture);
         }
 
         /// <summary>
@@ -176,32 +186,43 @@ namespace Simulator.ScenarioEditor.UI.Utilities
         {
             if (!float.TryParse(valueString, out var value)) return;
 
-            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
-                .RegisterRecord(new UndoFloatInputWithUnits(this, currentValue));
-            InputChangedValue(ConvertToBase(value, currentUnit));
+            var previousValue = currentValue;
+            if (InputChangedValue(ConvertToBase(value, currentUnit)))
+            {
+                ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
+                    .RegisterRecord(new UndoFloatInputWithUnits(this, previousValue, CurrentContext));
+            }
         }
 
         /// <summary>
         /// Method invoked then the input field changes the value
         /// </summary>
         /// <param name="baseValue">New value in the base unit type</param>
-        private void InputChangedValue(float baseValue)
+        /// <returns>True if value has been changed, false otherwise</returns>
+        private bool InputChangedValue(float baseValue)
         {
+            if (Mathf.Approximately(currentValue, baseValue))
+                return false;
             currentValue = baseValue;
-            valueApply?.Invoke(currentValue);
+            valueApply?.Invoke(CurrentContext, currentValue);
+            return true;
         }
 
         /// <summary>
         /// Changes the value of this input field without calling the callback
         /// </summary>
         /// <param name="baseValue">New value in the base unit type</param>
+        /// <param name="context">Scenario element which indicates the edit input context</param>
         /// <param name="invokeApply">Should this method call invoke value apply callback</param>
-        public void ExternalValueChange(float baseValue, bool invokeApply)
+        public void ExternalValueChange(float baseValue, ScenarioElement context, bool invokeApply)
         {
+            if (Mathf.Approximately(currentValue, baseValue))
+                return;
             currentValue = baseValue;
-            UnityInputField.SetTextWithoutNotify(ConvertFromBase(currentValue, currentUnit).ToString("F"));
+            UnityInputField.SetTextWithoutNotify(ConvertFromBase(currentValue, currentUnit)
+                .ToString(CultureInfo.CurrentCulture));
             if (invokeApply)
-                valueApply?.Invoke(currentValue);
+                valueApply?.Invoke(context, currentValue);
         }
     }
 }

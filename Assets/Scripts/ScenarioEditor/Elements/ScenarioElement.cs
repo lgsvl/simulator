@@ -173,22 +173,22 @@ namespace Simulator.ScenarioEditor.Elements
         /// <summary>
         /// Event invoked when the scenario element is moved
         /// </summary>
-        public event Action Moved;
+        public event Action<ScenarioElement> Moved;
 
         /// <summary>
         /// Event invoked when the scenario element is rotated
         /// </summary>
-        public event Action Rotated;
+        public event Action<ScenarioElement> Rotated;
 
         /// <summary>
         /// Event invoked when the scenario element is resized
         /// </summary>
-        public event Action Resized;
+        public event Action<ScenarioElement> Resized;
 
         /// <summary>
         /// Event invoked when the scenario element's model changes
         /// </summary>
-        public event Action ModelChanged;
+        public event Action<ScenarioElement> ModelChanged;
         
 
         /// <summary>
@@ -230,7 +230,7 @@ namespace Simulator.ScenarioEditor.Elements
                 this.childElements.Add(child);
             }
             ScenarioManager.Instance.ReportActivatedElement(this);
-            ModelChanged?.Invoke();
+            ModelChanged?.Invoke(this);
         }
 
         /// <summary>
@@ -497,7 +497,7 @@ namespace Simulator.ScenarioEditor.Elements
         /// <param name="notifyOthers">Should this call notify siblings and children</param>
         protected virtual void OnMoved(bool notifyOthers = true)
         {
-            Moved?.Invoke();
+            Moved?.Invoke(this);
             if (!notifyOthers)
                 return;
             foreach (var siblingElement in siblingElements)
@@ -512,7 +512,7 @@ namespace Simulator.ScenarioEditor.Elements
         /// <param name="notifyOthers">Should this call notify siblings and children</param>
         protected virtual void OnRotated(bool notifyOthers = true)
         {
-            Rotated?.Invoke();
+            Rotated?.Invoke(this);
             if (!notifyOthers)
                 return;
             foreach (var siblingElement in siblingElements)
@@ -527,7 +527,7 @@ namespace Simulator.ScenarioEditor.Elements
         /// <param name="notifyOthers">Should this call notify siblings and children</param>
         protected virtual void OnResized(bool notifyOthers = true)
         {
-            Resized?.Invoke();
+            Resized?.Invoke(this);
             if (!notifyOthers)
                 return;
             foreach (var siblingElement in siblingElements)
@@ -541,7 +541,7 @@ namespace Simulator.ScenarioEditor.Elements
         /// </summary>
         public virtual void OnModelChanged()
         {
-            ModelChanged?.Invoke();
+            ModelChanged?.Invoke(this);
         }
     }
 }

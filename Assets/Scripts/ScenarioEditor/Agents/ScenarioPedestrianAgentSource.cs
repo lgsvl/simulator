@@ -11,6 +11,7 @@ namespace Simulator.ScenarioEditor.Agents
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Elements.Agents;
+    using Elements.Waypoints;
     using Input;
     using Managers;
     using Undo;
@@ -57,8 +58,9 @@ namespace Simulator.ScenarioEditor.Agents
                 Debug.Log($"Loading pedestrian {pedestrian.Value.Name} from the pedestrian manager.");
                 var variant = new AgentVariant(this, pedestrian.Value.Name, pedestrian.Value.Prefab, string.Empty);
                 Variants.Add(variant);
-                progress.Report((float)(++i)/pedestriansInSimulation.Count);
+                progress.Report((float) (++i) / pedestriansInSimulation.Count);
             }
+
             return Task.CompletedTask;
         }
 
@@ -73,9 +75,11 @@ namespace Simulator.ScenarioEditor.Agents
             var instance = base.GetModelInstance(variant);
             if (instance == null)
             {
-                ScenarioManager.Instance.logPanel.EnqueueError($"Could not instantiate a prefab for the {variant.Name} pedestrian variant.");
+                ScenarioManager.Instance.logPanel.EnqueueError(
+                    $"Could not instantiate a prefab for the {variant.Name} pedestrian variant.");
                 return null;
             }
+
             if (instance.GetComponent<BoxCollider>() == null)
             {
                 var collider = instance.AddComponent<BoxCollider>();
@@ -89,12 +93,15 @@ namespace Simulator.ScenarioEditor.Agents
                 collider.size = b.size;
             }
 
-            if (instance.GetComponent<Rigidbody>() == null)
+            // Set/Add limited rigidbody
+            var rigidbody = instance.GetComponent<Rigidbody>();
+            if (rigidbody == null)
             {
-                var rigidbody = instance.AddComponent<Rigidbody>();
-                rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
-                rigidbody.isKinematic = true;
+                rigidbody = instance.AddComponent<Rigidbody>();
             }
+            rigidbody.interpolation = RigidbodyInterpolation.None;
+            rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+            rigidbody.isKinematic = true;
 
             return instance;
         }
@@ -105,8 +112,8 @@ namespace Simulator.ScenarioEditor.Agents
             var newGameObject = new GameObject(ElementTypeName);
             newGameObject.transform.SetParent(transform);
             var scenarioAgent = newGameObject.AddComponent<ScenarioAgent>();
-            scenarioAgent.GetOrAddExtension<AgentWaypoints>();
             scenarioAgent.Setup(this, variant);
+            scenarioAgent.GetOrAddExtension<AgentWaypointsPath>();
             return scenarioAgent;
         }
 
@@ -123,7 +130,8 @@ namespace Simulator.ScenarioEditor.Agents
             draggedInstance.transform.SetParent(ScenarioManager.Instance.transform);
             draggedInstance.transform.SetPositionAndRotation(inputManager.MouseRaycastPosition,
                 Quaternion.Euler(0.0f, 0.0f, 0.0f));
-            ScenarioManager.Instance.GetExtension<ScenarioMapManager>().LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian,
+            ScenarioManager.Instance.GetExtension<ScenarioMapManager>().LaneSnapping.SnapToLane(
+                LaneSnappingHandler.LaneType.Pedestrian,
                 draggedInstance.transform,
                 draggedInstance.transform);
         }
@@ -132,7 +140,8 @@ namespace Simulator.ScenarioEditor.Agents
         public override void DragMoved()
         {
             draggedInstance.transform.position = inputManager.MouseRaycastPosition;
-            ScenarioManager.Instance.GetExtension<ScenarioMapManager>().LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian,
+            ScenarioManager.Instance.GetExtension<ScenarioMapManager>().LaneSnapping.SnapToLane(
+                LaneSnappingHandler.LaneType.Pedestrian,
                 draggedInstance.transform,
                 draggedInstance.transform);
         }

@@ -10,6 +10,7 @@ namespace Simulator.ScenarioEditor.Managers
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Elements;
+    using Elements.Waypoints;
     using UI.EditElement.Effectors;
     using UI.EditElement.Effectors.Effectors;
     using UnityEngine;
@@ -58,7 +59,7 @@ namespace Simulator.ScenarioEditor.Managers
         /// <param name="selectedElement">Scenario element that has been activated</param>
         private void OnElementActivatedActivation(ScenarioElement selectedElement)
         {
-            if (!(selectedElement is ScenarioWaypoint waypoint)) return;
+            if (!(selectedElement is ScenarioAgentWaypoint waypoint)) return;
             var trigger = waypoint.LinkedTrigger;
             var effectors = trigger.Trigger.Effectors;
             foreach (var effector in effectors)

@@ -64,7 +64,7 @@ namespace Simulator.Web
 
                 client.DownloadProgressChanged -= Update;
                 client.DownloadFileCompleted -= Completed;
-                OnCompleted(this, true, null);
+                OnCompleted(this, !cancelled, null);
             }
 
             public void Update(object sender, DownloadProgressChangedEventArgs args)
@@ -187,7 +187,7 @@ namespace Simulator.Web
                         t.TrySetException(e);
                     }
                 }
-                else
+                else if (ex != null)
                 {
                     t.TrySetException(ex);
                 }

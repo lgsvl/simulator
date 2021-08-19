@@ -79,11 +79,6 @@ namespace Simulator.ScenarioEditor.Managers
         private Scene? loadedScene;
 
         /// <summary>
-        /// Map GUID which is currently being downloaded
-        /// </summary>
-        private string mapBeingDownloaded;
-
-        /// <summary>
         /// Currently loaded map name
         /// </summary>
         public MapMetaData CurrentMapMetaData { get; private set; }
@@ -153,11 +148,6 @@ namespace Simulator.ScenarioEditor.Managers
         {
             if (!IsInitialized)
                 return;
-            if (!string.IsNullOrEmpty(mapBeingDownloaded))
-            {
-                DownloadManager.StopAssetDownload(mapBeingDownloaded);
-                mapBeingDownloaded = null;
-            }
 
             UnloadMapAsync();
             IsInitialized = false;
@@ -208,60 +198,79 @@ namespace Simulator.ScenarioEditor.Managers
             var loadingProcess = ScenarioManager.Instance.loadingPanel.AddProgress();
             loadingProcess.Update("Loading scenario map manager.");
 
+            var previousMap = CurrentMapMetaData;
             if (!string.IsNullOrEmpty(loadedSceneName))
                 UnloadMapAsync();
 
             await Initialize();
 
+            // Try to load the map
             MapMetaData mapToLoad = null;
-            if (!string.IsNullOrEmpty(mapName))
+            try
             {
-                //Try to load named map
-                for (var i = 0; i < AvailableMaps.Count; i++)
+                if (!string.IsNullOrEmpty(mapName))
                 {
-                    var map = AvailableMaps[i];
-                    if (map.name != mapName) continue;
-                    //Download map if it's not available
-                    if (map.assetModel == null)
-                        await DownloadMap(map, loadingProcess);
-                    mapToLoad = map;
-                    break;
-                }
-            }
-
-            if (mapToLoad == null)
-            {
-                var preferedMapName = PlayerPrefs.GetString(MapPersistenceKey, null);
-                //Loads first downloaded map, or downloads first map in AvailableMaps
-                for (var i = 0; i < AvailableMaps.Count; i++)
-                {
-                    var map = AvailableMaps[i];
-                    if (map.assetModel == null) continue;
-                    //Force prefered map if it is already downloaded
-                    if (map.name == preferedMapName)
+                    //Try to load named map
+                    for (var i = 0; i < AvailableMaps.Count; i++)
                     {
+                        var map = AvailableMaps[i];
+                        if (map.name != mapName) continue;
+                        //Download map if it's not available
+                        if (map.assetModel == null)
+                            await DownloadMap(map, loadingProcess);
                         mapToLoad = map;
                         break;
                     }
-
-                    mapToLoad = map;
                 }
 
-                //Download first map if there are no downloaded maps
                 if (mapToLoad == null)
                 {
-                    var map = AvailableMaps[0];
-                    await DownloadMap(map, loadingProcess);
-                    mapToLoad = map;
+                    var preferedMapName = PlayerPrefs.GetString(MapPersistenceKey, null);
+                    //Loads first downloaded map, or downloads first map in AvailableMaps
+                    for (var i = 0; i < AvailableMaps.Count; i++)
+                    {
+                        var map = AvailableMaps[i];
+                        if (map.assetModel == null) continue;
+                        //Force prefered map if it is already downloaded
+                        if (map.name == preferedMapName)
+                        {
+                            mapToLoad = map;
+                            break;
+                        }
+
+                        mapToLoad = map;
+                    }
+
+                    //Download first map if there are no downloaded maps
+                    if (mapToLoad == null)
+                    {
+                        var map = AvailableMaps[0];
+                        await DownloadMap(map, loadingProcess);
+                        mapToLoad = map;
+                    }
                 }
+
+                loadingProcess.Update($"Loading map {mapToLoad.name}.");
+                await LoadMapAssets(mapToLoad.assetModel, mapToLoad);
+            }
+            catch (Exception ex)
+            {
+                if (previousMap != null)
+                {
+                    loadingProcess.Update(
+                        $"Loading previous map {previousMap.name}.");
+                    await LoadMapAssets(previousMap.assetModel, previousMap);
+                }
+
+                ScenarioManager.Instance.logPanel.EnqueueError($"Failed to load map {mapName}. Exception: {ex.Message}");
+                loadingProcess.NotifyCompletion();
+                return;
             }
 
-            loadingProcess.Update($"Loading map {mapToLoad.name}.");
-            await LoadMapAssets(mapToLoad.assetModel, mapToLoad);
             loadingProcess.Update(
                 CurrentMapName == mapToLoad.name
                     ? $"Scenario map manager loaded {mapToLoad.name} map."
-                    : $"Loaded {mapToLoad.name} map failed.");
+                    : $"Failed loaded the {mapToLoad.name} map.");
             loadingProcess.NotifyCompletion();
         }
 
@@ -273,14 +282,15 @@ namespace Simulator.ScenarioEditor.Managers
         /// <returns>Task</returns>
         private async Task DownloadMap(MapMetaData map, LoadingPanel.LoadingProcess loadingProcess)
         {
-            mapBeingDownloaded = map.assetGuid;
+            ScenarioManager.Instance.ReportAssetDownload(map.assetGuid);
             var progressUpdate = new Progress<Tuple<string, float>>(p =>
             {
                 loadingProcess?.Update($"Downloading {p.Item1} {p.Item2:F}%.");
             });
             map.assetModel =
-                await DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, map.assetGuid, map.name, progressUpdate);
-            mapBeingDownloaded = null;
+                await DownloadManager.GetAsset(BundleConfig.BundleTypes.Environment, map.assetGuid, map.name,
+                    progressUpdate);
+            ScenarioManager.Instance.ReportAssetFinishedDownload(map.assetGuid);
         }
 
         /// <summary>

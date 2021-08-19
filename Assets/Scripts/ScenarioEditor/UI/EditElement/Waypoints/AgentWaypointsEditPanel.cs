@@ -5,7 +5,7 @@
  *
  */
 
-namespace Simulator.ScenarioEditor.UI.EditElement.Agent
+namespace Simulator.ScenarioEditor.UI.EditElement.Waypoints
 {
     using System;
     using System.Collections.Generic;
@@ -13,6 +13,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
     using Effectors;
     using Elements;
     using Elements.Agents;
+    using Elements.Waypoints;
     using Input;
     using Managers;
     using ScenarioEditor.Utilities;
@@ -52,7 +53,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
         /// <summary>
         /// Waypoints that is edited by this panel
         /// </summary>
-        private AgentWaypoints agentWaypoints;
+        private AgentWaypointsPath agentWaypointsPath;
 
         /// <summary>
         /// Currently edited scenario agent reference
@@ -85,10 +86,10 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
                 pathTypeEnums.Add(pathType);
                 options.Add(pathType.ToString());
             }
-
             pathTypeDropdown.AddOptions(options);
+            
             isInitialized = true;
-            OnSelectedOtherElement(ScenarioManager.Instance.SelectedElement);
+            OnSelectedOtherElement(null, ScenarioManager.Instance.SelectedElement);
         }
 
         /// <inheritdoc/>
@@ -107,24 +108,25 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
         /// <summary>
         /// Method called when another scenario element has been selected
         /// </summary>
+        /// <param name="previousElement">Scenario element that has been deselected</param>
         /// <param name="selectedElement">Scenario element that has been selected</param>
-        private void OnSelectedOtherElement(ScenarioElement selectedElement)
+        private void OnSelectedOtherElement(ScenarioElement previousElement, ScenarioElement selectedElement)
         {
-            if (agentWaypoints != null)
+            if (agentWaypointsPath != null)
             {
-                agentWaypoints.IsActiveChanged -= AgentWaypointsOnIsActiveChanged;
+                agentWaypointsPath.IsActiveChanged -= AgentWaypointsPathOnIsActiveChanged;
             }
 
             selectedAgent = selectedElement as ScenarioAgent;
             //Attach to selected agent events
             if (selectedAgent != null)
             {
-                agentWaypoints = selectedAgent.GetExtension<AgentWaypoints>();
-                if (agentWaypoints == null)
+                agentWaypointsPath = selectedAgent.GetExtension<AgentWaypointsPath>();
+                if (agentWaypointsPath == null)
                     Hide();
                 else
                 {
-                    agentWaypoints.IsActiveChanged += AgentWaypointsOnIsActiveChanged;
+                    agentWaypointsPath.IsActiveChanged += AgentWaypointsPathOnIsActiveChanged;
                     Show();
                 }
             }
@@ -141,8 +143,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
         public void Show()
         {
             gameObject.SetActive(true);
-            pathTypeDropdown.SetValueWithoutNotify(pathTypeEnums.IndexOf(agentWaypoints.PathType));
-            loopToggle.SetIsOnWithoutNotify(agentWaypoints.Loop);
+            pathTypeDropdown.SetValueWithoutNotify(pathTypeEnums.IndexOf(agentWaypointsPath.PathType));
+            loopToggle.SetIsOnWithoutNotify(agentWaypointsPath.Loop);
             UnityUtilities.LayoutRebuild(transform as RectTransform);
         }
 
@@ -160,7 +162,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
         /// Method invoked when the parent waypoints extension is active property has changed
         /// </summary>
         /// <param name="isActive">Is parent waypoints extension active</param>
-        private void AgentWaypointsOnIsActiveChanged(bool isActive)
+        private void AgentWaypointsPathOnIsActiveChanged(bool isActive)
         {
             if (isActive)
                 Show();
@@ -184,16 +186,16 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
         /// <param name="dropdownOption">Selected dropdown option</param>
         public void ChangePathType(int dropdownOption)
         {
-            var previousPathType = agentWaypoints.PathType;
+            var previousPathType = agentWaypointsPath.PathType;
             var undoCallback = new Action<WaypointsPathType>(prev =>
             {
-                agentWaypoints.ChangePathType(previousPathType);
-                pathTypeDropdown.SetValueWithoutNotify(pathTypeEnums.IndexOf(agentWaypoints.PathType));
+                agentWaypointsPath.ChangePathType(previousPathType);
+                pathTypeDropdown.SetValueWithoutNotify(pathTypeEnums.IndexOf(agentWaypointsPath.PathType));
             });
             ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
                 .RegisterRecord(new GenericUndo<WaypointsPathType>(previousPathType, "Reverting path type selection",
                     undoCallback));
-            agentWaypoints.ChangePathType(pathTypeEnums[dropdownOption]);
+            agentWaypointsPath.ChangePathType(pathTypeEnums[dropdownOption]);
         }
 
         /// <summary>
@@ -202,31 +204,28 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
         /// <param name="value">Loop option value</param>
         public void ChangeLoopValue(bool value)
         {
-            if (agentWaypoints.Loop == value)
+            if (agentWaypointsPath.Loop == value)
                 return;
             ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
-                .RegisterRecord(new UndoToggle(loopToggle, agentWaypoints.Loop,
-                    v => agentWaypoints.Loop = v));
-            agentWaypoints.Loop = value;
+                .RegisterRecord(new UndoToggle(loopToggle, agentWaypointsPath.Loop,
+                    v => agentWaypointsPath.Loop = v));
+            agentWaypointsPath.Loop = value;
         }
 
         /// <inheritdoc/>
         void IAddElementsHandler.AddingStarted(Vector3 addPosition)
         {
-            var mapWaypointPrefab =
-                ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>().waypointPrefab;
-            newWaypointInstance = ScenarioManager.Instance.prefabsPools
-                .GetInstance(mapWaypointPrefab).GetComponent<ScenarioWaypoint>();
+            newWaypointInstance = agentWaypointsPath.GetWaypointInstance();
             if (newWaypointInstance == null)
             {
                 Debug.LogWarning(
-                    $"Cannot add waypoints. Add {nameof(ScenarioWaypoint)} component to the prefab.");
+                    $"Cannot add waypoints. Add {nameof(ScenarioAgentWaypoint)} component to the prefab.");
                 ScenarioManager.Instance.GetExtension<InputManager>().CancelAddingElements(this);
                 return;
             }
 
             newWaypointInstance.ForceMove(addPosition);
-            agentWaypoints.AddWaypoint(newWaypointInstance, true);
+            agentWaypointsPath.AddWaypoint(newWaypointInstance, null);
             isAddingWaypoints = true;
         }
 
@@ -242,16 +241,13 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
             ScenarioManager.Instance.IsScenarioDirty = true;
             ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
                 .RegisterRecord(new UndoAddElement(newWaypointInstance));
-            var mapWaypointPrefab =
-                ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>().waypointPrefab;
-            newWaypointInstance = ScenarioManager.Instance.prefabsPools
-                .GetInstance(mapWaypointPrefab).GetComponent<ScenarioWaypoint>();
+            newWaypointInstance = agentWaypointsPath.GetWaypointInstance();
             newWaypointInstance.ForceMove(addPosition);
-            agentWaypoints.AddWaypoint(newWaypointInstance, true);
+            agentWaypointsPath.AddWaypoint(newWaypointInstance, null);
         }
 
         /// <inheritdoc/>
-        public void AddingCancelled(Vector3 addPosition)
+        void IAddElementsHandler.AddingCancelled(Vector3 addPosition)
         {
             if (newWaypointInstance.CanBeRemoved)
             {

@@ -15,6 +15,7 @@ namespace Simulator.ScenarioEditor.Agents
     using Database;
     using Database.Services;
     using Elements.Agents;
+    using Elements.Waypoints;
     using Input;
     using Managers;
     using Undo;
@@ -68,6 +69,9 @@ namespace Simulator.ScenarioEditor.Agents
             for (var i = 0; i < library.Length; i++)
             {
                 var vehicleDetailData = library[i];
+                // Ignore vehicles with invalid data
+                if (string.IsNullOrEmpty(vehicleDetailData.Name) || string.IsNullOrEmpty(vehicleDetailData.AssetGuid))
+                    continue;
                 Debug.Log($"Loading ego vehicle {vehicleDetailData.Name} from the library.");
                 var sb = new StringBuilder();
                 sb.Append(vehicleDetailData.Description);
@@ -112,13 +116,23 @@ namespace Simulator.ScenarioEditor.Agents
             var agent = instance.GetComponent<IAgentController>();
             agent?.DisableControl();
 
-            //Destroy all the custom components from the ego vehicle
+            // Destroy all the custom components from the ego vehicle
             var allComponents = instance.GetComponents<MonoBehaviour>();
             for (var i = 0; i < allComponents.Length; i++)
             {
                 var component = allComponents[i];
                 DestroyImmediate(component);
             }
+            
+            // Set/Add limited rigidbody
+            var rigidbody = instance.GetComponent<Rigidbody>();
+            if (rigidbody == null)
+            {
+                rigidbody = instance.AddComponent<Rigidbody>();
+            }
+            rigidbody.interpolation = RigidbodyInterpolation.None;
+            rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+            rigidbody.isKinematic = true;
             return instance;
         }
 

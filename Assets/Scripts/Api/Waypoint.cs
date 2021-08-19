@@ -15,6 +15,7 @@ namespace Simulator.Api
     {
         public Vector3 Position;
         public float Speed;
+        public float Acceleration;
         public Vector3 Angle;
         public float Idle;
         public bool Deactivate;
@@ -38,6 +39,7 @@ namespace Simulator.Api
             {
                 Position = Position,
                 Speed = Speed,
+                Acceleration = Acceleration,
                 Angle = Angle,
                 Idle = Idle,
                 Deactivate = Deactivate,
@@ -53,6 +55,7 @@ namespace Simulator.Api
             {
                 Position = Position,
                 Speed = Speed,
+                Acceleration = Acceleration,
                 Angle = Angle,
                 Idle = 0.0f,
                 Deactivate = false,
@@ -67,6 +70,7 @@ namespace Simulator.Api
     {
         public Vector3 Position;
         public float Speed;
+        public float Acceleration;
         public float Idle;
         public float TriggerDistance;
         public WaypointTrigger Trigger;
@@ -85,6 +89,7 @@ namespace Simulator.Api
             {
                 Position = Position,
                 Speed = Speed,
+                Acceleration = Acceleration,
                 Idle = Idle,
                 Trigger = Trigger,
                 TriggerDistance = TriggerDistance
@@ -99,6 +104,7 @@ namespace Simulator.Api
             {
                 Position = Position,
                 Speed = Speed,
+                Acceleration = Acceleration,
                 Idle = Idle,
                 Trigger = null,
                 TriggerDistance = 0.0f

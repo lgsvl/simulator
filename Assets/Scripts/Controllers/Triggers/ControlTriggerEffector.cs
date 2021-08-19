@@ -8,8 +8,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using SimpleJSON;
+using Simulator;
 using Simulator.Controllable;
 using Simulator.Utilities;
+using UnityEngine;
 
 public class ControlTriggerEffector : TriggerEffector
 {
@@ -33,6 +35,12 @@ public class ControlTriggerEffector : TriggerEffector
     {
         if (ControllablesUIDs == null || ControllablesUIDs.Count == 0)
             yield break;
+        if (Loader.IsInScenarioEditor)
+        {
+            Debug.LogWarning(
+                $"Visual Scenario Editor does not support the {GetType().Name}.");
+            yield break;
+        }
         foreach (var uid in ControllablesUIDs)
         {
             if (!SimulatorManager.Instance.ControllableManager.TryGetControllable(uid, out var controllable)) continue;

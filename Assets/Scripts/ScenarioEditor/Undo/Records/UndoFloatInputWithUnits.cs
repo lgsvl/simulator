@@ -7,6 +7,7 @@
 
 namespace Simulator.ScenarioEditor.Undo.Records
 {
+    using Elements;
     using Managers;
     using UI.Utilities;
     using Undo;
@@ -20,34 +21,40 @@ namespace Simulator.ScenarioEditor.Undo.Records
         /// Float input with units that has been changed
         /// </summary>
         private readonly FloatInputWithUnits floatInputWithUnits;
-        
+
         /// <summary>
         /// Previous value in the changed input field
         /// </summary>
         private readonly float previousValue;
-        
+
+        /// <summary>
+        /// Scenario element which indicates the edit input context
+        /// </summary>
+        private readonly ScenarioElement undoContext;
+
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="floatInput">Float input with units that has been changed</param>
         /// <param name="previousValue">Previous value in the changed input field</param>
-        public UndoFloatInputWithUnits(FloatInputWithUnits floatInput, float previousValue)
+        /// <param name="undoContext">Scenario element which indicates the edit input context</param>
+        public UndoFloatInputWithUnits(FloatInputWithUnits floatInput, float previousValue, ScenarioElement undoContext)
         {
             floatInputWithUnits = floatInput;
             this.previousValue = previousValue;
+            this.undoContext = undoContext;
         }
 
         /// <inheritdoc/>
         public override void Undo()
         {
-            floatInputWithUnits.ExternalValueChange(previousValue, true);
+            floatInputWithUnits.ExternalValueChange(previousValue, undoContext, true);
             ScenarioManager.Instance.logPanel.EnqueueInfo("Undo applied to rollback change in an input field.");
         }
 
         /// <inheritdoc/>
         public override void Dispose()
         {
-            
         }
     }
 }

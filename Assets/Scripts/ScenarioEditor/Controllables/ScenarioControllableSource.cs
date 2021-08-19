@@ -131,7 +131,7 @@ namespace Simulator.ScenarioEditor.Controllables
                 {
                     var editPanel = asset.GetComponent<IControllableEditPanel>();
                     //Add edit panel if same type is not registered yet
-                    if (editPanel!=null && customEditPanelsPrefabs.Any(panel => panel.GetType() == editPanel.GetType()))
+                    if (editPanel!=null && customEditPanelsPrefabs.All(panel => panel.GetType() != editPanel.GetType()))
                         CustomEditPanels.Add(editPanel);
                 }
                 progress.Report((float)++i/controllablesCount);
@@ -183,8 +183,8 @@ namespace Simulator.ScenarioEditor.Controllables
                     initialPolicy.AddRange(variant.controllable.DefaultControlPolicy);
             }
 
-            SetupNewControllable(scenarioControllable);
             scenarioControllable.Setup(this, variant, initialPolicy);
+            SetupNewControllable(scenarioControllable);
             return scenarioControllable;
         }
 

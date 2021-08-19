@@ -15,12 +15,17 @@ namespace Simulator.ScenarioEditor.Elements.Agents
     /// <summary>
     /// Scenario agent extension that handles the color
     /// </summary>
-    public class AgentColorExtension : ScenarioAgentExtension
+    public class AgentColorExtension : IScenarioElementExtension
     {
         /// <summary>
         /// Id of the shader property named _BaseColor
         /// </summary>
         public static readonly int BaseColorShaderId = Shader.PropertyToID("_BaseColor");
+        
+        /// <summary>
+        /// Scenario agent that this object extends
+        /// </summary>
+        private ScenarioAgent ParentAgent { get; set; }
 
         /// <summary>
         /// Color of this agent
@@ -58,42 +63,44 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         public event Action<Color> ColorChanged;
 
         /// <inheritdoc/>
-        public override void Initialize(ScenarioAgent parentAgent)
+        public void Initialize(ScenarioElement parentElement)
         {
-            base.Initialize(parentAgent);
+            ParentAgent = (ScenarioAgent) parentElement;
             ParentAgent.VariantChanged += ParentAgentOnVariantChanged;
+            ParentAgentOnVariantChanged(ParentAgent.Variant);
         }
 
         /// <inheritdoc/>
-        public override void Deinitialize()
+        public void Deinitialize()
         {
             AgentColor = InitialColor;
             ParentAgent.VariantChanged -= ParentAgentOnVariantChanged;
-            base.Deinitialize();
+            ParentAgent = null;
         }
 
 
         /// <inheritdoc/>
-        public override void SerializeToJson(JSONNode agentNode)
+        public void SerializeToJson(JSONNode elementNode)
         {
             var colorNode = new JSONObject();
-            agentNode.Add("color", colorNode);
+            elementNode.Add("color", colorNode);
             colorNode.Add("r", new JSONNumber(AgentColor.r));
             colorNode.Add("g", new JSONNumber(AgentColor.g));
             colorNode.Add("b", new JSONNumber(AgentColor.b));
         }
 
         /// <inheritdoc/>
-        public override void DeserializeFromJson(JSONNode agentNode)
+        public void DeserializeFromJson(JSONNode elementNode)
         {
-            var colorNode = agentNode["color"];
+            var colorNode = elementNode["color"];
             AgentColor = new Color(colorNode["r"].AsFloat, colorNode["g"].AsFloat, colorNode["b"].AsFloat);
         }
 
         /// <inheritdoc/>
-        public override void CopyProperties(ScenarioAgent agent)
+        public void CopyProperties(ScenarioElement originElement)
         {
-            var origin = agent.GetExtension<AgentColorExtension>();
+            var originAgent = (ScenarioAgent) originElement;
+            var origin = originAgent.GetExtension<AgentColorExtension>();
             if (origin == null) return;
             InitialColor = origin.InitialColor;
             AgentColor = origin.AgentColor;

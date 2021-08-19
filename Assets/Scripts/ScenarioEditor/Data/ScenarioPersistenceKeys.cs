@@ -16,5 +16,10 @@ namespace Simulator.ScenarioEditor.Data.Serializer
         /// Persistence data key for the selected speed unit type
         /// </summary>
         public static string SpeedUnitKey = "Simulator/ScenarioEditor/ScenarioPersistenceKeys/SelectedSpeedUnit";
+        
+        /// <summary>
+        /// Persistence data key for the selected speed unit type
+        /// </summary>
+        public static string AccelerationUnitKey = "Simulator/ScenarioEditor/ScenarioPersistenceKeys/SelectedAccelerationUnit";
     }
 }

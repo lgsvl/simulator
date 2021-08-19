@@ -914,7 +914,7 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
     /// Method waiting while the GUID in the guidSource is not set
     /// </summary>
     /// <param name="callback">Callback called after GUID is set</param>
-    /// <returns>IEnumerator</returns>
+    /// <returns>Coroutine IEnumerator</returns>
     private IEnumerator WaitForId(Action callback)
     {
         while (string.IsNullOrEmpty(id))

@@ -196,7 +196,7 @@ namespace Simulator.ScenarioEditor.UI.MapSelecting
         /// <summary>
         /// Coroutine that displays logs one by one
         /// </summary>
-        /// <returns>IEnumerator</returns>
+        /// <returns>Coroutine IEnumerator</returns>
         private IEnumerator LogCoroutine()
         {
             var log = logsQueue.Dequeue();

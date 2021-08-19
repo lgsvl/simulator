@@ -8,7 +8,8 @@
 namespace Simulator.ScenarioEditor.Agents.Triggers
 {
     using Elements;
-    
+    using Elements.Triggers;
+
     /// <summary>
     /// Object that represents effector in the scenario
     /// </summary>

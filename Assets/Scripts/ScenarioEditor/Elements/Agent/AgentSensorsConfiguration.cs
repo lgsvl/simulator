@@ -17,8 +17,13 @@ namespace Simulator.ScenarioEditor.Elements.Agents
     /// <summary>
     /// Scenario agent extension that handles the sensors configuration
     /// </summary>
-    public class AgentSensorsConfiguration : ScenarioAgentExtension
+    public class AgentSensorsConfiguration : IScenarioElementExtension
     {
+        /// <summary>
+        /// Scenario agent that this object extends
+        /// </summary>
+        private ScenarioAgent ParentAgent { get; set; }
+        
         /// <summary>
         /// Sensors configuration that will be applied to this agent
         /// </summary>
@@ -30,37 +35,38 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         public event Action<string> SensorsConfigurationIdChanged;
 
         /// <inheritdoc/>
-        public override void Initialize(ScenarioAgent parentAgent)
+        public void Initialize(ScenarioElement parentElement)
         {
-            base.Initialize(parentAgent);
-            if (parentAgent.Variant is EgoAgentVariant egoAgentVariant && egoAgentVariant.SensorsConfigurations.Count>0)
+            ParentAgent = (ScenarioAgent) parentElement;
+            if (ParentAgent.Variant is EgoAgentVariant egoAgentVariant && egoAgentVariant.SensorsConfigurations.Count>0)
                 ChangeSensorsConfigurationId(egoAgentVariant.SensorsConfigurations[0].Id, false);
             ParentAgent.VariantChanged += ParentAgentOnVariantChanged;
         }
 
         /// <inheritdoc/>
-        public override void Deinitialize()
+        public void Deinitialize()
         {
             ParentAgent.VariantChanged -= ParentAgentOnVariantChanged;
-            base.Deinitialize();
+            ParentAgent = null;
         }
 
         /// <inheritdoc/>
-        public override void SerializeToJson(JSONNode agentNode)
+        public void SerializeToJson(JSONNode elementNode)
         {
-            agentNode.Add("sensorsConfigurationId", new JSONString(SensorsConfigurationId));
+            elementNode.Add("sensorsConfigurationId", new JSONString(SensorsConfigurationId));
         }
 
         /// <inheritdoc/>
-        public override void DeserializeFromJson(JSONNode agentNode)
+        public void DeserializeFromJson(JSONNode elementNode)
         {
-            ChangeSensorsConfigurationId(agentNode["sensorsConfigurationId"], false); 
+            ChangeSensorsConfigurationId(elementNode["sensorsConfigurationId"], false); 
         }
 
         /// <inheritdoc/>
-        public override void CopyProperties(ScenarioAgent agent)
+        public void CopyProperties(ScenarioElement originElement)
         {
-            var origin = agent.GetExtension<AgentSensorsConfiguration>();
+            var scenarioAgent = (ScenarioAgent) originElement;
+            var origin = scenarioAgent.GetExtension<AgentSensorsConfiguration>();
             if (origin == null) return;
             SensorsConfigurationId = origin.SensorsConfigurationId;
         }

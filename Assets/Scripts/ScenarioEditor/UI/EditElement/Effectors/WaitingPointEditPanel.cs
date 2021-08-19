@@ -10,6 +10,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
     using System;
     using Agents.Triggers;
     using Elements;
+    using Elements.Triggers;
     using Managers;
     using Undo;
     using Undo.Records;

@@ -276,8 +276,9 @@ namespace Simulator.ScenarioEditor.UI.ColorPicker
         /// <summary>
         /// Method invoked when other scenario element is selected
         /// </summary>
+        /// <param name="previousElement">Deselected scenario element</param>
         /// <param name="scenarioElement">Selected scenario element</param>
-        private void OnSelectedOtherElement(ScenarioElement scenarioElement)
+        private void OnSelectedOtherElement(ScenarioElement previousElement, ScenarioElement scenarioElement)
         {
             Hide();
         }

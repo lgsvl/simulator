@@ -46,5 +46,7 @@ MonoBehaviour:
   waypointPathMaterial: {fileID: 2100000, guid: 5d35dbaf97b8cae47996a72c0b8dbc1f,
     type: 2}
   triggerPathMaterial: {fileID: 2100000, guid: 7abad99d39c7a834db0258819da9a557, type: 2}
-  waypointPrefab: {fileID: 1460225512146967788, guid: 8f7a4f69edc17e249be74b25ebeeb536,
-    type: 3}
+  waypointPrefabs:
+  - {fileID: 4737070312003531706, guid: 977c2a55df0774c44934dff233be1f04, type: 3}
+  - {fileID: -535222167256943122, guid: 8f7a4f69edc17e249be74b25ebeeb536, type: 3}
+  - {fileID: -401546045769311523, guid: 14ff00f94d37a6249aa29549f94be63e, type: 3}

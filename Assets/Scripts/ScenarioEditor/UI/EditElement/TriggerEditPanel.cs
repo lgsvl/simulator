@@ -12,6 +12,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
     using System.Linq;
     using Effectors;
     using Elements;
+    using Elements.Triggers;
     using Managers;
     using MapSelecting;
     using ScenarioEditor.Utilities;

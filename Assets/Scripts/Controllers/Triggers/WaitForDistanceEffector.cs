@@ -7,6 +7,7 @@
 
 using System.Collections;
 using SimpleJSON;
+using Simulator;
 using UnityEngine;
 
 public class WaitForDistanceEffector : TriggerEffector
@@ -23,6 +24,13 @@ public class WaitForDistanceEffector : TriggerEffector
 
     public override IEnumerator Apply(ITriggerAgent agent)
     {
+        if (Loader.IsInScenarioEditor)
+        {
+            Debug.LogWarning(
+                $"Visual Scenario Editor does not support the {GetType().Name}.");
+            yield break;
+        }
+        
         //Make parent npc wait until any ego is closer than the max distance
         float lowestDistance;
         do

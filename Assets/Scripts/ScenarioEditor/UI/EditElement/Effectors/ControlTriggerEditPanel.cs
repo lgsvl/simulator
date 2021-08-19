@@ -13,6 +13,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
     using Controllable;
     using Controllables;
     using Elements;
+    using Elements.Triggers;
     using Input;
     using Managers;
     using ScenarioEditor.Controllables;
@@ -127,7 +128,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
         /// <summary>
         /// Method invoked when the edited trigger is moved
         /// </summary>
-        private void OnTriggerMoved()
+        /// <param name="changedElement">Changed scenario element</param>
+        private void OnTriggerMoved(ScenarioElement changedElement)
         {
             lineRenderer.SetPosition(0, editedTrigger.transform.position + LineRendererPositionOffset);
         }

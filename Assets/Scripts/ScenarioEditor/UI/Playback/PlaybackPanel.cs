@@ -1,5 +1,5 @@
 ﻿/**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -7,6 +7,7 @@
 
 namespace Simulator.ScenarioEditor.UI.Playback
 {
+    using System;
     using System.Collections;
     using System.Collections.Generic;
     using Elements;
@@ -14,6 +15,7 @@ namespace Simulator.ScenarioEditor.UI.Playback
     using Inspector;
     using Managers;
     using ScenarioEditor.Playback;
+    using Simulator.Utilities;
     using UnityEngine;
     using UnityEngine.UI;
 
@@ -33,23 +35,34 @@ namespace Simulator.ScenarioEditor.UI.Playback
             Idle = 0,
 
             /// <summary>
+            /// Scenario is currently precaching the playback
+            /// </summary>
+            Precaching = 1,
+
+            /// <summary>
             /// Scenario is currently being playing
             /// </summary>
-            Playing = 1,
+            Playing = 2,
 
             /// <summary>
             /// Scenario is currently paused
             /// </summary>
-            Paused = 2
+            Paused = 3
         }
 
         //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
 #pragma warning disable 0649
         /// <summary>
-        /// Playback controllers that handle scenario elements during the play mode
+        /// Game object that includes all the playback control elements
         /// </summary>
         [SerializeField]
-        private List<PlaybackController> controllers = new List<PlaybackController>();
+        private GameObject controlPanel;
+
+        /// <summary>
+        /// Game object that is displayed instead of control panel when the playback is being precached
+        /// </summary>
+        [SerializeField]
+        private GameObject precachingPanel;
         
         /// <summary>
         /// Reference to the slider that handles the playback time
@@ -69,6 +82,15 @@ namespace Simulator.ScenarioEditor.UI.Playback
         [SerializeField]
         private Text currentTimeLabel;
 #pragma warning restore 0649
+        /// <summary>
+        /// Speed of the playback precache
+        /// </summary>
+        private const float PrecachePlaybackSpeed = 1.0f;
+
+        /// <summary>
+        /// Playback controllers that handle scenario elements during the play mode
+        /// </summary>
+        private List<PlaybackController> controllers = new List<PlaybackController>();
 
         /// <summary>
         /// Cached element reference that was selected before entering the playback mode
@@ -79,6 +101,11 @@ namespace Simulator.ScenarioEditor.UI.Playback
         /// Coroutine that handles current playback
         /// </summary>
         private IEnumerator playCoroutine;
+
+        /// <summary>
+        /// Coroutine that handles precaching playback
+        /// </summary>
+        private IEnumerator precachePlaybackCoroutine;
 
         /// <summary>
         /// Did the playback panel lock input manager semaphore
@@ -99,15 +126,25 @@ namespace Simulator.ScenarioEditor.UI.Playback
         /// Time scale of the playback
         /// </summary>
         private float playbackSpeed;
-        
+
         /// <summary>
         /// Current state of the playback
         /// </summary>
         public PlaybackState State { get; private set; }
-        
+
         /// <inheritdoc/>
         public override void Initialize()
         {
+            var controllerTypes = ReflectionCache.FindTypes(type => type.IsSubclassOf(typeof(PlaybackController)));
+            foreach (var controllerType in controllerTypes)
+            {
+                if (Activator.CreateInstance(controllerType) is PlaybackController controller)
+                {
+                    controllers.Add(controller);
+                    controller.Initialize();
+                }
+            }
+
             timeSlider.SetValueWithoutNotify(0.0f);
         }
 
@@ -124,22 +161,25 @@ namespace Simulator.ScenarioEditor.UI.Playback
             ScenarioManager.Instance.GetExtension<InputManager>().ElementSelectingSemaphore.Lock();
             didLockSemaphore = true;
             duration = 0.0f;
-            for (var i = 0; i < controllers.Count; i++)
-            {
-                controllers[i].Initialize();
-                if (controllers[i].Duration > duration)
-                    duration = controllers[i].Duration;
-            }
-
-            durationLabel.text = $"{duration:F1}s";
-            progress = 0.0f;
-            UpdatePlayback();
+            precachePlaybackCoroutine = PrecachePlayback();
+            State = PlaybackState.Precaching;
+            controlPanel.SetActive(false);
+            precachingPanel.SetActive(true);
             gameObject.SetActive(true);
+            StartCoroutine(precachePlaybackCoroutine);
         }
 
         /// <inheritdoc/>
         public override void Hide()
         {
+            // If hide occurs while playback is precached, stop all coroutines as nested coroutines may be attached
+            if (precachePlaybackCoroutine != null)
+            {
+                StopCoroutine(precachePlaybackCoroutine);
+                StopAllCoroutines();
+                precachePlaybackCoroutine = null;
+            }
+
             Stop();
             for (var i = 0; i < controllers.Count; i++)
                 controllers[i].Deinitialize();
@@ -152,11 +192,67 @@ namespace Simulator.ScenarioEditor.UI.Playback
         }
 
         /// <summary>
+        /// Returns the playback controller of given type, null if not available
+        /// </summary>
+        /// <typeparam name="T">Type of the <see cref="PlaybackController"/> that will be returned</typeparam>
+        /// <returns>Playback controller of given type, null if not available</returns>
+        public T GetController<T>() where T : PlaybackController
+        {
+            foreach (var controller in controllers)
+            {
+                if (controller is T controllerT)
+                    return controllerT;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Precache playback data
+        /// </summary>
+        /// <returns>Coroutine IEnumerator</returns>
+        private IEnumerator PrecachePlayback()
+        {
+            Time.timeScale = PrecachePlaybackSpeed;
+            timeSlider.interactable = false;
+            durationLabel.text = "?s";
+
+            // Start precaching playback on all the controllers
+            var coroutines = new List<Coroutine>();
+            for (var i = 0; i < controllers.Count; i++)
+            {
+                coroutines.Add(StartCoroutine(controllers[i].PrecachePlayback(this)));
+            }
+
+            // Wait for all the coroutines
+            for (var i = 0; i < coroutines.Count; i++)
+            {
+                yield return coroutines[i];
+            }
+
+            // Find the longest playback duration
+            for (var i = 0; i < controllers.Count; i++)
+            {
+                if (controllers[i].Duration > duration)
+                    duration = controllers[i].Duration;
+            }
+
+            timeSlider.interactable = true;
+            durationLabel.text = $"{duration:F1}s";
+            progress = 0.0f;
+            Time.timeScale = playbackSpeed;
+            controlPanel.SetActive(true);
+            precachingPanel.SetActive(false);
+            State = PlaybackState.Idle;
+            UpdatePlayback();
+        }
+
+        /// <summary>
         /// Start the scenario playback
         /// </summary>
         public void Play()
         {
-            if (State == PlaybackState.Playing)
+            if (State == PlaybackState.Playing || State == PlaybackState.Precaching)
                 return;
             State = PlaybackState.Playing;
             Time.timeScale = playbackSpeed;
@@ -171,6 +267,9 @@ namespace Simulator.ScenarioEditor.UI.Playback
         /// </summary>
         public void Stop()
         {
+            if (State == PlaybackState.Precaching)
+                return;
+
             if (State == PlaybackState.Idle)
             {
                 progress = 0.0f;
@@ -178,13 +277,11 @@ namespace Simulator.ScenarioEditor.UI.Playback
                 return;
             }
 
-            for (var i = 0; i < controllers.Count; i++)
-                controllers[i].Reset();
             State = PlaybackState.Idle;
             progress = 0.0f;
             UpdatePlayback();
             Time.timeScale = 0.0f;
-            if (playCoroutine!=null)
+            if (playCoroutine != null)
                 StopCoroutine(playCoroutine);
             playCoroutine = null;
         }
@@ -203,10 +300,10 @@ namespace Simulator.ScenarioEditor.UI.Playback
         /// <summary>
         /// Coroutine that handles current playback
         /// </summary>
-        /// <returns>Coroutine</returns>
+        /// <returns>Coroutine IEnumerator</returns>
         private IEnumerator PlayCoroutine()
         {
-            if (progress>=1.0f)
+            if (progress >= 1.0f)
                 progress = 0.0f;
             var endFrame = new WaitForEndOfFrame();
             var previousProgress = -1.0f;
@@ -216,8 +313,9 @@ namespace Simulator.ScenarioEditor.UI.Playback
                     UpdatePlayback();
                 yield return endFrame;
                 previousProgress = progress;
-                progress += Time.deltaTime/duration;
+                progress += Time.deltaTime / duration;
             }
+
             playCoroutine = null;
             progress = 1.0f;
             UpdatePlayback();

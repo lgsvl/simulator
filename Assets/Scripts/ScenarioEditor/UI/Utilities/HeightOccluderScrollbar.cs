@@ -51,14 +51,25 @@ namespace Simulator.ScenarioEditor.UI.Utilities
             private LineRenderer lineRenderer;
 
             /// <summary>
-            /// Game object that will be enabled and disabled
+            /// Initial Y value of the gameobject position
             /// </summary>
-            public GameObject GameObject => gameObject;
+            private float initialPositionY;
+
+            /// <summary>
+            /// Bounds centered on the initial gameobject position
+            /// </summary>
+            private Bounds bounds;
 
             /// <summary>
             /// Cached collider component of this concealable object
             /// </summary>
             public Collider Collider => collider;
+
+            /// <summary>
+            /// Position Y required to hide this concealable object
+            /// </summary>
+            public float HeightToHide => gameObject.transform.position.y - initialPositionY + bounds.center.y + bounds.extents.y;
+            
 
             /// <summary>
             /// Enables or disables components in the linked gameobject
@@ -90,14 +101,23 @@ namespace Simulator.ScenarioEditor.UI.Utilities
                 if (objectRenderer != null && objectRenderer.enabled)
                 {
                     concealableObject = new ConcealableObject
-                        {gameObject = objectToCheck, meshRenderer = objectRenderer};
+                    {
+                        gameObject = objectToCheck, meshRenderer = objectRenderer, bounds = objectRenderer.bounds
+                    };
                 }
 
                 // Set the skinned mesh renderer if it is enabled
                 var objectSkinnedRenderer = objectToCheck.GetComponent<SkinnedMeshRenderer>();
                 if (objectSkinnedRenderer != null && objectSkinnedRenderer.enabled)
                 {
-                    concealableObject ??= new ConcealableObject {gameObject = objectToCheck};
+                    if (concealableObject == null)
+                    {
+                        concealableObject = new ConcealableObject {gameObject = objectToCheck, bounds = objectSkinnedRenderer.bounds};
+                    }
+                    else
+                    {
+                        concealableObject.bounds.Encapsulate(objectSkinnedRenderer.bounds);
+                    }
                     concealableObject.skinnedMeshRenderer = objectSkinnedRenderer;
                 }
 
@@ -105,7 +125,14 @@ namespace Simulator.ScenarioEditor.UI.Utilities
                 var objectCollider = objectToCheck.GetComponent<Collider>();
                 if (objectCollider != null && objectCollider.enabled)
                 {
-                    concealableObject ??= new ConcealableObject {gameObject = objectToCheck};
+                    if (concealableObject == null)
+                    {
+                        concealableObject = new ConcealableObject {gameObject = objectToCheck, bounds = objectCollider.bounds};
+                    }
+                    else
+                    {
+                        concealableObject.bounds.Encapsulate(objectCollider.bounds);
+                    }
                     concealableObject.collider = objectCollider;
                 }
 
@@ -113,13 +140,21 @@ namespace Simulator.ScenarioEditor.UI.Utilities
                 var objectLineRenderer = objectToCheck.GetComponent<LineRenderer>();
                 if (objectLineRenderer != null && objectLineRenderer.enabled)
                 {
-                    concealableObject ??= new ConcealableObject {gameObject = objectToCheck};
+                    if (concealableObject == null)
+                    {
+                        concealableObject = new ConcealableObject {gameObject = objectToCheck, bounds = objectLineRenderer.bounds};
+                    }
+                    else
+                    {
+                        concealableObject.bounds.Encapsulate(objectLineRenderer.bounds);
+                    }
                     concealableObject.lineRenderer = objectLineRenderer;
                 }
 
                 // Add the concealable object if it was created
                 if (concealableObject != null)
                 {
+                    concealableObject.initialPositionY = concealableObject.gameObject.transform.position.y;
                     sceneObjects.Add(concealableObject);
                 }
 
@@ -174,7 +209,8 @@ namespace Simulator.ScenarioEditor.UI.Utilities
             /// <summary>
             /// Element invoked when the scenario element's model is changed
             /// </summary>
-            private void ScenarioElementOnModelChanged()
+            /// <param name="changedElement">Changed scenario element</param>
+            private void ScenarioElementOnModelChanged(ScenarioElement changedElement)
             {
                 Recache();
             }
@@ -194,7 +230,7 @@ namespace Simulator.ScenarioEditor.UI.Utilities
             /// <param name="enable">Should components in the scenario element be enabled</param>
             public void SetEnabled(bool enable)
             {
-                if (enable == isEnabled)
+                if (enable == isEnabled || !scenarioElement.IsEditableOnMap)
                     return;
                 for (var i = 0; i < componentsList.Count; i++)
                 {
@@ -327,13 +363,10 @@ namespace Simulator.ScenarioEditor.UI.Utilities
         /// <exception cref="ArgumentException">Exception invoked when the cache is corrupted</exception>
         private void ScenarioManagerOnScenarioElementActivated(ScenarioElement element)
         {
-            if (!element.IsEditableOnMap)
-                return;
-
             if (scenarioElements.ContainsKey(element))
             {
                 throw new ArgumentException(
-                    $"Scenario element {element.name} is already added to the {nameof(HeightOccluderScrollbar)} cache.");
+                    $"Scenario element {element.name} has already been added to the {nameof(HeightOccluderScrollbar)} cache.");
             }
 
             scenarioElements.Add(element, new ConcealableScenarioElement(element));
@@ -346,13 +379,10 @@ namespace Simulator.ScenarioEditor.UI.Utilities
         /// <exception cref="ArgumentException">Exception invoked when the cache is corrupted</exception>
         private void ScenarioManagerOnScenarioElementDeactivated(ScenarioElement element)
         {
-            if (!element.IsEditableOnMap)
-                return;
-
+            // Ignore deactivated elements that were not activated
             if (!scenarioElements.ContainsKey(element))
             {
-                throw new ArgumentException(
-                    $"Scenario element {element.name} is available in the {nameof(HeightOccluderScrollbar)} cache.");
+                return;
             }
 
             scenarioElements.Remove(element);
@@ -364,6 +394,7 @@ namespace Simulator.ScenarioEditor.UI.Utilities
         /// <param name="loadedMap"></param>
         private void MapManagerOnMapChanged(ScenarioMapManager.MapMetaData loadedMap)
         {
+            scrollbar.SetValueWithoutNotify(1.0f);
             PrecacheMap();
         }
 
@@ -410,7 +441,7 @@ namespace Simulator.ScenarioEditor.UI.Utilities
             for (var i = 0; i < sceneObjects.Count; i++)
             {
                 var concealableObject = sceneObjects[i];
-                var y = concealableObject.GameObject.transform.position.y;
+                var y = concealableObject.HeightToHide;
                 //Limit min scene Y to the lowest collider position
                 if (y < sceneMinY && concealableObject.Collider != null)
                     sceneMinY = y;
@@ -424,7 +455,7 @@ namespace Simulator.ScenarioEditor.UI.Utilities
             for (var i = 0; i < sceneObjects.Count; i++)
             {
                 var cachedObject = sceneObjects[i];
-                var y = cachedObject.GameObject.transform.position.y;
+                var y = cachedObject.HeightToHide;
                 // If concealable object is under the lowest collider do not cache it
                 if (y < sceneMinY)
                     continue;

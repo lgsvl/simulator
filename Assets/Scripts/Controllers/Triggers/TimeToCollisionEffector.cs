@@ -7,15 +7,16 @@
 
 using System.Collections;
 using SimpleJSON;
+using Simulator;
 using UnityEngine;
 
 public class TimeToCollisionEffector : TriggerEffector
 {
-    private const float TimeToCollisionLimit = float.PositiveInfinity;
-    
+    public const float TimeToCollisionLimit = float.PositiveInfinity;
+
     public override string TypeName { get; } = "TimeToCollision";
 
-    public override AgentType[] UnsupportedAgentTypes { get; } = { AgentType.Unknown, AgentType.Ego};
+    public override AgentType[] UnsupportedAgentTypes { get; } = {AgentType.Unknown, AgentType.Ego};
 
     public override object Clone()
     {
@@ -25,19 +26,31 @@ public class TimeToCollisionEffector : TriggerEffector
 
     public override IEnumerator Apply(ITriggerAgent agent)
     {
-        var lowestTTC = TimeToCollisionLimit;
+        if (Loader.IsInScenarioEditor)
+        {
+            Debug.LogWarning(
+                $"Visual Scenario Editor does not support the {GetType().Name}.");
+            yield break;
+        }
+
         var egos = SimulatorManager.Instance.AgentManager.ActiveAgents;
         IAgentController collisionEgo = null;
+        var lowestTTC = TimeToCollisionLimit;
         foreach (var ego in egos)
         {
             var controller = ego.AgentGO.GetComponentInChildren<IAgentController>();
             var ttc = CalculateTTC(controller, agent);
             if (ttc >= lowestTTC || ttc < 0.0f) continue;
-            
+
             lowestTTC = ttc;
             collisionEgo = controller;
         }
 
+        yield return agent.StartCoroutine(Apply(lowestTTC, collisionEgo, agent));
+    }
+
+    public IEnumerator Apply(float lowestTTC, ITriggerAgent collisionEgo, ITriggerAgent agent)
+    {
         //If there is no collision detected don't wait
         if (lowestTTC >= TimeToCollisionLimit || collisionEgo == null)
             yield break;
@@ -55,27 +68,28 @@ public class TimeToCollisionEffector : TriggerEffector
 
     public override void DeserializeProperties(JSONNode jsonData)
     {
-        
     }
 
     public override void SerializeProperties(JSONNode jsonData)
     {
-        
     }
 
-    private float CalculateTTC(IAgentController ego, ITriggerAgent agent)
+    public float CalculateTTC(ITriggerAgent ego, ITriggerAgent agent)
     {
         //Calculate intersection point, return infinity if vehicles won't intersect
-        var egoTransform = ego.AgentGameObject.transform;
-        if (!GetLineIntersection(egoTransform.position, egoTransform.forward, agent.AgentTransform.position, agent.AgentTransform.forward,
+        var egoTransform = ego.AgentTransform;
+        if (!GetLineIntersection(egoTransform.position, egoTransform.forward, agent.AgentTransform.position,
+            agent.AgentTransform.forward,
             out var intersection))
             return float.PositiveInfinity;
 
         var egoDistance = Distance2D(egoTransform.position, intersection);
         var npcDistance = Distance2D(agent.AgentTransform.position, intersection);
-        var egoTimeToIntersection = CalculateTimeForAccelerated(ego.Velocity.magnitude, ego.Acceleration.magnitude, egoDistance);
-        var npcTimeToIntersection = CalculateTimeForAccelerated(agent.MovementSpeed, agent.Acceleration.magnitude, npcDistance);
-        
+        var egoTimeToIntersection =
+            CalculateTimeForAccelerated(ego.MovementSpeed, ego.Acceleration.magnitude, egoDistance);
+        var npcTimeToIntersection =
+            CalculateTimeForAccelerated(agent.MovementSpeed, agent.Acceleration.magnitude, npcDistance);
+
         //If npc will reach intersection quicker, ttc will be positive
         //If agent cannot reach collision point before ego, ttc will be negative
         return egoTimeToIntersection - npcTimeToIntersection;

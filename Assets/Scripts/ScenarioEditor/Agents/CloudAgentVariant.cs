@@ -8,11 +8,8 @@
 namespace Simulator.ScenarioEditor.Agents
 {
     using System;
-    using System.Linq;
-    using System.Text;
     using System.Threading.Tasks;
     using Database;
-    using ICSharpCode.SharpZipLib.Zip;
     using Managers;
     using UnityEngine;
     using Web;
@@ -83,7 +80,9 @@ namespace Simulator.ScenarioEditor.Agents
         private async Task DownloadAsset(IProgress<Tuple<string, float>> progress)
         {
             ScenarioManager.Instance.logPanel.EnqueueInfo($"Started a download process of the {name} agent.");
+            ScenarioManager.Instance.ReportAssetDownload(assetGuid);
             assetModel = await DownloadManager.GetAsset(BundleConfig.BundleTypes.Vehicle, assetGuid, name, progress);
+            ScenarioManager.Instance.ReportAssetFinishedDownload(assetGuid);
             if (AcquirePrefab())
                 ScenarioManager.Instance.logPanel.EnqueueInfo($"Agent {name} has been downloaded.");
         }

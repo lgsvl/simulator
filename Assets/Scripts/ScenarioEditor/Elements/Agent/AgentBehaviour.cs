@@ -16,7 +16,7 @@ namespace Simulator.ScenarioEditor.Elements.Agents
     /// <summary>
     /// Scenario agent extension that handles the behaviour
     /// </summary>
-    public class AgentBehaviour : ScenarioAgentExtension
+    public class AgentBehaviour : IScenarioElementExtension
     {
         /// <summary>
         /// Behaviour that will control this agent in the simulation
@@ -34,28 +34,32 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         public event Action<string> BehaviourChanged;
 
         /// <inheritdoc/>
-        public override void Initialize(ScenarioAgent parentAgent)
+        public void Initialize(ScenarioElement parentElement)
         {
-            base.Initialize(parentAgent);
             ChangeBehaviour(nameof(NPCWaypointBehaviour), false);
         }
 
         /// <inheritdoc/>
-        public override void SerializeToJson(JSONNode agentNode)
+        public void Deinitialize()
+        {
+        }
+
+        /// <inheritdoc/>
+        public void SerializeToJson(JSONNode elementNode)
         {
             var behaviour = new JSONObject();
             behaviour.Add("name", new JSONString(Behaviour));
-            agentNode.Add("behaviour", behaviour);
+            elementNode.Add("behaviour", behaviour);
             if (BehaviourParameters.Count > 0)
                 behaviour.Add("parameters", BehaviourParameters);
         }
 
         /// <inheritdoc/>
-        public override void DeserializeFromJson(JSONNode agentNode)
+        public void DeserializeFromJson(JSONNode elementNode)
         {
-            if (agentNode.HasKey("behaviour"))
+            if (elementNode.HasKey("behaviour"))
             {
-                var behaviourNode = agentNode["behaviour"];
+                var behaviourNode = elementNode["behaviour"];
                 if (behaviourNode.HasKey("parameters"))
                     BehaviourParameters = behaviourNode["parameters"] as JSONObject;
                 ChangeBehaviour(behaviourNode["name"], false);
@@ -63,9 +67,10 @@ namespace Simulator.ScenarioEditor.Elements.Agents
         }
 
         /// <inheritdoc/>
-        public override void CopyProperties(ScenarioAgent agent)
+        public void CopyProperties(ScenarioElement originElement)
         {
-            var origin = agent.GetExtension<AgentBehaviour>();
+            var originAgent = (ScenarioAgent) originElement;
+            var origin = originAgent.GetExtension<AgentBehaviour>();
             if (origin == null) return;
             Behaviour = origin.Behaviour;
             BehaviourParameters = JSON.Parse(origin.BehaviourParameters.ToString()) as JSONObject;

@@ -30,13 +30,26 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
         /// <param name="callback">Callback invoked after the scenario is loaded</param>
         public static async Task DeserializeScenario(JSONNode json, Action callback = null)
         {
-            var mapDeserialized = await DeserializeMap(json, callback);
-            if (!mapDeserialized)
-                return;
-            await DeserializeAgents(json);
-            DeserializeControllables(json);
-            DeserializeMetadata(json);
-            callback?.Invoke();
+            var mapManager = ScenarioManager.Instance.GetExtension<ScenarioMapManager>();
+            try
+            {
+                var mapDeserialized = await DeserializeMap(json, callback);
+                if (!mapDeserialized)
+                {
+                    ScenarioManager.Instance.logPanel.EnqueueError("Could not deserialize the scenario, failed deserializing map.");
+                    return;
+                }
+
+                await DeserializeAgents(json);
+                DeserializeControllables(json);
+                DeserializeMetadata(json);
+                callback?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                ScenarioManager.Instance.logPanel.EnqueueError($"Could not deserialize the scenario. Exception: {ex.Message}.");
+                callback?.Invoke();
+            }
         }
 
         /// <summary>
@@ -83,7 +96,7 @@ namespace Simulator.ScenarioEditor.Data.Deserializer
                 if (mapManager.MapExists(mapName))
                 {
                     await mapManager.LoadMapAsync(mapName);
-                    return true;
+                    return mapManager.CurrentMapName == mapName;
                 }
 
                 ScenarioManager.Instance.logPanel.EnqueueError(

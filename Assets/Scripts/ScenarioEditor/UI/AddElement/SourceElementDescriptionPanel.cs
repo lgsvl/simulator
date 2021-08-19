@@ -150,7 +150,7 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         /// Smooth animation for showing the description panel
         /// </summary>
         /// <param name="rt">Target RectTransform to which this panel will be attached</param>
-        /// <returns>Coroutine</returns>
+        /// <returns>Coroutine IEnumerator</returns>
         private IEnumerator ShowAnimation(RectTransform rt)
         {
             yield return new WaitForEndOfFrame();
@@ -187,7 +187,7 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         /// <summary>
         /// Smooth animation for hiding the description panel
         /// </summary>
-        /// <returns>Coroutine</returns>
+        /// <returns>Coroutine IEnumerator</returns>
         private IEnumerator HideAnimation()
         {
             yield return new WaitForEndOfFrame();

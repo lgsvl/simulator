@@ -13,6 +13,7 @@ namespace Simulator.ScenarioEditor.Agents
     using System.Text;
     using System.Threading.Tasks;
     using Elements.Agents;
+    using Elements.Waypoints;
     using Input;
     using Managers;
     using Undo;
@@ -98,12 +99,15 @@ namespace Simulator.ScenarioEditor.Agents
                 collider.size = b.size;
             }
 
-            if (instance.GetComponent<Rigidbody>() == null)
+            // Set/Add limited rigidbody
+            var rigidbody = instance.GetComponent<Rigidbody>();
+            if (rigidbody == null)
             {
-                var rigidbody = instance.AddComponent<Rigidbody>();
-                rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
-                rigidbody.isKinematic = true;
+                rigidbody = instance.AddComponent<Rigidbody>();
             }
+            rigidbody.interpolation = RigidbodyInterpolation.None;
+            rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+            rigidbody.isKinematic = true;
 
             return instance;
         }
@@ -114,10 +118,10 @@ namespace Simulator.ScenarioEditor.Agents
             var newGameObject = new GameObject(ElementTypeName);
             newGameObject.transform.SetParent(transform);
             var scenarioAgent = newGameObject.AddComponent<ScenarioAgent>();
+            scenarioAgent.Setup(this, variant);
             scenarioAgent.GetOrAddExtension<AgentBehaviour>();
             scenarioAgent.GetOrAddExtension<AgentColorExtension>();
-            scenarioAgent.GetOrAddExtension<AgentWaypoints>();
-            scenarioAgent.Setup(this, variant);
+            scenarioAgent.GetOrAddExtension<AgentWaypointsPath>();
             return scenarioAgent;
         }
 

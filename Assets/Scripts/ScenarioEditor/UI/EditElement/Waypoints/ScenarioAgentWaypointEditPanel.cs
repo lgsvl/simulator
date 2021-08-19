@@ -5,12 +5,14 @@
  *
  */
 
-namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
+namespace Simulator.ScenarioEditor.UI.EditElement.Waypoints
 {
     using Agents;
     using Data.Serializer;
+    using Effectors;
     using Elements;
     using Elements.Agents;
+    using Elements.Waypoints;
     using Input;
     using Managers;
     using ScenarioEditor.Utilities;
@@ -24,7 +26,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
     /// <summary>
     /// UI panel which allows editing a selected scenario waypoint
     /// </summary>
-    public class WaypointEditPanel : ParameterEditPanel, IAddElementsHandler
+    public class ScenarioAgentWaypointEditPanel : ParameterEditPanel, IAddElementsHandler
     {
         //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
 #pragma warning disable 0649
@@ -33,6 +35,12 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// </summary>
         [SerializeField]
         private GameObject speedPanel;
+        
+        /// <summary>
+        /// Panel with all UI objects for editing acceleration
+        /// </summary>
+        [SerializeField]
+        private GameObject accelerationPanel;
 
         /// <summary>
         /// Panel with all UI objects for editing wait time
@@ -51,6 +59,12 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// </summary>
         [SerializeField]
         private FloatInputWithUnits speedInput;
+
+        /// <summary>
+        /// Input field with units for editing acceleration
+        /// </summary>
+        [SerializeField]
+        private FloatInputWithUnits accelerationInput;
 
         /// <summary>
         /// Panel for editing waypoint triggers
@@ -72,7 +86,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// <summary>
         /// Waypoint instance that is currently being added to the scenario
         /// </summary>
-        private ScenarioWaypoint waypointInstance;
+        private ScenarioAgentWaypoint waypointInstance;
 
         /// <summary>
         /// Reference to currently selected agent
@@ -82,12 +96,12 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// <summary>
         /// Waypoints extension of currently selected agent
         /// </summary>
-        private AgentWaypoints selectedAgentWaypoints;
+        private AgentWaypointsPath selectedAgentWaypointsPath;
 
         /// <summary>
         /// Reference to currently selected waypoint
         /// </summary>
-        private ScenarioWaypoint selectedWaypoint;
+        private ScenarioAgentWaypoint selectedWaypoint;
 
         /// <summary>
         /// Unity OnDisable method
@@ -103,10 +117,12 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             if (isInitialized)
                 return;
             ScenarioManager.Instance.SelectedOtherElement += OnSelectedOtherElement;
-            speedInput.Initialize(ScenarioPersistenceKeys.SpeedUnitKey, ChangeWaypointSpeed);
+            var selectedElement = ScenarioManager.Instance.SelectedElement;
+            speedInput.Initialize(ScenarioPersistenceKeys.SpeedUnitKey, ChangeWaypointSpeed, selectedElement);
+            accelerationInput.Initialize(ScenarioPersistenceKeys.AccelerationUnitKey, ChangeWaypointAcceleration, selectedElement);
             triggerEditPanel.Initialize();
             isInitialized = true;
-            OnSelectedOtherElement(ScenarioManager.Instance.SelectedElement);
+            OnSelectedOtherElement(null, selectedElement);
         }
 
         /// <inheritdoc/>
@@ -115,6 +131,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             if (!isInitialized)
                 return;
             triggerEditPanel.Deinitialize();
+            accelerationInput.Deinitialize();
             speedInput.Deinitialize();
             var scenarioManager = ScenarioManager.Instance;
             if (scenarioManager != null)
@@ -130,6 +147,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             var selected = EventSystem.current.currentSelectedGameObject;
             if (speedInput.UnityInputField.gameObject == selected)
                 speedInput.OnValueInputApply();
+            if (accelerationInput.UnityInputField.gameObject == selected)
+                accelerationInput.OnValueInputApply();
             if (waitTimeInput.gameObject == selected)
                 OnWaypointWaitTimeInputChange(waitTimeInput.text);
         }
@@ -137,8 +156,9 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// <summary>
         /// Method called when another scenario element has been selected
         /// </summary>
+        /// <param name="previousElement">Scenario element that has been deselected</param>
         /// <param name="selectedElement">Scenario element that has been selected</param>
-        private void OnSelectedOtherElement(ScenarioElement selectedElement)
+        private void OnSelectedOtherElement(ScenarioElement previousElement, ScenarioElement selectedElement)
         {
             if (isAddingWaypoints)
                 ScenarioManager.Instance.GetExtension<InputManager>().CancelAddingElements(this);
@@ -146,11 +166,12 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             //Force input apply on deselect
             if (selectedWaypoint != null)
                 SubmitChangedInputs();
-            selectedWaypoint = selectedElement as ScenarioWaypoint;
-            selectedAgent = selectedWaypoint != null ? selectedWaypoint.ParentAgent : null;
-            selectedAgentWaypoints = selectedAgent == null ? null : selectedAgent.GetExtension<AgentWaypoints>();
+            selectedWaypoint = selectedElement as ScenarioAgentWaypoint;
+            selectedAgent = selectedWaypoint != null ? (ScenarioAgent) selectedWaypoint.ParentElement : null;
+            selectedAgentWaypointsPath =
+                selectedAgent == null ? null : selectedAgent.GetExtension<AgentWaypointsPath>();
             //Disable waypoints for ego vehicles
-            if (selectedAgent == null || selectedAgentWaypoints == null ||
+            if (selectedAgent == null || selectedAgentWaypointsPath == null ||
                 !selectedAgent.Source.AgentSupportWaypoints(selectedAgent))
             {
                 gameObject.SetActive(false);
@@ -159,10 +180,14 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
             {
                 gameObject.SetActive(true);
                 speedPanel.SetActive(selectedWaypoint != null);
+                accelerationPanel.SetActive(selectedWaypoint != null);
                 waitTimePanel.SetActive(selectedWaypoint != null);
                 if (selectedWaypoint != null)
                 {
-                    speedInput.ExternalValueChange(selectedWaypoint.Speed, false);
+                    speedInput.CurrentContext = selectedWaypoint;
+                    speedInput.ExternalValueChange(selectedWaypoint.DestinationSpeed, selectedWaypoint, false);
+                    accelerationInput.CurrentContext = selectedWaypoint;
+                    accelerationInput.ExternalValueChange(selectedWaypoint.Acceleration, selectedWaypoint, false);
                     waitTimeInput.text = selectedWaypoint.WaitTime.ToString("F");
                 }
 
@@ -192,9 +217,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
 
             isAddingWaypoints = true;
 
-            var mapWaypointPrefab = ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>().waypointPrefab;
-            waypointInstance = ScenarioManager.Instance.prefabsPools.GetInstance(mapWaypointPrefab)
-                .GetComponent<ScenarioWaypoint>();
+            waypointInstance = ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>()
+                .GetWaypointInstance<ScenarioAgentWaypoint>();
             if (waypointInstance == null)
             {
                 Debug.LogWarning("Cannot add waypoints. Add waypoint component to the prefab.");
@@ -218,7 +242,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                     break;
             }
 
-            selectedAgentWaypoints.AddWaypoint(waypointInstance, true, selectedWaypoint);
+            selectedAgentWaypointsPath.AddWaypoint(waypointInstance, selectedWaypoint);
         }
 
         /// <inheritdoc/>
@@ -239,16 +263,15 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                     break;
             }
 
-            selectedAgentWaypoints.WaypointPositionChanged(waypointInstance);
+            selectedAgentWaypointsPath.WaypointPositionChanged(waypointInstance);
         }
 
         /// <inheritdoc/>
         void IAddElementsHandler.AddElement(Vector3 addPosition)
         {
             var previousWaypoint = waypointInstance;
-            var mapWaypointPrefab = ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>().waypointPrefab;
-            waypointInstance = ScenarioManager.Instance.prefabsPools.GetInstance(mapWaypointPrefab)
-                .GetComponent<ScenarioWaypoint>();
+            waypointInstance = ScenarioManager.Instance.GetExtension<ScenarioWaypointsManager>()
+                    .GetWaypointInstance<ScenarioAgentWaypoint>();
             waypointInstance.transform.position = addPosition;
             var mapManager = ScenarioManager.Instance.GetExtension<ScenarioMapManager>();
             switch (selectedAgent.Type)
@@ -264,7 +287,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
                     break;
             }
 
-            selectedAgentWaypoints.AddWaypoint(waypointInstance, true, previousWaypoint);
+            selectedAgentWaypointsPath.AddWaypoint(waypointInstance, previousWaypoint);
             ScenarioManager.Instance.IsScenarioDirty = true;
             ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
                 .RegisterRecord(new UndoAddElement(previousWaypoint));
@@ -286,13 +309,27 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors
         /// <summary>
         /// Changes the currently selected waypoint speed
         /// </summary>
+        /// <param name="changedElement">Scenario element which speed has been changed</param>
         /// <param name="mpsSpeed">Speed value in meters per second</param>
-        private void ChangeWaypointSpeed(float mpsSpeed)
+        private void ChangeWaypointSpeed(ScenarioElement changedElement, float mpsSpeed)
         {
-            if (selectedWaypoint == null)
+            if (!(changedElement is ScenarioAgentWaypoint changedWaypoint))
                 return;
             ScenarioManager.Instance.IsScenarioDirty = true;
-            selectedWaypoint.Speed = mpsSpeed;
+            changedWaypoint.DestinationSpeed = mpsSpeed;
+        }
+
+        /// <summary>
+        /// Changes the currently selected waypoint acceleration
+        /// </summary>
+        /// <param name="changedElement">Scenario element which acceleration has been changed</param>
+        /// <param name="mps2Acceleration">Acceleration value in meters per square second</param>
+        private void ChangeWaypointAcceleration(ScenarioElement changedElement, float mps2Acceleration)
+        {
+            if (!(changedElement is ScenarioAgentWaypoint changedWaypoint))
+                return;
+            ScenarioManager.Instance.IsScenarioDirty = true;
+            changedWaypoint.Acceleration = mps2Acceleration;
         }
 
         /// <summary>

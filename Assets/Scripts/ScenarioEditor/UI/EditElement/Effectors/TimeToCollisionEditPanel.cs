@@ -9,6 +9,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
 {
     using System;
     using Elements;
+    using Elements.Triggers;
 
     /// <summary>
     /// Component indicating that this object will edit selected effector type

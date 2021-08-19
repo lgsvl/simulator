@@ -9,6 +9,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Effectors.Effectors
 {
     using System;
     using Elements;
+    using Elements.Triggers;
     using UnityEngine;
     using UnityEngine.UI;
     using Utilities;

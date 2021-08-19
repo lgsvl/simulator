@@ -62,6 +62,7 @@ namespace Simulator.Api.Commands
                     {
                         Position = waypoints[i]["position"].ReadVector3(),
                         Speed = waypoints[i]["speed"].AsFloat,
+                        Acceleration = waypoints[i]["acceleration"].AsFloat,
                         Angle = waypoints[i]["angle"].ReadVector3(),
                         Idle = waypoints[i]["idle"].AsFloat,
                         Deactivate = deactivate.IsBoolean ? deactivate.AsBool : false,
@@ -71,9 +72,9 @@ namespace Simulator.Api.Commands
                     }); ;
                 }
 
-                var loopValue = loop.IsBoolean ? loop.AsBool : false;
+                var loopValue = loop.IsBoolean && loop.AsBool;
                 var waypointFollow = npc.SetBehaviour<NPCWaypointBehaviour>();
-                waypointFollow.SetFollowWaypoints(wp, loop, waypointsPathType); // TODO use NPCController to init waypoint data
+                waypointFollow.SetFollowWaypoints(wp, loopValue, waypointsPathType); // TODO use NPCController to init waypoint data
                 api.RegisterAgentWithWaypoints(npc.gameObject);
                 api.SendResult(this);
             }

@@ -18,7 +18,6 @@ namespace Simulator.Sensors
     using Plugins;
     using Postprocessing;
     using UI;
-    using Unity.Collections;
     using UnityEngine;
     using UnityEngine.Experimental.Rendering;
     using UnityEngine.Rendering;
@@ -116,6 +115,8 @@ namespace Simulator.Sensors
 
         protected SensorRenderTarget FinalRenderTarget => Distorted ? DistortedHandle : renderTarget;
 
+        protected int ByteBufferSize => Width * Height * 4;
+
         protected RenderTextureReadWrite CameraTargetTextureReadWriteType = RenderTextureReadWrite.sRGB;
 
         public override SensorDistributionType DistributionType => SensorDistributionType.ClientOnly;
@@ -134,18 +135,11 @@ namespace Simulator.Sensors
                                           1 << (int) CubemapFace.PositiveY | 1 << (int) CubemapFace.NegativeY |
                                           1 << (int) CubemapFace.PositiveZ;
 
-        ConcurrentBag<NativeArray<byte>> AvailableGpuDataArrays = new ConcurrentBag<NativeArray<byte>>();
-
-        private struct CameraCapture
-        {
-            public NativeArray<byte> GpuData;
-            public AsyncGPUReadbackRequest Request;
-            public double CaptureTime;
-        }
-
-        private List<CameraCapture> CaptureList = new List<CameraCapture>();
         private ConcurrentBag<byte[]> JpegOutput = new ConcurrentBag<byte[]>();
         private Queue<Task> Tasks = new Queue<Task>();
+
+        private GpuReadbackPool<GpuReadbackData<byte>, byte> ReadbackPool;
+        private int CurrentByteBufferSize;
 
         #region FPSCalculation
         [SensorParameter]
@@ -169,6 +163,9 @@ namespace Simulator.Sensors
         {
             SensorCamera.enabled = false;
             HDAdditionalCameraData.hasPersistentHistory = true;
+            ReadbackPool = new GpuReadbackPool<GpuReadbackData<byte>, byte>();
+            ReadbackPool.Initialize(ByteBufferSize, OnReadbackComplete);
+            CurrentByteBufferSize = ByteBufferSize;
         }
 
         protected override void Deinitialize()
@@ -176,18 +173,9 @@ namespace Simulator.Sensors
             renderTarget?.Release();
             DistortedHandle?.Release();
 
-            foreach (var capture in CaptureList)
-            {
-                capture.GpuData.Dispose();
-            }
-            CaptureList.Clear();
-
-            // Wait all tasks finished to gurantee all native arrays are in AvailableGpuDataArrays.
             Task.WaitAll(Tasks.ToArray());
-            while (AvailableGpuDataArrays.TryTake(out var gpuData))
-            {
-                gpuData.Dispose();
-            }
+
+            ReadbackPool?.Dispose();
         }
 
         public override void OnBridgeSetup(BridgeInstance bridge)
@@ -224,7 +212,7 @@ namespace Simulator.Sensors
                 InitCameraInfoData();
             }
 
-            ProcessReadbackRequests();
+            ReadbackPool.Process();
         }
 
         void CheckDistortion()
@@ -259,7 +247,7 @@ namespace Simulator.Sensors
         {
             var targetWidth = -1;
             var targetHeight = -1;
-            
+
             if (Distorted)
             {
                 // Distorted + fisheye - render to cubemap, then distort to sensor-sized texture
@@ -320,6 +308,12 @@ namespace Simulator.Sensors
                     SensorCamera.targetTexture = renderTarget;
                 }
             }
+
+            if (CurrentByteBufferSize != ByteBufferSize)
+            {
+               ReadbackPool.Resize(ByteBufferSize);
+               CurrentByteBufferSize = ByteBufferSize;
+            }
         }
 
         protected void RenderCamera()
@@ -368,28 +362,7 @@ namespace Simulator.Sensors
             {
                 CalculateFPS();
                 RenderCamera();
-
-                NativeArray<byte> gpuData;
-                while (AvailableGpuDataArrays.TryTake(out gpuData) && gpuData.Length != Width * Height * 4)
-                {
-                    gpuData.Dispose();
-                }
-                if (!gpuData.IsCreated)
-                {
-                    gpuData = new NativeArray<byte>(Width * Height * 4, Allocator.Persistent);
-                }
-
-                var capture = new CameraCapture()
-                {
-                    GpuData = gpuData,
-                    CaptureTime = SimulatorManager.Instance.CurrentTime,
-                };
-                capture.Request = AsyncGPUReadback.Request(FinalRenderTarget.UiTexture, 0, TextureFormat.RGBA32);
-                // TODO: Replace above AsyncGPUReadback.Request with following AsyncGPUReadback.RequestIntoNativeArray when we upgrade to Unity 2020.1
-                // See https://issuetracker.unity3d.com/issues/asyncgpureadback-dot-requestintonativearray-crashes-unity-when-trying-to-request-a-copy-to-the-same-nativearray-multiple-times
-                // for the detaisl of the bug in Unity.
-                //capture.Request = AsyncGPUReadback.RequestIntoNativeArray(ref capture.GpuData, Distorted ? DistortedTexture : SensorCamera.targetTexture, 0, TextureFormat.RGBA32);
-                CaptureList.Add(capture);
+                ReadbackPool.StartReadback(FinalRenderTarget.UiTexture, 0, TextureFormat.RGBA32);
 
                 TotalFrames++;
                 PreviousCaptureTime = Time.time;
@@ -405,74 +378,49 @@ namespace Simulator.Sensors
             }
         }
 
-        void ProcessReadbackRequests()
+        private void OnReadbackComplete(GpuReadbackData<byte> data)
         {
-            foreach (var capture in CaptureList)
+            if (Bridge is {Status: Status.Connected})
             {
-                if (capture.Request.hasError)
+                var imageData = new ImageData()
                 {
-                    AvailableGpuDataArrays.Add(capture.GpuData);
-                    Debug.Log("Failed to read GPU texture");
-                }
-                else if (capture.Request.done)
+                    Name = Name,
+                    Frame = Frame,
+                    Width = Width,
+                    Height = Height,
+                    Sequence = Sequence,
+                };
+
+                if (!JpegOutput.TryTake(out imageData.Bytes))
+                    imageData.Bytes = new byte[MaxJpegSize];
+
+                Tasks.Enqueue(Task.Run(() =>
                 {
-                    if (Bridge != null && Bridge.Status == Status.Connected)
+                    imageData.Length = JpegEncoder.Encode(data.gpuData, Width, Height, 4, JpegQuality, imageData.Bytes);
+                    if (imageData.Length > 0)
                     {
-                        // TODO: Remove the following two lines of extra memory copy, when we can use 
-                        // AsyncGPUReadback.RequestIntoNativeArray.
-                        var data = capture.Request.GetData<byte>();
-                        NativeArray<byte>.Copy(data, capture.GpuData, data.Length);
+                        var time = data.captureTime;
+                        imageData.Time = time;
+                        Publish(imageData);
 
-                        var imageData = new ImageData()
+                        if (CameraInfoData != null)
                         {
-                            Name = Name,
-                            Frame = Frame,
-                            Width = Width,
-                            Height = Height,
-                            Sequence = Sequence,
-                        };
+                            CameraInfoData.Name = Name;
+                            CameraInfoData.Frame = Frame;
+                            CameraInfoData.Time = time;
+                            CameraInfoData.Sequence = Sequence;
 
-                        if (!JpegOutput.TryTake(out imageData.Bytes))
-                        {
-                            imageData.Bytes = new byte[MaxJpegSize];
+                            CameraInfoPublish?.Invoke(CameraInfoData);
                         }
-
-                        Tasks.Enqueue(Task.Run(() =>
-                        {
-                            imageData.Length = JpegEncoder.Encode(capture.GpuData, Width, Height, 4, JpegQuality, imageData.Bytes);
-                            if (imageData.Length > 0)
-                            {
-                                var time = capture.CaptureTime;
-                                imageData.Time = time;
-                                Publish(imageData);
-
-                                if (CameraInfoData != null)
-                                {
-                                    CameraInfoData.Name = Name;
-                                    CameraInfoData.Frame = Frame;
-                                    CameraInfoData.Time = time;
-                                    CameraInfoData.Sequence = Sequence;
-
-                                    CameraInfoPublish?.Invoke(CameraInfoData);
-                                }
-                            }
-                            else
-                            {
-                                Debug.Log("Compressed image is empty, length = 0");
-                            }
-                            JpegOutput.Add(imageData.Bytes);
-                            AvailableGpuDataArrays.Add(capture.GpuData);
-                        }));
-
-                        Sequence++;
                     }
                     else
-                    {
-                        AvailableGpuDataArrays.Add(capture.GpuData);
-                    }
-                }
+                        Debug.Log("Compressed image is empty, length = 0");
+
+                    JpegOutput.Add(imageData.Bytes);
+                }));
+
+                Sequence++;
             }
-            CaptureList.RemoveAll(capture => capture.Request.done == true);
         }
 
         public virtual bool Save(string path, int quality, int compression)

@@ -1111,13 +1111,21 @@ namespace Simulator
             }
 
 
-            var simulationId = CurrentSimulation.Id;
-            var volumesPath = SimulationConfigUtils.SaveVolumes(simulationId, template);
-            var args = await TCManager.StartProcess(template, volumesPath);
-            SimulationConfigUtils.CleanupVolumes(simulationId);
-            if (args.Failed)
+            try
             {
-                reportStatus(SimulatorStatus.Error, $"Test case exit code: {args.ExitCode}\nerror data: {args.ErrorData}");
+                var simulationId = CurrentSimulation.Id;
+                var volumesPath = SimulationConfigUtils.SaveVolumes(simulationId, template);
+                var args = await TCManager.StartProcess(template, volumesPath);
+                SimulationConfigUtils.CleanupVolumes(simulationId);
+                if (args.Failed)
+                {
+                    reportStatus(SimulatorStatus.Error, $"Test case exit code: {args.ExitCode}\nerror data: {args.ErrorData}");
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                reportStatus(SimulatorStatus.Error, $"Test case exception: " + e);
             }
             Console.WriteLine($"[LOADER] Stopping simulation on TestCase process exit");
             StopAsync();

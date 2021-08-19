@@ -120,14 +120,14 @@ namespace Simulator
                 {
                     var tcrunner = GameObject.FindObjectOfType<TestCaseProcessManager>();
                     if (tcrunner == null) tcrunner = new GameObject().AddComponent<TestCaseProcessManager>();
-                    var containerId = await tcrunner.RunContainer(null, null, "bash", "latest", new string[] { }, new Dictionary<string, string>(), "/tmp");
+                    var containerId = await tcrunner.RunContainer(null, "bash", "latest", new string[] { }, new Dictionary<string, string>(), "/tmp");
                     await tcrunner.GetContainerResult(containerId);
                 }
                 else if (command == "python")
                 {
                     var tcrunner = GameObject.FindObjectOfType<TestCaseProcessManager>();
                     if (tcrunner == null) tcrunner = new GameObject().AddComponent<TestCaseProcessManager>();
-                    var containerId = await tcrunner.RunContainer(null, null, "python", "latest", new string[] { }, new Dictionary<string, string>(), "/tmp");
+                    var containerId = await tcrunner.RunContainer(null, "python", "latest", new string[] { }, new Dictionary<string, string>(), "/tmp");
                     await tcrunner.GetContainerResult(containerId);
                 }
                 else

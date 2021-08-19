@@ -75,15 +75,14 @@ namespace Simulator
 
         bool terminating = false;
 
-        public async Task<string> RunContainer(Docker.DotNet.Models.AuthConfig authConfig, string registry, string image, string imageTag, IList<string> command, IDictionary<string, string> environment, string hostWorkingDirectory)
+        public async Task<string> RunContainer(Docker.DotNet.Models.AuthConfig authConfig, string registryImage, string imageTag, IList<string> command, IDictionary<string, string> environment, string hostWorkingDirectory)
         {
             List<string> env = environment.Select(kv => kv.Key + "=" + kv.Value).ToList();
             env.Add("LC_ALL=en_EN.utf8");
             env.Add("TERM=dumb");
-            var console = new DockerConsole(this, image);
+            var console = new DockerConsole(this, registryImage);
             SimulatorConsole.Instance.AddTab(console);
             SimulatorConsole.Instance.ChangeTab(console);
-            string registryImage = string.IsNullOrEmpty(registry) ? image : registry + "/" + image;
 
             var registryImageTag = $"{registryImage}:{imageTag}";
 
@@ -93,8 +92,8 @@ namespace Simulator
                 Tag = imageTag
             };
 
+            Debug.Log($"Pulling image {registryImage}:{imageTag}");
             await dockerClient.Images.CreateImageAsync(createConfig, authConfig, console);
-            Debug.Log("pulled image");
 
             var createParams = new Docker.DotNet.Models.CreateContainerParameters()
             {
@@ -122,10 +121,15 @@ namespace Simulator
                 Env = env,
                 WorkingDir = "/scenarios",
             };
+
+            Debug.Log("Creating container");
+
             var response = await dockerClient.Containers.CreateContainerAsync(createParams);
             console.CompleteProgress();
             Debug.Log("created container " + response.ID + " " + string.Join(", ", response.Warnings));
             var container = await dockerClient.Containers.InspectContainerAsync(response.ID);
+
+            Debug.Log("Attaching to container");
 
             var containerAttachParameters = new Docker.DotNet.Models.ContainerAttachParameters
             {
@@ -137,7 +141,7 @@ namespace Simulator
 
             var containerStream = await dockerClient.Containers.AttachContainerAsync(container.ID, true, containerAttachParameters);
 
-            console.WriteLine($"Image: {image}");
+            console.WriteLine($"Image: {registryImageTag}");
             console.WriteLine($"Created container: {container.ID} {container.Name}");
             console.WriteLine($"working directory: {hostWorkingDirectory}");
             console.WriteLine($"environment: {string.Join("; ", env)}");
@@ -153,6 +157,9 @@ namespace Simulator
                     imageName = registryImageTag,
                     console = console,
                 });
+
+            Debug.Log("Start container");
+
             var result = await dockerClient.Containers.StartContainerAsync(container.ID, startParams);
             if (!result)
             {
@@ -178,19 +185,33 @@ namespace Simulator
                 runArgs.Add(environment["SIMULATOR_TC_FILENAME"]);
             }
 
-            var imageUri = new Uri(template.Runner.Docker.Image, UriKind.RelativeOrAbsolute);
-            if (!imageUri.IsAbsoluteUri)
+            Debug.Log($"Start TC process from image {template.Runner.Docker.Image}");
+
+            // path/image
+            // path/image:tag
+
+            // host/path/image
+            // host/path/image:tag
+
+            // host:port/path/image
+            // host:port/path/image:tag
+
+            string dockerImage = template.Runner.Docker.Image;
+            string dockerTag = "latest";
+
+            int colonPos = dockerImage.LastIndexOf(":");
+
+            if (colonPos > 0 && dockerImage.IndexOf('/', colonPos) < 0)
             {
-                imageUri = new Uri(new Uri(Config.CloudUrl), imageUri);
+                dockerTag = dockerImage.Substring(colonPos + 1);
+                dockerImage = dockerImage.Substring(0, colonPos);
             }
 
-            var registry = imageUri.Authority;
-            var parts = imageUri.PathAndQuery.Split(':');
-            string dockerImage = parts[0];
-            string dockerTag = parts.Length > 1 ? parts.Last() : "latest";
+            Debug.Log($"Docker image:{dockerImage} tag:{dockerTag}");
 
             var authConfig = AuthConfigFromTemplate(template);
-            var id = await RunContainer(authConfig, registry, dockerImage, dockerTag, runArgs, environment, workingDirectory);
+
+            var id = await RunContainer(authConfig, dockerImage, dockerTag, runArgs, environment, workingDirectory);
             return await GetContainerResult(id);
         }
 
@@ -226,6 +247,11 @@ namespace Simulator
                     await dockerClient.Containers.StopContainerAsync(containerId, stopParams);
                 }
             }
+            catch (Exception ex)
+            {
+                Debug.LogError("failed to stop some containers");
+                Debug.LogException(ex);
+            }
             finally
             {
                 terminating = false;
@@ -234,16 +260,8 @@ namespace Simulator
 
         async void OnApplicationQuit()
         {
-            try
-            {
-                Debug.Log("TCRunner: terminating containers on application quit");
-                await Terminate(1);
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("failed to stop some containers");
-                Debug.LogException(e);
-            }
+            Debug.Log("TCRunner: terminating containers on application quit");
+            await Terminate(1);
         }
 
         private async Task<TestCaseFinishedArgs> HandleFinished(string containerId)
@@ -312,21 +330,21 @@ namespace Simulator
 
         private static readonly Dictionary<KeyCode, byte[]> KeySequences = new Dictionary<KeyCode, byte[]>
         {
-            [KeyCode.UpArrow] = new byte[] {0x1b, 0x5b, 0x41},
-            [KeyCode.DownArrow] = new byte[] {0x1b, 0x5b, 0x42},
-            [KeyCode.RightArrow] = new byte[] {0x1b, 0x5b, 0x43},
-            [KeyCode.LeftArrow] = new byte[] {0x1b, 0x5b, 0x44},
-            [KeyCode.Backspace] = new byte[] {0x7f},
-            [KeyCode.Delete] = new byte[] {0x1b, 0x5b, 0x33, 0x7e},
-            [KeyCode.Home] = new byte[] {0x1b, 0x5b, 0x48},
-            [KeyCode.End] = new byte[] {0x1b, 0x5b, 0x46},
+            [KeyCode.UpArrow] = new byte[] { 0x1b, 0x5b, 0x41 },
+            [KeyCode.DownArrow] = new byte[] { 0x1b, 0x5b, 0x42 },
+            [KeyCode.RightArrow] = new byte[] { 0x1b, 0x5b, 0x43 },
+            [KeyCode.LeftArrow] = new byte[] { 0x1b, 0x5b, 0x44 },
+            [KeyCode.Backspace] = new byte[] { 0x7f },
+            [KeyCode.Delete] = new byte[] { 0x1b, 0x5b, 0x33, 0x7e },
+            [KeyCode.Home] = new byte[] { 0x1b, 0x5b, 0x48 },
+            [KeyCode.End] = new byte[] { 0x1b, 0x5b, 0x46 },
         };
-        
+
         internal override async void HandleSpecialKey(KeyCode keyCode)
         {
             try
             {
-                if(KeySequences.TryGetValue(keyCode, out var buffer))
+                if (KeySequences.TryGetValue(keyCode, out var buffer))
                 {
                     await containerStream.WriteAsync(buffer, 0, buffer.Length, readCancellationTokenSource.Token);
                 }

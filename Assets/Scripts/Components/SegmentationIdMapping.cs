@@ -89,6 +89,9 @@ namespace Simulator.Components
 
         public void RemoveSegmentationId(uint gtid)
         {
+            if (!gtidDict.ContainsKey(gtid))
+                return;
+
             var index = gtidDict[gtid].segmentationId;
             gtidDict.Remove(gtid);
             segIdDict.Remove(index);

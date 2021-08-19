@@ -75,31 +75,31 @@ namespace Simulator
 
         bool terminating = false;
 
-        public async Task<string> RunContainer(Docker.DotNet.Models.AuthConfig authConfig, string registryImage, string imageTag, IList<string> command, IDictionary<string, string> environment, string hostWorkingDirectory)
+        public async Task<string> RunContainer(Docker.DotNet.Models.AuthConfig authConfig, string dockerRepository, string imageTag, IList<string> command, IDictionary<string, string> environment, string hostWorkingDirectory)
         {
             List<string> env = environment.Select(kv => kv.Key + "=" + kv.Value).ToList();
             env.Add("LC_ALL=en_EN.utf8");
             env.Add("TERM=dumb");
-            var console = new DockerConsole(this, registryImage);
+            var console = new DockerConsole(this, dockerRepository);
             SimulatorConsole.Instance.AddTab(console);
             SimulatorConsole.Instance.ChangeTab(console);
 
-            var registryImageTag = $"{registryImage}:{imageTag}";
+            var dockerImage = $"{dockerRepository}:{imageTag}";
 
             var createConfig = new Docker.DotNet.Models.ImagesCreateParameters
             {
-                FromImage = registryImage,
+                FromImage = dockerRepository,
                 Tag = imageTag
             };
 
-            Debug.Log($"Pulling image {registryImage}:{imageTag}");
+            Debug.Log($"Pulling image {dockerRepository}:{imageTag}");
             await dockerClient.Images.CreateImageAsync(createConfig, authConfig, console);
 
             var createParams = new Docker.DotNet.Models.CreateContainerParameters()
             {
                 Hostname = "",
                 Domainname = "",
-                Image = registryImageTag,
+                Image = dockerImage,
                 Cmd = command,
                 User = "1000:1000",
                 AttachStdout = true,
@@ -141,7 +141,7 @@ namespace Simulator
 
             var containerStream = await dockerClient.Containers.AttachContainerAsync(container.ID, true, containerAttachParameters);
 
-            console.WriteLine($"Image: {registryImageTag}");
+            console.WriteLine($"Image: {dockerImage}");
             console.WriteLine($"Created container: {container.ID} {container.Name}");
             console.WriteLine($"working directory: {hostWorkingDirectory}");
             console.WriteLine($"environment: {string.Join("; ", env)}");
@@ -154,7 +154,7 @@ namespace Simulator
                 container.ID,
                 new ContainerData
                 {
-                    imageName = registryImageTag,
+                    imageName = dockerImage,
                     console = console,
                 });
 
@@ -196,22 +196,22 @@ namespace Simulator
             // host:port/path/image
             // host:port/path/image:tag
 
-            string dockerImage = template.Runner.Docker.Image;
+            string dockerRepository = template.Runner.Docker.Image;
             string dockerTag = "latest";
 
-            int colonPos = dockerImage.LastIndexOf(":");
+            int colonPos = dockerRepository.LastIndexOf(":");
 
-            if (colonPos > 0 && dockerImage.IndexOf('/', colonPos) < 0)
+            if (colonPos > 0 && dockerRepository.IndexOf('/', colonPos) < 0)
             {
-                dockerTag = dockerImage.Substring(colonPos + 1);
-                dockerImage = dockerImage.Substring(0, colonPos);
+                dockerTag = dockerRepository.Substring(colonPos + 1);
+                dockerRepository = dockerRepository.Substring(0, colonPos);
             }
 
-            Debug.Log($"Docker image:{dockerImage} tag:{dockerTag}");
+            Debug.Log($"Docker repository:{dockerRepository} tag:{dockerTag}");
 
             var authConfig = AuthConfigFromTemplate(template);
 
-            var id = await RunContainer(authConfig, dockerImage, dockerTag, runArgs, environment, workingDirectory);
+            var id = await RunContainer(authConfig, dockerRepository, dockerTag, runArgs, environment, workingDirectory);
             return await GetContainerResult(id);
         }
 

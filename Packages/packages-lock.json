@@ -193,7 +193,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.toolchain.linux-x86_64": {
-      "version": "0.1.18-preview",
+      "version": "0.1.19-preview",
       "depth": 0,
       "source": "registry",
       "dependencies": {

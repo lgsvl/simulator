@@ -41,7 +41,7 @@ function getAssets()
         local ITEMS=( ${LINE} )
         local NAME="${ITEMS[1]}"
         ASSETS="${ASSETS}${DELIM}${NAME}"
-        DELIM=","
+        DELIM=" "
     done <<< "$1"
 }
 
@@ -64,34 +64,6 @@ fi
 
 ###
 
-if [ ! -z ${SIM_ENVIRONMENTS+x} ]; then
-    getAssets "${SIM_ENVIRONMENTS}"
-    ENVIRONMENTS="-buildEnvironments ${ASSETS}"
-else
-    ENVIRONMENTS=
-fi
-
-if [ ! -z ${SIM_VEHICLES+x} ]; then
-    getAssets "${SIM_VEHICLES}"
-    VEHICLES="-buildVehicles ${ASSETS}"
-else
-    VEHICLES=
-fi
-
-if [ ! -z ${SIM_SENSORS+x} ]; then
-    getAssets "${SIM_SENSORS}"
-    SENSORS="-buildSensors ${ASSETS}"
-else
-    SENSORS=
-fi
-
-if [ ! -z ${SIM_BRIDGES+x} ]; then
-    getAssets "${SIM_BRIDGES}"
-    BRIDGES="-buildBridges ${ASSETS}"
-else
-    BRIDGES=
-fi
-
 function get_unity_license {
     echo "Fetching unity license"
 
@@ -103,6 +75,19 @@ function get_unity_license {
         -password ${UNITY_PASSWORD} \
         -projectPath /mnt \
         -quit
+}
+
+function build_bundle {
+    echo "Building bundle $*"
+
+    ${UNITY} \
+        -force-vulkan \
+        -silent-crashes \
+        -projectPath /mnt \
+        -executeMethod Simulator.Editor.Build.Run \
+        -buildBundles \
+        $* \
+        -logFile /dev/stdout
 }
 
 function finish
@@ -132,16 +117,31 @@ echo "I: Cleanup AssetBundles before build"
 
 rm -Rf /mnt/AssetBundles || true
 
-${UNITY} \
-    -force-vulkan \
-    -silent-crashes \
-    -projectPath /mnt \
-    -executeMethod Simulator.Editor.Build.Run \
-    -buildBundles \
-    ${ENVIRONMENTS} \
-    ${VEHICLES} \
-    ${SENSORS} \
-    ${BRIDGES} \
-    -logFile /dev/stdout | tee unity-build-bundles.log
+if [ ! -z ${SIM_ENVIRONMENTS+x} ]; then
+    getAssets "${SIM_ENVIRONMENTS}"
+    for A in ${ASSETS}; do
+        build_bundle -buildEnvironments ${A} | tee -a unity-build-bundles.log
+    done
+fi
+if [ ! -z ${SIM_VEHICLES+x} ]; then
+    getAssets "${SIM_VEHICLES}"
+    for A in ${ASSETS}; do
+        build_bundle -buildVehicles ${A} | tee -a unity-build-bundles.log
+    done
+fi
+
+if [ ! -z ${SIM_SENSORS+x} ]; then
+    getAssets "${SIM_SENSORS}"
+    for A in ${ASSETS}; do
+        build_bundle -buildSensors ${A} | tee -a unity-build-bundles.log
+    done
+fi
+
+if [ ! -z ${SIM_BRIDGES+x} ]; then
+    getAssets "${SIM_BRIDGES}"
+    for A in ${ASSETS}; do
+        build_bundle -buildBridges ${A} | tee -a unity-build-bundles.log
+    done
+fi
 
 check_unity_log unity-build-bundles.log

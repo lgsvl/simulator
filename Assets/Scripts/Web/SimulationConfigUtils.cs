@@ -273,24 +273,17 @@ namespace Simulator.Web
                 var hostname = Config.ApiHost == "*" ? "localhost" : Config.ApiHost;
                 if ((Application.platform == RuntimePlatform.WindowsPlayer || Application.platform == RuntimePlatform.WindowsEditor) && !string.IsNullOrWhiteSpace(template.Alias))
                 {
-                    var devices = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces();
-                    foreach (var device in devices)
-                    {
-                        if (device.Name.Contains("vEthernet (WSL)"))
-                        {
-                            var addrs = device.GetIPProperties().UnicastAddresses;
-                            foreach (var addr in addrs)
-                            {
-                                if (addr.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                                {
-                                    Debug.Log($"overriding API address {hostname} for WSL2 virtual device address {addr.Address}");
-                                    hostname = addr.Address.ToString();
-                                    break;
-                                }
-                            }
-                        }
-                    }
+                    hostname = "host.docker.internal";
+                    Debug.Log("(Docker on windows specific) Overriding LGSVL__SIMULATOR_HOST to host.docker.internal");
+                    // previous method of taking the ip of the "vEthernet (WSL)" device stopped working for an unkown reason
+                    // above hostname is from https://docs.docker.com/desktop/windows/networking/ where it says:
 
+                    // "I want to connect from a container to a service on the host
+                    // "The host has a changing IP address (or none if you have no network access)."
+                    // "We recommend that you connect to the special DNS name host.docker.internal which resolves to the internal IP address used by the host."
+                    // "This is for development purpose and will not work in a production environment outside of Docker Desktop for Windows."
+
+                    // however we are only using this hostname on windows safeguarded above
                 }
 
                 environment.Add("SIMULATOR_HOST", hostname);

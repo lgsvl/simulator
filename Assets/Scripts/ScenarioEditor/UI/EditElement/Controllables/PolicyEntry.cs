@@ -273,7 +273,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
         /// <returns>Is policy valid for the given controllable</returns>
         private bool Validate()
         {
-            return !string.IsNullOrEmpty(Policy.Action) && !string.IsNullOrEmpty(Policy.Value);
+            return !string.IsNullOrEmpty(Policy.Action);
         }
     }
 }

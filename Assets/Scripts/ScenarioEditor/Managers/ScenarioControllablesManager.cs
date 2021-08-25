@@ -120,6 +120,7 @@ namespace Simulator.ScenarioEditor.Managers
                 if (!controllable.IsEditableOnMap)
                     controllable.Dispose();
             }
+
             LoadMapControllables();
         }
 
@@ -135,7 +136,7 @@ namespace Simulator.ScenarioEditor.Managers
                 var scenarioControllable = mapSignal.CurrentSignalLight.gameObject.AddComponent<ScenarioControllable>();
                 scenarioControllable.Uid = mapSignal.UID;
                 var policy = new List<ControlAction>(mapSignal.DefaultControlPolicy);
-                scenarioControllable.Setup(source, mapSignalVariant,policy);
+                scenarioControllable.Setup(source, mapSignalVariant, policy);
                 var boxCollider = scenarioControllable.gameObject.AddComponent<BoxCollider>();
                 boxCollider.isTrigger = true;
                 var meshRenderers = scenarioControllable.GetComponentsInChildren<MeshRenderer>();
@@ -146,11 +147,12 @@ namespace Simulator.ScenarioEditor.Managers
                     boxCollider.size = Vector3.one;
                     continue;
                 }
+
                 var bounds = meshRenderers[0].bounds;
                 for (var i = 1; i < meshRenderers.Length; i++)
                     bounds.Encapsulate(meshRenderers[i].bounds);
-                boxCollider.center = bounds.center-scenarioControllable.transform.position;
-                boxCollider.size = bounds.extents*2;
+                boxCollider.center = bounds.center - scenarioControllable.transform.position;
+                boxCollider.size = bounds.extents * 2;
             }
         }
 
@@ -162,7 +164,13 @@ namespace Simulator.ScenarioEditor.Managers
             for (var i = Controllables.Count - 1; i >= 0; i--)
             {
                 var controllable = Controllables[i];
-                if (!controllable.IsEditableOnMap) continue;
+                if (!controllable.IsEditableOnMap)
+                {
+                    controllable.Policy =
+                        new List<ControlAction>(controllable.Variant.controllable.DefaultControlPolicy);
+                    continue;
+                }
+
                 controllable.RemoveFromMap();
                 controllable.Dispose();
             }

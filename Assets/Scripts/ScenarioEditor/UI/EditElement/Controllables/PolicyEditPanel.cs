@@ -124,8 +124,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
             Policy = policy;
             if (policy != null)
             {
-                while (entries.Count < policy.Count) AddPolicyEntry();
-                while (entries.Count > policy.Count) RemovePolicyEntry(entries[0]);
+                while (entries.Count < policy.Count) AddPolicyEntry(updatePolicy: false);
+                while (entries.Count > policy.Count) RemovePolicyEntry(entries[0], updatePolicy: false);
 
                 for (var i = 0; i < entries.Count; i++)
                 {
@@ -168,7 +168,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
         {
             var newEntry = ScenarioManager.Instance.prefabsPools.GetInstance(policyEntryPrefab.gameObject)
                 .GetComponent<PolicyEntry>();
-            var undoRecord = new GenericUndo<PolicyEntry>(newEntry, "Undo adding a policy entry", RemovePolicyEntry);
+            var undoRecord = new GenericUndo<PolicyEntry>(newEntry, "Undo adding a policy entry",
+                entry => RemovePolicyEntry(entry));
             ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(undoRecord);
             AddPolicyEntry(newEntry);
         }
@@ -177,7 +178,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
         /// Add a single policy entry to this edit panel
         /// </summary>
         /// <param name="newEntry">Policy entry to be added</param>
-        private void AddPolicyEntry(PolicyEntry newEntry = null)
+        /// <param name="updatePolicy">Should the policy be updated</param>
+        private void AddPolicyEntry(PolicyEntry newEntry = null, bool updatePolicy = true)
         {
             if (newEntry == null)
                 newEntry = ScenarioManager.Instance.prefabsPools.GetInstance(policyEntryPrefab.gameObject)
@@ -186,6 +188,8 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
             newEntry.Initialize(this, validActions, validStates, validActions[0], "");
             newEntry.transform.SetParent(transform);
             newEntry.gameObject.SetActive(true);
+            if (updatePolicy)
+                UpdatePolicy();
             UnityUtilities.LayoutRebuild(transform as RectTransform);
         }
 
@@ -215,12 +219,14 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
         /// Remove the policy entry from this edit panel
         /// </summary>
         /// <param name="entry">Policy entry to be removed</param>
-        public void RemovePolicyEntry(PolicyEntry entry)
+        /// <param name="updatePolicy">Should the policy be updated</param>
+        public void RemovePolicyEntry(PolicyEntry entry, bool updatePolicy = true)
         {
             entry.gameObject.SetActive(false);
             entries.Remove(entry);
             entry.Deinitialize();
-            UpdatePolicy();
+            if (updatePolicy)
+                UpdatePolicy();
             UnityUtilities.LayoutRebuild(transform as RectTransform);
         }
 
@@ -268,6 +274,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Controllables
                     pasteAction.Invoke();
                     return;
                 }
+
                 //Ask for replacing current policy
                 var popupData = new ConfirmationPopup.PopupData
                 {

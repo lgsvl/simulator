@@ -55,12 +55,15 @@ for f in $(list_folders); do
     if [ "${ALL}" -eq "1" ]; then
       echo $ID $NAME
     else
-      CHECK=`curl -sILw '%{http_code}\n' "https://${URL}/${ID}/${PREFIX}_${NAME}" -o /dev/null`
+      CHECK=`curl -sILw '%{http_code}\n' "https://${URL}/${ID}/${PREFIX}_${NAME}" -o /dev/null || true`
       if [ "${CHECK}" -ne "200" ]; then
+        echo "https://${URL}/${ID}/${PREFIX}_${NAME} doesn't exist, include it in the build" >&2
         echo $ID $NAME
+      else
+        echo "https://${URL}/${ID}/${PREFIX}_${NAME} does exist, skip building it (you can use FORCE_REBUILD to rebuild existing assets)" >&2
       fi
     fi
-
+  else
+    continue
   fi
-
 done

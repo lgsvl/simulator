@@ -25,17 +25,30 @@ namespace Simulator.Map
         public float OriginY;
         public float Rotation;  // Not supported yet
 
+        public static NavOrigin SetNavOrigin(Vector3 position, Quaternion rotation, Vector3 offset)
+        {
+            var origin = FindObjectOfType<NavOrigin>();
+            if (origin != null)
+            {
+                Destroy(origin.gameObject);
+            }
+
+            origin = new GameObject("NavOrigin").AddComponent<NavOrigin>();
+            origin.transform.SetPositionAndRotation(position, rotation);
+            origin.OriginX = offset.x;
+            origin.OriginY = offset.y;
+            origin.Rotation = offset.z;
+
+            return origin;
+        }
+
         public static NavOrigin Find()
         {
             var origin = FindObjectOfType<NavOrigin>();
             if (origin == null)
             {
                 Debug.LogWarning("Map is missing NavOrigin component! Adding temporary NavOrigin. Please add to scene and set origin for Navigation2 stack");
-                origin = new GameObject("NavOrigin").AddComponent<NavOrigin>();
-                origin.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
-                origin.OriginX = 0;
-                origin.OriginY = 0;
-                origin.Rotation = 0;
+                origin = SetNavOrigin(Vector3.zero, Quaternion.identity, Vector3.zero);
             }
 
             return origin;

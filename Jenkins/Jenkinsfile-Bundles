@@ -90,14 +90,14 @@ pipeline {
               def repo_name = repo_path_parts.last()
 
               repo_names_list.add(repo_name)
-              echo "INFO: Checking out ${repo_prefix}: ${repo_name} ref ${repo_git_ref} from HDRP/${repo_prefix}/${repo_path} to Assets/External/${repo_prefix}/${repo_name}"
+              echo "INFO: Checking out ${repo_prefix}: ${repo_name} ref ${repo_git_ref} from HDRP/${repo_prefix}/${repo_path} to .external-assets/${repo_prefix}/${repo_name}"
 
               checkout([
                 $class: "GitSCM",
                 branches: [[name: "${repo_git_ref}"]],
                 browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/${repo_prefix}/${repo_path}", version: env.GITLAB_VERSION],
                 extensions: [
-                  [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/${repo_prefix}/${repo_name}"],
+                  [$class: "RelativeTargetDirectory", relativeTargetDir: ".external-assets/${repo_prefix}/${repo_name}"],
                   [$class: "LocalBranch"],
                   [$class: "GitLFSPull"]
                 ],
@@ -109,7 +109,7 @@ pipeline {
             }
             def repo_names = repo_names_list.join(",")
             echo "INFO: Checked out following ${repo_prefix}: ${repo_names}"
-            env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/${repo_prefix} ${S3_DOWNLOAD_HOST} environment 0 ${repo_names}").trim()
+            env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh .external-assets/${repo_prefix} ${S3_DOWNLOAD_HOST} environment 0 ${repo_names}").trim()
           } else {
             echo "INFO: No ${repo_prefix} to checkout"
             env.SIM_ENVIRONMENTS = ""
@@ -147,14 +147,14 @@ pipeline {
               def repo_name = repo_path_parts.last()
 
               repo_names_list.add(repo_name)
-              echo "INFO: Checking out ${repo_prefix}: ${repo_name} ref ${repo_git_ref} from HDRP/${repo_prefix}/${repo_path} to Assets/External/${repo_prefix}/${repo_name}"
+              echo "INFO: Checking out ${repo_prefix}: ${repo_name} ref ${repo_git_ref} from HDRP/${repo_prefix}/${repo_path} to .external-assets/${repo_prefix}/${repo_name}"
 
               checkout([
                 $class: "GitSCM",
                 branches: [[name: "${repo_git_ref}"]],
                 browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/${repo_prefix}/${repo_path}", version: env.GITLAB_VERSION],
                 extensions: [
-                  [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/${repo_prefix}/${repo_name}"],
+                  [$class: "RelativeTargetDirectory", relativeTargetDir: ".external-assets/${repo_prefix}/${repo_name}"],
                   [$class: "LocalBranch"],
                   [$class: "GitLFSPull"]
                 ],
@@ -166,7 +166,7 @@ pipeline {
             }
             def repo_names = repo_names_list.join(",")
             echo "INFO: Checked out following ${repo_prefix}: ${repo_names}"
-            env.SIM_VEHICLES = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/${repo_prefix} ${S3_DOWNLOAD_HOST} vehicle 0 ${repo_names}").trim()
+            env.SIM_VEHICLES = sh(returnStdout: true, script: "./Jenkins/get-assets.sh .external-assets/${repo_prefix} ${S3_DOWNLOAD_HOST} vehicle 0 ${repo_names}").trim()
           } else {
             echo "INFO: No ${repo_prefix} to checkout"
             env.SIM_VEHICLES = ""
@@ -204,14 +204,14 @@ pipeline {
               def repo_name = repo_path_parts.last()
 
               repo_names_list.add(repo_name)
-              echo "INFO: Checking out ${repo_prefix}: ${repo_name} ref ${repo_git_ref} from HDRP/${repo_prefix}/${repo_path} to Assets/External/${repo_prefix}/${repo_name}"
+              echo "INFO: Checking out ${repo_prefix}: ${repo_name} ref ${repo_git_ref} from HDRP/${repo_prefix}/${repo_path} to .external-assets/${repo_prefix}/${repo_name}"
 
               checkout([
                 $class: "GitSCM",
                 branches: [[name: "${repo_git_ref}"]],
                 browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/${repo_prefix}/${repo_path}", version: env.GITLAB_VERSION],
                 extensions: [
-                  [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/${repo_prefix}/${repo_name}"],
+                  [$class: "RelativeTargetDirectory", relativeTargetDir: ".external-assets/${repo_prefix}/${repo_name}"],
                   [$class: "LocalBranch"],
                   [$class: "GitLFSPull"]
                 ],
@@ -223,7 +223,7 @@ pipeline {
             }
             def repo_names = repo_names_list.join(",")
             echo "INFO: Checked out following ${repo_prefix}: ${repo_names}"
-            env.SIM_SENSORS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/${repo_prefix} ${S3_DOWNLOAD_HOST} sensor 0 ${repo_names}").trim()
+            env.SIM_SENSORS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh .external-assets/${repo_prefix} ${S3_DOWNLOAD_HOST} sensor 0 ${repo_names}").trim()
           } else {
             echo "INFO: No ${repo_prefix} to checkout"
             env.SIM_SENSORS = ""
@@ -261,14 +261,14 @@ pipeline {
               def repo_name = repo_path_parts.last()
 
               repo_names_list.add(repo_name)
-              echo "INFO: Checking out ${repo_prefix}: ${repo_name} ref ${repo_git_ref} from HDRP/${repo_prefix}/${repo_path} to Assets/External/${repo_prefix}/${repo_name}"
+              echo "INFO: Checking out ${repo_prefix}: ${repo_name} ref ${repo_git_ref} from HDRP/${repo_prefix}/${repo_path} to .external-assets/${repo_prefix}/${repo_name}"
 
               checkout([
                 $class: "GitSCM",
                 branches: [[name: "${repo_git_ref}"]],
                 browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/${repo_prefix}/${repo_path}", version: env.GITLAB_VERSION],
                 extensions: [
-                  [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/${repo_prefix}/${repo_name}"],
+                  [$class: "RelativeTargetDirectory", relativeTargetDir: ".external-assets/${repo_prefix}/${repo_name}"],
                   [$class: "LocalBranch"],
                   [$class: "GitLFSPull"]
                 ],
@@ -280,7 +280,7 @@ pipeline {
             }
             def repo_names = repo_names_list.join(",")
             echo "INFO: Checked out following ${repo_prefix}: ${repo_names}"
-            env.SIM_BRIDGES = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/${repo_prefix} ${S3_DOWNLOAD_HOST} bridge 0 ${repo_names}").trim()
+            env.SIM_BRIDGES = sh(returnStdout: true, script: "./Jenkins/get-assets.sh .external-assets/${repo_prefix} ${S3_DOWNLOAD_HOST} bridge 0 ${repo_names}").trim()
           } else {
             echo "INFO: No ${repo_prefix} to checkout"
             env.SIM_BRIDGES = ""

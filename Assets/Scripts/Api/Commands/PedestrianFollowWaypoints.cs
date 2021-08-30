@@ -65,7 +65,8 @@ namespace Simulator.Api.Commands
                     });
                 }
 
-                ped.FollowWaypoints(wp, loop, waypointsPathType);
+                var waypointBehaviour = ped.SetBehaviour<PedestrianWaypointBehaviour>();
+                waypointBehaviour.FollowWaypoints(wp, loop, waypointsPathType);
                 api.RegisterAgentWithWaypoints(ped.gameObject);
                 api.SendResult(this);
             }

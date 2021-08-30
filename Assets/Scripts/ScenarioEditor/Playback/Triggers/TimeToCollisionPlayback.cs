@@ -40,7 +40,7 @@ namespace Simulator.ScenarioEditor.Playback
             var lowestTTC = TimeToCollisionEffector.TimeToCollisionLimit;
             foreach (var ego in egos)
             {
-                var ttc = ttcEffector.CalculateTTC(ego, triggerAgent);
+                var ttc = ttcEffector.CalculateTTC(ego, triggerAgent, triggerAgent.MovementSpeed);
                 if (ttc >= lowestTTC || ttc < 0.0f) continue;
 
                 lowestTTC = ttc;

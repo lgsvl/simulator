@@ -153,7 +153,7 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
         SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged += OnTimeOfDayChange;
         GetSimulatorTimeOfDay();
         agentLayer = LayerMask.NameToLayer("Agent");
-        if (_ActiveBehaviour)
+        if (_ActiveBehaviour != null)
         {
             _ActiveBehaviour.enabled = true;
         }
@@ -162,8 +162,10 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
     private void OnDisable()
     {
         SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged -= OnTimeOfDayChange;
-        if (_ActiveBehaviour!=null)
+        if (_ActiveBehaviour != null)
+        {
             _ActiveBehaviour.enabled = false;
+        }
     }
 
     public void PhysicsUpdate()

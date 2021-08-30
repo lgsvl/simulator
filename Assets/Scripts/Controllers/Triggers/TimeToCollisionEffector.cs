@@ -39,7 +39,7 @@ public class TimeToCollisionEffector : TriggerEffector
         foreach (var ego in egos)
         {
             var controller = ego.AgentGO.GetComponentInChildren<IAgentController>();
-            var ttc = CalculateTTC(controller, agent);
+            var ttc = CalculateTTC(controller, agent, agent.MovementSpeed);
             if (ttc >= lowestTTC || ttc < 0.0f) continue;
 
             lowestTTC = ttc;
@@ -56,10 +56,11 @@ public class TimeToCollisionEffector : TriggerEffector
             yield break;
 
         //Agent will adjust waiting time while waiting
+        var initialMovementSpeed = agent.MovementSpeed;
         do
         {
             yield return null;
-            lowestTTC = CalculateTTC(collisionEgo, agent);
+            lowestTTC = CalculateTTC(collisionEgo, agent, initialMovementSpeed);
             //Check if TTC is valid, for example ego did not change the direction
             if (lowestTTC >= TimeToCollisionLimit)
                 yield break;
@@ -74,7 +75,7 @@ public class TimeToCollisionEffector : TriggerEffector
     {
     }
 
-    public float CalculateTTC(ITriggerAgent ego, ITriggerAgent agent)
+    public float CalculateTTC(ITriggerAgent ego, ITriggerAgent agent, float agentMovementSpeed)
     {
         //Calculate intersection point, return infinity if vehicles won't intersect
         var egoTransform = ego.AgentTransform;
@@ -84,15 +85,15 @@ public class TimeToCollisionEffector : TriggerEffector
             return float.PositiveInfinity;
 
         var egoDistance = Distance2D(egoTransform.position, intersection);
-        var npcDistance = Distance2D(agent.AgentTransform.position, intersection);
+        var agentDistance = Distance2D(agent.AgentTransform.position, intersection);
         var egoTimeToIntersection =
             CalculateTimeForAccelerated(ego.MovementSpeed, ego.Acceleration.magnitude, egoDistance);
-        var npcTimeToIntersection =
-            CalculateTimeForAccelerated(agent.MovementSpeed, agent.Acceleration.magnitude, npcDistance);
+        var agentTimeToIntersection =
+            CalculateTimeForAccelerated(agentMovementSpeed, agent.Acceleration.magnitude, agentDistance);
 
-        //If npc will reach intersection quicker, ttc will be positive
+        //If ego agent will reach intersection quicker, ttc will be positive
         //If agent cannot reach collision point before ego, ttc will be negative
-        return egoTimeToIntersection - npcTimeToIntersection;
+        return egoTimeToIntersection - agentTimeToIntersection;
     }
 
     private float Distance2D(Vector3 position, Vector3 intersection)

@@ -174,7 +174,7 @@ namespace Simulator.Network.Core.Components
         /// <summary>
         /// Unity OnEnable method
         /// </summary>
-        protected void OnEnable()
+        protected virtual void OnEnable()
         {
             if (IsInitialized && ParentObject != null)
             {
@@ -188,7 +188,7 @@ namespace Simulator.Network.Core.Components
         /// <summary>
         /// Unity OnDisable method
         /// </summary>
-        protected void OnDisable()
+        protected virtual void OnDisable()
         {
             if (coroutinesState == CoroutinesState.RunningOnObject)
             {

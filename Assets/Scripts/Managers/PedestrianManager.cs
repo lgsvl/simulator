@@ -413,7 +413,6 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         var model = PedestrianData[modelIndex].Prefab;
         Instantiate(model, ped.transform);
         pedController.SetGroundTruthBox();
-        pedController.Control = PedestrianController.ControlType.None;
         pedController.enabled = false;
         //Force distributed component initialization, as gameobject will stay disabled
         pedController.InitPed(position, 0, new List<Vector3>(), 0);

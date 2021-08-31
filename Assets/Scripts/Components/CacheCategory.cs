@@ -84,6 +84,8 @@ public class CacheCategory : MonoBehaviour
             }
             RefreshOptions();
         }
+
+        ConnectionUI.instance.UpdateDropdown();
     }
 
     public void DeleteCategory()
@@ -109,5 +111,7 @@ public class CacheCategory : MonoBehaviour
             }
             RefreshOptions();
         }
+
+        ConnectionUI.instance.UpdateDropdown();
     }
 }

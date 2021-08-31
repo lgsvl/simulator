@@ -6,6 +6,7 @@
  */
 
 using Simulator;
+using Simulator.Web;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -81,6 +82,7 @@ public class CacheControlWindow : MonoBehaviour
             cat.GetComponent<CacheCategory>().DeleteCategory();
         }
         DeleteAllConfirmPanel.SetActive(false);
+        ConnectionUI.instance.UpdateDropdown();
     }
 
     private void DeleteAllCancel()

@@ -1169,6 +1169,10 @@ namespace Simulator.Editor
         static void RemoveOverlappingEndPoints(LineData lineData, InOut inOut)
         {
             var positions = lineData.mapWorldPositions;
+
+            // We have less than 2 points, nothing to remove.
+            if(positions.Count < 3)
+                return;
             Vector3 p1 = positions.First(), p2 = positions[1];
             var changed = false;
             var distThreshold = 0.5;

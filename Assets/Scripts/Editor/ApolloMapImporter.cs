@@ -641,58 +641,48 @@ namespace Simulator.Editor
         }
 
         // Link before and after lanes/lines
-        public static bool LinkSegments<T>(HashSet<T> segments) where T : MapDataPoints, IMapLaneLineCommon<T>
+        public static void LinkSegments<T>(HashSet<T> segments) where T : MapDataPoints, IMapLaneLineCommon<T>
         {
+            // Calculate endpoints snap distance. We cannot snap using distances bigger than shortest segment, * 0.5 to ensure correctness.
+            var shortestSegmentLength = segments.Min(s => (s.mapLocalPositions.First() - s.mapLocalPositions.Last()).magnitude);
+            var endPointsSnapDistance = Math.Min(shortestSegmentLength / 2, MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR);
             foreach (var segment in segments)
             {
-                // clear
+                // Clear segment's before and afters.
                 segment.befores.Clear();
                 segment.afters.Clear();
 
-                if (typeof(T) == typeof(MapLine))
-                {
-                    if ((segment as MapLine).lineType == MapData.LineType.STOP)
-                    {
-                        continue;
-                    }
-                }
+                if (typeof(T) == typeof(MapLine) && (segment as MapLine).lineType == MapData.LineType.STOP)
+                    continue;
 
                 // Each segment must have at least 2 waypoints for calculation, otherwise exit
-                while (segment.mapLocalPositions.Count < 2)
+                if (segment.mapLocalPositions.Count < 2)
                 {
                     Debug.LogError("Some segment has less than 2 waypoints. Cancelling map generation.");
-                    return false;
+                    return;
                 }
 
-                // Link lanes/lines
-                var firstPt = segment.transform.TransformPoint(segment.mapLocalPositions[0]);
-                var lastPt = segment.transform.TransformPoint(segment.mapLocalPositions[segment.mapLocalPositions.Count - 1]);
-
+                // If first point of one segment is close to last point of the other one, adjust point and link them. Same other way around.
+                var firstPt = segment.transform.TransformPoint(segment.mapLocalPositions.First());
+                var lastPt = segment.transform.TransformPoint(segment.mapLocalPositions.Last());
                 foreach (var segmentCmp in segments)
                 {
-                    if (segment == segmentCmp)
-                    {
+                    // Skip same segment and MapLine of type STOP.
+                    if ((segment == segmentCmp) || 
+                        (typeof(T) == typeof(MapLine) &&  (segmentCmp as MapLine).lineType == MapData.LineType.STOP))
                         continue;
-                    }
-                    if (typeof(T) == typeof(MapLine))
-                    {
-                        if ((segmentCmp as MapLine).lineType == MapData.LineType.STOP)
-                        {
-                            continue;
-                        }
-                    }
 
-                    var firstPt_cmp = segmentCmp.transform.TransformPoint(segmentCmp.mapLocalPositions[0]);
-                    var lastPt_cmp = segmentCmp.transform.TransformPoint(segmentCmp.mapLocalPositions[segmentCmp.mapLocalPositions.Count - 1]);
+                    var firstPt_cmp = segmentCmp.transform.TransformPoint(segmentCmp.mapLocalPositions.First());
+                    var lastPt_cmp = segmentCmp.transform.TransformPoint(segmentCmp.mapLocalPositions.Last());
 
-                    if ((firstPt - lastPt_cmp).magnitude < MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
+                    if ((firstPt - lastPt_cmp).magnitude < endPointsSnapDistance)
                     {
                         segmentCmp.mapLocalPositions[segmentCmp.mapLocalPositions.Count - 1] = segmentCmp.transform.InverseTransformPoint(firstPt);
                         segmentCmp.mapWorldPositions[segmentCmp.mapWorldPositions.Count - 1] = firstPt;
                         segment.befores.Add(segmentCmp);
                     }
 
-                    if ((lastPt - firstPt_cmp).magnitude < MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
+                    if ((lastPt - firstPt_cmp).magnitude < endPointsSnapDistance)
                     {
                         segmentCmp.mapLocalPositions[0] = segmentCmp.transform.InverseTransformPoint(lastPt);
                         segmentCmp.mapWorldPositions[0] = lastPt;
@@ -700,8 +690,6 @@ namespace Simulator.Editor
                     }
                 }
             }
-
-            return true;
         }
 
         // Make current lane's start/end point same as predecessor/successor lane's end/start point

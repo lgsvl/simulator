@@ -189,7 +189,7 @@ namespace Simulator.Editor
         {
             foreach (var mapPedestrianPath in mapPedestrianPaths)
             {
-                MapAnnotations.AddWorldPositions(mapPedestrianPath);
+                mapPedestrianPath.RefreshWorldPositions();
                 var pedLaneData = new LaneData(mapPedestrianPath);
                 ComputeFakeLineData(pedLaneData, out LineData leftLineData, out LineData rightLineData);
                 pedLaneData.leftLineData = leftLineData;

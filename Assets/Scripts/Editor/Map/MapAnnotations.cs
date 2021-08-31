@@ -45,6 +45,10 @@ public class MapAnnotations : EditorWindow
         new GUIContent { text = "RIGHT_TURN", tooltip = "Right turn lane" },
         new GUIContent { text = "U_TURN", tooltip = "U turn lane" }
     };
+
+    // Used to check if lanes boundaries overlap.
+    private double boundariesOverlapThreshold = 1.0;
+
     private int laneLeftBoundryType = 2;
     private int laneRightBoundryType = 2;
     private Texture[] boundryImages;
@@ -1946,7 +1950,7 @@ public class MapAnnotations : EditorWindow
         return lane.GetInstanceID();
     }
 
-    private string RenameLine(MapTrafficLane lane, MapTrafficLane otherLane)
+    private string GetLanesCommonLineName(MapTrafficLane lane, MapTrafficLane otherLane)
     {
         var newName = new List<string>(){"MapLine"};
         var otherLaneNumber = GetLaneNumber(otherLane);
@@ -1958,42 +1962,28 @@ public class MapAnnotations : EditorWindow
         return String.Join("_", newName);
     }
 
-    public static void AddWorldPositions(MapDataPoints mapDataPoints)
-    {
-        mapDataPoints.mapWorldPositions.Clear();
-        foreach (var localPos in mapDataPoints.mapLocalPositions)
-            mapDataPoints.mapWorldPositions.Add(mapDataPoints.transform.TransformPoint(localPos));
-    }
-
-    private void AddWorldPositions(List<MapTrafficLane> lanes)
+    public static void AddWorldPositions(IEnumerable<MapTrafficLane> lanes)
     {
         foreach (var lane in lanes)
         {
-            AddWorldPositions(lane);
-            var leftLine = lane.leftLineBoundry;
-            var rightLine = lane.rightLineBoundry;
-            AddWorldPositions(leftLine);
-            AddWorldPositions(rightLine);
+            lane.RefreshWorldPositions();
+            lane.leftLineBoundry?.RefreshWorldPositions();
+            lane.rightLineBoundry?.RefreshWorldPositions();
         }
     }
 
-    private void FindAndRemoveExtraLines(List<MapTrafficLane> lanes)
+    private void FindAndRemoveExtraLines(IEnumerable<MapTrafficLane> lanes)
     {
         var visitedLanesLeft = new HashSet<MapTrafficLane>();
         var visitedLanesRight = new HashSet<MapTrafficLane>();
-        var threshold = 1.0;
 
         foreach (var lane in lanes)
         {
             if (!visitedLanesLeft.Contains(lane))
-            {
-                CheckLeftLine(lanes, visitedLanesLeft, visitedLanesRight, threshold, lane);
-            }
+                MergeLanesOverlappingLines(lane, true, lanes, visitedLanesLeft, visitedLanesRight);
 
             if (!visitedLanesRight.Contains(lane))
-            {
-                CheckRightLine(lanes, visitedLanesLeft, visitedLanesRight, threshold, lane);
-            }
+                MergeLanesOverlappingLines(lane, false, lanes, visitedLanesLeft, visitedLanesRight);
         }
     }
 
@@ -2009,139 +1999,119 @@ public class MapAnnotations : EditorWindow
         return closestPoint;
     }
 
-    private bool isSameDirection(MapTrafficLane lane, MapLine line)
+    private bool VectorsAreInSameDirection(Vector3 v1, Vector3 v2)
     {
-        var laneVec = lane.mapWorldPositions.Last() - lane.mapWorldPositions.First();
-        var lineVec = line.mapWorldPositions.Last() - line.mapWorldPositions.First();
-
-        return Vector3.Dot(laneVec, lineVec) > 0;
+        return Vector3.Dot(v1, v2) > 0;
+    }
+    private bool PointsAreInSameDirection(MapDataPoints data1, MapDataPoints data2)
+    {
+        var v1 = data1.mapWorldPositions.Last() - data1.mapWorldPositions.First();
+        var v2 = data2.mapWorldPositions.Last() - data2.mapWorldPositions.First();
+        return VectorsAreInSameDirection(v1, v2);
     }
 
-    private void CheckLeftLine(List<MapTrafficLane> lanes, HashSet<MapTrafficLane> visitedLanesLeft, HashSet<MapTrafficLane> visitedLanesRight, double threshold, MapTrafficLane lane)
+    bool LanesBoundariesOverlap(MapTrafficLane lane1, MapTrafficLane lane2, bool useLeftBoundry1, bool useLeftBoundry2)
     {
-        var leftLine = lane.leftLineBoundry;
-        var leftStartPoint = leftLine.mapWorldPositions.First();
-        var leftEndPoint = leftLine.mapWorldPositions.Last();
-        foreach (var otherLane in lanes)
-        {
-            if (lane == otherLane) continue;
+        var boundry1 = useLeftBoundry1 ? lane1.leftLineBoundry : lane1.rightLineBoundry;
+        var boundry2 = useLeftBoundry2 ? lane2.leftLineBoundry : lane2.rightLineBoundry;
+        bool lanesInSameDirection = PointsAreInSameDirection(lane1, lane2);
 
-            if (!visitedLanesLeft.Contains(otherLane))
+        // If (lanes are heading in the same direction and we are checking same boundaries) or
+        // (lanes are heading in opposite directions and we are checking different boundaries)
+        // then boundaries should not overlap.
+        if((lanesInSameDirection && useLeftBoundry1 == useLeftBoundry2)||
+            (!lanesInSameDirection && useLeftBoundry1 != useLeftBoundry2))
+            return false;
+
+        var lane1StartPoint = lane1.mapWorldPositions.First();
+        var lane1EndPoint = lane1.mapWorldPositions.Last();
+        var lane2StartPoint = lanesInSameDirection ? lane2.mapWorldPositions.First() : lane2.mapWorldPositions.Last();
+        var lane2EndPoint = lanesInSameDirection ? lane2.mapWorldPositions.Last() : lane2.mapWorldPositions.First();
+        var boundry1StartPoint = boundry1.mapWorldPositions.First();
+        var boundry1EndPoint = boundry1.mapWorldPositions.Last();
+        var boundry2StartPoint = lanesInSameDirection ? boundry2.mapWorldPositions.First() : boundry2.mapWorldPositions.Last();
+        var boundry2EndPoint = lanesInSameDirection ? boundry2.mapWorldPositions.Last() : boundry2.mapWorldPositions.First();
+
+        // If distance between boundry start/end points is bigger than distance between lane start/end points
+        // then lanes are between boundry lines and boundaries do not overlap.
+        if((lane1StartPoint - lane2StartPoint).magnitude + (lane1EndPoint - lane2EndPoint).magnitude < 
+            (boundry1StartPoint - boundry2StartPoint).magnitude + (boundry1EndPoint - boundry2EndPoint).magnitude)
+            return false;
+        
+        // We know that boundry lines are between lanes, so they overlap if their end points are close enough.
+        return ((boundry1StartPoint - boundry2StartPoint).magnitude < boundariesOverlapThreshold &&
+                (boundry1EndPoint - boundry1EndPoint).magnitude < boundariesOverlapThreshold);
+    }
+
+    private void MergeLanesOverlappingLines(MapTrafficLane laneToCheck, bool useLeftBoundry,
+     IEnumerable<MapTrafficLane> allLanes,
+     HashSet<MapTrafficLane> visitedLanesLeft, 
+     HashSet<MapTrafficLane> visitedLanesRight)
+    {
+        var lineToCheck = useLeftBoundry ? laneToCheck.leftLineBoundry : laneToCheck.rightLineBoundry;
+        var leftStartPoint = lineToCheck.mapWorldPositions.First();
+        var leftEndPoint = lineToCheck.mapWorldPositions.Last();
+        foreach (var otherLane in allLanes)
+        {
+            if (laneToCheck == otherLane) 
+                continue;
+
+            // If left check for other lane was not performed yet and boundaries overlap.
+            if (!visitedLanesLeft.Contains(otherLane) && LanesBoundariesOverlap(laneToCheck, otherLane, useLeftBoundry, true))
             {
                 var otherLeftLine = otherLane.leftLineBoundry;
-                var otherLeftStartPoint = otherLeftLine.mapWorldPositions.First();
-                var otherLeftEndPoint = otherLeftLine.mapWorldPositions.Last();
-                if ((leftStartPoint - otherLeftEndPoint).magnitude < threshold &&
-                    (leftEndPoint - otherLeftStartPoint).magnitude < threshold)
-                {
-                    if (leftLine == otherLeftLine)
-                    {
-                        // Extra line already removed.
-                        break;
-                    }
 
-                    if (otherLane.leftLineBoundry != null) GameObject.DestroyImmediate(otherLeftLine.gameObject);
-                    ExtraLinesCnt += 1;
-                    otherLane.leftLineBoundry = leftLine;
-                    leftLine.name = RenameLine(lane, otherLane);
-
-                    visitedLanesLeft.Add(lane);
-                    visitedLanesLeft.Add(otherLane);
+                // Extra line already removed.
+                if (lineToCheck == otherLeftLine)    
                     break;
+                
+                if (otherLane.leftLineBoundry != null) 
+                {
+                    Debug.Log(lineToCheck, lineToCheck);
+                    LanesBoundariesOverlap(laneToCheck, otherLane, useLeftBoundry, true);
+                    GameObject.DestroyImmediate(otherLeftLine.gameObject);
                 }
+
+                ExtraLinesCnt += 1;
+                otherLane.leftLineBoundry = lineToCheck;
+                lineToCheck.name = GetLanesCommonLineName(laneToCheck, otherLane);
+                Debug.Log($"Merged two boundry lines into {lineToCheck.name}.", lineToCheck);
+
+                (useLeftBoundry ? visitedLanesLeft : visitedLanesRight).Add(laneToCheck);
+                visitedLanesLeft.Add(otherLane);
+                break;
             }
 
-            if (!visitedLanesRight.Contains(otherLane))
+            // If right check for other lane was not performed yet and boundaries overlap.
+            if (!visitedLanesRight.Contains(otherLane) && LanesBoundariesOverlap(laneToCheck, otherLane, useLeftBoundry, false))
             {
                 var otherRightLine = otherLane.rightLineBoundry;
-                var otherRightStartPoint = otherRightLine.mapWorldPositions.First();
-                var otherRightEndPoint = otherRightLine.mapWorldPositions.Last();
-                if ((leftStartPoint - otherRightStartPoint).magnitude < threshold &&
-                    (leftEndPoint - otherRightEndPoint).magnitude < threshold)
-                {
-                    if (leftLine == otherRightLine)
-                    {
-                        // Extra line already removed.
-                        break;
-                    }
 
-                    if (otherLane.rightLineBoundry != null) GameObject.DestroyImmediate(otherRightLine.gameObject);
-                    ExtraLinesCnt += 1;
-                    otherLane.rightLineBoundry = leftLine;
-                    leftLine.name = RenameLine(lane, otherLane);
-
-                    visitedLanesLeft.Add(lane);
-                    visitedLanesRight.Add(otherLane);
+                // Extra line already removed.
+                if (lineToCheck == otherRightLine)
                     break;
+
+                if (otherLane.rightLineBoundry != null)
+                {
+                    LanesBoundariesOverlap(laneToCheck, otherLane, useLeftBoundry, false);
+                    GameObject.DestroyImmediate(otherRightLine.gameObject);
                 }
+
+                ExtraLinesCnt += 1;
+                otherLane.rightLineBoundry = lineToCheck;
+                lineToCheck.name = GetLanesCommonLineName(laneToCheck, otherLane);
+                Debug.Log($"Merged two boundry lines into {lineToCheck.name}.", lineToCheck);
+
+                (useLeftBoundry ? visitedLanesLeft : visitedLanesRight).Add(laneToCheck);
+                visitedLanesRight.Add(otherLane);
+                break;
             }
         }
     }
 
-    private void CheckRightLine(List<MapTrafficLane> lanes, HashSet<MapTrafficLane> visitedLanesLeft, HashSet<MapTrafficLane> visitedLanesRight, double threshold, MapTrafficLane lane)
+    private void AlignLineEndPoints(IEnumerable<MapTrafficLane> mapLanes)
     {
-        var rightLine = lane.rightLineBoundry;
-        var rightStartPoint = rightLine.mapWorldPositions.First();
-        var rightEndPoint = rightLine.mapWorldPositions.Last();
-        foreach (var otherLane in lanes)
-        {
-            if (lane == otherLane) continue;
-
-            if (!visitedLanesLeft.Contains(otherLane))
-            {
-                var otherLeftLine = otherLane.leftLineBoundry;
-                var otherLeftStartPoint = otherLeftLine.mapWorldPositions.First();
-                var otherLeftEndPoint = otherLeftLine.mapWorldPositions.Last();
-                if ((rightStartPoint - otherLeftStartPoint).magnitude < threshold &&
-                    (rightEndPoint - otherLeftEndPoint).magnitude < threshold)
-                {
-                    if (rightLine == otherLeftLine)
-                    {
-                        // Extra line already removed.
-                        break;
-                    }
-
-                    if (otherLane.leftLineBoundry != null) GameObject.DestroyImmediate(otherLeftLine.gameObject);
-                    ExtraLinesCnt += 1;
-                    otherLane.leftLineBoundry = rightLine;
-                    rightLine.name = RenameLine(lane, otherLane);
-
-                    visitedLanesRight.Add(lane);
-                    visitedLanesLeft.Add(otherLane);
-                    break;
-                }
-            }
-
-            if (!visitedLanesRight.Contains(otherLane))
-            {
-                var otherRightLine = otherLane.rightLineBoundry;
-                var otherRightStartPoint = otherRightLine.mapWorldPositions.First();
-                var otherRightEndPoint = otherRightLine.mapWorldPositions.Last();
-                if ((rightStartPoint - otherRightEndPoint).magnitude < threshold &&
-                    (rightEndPoint - otherRightStartPoint).magnitude < threshold)
-                {
-                    if (rightLine == otherRightLine)
-                    {
-                        // Extra line already removed.
-                        break;
-                    }
-
-                    if (otherLane.rightLineBoundry != null) GameObject.DestroyImmediate(otherRightLine.gameObject);
-                    ExtraLinesCnt += 1;
-                    otherLane.rightLineBoundry = rightLine;
-                    rightLine.name = RenameLine(lane, otherLane);
-
-                    visitedLanesRight.Add(lane);
-                    visitedLanesRight.Add(otherLane);
-                    break;
-                }
-            }
-        }
-    }
-
-    private void AlignLineEndPoints(List<MapTrafficLane> mapLanes)
-    {
-        foreach (MapTrafficLane lane in mapLanes)
+        foreach (var lane in mapLanes)
         {
             AlignLineEndPoints(lane, lane.leftLineBoundry, true);
             AlignLineEndPoints(lane, lane.rightLineBoundry, false);
@@ -2150,7 +2120,7 @@ public class MapAnnotations : EditorWindow
 
     private void AlignLineEndPoints(MapTrafficLane lane, MapLine line, bool isLeft)
     {
-        var sameDirection = isSameDirection(lane, line);
+        var sameDirection = PointsAreInSameDirection(lane, line);
         if (lane.befores.Count > 0)
         {
             var lineBefore = isLeft ? lane.befores[0].leftLineBoundry : lane.befores[0].rightLineBoundry;
@@ -2167,13 +2137,11 @@ public class MapAnnotations : EditorWindow
         ApolloMapImporter.UpdateLocalPositions(line);
     }
 
-    public void RemoveExtraLines(bool showMsg=true, MapHolder mapHolder=null)
+    public void RemoveExtraLines(bool showMsg = true)
     {
         var mapAnnotationData = new MapManagerData();
         if (mapAnnotationData.MapHolder == null)
             return;
-
-        if (mapHolder != null) mapAnnotationData.MapHolder = mapHolder;
 
         Record(mapAnnotationData, out UnityEngine.GameObject root,
             out string assetPath, out bool isPrefab, "Remove extra boundary lines");
@@ -2183,24 +2151,26 @@ public class MapAnnotations : EditorWindow
 
         ExtraLinesCnt = 0;
         var allLanes = new HashSet<MapTrafficLane>(mapAnnotationData.GetData<MapTrafficLane>());
-        AddWorldPositions(allLanes.ToList());
+        AddWorldPositions(allLanes);
         ApolloMapImporter.LinkSegments(allLanes);
         foreach (var mapLaneSection in mapLaneSections)
         {
-            var mapLanes = new List<MapTrafficLane>(mapLaneSection.GetComponentsInChildren<MapTrafficLane>());
+            var mapLanes = mapLaneSection.GetComponentsInChildren<MapTrafficLane>();
             FindAndRemoveExtraLines(mapLanes);
         }
-        if (showMsg) Debug.Log($"Removed {ExtraLinesCnt} extra boundary lines from MapLaneSections.");
+        if (showMsg) 
+            Debug.Log($"Removed {ExtraLinesCnt} extra boundary lines from MapLaneSections.");
         var changed = ExtraLinesCnt > 0;
 
         ExtraLinesCnt = 0;
         foreach (var mapIntersection in mapIntersections)
         {
-            var mapLanes = new List<MapTrafficLane>(mapIntersection.GetComponentsInChildren<MapTrafficLane>());
+            var mapLanes = mapIntersection.GetComponentsInChildren<MapTrafficLane>();
             AlignLineEndPoints(mapLanes);
             FindAndRemoveExtraLines(mapLanes);
         }
-        if (showMsg) Debug.Log($"Removed {ExtraLinesCnt} extra boundary lines from MapIntersections.");
+        if (showMsg) 
+            Debug.Log($"Removed {ExtraLinesCnt} extra boundary lines from MapIntersections.");
         changed = changed || ExtraLinesCnt > 0;
 
         SaveOrUndo(root, assetPath, isPrefab, changed);

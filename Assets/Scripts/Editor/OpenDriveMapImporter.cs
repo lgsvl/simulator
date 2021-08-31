@@ -91,7 +91,7 @@ namespace Simulator.Editor
             if (Calculate(filePath))
             {
                 Debug.Log("Successfully imported OpenDRIVE Map!");
-                Debug.Log("Note we only imported lanes of \"driving\" type. If your map is incorrect, please check if you have set MapOrigin correctly.");
+                Debug.Log("Note we only imported lanes of \"driving\", \"entry\", \"exit\", \"offRamp\", \"onRamp\" types. If your map is incorrect, please check if you have set MapOrigin correctly.");
                 Debug.Log("We generated stop lines for every entering road for an intersection, please make sure they are correct.");
                 Debug.LogWarning("!!! You need to adjust the triggerBounds for each MapIntersection.");
                 EditorSceneManager.MarkAllScenesDirty();
@@ -572,7 +572,7 @@ namespace Simulator.Editor
                     }
 
                     var affectedIdxStart = sectionsPointsIdx.Count;
-                    var dists = GetDists(ref sectionsS, ref sectionIdx, geometry, sectionsPointsIdx, referenceLinePoints);
+                    var dists = GetDists(sectionsS, ref sectionIdx, geometry, sectionsPointsIdx, referenceLinePoints);
                     var affectedIdxEnd = sectionsPointsIdx.Count;
 
                     if (geometry.Items[0] is OpenDRIVERoadGeometryLine) // Line
@@ -693,18 +693,10 @@ namespace Simulator.Editor
                     }
 
                     var startIdx = sectionsPointsIdx[i];
-                    int endIdx;
-                    if (i == laneSections.Length - 1)
+                    int endIdx = (i == laneSections.Length - 1) ? referenceLinePointsOffset.Count : sectionsPointsIdx[i + 1] + 1;
+                    if (endIdx - startIdx < 2)
                     {
-                        endIdx = referenceLinePointsOffset.Count;
-                    }
-                    else
-                    {
-                        endIdx = sectionsPointsIdx[i + 1];
-                    }
-
-                    if (endIdx == startIdx)
-                    {
+                        Debug.LogWarning($"Road {roadId} laneSection {i}: skipped importing");
                         continue;
                     }
 
@@ -794,57 +786,52 @@ namespace Simulator.Editor
             }
         }
 
-        List<double> GetDists(ref List<double> sectionsS, ref int sectionIdx,
-            OpenDRIVERoadGeometry geometry, List<int> sectionPointsIdx, List<Vector3> refPoints)
+        // Returns list of distances where we will discretize road curves.
+        // Also fills sectionPointsIdx with indexes, so that sectionPointsIdx[sectionId] will tell first index within distance list.
+        List<double> GetDists(List<double> sectionsS, 
+            ref int sectionIdx,
+            OpenDRIVERoadGeometry geometry, 
+            List<int> sectionPointsIdx, 
+            List<Vector3> refPoints)
         {
-            // Add two closest dists for nonzero laneSections, s - 0.1 and s to get correct laneOffsets
-            // previous lane section points until the point of s - 0.1, next lane section start the point of s
             if (sectionIdx < sectionsS.Count && sectionsS[sectionIdx] < 0)
             {
                 sectionPointsIdx.Add(refPoints.Count);
                 sectionIdx++;
             }
 
-            var dists = new List<double>(); // distances from geometry.s
-            var resolution = 1;
-            for (var i = 0; i < geometry.length - 0.1; i += resolution)
-            {
-                dists.Add(i);
-            }
-            if (geometry.length - 0.1 >= 0)
-            {
-                dists.Add(geometry.length - 0.1);
-            }
+            // Create list of distances that will be used to discretize points later.
+            // Distance between points is 1.0 or less, depending on length of reference geometry.
+            var dists = new List<double>();
+            var samplingLength = Math.Min(geometry.length, 1.0);
+            var sampleCount = Math.Ceiling(geometry.length / samplingLength);
+            var sampleStep = geometry.length/sampleCount;
+            for (int i = 0; i <= sampleCount; i++)
+                dists.Add(sampleStep * i);
 
-            // separate dists at least 1 meter except for the two points around lanesection idx
-            if (dists.Count > 1 && (dists.Last() - dists[dists.Count - 2]) < 0.1)
-            {
-                dists.RemoveAt(dists.Count - 2);
-            }
-
+            // If Current Section index is within range AND current PlaneView Geometry s start is really close to current section start.
             if (sectionIdx < sectionsS.Count && Math.Abs(geometry.s - sectionsS[sectionIdx]) < 0.001)
             {
                 sectionPointsIdx.Add(refPoints.Count);
                 sectionIdx++;
             }
 
-            int idx = 1;
-            while (sectionIdx < sectionsS.Count && sectionsS[sectionIdx] < geometry.s + geometry.length - 0.1)
+            for(int idx = 1; (sectionIdx < sectionsS.Count && sectionsS[sectionIdx] < geometry.s + geometry.length - 0.1); idx++)
             {
                 var sectionS = sectionsS[sectionIdx];
-                while (idx < dists.Count && geometry.s + dists[idx] < sectionS) idx++;
+                while (idx < dists.Count && geometry.s + dists[idx] < sectionS) 
+                    idx++;
 
                 double diff = geometry.s + dists[idx] - sectionS;
                 if (diff < 0.001)
                 {
-                    dists.Insert(idx, dists[idx++] - 0.1);
-                    sectionPointsIdx.Add(refPoints.Count + idx);
-                    sectionIdx++;
+                    dists.Insert(idx, dists[idx] - 0.1);
+                    sectionPointsIdx.Add(refPoints.Count + idx + 1);
                 }
                 else
                 {
-                    var sectionDist = sectionS - geometry.s;
                     // Remove closest element in dists
+                    var sectionDist = sectionS - geometry.s;
                     if (sectionDist - dists[idx - 1] < dists[idx] - sectionDist)
                     {
                         dists.RemoveAt(idx - 1);
@@ -854,11 +841,12 @@ namespace Simulator.Editor
                     {
                         dists.RemoveAt(idx);
                     }
-                    dists.Insert(idx++, sectionDist - 0.1);
-                    dists.Insert(idx, sectionDist);
-                    sectionPointsIdx.Add(refPoints.Count + idx);
-                    sectionIdx++;
+                    dists.Insert(idx, sectionDist - 0.1);
+                    dists.Insert(idx+1, sectionDist);
+                    sectionPointsIdx.Add(refPoints.Count + idx+1);
+                    
                 }
+                sectionIdx++;
             }
 
             Debug.Assert(IsIncreasingMontonically<double>(dists));
@@ -1155,8 +1143,10 @@ namespace Simulator.Editor
             // From left to right, compute other MapLines
             // Get number of lanes and move lane into a new MapLaneSection or SingleLanes
             GameObject parentObj = GetParentObj(roadIdLaneSectionId, laneSection);
-            if (laneSection.left != null && laneSection.left.lane != null) CreateLinesLanes(roadId, laneSectionId, sectionRefPoints, refMapLine, laneSection.left.lane, parentObj, true);
-            if (laneSection.right != null && laneSection.right.lane != null) CreateLinesLanes(roadId, laneSectionId, sectionRefPoints, refMapLine, laneSection.right.lane, parentObj, false);
+            if (laneSection.left != null && laneSection.left.lane != null) 
+                CreateLinesLanes(roadId, laneSectionId, sectionRefPoints, refMapLine, laneSection.left.lane, parentObj, true);
+            if (laneSection.right != null && laneSection.right.lane != null) 
+                CreateLinesLanes(roadId, laneSectionId, sectionRefPoints, refMapLine, laneSection.right.lane, parentObj, false);
 
             DownSampleLaneLines(roadId, laneSectionId);
 
@@ -1596,11 +1586,11 @@ namespace Simulator.Editor
                             incomingLane = incomingId2MapLane[laneId];
                             connectingLane = connectingId2MapLane[laneId];
                             UpdateBeforesAfters(contactPoint, connectingLane, incomingLane);
-                            if (laneId > 0 && Lane2LaneType[incomingLane] == laneType.driving)
+                            if (laneId > 0 && LaneTypeIsDrivable(Lane2LaneType[incomingLane]))
                             {
                                 IncomingRoadId2leftLanes[incomingRoadId].Add(incomingLane);
                             }
-                            if (laneId < 0 && Lane2LaneType[incomingLane] == laneType.driving)
+                            if (laneId < 0 && LaneTypeIsDrivable(Lane2LaneType[incomingLane]))
                             {
                                 IncomingRoadId2rightLanes[incomingRoadId].Add(incomingLane);
                             }
@@ -1630,11 +1620,11 @@ namespace Simulator.Editor
                             }
                             connectingLane = connectingId2MapLane[laneLink.to];
                             UpdateBeforesAfters(contactPoint, incomingLane, connectingLane);
-                            if (incomingLaneId > 0 && Lane2LaneType[incomingLane] == laneType.driving)
+                            if (incomingLaneId > 0 && LaneTypeIsDrivable(Lane2LaneType[incomingLane]))
                             {
                                 IncomingRoadId2leftLanes[incomingRoadId].Add(incomingLane);
                             }
-                            if (incomingLaneId < 0 && Lane2LaneType[incomingLane] == laneType.driving)
+                            if (incomingLaneId < 0 && LaneTypeIsDrivable(Lane2LaneType[incomingLane]))
                             {
                                 IncomingRoadId2rightLanes[incomingRoadId].Add(incomingLane);
                             }
@@ -2223,7 +2213,7 @@ namespace Simulator.Editor
             var lanesToKeep = new List<MapTrafficLane>();
             foreach (var entry in Lane2LaneType)
             {
-                if (entry.Value != laneType.driving)
+                if (!LaneTypeIsDrivable(entry.Value))
                 {
                     linesToRemove.Add(entry.Key.leftLineBoundry);
                     linesToRemove.Add(entry.Key.rightLineBoundry);
@@ -2246,7 +2236,7 @@ namespace Simulator.Editor
                     foreach (var laneEntry in Roads[roadId][laneSectionId])
                     {
                         var lane = laneEntry.Value;
-                        if (Lane2LaneType[lane] != laneType.driving)
+                        if (!LaneTypeIsDrivable(Lane2LaneType[lane]))
                         {
                             continue; // already removed.
                         }
@@ -2270,8 +2260,8 @@ namespace Simulator.Editor
 
             foreach (var lane in lanesToKeep)
             {
-                RemoveLineFromSet(linesToRemove, lane.leftLineBoundry);
-                RemoveLineFromSet(linesToRemove, lane.rightLineBoundry);
+                linesToRemove.Remove(lane.leftLineBoundry);
+                linesToRemove.Remove(lane.rightLineBoundry);
             }
 
             foreach (var line in linesToRemove)
@@ -2328,9 +2318,6 @@ namespace Simulator.Editor
                     Debug.LogWarning($"Cannot find associated intersection for {obj.name}.");
                 }
             }
-
-            var mapAnnotations = ScriptableObject.CreateInstance<MapAnnotations>();
-            mapAnnotations.RemoveExtraLines(false, MapHolder);
         }
 
         private void MoveSingleLaneSections()
@@ -2463,22 +2450,18 @@ namespace Simulator.Editor
             }
         }
 
-        private void RemoveLineFromSet(HashSet<MapLine> linesToRemove, MapLine line)
+        bool LaneTypeIsDrivable(laneType type)
         {
-            if (linesToRemove.Contains(line))
-            {
-                linesToRemove.Remove(line);
-            }
+            return type == laneType.driving ||
+                type == laneType.entry ||
+                type == laneType.exit ||
+                type == laneType.offRamp ||
+                type == laneType.onRamp;
         }
 
         static Vector2 ToVector2(Vector3 pt)
         {
             return new Vector2(pt.x, pt.z);
-        }
-
-        static Vector3 ToVector3(Vector2 p)
-        {
-            return new Vector3(p.x, 0f, p.y);
         }
 
         public static bool IsIncreasingMontonically<T>(List<T> list) where T : IComparable

@@ -1,11 +1,11 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
  */
 
-
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -647,55 +647,63 @@ namespace Simulator.Editor
 
         public bool Export(string foldername)
         {
-            MapAnnotationData = new MapManagerData();
-
-            // Process lanes, intersections.
-            MapAnnotationData.GetIntersections();
-            MapAnnotationData.GetTrafficLanes();
-
-            if (Calculate())
+            try
             {
-                var sb = new StringBuilder();
-                foreach (var list in ExportLists)
+                MapAnnotationData = new MapManagerData();
+
+                // Process lanes, intersections.
+                MapAnnotationData.GetIntersections();
+                MapAnnotationData.GetTrafficLanes();
+
+                if (Calculate())
                 {
-                    var csvFilename = list.FileName;
-                    var csvHeader = VectorMapUtility.GetCSVHeader(list.Type);
-
-                    var filepath = Path.Combine(foldername, csvFilename);
-
-                    if (!System.IO.Directory.Exists(foldername))
+                    var sb = new StringBuilder();
+                    foreach (var list in ExportLists)
                     {
-                        System.IO.Directory.CreateDirectory(foldername);
-                    }
+                        var csvFilename = list.FileName;
+                        var csvHeader = VectorMapUtility.GetCSVHeader(list.Type);
 
-                    if (System.IO.File.Exists(filepath))
-                    {
-                        System.IO.File.Delete(filepath);
-                    }
+                        var filepath = Path.Combine(foldername, csvFilename);
 
-                    sb.Clear();
-                    using (StreamWriter sw = File.CreateText(filepath))
-                    {
-                        sb.Append(csvHeader);
-                        sb.Append("\n");
-
-                        foreach (var e in list.List)
+                        if (!System.IO.Directory.Exists(foldername))
                         {
-                            foreach (var field in list.Type.GetFields(BindingFlags.Instance | BindingFlags.Public))
-                            {
-                                sb.Append(field.GetValue(e).ToString());
-                                sb.Append(",");
-                            }
-                            sb.Remove(sb.Length - 1, 1);
-                            sb.Append("\n");
+                            System.IO.Directory.CreateDirectory(foldername);
                         }
-                        sw.Write(sb);
-                    }
-                }
 
-                Debug.Log("Successfully generated and exported Autoware Vector Map!");
+                        if (System.IO.File.Exists(filepath))
+                        {
+                            System.IO.File.Delete(filepath);
+                        }
+
+                        sb.Clear();
+                        using (StreamWriter sw = File.CreateText(filepath))
+                        {
+                            sb.Append(csvHeader);
+                            sb.Append("\n");
+
+                            foreach (var e in list.List)
+                            {
+                                foreach (var field in list.Type.GetFields(BindingFlags.Instance | BindingFlags.Public))
+                                {
+                                    sb.Append(field.GetValue(e).ToString());
+                                    sb.Append(",");
+                                }
+                                sb.Remove(sb.Length - 1, 1);
+                                sb.Append("\n");
+                            }
+                            sw.Write(sb);
+                        }
+                    }
+                    Debug.Log("Successfully generated and exported Autoware Vector Map!");
+                    return true;
+                }
+                Debug.LogError("Failed to export Autoware Map!");
             }
-            return true;
+            catch (Exception exc)
+            {
+                Debug.LogError($"Autoware Map export unexpected error: {exc.Message}");
+            }
+            return false;
         }
 
         // Join and convert a set of singlely-connected segments and also setup world positions for all segments

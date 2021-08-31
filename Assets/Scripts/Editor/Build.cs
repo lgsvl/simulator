@@ -370,6 +370,8 @@ namespace Simulator.Editor
                                 Directory.Delete(tmpdir);
                             }
 
+                            /*
+                            // TODO: remove Apollo 3.0 support completely.
                             apolloMapTool = new ApolloMapTool(ApolloMapTool.ApolloVersion.Apollo_3_0);
                             tmpdir = Path.Combine(outputFolder, $"{name}_apollomap_3_0");
                             Directory.CreateDirectory(tmpdir);
@@ -382,6 +384,7 @@ namespace Simulator.Editor
                             {
                                 Directory.Delete(tmpdir);
                             }
+                            */
 
                             AutowareMapTool autowareMapTool = new AutowareMapTool();
                             tmpdir = Path.Combine(outputFolder, $"{name}_autoware");

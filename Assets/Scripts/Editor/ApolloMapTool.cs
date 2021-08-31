@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -2820,25 +2820,32 @@ namespace Simulator.Editor
 
         public bool Export(string filePath)
         {
-            bool success = false;
-            mapOrigin = MapOrigin.Find();
-
-            OriginEasting = mapOrigin.OriginEasting;
-            OriginNorthing = mapOrigin.OriginNorthing;
-            AltitudeOffset = mapOrigin.AltitudeOffset;
-            OriginZone = mapOrigin.UTMZoneId;
-
-            if (Calculate())
+            try
             {
-                using (var fs = File.Create(filePath))
-                {
-                    ProtoBuf.Serializer.Serialize(fs, Hdmap);
-                }
+                mapOrigin = MapOrigin.Find();
 
-                Debug.Log("Successfully generated and exported Apollo HD Map!");
-                success = true;
+                OriginEasting = mapOrigin.OriginEasting;
+                OriginNorthing = mapOrigin.OriginNorthing;
+                AltitudeOffset = mapOrigin.AltitudeOffset;
+                OriginZone = mapOrigin.UTMZoneId;
+
+                if (Calculate())
+                {
+                    using (var fs = File.Create(filePath))
+                    {
+                        ProtoBuf.Serializer.Serialize(fs, Hdmap);
+                    }
+
+                    Debug.Log("Successfully generated and exported Apollo HD Map!");
+                    return true;
+                }
+                Debug.LogError("Failed to export Apollo HD Map!");
             }
-            return success;
+            catch (Exception exc)
+            {
+                Debug.LogError($"Apollo HD Map export unexpected error: {exc.Message}");
+            }
+            return false;
         }
 
         static HD.Id HdId(string id) => new HD.Id() { id = id };

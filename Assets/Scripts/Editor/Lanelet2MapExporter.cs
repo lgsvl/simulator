@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -1682,49 +1682,51 @@ namespace Simulator.Editor
 
         public bool Export(string filePath)
         {
-            bool success = false;
-            if (Calculate())
+            try
             {
-                using (var file = File.Create(filePath))
-                using (var target = new XmlOsmStreamTarget(file))
+                if (Calculate())
                 {
-                    target.Generator = "LGSVL Simulator";
-                    target.Initialize();
-
-                    foreach (OsmGeo element in map)
+                    using (var file = File.Create(filePath))
+                    using (var target = new XmlOsmStreamTarget(file))
                     {
-                        if (element == null)
-                        {
-                            continue;
-                        }
+                        target.Generator = "LGSVL Simulator";
+                        target.Initialize();
 
-                        if (element.Type == OsmGeoType.Node)
+                        foreach (OsmGeo element in map)
                         {
-                            Node node = element as Node;
-                            target.AddNode(node);
+                            if (element == null)
+                            {
+                                continue;
+                            }
+
+                            if (element.Type == OsmGeoType.Node)
+                            {
+                                Node node = element as Node;
+                                target.AddNode(node);
+                            }
+                            else if (element.Type == OsmGeoType.Way)
+                            {
+                                Way way = element as Way;
+                                target.AddWay(way);
+                            }
+                            else if (element.Type == OsmGeoType.Relation)
+                            {
+                                Relation relation = element as Relation;
+                                target.AddRelation(relation);
+                            }
                         }
-                        else if (element.Type == OsmGeoType.Way)
-                        {
-                            Way way = element as Way;
-                            target.AddWay(way);
-                        }
-                        else if (element.Type == OsmGeoType.Relation)
-                        {
-                            Relation relation = element as Relation;
-                            target.AddRelation(relation);
-                        }
+                        target.Close();
                     }
-
-                    target.Close();
+                    Debug.Log("Successfully generated and exported Lanelet2 HD Map!");
+                    return true;
                 }
-                Debug.Log("Successfully generated and exported Lanelet2 Map!");
-                success = true;
+                Debug.LogError("Failed to export Lanelet2 HD Map!");
             }
-            else
+            catch (Exception exc)
             {
-                Debug.LogError("Failed to export Lanelet2 Map!");
+                Debug.LogError($"Lanelet2 HD Map export unexpected error: {exc.Message}");
             }
-            return success;
+            return false;
         }
 
         public void AddBoundaryTagToWay(LaneData laneData, Way leftWay, Way rightWay)

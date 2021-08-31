@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -243,17 +243,21 @@ namespace Simulator.Editor
         // Link before and after lanes/lines
         public static bool LinkSegments<T>(HashSet<T> segments) where T : PositionsData, ILaneLineDataCommon<T>
         {
+            // Calculate endpoints snap distance. We cannot snap using distances bigger than shortest segment, * 0.5 to ensure correctness.
+            var shortestSegmentLength = segments.Min(s => (s.mapLocalPositions.First() - s.mapLocalPositions.Last()).magnitude);
+            var endPointsSnapDistance = Math.Min(shortestSegmentLength / 2, MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR);
+
             foreach (var segment in segments)
             {
-                // clear
+                // Clear segment's before and afters.
                 segment.befores.Clear();
                 segment.afters.Clear();
 
-                if (typeof(T) == typeof(LineData))
-                    if ((segment as LineData).mapLine.lineType == MapData.LineType.STOP) continue;
+                if (typeof(T) == typeof(LineData) && (segment as LineData).mapLine.lineType == MapData.LineType.STOP) 
+                    continue;
 
-                // Each segment must have at least 2 waypoints for calculation, otherwise exit
-                while (segment.mapLocalPositions.Count < 2)
+                // Each segment must have at least 2 waypoints for calculation, otherwise exit.
+                if (segment.mapLocalPositions.Count < 2)
                 {
                     Debug.LogError("Some segment has less than 2 waypoints. Cancelling map generation.");
                     return false;
@@ -265,24 +269,21 @@ namespace Simulator.Editor
 
                 foreach (var segmentCmp in segments)
                 {
-                    if (segment == segmentCmp)
-                    {
+                    if (segment == segmentCmp ||
+                        (typeof(T) == typeof(LineData) && (segmentCmp as LineData).mapLine.lineType == MapData.LineType.STOP))
                         continue;
-                    }
-                    if (typeof(T) == typeof(LineData))
-                        if ((segmentCmp as LineData).mapLine.lineType == MapData.LineType.STOP) continue;
 
                     var firstPt_cmp = segmentCmp.go.transform.TransformPoint(segmentCmp.mapLocalPositions[0]);
                     var lastPt_cmp = segmentCmp.go.transform.TransformPoint(segmentCmp.mapLocalPositions[segmentCmp.mapLocalPositions.Count - 1]);
 
-                    if ((firstPt - lastPt_cmp).magnitude < MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
+                    if ((firstPt - lastPt_cmp).magnitude < endPointsSnapDistance)
                     {
                         segmentCmp.mapLocalPositions[segmentCmp.mapLocalPositions.Count - 1] = segmentCmp.go.transform.InverseTransformPoint(firstPt);
                         segmentCmp.mapWorldPositions[segmentCmp.mapWorldPositions.Count - 1] = firstPt;
                         segment.befores.Add(segmentCmp);
                     }
 
-                    if ((lastPt - firstPt_cmp).magnitude < MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
+                    if ((lastPt - firstPt_cmp).magnitude < endPointsSnapDistance)
                     {
                         segmentCmp.mapLocalPositions[0] = segmentCmp.go.transform.InverseTransformPoint(lastPt);
                         segmentCmp.mapWorldPositions[0] = lastPt;
@@ -2228,25 +2229,28 @@ namespace Simulator.Editor
 
         public bool Export(string filePath)
         {
-            bool success = false;
-            if (Calculate())
+            try
             {
-                var serializer = new XmlSerializer(typeof(OpenDRIVE));
-
-                using (var writer = new StreamWriter(filePath))
-                using (var xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings { Indent = true, IndentChars = "    " }))
+                if (Calculate())
                 {
-                    serializer.Serialize(xmlWriter, Map);
-                }
+                    var serializer = new XmlSerializer(typeof(OpenDRIVE));
 
-                Debug.Log("Successfully generated and exported OpenDRIVE Map! If your map looks weird at some roads, you might have wrong boundary lines for some lanes.");
-                success = true;
+                    using (var writer = new StreamWriter(filePath))
+                    using (var xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings { Indent = true, IndentChars = "    " }))
+                    {
+                        serializer.Serialize(xmlWriter, Map);
+                    }
+
+                    Debug.Log("Successfully generated and exported OpenDRIVE Map! If your map looks weird at some roads, you might have wrong boundary lines for some lanes.");
+                    return true;
+                }
+                Debug.LogError("Failed to export OpenDRIVE HD Map!");
             }
-            else
+            catch (Exception exc)
             {
-                Debug.LogError("Failed to export OpenDRIVE Map!");
+                Debug.LogError($"OpenDRIVE HD Map export unexpected error: {exc.Message}");
             }
-            return success;
+            return false;
         }
 
         static Vector2 ToVector2(Vector3 pt)

@@ -41,8 +41,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <returns>A new HDRenderPipeline instance.</returns>
         protected override RenderPipeline CreatePipeline()
-            => new HDRenderPipeline(this, HDRenderPipeline.defaultAsset);
-
+        {
+            m_RenderingActiveCameraFrameSettings = m_RenderingPathDefaultCameraFrameSettings;            
+            return new HDRenderPipeline(this, HDRenderPipeline.defaultAsset);
+        }
+        
         /// <summary>
         /// OnValidate implementation.
         /// </summary>
@@ -138,6 +141,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         FrameSettings m_RenderingPathDefaultCameraFrameSettings = FrameSettings.NewDefaultCamera();
 
+        public FrameSettings m_RenderingActiveCameraFrameSettings = FrameSettings.NewDefaultCamera();
+
         [SerializeField]
         FrameSettings m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings = FrameSettings.NewDefaultCustomOrBakeReflectionProbe();
 
@@ -149,7 +154,8 @@ namespace UnityEngine.Rendering.HighDefinition
             switch(type)
             {
                 case FrameSettingsRenderType.Camera:
-                    return ref m_RenderingPathDefaultCameraFrameSettings;
+                    //return ref m_RenderingPathDefaultCameraFrameSettings;
+                    return ref m_RenderingActiveCameraFrameSettings;
                 case FrameSettingsRenderType.CustomOrBakedReflection:
                     return ref m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings;
                 case FrameSettingsRenderType.RealtimeReflection:

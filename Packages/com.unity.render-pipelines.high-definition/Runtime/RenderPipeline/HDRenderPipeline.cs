@@ -102,6 +102,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal RenderPipelineSettings currentPlatformRenderPipelineSettings { get { return m_Asset.currentPlatformRenderPipelineSettings; } }
 
+        public ref FrameSettings GetDefaultCameraFrameSettings() { return ref m_Asset.m_RenderingActiveCameraFrameSettings; }
+
         readonly RenderPipelineMaterial m_DeferredMaterial;
         readonly List<RenderPipelineMaterial> m_MaterialList = new List<RenderPipelineMaterial>();
 

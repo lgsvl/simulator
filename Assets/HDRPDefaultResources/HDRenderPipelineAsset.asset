@@ -171,6 +171,20 @@ MonoBehaviour:
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
     materialQuality: 0
+  m_RenderingActiveCameraFrameSettings:
+    bitDatas:
+      data1: 140666621394765
+      data2: 4539628425463136280
+    lodBias: 1
+    lodBiasMode: 0
+    lodBiasQualityLevel: 0
+    maximumLODLevel: 0
+    maximumLODLevelMode: 0
+    maximumLODLevelQualityLevel: 0
+    sssQualityMode: 0
+    sssQualityLevel: 0
+    sssCustomSampleBudget: 20
+    materialQuality: 0
   m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings:
     bitDatas:
       data1: 135310787769165

@@ -28,6 +28,7 @@ namespace Simulator.Web
         public Button clearAssetCacheButton;
         public Button LoadedAssetsButton;
         public Button quitButton;
+        public Button SettingsButton;
         public Text linkButtonText;
         public static ConnectionUI instance;
         public Color offlineColor;
@@ -41,6 +42,7 @@ namespace Simulator.Web
         public Button VSEButton;
         public CacheControlWindow CacheControlWindow;
         public GameObject LoadedAssetsWindow;
+        public GameObject SettingsWindow;
 
         public enum LoaderUIStateType { START, PROGRESS, READY };
         public LoaderUIStateType LoaderUIState = LoaderUIStateType.START;
@@ -78,10 +80,11 @@ namespace Simulator.Web
             });
             unlinkButton.onClick.AddListener(OnUnlinkButtonClicked);
             quitButton.onClick.AddListener(OnQuitButtonClicked);
+            SettingsButton.onClick.AddListener(OnSettingsButtonClicked);
             UpdateDropdown();
             offlineDropdown.onValueChanged.AddListener(OnDropdownValueChanged);
             UpdateStatus();
-            TaskProgressManager.Instance.OnUpdate += UpdateDownloadProgress;
+            TaskProgressManager.Instance.OnUpdate += UpdateDownloadProgress;            
         }
 
         public void UpdateDownloadProgress()
@@ -190,6 +193,14 @@ namespace Simulator.Web
             bool active = !statusMenuRoot.gameObject.activeSelf;
             statusMenuRoot.SetActive(active);
             dropdownArrow.transform.localScale = new Vector3(1, active ? 1 : -1, 1);
+        }
+
+        public void OnSettingsButtonClicked()
+        {
+            if (SettingsWindow == null)
+                return;
+
+            SettingsWindow.SetActive(true);
         }
 
         public void OnQuitButtonClicked()

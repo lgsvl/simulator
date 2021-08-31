@@ -1,4 +1,3 @@
-//
 def checkoutExternalAsset(assetType, projectPath) {
     // Checkout external asset into Assets/External subfolder
     def git_ref = "refs/heads/master"
@@ -59,7 +58,6 @@ pipeline {
 
   parameters {
     string(name: "CLOUD_URL", defaultValue: "${SIMULATOR_WISE_STAGING_URL}", description: "")
-    string(name: "SCENARIOS_RUNNER_DOCKER_TAG", defaultValue: "hdrp/scenarios/runner/jenkins:latest", description: "Repo and tag of scenarios runner docker image which will be bundled in zip archive")
     string(name: 'WISE_AWS_ECR_ACCOUNT_ID', defaultValue: '853285614468', description: 'The AWS account ID whose ECR will be used', trim: true)
     string(name: 'WISE_AWS_ECR_REGION', defaultValue: 'us-east-1', description: 'The AWS region where the ECR is located', trim: true)
     credentials( name: 'WISE_AWS_ECR_CREDENTIALS_ID', required: true, defaultValue: "simulator--aws-credentials", description: 'The credentials to be used for accessing the ECR', credentialType: 'com.cloudbees.jenkins.plugins.awscredentials.AWSCredentialsImpl')
@@ -81,7 +79,7 @@ pipeline {
     UNITY_SERIAL = credentials("UNITY_SERIAL")
     UNITY_VERSION = "2020.3.3f1"
     UNITY_DOCKER_IMAGE = "${GITLAB_HOST}:4567/hdrp/unityci/editor"
-    UNITY_DOCKER_IMAGE_TAG = "2020.3.3f1-v0.13-5-g143c765__build__14"
+    UNITY_DOCKER_IMAGE_TAG = "2020.3.3f1-v0.15-1-g998e745__build__20"
     CODE_SIGNING_PASSWORD = credentials("LGSVL_CODE_SIGNING_PASSWORD")
     PYTHONUNBUFFERED = "1"
     DISPLAY = ":0"
@@ -93,7 +91,6 @@ pipeline {
   }
 
   stages {
-
     stage("Git") {
       steps {
 
@@ -250,78 +247,15 @@ pipeline {
         dir("Jenkins") {
           sh "UID=`id -u` docker-compose run --rm build-simulator linux"
         }
-        sh """
-          ZIP=`basename *-linux64-${OUTPUT_SUFFIX}.zip`
-          NORUNNER=`echo \$ZIP | sed 's/\\.zip\$/-norunner.zip/g'`
-          mv \$ZIP \$NORUNNER
-        """
       }
 
-      post {
-        success {
-          archiveArtifacts "*-linux64-${OUTPUT_SUFFIX}-norunner.zip"
-        }
-      }
-
-    } // Linux
-
-    stage("bundleScenariosRunner") {
-      steps {
-        dir("Jenkins") {
-          sh """
-            echo "INFO: pulling docker image: ${GITLAB_HOST}:4567/${SCENARIOS_RUNNER_DOCKER_TAG}"
-            if ! docker pull ${GITLAB_HOST}:4567/${SCENARIOS_RUNNER_DOCKER_TAG}; then
-              echo "ABORT: cannot pull ${GITLAB_HOST}:4567/${SCENARIOS_RUNNER_DOCKER_TAG}"
-              exit 1
-            fi
-            TEMP_CONT=`docker create ${GITLAB_HOST}:4567/${SCENARIOS_RUNNER_DOCKER_TAG} --name scenarios-runner-tmp`
-            if ! docker cp \$TEMP_CONT:/usr/share/scenarios-runner/scripts .; then
-              echo "ABORT: ${GITLAB_HOST}:4567/${SCENARIOS_RUNNER_DOCKER_TAG} doesn't have /usr/share/scenarios-runner/scripts directory"
-              docker rm \$TEMP_CONT
-              exit 1
-            fi
-            if ! docker cp \$TEMP_CONT:/etc/wise-image-info.source .; then
-              echo "ABORT: ${GITLAB_HOST}:4567/${SCENARIOS_RUNNER_DOCKER_TAG} doesn't have /etc/wise-image-info.source file"
-              docker rm \$TEMP_CONT
-              exit 1
-            fi
-            docker rm \$TEMP_CONT
-
-            rm -rf dist
-            mkdir -p dist/docker
-            DST_TAG="lgsvl/simulator-scenarios-runner:simulator-build__${OUTPUT_SUFFIX}"
-            DST_TARBALL=\$(echo \$DST_TAG | tr ':/' '-')
-
-            docker tag ${GITLAB_HOST}:4567/${SCENARIOS_RUNNER_DOCKER_TAG} \$DST_TAG
-
-            echo "INFO: saving docker image \$DST_TAG to dist/docker/\$DST_TARBALL.tar"
-            docker save \$DST_TAG > dist/docker/\$DST_TARBALL.tar
-
-            cp scripts/install-testcase-runtime.sh scripts/scenario_runner.sh dist
-
-            echo "INFO: update the default SCENARIO_RUNNER_IMAGE in scenario_runner.sh from whatever was there (probably "auto-gitlab.lgsvl.net:4567/hdrp/scenarios/runner:dev") to \$DST_TAG"
-            sed -i "s#^SCENARIO_RUNNER_IMAGE_DEFAULT=.*#SCENARIO_RUNNER_IMAGE_DEFAULT=\$DST_TAG#g" dist/scenario_runner.sh
-
-            ZIP=../*-linux64-${OUTPUT_SUFFIX}-norunner.zip
-
-            unzip -o \$ZIP
-            UNZIP=`basename \$ZIP | sed 's/-norunner\\.zip\$//g'`
-            echo "INFO: bundling simulator from \$UNZIP with scenarios runner from docker image ${SCENARIOS_RUNNER_DOCKER_TAG}:"
-            cat wise-image-info.source
-
-            dist/install-testcase-runtime.sh \$UNZIP copy
-            zip --symlinks -r ../\$UNZIP.zip \$UNZIP
-            rm -rvf dist \$UNZIP/
-            rm -f wise-image-info.source
-          """
-        }
-      }
       post {
         success {
           archiveArtifacts "*-linux64-${OUTPUT_SUFFIX}.zip"
         }
       }
-    }
+
+    } // Linux
 
     stage("uploadECR") {
       steps {
@@ -343,14 +277,14 @@ pipeline {
               fi
 
               cd ../Docker
-              cp -al ../*-linux64-${OUTPUT_SUFFIX}-norunner.zip .
+              cp -al ../*-linux64-${OUTPUT_SUFFIX}.zip .
               docker build --pull --no-cache \
-                  --build-arg "simulator_zipfile=*-linux64-${OUTPUT_SUFFIX}-norunner.zip" \
+                  --build-arg "simulator_zipfile=*-linux64-${OUTPUT_SUFFIX}.zip" \
                   --build-arg image_git_describe=\$(git describe --always --tags) \
                   --build-arg image_uuidgen=\$(uuidgen) \
                   -t \$DOCKER_REGISTRY/\$DOCKER_REPO:\$DOCKER_TAG .
               docker push \$DOCKER_REGISTRY/\$DOCKER_REPO:\$DOCKER_TAG
-              rm -fv *-linux64-${OUTPUT_SUFFIX}-norunner.zip
+              rm -fv *-linux64-${OUTPUT_SUFFIX}.zip
 
               docker image rm \
                 \$DOCKER_REGISTRY/\$DOCKER_REPO:\$DOCKER_TAG

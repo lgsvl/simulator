@@ -32,6 +32,7 @@ namespace Simulator.Components
 
         private Dictionary<uint, EntityData> gtidDict = new Dictionary<uint, EntityData>();
         private Dictionary<int, EntityData> segIdDict = new Dictionary<int, EntityData>();
+        private Dictionary<int, Bounds> boundsDict = new Dictionary<int, Bounds>();
 
         public int AddSegmentationId(GameObject obj, uint gtid)
         {
@@ -95,6 +96,7 @@ namespace Simulator.Components
             var index = gtidDict[gtid].segmentationId;
             gtidDict.Remove(gtid);
             segIdDict.Remove(index);
+            boundsDict.Remove(index);
         }
 
         public bool TryGetEntityGameObject(int segmentationId, out GameObject go, out SegmentationEntityType type)
@@ -108,6 +110,72 @@ namespace Simulator.Components
             go = data.gameObject;
             type = data.type;
             return true;
+        }
+
+        public bool TryGetEntityLocalBoundingBox(int segmentationId, out Bounds bounds)
+        {
+            bounds = new Bounds();
+
+            if (!boundsDict.TryGetValue(segmentationId, out bounds))
+            {
+                if (TryGetEntityGameObject(segmentationId, out var go, out var type))
+                {
+                    bounds = GetLocalBoundsTight(go);
+                    boundsDict[segmentationId] = bounds;
+                    return true;
+                }
+                return false;
+            }
+
+            return true;
+        }
+
+        private Bounds GetLocalBoundsTight(GameObject go)
+        {
+            var renderers = go.GetComponentsInChildren<Renderer>();
+            var skinnedMeshRenderer = go.GetComponentInChildren<SkinnedMeshRenderer>();
+
+            if (skinnedMeshRenderer != null)
+            {
+                return TransformBounds(skinnedMeshRenderer.localBounds, skinnedMeshRenderer.rootBone, skinnedMeshRenderer.transform);
+            }
+
+            if (renderers.Length > 0)
+            {
+                Bounds bounds = new Bounds();
+
+                foreach (var renderer in renderers)
+                {
+                    var mf = renderer.GetComponent<MeshFilter>();
+                    if (mf == null)
+                        continue;
+
+                    var meshBounds = TransformBounds(mf.sharedMesh.bounds, mf.transform, go.transform);
+                    bounds.Encapsulate(meshBounds);
+
+                    return bounds;
+                }
+            }
+
+            return new Bounds();
+        }
+
+        private Bounds TransformBounds(Bounds bounds, Transform from, Transform to)
+        {
+            var result = new Bounds();
+
+            var c = bounds.center;
+            var e = bounds.extents;
+            result.Encapsulate(to.InverseTransformPoint(from.TransformPoint(new Vector3(c.x + e.x, c.y + e.y, c.z + e.z))));
+            result.Encapsulate(to.InverseTransformPoint(from.TransformPoint(new Vector3(c.x + e.x, c.y + e.y, c.z - e.z))));
+            result.Encapsulate(to.InverseTransformPoint(from.TransformPoint(new Vector3(c.x + e.x, c.y - e.y, c.z + e.z))));
+            result.Encapsulate(to.InverseTransformPoint(from.TransformPoint(new Vector3(c.x + e.x, c.y - e.y, c.z - e.z))));
+            result.Encapsulate(to.InverseTransformPoint(from.TransformPoint(new Vector3(c.x - e.x, c.y + e.y, c.z + e.z))));
+            result.Encapsulate(to.InverseTransformPoint(from.TransformPoint(new Vector3(c.x - e.x, c.y + e.y, c.z - e.z))));
+            result.Encapsulate(to.InverseTransformPoint(from.TransformPoint(new Vector3(c.x - e.x, c.y - e.y, c.z + e.z))));
+            result.Encapsulate(to.InverseTransformPoint(from.TransformPoint(new Vector3(c.x - e.x, c.y - e.y, c.z - e.z))));
+
+            return result;
         }
     }
 }

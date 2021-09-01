@@ -80,6 +80,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     protected int NPCMaxCount = 0;
 
     protected virtual int NPCPoolSize => NPCMaxCount;
+    protected virtual Type DefaultBehaviour => typeof(NPCLaneFollowBehaviour);
 
     protected int ActiveNPCCount = 0;
     private System.Random RandomGenerator;
@@ -93,7 +94,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     public delegate void DespawnCallbackType(NPCController controller);
     protected List<DespawnCallbackType> DespawnCallbacks = new List<DespawnCallbackType>();
 
-    private bool InitialSpawn = false;
+    protected bool InitialSpawn = false;
 
     public void RegisterSpawnCallback(SpawnCallbackType callback)
     {
@@ -248,7 +249,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         NPCController.Init(spawnData.Seed);
         go.transform.SetPositionAndRotation(spawnData.Position, spawnData.Rotation);
         NPCController.SetLastPosRot(spawnData.Position, spawnData.Rotation);
-        NPCController.SetBehaviour<NPCLaneFollowBehaviour>();
+        NPCController.SetBehaviour(DefaultBehaviour);
         CurrentPooledNPCs.Add(NPCController);
 
         SimulatorManager.Instance.UpdateSegmentationColors(NPCController.gameObject, NPCController.GTID);

@@ -373,7 +373,7 @@ public class NPCLaneFollowBehaviour : NPCBehaviourBase
 
         if (currentStopTime > 60f && !controller.IsUserSpecified)
         {
-            Debug.Log($"NPC Despawn: Stopped for {currentStopTime} seconds");
+            //Debug.Log($"NPC Despawn: Stopped for {currentStopTime} seconds");
             Despawn();
         }
     }

@@ -6,6 +6,7 @@
  */
 
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Simulator.Utilities;
 using Simulator.Map;
@@ -215,7 +216,7 @@ public class MapManager : MonoBehaviour
         MapParkingSpace closest = null;
         foreach (var parking in parkingSpaces)
         {
-            var dist = (parking.mapWorldPositions[0] - position).sqrMagnitude;
+            var dist = (parking.Center - position).sqrMagnitude;
             if (dist < min)
             {
                 min = dist;

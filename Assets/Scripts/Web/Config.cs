@@ -51,6 +51,7 @@ namespace Simulator.Web
         public static Dictionary<string, IControllable> Controllables = new Dictionary<string, IControllable>();
         public static Dictionary<IControllable, List<GameObject>> ControllableAssets = new Dictionary<IControllable, List<GameObject>>();
         public static Dictionary<string, Type> NPCBehaviours = new Dictionary<string, Type>();
+        public static Dictionary<Type,GameObject> CustomManagers = new Dictionary<Type,GameObject>();
 
         public class NPCAssetData
         {
@@ -197,6 +198,40 @@ namespace Simulator.Web
             {
                 NPCBehaviours.Add(b.ToString(), b);
             }
+
+#if UNITY_EDITOR
+            if (EditorPrefs.GetBool("Simulator/Developer Debug Mode", false) == true)
+            {
+                var npcAssembly = Assembly.Load("Simulator.NPCs");
+                foreach (var ty in npcAssembly.GetTypes())
+                {
+                    if (ty.IsAbstract)
+                    {
+                        continue;
+                    }
+                    if (typeof(NPCBehaviourBase).IsAssignableFrom(ty))
+                    {
+                        NPCBehaviours.Add(ty.ToString(), ty);
+                    }
+                    else if (typeof(ICommand).IsAssignableFrom(ty))
+                    {
+                        var cmd = Activator.CreateInstance(ty) as ICommand;
+                        ApiManager.Commands.Add(cmd.Name, cmd);
+                    }
+                    else if (typeof(ICustomManager).IsAssignableFrom(ty))
+                    {
+                        var npcDir = Path.Combine(BundleConfig.ExternalBase, BundleConfig.pluralOf(BundleConfig.BundleTypes.NPC));
+                        var prefabGuid = AssetDatabase.FindAssets($"t:GameObject {ty.Name}", new[] { npcDir }).FirstOrDefault();
+                        if (prefabGuid != null)
+                        {
+                            var path = AssetDatabase.GUIDToAssetPath(prefabGuid);
+                            var prefab = AssetDatabase.LoadAssetAtPath(path, typeof(GameObject)) as GameObject;
+                            CustomManagers.Add(ty,prefab);
+                        }
+                    }
+                }
+            }
+#endif
         }
 
         private static void SaveConfigFile()
@@ -448,6 +483,7 @@ namespace Simulator.Web
             {
                 throw new Exception($"manifest version mismatch, expected {BundleConfig.Versions[BundleConfig.BundleTypes.NPC]}, got {manifest.assetFormat}");
             }
+            List<Type> customManagers = new List<Type>();
             Assembly pluginSource = LoadAssembly(dir, $"{manifest.assetName}.dll");
             if (pluginSource != null)
             {
@@ -459,12 +495,19 @@ namespace Simulator.Web
                     }
                     if (typeof(NPCBehaviourBase).IsAssignableFrom(ty))
                     {
-                        NPCBehaviours.Add(ty.ToString(), ty);
+                        if(!NPCBehaviours.ContainsKey(ty.ToString()))
+                        {
+                            NPCBehaviours.Add(ty.ToString(), ty);
+                        }
                     }
                     else if (typeof(ICommand).IsAssignableFrom(ty))
                     {
                         var cmd = Activator.CreateInstance(ty) as ICommand;
                         ApiManager.Commands.Add(cmd.Name, cmd);
+                    }
+                    else if (typeof(ICustomManager).IsAssignableFrom(ty))
+                    {
+                        customManagers.Add(ty);
                     }
                 }
             }
@@ -503,26 +546,24 @@ namespace Simulator.Web
                     if (File.Exists(Path.Combine(NPCDir, manifest.assetName, $"{manifest.assetName}.prefab")))
                     {
                         var prefab = (GameObject)AssetDatabase.LoadAssetAtPath(Path.Combine(NPCDir, manifest.assetName, $"{manifest.assetName}.prefab"), typeof(GameObject));
-
-                        Map.NPCSizeType size = Map.NPCSizeType.MidSize;
-                        var meta = prefab.GetComponent<NPCMetaData>();
-
-                        if (meta != null)
+                        if(prefab != null)
                         {
-                            size = meta.SizeType;
+                            var meta = prefab.GetComponent<NPCMetaData>();
+                            if (meta != null)
+                            {
+                                NPCVehicles.Add(manifest.assetName, new NPCAssetData()
+                                {
+                                    Prefab = prefab,
+                                    Name = manifest.assetName,
+                                    AssetGuid = manifest.assetGuid,
+                                    NPCType = meta.SizeType,
+                                });
+                            }
+                            else
+                            {
+                                Debug.LogWarning($"NPC {manifest.assetName} missing meta info, setting default type");
+                            }
                         }
-                        else
-                        {
-                            Debug.LogWarning($"NPC {manifest.assetName} missing meta info, setting default type");
-                        }
-
-                        NPCVehicles.Add(manifest.assetName, new NPCAssetData()
-                        {
-                            Prefab = prefab,
-                            Name = manifest.assetName,
-                            AssetGuid = manifest.assetGuid,
-                            NPCType = size,
-                        });
 
                         if (textureBundle && !AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
                         {
@@ -532,6 +573,7 @@ namespace Simulator.Web
                         LoadedAssets.Add(manifest);
                         return;
                     }
+                   
                 }
             }
 #endif
@@ -542,28 +584,30 @@ namespace Simulator.Web
                 var pluginAssets = pluginBundle.GetAllAssetNames();
                 var prefabName = $"{manifest.assetName}.prefab";
                 var mainPrefabName =
-                    pluginAssets.First(name => name.IndexOf(prefabName, StringComparison.InvariantCultureIgnoreCase) >= 0);
-                GameObject prefab = pluginBundle.LoadAsset<GameObject>(mainPrefabName);
-
-                Map.NPCSizeType size = Map.NPCSizeType.MidSize;
-                var meta = prefab.GetComponent<NPCMetaData>();
-
-                if (meta != null)
+                    pluginAssets.FirstOrDefault(name => name.IndexOf(prefabName, StringComparison.InvariantCultureIgnoreCase) >= 0);
+                if(mainPrefabName != null)
                 {
-                    size = meta.SizeType;
+                    GameObject prefab = pluginBundle.LoadAsset<GameObject>(mainPrefabName);
+
+                    var meta = prefab.GetComponent<NPCMetaData>();
+
+                    if (meta != null)
+                    {
+                        NPCVehicles.Add(manifest.assetName, new NPCAssetData()
+                        {
+                            Prefab = prefab,
+                            Name = manifest.assetName,
+                            AssetGuid = manifest.assetGuid,
+                            NPCType = meta.SizeType,
+                        });
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"NPC {manifest.assetName} missing meta info, setting default type");
+                    }   
                 }
-                else
-                {
-                    Debug.LogWarning($"NPC {manifest.assetName} missing meta info, setting default type");
-                }
 
-                NPCVehicles.Add(manifest.assetName, new NPCAssetData()
-                {
-                    Prefab = prefab,
-                    Name = manifest.assetName,
-                    AssetGuid = manifest.assetGuid,
-                    NPCType = size,
-                });
+                LoadCustomManagers(customManagers, pluginBundle);
             }
 
             if (pluginEntry == null && pluginSource == null)
@@ -667,6 +711,21 @@ namespace Simulator.Web
             }
 
             LoadedAssets.Add(manifest);
+        }
+
+        private static void LoadCustomManagers(List<Type> types, AssetBundle bundle)
+        {
+            var assets = bundle.GetAllAssetNames();
+            foreach (var type in types)
+            {
+                var typeName = type.Name;
+                var prefabName = assets.First(name => name.IndexOf(typeName, StringComparison.InvariantCultureIgnoreCase) >= 0);
+                if (prefabName != null)
+                {
+                    var prefab = (GameObject)bundle.LoadAsset(prefabName);
+                    CustomManagers.Add(type,prefab);
+                }
+            }
         }
 
         private class YamlConfig

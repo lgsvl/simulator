@@ -509,6 +509,7 @@ namespace Simulator.Editor
                         var buildArtifacts = new List<(string source, string archiveName)>();
                         var persistentBuildArtifacts = new List<(string source, string archiveName)>();
                         bool mainAssetIsScript = entry.mainAssetFile.EndsWith("." + ScriptExtension);
+                        bool hasPrefabs = AssetDatabase.FindAssets("t:GameObject", new[] { Path.Combine(sourcePath, entry.name) }).Any();
                         if (bundleType == BundleConfig.BundleTypes.Environment)
                         {
                             PrepareSceneManifest(entry, outputFolder, buildArtifacts, manifest);
@@ -548,7 +549,7 @@ namespace Simulator.Editor
                             }
 
                             AssetDatabase.Refresh();
-                            if (!mainAssetIsScript)
+                            if (hasPrefabs)
                             {
                                 var texturesNames = new List<string>();
                                 var assetsNames = new List<string>();
@@ -557,13 +558,13 @@ namespace Simulator.Editor
                                     case BundleConfig.BundleTypes.Vehicle:
                                     case BundleConfig.BundleTypes.Environment:
                                     case BundleConfig.BundleTypes.Sensor:
-                                    case BundleConfig.BundleTypes.NPC:
                                     case BundleConfig.BundleTypes.Bridge:
                                     case BundleConfig.BundleTypes.Pedestrian:
-                                        //Include the main asset only
+                                        ////Include the main asset only
                                         texturesNames.AddRange(AssetDatabase.GetDependencies(entry.mainAssetFile).Where(a => a.EndsWith(".png") || a.EndsWith(".jpg") || a.EndsWith(".tga")).ToArray());
                                         assetsNames.Add(entry.mainAssetFile);
                                         break;
+                                    case BundleConfig.BundleTypes.NPC:
                                     case BundleConfig.BundleTypes.Controllable:
                                         //Add all prefabs and required textures to the bundle
                                         var assetPath = Path.Combine(sourcePath, entry.name);
@@ -640,13 +641,7 @@ namespace Simulator.Editor
                                 outputAssembly = Path.Combine(outputFolder, $"{entry.name}.dll");
                                 var assemblyBuilder = new AssemblyBuilder(outputAssembly, scripts);
                                 assemblyBuilder.compilerOptions.AllowUnsafeCode = true;
-
-                                var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-                                var modules = assemblies.Where(asm =>
-                                    asm.GetName().Name.Contains("UnityEngine"));
-
-                                assemblyBuilder.additionalReferences = modules.Select(a => a.Location).ToArray();
-
+                                assemblyBuilder.referencesOptions = ReferencesOptions.UseEngineModules;
                                 assemblyBuilder.buildFinished += delegate (string assemblyPath, CompilerMessage[] compilerMessages)
                                 {
                                     var errorCount = compilerMessages.Count(m => m.type == CompilerMessageType.Error);

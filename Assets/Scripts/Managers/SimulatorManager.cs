@@ -17,6 +17,7 @@ using Simulator.Components;
 using Simulator.Network.Core.Messaging.Data;
 using Simulator.Sensors;
 using UnityEngine.SceneManagement;
+using static Simulator.Web.Config;
 
 public class SimulatorManager : MonoBehaviour
 {
@@ -180,19 +181,19 @@ public class SimulatorManager : MonoBehaviour
         ManagerHolder = new GameObject("ManagerHolder");
         ManagerHolder.transform.SetParent(transform);
         BridgeMessageDispatcher = new BridgeMessageDispatcher();
-        AnalysisManager = Instantiate(analysisManagerPrefab, ManagerHolder.transform);
-        AgentManager = Instantiate(agentManagerPrefab, ManagerHolder.transform);
-        CameraManager = Instantiate(cameraManagerPrefab, ManagerHolder.transform);
-        ControllableManager = Instantiate(controllableManagerPrefab, ManagerHolder.transform);
-        MapManager = Instantiate(mapManagerPrefab, ManagerHolder.transform);
-        NPCManager = Instantiate(npcManagerPrefab, ManagerHolder.transform);
+        AnalysisManager = InstantiateManager(analysisManagerPrefab, ManagerHolder.transform);
+        AgentManager = InstantiateManager(agentManagerPrefab, ManagerHolder.transform);
+        CameraManager = InstantiateManager(cameraManagerPrefab, ManagerHolder.transform);
+        ControllableManager = InstantiateManager(controllableManagerPrefab, ManagerHolder.transform);
+        MapManager = InstantiateManager(mapManagerPrefab, ManagerHolder.transform);
+        NPCManager = InstantiateManager(npcManagerPrefab, ManagerHolder.transform);
         NPCManager.InitRandomGenerator(RandomGenerator.Next());
-        PedestrianManager = Instantiate(pedestrianManagerPrefab, ManagerHolder.transform);
+        PedestrianManager = InstantiateManager(pedestrianManagerPrefab, ManagerHolder.transform);
         PedestrianManager.InitRandomGenerator(RandomGenerator.Next());
-        EnvironmentEffectsManager = Instantiate(environmentEffectsManagerPrefab, ManagerHolder.transform);
+        EnvironmentEffectsManager = InstantiateManager(environmentEffectsManagerPrefab, ManagerHolder.transform);
         EnvironmentEffectsManager.InitRandomGenerator(RandomGenerator.Next());
-        CustomPassManager = Instantiate(customPassManagerPrefab, ManagerHolder.transform);
-        UIManager = Instantiate(uiManagerPrefab, ManagerHolder.transform);
+        CustomPassManager = InstantiateManager(customPassManagerPrefab, ManagerHolder.transform);
+        UIManager = InstantiateManager(uiManagerPrefab, ManagerHolder.transform);
 
         controls.Simulator.ToggleNPCS.performed += ctx => NPCManager.NPCActive = !NPCManager.NPCActive;
         controls.Simulator.TogglePedestrians.performed += ctx => PedestrianManager.PedestriansActive = !PedestrianManager.PedestriansActive;
@@ -240,6 +241,19 @@ public class SimulatorManager : MonoBehaviour
         if (Loader.Instance != null) TimeManager.Initialize(Loader.Instance.Network.MessagesManager);
         Sensors.Initialize();
         IsInitialized = true;
+    }
+
+    public T InstantiateManager<T>(T prefab, Transform holder) where T : Component
+    {
+        foreach (var customManager in CustomManagers)
+        {
+            var isReplaceable = prefab.GetType().IsAssignableFrom(customManager.Key);
+            if (isReplaceable)
+            {
+                return (T)Instantiate(customManager.Value.GetComponent(customManager.Key), ManagerHolder.transform);
+            }
+        }
+        return Instantiate(prefab, ManagerHolder.transform);
     }
 
     private Bounds CalculateMapBounds()

@@ -419,6 +419,28 @@ public class NPCController : MonoBehaviour, ITriggerAgent, IMessageSender, IMess
         AgentAnimator = GetComponentInChildren<Animator>();
     }
 
+    internal NPCBehaviourBase SetBehaviour(Type t)
+    {
+        if (ActiveBehaviour != null && ActiveBehaviour.GetType().IsAssignableFrom(t))
+        {
+            return _ActiveBehaviour;
+        }
+
+        if (_ActiveBehaviour != null)
+        {
+            Destroy(_ActiveBehaviour);
+            _ActiveBehaviour = null;
+        }
+
+        NPCBehaviourBase behaviour = (NPCBehaviourBase)gameObject.AddComponent(t);
+
+        _ActiveBehaviour = behaviour;
+        _ActiveBehaviour.controller = this;
+        _ActiveBehaviour.rb = rb;
+        _ActiveBehaviour.Init(_seed);
+        return behaviour;
+    }
+
     public T SetBehaviour<T>() where T: NPCBehaviourBase
     {
         if (ActiveBehaviour as T != null)

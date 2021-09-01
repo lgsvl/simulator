@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -17,7 +17,6 @@ using Simulator.Components;
 using Simulator.Network.Core.Messaging.Data;
 using Simulator.Sensors;
 using UnityEngine.SceneManagement;
-using Input = Simulator.Input;
 
 public class SimulatorManager : MonoBehaviour
 {
@@ -195,24 +194,17 @@ public class SimulatorManager : MonoBehaviour
         CustomPassManager = Instantiate(customPassManagerPrefab, ManagerHolder.transform);
         UIManager = Instantiate(uiManagerPrefab, ManagerHolder.transform);
 
-        if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux && Application.isEditor)
+        controls.Simulator.ToggleNPCS.performed += ctx => NPCManager.NPCActive = !NPCManager.NPCActive;
+        controls.Simulator.TogglePedestrians.performed += ctx => PedestrianManager.PedestriansActive = !PedestrianManager.PedestriansActive;
+        controls.Simulator.ToggleAgent.performed += ctx =>
         {
-            // empty
-        }
-        else
-        {
-            controls.Simulator.ToggleNPCS.performed += ctx => NPCManager.NPCActive = !NPCManager.NPCActive;
-            controls.Simulator.TogglePedestrians.performed += ctx => PedestrianManager.PedestriansActive = !PedestrianManager.PedestriansActive;
-            controls.Simulator.ToggleAgent.performed += ctx =>
+            if (int.TryParse(ctx.control.name, out int index))
             {
-                if (int.TryParse(ctx.control.name, out int index))
-                {
-                    AgentManager.SetCurrentActiveAgent(index - 1);
-                }
-            };
-            controls.Simulator.ToggleReset.performed += ctx => AgentManager.ResetAgent();
-            controls.Simulator.ToggleControlsUI.performed += ctx => UIManager.UIActive = !UIManager.UIActive;
-        }
+                AgentManager.SetCurrentActiveAgent(index - 1);
+            }
+        };
+        controls.Simulator.ToggleReset.performed += ctx => AgentManager.ResetAgent();
+        controls.Simulator.ToggleControlsUI.performed += ctx => UIManager.UIActive = !UIManager.UIActive;
 
         if (config != null)
         {
@@ -339,7 +331,7 @@ public class SimulatorManager : MonoBehaviour
         }
     }
 
-    void InitSegmenationColors()
+    private void InitSegmenationColors()
     {
         var renderers = new List<Renderer>(1024);
         var sharedMaterials = new List<Material>(8);
@@ -604,7 +596,7 @@ public class SimulatorManager : MonoBehaviour
         }
     }
 
-    void FixedUpdate()
+    private void FixedUpdate()
     {
         if (Time.timeScale == 0) // prevents random frames during init
             return;
@@ -625,30 +617,6 @@ public class SimulatorManager : MonoBehaviour
             Instance.TimeManager.TimeScale = scale;
         else
             SimulatorTimeManager.SetUnityTimeScale(scale);
-    }
-
-    void Update()
-    {
-        if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux && Application.isEditor)
-        {
-            // this is a temporary workaround for Unity Editor on Linux
-            // see https://issuetracker.unity3d.com/issues/linux-editor-keyboard-when-input-handling-is-set-to-both-keyboard-input-stops-working
-
-            if (Input.GetKeyDown(KeyCode.N)) NPCManager.NPCActive = !NPCManager.NPCActive;
-            if (Input.GetKeyDown(KeyCode.P)) PedestrianManager.PedestriansActive = !PedestrianManager.PedestriansActive;
-            if (Input.GetKeyDown(KeyCode.F1)) UIManager.UIActive = !UIManager.UIActive;
-            if (Input.GetKeyDown(KeyCode.F12)) AgentManager.ResetAgent();
-            if (Input.GetKeyDown(KeyCode.Alpha1)) AgentManager.SetCurrentActiveAgent(0);
-            if (Input.GetKeyDown(KeyCode.Alpha2)) AgentManager.SetCurrentActiveAgent(1);
-            if (Input.GetKeyDown(KeyCode.Alpha3)) AgentManager.SetCurrentActiveAgent(2);
-            if (Input.GetKeyDown(KeyCode.Alpha4)) AgentManager.SetCurrentActiveAgent(3);
-            if (Input.GetKeyDown(KeyCode.Alpha5)) AgentManager.SetCurrentActiveAgent(4);
-            if (Input.GetKeyDown(KeyCode.Alpha6)) AgentManager.SetCurrentActiveAgent(5);
-            if (Input.GetKeyDown(KeyCode.Alpha7)) AgentManager.SetCurrentActiveAgent(6);
-            if (Input.GetKeyDown(KeyCode.Alpha8)) AgentManager.SetCurrentActiveAgent(7);
-            if (Input.GetKeyDown(KeyCode.Alpha9)) AgentManager.SetCurrentActiveAgent(8);
-            if (Input.GetKeyDown(KeyCode.Alpha0)) AgentManager.SetCurrentActiveAgent(9);
-        }
     }
 
     public void PhysicsUpdate()

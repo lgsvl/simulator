@@ -8,7 +8,6 @@
 using Simulator.Map;
 using System.Collections.Generic;
 using UnityEngine;
-using Input = UnityEngine.Input;
 using Random = UnityEngine.Random;
 
 public enum CameraStateType
@@ -83,32 +82,20 @@ public class SimulatorCameraController : MonoBehaviour
         thisCamera = GetComponentInChildren<Camera>();
 
         controls = SimulatorManager.Instance.controls;
-
-        if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux && Application.isEditor)
-        {
-            // empty
-        }
-        else
-        {
-            controls.Camera.Direction.started += ctx => directionInput = ctx.ReadValue<Vector2>();
-            controls.Camera.Direction.performed += ctx => directionInput = ctx.ReadValue<Vector2>();
-            controls.Camera.Direction.canceled += ctx => directionInput = Vector2.zero;
-            controls.Camera.Elevation.started += ctx => elevationInput = ctx.ReadValue<float>();
-            controls.Camera.Elevation.performed += ctx => elevationInput = ctx.ReadValue<float>();
-            controls.Camera.Elevation.canceled += ctx => elevationInput = 0f;
-
-            controls.Camera.Zoom.started += ctx => zoomInput = ctx.ReadValue<float>();
-            controls.Camera.Zoom.performed += ctx => zoomInput = ctx.ReadValue<float>();
-            controls.Camera.Zoom.canceled += ctx => zoomInput = 0f;
-
-            controls.Camera.Boost.performed += ctx => boost = ctx.ReadValue<float>();
-            controls.Camera.Boost.canceled += ctx => boost = ctx.ReadValue<float>();
-
-            controls.Camera.ToggleState.performed += ctx => ToggleFreeCinematicState();
-
-            controls.Camera.CinematicNewPath.performed += ctx => GetCinematicFollowMapLane();
-            controls.Camera.CinematicResetPath.performed += ctx => ResetCinematicMapLane();
-        }
+        controls.Camera.Direction.started += ctx => directionInput = ctx.ReadValue<Vector2>();
+        controls.Camera.Direction.performed += ctx => directionInput = ctx.ReadValue<Vector2>();
+        controls.Camera.Direction.canceled += ctx => directionInput = Vector2.zero;
+        controls.Camera.Elevation.started += ctx => elevationInput = ctx.ReadValue<float>();
+        controls.Camera.Elevation.performed += ctx => elevationInput = ctx.ReadValue<float>();
+        controls.Camera.Elevation.canceled += ctx => elevationInput = 0f;
+        controls.Camera.Zoom.started += ctx => zoomInput = ctx.ReadValue<float>();
+        controls.Camera.Zoom.performed += ctx => zoomInput = ctx.ReadValue<float>();
+        controls.Camera.Zoom.canceled += ctx => zoomInput = 0f;
+        controls.Camera.Boost.performed += ctx => boost = ctx.ReadValue<float>();
+        controls.Camera.Boost.canceled += ctx => boost = ctx.ReadValue<float>();
+        controls.Camera.ToggleState.performed += ctx => ToggleFreeCinematicState();
+        controls.Camera.CinematicNewPath.performed += ctx => GetCinematicFollowMapLane();
+        controls.Camera.CinematicResetPath.performed += ctx => ResetCinematicMapLane();
 
         controls.Camera.MouseDelta.performed += ctx => mouseInput = ctx.ReadValue<Vector2>();
         controls.Camera.MouseDelta.canceled += ctx => mouseInput = Vector2.zero;
@@ -133,51 +120,6 @@ public class SimulatorCameraController : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux && Application.isEditor)
-        {
-            // this is a temporary workaround for Unity Editor on Linux
-            // see https://issuetracker.unity3d.com/issues/linux-editor-keyboard-when-input-handling-is-set-to-both-keyboard-input-stops-working
-
-            if (Input.GetKeyDown(KeyCode.A)) directionInput.x -= 1;
-            else if (Input.GetKeyUp(KeyCode.A)) directionInput.x += 1;
-
-            if (Input.GetKeyDown(KeyCode.D)) directionInput.x += 1;
-            else if (Input.GetKeyUp(KeyCode.D)) directionInput.x -= 1;
-
-            if (Input.GetKeyDown(KeyCode.W))
-            {
-                zoomInput += 1;
-                directionInput.y += 1;
-            }
-            else if (Input.GetKeyUp(KeyCode.W))
-            {
-                zoomInput -= 1;
-                directionInput.y -= 1;
-            }
-
-            if (Input.GetKeyDown(KeyCode.S))
-            {
-                zoomInput -= 1;
-                directionInput.y -= 1;
-            }
-            else if (Input.GetKeyUp(KeyCode.S))
-            {
-                zoomInput += 1;
-                directionInput.y += 1;
-            }
-
-            if (Input.GetKeyDown(KeyCode.E)) elevationInput -= 1;
-            else if (Input.GetKeyUp(KeyCode.E)) elevationInput += 1;
-
-            if (Input.GetKeyDown(KeyCode.Q)) elevationInput += 1;
-            else if (Input.GetKeyUp(KeyCode.Q)) elevationInput -= 1;
-
-            if (Input.GetKeyDown(KeyCode.LeftShift)) boost += 1;
-            else if (Input.GetKeyUp(KeyCode.LeftShift)) boost -= 1;
-
-            if (Input.GetKeyDown(KeyCode.BackQuote)) SetFreeCameraState();
-        }
-
         if (!UseFixedUpdate)
         {
             switch (CurrentCameraState)

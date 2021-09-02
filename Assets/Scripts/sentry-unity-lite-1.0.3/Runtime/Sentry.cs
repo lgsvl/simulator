@@ -368,7 +368,7 @@ namespace Sentry
     public class Extra
     {
         public string unityVersion;
-        public string screenOrientation;
+        public string simulatorVersion;
     }
 
     [Serializable]

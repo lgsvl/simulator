@@ -351,7 +351,7 @@ public class SentrySdk : MonoBehaviour
 
         @event.tags.deviceUniqueIdentifier = SystemInfo.deviceUniqueIdentifier;
         @event.extra.unityVersion = Application.unityVersion;
-        @event.extra.screenOrientation = Screen.orientation.ToString();
+        @event.extra.simulatorVersion = Application.version;
     }
 
     private IEnumerator

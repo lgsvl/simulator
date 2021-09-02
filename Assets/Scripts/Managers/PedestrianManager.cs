@@ -232,17 +232,10 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
             return null;
         }
 
-        for (int i = 0; i < CurrentPooledPeds.Count; i++)
-        {
-            Destroy(CurrentPooledPeds[i]);
-        }
-        CurrentPooledPeds.Clear();
-        ActivePedCount = 0;
-
         var pooledPeds = new List<PedestrianController>();
-        
+        var pedCount = CurrentPooledPeds.Count;
         int poolCount = Mathf.FloorToInt(PedMaxCount + (PedMaxCount * 0.1f));
-        for (int i = 0; i < poolCount; i++)
+        for (int i = pedCount; i < poolCount; i++)
         {
             var modelIndex = RandomGenerator.Next(PedestrianData.Count);
             var model = PedestrianData[modelIndex].Prefab;
@@ -350,6 +343,7 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
     #region api
     public void DespawnPedestrianApi(PedestrianController ped)
     {
+        DespawnPed(ped);
         ped.StopPEDCoroutines();
         CurrentPooledPeds.Remove(ped);
         Destroy(ped.gameObject);

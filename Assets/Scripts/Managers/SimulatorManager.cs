@@ -113,7 +113,7 @@ public class SimulatorManager : MonoBehaviour
     private System.Random RandomGenerator;
     private HashSet<Color> InstanceColorSet = new HashSet<Color>();
 
-    private readonly SegmentationIdMapping segmentationIdMapping = new SegmentationIdMapping();
+    private SegmentationIdMapping segmentationIdMapping;
 
     public SegmentationIdMapping SegmentationIdMapping => segmentationIdMapping;
 
@@ -168,6 +168,7 @@ public class SimulatorManager : MonoBehaviour
 
         var masterSeed = seed ?? config?.Seed ?? new System.Random().Next();
         RandomGenerator = new System.Random(masterSeed);
+        segmentationIdMapping = new SegmentationIdMapping();
 
         //Calculate map bounds and limit position compression
         if (Loader.Instance != null && Loader.Instance.Network.IsClusterSimulation)

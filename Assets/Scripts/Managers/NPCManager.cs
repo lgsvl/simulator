@@ -280,19 +280,8 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     public List<NPCController> SpawnNPCPool()
     {
         var pooledNPCs = new List<NPCController>();
-        for (int i = 0; i < CurrentPooledNPCs.Count; i++)
-        {
-            if (Loader.Instance.Network.IsMaster)
-            {
-                var index = CurrentPooledNPCs.IndexOf(CurrentPooledNPCs[i]);
-                BroadcastMessage(GetDespawnMessage(index));
-            }
-
-            Destroy(CurrentPooledNPCs[i]);
-        }
-        CurrentPooledNPCs.Clear();
-        ActiveNPCCount = 0;
-        for (int i = 0; i < NPCPoolSize; i++)
+        var npcsCount = CurrentPooledNPCs.Count;
+        for (int i = npcsCount; i < NPCPoolSize; i++)
         {
             var template = GetWeightedRandomNPC();
             if (template == null)
@@ -416,13 +405,13 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             BroadcastMessage(GetDespawnMessage(index));
         }
 
-        obj.StopNPCCoroutines();
+        DespawnNPC(obj);
 
         if (obj.currentIntersection != null)
         {
             obj.currentIntersection.npcsInIntersection.Remove(obj.transform);
         }
-
+        
         CurrentPooledNPCs.Remove(obj);
         Destroy(obj.gameObject);
     }

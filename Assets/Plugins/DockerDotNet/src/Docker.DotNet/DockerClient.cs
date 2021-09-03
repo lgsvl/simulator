@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Net.Http.Client;
 
-#if (NETSTANDARD1_6 || NETSTANDARD2_0)
+#if (NETSTANDARD1_6 || NETSTANDARD2_0 || UNITY_2020)
 using System.Net.Sockets;
 #endif
 
@@ -77,8 +77,8 @@ namespace Docker.DotNet
                         var stream = new NamedPipeClientStream(serverName, pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
                         var dockerStream = new DockerPipeStream(stream);
 
-#if NET45
-                        await Task.Run(() => stream.Connect(timeout), cancellationToken);
+#if NET45 || UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+                        await Task.Run(()=>stream.Connect(timeout));
 #else
                         await stream.ConnectAsync(timeout, cancellationToken);
 #endif
@@ -101,7 +101,7 @@ namespace Docker.DotNet
                     handler = new ManagedHandler();
                     break;
 
-#if (NETSTANDARD1_6 || NETSTANDARD2_0)
+#if (NETSTANDARD1_6 || NETSTANDARD2_0 || UNITY_2020)
                 case "unix":
                     var pipeString = uri.LocalPath;
                     handler = new ManagedHandler(async (string host, int port, CancellationToken cancellationToken) =>

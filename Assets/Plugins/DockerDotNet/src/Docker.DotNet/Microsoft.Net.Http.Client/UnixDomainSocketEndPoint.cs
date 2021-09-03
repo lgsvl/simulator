@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE-MIT.txt file for more information.
 
-#if (NETSTANDARD1_6 || NETSTANDARD2_0)
+#if NETSTANDARD1_6 || NETSTANDARD2_0 || UNITY_2020
 
 using System;
 using System.Diagnostics;

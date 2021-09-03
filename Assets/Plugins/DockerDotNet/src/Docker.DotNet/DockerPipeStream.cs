@@ -47,6 +47,12 @@ namespace Docker.DotNet
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool PeekNamedPipe(SafeHandle handle, byte[] buffer, uint nBufferSize, ref uint bytesRead, ref uint bytesAvail, ref uint BytesLeftThisMessage);
 
+        public override void Close()
+        {
+            _stream.Close();
+            base.Close();
+        }
+
         public override void CloseWrite()
         {
             // The Docker daemon expects a write of zero bytes to signal the end of writes. Use native

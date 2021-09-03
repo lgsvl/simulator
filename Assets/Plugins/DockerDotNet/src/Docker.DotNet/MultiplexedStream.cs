@@ -41,6 +41,11 @@ namespace Docker.DotNet
             public bool EOF => Count == 0;
         }
 
+        public void Close()
+        {
+            _stream.Close();
+        }
+
         public void CloseWrite()
         {
             if (_stream is WriteClosableStream closable)

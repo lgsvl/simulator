@@ -5,16 +5,16 @@
  *
  */
 
-using UnityEngine;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Text.RegularExpressions;
-using Simulator.Web;
 using Docker.DotNet;
+using Simulator.Web;
+using UnityEngine;
 
 namespace Simulator
 {
@@ -53,18 +53,12 @@ namespace Simulator
 
         TestCaseProcessManager()
         {
-            Uri dockerUri;
-            if (Application.platform == RuntimePlatform.WindowsEditor || Application.platform == RuntimePlatform.WindowsPlayer)
-            {
-                // named pipe appears to be broken on unity/mono/windows
-                //                dockerUri = new Uri("npipe://./pipe/docker_engine");
-                dockerUri = new Uri("tcp://127.0.0.1:2375");
-            }
-            else
-            {
-                dockerUri = new Uri("unix:///var/run/docker.sock");
-            }
-
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+            // if named pipes prove to be unreliable, we can fall back to Uri("tcp://127.0.0.1:2375");
+            Uri dockerUri = new Uri("npipe://./pipe/docker_engine");
+#else
+            Uri dockerUri = new Uri("unix:///var/run/docker.sock");
+#endif
             dockerClient = new Docker.DotNet.DockerClientConfiguration(dockerUri, defaultTimeout: TimeSpan.FromSeconds(1)).CreateClient();
         }
 
@@ -145,7 +139,7 @@ namespace Simulator
             console.WriteLine($"Created container: {container.ID} {container.Name}");
             console.WriteLine($"working directory: {hostWorkingDirectory}");
             console.WriteLine($"environment: {string.Join("; ", env)}");
-            console.WriteLine( "---------------------------------");
+            console.WriteLine("---------------------------------");
             console.ReadStream(containerStream);
 
             var startParams = new Docker.DotNet.Models.ContainerStartParameters();
@@ -267,6 +261,7 @@ namespace Simulator
         private async Task<TestCaseFinishedArgs> HandleFinished(string containerId)
         {
             var console = containers[containerId].console;
+            console.CloseStream();
             var inspect = await dockerClient.Containers.InspectContainerAsync(containerId);
             console.WriteLine("Exit Code: " + inspect.State.ExitCode);
 
@@ -308,6 +303,13 @@ namespace Simulator
             Name = name;
         }
 
+        public void CloseStream()
+        {
+            containerStream?.Close();
+            containerStream?.Dispose();
+            containerStream = null;
+        }
+
         internal override async void HandleCharReceived(char addedChar)
         {
             try
@@ -315,7 +317,7 @@ namespace Simulator
                 if (containerStream != null)
                 {
                     var buffer = Encoding.UTF8.GetBytes(new[] { addedChar });
-                    await containerStream.WriteAsync(buffer, 0, buffer.Length, readCancellationTokenSource.Token);
+                    await containerStream.WriteAsync(buffer, 0, buffer.Length, default);
                 }
                 else if (addedChar == '\n')
                 {
@@ -326,6 +328,7 @@ namespace Simulator
             {
                 Debug.LogException(e);
             }
+
         }
 
         private static readonly Dictionary<KeyCode, byte[]> KeySequences = new Dictionary<KeyCode, byte[]>
@@ -346,7 +349,7 @@ namespace Simulator
             {
                 if (KeySequences.TryGetValue(keyCode, out var buffer))
                 {
-                    await containerStream.WriteAsync(buffer, 0, buffer.Length, readCancellationTokenSource.Token);
+                    await containerStream.WriteAsync(buffer, 0, buffer.Length, default);
                 }
             }
             catch (Exception e)
@@ -430,12 +433,24 @@ namespace Simulator
             try
             {
                 MatchEvaluator matchEval = new MatchEvaluator(AnsiEscapeHandler);
-                MultiplexedStream.ReadResult result;
-                do
+                while (containerStream != null)
                 {
                     var buffer = new byte[1024 * 4];
-                    result = await containerStream.ReadOutputAsync(buffer, 0, buffer.Length, readCancellationTokenSource.Token);
 
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+                    // unfortunately Stream.ReadAsync waiting for input blocks writing,
+                    // so we only peek to see if we have data, than wait for a bit
+                    // peek does not work on linux apparently
+                    containerStream.Peek(buffer, 1, out var peeked, out var available, out var remaining);
+
+                    if (available == 0)
+                    {
+                        await Task.Delay(100);
+                        continue;
+                    }
+#endif
+
+                    var result = await containerStream.ReadOutputAsync(buffer, 0, buffer.Length, readCancellationTokenSource.Token);
                     var str = Encoding.UTF8.GetString(buffer, 0, result.Count);
                     str = ansiEscape.Replace(str, matchEval);
 
@@ -464,8 +479,8 @@ namespace Simulator
 
                         spanStart = foundIndex + 1;
                     }
+                    if (result.EOF) break;
                 }
-                while (!result.EOF);
             }
             catch (Exception e)
             {

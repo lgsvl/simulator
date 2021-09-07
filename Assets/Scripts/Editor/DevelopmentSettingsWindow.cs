@@ -6,18 +6,18 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using UnityEditor;
-using UnityEngine;
 using System.Reflection;
-using Simulator.Database;
-using Simulator.Web;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Simulator.Bridge;
+using Simulator.Database;
+using Simulator.Web;
+using UnityEditor;
+using UnityEngine;
 
 namespace Simulator.Editor
 {
@@ -251,7 +251,7 @@ namespace Simulator.Editor
             {
                 if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
-                    ErrorMessage = "This instance requires linking to a cluster on "+Config.CloudUrl;
+                    ErrorMessage = "This instance requires linking to a cluster on " + Config.CloudUrl;
                     linked = false;
                 }
                 else
@@ -421,7 +421,7 @@ namespace Simulator.Editor
             {
                 Refresh();
             }
-            if (GUILayout.Button(new GUIContent("Manage clusters", "Visit cluster page on "+Config.CloudUrl)))
+            if (GUILayout.Button(new GUIContent("Manage clusters", "Visit cluster page on " + Config.CloudUrl)))
             {
                 Application.OpenURL(Config.CloudUrl + "/clusters");
             }
@@ -515,6 +515,7 @@ namespace Simulator.Editor
                                 if (Bridges.Length == 0)
                                 {
                                     EditorGUILayout.LabelField("no local bridges available");
+                                    vehicle.Bridge = null;
                                 }
                                 else
                                 {
@@ -773,7 +774,7 @@ namespace Simulator.Editor
                             }
                             else
                             {
-                                Debug.LogError("Could not find suitable sensor in My Library");
+                                Debug.LogError($"Could not find suitable sensor in My Library for {sensor.Name}");
                             }
                         }
                     }
@@ -809,7 +810,7 @@ namespace Simulator.Editor
         {
             if (Time.realtimeSinceStartup >= SaveAssetTime)
             {
-               UpdateAsset();
+                UpdateAsset();
             }
         }
 

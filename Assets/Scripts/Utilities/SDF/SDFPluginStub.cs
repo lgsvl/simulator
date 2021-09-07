@@ -5,11 +5,11 @@
  *
  */
 
-using UnityEngine;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Xml.Linq;
+using UnityEngine;
 
 public class SDFPluginStub : MonoBehaviour
 {
@@ -22,16 +22,20 @@ public class SDFPluginStub : MonoBehaviour
         {
             pluginParsers = new Dictionary<string, Type>();
 #if UNITY_EDITOR
-            var assembly = Assembly.Load("Simulator.Controllables");
-            foreach (var type in assembly.GetTypes())
+            try
             {
-                var attr = type.GetCustomAttribute<SDFPluginParser>();
-                if (typeof(SDFParserBase).IsAssignableFrom(type) && attr != null)
+                var assembly = Assembly.Load("Simulator.Controllables");
+                foreach (var type in assembly.GetTypes())
                 {
-                    Debug.Log("found assembly plugin "+attr.PluginName);
-                    pluginParsers.Add(attr.PluginName, type);
+                    var attr = type.GetCustomAttribute<SDFPluginParser>();
+                    if (typeof(SDFParserBase).IsAssignableFrom(type) && attr != null)
+                    {
+                        Debug.Log("found assembly plugin " + attr.PluginName);
+                        pluginParsers.Add(attr.PluginName, type);
+                    }
                 }
             }
+            catch { }
 #else
             foreach (var controllable in Simulator.Web.Config.Controllables)
             {

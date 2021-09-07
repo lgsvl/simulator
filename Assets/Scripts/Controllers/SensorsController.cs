@@ -205,13 +205,13 @@ public class SensorsController : MonoBehaviour, ISensorsController, IMessageSend
                 var name = item.Name;
                 var type = item.Type;
                 GameObject prefab = null;
-                if (item.Plugin.AssetGuid == null)
+                if (item.Plugin?.AssetGuid == null)
                 {
                     Debug.LogWarning($"sensor without assetguid: {item.Name} {item.Type}");
                     prefab = Config.SensorPrefabs.FirstOrDefault(s => GetSensorType(s) == type)?.gameObject;
                     if (prefab == null)
                     {
-                        Debug.LogError($"could not find alternative for {item.Name} {item.Type}");
+                        Debug.LogError($"could not find alternative for {item.Name} {item.Type} choices were: {string.Join(",", Config.SensorPrefabs.Select(sp=> GetSensorType(sp)))}");
                     }
                 }
                 else if (Config.SensorTypeLookup.ContainsKey(item.Plugin.AssetGuid))

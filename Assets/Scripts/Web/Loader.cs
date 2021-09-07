@@ -451,7 +451,7 @@ namespace Simulator
 
                         foreach (var sensor in vehicle.Sensors)
                         {
-                            if (sensor.Plugin.AssetGuid != null) // TODO remove after WISE update
+                            if (sensor.Plugin?.AssetGuid != null) // TODO cleaner check for development mode sensors
                             {
                                 var dir = Path.Combine(Config.PersistentDataPath, "Sensors");
                                 var vfs = VfsEntry.makeRoot(dir);

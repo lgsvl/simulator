@@ -260,6 +260,15 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             ClusterSimulationUtilities.AddDistributedComponents(go);
         }
 
+        // Add components for auto light layers change
+        var triggerCollider = go.AddComponent<SphereCollider>();
+        if (triggerCollider != null)
+        {
+            triggerCollider.radius = 0.3f;
+            triggerCollider.isTrigger = true;
+        }
+        go.AddComponent<AgentZoneController>();
+
         foreach (var callback in SpawnCallbacks)
         {
             callback(NPCController);

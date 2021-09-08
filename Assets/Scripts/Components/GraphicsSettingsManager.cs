@@ -6,12 +6,9 @@
  */
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using YamlDotNet.Serialization;
 using System.IO;
-using System.Reflection;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
@@ -26,7 +23,7 @@ public class GraphicsSettingsManager : MonoBehaviour
         High = 2,
         Custom = 3
     };
-                
+
     public class Config
     {
         public int ScreenWidth = 0;
@@ -40,14 +37,13 @@ public class GraphicsSettingsManager : MonoBehaviour
         public bool Scattering = true;
         public bool Volumetrics = true;
     }
-        
-    public Config Cfg = new Config();
 
+    public Config Cfg = new Config();
     public static ref Config GetCfg() => ref Instance.Cfg;
-    
+
     void Start()
     {
-        if ( Instance != null )
+        if (Instance != null)
         {
             Destroy(gameObject);
             return;
@@ -56,7 +52,6 @@ public class GraphicsSettingsManager : MonoBehaviour
         DontDestroyOnLoad(this);
         Instance = this;
 
-        //LoadYmlConfigFile();
         LoadPrefsConfig();
 
         if (Cfg.ScreenWidth > 0 && Cfg.ScreenHeight > 0)
@@ -68,7 +63,7 @@ public class GraphicsSettingsManager : MonoBehaviour
     }
 
     public void RenderBeginFrame( ScriptableRenderContext ctx, Camera[] cams )
-    {        
+    {
         HDRenderPipeline hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
         if (hdrp != null)
         {
@@ -79,10 +74,10 @@ public class GraphicsSettingsManager : MonoBehaviour
 
     public void SetQualityPreset( int value )
     {
-        if (value < 0 || value > (int)Preset.Custom )
+        if (value < 0 || value > (int)Preset.Custom)
             return;
-                
-        switch( (Preset)value )
+
+        switch ((Preset)value)
         {
             case Preset.Low:
                 {
@@ -119,16 +114,20 @@ public class GraphicsSettingsManager : MonoBehaviour
         Cfg.Preset = value;
 
         if ((Preset)value != Preset.Custom)
+        {
             ApplyCustomSettingsChanges(true);
+        }
         else
+        {
             SaveConfig();
+        }
     }
 
     public void ApplyCustomSettingsChanges( bool saveConfig )
-    {        
+    {
         HDRenderPipeline hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
         if (hdrp != null)
-        {         
+        {
             ref FrameSettings fs = ref hdrp.GetDefaultCameraFrameSettings();
 
             fs.SetEnabled(FrameSettingsField.ShadowMaps, Cfg.Shadows);
@@ -138,7 +137,7 @@ public class GraphicsSettingsManager : MonoBehaviour
             fs.SetEnabled(FrameSettingsField.Volumetrics, Cfg.Volumetrics);
             fs.SetEnabled(FrameSettingsField.MotionVectors, Cfg.MotionBlur);
         }
-            
+
         if (saveConfig != false)
         {
             SaveConfig();
@@ -190,27 +189,4 @@ public class GraphicsSettingsManager : MonoBehaviour
 
         PlayerPrefs.Save();
     }
-    
-    private bool LoadYmlConfigFile()
-    {
-        var configFile = Path.Combine(Application.dataPath, "../gfx_config.yml");
-        if ( File.Exists(configFile) == false)
-            return false;
-                
-        using (var fs = File.OpenText(configFile))
-        {
-            try
-            {
-                Cfg = new Deserializer().Deserialize<Config>(fs);
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError(ex);
-                return false;
-            }
-        }
-
-        return true;
-    }  
-    
 }

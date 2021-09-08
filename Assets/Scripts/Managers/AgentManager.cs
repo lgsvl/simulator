@@ -121,6 +121,15 @@ public class AgentManager : MonoBehaviour
             SimulatorManager.Instance.UpdateSegmentationColors(go, controller.GTID);
         }
 
+        // Add components for auto light layers change
+        var triggerCollider = go.AddComponent<SphereCollider>();
+        if (triggerCollider != null)
+        {
+            triggerCollider.radius = 0.3f;
+            triggerCollider.isTrigger = true;
+        }
+        go.AddComponent<AgentZoneController>();
+
         go.SetActive(true);
         return go;
     }

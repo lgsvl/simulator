@@ -112,8 +112,7 @@ namespace Simulator.Controllable
             }
         }
 
-        public IControllable SpawnControllable(GameObject prefab, string uid, Vector3 pos, Quaternion rot,
-            Vector3 velocity, Vector3 angVelocity)
+        public IControllable SpawnControllable(GameObject prefab, string uid, Vector3 pos, Quaternion rot, Vector3 velocity, Vector3 angVelocity)
         {
             var api = ApiManager.Instance;
             var obj = Instantiate(prefab, pos, rot, transform);
@@ -135,6 +134,15 @@ namespace Simulator.Controllable
 
             controllable.UID = uid;
             controllable.Spawned = true;
+
+            // Add components for auto light layers change
+            var triggerCollider = obj.AddComponent<SphereCollider>();
+            if (triggerCollider != null)
+            {
+                triggerCollider.radius = 0.3f;
+                triggerCollider.isTrigger = true;
+            }
+            obj.AddComponent<AgentZoneController>();
 
             RegisterControllable(controllable);
 

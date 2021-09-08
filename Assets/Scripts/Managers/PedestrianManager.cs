@@ -286,6 +286,14 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
             ClusterSimulationUtilities.AddDistributedComponents(ped);
         }
 
+        // Add components for auto light layers change
+        var triggerCollider = ped.AddComponent<SphereCollider>();
+        if (triggerCollider != null)
+        {
+            triggerCollider.radius = 0.3f;
+            triggerCollider.isTrigger = true;
+        }
+        ped.AddComponent<AgentZoneController>();
 
         foreach (var callback in SpawnCallbacks)
         {

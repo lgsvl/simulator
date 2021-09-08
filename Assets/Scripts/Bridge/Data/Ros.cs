@@ -214,9 +214,24 @@ namespace Simulator.Bridge.Data.Ros
         public Quaternion orientation;
     }
 
+    [MessageType("geometry_msgs/PoseStamped")]
+    public struct PoseStamped
+    {
+        public Header header;
+        public Pose pose;
+    }
+
     [MessageType("geometry_msgs/PoseWithCovariance")]
     public struct PoseWithCovariance
     {
+        public Pose pose;
+        public double[] covariance;  // float64[36] covariance
+    }
+
+    [MessageType("geometry_msgs/PoseWithCovarianceStamped")]
+    public struct PoseWithCovarianceStamped
+    {
+        public Header header;
         public Pose pose;
         public double[] covariance;  // float64[36] covariance
     }

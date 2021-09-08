@@ -74,6 +74,7 @@ namespace Simulator.Api
         public HashSet<GameObject> Waypoints = new HashSet<GameObject>();
         public HashSet<GameObject> StopLine = new HashSet<GameObject>();
         public HashSet<GameObject> LaneChange = new HashSet<GameObject>();
+        public HashSet<GameObject> Destinations = new HashSet<GameObject>();
         public List<JSONObject> Events = new List<JSONObject>();
         
         public string Key { get; } = "ApiManager";
@@ -316,6 +317,7 @@ namespace Simulator.Api
             Waypoints.Clear();
             StopLine.Clear();
             LaneChange.Clear();
+            Destinations.Clear();
 
             StopAllCoroutines();
 
@@ -407,6 +409,24 @@ namespace Simulator.Api
                 j.Add("type", new JSONString("waypoint_reached"));
                 j.Add("agent", new JSONString(uid));
                 j.Add("index", new JSONNumber(index));
+
+                Events.Add(j);
+            }
+        }
+
+        public void AddDestinationReached(GameObject obj)
+        {
+            if (!Destinations.Contains(obj))
+            {
+                return;
+            }
+
+            string uid;
+            if (AgentUID.TryGetValue(obj, out uid))
+            {
+                var j = new JSONObject();
+                j.Add("type", new JSONString("destination_reached"));
+                j.Add("agent", new JSONString(uid));
 
                 Events.Add(j);
             }

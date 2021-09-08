@@ -246,16 +246,20 @@ if [ "$1" = "windows" ] && [ -v CODE_SIGNING_PASSWORD ]; then
     EXE="/tmp/${BUILD_OUTPUT}/${BUILD_CHECK}"
     SIGNED="/tmp/${BUILD_OUTPUT}/signed.exe"
 
-    osslsigncode sign                        \
+    echo "I: Signing ${EXE} with pkcs12 from CODE_SIGNING_FILE variable mounted in /tmp/signing.p12"
+    osslsigncode sign                          \
         -pkcs12 /tmp/signing.p12               \
-        -pass "${CODE_SIGNING_PASSWORD}" \
+        -pass "${CODE_SIGNING_PASSWORD}"       \
         -n "LGSVL Simulator"                   \
-        -i https://www.svlsimulator.com      \
+        -i https://www.svlsimulator.com        \
         -t http://timestamp.digicert.com       \
         -in "${EXE}"                           \
         -out "${SIGNED}"
 
+    echo "I: Replacing original ${EXE} with ${SIGNED}"
     mv "${SIGNED}" "${EXE}"
+else
+    echo "I: Not signing /tmp/${BUILD_OUTPUT}/${BUILD_CHECK}, because CODE_SIGNING_PASSWORD isn't set or not building for Windows"
 fi
 
 if [ -v CLOUD_URL ]; then

@@ -89,8 +89,8 @@ pipeline {
     UNITY_PASSWORD = credentials("UNITY_PASSWORD")
     UNITY_SERIAL = credentials("UNITY_SERIAL")
     UNITY_VERSION = "2020.3.3f1"
-    UNITY_DOCKER_IMAGE = "${GITLAB_HOST}:4567/hdrp/unityci/editor"
-    UNITY_DOCKER_IMAGE_TAG = "2020.3.3f1-v0.15-1-g998e745__build__20"
+    UNITY_DOCKER_IMAGE = "${GITLAB_HOST}:4567/hdrp/unityci/editor-lgsvl"
+    UNITY_DOCKER_IMAGE_TAG = "2020.3.3f1-v0.15-5-gbb48ea6__build__28"
     CODE_SIGNING_PASSWORD = credentials("LGSVL_CODE_SIGNING_PASSWORD")
     PYTHONUNBUFFERED = "1"
     DISPLAY = ":0"

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -104,10 +104,21 @@ public class NPCWaypointBehaviour : NPCBehaviourBase
         CurrentIndex = 0;
         CurrentLoopIndex = 0;
         CurrentDeactivate = LaneDeactivate[CurrentIndex];
-        FixedUpdateManager.StopAllCoroutines();
-        TriggerCoroutine = null;
-        IdleCoroutine = null;
-        MoveCoroutine = null;
+        if (IdleCoroutine != null)
+        {
+            FixedUpdateManager.StopCoroutine(IdleCoroutine);
+            IdleCoroutine = null;
+        }
+        if (MoveCoroutine != null)
+        {
+            FixedUpdateManager.StopCoroutine(MoveCoroutine);
+            MoveCoroutine = null;
+        }
+        if (TriggerCoroutine != null)
+        {
+            FixedUpdateManager.StopCoroutine(TriggerCoroutine);
+            TriggerCoroutine = null;
+        }
         WaypointState = WaypointDriveState.Drive;
     }
 

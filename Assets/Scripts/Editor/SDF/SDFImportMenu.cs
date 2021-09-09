@@ -5,14 +5,14 @@
  *
  */
 
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
-using UnityEditor;
-using UnityEngine.SceneManagement;
-using UnityEditor.SceneManagement;
-using System.IO;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class SDFImportMenu : EditorWindow
 {
@@ -31,9 +31,26 @@ public class SDFImportMenu : EditorWindow
         window.Show();
     }
 
-    string SelectedPrefabModel = "";
-    string PrefabDescription = "";
+    string SelectedPrefabModel = string.Empty;
+    string PrefabDescription = string.Empty;
     private string PrefabName;
+
+    IEnumerable<Type> VehicleDynamics = Enumerable.Empty<Type>();
+    IEnumerable<Type> AgentControllers = Enumerable.Empty<Type>();
+
+    void OnEnable()
+    {
+        var assembly = System.Reflection.Assembly.Load("Simulator");
+        IEnumerable<Type> types = assembly.GetTypes();
+        try
+        {
+            var sensorAssembly = System.Reflection.Assembly.Load("Simulator.Vehicles");
+            types = types.Concat(sensorAssembly.GetTypes());
+        }
+        catch { }
+        VehicleDynamics = types.Where(t => !t.IsAbstract && typeof(IVehicleDynamics).IsAssignableFrom(t));
+        AgentControllers = types.Where(t => !t.IsAbstract && typeof(IAgentController).IsAssignableFrom(t));
+    }
 
     public static string MakeRelativePath(string fromPath, string toPath)
     {
@@ -51,11 +68,10 @@ public class SDFImportMenu : EditorWindow
     private void OnGUI()
     {
         // styles
-        var titleLabelStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 14 };
-        var subtitleLabelStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 10 };
+        var titleLabelStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 14, fontStyle = FontStyle.Bold };
 
         GUILayout.Space(5);
-        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+        EditorGUILayout.LabelField("Import world file", titleLabelStyle, GUILayout.ExpandWidth(true));
         GUILayout.Space(10);
         EditorGUILayout.HelpBox("Copy world and media to a subfolder in Assets/External/Environments. Worlds should sit in 'worlds' subfolder", MessageType.Info);
 
@@ -135,6 +151,7 @@ public class SDFImportMenu : EditorWindow
 
             var sceneDefaults = PrefabUtility.InstantiatePrefab(contentsRoot) as GameObject;
             var mainCamera = sceneDefaults.GetComponentInChildren<Camera>();
+            SelectedPrefabModel = string.Empty;
             Debug.Log("instantiating...");
 
             SDFDocument.cylinderUseMeshRadiusLengthFactor = 0.0f;
@@ -170,7 +187,7 @@ public class SDFImportMenu : EditorWindow
 
         if (sdfRoot != null && dynamicModels.Length > 0)
         {
-            GUILayout.Space(10);
+            GUILayout.Space(20);
             EditorGUILayout.LabelField("Convert model to vehicle prefab", titleLabelStyle, GUILayout.ExpandWidth(true));
             Dictionary<string, GameObject> distinctModels = new Dictionary<string, GameObject>();
             foreach (var (go, sdfmodel) in dynamicModels)
@@ -188,16 +205,51 @@ public class SDFImportMenu : EditorWindow
             if (selectedModelBefore != selectedModel)
             {
                 PrefabName = dynamicModels[selectedModel].Item1.name;
+                Selection.activeGameObject = dynamicModels[selectedModel].Item1;
+                SceneView.FrameLastActiveSceneView();
             }
 
-            EditorGUILayout.LabelField("Vehicle Name");
-            PrefabName = EditorGUILayout.TextField(PrefabName);
-            EditorGUILayout.LabelField("Vehicle Description");
+            PrefabName = EditorGUILayout.TextField("Name", PrefabName);
+            EditorGUILayout.LabelField("Description");
             PrefabDescription = GUILayout.TextArea(PrefabDescription);
+            GUILayout.Space(10);
 
+            var model = dynamicModels[selectedModel].Item1;
+            var agentController = model.GetComponent<IAgentController>();
+            var vehicleDynamics = model.GetComponent<IVehicleDynamics>();
+            if (agentController == null)
+            {
+                EditorGUILayout.HelpBox($"You need to add and configure an Agent Controller component for the vehicle to work", MessageType.Warning);
+                int selectedController = EditorGUILayout.Popup("Select Agent Controller", 0, AgentControllers.Select(t => t.Name).Prepend("Select to add...").ToArray());
+                if (selectedController > 0)
+                {
+                    model.AddComponent(AgentControllers.ElementAt(selectedController - 1));
+                }
+            }
+            else
+            {
+                EditorGUILayout.HelpBox($"Don't forget to configure {agentController} in the inspector view", MessageType.Info);
+            }
+
+            GUILayout.Space(10);
+            if (vehicleDynamics == null)
+            {
+                EditorGUILayout.HelpBox($"You need to add and configure a Vehicle Dynamics component for the vehicle to work", MessageType.Warning);
+                int selectedDynamics = EditorGUILayout.Popup("Select Dynamics", 0, VehicleDynamics.Select(t => t.Name).Prepend("Select to add...").ToArray());
+                if (selectedDynamics > 0)
+                {
+                    model.AddComponent(VehicleDynamics.ElementAt(selectedDynamics - 1));
+                }
+            }
+            else
+            {
+                EditorGUILayout.HelpBox($"Don't forget to configure {vehicleDynamics} in the inspector view", MessageType.Info);
+            }
+
+            EditorGUI.BeginDisabledGroup(agentController == null || vehicleDynamics == null);
+            GUILayout.Space(10);
             if (GUILayout.Button("create prefab"))
             {
-                var model = dynamicModels[selectedModel].Item1;
                 if (!model.TryGetComponent(out Simulator.VehicleInfo info))
                 {
                     info = model.AddComponent<Simulator.VehicleInfo>();
@@ -210,6 +262,7 @@ public class SDFImportMenu : EditorWindow
                 {
                     Directory.CreateDirectory(PrefabPath);
                 }
+
 
                 if (model.GetComponent<IAgentController>() == null)
                 {
@@ -224,8 +277,9 @@ public class SDFImportMenu : EditorWindow
                 var prefab = PrefabUtility.SaveAsPrefabAsset(model, $"{PrefabPath}/{PrefabName}.prefab", out bool success);
                 Debug.Log("export prefab success: " + success);
             }
+            EditorGUI.EndDisabledGroup();
 
-            GUILayout.Space(10);
+            GUILayout.Space(20);
             EditorGUILayout.LabelField("Convert models to spawn locations", titleLabelStyle, GUILayout.ExpandWidth(true));
 
             foreach ((GameObject, SDFModel) v in dynamicModels)
@@ -236,17 +290,19 @@ public class SDFImportMenu : EditorWindow
                 if (!want && has) spawnLocationSelection.Remove(v.Item1);
             }
 
+            EditorGUILayout.HelpBox($"Selected models will be removed from the scene and replaced with SpawnInfo objects. Perform this step last, before saving the scene under Assets/External/Maps/YourMapName", MessageType.Info);
+
             if (GUILayout.Button("convert to spawn info"))
             {
                 foreach ((GameObject, SDFModel) v in dynamicModels)
                 {
-                    var model = v.Item1;
+                    var targetModel = v.Item1;
                     if (spawnLocationSelection.Contains(v.Item1))
                     {
-                        var spawnpoint = new GameObject("spawninfo from " + model.name);
-                        spawnpoint.transform.position = model.transform.position;
+                        var spawnpoint = new GameObject("spawninfo from " + targetModel.name);
+                        spawnpoint.transform.position = targetModel.transform.position;
                         var spawnInfo = spawnpoint.AddComponent<Simulator.Utilities.SpawnInfo>();
-                        DestroyImmediate(model);
+                        DestroyImmediate(targetModel);
                     }
                 }
             }

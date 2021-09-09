@@ -9691,8 +9691,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 190.5, y: -320}
-  m_SizeDelta: {x: 361, y: 620}
+  m_AnchoredPosition: {x: 190.5, y: -277.18524}
+  m_SizeDelta: {x: 331, y: 394.3705}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2391177935159038464
 CanvasRenderer:
@@ -9735,16 +9735,38 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1.25
-  m_Text: "Simulator\n` - Cinematic/Free camera\n1-0 - Agent select and follow cam\nF1
-    - Toggle help\nF12 - Reset active agent\nN - Toggle NPCs\nP - Toggle Pedestrians\n\nAgent\nArrows
-    - steer/acceleration\nPageUp PageDown - Shift\nR Shift - Parking brake\nEnd -
-    Toggle ignition\nH - Head lights\nF - Fog lights\n<> - Turn signals\nM - Hazard
-    signals\nI - Interior light\n\nCamera\nWASD - Forward/Back Strafe\nQE - Up/Down\nMouse
-    RightClick - Look\nLeft Shift - Boost\nWS - Zoom\n\nWheel Logitech G920\nPedals
-    Right - Accel\nPedals Center - Brake\nWheel - Steer\nA - Toggle Vehicle\r\nB
-    - Toggle NPC\r\nX - Toggle Visualizers\r\nY - Toggle Camera State\r\nRB - Accel\r\nLB
-    - Brake\r\nStart - Pause\r Interactive Mode\nSelect - Menu\r\nRSB - Lights\r\nLSB
-    - Toggle Reverse\r\nCenter - Toggle Interior Light\r"
+  m_Text: 'Simulator
+
+    ` - Cinematic/Free camera
+
+    1-0 - Agent select and follow
+    cam
+
+    F1 - Toggle help
+
+    F12 - Reset active agent
+
+    N - Toggle NPCs
+
+    P
+    - Toggle Pedestrians
+
+
+    Camera
+
+    WASD - Forward/Back Strafe
+
+    QE - Up/Down
+
+    Mouse
+    RightClick - Look
+
+    Left Shift - Boost
+
+    WS - Zoom
+
+
+'
 --- !u!1 &5169069315417926461
 GameObject:
   m_ObjectHideFlags: 0
@@ -14177,7 +14199,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 640}
+  m_SizeDelta: {x: 0, y: 499.37048}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &8769988036145982249
 MonoBehaviour:

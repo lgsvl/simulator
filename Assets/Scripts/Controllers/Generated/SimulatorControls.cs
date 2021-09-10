@@ -20,17 +20,17 @@ public class @SimulatorControls : IInputActionCollection, IDisposable
             ""actions"": [
                 {
                     ""name"": ""Direction"",
-                    ""type"": ""PassThrough"",
+                    ""type"": ""Value"",
                     ""id"": ""68acaa71-e07d-420b-b1d6-a76c02a93b0f"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
                     ""interactions"": """"
                 },
                 {
                     ""name"": ""Elevation"",
-                    ""type"": ""PassThrough"",
+                    ""type"": ""Value"",
                     ""id"": ""0dad18b8-ab6f-4e94-9476-4b816f14eb47"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": ""Axis"",
                     ""processors"": """",
                     ""interactions"": """"
                 },
@@ -100,9 +100,9 @@ public class @SimulatorControls : IInputActionCollection, IDisposable
                 },
                 {
                     ""name"": ""Zoom"",
-                    ""type"": ""PassThrough"",
+                    ""type"": ""Value"",
                     ""id"": ""1138b450-1c54-49a7-b808-8665b1326312"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": ""Axis"",
                     ""processors"": """",
                     ""interactions"": """"
                 },

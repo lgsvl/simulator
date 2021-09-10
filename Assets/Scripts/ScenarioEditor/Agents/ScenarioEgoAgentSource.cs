@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -14,12 +14,10 @@ namespace Simulator.ScenarioEditor.Agents
     using System.Threading.Tasks;
     using Database;
     using Database.Services;
+    using Elements;
     using Elements.Agents;
     using Elements.Waypoints;
-    using Input;
     using Managers;
-    using Undo;
-    using Undo.Records;
     using UnityEngine;
     using Web;
 
@@ -30,20 +28,10 @@ namespace Simulator.ScenarioEditor.Agents
     public class ScenarioEgoAgentSource : ScenarioAgentSource
     {
         /// <summary>
-        /// Cached reference to the scenario editor input manager
-        /// </summary>
-        private InputManager inputManager;
-
-        /// <summary>
-        /// Currently dragged agent instance
-        /// </summary>
-        private GameObject draggedInstance;
-
-        /// <summary>
         /// Renderer prefab that will be instantiated if instance has no mesh renderers
         /// </summary>
         public GameObject defaultRendererPrefab;
-
+        
         /// <inheritdoc/>
         public override string ElementTypeName => "EgoAgent";
 
@@ -59,7 +47,6 @@ namespace Simulator.ScenarioEditor.Agents
         /// <inheritdoc/>
         public override async Task Initialize(IProgress<float> progress)
         {
-            inputManager = ScenarioManager.Instance.GetExtension<InputManager>();
             var library = await ConnectionManager.API.GetLibrary<VehicleDetailData>();
 
             var assetService = new AssetService();
@@ -100,7 +87,7 @@ namespace Simulator.ScenarioEditor.Agents
 
         /// <inheritdoc/>
         public override void Deinitialize() { }
-
+        
         /// <inheritdoc/>
         public override GameObject GetModelInstance(SourceVariant variant)
         {
@@ -137,7 +124,7 @@ namespace Simulator.ScenarioEditor.Agents
         }
 
         /// <inheritdoc/>
-        public override ScenarioAgent GetAgentInstance(AgentVariant variant)
+        public override ScenarioElement GetElementInstance(SourceVariant variant)
         {
             if (variant.Prefab == null)
             {
@@ -168,45 +155,12 @@ namespace Simulator.ScenarioEditor.Agents
             return false;
         }
 
-        /// <inheritdoc/>
-        public override void DragStarted()
+        protected override void OnDraggedInstanceMove()
         {
-            draggedInstance = GetModelInstance(selectedVariant);
-            draggedInstance.transform.SetParent(ScenarioManager.Instance.transform);
-            draggedInstance.transform.SetPositionAndRotation(inputManager.MouseRaycastPosition,
-                Quaternion.Euler(0.0f, 0.0f, 0.0f));
             ScenarioManager.Instance.GetExtension<ScenarioMapManager>().LaneSnapping.SnapToLane(
                 LaneSnappingHandler.LaneType.Traffic,
-                draggedInstance.transform,
-                draggedInstance.transform);
-        }
-
-        /// <inheritdoc/>
-        public override void DragMoved()
-        {
-            draggedInstance.transform.position = inputManager.MouseRaycastPosition;
-            ScenarioManager.Instance.GetExtension<ScenarioMapManager>().LaneSnapping.SnapToLane(
-                LaneSnappingHandler.LaneType.Traffic,
-                draggedInstance.transform,
-                draggedInstance.transform);
-        }
-
-        /// <inheritdoc/>
-        public override void DragFinished()
-        {
-            var agent = GetAgentInstance(selectedVariant);
-            agent.TransformToRotate.rotation = draggedInstance.transform.rotation;
-            agent.ForceMove(draggedInstance.transform.position);
-            ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
-            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoAddElement(agent));
-            draggedInstance = null;
-        }
-
-        /// <inheritdoc/>
-        public override void DragCancelled()
-        {
-            ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
-            draggedInstance = null;
+                draggedInstance.TransformToMove,
+                draggedInstance.TransformToRotate);
         }
     }
 }

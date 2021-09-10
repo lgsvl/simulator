@@ -89,9 +89,9 @@ namespace Simulator.ScenarioEditor.Controllables
         }
         
         /// <inheritdoc/>
-        public override Task Prepare(IProgress<Tuple<string, float>> progress = null)
+        public override Task Prepare(IProgress<SourceVariant> progress = null)
         {
-            progress?.Report(new Tuple<string, float>(Name, 100.0f));
+            progress?.Report(this);
             return Task.CompletedTask;
         }
     }

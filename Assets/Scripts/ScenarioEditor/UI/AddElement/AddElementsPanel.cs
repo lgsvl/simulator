@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -8,6 +8,7 @@
 namespace Simulator.ScenarioEditor.UI.AddElement
 {
     using System.Collections.Generic;
+    using Elements;
     using Inspector;
     using Managers;
     using ScenarioEditor.Utilities;
@@ -52,22 +53,13 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         /// <inheritdoc/>
         public override void Initialize()
         {
-            SourcePanel newPanel;
-            //Agents panels
-            var agentsManager = ScenarioManager.Instance.GetExtension<ScenarioAgentsManager>();
-            var sources = agentsManager.Sources;
-            for (var i = 0; i < sources.Count; i++)
+            var sources = ScenarioManager.Instance.GetComponentsInChildren<ScenarioElementSource>();
+            for (var i = 0; i < sources.Length; i++)
             {
-                newPanel = Instantiate(sourcePanelPrefab, contentParent);
+                var newPanel = Instantiate(sourcePanelPrefab, contentParent);
                 newPanel.Initialize(sources[i]);
                 sourcePanels.Add(newPanel);
             }
-
-            //Controllables panels
-            var controllablesManager = ScenarioManager.Instance.GetExtension<ScenarioControllablesManager>();
-            newPanel = Instantiate(sourcePanelPrefab, contentParent);
-            newPanel.Initialize(controllablesManager.Source);
-            sourcePanels.Add(newPanel);
             UnityUtilities.LayoutRebuild(contentParent as RectTransform);
         }
 

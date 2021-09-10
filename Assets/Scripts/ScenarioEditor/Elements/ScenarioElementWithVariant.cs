@@ -53,8 +53,7 @@ namespace Simulator.ScenarioEditor.Elements
         /// <summary>
         /// All the renderers in the agent model
         /// </summary>
-        public Renderer[] ModelRenderers =>
-            modelRenderers ?? (modelRenderers = modelInstance.GetComponentsInChildren<Renderer>());
+        public Renderer[] ModelRenderers => modelRenderers ??= modelInstance.GetComponentsInChildren<Renderer>();
 
         /// <summary>
         /// Setup method for initializing the required element data
@@ -85,8 +84,9 @@ namespace Simulator.ScenarioEditor.Elements
                 rotation = modelInstance.transform.localRotation;
                 DisposeModel();
             }
+
             variant = newVariant;
-            
+
             //Check if variant should spawn a model instance
             modelInstance = source.GetModelInstance(variant);
             if (modelInstance != null)
@@ -116,7 +116,7 @@ namespace Simulator.ScenarioEditor.Elements
         {
             if (modelInstance != null)
                 DisposeModel();
-            if (this!=null)
+            if (this != null)
                 Destroy(gameObject);
         }
 
@@ -125,7 +125,15 @@ namespace Simulator.ScenarioEditor.Elements
         /// </summary>
         protected virtual void DisposeModel()
         {
-            source.ReturnModelInstance(modelInstance);
+            var pool = ScenarioManager.Instance.prefabsPools;
+            if (pool.IsInstanceFromPool(modelInstance))
+            {
+                pool.ReturnInstance(modelInstance);
+            }
+            else
+            {
+                Destroy(modelInstance);
+            }
         }
 
         /// <inheritdoc/>

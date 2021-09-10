@@ -739,7 +739,8 @@ namespace Simulator.ScenarioEditor.Input
         private RaycastHit? GetFurthestHit(bool ignoreSelectedElement = false, bool ignoreRigidbodies = false,
             bool ignoreTriggers = false)
         {
-            return GetFurthestHit(raycastHits, raycastHitsCount, ignoreSelectedElement, ignoreRigidbodies, ignoreTriggers);
+            return GetFurthestHit(raycastHits, raycastHitsCount, ignoreSelectedElement, ignoreRigidbodies,
+                ignoreTriggers);
         }
 
         /// <summary>
@@ -815,6 +816,25 @@ namespace Simulator.ScenarioEditor.Input
         }
 
         /// <summary>
+        /// Moves the scenario camera to the given scenario element, and selects the element
+        /// </summary>
+        /// <param name="scenarioElement">Scenario element which will be selected and centered</param>
+        public void FocusOnScenarioElement(ScenarioElement scenarioElement)
+        {
+            var raycastHitsInCenter =
+                RaycastAll(ScenarioCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0.5f)));
+            if (raycastHitsInCenter.Length == 0)
+                return;
+            var furthestHit = GetClosestHit(raycastHitsInCenter, raycastHitsInCenter.Length, true, true, true);
+            if (!furthestHit.HasValue)
+                return;
+            var cameraTransform = ScenarioCamera.transform;
+            var offset = furthestHit.Value.point - cameraTransform.position;
+            ForceCameraReposition(scenarioElement.transform.position - offset, cameraTransform.rotation.eulerAngles);
+            ScenarioManager.Instance.SelectedElement = scenarioElement;
+        }
+
+        /// <summary>
         /// Handle keyboard actions
         /// </summary>
         private void HandleKeyboardActions()
@@ -874,7 +894,7 @@ namespace Simulator.ScenarioEditor.Input
             if (closestHit != null)
                 closestPoint = closestHit.Value.point;
 
-            //Move camera with the mouse and key inputs 
+            // Move camera with the mouse and key inputs 
             if (cameraMoveStart != null && IsMouseOverGameWindow && mouseMoved && raycastHitsCount > 0 &&
                 furthestHit != null)
             {
@@ -889,10 +909,17 @@ namespace Simulator.ScenarioEditor.Input
                              cameraTransform.forward * (KeyMoveFactor * Time.unscaledDeltaTime * directionInput.y) +
                              cameraTransform.right * (KeyMoveFactor * Time.unscaledDeltaTime * directionInput.x));
 
-            //Check the element adding and dragging events
+            // Check the element adding and dragging events
             switch (Mode)
             {
                 case InputModeType.DraggingElement:
+                    // Check if object was removed during the drag
+                    if (dragHandler == null)
+                    {
+                        Mode = InputModeType.Idle;
+                        break;
+                    }
+
                     if (closestPoint == null)
                         break;
                     MouseRaycastPosition = closestPoint.Value;
@@ -909,7 +936,7 @@ namespace Simulator.ScenarioEditor.Input
                     break;
             }
 
-            //Rotate the camera
+            // Rotate the camera
             if (!EventSystem.current.IsPointerOverGameObject() && IsMouseOverGameWindow)
             {
                 if (rightMouseButtonPressed)
@@ -943,7 +970,10 @@ namespace Simulator.ScenarioEditor.Input
         /// <param name="position">Requested camera position</param>
         private void MoveCameraTo(Vector3 position)
         {
-            var mapBounds = ScenarioManager.Instance.GetExtension<ScenarioMapManager>().CurrentMapBounds;
+            var mapExtension = ScenarioManager.Instance.GetExtension<ScenarioMapManager>();
+            if (mapExtension == null)
+                return;
+            var mapBounds = mapExtension.CurrentMapBounds;
             position.x = Mathf.Clamp(position.x, mapBounds.min.x, mapBounds.max.x);
             position.y = Mathf.Clamp(position.y, 5.0f, 200.0f);
             position.z = Mathf.Clamp(position.z, mapBounds.min.z, mapBounds.max.z);

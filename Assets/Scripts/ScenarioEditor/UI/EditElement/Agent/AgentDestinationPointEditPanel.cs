@@ -285,18 +285,7 @@ namespace Simulator.ScenarioEditor.UI.EditElement.Agent
         public void MoveCameraToDestinationPoint()
         {
             var inputManager = ScenarioManager.Instance.GetExtension<InputManager>();
-            var raycastHitsInCenter =
-                inputManager.RaycastAll(inputManager.ScenarioCamera.ViewportPointToRay(new Vector3(0.35f, 0.5f, 0.5f)));
-            if (raycastHitsInCenter.Length == 0)
-                return;
-            var furthestHit = inputManager.GetClosestHit(raycastHitsInCenter, raycastHitsInCenter.Length, true, true);
-            if (!furthestHit.HasValue)
-                return;
-            var cameraTransform = inputManager.ScenarioCamera.transform;
-            var destinationPointPosition = destinationPointExtension.DestinationPoint.transform.position;
-            var offset = furthestHit.Value.point - cameraTransform.position;
-            inputManager.ForceCameraReposition(destinationPointPosition - offset, cameraTransform.rotation.eulerAngles);
-            ScenarioManager.Instance.SelectedElement = destinationPointExtension.DestinationPoint;
+            inputManager.FocusOnScenarioElement(destinationPointExtension.DestinationPoint);
         }
 
         /// <summary>

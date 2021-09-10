@@ -354,6 +354,16 @@ namespace Simulator.ScenarioEditor.Playback
             public float duration;
 
             /// <summary>
+            /// Decides if the controller will loop actions
+            /// </summary>
+            public bool IsLooped { get; private set; }
+            
+            /// <summary>
+            /// True if playback is already cached, false otherwise
+            /// </summary>
+            public bool IsCached { get; private set; }
+
+            /// <summary>
             /// Constructor
             /// </summary>
             /// <param name="parentAgent">Scenario agent that will be controlled</param>
@@ -371,6 +381,7 @@ namespace Simulator.ScenarioEditor.Playback
             /// </summary>
             public IEnumerator PrecachePlayback(PlaybackPanel coroutinesParent)
             {
+                IsCached = false;
                 actions.Clear();
                 AgentMoveAction previousMoveAction = null;
                 var previousPosition = agent.TransformForPlayback.position;
@@ -489,6 +500,8 @@ namespace Simulator.ScenarioEditor.Playback
                 duration = actionStartTime;
                 destinationPosition = previousPosition;
                 destinationRotation = previousRotation;
+                IsLooped = waypointsPath.Loop;
+                IsCached = true;
             }
 
             /// <summary>
@@ -506,10 +519,16 @@ namespace Simulator.ScenarioEditor.Playback
             /// <param name="time">Current playback time</param>
             public void ApplyTime(float time)
             {
-                if (actions.Count == 1)
+                if (actions.Count == 0)
                     return;
                 if (time >= duration)
                 {
+                    if (IsLooped)
+                    {
+                        ApplyTime(time % duration);
+                        return;
+                    }
+
                     agent.TransformForPlayback.position = destinationPosition;
                     agent.TransformForPlayback.rotation = destinationRotation;
                 }
@@ -581,10 +600,29 @@ namespace Simulator.ScenarioEditor.Playback
             }
 
             // Wait for all the coroutines
-            for (var i = 0; i < coroutines.Count; i++)
+            var time = 0.0f;
+            bool allCoroutinesFinished;
+            do
             {
-                yield return coroutines[i];
-            }
+                yield return null;
+                time += Time.deltaTime;
+                allCoroutinesFinished = true;
+                foreach (var agentController in agents)
+                {
+                    // Lower the flag if this controller did not finish precaching
+                    if (!agentController.Value.IsCached)
+                    {
+                        allCoroutinesFinished = false;
+                        continue;
+                    }
+
+                    // Update controller if it is precached and looped
+                    if (agentController.Value.IsLooped)
+                    {
+                        agentController.Value.ApplyTime(time);
+                    }
+                }
+            } while (!allCoroutinesFinished);
 
             // Find the longest playback duration
             Duration = 0.0f;

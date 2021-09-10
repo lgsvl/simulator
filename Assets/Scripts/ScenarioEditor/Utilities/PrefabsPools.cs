@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -129,6 +129,9 @@ namespace Simulator.ScenarioEditor.Utilities
         /// <returns>Unused prefab instance</returns>
         public GameObject GetInstance(GameObject prefab)
         {
+            if (prefab == null)
+                return null;
+            
             if (!prefabPools.TryGetValue(prefab, out var pool))
             {
                 var poolParent = new GameObject(prefab.name);

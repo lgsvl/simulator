@@ -1018,10 +1018,15 @@ namespace Simulator
 
         public async Task EnterScenarioEditor()
         {
+            ConnectionUI.SetLoaderUIState(ConnectionUI.LoaderUIStateType.PROGRESS);
+            ConnectionUI.SetLinkingButtonActive(false);
+            ConnectionUI.SetVSEButtonActive(false);
+                
             if (SimulatorManager.InstanceAvailable || ApiManager.Instance)
             {
                 ConnectionUI.UpdateStatusText("Cannot enter Scenario Editor during a simulation.");
                 Debug.LogWarning("Cannot enter Scenario Editor during a simulation.");
+                ExitScenarioEditor();
                 return;
             }
 
@@ -1029,6 +1034,7 @@ namespace Simulator
             {
                 ConnectionUI.UpdateStatusText("Cannot enter Scenario Editor when connection is not established.");
                 Debug.LogWarning("Cannot enter Scenario Editor when connection is not established.");
+                ExitScenarioEditor();
                 return;
             }
 
@@ -1037,6 +1043,7 @@ namespace Simulator
             {
                 ConnectionUI.UpdateStatusText("Scenario Editor requires at least one map added to the library.");
                 Debug.LogWarning("Scenario Editor requires at least one map added to the library.");
+                ExitScenarioEditor();
                 return;
             }
 
@@ -1045,6 +1052,7 @@ namespace Simulator
             {
                 ConnectionUI.UpdateStatusText("Scenario Editor requires at least one ego vehicle added to the library.");
                 Debug.LogWarning("Scenario Editor requires at least one ego vehicle added to the library.");
+                ExitScenarioEditor();
                 return;
             }
 
@@ -1061,6 +1069,13 @@ namespace Simulator
             if (SceneManager.GetSceneByName(ScenarioEditorSceneName).isLoaded)
             {
                 SceneManager.LoadScene(LoaderScene);
+            }
+
+            if (ConnectionUI != null)
+            {
+                ConnectionUI.SetLinkingButtonActive(true);
+                ConnectionUI.SetVSEButtonActive(true);
+                ConnectionUI.SetLoaderUIState(ConnectionUI.LoaderUIStateType.READY);
             }
         }
 

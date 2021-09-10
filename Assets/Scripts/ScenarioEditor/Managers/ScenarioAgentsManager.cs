@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -12,8 +12,10 @@ namespace Simulator.ScenarioEditor.Managers
     using System.Linq;
     using System.Threading.Tasks;
     using Agents;
+    using Data;
     using Elements.Agents;
     using Input;
+    using SimpleJSON;
     using Simulator.Utilities;
     using UnityEngine;
     using Utilities;
@@ -21,7 +23,7 @@ namespace Simulator.ScenarioEditor.Managers
     /// <summary>
     /// Manager for caching and handling all the scenario agents and their sources
     /// </summary>
-    public class ScenarioAgentsManager : MonoBehaviour, IScenarioEditorExtension
+    public class ScenarioAgentsManager : MonoBehaviour, IScenarioEditorExtension, ISerializedExtension
     {
         /// <summary>
         /// Available agent sources
@@ -146,6 +148,93 @@ namespace Simulator.ScenarioEditor.Managers
         {
             Agents.Remove(agent);
             AgentUnregistered?.Invoke(agent);
+        }
+
+        /// <inheritdoc/>
+        public bool Serialize(JSONNode data)
+        {
+            var agentsNode = data.GetValueOrDefault("agents", new JSONArray());
+            if (!data.HasKey("agents"))
+                data.Add("agents", agentsNode);
+            foreach (var agent in Agents)
+                SerializeAgentNode(agentsNode, agent);
+            return true;
+        }
+
+        /// <summary>
+        /// Adds an agent node to the json
+        /// </summary>
+        /// <param name="data">Json object where data will be added</param>
+        /// <param name="scenarioAgent">Scenario agent to serialize</param>
+        private static void SerializeAgentNode(JSONNode data, ScenarioAgent scenarioAgent)
+        {
+            var agentNode = new JSONObject();
+            data.Add(agentNode);
+            if (scenarioAgent.Variant is CloudAgentVariant cloudVariant)
+                agentNode.Add("id", new JSONString(cloudVariant.guid));
+
+            agentNode.Add("uid", new JSONString(scenarioAgent.Uid));
+            agentNode.Add("variant", new JSONString(scenarioAgent.Variant.Name));
+            agentNode.Add("type", new JSONNumber(scenarioAgent.Source.AgentTypeId));
+            agentNode.Add("parameterType", new JSONString(scenarioAgent.Source.ParameterType));
+            var transform = new JSONObject();
+            agentNode.Add("transform", transform);
+            var position = new JSONObject().WriteVector3(scenarioAgent.TransformToMove.position);
+            transform.Add("position", position);
+            var rotation = new JSONObject().WriteVector3(scenarioAgent.TransformToRotate.rotation.eulerAngles);
+            transform.Add("rotation", rotation);
+
+            foreach (var extension in scenarioAgent.Extensions) extension.Value.SerializeToJson(agentNode);
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> Deserialize(JSONNode data)
+        {
+            var agents = data["agents"] as JSONArray;
+            if (agents == null)
+                return false;
+            foreach (var agentNode in agents.Children)
+            {
+                var agentType = agentNode["type"];
+                var agentsManager = ScenarioManager.Instance.GetExtension<ScenarioAgentsManager>();
+                var agentSource = agentsManager.Sources.Find(source => source.AgentTypeId == agentType);
+                if (agentSource == null)
+                {
+                    ScenarioManager.Instance.logPanel.EnqueueError(
+                        $"Error while deserializing Scenario. Agent type '{agentType}' could not be found in Simulator.");
+                    continue;
+                }
+
+                var variantName = agentNode["variant"];
+                var variant = agentSource.Variants.Find(sourceVariant => sourceVariant.Name == variantName);
+                if (variant == null)
+                {
+                    ScenarioManager.Instance.logPanel.EnqueueError(
+                        $"Error while deserializing Scenario. Agent variant '{variantName}' could not be found in Simulator.");
+                    continue;
+                }
+
+                if (!(variant is AgentVariant agentVariant))
+                {
+                    ScenarioManager.Instance.logPanel.EnqueueError(
+                        $"Could not properly deserialize variant '{variantName}' as {nameof(AgentVariant)} class.");
+                    continue;
+                }
+
+                await agentVariant.Prepare();
+                var agentInstance = agentSource.GetElementInstance(agentVariant) as ScenarioAgent;
+                //Disable gameobject to delay OnEnable methods
+                agentInstance.gameObject.SetActive(false);
+                agentInstance.Uid = agentNode["uid"];
+                var transformNode = agentNode["transform"];
+                agentInstance.TransformToMove.position = transformNode["position"].ReadVector3();
+                agentInstance.TransformToRotate.rotation = Quaternion.Euler(transformNode["rotation"].ReadVector3());
+
+                foreach (var extension in agentInstance.Extensions) extension.Value.DeserializeFromJson(agentNode);
+                agentInstance.gameObject.SetActive(true);
+            }
+
+            return true;
         }
     }
 }

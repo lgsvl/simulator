@@ -11,8 +11,10 @@ namespace Simulator.ScenarioEditor.Managers
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Data;
     using Database;
     using Database.Services;
+    using SimpleJSON;
     using UI.Utilities;
     using UnityEngine;
     using UnityEngine.SceneManagement;
@@ -21,7 +23,7 @@ namespace Simulator.ScenarioEditor.Managers
     /// <summary>
     /// Manager for calculating the map's meta-data, loading other maps and caching last loaded map
     /// </summary>
-    public class ScenarioMapManager : IScenarioEditorExtension
+    public class ScenarioMapManager : MonoBehaviour, IScenarioEditorExtension, ISerializedExtension
     {
         /// <summary>
         /// Meta data of the available maps
@@ -383,6 +385,44 @@ namespace Simulator.ScenarioEditor.Managers
                     r.useGravity = false;
                 }
             }
+        }
+
+        /// <inheritdoc/>
+        public bool Serialize(JSONNode data)
+        {
+            var mapNode = new JSONObject();
+            data.Add("map", mapNode);
+            mapNode.Add("id", new JSONString(CurrentMapMetaData.guid));
+            mapNode.Add("name", new JSONString(CurrentMapMetaData.name));
+            mapNode.Add("parameterType", new JSONString("map"));
+            return true;
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> Deserialize(JSONNode data)
+        {
+            var map = data["map"];
+            if (map == null)
+                return false;
+            var mapName = map["name"];
+            if (mapName == null)
+                return false;
+            var mapManager = ScenarioManager.Instance.GetExtension<ScenarioMapManager>();
+            if (mapManager.CurrentMapName != mapName)
+            {
+                if (mapManager.MapExists(mapName))
+                {
+                    await mapManager.LoadMapAsync(mapName);
+                    return true;
+                }
+
+                ScenarioManager.Instance.logPanel.EnqueueError(
+                    $"Loaded scenario requires map {mapName} which is not available in the database.");
+                return false;
+            }
+
+            await mapManager.LoadMapAsync(mapName);
+            return true;
         }
     }
 }

@@ -11,8 +11,6 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
     using System.Collections;
     using System.IO;
     using System.Threading.Tasks;
-    using Data.Deserializer;
-    using Data.Serializer;
     using Input;
     using Inspector;
     using Managers;
@@ -21,7 +19,6 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
     using SimpleJSON;
     using Undo;
     using UnityEngine;
-    using UnityEngine.Serialization;
     using UnityEngine.UI;
     using Utilities;
     using Toggle = UnityEngine.UI.Toggle;
@@ -128,7 +125,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
             LoadPath.Value = path;
             var json = JSONNode.Parse(File.ReadAllText(path));
             if (json != null && json.IsObject)
-                await JsonScenarioDeserializer.DeserializeScenario(json);
+                await ScenarioManager.Instance.DeserializeScenario(json);
             loadingProcess.Update("Scenario has been loaded.");
             loadingProcess.NotifyCompletion();
             ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().ClearRecords();
@@ -151,7 +148,7 @@ namespace Simulator.ScenarioEditor.UI.FileEdit
         {
             path = Path.ChangeExtension(path, ".json");
             SavePath.Value = path;
-            var scenario = JsonScenarioSerializer.SerializeScenario();
+            var scenario = ScenarioManager.Instance.SerializeScenario();
             File.WriteAllText(path, scenario.ScenarioData.ToString());
             ScenarioManager.Instance.IsScenarioDirty = false;
             ScenarioManager.Instance.logPanel.EnqueueInfo($"Scenario has been saved to the file: '{path}'.");

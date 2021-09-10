@@ -14,18 +14,14 @@ namespace Simulator.ScenarioEditor.Controllables
     using Agents;
     using Controllable;
     using Elements;
-    using Input;
-    using Managers;
     using UI.EditElement.Controllables;
-    using Undo;
-    using Undo.Records;
     using UnityEngine;
     using Web;
 
     /// <summary>
     /// This scenario source handles adding controllable
     /// </summary>
-    public class ScenarioControllableSource : ScenarioElementSource, IDragHandler
+    public class ScenarioControllableSource : ScenarioElementSource
     {
         //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
 #pragma warning disable 0649
@@ -41,16 +37,6 @@ namespace Simulator.ScenarioEditor.Controllables
         [SerializeField]
         private List<MonoBehaviour> customEditPanelsPrefabs;
 #pragma warning restore 0649
-        
-        /// <summary>
-        /// Cached reference to the scenario editor input manager
-        /// </summary>
-        private InputManager inputManager;
-
-        /// <summary>
-        /// Currently dragged element instance
-        /// </summary>
-        private ScenarioControllable draggedInstance;
 
         /// <summary>
         /// Is this source initialized
@@ -71,11 +57,6 @@ namespace Simulator.ScenarioEditor.Controllables
         public List<IControllableEditPanel> CustomEditPanels { get; } = new List<IControllableEditPanel>();
 
         /// <summary>
-        /// Controllable variant that is currently selected
-        /// </summary>
-        private ControllableVariant selectedVariant;
-
-        /// <summary>
         /// Initialization method
         /// </summary>
         /// <param name="progress">Progress value of the initialization</param>
@@ -87,7 +68,6 @@ namespace Simulator.ScenarioEditor.Controllables
                 progress.Report(1.0f);
                 return Task.CompletedTask;
             }
-            inputManager = ScenarioManager.Instance.GetExtension<InputManager>();
             
             //Load referenced controllables
             foreach (var controllablePrefab in controllablesPrefabs)
@@ -188,6 +168,15 @@ namespace Simulator.ScenarioEditor.Controllables
             return scenarioControllable;
         }
 
+        public override ScenarioElement GetElementInstance(SourceVariant variant)
+        {
+            return GetControllableInstance(variant as ControllableVariant);
+        }
+
+        /// <summary>
+        /// Initializes required components for the new scenario controllable
+        /// </summary>
+        /// <param name="scenarioControllable">New scenario controllable</param>
         public void SetupNewControllable(ScenarioControllable scenarioControllable)
         {
             var rb = scenarioControllable.gameObject.GetComponentInChildren<Rigidbody>();
@@ -198,46 +187,6 @@ namespace Simulator.ScenarioEditor.Controllables
             }
             var colliders = scenarioControllable.gameObject.GetComponentsInChildren<Collider>();
             foreach (var col in colliders) col.isTrigger = true;
-        }
-        
-        /// <inheritdoc/>
-        public override void OnVariantSelected(SourceVariant variant)
-        {
-            selectedVariant = variant as ControllableVariant;
-            if (selectedVariant!=null)
-                ScenarioManager.Instance.GetExtension<InputManager>().StartDraggingElement(this);
-        }
-
-        /// <inheritdoc/>
-        public void DragStarted()
-        {
-            draggedInstance = GetControllableInstance(selectedVariant);
-            draggedInstance.transform.SetParent(ScenarioManager.Instance.transform);
-            draggedInstance.transform.SetPositionAndRotation(inputManager.MouseRaycastPosition,
-                Quaternion.Euler(0.0f, 0.0f, 0.0f));
-        }
-
-        /// <inheritdoc/>
-        public void DragMoved()
-        {
-            draggedInstance.transform.position = inputManager.MouseRaycastPosition;
-        }
-
-        /// <inheritdoc/>
-        public void DragFinished()
-        {
-            var controllable = draggedInstance.GetComponent<ScenarioControllable>();
-            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>()
-                .RegisterRecord(new UndoAddElement(controllable));
-            draggedInstance = null;
-        }
-
-        /// <inheritdoc/>
-        public void DragCancelled()
-        {
-            draggedInstance.RemoveFromMap();
-            draggedInstance.Dispose();
-            draggedInstance = null;
         }
     }
 }

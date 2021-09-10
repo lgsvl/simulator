@@ -284,7 +284,7 @@ namespace Simulator.Web
 
         public void EnterScenarioEditor()
         {
-            Loader.Instance.EnterScenarioEditor();
+            var nonBlockingTask = Loader.Instance.EnterScenarioEditor();
         }
     }
 }

@@ -1,0 +1,17 @@
+{
+    "name": "Simulator.ScenarioEditor.Nav",
+    "rootNamespace": "",
+    "references": [
+        "GUID:43bb230cc5d89654fb9c4da20660d5b4",
+        "GUID:45f681528d86b6c41b791e85f15970bc"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

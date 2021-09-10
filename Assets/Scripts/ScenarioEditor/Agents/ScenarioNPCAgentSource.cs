@@ -12,12 +12,10 @@ namespace Simulator.ScenarioEditor.Agents
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using Elements;
     using Elements.Agents;
     using Elements.Waypoints;
-    using Input;
     using Managers;
-    using Undo;
-    using Undo.Records;
     using UnityEngine;
     using Web;
 
@@ -27,16 +25,6 @@ namespace Simulator.ScenarioEditor.Agents
     /// </remarks>
     public class ScenarioNPCAgentSource : ScenarioAgentSource
     {
-        /// <summary>
-        /// Cached reference to the scenario editor input manager
-        /// </summary>
-        private InputManager inputManager;
-
-        /// <summary>
-        /// Currently dragged agent instance
-        /// </summary>
-        private GameObject draggedInstance;
-
         /// <inheritdoc/>
         public override string ElementTypeName => "NPCAgent";
 
@@ -52,7 +40,6 @@ namespace Simulator.ScenarioEditor.Agents
         /// <inheritdoc/>
         public override Task Initialize(IProgress<float> progress)
         {
-            inputManager = ScenarioManager.Instance.GetExtension<InputManager>();
             var npcVehiclesInSimulation = Config.NPCVehicles;
             var npcsCount = npcVehiclesInSimulation.Count;
             var i = 0;
@@ -111,9 +98,9 @@ namespace Simulator.ScenarioEditor.Agents
 
             return instance;
         }
-
+        
         /// <inheritdoc/>
-        public override ScenarioAgent GetAgentInstance(AgentVariant variant)
+        public override ScenarioElement GetElementInstance(SourceVariant variant)
         {
             var newGameObject = new GameObject(ElementTypeName);
             newGameObject.transform.SetParent(transform);
@@ -132,45 +119,12 @@ namespace Simulator.ScenarioEditor.Agents
             return behaviourExtension!=null && behaviourExtension.Behaviour == nameof(NPCWaypointBehaviour);
         }
 
-        /// <inheritdoc/>
-        public override void DragStarted()
+        protected override void OnDraggedInstanceMove()
         {
-            draggedInstance = GetModelInstance(selectedVariant);
-            draggedInstance.transform.SetParent(ScenarioManager.Instance.transform);
-            draggedInstance.transform.SetPositionAndRotation(inputManager.MouseRaycastPosition,
-                Quaternion.Euler(0.0f, 0.0f, 0.0f));
             ScenarioManager.Instance.GetExtension<ScenarioMapManager>().LaneSnapping.SnapToLane(
                 LaneSnappingHandler.LaneType.Traffic,
-                draggedInstance.transform,
-                draggedInstance.transform);
-        }
-
-        /// <inheritdoc/>
-        public override void DragMoved()
-        {
-            draggedInstance.transform.position = inputManager.MouseRaycastPosition;
-            ScenarioManager.Instance.GetExtension<ScenarioMapManager>().LaneSnapping.SnapToLane(
-                LaneSnappingHandler.LaneType.Traffic,
-                draggedInstance.transform,
-                draggedInstance.transform);
-        }
-
-        /// <inheritdoc/>
-        public override void DragFinished()
-        {
-            var agent = GetAgentInstance(selectedVariant);
-            agent.TransformToRotate.rotation = draggedInstance.transform.rotation;
-            agent.ForceMove(draggedInstance.transform.position);
-            ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
-            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoAddElement(agent));
-            draggedInstance = null;
-        }
-
-        /// <inheritdoc/>
-        public override void DragCancelled()
-        {
-            ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
-            draggedInstance = null;
+                draggedInstance.TransformToMove,
+                draggedInstance.TransformToRotate);
         }
     }
 }

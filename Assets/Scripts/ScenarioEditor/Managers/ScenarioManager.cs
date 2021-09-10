@@ -10,8 +10,10 @@ namespace Simulator.ScenarioEditor.Managers
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Data;
     using Elements;
     using Input;
+    using SimpleJSON;
     using Simulator.Utilities;
     using UI.ColorPicker;
     using UI.FileEdit;
@@ -39,17 +41,17 @@ namespace Simulator.ScenarioEditor.Managers
             /// Manager is deinitialized and cannot be used
             /// </summary>
             Deinitialized = 0,
-            
+
             /// <summary>
             /// Manager is during the initialization process
             /// </summary>
             Initializing = 1,
-            
+
             /// <summary>
             /// Manager is initialized and ready to be used
             /// </summary>
             Initialized = 2,
-            
+
             /// <summary>
             /// Manage is during the deinitialization process
             /// </summary>
@@ -89,7 +91,7 @@ namespace Simulator.ScenarioEditor.Managers
         /// </summary>
         [SerializeField]
         private List<GameObject> extensions;
-        
+
         /// <summary>
         /// Camera used to render the scenario world
         /// </summary>
@@ -128,7 +130,7 @@ namespace Simulator.ScenarioEditor.Managers
         /// Inspector menu used in the scenario editor
         /// </summary>
         public Inspector inspector;
-        
+
         /// <summary>
         /// Pooling mechanism for prefabs in the visual scenario editor
         /// </summary>
@@ -174,7 +176,7 @@ namespace Simulator.ScenarioEditor.Managers
             {
                 if (selectedElement == value)
                     return;
-                if (selectedElement!=null)
+                if (selectedElement != null)
                     selectedElement.Deselected();
                 var previousElement = selectedElement;
                 selectedElement = value;
@@ -231,7 +233,7 @@ namespace Simulator.ScenarioEditor.Managers
         /// Event invoked when the new scenario element is activated in scenario
         /// </summary>
         public event Action<ScenarioElement> ScenarioElementActivated;
-        
+
         /// <summary>
         /// Event invoked when the new scenario element is deactivated in scenario
         /// </summary>
@@ -346,7 +348,7 @@ namespace Simulator.ScenarioEditor.Managers
                 StopInitialization();
                 return;
             }
-            
+
             //Initialize the inspector
             try
             {
@@ -358,17 +360,20 @@ namespace Simulator.ScenarioEditor.Managers
                 StopInitialization();
                 return;
             }
-            
+
             loadingProcess.Update("Visual Scenario Editor has been loaded.");
             loadingProcess.NotifyCompletion();
             State = InitializationState.Initialized;
             Initialized?.Invoke();
         }
 
+        /// <summary>
+        /// Stops the scenario manager initialization and exits the scenario editor
+        /// </summary>
         private void StopInitialization()
         {
             if (State == InitializationState.Initializing)
-            	Deinitialize();
+                Deinitialize();
             Loader.Instance.ExitScenarioEditor();
         }
 
@@ -381,7 +386,7 @@ namespace Simulator.ScenarioEditor.Managers
                 return;
             State = InitializationState.Deinitializing;
             selectedElement = null;
-            if (inspector!=null)
+            if (inspector != null)
                 inspector.Deinitialize();
             foreach (var scenarioManager in scenarioEditorExtensions)
                 scenarioManager.Value.Deinitialize();
@@ -390,6 +395,7 @@ namespace Simulator.ScenarioEditor.Managers
             {
                 DownloadManager.StopAssetDownload(assetBeingDownloaded);
             }
+
             assetsBeingDownloaded.Clear();
             State = InitializationState.Deinitialized;
         }
@@ -404,7 +410,7 @@ namespace Simulator.ScenarioEditor.Managers
             return scenarioEditorExtensions.TryGetValue(typeof(T), out var scenarioManager) &&
                    scenarioManager.IsInitialized;
         }
-        
+
         /// <summary>
         /// Waits until extension is ready to be used
         /// </summary>
@@ -423,7 +429,27 @@ namespace Simulator.ScenarioEditor.Managers
         /// <returns>Scenario editor extension of the requested type created for this editor</returns>
         public T GetExtension<T>() where T : class, IScenarioEditorExtension
         {
-            return scenarioEditorExtensions[typeof(T)] as T;
+            var type = typeof(T);
+            if (scenarioEditorExtensions.TryGetValue(type, out var extension))
+                return extension as T;
+            return null;
+        }
+
+        /// <summary>
+        /// Returns list of scenario editor extensions that are assignable to given type
+        /// </summary>
+        /// <typeparam name="T">Requested scenario editor extension implemented type</typeparam>
+        /// <returns>List of scenario editor extensions that are assignable to given type</returns>
+        public List<T> GetExtensions<T>()
+        {
+            var requestedExtensions = new List<T>();
+            foreach (var editorExtension in scenarioEditorExtensions)
+            {
+                if (typeof(T).IsAssignableFrom(editorExtension.Key))
+                    requestedExtensions.Add((T) editorExtension.Value);
+            }
+
+            return requestedExtensions;
         }
 
         /// <summary>
@@ -490,7 +516,7 @@ namespace Simulator.ScenarioEditor.Managers
             var copy = prefabsPools.Clone(CopiedElement.gameObject);
             copy.SetActive(true);
             var scenarioElementCopy = copy.GetComponent<ScenarioElement>();
-            if (scenarioElementCopy!=null && registerUndo)
+            if (scenarioElementCopy != null && registerUndo)
                 GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoAddElement(scenarioElementCopy));
             copy.transform.position = position;
             //Reposition all scenario elements on ground, do not snap while repositioning
@@ -513,7 +539,8 @@ namespace Simulator.ScenarioEditor.Managers
         public void OnMapLoaded(ScenarioMapManager.MapMetaData mapMetaData)
         {
             var spawnInfo = FindObjectOfType<SpawnInfo>();
-            ScenarioCamera.transform.position = (spawnInfo == null ? Vector3.zero : spawnInfo.transform.position)+new Vector3(0.0f, 30.0f, 0.0f);
+            ScenarioCamera.transform.position = (spawnInfo == null ? Vector3.zero : spawnInfo.transform.position) +
+                                                new Vector3(0.0f, 30.0f, 0.0f);
             var lights = Instantiate(lightsPrefab);
             lights.SetActive(true);
         }
@@ -526,7 +553,7 @@ namespace Simulator.ScenarioEditor.Managers
         {
             ScenarioElementActivated?.Invoke(scenarioElement);
         }
-        
+
         /// <summary>
         /// Invoked by <see cref="ScenarioElement"/> Start method notifying scenario about deactivated element
         /// </summary>
@@ -534,6 +561,111 @@ namespace Simulator.ScenarioEditor.Managers
         public void ReportDeactivatedElement(ScenarioElement scenarioElement)
         {
             ScenarioElementDeactivated?.Invoke(scenarioElement);
+        }
+
+        /// <summary>
+        /// Serializes current scenario state into a json scenario
+        /// </summary>
+        /// <returns>Json scenario with serialized scenario</returns>
+        public JsonScenario SerializeScenario()
+        {
+            var scenarioData = new JSONObject();
+            scenarioData.Add("version", new JSONString("0.01"));
+
+            var serializedExtensions = ScenarioManager.Instance.GetExtensions<ISerializedExtension>();
+            foreach (var serializedExtension in serializedExtensions)
+            {
+                try
+                {
+                    var serializationResult = serializedExtension.Serialize(scenarioData);
+                    if (!serializationResult)
+                    {
+                        logPanel.EnqueueError(
+                            $"Error occured while serializing {serializedExtension.GetType().Name} extension.");
+                        return null;
+                    }
+                }
+                catch (Exception exception)
+                {
+                    logPanel.EnqueueError(
+                        $"Error occured while serializing {serializedExtension.GetType().Name} extension. Error message: {exception.Message}.");
+                    return null;
+                }
+            }
+
+            return new JsonScenario(scenarioData);
+        }
+
+        /// <summary>
+        /// Adds visual scenario editor metadata to the json scenario
+        /// </summary>
+        /// <param name="data">Json object where data will be added</param>
+        private static void SerializeMetadata(JSONNode data)
+        {
+            var vseMetadata = new JSONObject();
+            data.Add("vseMetadata", vseMetadata);
+            var cameraSettings = new JSONObject();
+            vseMetadata.Add("cameraSettings", cameraSettings);
+            var camera = ScenarioManager.Instance.ScenarioCamera;
+            var position = new JSONObject().WriteVector3(camera.transform.position);
+            cameraSettings.Add("position", position);
+            var rotation = new JSONObject().WriteVector3(camera.transform.rotation.eulerAngles);
+            cameraSettings.Add("rotation", rotation);
+        }
+
+        /// <summary>
+        /// Deserializes and loads scenario from the given json data
+        /// </summary>
+        /// <param name="data">Json data with the scenario</param>
+        public async Task<bool> DeserializeScenario(JSONNode data)
+        {
+            var serializedExtensions = ScenarioManager.Instance.GetExtensions<ISerializedExtension>();
+            foreach (var serializedExtension in serializedExtensions)
+            {
+                try
+                {
+                    var deserializationResult = await serializedExtension.Deserialize(data);
+                    if (!deserializationResult)
+                    {
+                        logPanel.EnqueueError(
+                            $"Error occured while deserializing {serializedExtension.GetType().Name} extension.");
+                        return false;
+                    }
+                }
+                catch (Exception exception)
+                {
+                    logPanel.EnqueueError(
+                        $"Error occured while deserializing {serializedExtension.GetType().Name} extension. Error message: {exception.Message.TrimEnd('.')}.");
+                    return false;
+                }
+            }
+
+            DeserializeMetadata(data);
+            return true;
+        }
+
+        /// <summary>
+        /// Deserializes scenario meta data from the json data
+        /// </summary>
+        /// <param name="data">Json object with the metadata</param>
+        private static void DeserializeMetadata(JSONNode data)
+        {
+            var vseMetadata = data["vseMetadata"];
+            if (vseMetadata == null)
+                vseMetadata = data["vse_metadata"];
+            if (vseMetadata == null)
+                return;
+            var cameraSettings = vseMetadata["cameraSettings"];
+            if (cameraSettings == null)
+                cameraSettings = vseMetadata["camera_settings"];
+            if (cameraSettings == null)
+                return;
+            var position = cameraSettings["position"];
+            var camera = ScenarioManager.Instance.ScenarioCamera;
+            var rotation = cameraSettings.HasKey("rotation")
+                ? cameraSettings["rotation"].ReadVector3()
+                : camera.transform.rotation.eulerAngles;
+            Instance.GetExtension<InputManager>().ForceCameraReposition(position, rotation);
         }
 
         /// <summary>

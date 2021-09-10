@@ -24,7 +24,7 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         /// Sign that is added to the name text when bound variant is unprepared
         /// </summary>
         private static string UnpreparedSign = "";
-        
+
         //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
 #pragma warning disable 0649
         /// <summary>
@@ -32,7 +32,7 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         /// </summary>
         [SerializeField]
         private GameObject content;
-        
+
         /// <summary>
         /// Main text of this panel
         /// </summary>
@@ -49,7 +49,7 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         /// Cached scenario element source class which is used for adding new elements from this panel
         /// </summary>
         private ScenarioElementSource source;
-        
+
         /// <summary>
         /// Cached scenario element source variant handled by this panel
         /// </summary>
@@ -85,7 +85,10 @@ namespace Simulator.ScenarioEditor.UI.AddElement
                 (sourcePanel.MultiplePages ? content : gameObject).SetActive(true);
                 if (!variant.IsPrepared)
                 {
-                    text.text = $"{UnpreparedSign} {variant.Name} {UnpreparedSign}";
+                    var progress = variant.IsBusy
+                        ? $"{variant.PreparationProgress:F1}% "
+                        : "";
+                    text.text = $"{progress}{UnpreparedSign} {variant.Name} {UnpreparedSign}";
                     variant.Prepared += VariantOnPrepared;
                 }
                 else text.text = variant.Name;
@@ -97,7 +100,7 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         /// </summary>
         public void Deinitialize()
         {
-            if (Variant!=null)
+            if (Variant != null)
                 Variant.Prepared -= VariantOnPrepared;
             source = null;
             variant = null;
@@ -119,16 +122,17 @@ namespace Simulator.ScenarioEditor.UI.AddElement
         {
             if (Variant.IsBusy)
             {
-                ScenarioManager.Instance.logPanel.EnqueueInfo($"Downloading of the {Variant.Name} agent is currently in progress.");
+                ScenarioManager.Instance.logPanel.EnqueueInfo(
+                    $"Downloading of the {Variant.Name} agent is currently in progress.");
                 return;
             }
 
             if (!Variant.IsPrepared)
             {
-                var progress = new Progress<Tuple<string, float>>(p =>
+                var progress = new Progress<SourceVariant>(downloadedVariant =>
                 {
-                    if (text!=null && !Variant.IsPrepared)
-                        text.text = $"{p.Item2:F1}% {UnpreparedSign} {variant.Name} {UnpreparedSign}";
+                    if (text != null && Variant == downloadedVariant)
+                        text.text = $"{downloadedVariant.PreparationProgress:F1}% {UnpreparedSign} {variant.Name} {UnpreparedSign}";
                 });
                 Variant.Prepare(progress);
             }
@@ -157,7 +161,7 @@ namespace Simulator.ScenarioEditor.UI.AddElement
             addElementsPanel.DescriptionPanel.Show(transform as RectTransform, variant);
             showDescriptionCoroutine = null;
         }
-        
+
         /// <summary>
         /// Method invokes when the pointer exits this panel collider
         /// </summary>

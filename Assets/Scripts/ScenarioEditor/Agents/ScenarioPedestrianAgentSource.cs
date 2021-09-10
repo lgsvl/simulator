@@ -10,12 +10,10 @@ namespace Simulator.ScenarioEditor.Agents
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Elements;
     using Elements.Agents;
     using Elements.Waypoints;
-    using Input;
     using Managers;
-    using Undo;
-    using Undo.Records;
     using UnityEngine;
     using Web;
 
@@ -25,16 +23,6 @@ namespace Simulator.ScenarioEditor.Agents
     /// </remarks>
     public class ScenarioPedestrianAgentSource : ScenarioAgentSource
     {
-        /// <summary>
-        /// Cached reference to the scenario editor input manager
-        /// </summary>
-        private InputManager inputManager;
-
-        /// <summary>
-        /// Currently dragged agent instance
-        /// </summary>
-        private GameObject draggedInstance;
-
         /// <inheritdoc/>
         public override string ElementTypeName => "PedestrianAgent";
 
@@ -50,7 +38,6 @@ namespace Simulator.ScenarioEditor.Agents
         /// <inheritdoc/>
         public override Task Initialize(IProgress<float> progress)
         {
-            inputManager = ScenarioManager.Instance.GetExtension<InputManager>();
             var pedestriansInSimulation = Config.Pedestrians;
             var i = 0;
             foreach (var pedestrian in pedestriansInSimulation)
@@ -68,7 +55,7 @@ namespace Simulator.ScenarioEditor.Agents
         public override void Deinitialize()
         {
         }
-
+        
         /// <inheritdoc/>
         public override GameObject GetModelInstance(SourceVariant variant)
         {
@@ -106,8 +93,9 @@ namespace Simulator.ScenarioEditor.Agents
             return instance;
         }
 
+
         /// <inheritdoc/>
-        public override ScenarioAgent GetAgentInstance(AgentVariant variant)
+        public override ScenarioElement GetElementInstance(SourceVariant variant)
         {
             var newGameObject = new GameObject(ElementTypeName);
             newGameObject.transform.SetParent(transform);
@@ -123,45 +111,11 @@ namespace Simulator.ScenarioEditor.Agents
             return true;
         }
 
-        /// <inheritdoc/>
-        public override void DragStarted()
+        protected override void OnDraggedInstanceMove()
         {
-            draggedInstance = GetModelInstance(selectedVariant);
-            draggedInstance.transform.SetParent(ScenarioManager.Instance.transform);
-            draggedInstance.transform.SetPositionAndRotation(inputManager.MouseRaycastPosition,
-                Quaternion.Euler(0.0f, 0.0f, 0.0f));
-            ScenarioManager.Instance.GetExtension<ScenarioMapManager>().LaneSnapping.SnapToLane(
-                LaneSnappingHandler.LaneType.Pedestrian,
-                draggedInstance.transform,
-                draggedInstance.transform);
-        }
-
-        /// <inheritdoc/>
-        public override void DragMoved()
-        {
-            draggedInstance.transform.position = inputManager.MouseRaycastPosition;
-            ScenarioManager.Instance.GetExtension<ScenarioMapManager>().LaneSnapping.SnapToLane(
-                LaneSnappingHandler.LaneType.Pedestrian,
-                draggedInstance.transform,
-                draggedInstance.transform);
-        }
-
-        /// <inheritdoc/>
-        public override void DragFinished()
-        {
-            var agent = GetAgentInstance(selectedVariant);
-            agent.TransformToRotate.rotation = draggedInstance.transform.rotation;
-            agent.ForceMove(draggedInstance.transform.position);
-            ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
-            ScenarioManager.Instance.GetExtension<ScenarioUndoManager>().RegisterRecord(new UndoAddElement(agent));
-            draggedInstance = null;
-        }
-
-        /// <inheritdoc/>
-        public override void DragCancelled()
-        {
-            ScenarioManager.Instance.prefabsPools.ReturnInstance(draggedInstance);
-            draggedInstance = null;
+            ScenarioManager.Instance.GetExtension<ScenarioMapManager>().LaneSnapping.SnapToLane(LaneSnappingHandler.LaneType.Pedestrian,
+                draggedInstance.TransformToMove,
+                draggedInstance.TransformToRotate);
         }
     }
 }

@@ -300,12 +300,16 @@ namespace Simulator.ScenarioEditor.Elements.Waypoints
             switch (PathType)
             {
                 case WaypointsPathType.Linear:
+                    if (PathRenderer.positionCount <= 0)
+                        return;
                     PathRenderer.SetPosition(0,
                         element.TransformToMove.position - waypointsParent.transform.position +
                         LineRendererPositionOffset);
                     break;
                 case WaypointsPathType.BezierSpline:
                     RecalculateBezierSpline();
+                    if (PathRenderer.positionCount <= 0)
+                        return;
                     PathRenderer.SetPosition(0,
                         element.TransformToMove.position - waypointsParent.transform.position +
                         LineRendererPositionOffset);
@@ -840,6 +844,7 @@ namespace Simulator.ScenarioEditor.Elements.Waypoints
             if (waypoints.Count < 1)
             {
                 bezierSpline = new BezierSpline<Waypoint>(new Waypoint[0], 0.01f);
+                PathRenderer.positionCount = 0;
                 return;
             }
 

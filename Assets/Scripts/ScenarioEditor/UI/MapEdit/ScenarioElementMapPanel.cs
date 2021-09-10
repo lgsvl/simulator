@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 LG Electronics, Inc.
+ * Copyright (c) 2020-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -13,6 +13,7 @@ namespace Simulator.ScenarioEditor.UI.MapEdit.Buttons
     using Elements;
     using Managers;
     using UnityEngine;
+    using UnityEngine.UI;
 
     /// <summary>
     /// Panel allowing for a quick edit of a map element
@@ -39,6 +40,42 @@ namespace Simulator.ScenarioEditor.UI.MapEdit.Buttons
         /// </summary>
         [SerializeField]
         private List<ElementMapEdit> agentEditPrefabs = new List<ElementMapEdit>();
+
+        /// <summary>
+        /// Text for viewing position X of the selected element
+        /// </summary>
+        [SerializeField]
+        private Text positionXText;
+        
+        /// <summary>
+        /// Text for viewing position Y of the selected element
+        /// </summary>
+        [SerializeField]
+        private Text positionYText;
+        
+        /// <summary>
+        /// Text for viewing position Z of the selected element
+        /// </summary>
+        [SerializeField]
+        private Text positionZText;
+
+        /// <summary>
+        /// Text for viewing rotation X of the selected element
+        /// </summary>
+        [SerializeField]
+        private Text rotationXText;
+        
+        /// <summary>
+        /// Text for viewing rotation Y of the selected element
+        /// </summary>
+        [SerializeField]
+        private Text rotationYText;
+        
+        /// <summary>
+        /// Text for viewing rotation Z of the selected element
+        /// </summary>
+        [SerializeField]
+        private Text rotationZText;
 #pragma warning restore 0649
 
         /// <summary>
@@ -165,11 +202,21 @@ namespace Simulator.ScenarioEditor.UI.MapEdit.Buttons
             var rectPosition = transform as RectTransform;
             if (rectPosition == null)
                 throw new ArgumentException($"{GetType().Name} requires {nameof(RectTransform)} component.");
-            while (gameObject.activeSelf)
+            while (gameObject.activeSelf && element != null)
             {
                 Vector2 newPosition = renderingCamera.WorldToScreenPoint(element.transform.position);
                 newPosition += offsetFromElement;
                 rectPosition.anchoredPosition = newPosition;
+                // Update position texts
+                var position = element.TransformToMove.position;
+                positionXText.text = $"X: {position.x:F1}";
+                positionYText.text = $"Y: {position.y:F1}";
+                positionZText.text = $"Z: {position.z:F1}";
+                // Update rotation texts
+                var rotation = element.TransformToRotate.rotation.eulerAngles;
+                rotationXText.text = $"Pitch: {rotation.x:F0}°";
+                rotationYText.text = $"Head: {rotation.y:F0}°";
+                rotationZText.text = $"Roll: {rotation.z:F0}°";
                 yield return null;
             }
         }

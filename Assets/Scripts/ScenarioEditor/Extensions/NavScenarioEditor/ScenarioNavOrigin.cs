@@ -25,7 +25,7 @@ namespace Simulator.ScenarioEditor.Nav
         private bool boundToMap;
 
         /// <inheritdoc/>
-        public override bool CanBeRotated => false;
+        public override bool CanBeRotated => true;
         
         /// <inheritdoc/>
         public override bool CanBeCopied => false;

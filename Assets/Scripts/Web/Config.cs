@@ -458,14 +458,14 @@ namespace Simulator.Web
                     var prefab = (GameObject)AssetDatabase.LoadAssetAtPath(Path.Combine(BundleConfig.ExternalBase, "Controllables", manifest.assetName, $"{manifest.assetName}.prefab"), typeof(GameObject));
                     Controllables.Add(manifest.assetName, prefab.GetComponent<IControllable>());
 
-                    var debugAssets = new List<GameObject>();
+                    var controllableAssets = new List<GameObject>();
                     foreach (var pluginAsset in pluginAssets)
                     {
                         if (pluginAsset == mainPrefabName)
                             continue;
-                        debugAssets.Add(pluginBundle.LoadAsset<GameObject>(pluginAsset));
+                        controllableAssets.Add(pluginBundle.LoadAsset<GameObject>(pluginAsset));
                     }
-                    ControllableAssets.Add(controllable, debugAssets);
+                    ControllableAssets.Add(controllable, controllableAssets);
                     LoadedAssets.Add(manifest);
 
                     return;

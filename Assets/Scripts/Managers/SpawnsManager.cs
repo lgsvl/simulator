@@ -200,8 +200,8 @@ public class SpawnsManager : MonoBehaviour
 
     public bool WithinSpawnArea(Vector3 pos)
     {
-        var spawnT = SimulatorManager.Instance.AgentManager.CurrentActiveAgent?.transform;
-        spawnT = spawnT ?? transform;
+        var currentAgent = SimulatorManager.Instance.AgentManager.CurrentActiveAgent;
+        var spawnT = currentAgent == null ? transform : currentAgent.transform;
         var spawnBounds = new Bounds(spawnT.position, SpawnBoundsSize);
         return spawnBounds.Contains(pos);
     }

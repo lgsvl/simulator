@@ -51,12 +51,9 @@ namespace Simulator.Tests.Map
                     var autoware = new AutowareMapTool();
                     autoware.Export(Path.Combine(temp, $"{map}_autoware"));
 
-                    var apollo3 = new ApolloMapTool(ApolloMapTool.ApolloVersion.Apollo_3_0);
-                    apollo3.Export(Path.Combine(temp, $"{map}_apollo3"));
-
                     Assert.IsFalse(scene.isDirty);
 
-                    var apollo5 = new ApolloMapTool(ApolloMapTool.ApolloVersion.Apollo_5_0);
+                    var apollo5 = new ApolloMapTool();
                     apollo5.Export(Path.Combine(temp, $"{map}_apollo5"));
 
                     Assert.IsFalse(scene.isDirty);

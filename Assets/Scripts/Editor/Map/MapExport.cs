@@ -8,6 +8,7 @@
 using UnityEngine;
 using UnityEditor;
 using Simulator.Editor;
+using System.IO;
 
 public class MapExport : EditorWindow
 {
@@ -16,7 +17,7 @@ public class MapExport : EditorWindow
 
     string[] exportFormats = new string[]
     {
-        "Apollo 5 HD Map", "Apollo 3 HD Map", "Autoware Vector Map", "Lanelet2 Map", "OpenDRIVE Map"
+        "Apollo 5 HD Map", "Autoware Vector Map", "Lanelet2 Map", "OpenDRIVE Map"
     };
 
     [MenuItem("Simulator/Export HD Map", false, 120)]
@@ -57,14 +58,15 @@ public class MapExport : EditorWindow
             Selected = selectedNew;
         }
 
-        if (Selected == 0)
+        if (exportFormats[Selected] == "Apollo 5 HD Map")
         {
             EditorGUILayout.HelpBox("Save File As...", UnityEditor.MessageType.Info);
             GUILayout.BeginHorizontal();
             FileName = EditorGUILayout.TextField(FileName);
+            var directoryName = string.IsNullOrWhiteSpace(FileName) ? "" : Path.GetDirectoryName(FileName);
             if (GUILayout.Button("...", GUILayout.ExpandWidth(false)))
             {
-                var path = EditorUtility.SaveFilePanel("Save Apollo HD Map as BIN File", "", "base_map.bin", "bin");
+                var path = EditorUtility.SaveFilePanel("Save Apollo HD Map as BIN File", directoryName, "base_map.bin", "bin");
                 if (!string.IsNullOrEmpty(path))
                 {
                     FileName = path;
@@ -72,29 +74,14 @@ public class MapExport : EditorWindow
             }
             GUILayout.EndHorizontal();
         }
-        else if (Selected == 1)
-        {
-            EditorGUILayout.HelpBox("Save File As...", UnityEditor.MessageType.Info);
-            GUILayout.BeginHorizontal();
-            FileName = EditorGUILayout.TextField(FileName);
-            if (GUILayout.Button("...", GUILayout.ExpandWidth(false)))
-            {
-                var path = EditorUtility.SaveFilePanel("Save Apollo HD Map as BIN File", "", "base_map.bin", "bin");
-                if (!string.IsNullOrEmpty(path))
-                {
-                    FileName = path;
-                }
-            }
-            GUILayout.EndHorizontal();
-        }
-        else if (Selected == 2)
+        else if (exportFormats[Selected] == "Autoware Vector Map")
         {
             EditorGUILayout.HelpBox("Select Folder to Save...", UnityEditor.MessageType.Info);
             GUILayout.BeginHorizontal();
             FileName = EditorGUILayout.TextField(FileName);
             if (GUILayout.Button("...", GUILayout.ExpandWidth(false)))
             {
-                var path = EditorUtility.SaveFolderPanel("Select Folder to Save Autoware Vector Map", "", "AutowareVectorMap");
+                var path = EditorUtility.SaveFolderPanel("Select Folder to Save Autoware Vector Map", FileName, "AutowareVectorMap");
                 if (!string.IsNullOrEmpty(path))
                 {
                     FileName = path;
@@ -102,14 +89,15 @@ public class MapExport : EditorWindow
             }
             GUILayout.EndHorizontal();
         }
-        else if (Selected == 3)
+        else if (exportFormats[Selected] == "Lanelet2 Map")
         {
             EditorGUILayout.HelpBox("Save File As...", UnityEditor.MessageType.Info);
             GUILayout.BeginHorizontal();
             FileName = EditorGUILayout.TextField(FileName);
+            var directoryName = string.IsNullOrWhiteSpace(FileName) ? "" : Path.GetDirectoryName(FileName);
             if (GUILayout.Button("...", GUILayout.ExpandWidth(false)))
             {
-                var path = EditorUtility.SaveFilePanel("Save Lanelet2 Map as XML File", "", "lanelet2.osm", "osm");
+                var path = EditorUtility.SaveFilePanel("Save Lanelet2 Map as XML File", directoryName, "lanelet2.osm", "osm");
                 if (!string.IsNullOrEmpty(path))
                 {
                     FileName = path;
@@ -117,14 +105,15 @@ public class MapExport : EditorWindow
             }
             GUILayout.EndHorizontal();
         }
-        else if (Selected == 4)
+        else if (exportFormats[Selected] == "OpenDRIVE Map")
         {
             EditorGUILayout.HelpBox("Save File As...", UnityEditor.MessageType.Info);
             GUILayout.BeginHorizontal();
             FileName = EditorGUILayout.TextField(FileName);
+            var directoryName = string.IsNullOrWhiteSpace(FileName) ? "" : Path.GetDirectoryName(FileName);
             if (GUILayout.Button("...", GUILayout.ExpandWidth(false)))
             {
-                var path = EditorUtility.SaveFilePanel("Save OpenDRIVE Map as xodr File", "", "OpenDRIVE.xodr", "xodr");
+                var path = EditorUtility.SaveFilePanel("Save OpenDRIVE Map as xodr File", directoryName, "OpenDRIVE.xodr", "xodr");
                 if (!string.IsNullOrEmpty(path))
                 {
                     FileName = path;
@@ -142,12 +131,7 @@ public class MapExport : EditorWindow
             }
             if (exportFormats[Selected] == "Apollo 5 HD Map")
             {
-                ApolloMapTool apolloMapTool = new ApolloMapTool(ApolloMapTool.ApolloVersion.Apollo_5_0);
-                apolloMapTool.Export(FileName);
-            }
-            else if (exportFormats[Selected] == "Apollo 3 HD Map")
-            {
-                ApolloMapTool apolloMapTool = new ApolloMapTool(ApolloMapTool.ApolloVersion.Apollo_3_0);
+                ApolloMapTool apolloMapTool = new ApolloMapTool();
                 apolloMapTool.Export(FileName);
             }
             else if (exportFormats[Selected] == "Autoware Vector Map")

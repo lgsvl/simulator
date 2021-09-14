@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEditor;
 using Simulator.Editor;
 using Simulator.Map;
+using System.IO;
 
 public class MapImport : EditorWindow
 {
@@ -154,9 +155,10 @@ public class MapImport : EditorWindow
         EditorGUILayout.HelpBox("Select File...", UnityEditor.MessageType.Info);
         GUILayout.BeginHorizontal();
         FileName = EditorGUILayout.TextField(FileName);
+        var directoryName = string.IsNullOrWhiteSpace(FileName) ? "" : Path.GetDirectoryName(FileName);
         if (GUILayout.Button("...", GUILayout.ExpandWidth(false)))
         {
-            var path = EditorUtility.OpenFilePanel("Open " + mapFormat + " Map", "", formatExtension);
+            var path = EditorUtility.OpenFilePanel("Open " + mapFormat + " Map", directoryName, formatExtension);
             if (!string.IsNullOrEmpty(path))
             {
                 FileName = path;

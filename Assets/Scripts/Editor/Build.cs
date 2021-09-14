@@ -322,7 +322,6 @@ namespace Simulator.Editor
 
                             var hdMaps = new HdMaps()
                             {
-                                apollo30 = ZipPath("hdmaps", "apollo30", "base_map.bin"),
                                 apollo50 = ZipPath("hdmaps", "apollo50", "base_map.bin"),
                                 autoware = ZipPath("hdmaps", "autoware", "AutowareVectorMap.zip"),
                                 lanelet2 = ZipPath("hdmaps", "lanelet2", name + ".osm"),
@@ -357,7 +356,7 @@ namespace Simulator.Editor
                                 Directory.Delete(tmpdir);
                             }
 
-                            ApolloMapTool apolloMapTool = new ApolloMapTool(ApolloMapTool.ApolloVersion.Apollo_5_0);
+                            ApolloMapTool apolloMapTool = new ApolloMapTool();
                             tmpdir = Path.Combine(outputFolder, $"{name}_apollomap_5_0");
                             Directory.CreateDirectory(tmpdir);
                             if (apolloMapTool.Export(Path.Combine(tmpdir, "base_map.bin")))
@@ -369,22 +368,6 @@ namespace Simulator.Editor
                             {
                                 Directory.Delete(tmpdir);
                             }
-
-                            /*
-                            // TODO: remove Apollo 3.0 support completely.
-                            apolloMapTool = new ApolloMapTool(ApolloMapTool.ApolloVersion.Apollo_3_0);
-                            tmpdir = Path.Combine(outputFolder, $"{name}_apollomap_3_0");
-                            Directory.CreateDirectory(tmpdir);
-                            if (apolloMapTool.Export(Path.Combine(tmpdir, "base_map.bin")))
-                            {
-                                buildArtifacts.Add((Path.Combine(tmpdir, "base_map.bin"), hdMaps.apollo30));
-                                buildArtifacts.Add((tmpdir, null));
-                            }
-                            else
-                            {
-                                Directory.Delete(tmpdir);
-                            }
-                            */
 
                             AutowareMapTool autowareMapTool = new AutowareMapTool();
                             tmpdir = Path.Combine(outputFolder, $"{name}_autoware");

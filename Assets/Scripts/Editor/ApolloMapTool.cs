@@ -434,14 +434,6 @@ namespace Simulator.Editor
 
     public class ApolloMapTool
     {
-        public enum ApolloVersion
-        {
-            Apollo_3_0,
-            Apollo_5_0
-        }
-
-        ApolloVersion Version;
-
         // The threshold between stopline and branching point. if a stopline-lane intersect is closer than this to a branching point then this stopline is a braching stopline
         const float StoplineIntersectThreshold = 1.5f;
         private double OriginNorthing;
@@ -457,11 +449,6 @@ namespace Simulator.Editor
         {
             Signal_Stopline_Lane,
             Stopsign_Stopline_Lane,
-        }
-
-        public ApolloMapTool(ApolloVersion version)
-        {
-            Version = version;
         }
 
         List<ADMapLane> laneSegments;
@@ -623,10 +610,8 @@ namespace Simulator.Editor
                 lineSegmentsSet.Add(line);
             }
 
-            if (Version == ApolloVersion.Apollo_5_0)
-            {
-                MakeSelfReverseLane();
-            }
+
+            MakeSelfReverseLane();
 
             laneSegments.AddRange(adMapLanes);
 
@@ -636,22 +621,12 @@ namespace Simulator.Editor
                 laneSegmentsSet.Add(laneSegment);
             }
 
-            if (Version == ApolloVersion.Apollo_5_0)
-            {
-                MakeInfoOfLane();
-                MakeInfoOfClearArea();
-                MakeInfoOfJunction();
-                MakeInfoOfParkingSpace();
-                MakeInfoOfSpeedBump();
-                MakeInfoOfCrossWalk();
-            }
-            else if (Version == ApolloVersion.Apollo_3_0)
-            {
-                MakeInfoOfLane();
-                MakeInfoOfClearArea();
-                MakeInfoOfSpeedBump();
-                MakeInfoOfCrossWalk();
-            }
+            MakeInfoOfLane();
+            MakeInfoOfClearArea();
+            MakeInfoOfJunction();
+            MakeInfoOfParkingSpace();
+            MakeInfoOfSpeedBump();
+            MakeInfoOfCrossWalk();
 
             // Clear before and after of lane
             foreach (var laneSegment in laneSegmentsSet)
@@ -1432,20 +1407,11 @@ namespace Simulator.Editor
                 Hdmap.lane[i] = oldLane;
             }
 
-            if (Version == ApolloVersion.Apollo_5_0)
-            {
-                MakeJunctionAnnotation();
-                MakeParkingSpaceAnnotation();
-                MakeSpeedBumpAnnotation();
-                MakeClearAreaAnnotation();
-                MakeCrossWalkAnnotation();
-            }
-            else if (Version == ApolloVersion.Apollo_3_0)
-            {
-                MakeSpeedBumpAnnotation();
-                MakeClearAreaAnnotation();
-                MakeCrossWalkAnnotation();
-            }
+            MakeJunctionAnnotation();
+            MakeParkingSpaceAnnotation();
+            MakeSpeedBumpAnnotation();
+            MakeClearAreaAnnotation();
+            MakeCrossWalkAnnotation();
 
             double originLatitude, originLongitude;
             mapOrigin.NorthingEastingToLatLong(mapOrigin.OriginNorthing, mapOrigin.OriginEasting, out originLatitude, out originLongitude);

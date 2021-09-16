@@ -43,6 +43,11 @@ namespace Simulator.Web
             public float Progress => ExpectedBytes > 0 ? (float)BytesReceived / ExpectedBytes : 0.0f;
             public string Description { get; set; }
 
+            public void Cancelled()
+            {
+                OnCompleted(this, false, null);
+            }
+
             public void Completed(object sender, AsyncCompletedEventArgs args)
             {
                 if (args.Error != null && !cancelled)
@@ -229,13 +234,22 @@ namespace Simulator.Web
             initialized = true;
             while (true)
             {
-                if (downloads.TryDequeue(out Download download) && download.valid)
+                if (downloads.TryDequeue(out Download download))
                 {
-                    currentUrl = download.uri.OriginalString;
-                    await DownloadFile(download);
+                    if (download.valid)
+                    {
+                        currentUrl = download.uri.OriginalString;
+                        await DownloadFile(download);
+                    }
+                    else
+                    {
+                        download.Cancelled();
+                    }
                 }
-
-                await Task.Delay(1000);
+                else
+                {
+                    await Task.Delay(1000);
+                }
             }
         }
 

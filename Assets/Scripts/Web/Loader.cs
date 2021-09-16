@@ -6,26 +6,26 @@
  */
 
 using System;
-using System.IO;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using ICSharpCode.SharpZipLib.Core;
+using ICSharpCode.SharpZipLib.Zip;
+using Simulator.Api;
+using Simulator.Bridge;
+using Simulator.Database;
+using Simulator.Database.Services;
+using Simulator.FMU;
+using Simulator.Network.Core.Configs;
+using Simulator.Network.Shared;
+using Simulator.PointCloud.Trees;
+using Simulator.Utilities;
+using Simulator.Web;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Simulator.Database;
-using Simulator.Api;
-using Simulator.Web;
-using Simulator.Utilities;
-using Simulator.Bridge;
-using System.Text;
-using System.Linq;
-using ICSharpCode.SharpZipLib.Zip;
-using Simulator.Network.Shared;
-using Simulator.Network.Core.Configs;
-using ICSharpCode.SharpZipLib.Core;
-using Simulator.FMU;
-using Simulator.PointCloud.Trees;
-using System.Threading.Tasks;
-using Simulator.Database.Services;
 using VirtualFileSystem;
 
 namespace Simulator
@@ -199,6 +199,11 @@ namespace Simulator
         {
             Debug.Log($"loader status: {status}->{value} {message}");
             Console.WriteLine($"[LOADER] Update simulation status {status} -> {value}");
+
+            if (value < status && !(status == SimulatorStatus.Stopping && value == SimulatorStatus.Idle))
+            {
+                throw new Exception($"Attemted to transition simulation status from {Enum.GetName(typeof(SimulatorStatus), value)} to {Enum.GetName(typeof(SimulatorStatus), status)}");
+            }
 
             var previous = reportedStatus(status);
             var newStatus = reportedStatus(value);
@@ -469,6 +474,12 @@ namespace Simulator
 
                 Debug.Log("All Downloads Complete");
 
+                if (Status == SimulatorStatus.Stopping)
+                {
+                    Debug.Log("Simulation stop requested before simulation started.");
+                    return;
+                }
+
                 if (!Network.IsClusterSimulation)
                 {
                     StartAsync(simData);
@@ -504,7 +515,11 @@ namespace Simulator
 
         public void StartAsync(SimulationData simulation)
         {
-            Debug.Assert(Status == SimulatorStatus.Loading);
+            if (Status != SimulatorStatus.Loading)
+            {
+                throw new Exception("aborting start, expected Status==Loading, found " + Status);
+            }
+
             currentSimulation = simulation;
             reportStatus(SimulatorStatus.Starting);
 
@@ -598,6 +613,9 @@ namespace Simulator
             {
                 return;
             }
+            // Check if simulation scene was initialized
+            bool wasLoading = Status == SimulatorStatus.Loading;
+
             reportStatus(SimulatorStatus.Stopping);
 
             if (Sentry != null)
@@ -607,8 +625,7 @@ namespace Simulator
 
             Actions.Enqueue(async () =>
             {
-                //Check if simulation scene was initialized
-                if (Status == SimulatorStatus.Loading)
+                if (wasLoading)
                 {
                     foreach (var download in assetDownloads)
                     {

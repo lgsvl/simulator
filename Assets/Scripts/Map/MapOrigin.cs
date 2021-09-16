@@ -75,7 +75,7 @@ namespace Simulator.Map
             {
                 Debug.LogWarning("Map is missing MapOrigin component! Adding temporary MapOrigin. Please add to scene and set origin");
                 origin = new GameObject("MapOrigin").AddComponent<MapOrigin>();
-                origin.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+                origin.transform.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(new Vector3(0f, -90f, 0f)));
                 origin.OriginEasting = 592720;
                 origin.OriginNorthing = 4134479;
                 origin.UTMZoneId = 10;

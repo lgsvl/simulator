@@ -17,6 +17,9 @@ public class MapOriginEditor : Editor
 {
     private TimeZoneInfo[] TimeZones;
     private string[] NPCSizes;
+    private string HelpText = "Help is displayed here";
+
+    private MapOrigin Origin;
 
     private void OnEnable()
     {
@@ -24,12 +27,54 @@ public class MapOriginEditor : Editor
         NPCSizes = Enum.GetNames(typeof(NPCSizeType));
     }
 
+    private void OnSceneGUI()
+    {
+        Origin = (MapOrigin)target;
+        if (Origin == null)
+            return;
+
+        if (Origin.transform.rotation != Quaternion.Euler(new Vector3(0f, -90f, 0f)))
+        {
+            Origin.transform.rotation = Quaternion.Euler(new Vector3(0f, -90f, 0f));
+            HelpText = "MapOrigin transform must be -90 in the Y axis";
+        }
+
+        var style = new GUIStyle();
+        Handles.BeginGUI();
+        if (GUILayout.Button("Orient Scene", GUILayout.Width(125)))
+        {
+            SceneView sceneView = SceneView.lastActiveSceneView;
+            sceneView.orthographic = true;
+            sceneView.LookAt(new Vector3(0f, 0f, 0f), Quaternion.Euler(90, -90, 0));
+        }
+        Handles.EndGUI();
+        var size = HandleUtility.GetHandleSize(Origin.transform.position);
+        style.fontSize = (int) (65 / size);
+        style.fontStyle = FontStyle.Bold;
+        style.normal.textColor = Color.red;
+        Handles.Label(Origin.transform.position + Origin.transform.forward + new Vector3(0, 1, 0), "N", style);
+        style.normal.textColor = Color.white;
+        Handles.Label(Origin.transform.position + Origin.transform.right + new Vector3(0, 1, 0), "E", style);
+        Handles.Label(Origin.transform.position - Origin.transform.forward + new Vector3(0, 1, 0), "S", style);
+        Handles.Label(Origin.transform.position - Origin.transform.right + new Vector3(0, 1, 0), "W", style);
+    }
+
     public override void OnInspectorGUI()
     {
         // styles
         var subtitleLabelStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.LowerCenter, fontSize = 12 };
 
-        MapOrigin origin = (MapOrigin)target;
+        if (!string.IsNullOrEmpty(HelpText))
+        {
+            GUILayout.Space(10);
+            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+            EditorGUILayout.HelpBox(HelpText, MessageType.Info);
+            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+        }
+
+        Origin = (MapOrigin)target;
+        if (Origin == null)
+            return;
 
         GUILayout.Space(10);
         EditorGUILayout.LabelField("Map Origin", subtitleLabelStyle, GUILayout.ExpandWidth(true));
@@ -38,20 +83,20 @@ public class MapOriginEditor : Editor
         if (GUILayout.Button("Import from Latitude and Longitude"))
         {
             ImportCoordinates w = EditorWindow.GetWindow<ImportCoordinates>(false, nameof(ImportCoordinates), true);
-            w.Init(origin);
+            w.Init(Origin);
             w.Show();
         }
 
-        origin.OriginEasting = EditorGUILayout.DoubleField("Origin Easting", origin.OriginEasting);
-        origin.OriginNorthing = EditorGUILayout.DoubleField("Origin Northing", origin.OriginNorthing);
-        origin.UTMZoneId = EditorGUILayout.IntSlider("UTM Zone ID", origin.UTMZoneId, 1, 60);
-        origin.AltitudeOffset = EditorGUILayout.FloatField("Altitude Offset", origin.AltitudeOffset);
+        Origin.OriginEasting = EditorGUILayout.DoubleField("Origin Easting", Origin.OriginEasting);
+        Origin.OriginNorthing = EditorGUILayout.DoubleField("Origin Northing", Origin.OriginNorthing);
+        Origin.UTMZoneId = EditorGUILayout.IntSlider("UTM Zone ID", Origin.UTMZoneId, 1, 60);
+        Origin.AltitudeOffset = EditorGUILayout.FloatField("Altitude Offset", Origin.AltitudeOffset);
 
         int currentlySelected = -1;
-        currentlySelected = Array.FindIndex(TimeZones, tz => tz.DisplayName == origin.TimeZoneString);
+        currentlySelected = Array.FindIndex(TimeZones, tz => tz.DisplayName == Origin.TimeZoneString);
         if (currentlySelected == -1)
         {
-            var timeZone = origin.TimeZone;
+            var timeZone = Origin.TimeZone;
             currentlySelected = Array.FindIndex(TimeZones, tz => tz.BaseUtcOffset == timeZone.BaseUtcOffset);
         }
 
@@ -59,19 +104,19 @@ public class MapOriginEditor : Editor
         currentlySelected = EditorGUILayout.Popup("TimeZone", currentlySelected, values);
         if (currentlySelected != -1)
         {
-            if (!origin.TimeZone.Equals(TimeZones[currentlySelected]))
+            if (!Origin.TimeZone.Equals(TimeZones[currentlySelected]))
             {
-                origin.TimeZoneSerialized = TimeZones[currentlySelected].ToSerializedString();
-                origin.TimeZoneString = TimeZones[currentlySelected].DisplayName;
+                Origin.TimeZoneSerialized = TimeZones[currentlySelected].ToSerializedString();
+                Origin.TimeZoneString = TimeZones[currentlySelected].DisplayName;
 
-                EditorUtility.SetDirty(origin);
+                EditorUtility.SetDirty(Origin);
                 Repaint();
             }
         }
 
         if (GUILayout.Button("Add Reference Point"))
         {
-            AddReferencePoint(origin);
+            AddReferencePoint(Origin);
         }
         if (GUILayout.Button("Update Map Origin using Reference Points"))
         {
@@ -82,7 +127,7 @@ public class MapOriginEditor : Editor
             }
             else
             {
-                var minimizeError = new MapOriginPositionErrorOptimalizer(origin, points);
+                var minimizeError = new MapOriginPositionErrorOptimalizer(Origin, points);
                 minimizeError.Optimize();
             }
         }
@@ -90,17 +135,17 @@ public class MapOriginEditor : Editor
         EditorGUILayout.LabelField("Map Settings", subtitleLabelStyle, GUILayout.ExpandWidth(true));
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
-        origin.IgnoreNPCVisible = EditorGUILayout.Toggle("Ignore NPC Visible", origin.IgnoreNPCVisible, GUILayout.ExpandWidth(true));
-        origin.IgnoreNPCSpawnable = EditorGUILayout.Toggle("Ignore NPC Spawnable", origin.IgnoreNPCSpawnable, GUILayout.ExpandWidth(true));
-        origin.IgnoreNPCBounds = EditorGUILayout.Toggle("Ignore NPC Bounds", origin.IgnoreNPCBounds, GUILayout.ExpandWidth(true));
-        origin.NPCSizeMask = EditorGUILayout.MaskField("NPC Categories", origin.NPCSizeMask, NPCSizes);
-        origin.NPCMaxCount = EditorGUILayout.IntSlider("NPC Max Count", origin.NPCMaxCount, 1, 30);
-        origin.NPCSpawnBoundSize = EditorGUILayout.IntSlider("NPC Spawn Bounds Size", origin.NPCSpawnBoundSize, 25, 300);
+        Origin.IgnoreNPCVisible = EditorGUILayout.Toggle("Ignore NPC Visible", Origin.IgnoreNPCVisible, GUILayout.ExpandWidth(true));
+        Origin.IgnoreNPCSpawnable = EditorGUILayout.Toggle("Ignore NPC Spawnable", Origin.IgnoreNPCSpawnable, GUILayout.ExpandWidth(true));
+        Origin.IgnoreNPCBounds = EditorGUILayout.Toggle("Ignore NPC Bounds", Origin.IgnoreNPCBounds, GUILayout.ExpandWidth(true));
+        Origin.NPCSizeMask = EditorGUILayout.MaskField("NPC Categories", Origin.NPCSizeMask, NPCSizes);
+        Origin.NPCMaxCount = EditorGUILayout.IntSlider("NPC Max Count", Origin.NPCMaxCount, 1, 30);
+        Origin.NPCSpawnBoundSize = EditorGUILayout.IntSlider("NPC Spawn Bounds Size", Origin.NPCSpawnBoundSize, 25, 300);
 
-        origin.IgnorePedBounds = EditorGUILayout.Toggle("Ignore Ped Bounds", origin.IgnorePedBounds, GUILayout.ExpandWidth(true));
-        origin.IgnorePedVisible = EditorGUILayout.Toggle("Ignore Ped Visible", origin.IgnorePedVisible, GUILayout.ExpandWidth(true));
-        origin.PedMaxCount = EditorGUILayout.IntSlider("Ped Max Count", origin.PedMaxCount, 1, 30);
-        origin.PedSpawnBoundSize = EditorGUILayout.IntSlider("Ped Spawn Bounds Size", origin.PedSpawnBoundSize, 25, 300);
+        Origin.IgnorePedBounds = EditorGUILayout.Toggle("Ignore Ped Bounds", Origin.IgnorePedBounds, GUILayout.ExpandWidth(true));
+        Origin.IgnorePedVisible = EditorGUILayout.Toggle("Ignore Ped Visible", Origin.IgnorePedVisible, GUILayout.ExpandWidth(true));
+        Origin.PedMaxCount = EditorGUILayout.IntSlider("Ped Max Count", Origin.PedMaxCount, 1, 30);
+        Origin.PedSpawnBoundSize = EditorGUILayout.IntSlider("Ped Spawn Bounds Size", Origin.PedSpawnBoundSize, 25, 300);
 
         GUILayout.Space(20);
         EditorGUILayout.LabelField("Map Meta Data", subtitleLabelStyle, GUILayout.ExpandWidth(true));
@@ -108,11 +153,11 @@ public class MapOriginEditor : Editor
 
         EditorGUILayout.BeginHorizontal();
         EditorGUILayout.PrefixLabel("Map Description");
-        origin.Description = EditorGUILayout.TextArea(origin.Description);
+        Origin.Description = EditorGUILayout.TextArea(Origin.Description);
         EditorGUILayout.EndHorizontal();
 
         if (GUI.changed)
-            EditorUtility.SetDirty(origin);
+            EditorUtility.SetDirty(Origin);
     }
 
 
@@ -157,6 +202,7 @@ public class MapOriginEditor : Editor
             minSize = new Vector2(250, 120);
             maxSize = new Vector2(300, 120);
         }
+
         void OnGUI()
         {
             GUILayout.Space(10);

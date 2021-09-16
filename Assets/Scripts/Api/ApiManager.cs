@@ -347,6 +347,19 @@ namespace Simulator.Api
 #endif
         }
 
+        public void ResetTime()
+        {
+            var sim = SimulatorManager.Instance;
+
+            sim.CurrentFrame = 0;
+
+            FrameLimit = 0;
+            CurrentTime = 0.0;
+            CurrentFrame = 0;
+            
+            SimulatorManager.SetTimeScale(0.0f);
+        }
+
         public void AddCollision(GameObject obj, GameObject other, Collision collision = null)
         {
             if (!Collisions.Contains(obj) || (collision != null && collision.gameObject.layer == roadLayer))

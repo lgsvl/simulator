@@ -135,6 +135,11 @@ namespace Simulator.Api.Commands
                     if (agents.ActiveAgents.Count == 1)
                     {
                         agents.SetCurrentActiveAgent(agentGO);
+
+                        // Camera moved - wait a frame for temporal lighting effects to resolve
+                        SimulatorManager.SetTimeScale(1f);
+                        await Task.Yield();
+                        api.ResetTime();
                     }
 
                     var rb = agentGO.GetComponent<Rigidbody>();

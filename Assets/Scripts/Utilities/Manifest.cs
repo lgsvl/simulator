@@ -29,7 +29,6 @@ namespace Simulator
 
     public struct HdMaps
     {
-        public string apollo30;
         public string apollo50;
         public string autoware;
         public string lanelet2;

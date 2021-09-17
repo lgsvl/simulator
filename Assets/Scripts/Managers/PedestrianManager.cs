@@ -42,13 +42,13 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
     public bool PedestriansActive { get; set; } = false;
     [HideInInspector]
     public List<PedestrianController> CurrentPooledPeds = new List<PedestrianController>();
+    private List<PedestrianController> ActiveAutomaticPeds = new List<PedestrianController>();
     private LayerMask PedSpawnCheckBitmask;
     public SpawnsManager spawnsManager;
 
     public string Key => "PedestrianManager"; //Network IMessageSender key
 
     private int PedMaxCount = 0;
-    private int ActivePedCount = 0;
 
     private System.Random RandomGenerator;
     public System.Random PEDSeedGenerator { get; private set; } // Only use this for initializing a new pedestrian
@@ -199,7 +199,7 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
         if (PedestriansActive)
         {
-            if (ActivePedCount < PedMaxCount)
+            if (ActiveAutomaticPeds.Count < PedMaxCount)
             {
                 SetPedOnMap();
             }
@@ -313,7 +313,7 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
             
             CurrentPooledPeds[i].InitPed(spawnPoint.position, spawnPoint.spawnIndex, pedLane.mapWorldPositions, PEDSeedGenerator.Next(), pedLane);
             CurrentPooledPeds[i].gameObject.SetActive(true);
-            ActivePedCount++;
+            ActiveAutomaticPeds.Add(CurrentPooledPeds[i]);
 
             SimulatorManager.Instance.UpdateSegmentationColors(CurrentPooledPeds[i].gameObject, CurrentPooledPeds[i].GTID);
         }
@@ -322,7 +322,7 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
     public void DespawnPed(PedestrianController ped)
     {
         ped.gameObject.SetActive(false);
-        ActivePedCount--;
+        ActiveAutomaticPeds.Remove(ped);
         ped.transform.position = transform.position;
         ped.transform.rotation = Quaternion.identity;
 
@@ -331,13 +331,12 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
     public void DespawnAllPeds()
     {
-        if (ActivePedCount == 0) return;
+        if (ActiveAutomaticPeds.Count == 0) return;
 
-        for (int i = 0; i < CurrentPooledPeds.Count; i++)
+        for (int i = ActiveAutomaticPeds.Count - 1; i >= 0; i--)
         {
-            DespawnPed(CurrentPooledPeds[i]);
+            DespawnPed(ActiveAutomaticPeds[i]);
         }
-        ActivePedCount = 0;
     }
 
     #region api

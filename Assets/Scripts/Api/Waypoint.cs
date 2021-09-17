@@ -81,7 +81,7 @@ namespace Simulator.Api
             set => Position = value;
         }
         
-        Vector3 IWaypoint.Angle { get; set; }
+        public Vector3 Angle { get; set; }
 
         IWaypoint IWaypoint.Clone()
         {

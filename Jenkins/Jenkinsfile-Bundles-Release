@@ -46,6 +46,7 @@ pipeline {
     GIT_TAG = "${GIT_TAG}"
     S3_DOWNLOAD_HOST = "${S3_RELEASE_DOWNLOAD_HOST}"
     S3_BUCKET_NAME = "${S3_RELEASE_BUCKET_NAME}"
+    S3_BUCKET_ACL = ""
   }
 
   stages {

@@ -44,6 +44,7 @@ pipeline {
     DISPLAY = ":0"
     JENKINS_BUILD_ID = "${BUILD_ID}"
     S3_DOWNLOAD_HOST = "${S3_DOWNLOAD_HOST}/v2"
+    S3_BUCKET_ACL = "--acl public-read"
   }
 
   stages {

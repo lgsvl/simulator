@@ -89,7 +89,6 @@ function build_bundle {
     # Move the source for individual bundles from Assets/External-All to Assets/External
     # to prevent Unity importing all the available assets when we went to build just one
     # of them
-    BUNDLE=$(expr ${BUNDLE} + 1)
     echo "Building bundle (${BUNDLE}/${BUNDLES}) $*"
     if [ ! -d .external-assets/$1/$2 ] ; then
         echo "ERROR: Bundle source doesn't exist in .external-assets/$1/$2"
@@ -172,12 +171,14 @@ BUNDLE=0
 if [ ! -z ${SIM_ENVIRONMENTS+x} ]; then
     getAssets "${SIM_ENVIRONMENTS}"
     for A in ${ASSETS}; do
+        BUNDLE=$(expr ${BUNDLE} + 1)
         build_bundle Environments ${A} 2>&1 | tee -a unity-build-bundles-Environments.log
     done
 fi
 if [ ! -z ${SIM_VEHICLES+x} ]; then
     getAssets "${SIM_VEHICLES}"
     for A in ${ASSETS}; do
+        BUNDLE=$(expr ${BUNDLE} + 1)
         build_bundle Vehicles ${A} 2>&1 | tee -a unity-build-bundles-Vehicles.log
     done
 fi
@@ -185,6 +186,7 @@ fi
 if [ ! -z ${SIM_SENSORS+x} ]; then
     getAssets "${SIM_SENSORS}"
     for A in ${ASSETS}; do
+        BUNDLE=$(expr ${BUNDLE} + 1)
         build_bundle Sensors ${A} 2>&1 | tee -a unity-build-bundles-Sensors.log
     done
 fi
@@ -192,6 +194,7 @@ fi
 if [ ! -z ${SIM_BRIDGES+x} ]; then
     getAssets "${SIM_BRIDGES}"
     for A in ${ASSETS}; do
+        BUNDLE=$(expr ${BUNDLE} + 1)
         build_bundle Bridges ${A} 2>&1 | tee -a unity-build-bundles-Bridges.log
     done
 fi

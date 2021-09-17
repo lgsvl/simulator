@@ -93,7 +93,6 @@ function build_bundle {
     echo "Building bundle (${BUNDLE}/${BUNDLES}) $*"
     if [ ! -d .external-assets/$1/$2 ] ; then
         echo "ERROR: Bundle source doesn't exist in .external-assets/$1/$2"
-        exit 1
     else
         mkdir -p Assets/External/$1
         mv .external-assets/$1/$2 Assets/External/$1
@@ -119,7 +118,6 @@ function build_bundle {
     mv Assets/External/$1/$2 .external-assets/$1/$2
     if [ ! -f AssetBundles/$1/*_$2 ] ; then
         echo "ERROR: Bundle $1 $2 wasn't created in AssetBundles/$1/*_$2"
-        exit 1
     else
         echo "INFO: Bundle $1 $2 succeeded to build"
     fi
@@ -204,6 +202,8 @@ OK=0
 # maybe drop -e before the next section, because "|| true" is needed after
 # each grep which doesn't match anything (including grep -c), and also after
 # expr 0 + 0, which prints 0, but returns 1 as return status
+echo
+echo
 echo "Build bundles summary:"
 for assetType in Environments Vehicles Sensors Bridges; do
     if [ -f unity-build-bundles-${assetType}.log ] ; then

@@ -18,7 +18,6 @@ FROM ${EDITOR_DOCKER_IMAGE}
 #     - is needed for libvulkan1 to work
 #     - otherwise vulkaninfo fails with:
 #       vulkan-tools-1.2.131.1+dfsg1/vulkaninfo/vulkaninfo.h:371: failed with ERROR_INCOMPATIBLE_DRIVER)
-#     - but including this in the image breaks Unity trying to use Vulkan as well
 # osslsigncode:
 #     - is needed by build-simulator.sh script when building for windows:
 #       Jenkins/build-simulator.sh:    osslsigncode sign
@@ -37,13 +36,15 @@ RUN set -ex \
   && apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
     libvulkan1 \
+    mesa-vulkan-drivers \
     osslsigncode \
     uuid-runtime \
+    vulkan-tools \
     zip \
   && apt-get clean
 
-# Don't use Xvfg and call Unity directly (we run it on servers with Xorg running and DISPLAY set), show /opt/unity/image-info-lgsvl.source content before calling Unity
-RUN sed -i 's#xvfb-run -ae /dev/stdout "$UNITY_PATH/Editor/Unity" -batchmode "$@"#echo "Running Unity Editor from docker image:" \&\& cat /opt/unity/image-info-lgsvl.source \&\& /opt/unity/Editor/Unity "$@"#g' /usr/bin/unity-editor
+# Don't use Xvfb and call Unity directly (we run it on servers with Xorg running and DISPLAY set), show /opt/unity/image-info-lgsvl.source content before calling Unity
+RUN sed -i 's#xvfb-run -ae /dev/stdout "$UNITY_PATH/Editor/Unity" -batchmode "$@"#echo "Running Unity Editor from docker image:" \&\& cat /opt/unity/image-info-lgsvl.source \&\& echo "/opt/unity/Editor/Unity \"$@\"" \&\& /opt/unity/Editor/Unity "$@"#g' /usr/bin/unity-editor
 
 # NB. This is overwritten when launched by docker with --gpus=N option
 # or Kubernetes with resources.limits.nvidia.com/gpu=N XXX <= confirm not overridden by K8s if not specified.

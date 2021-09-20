@@ -288,6 +288,7 @@ namespace Simulator.ScenarioEditor.Playback
                 /// <inherit/>
                 public override IEnumerator Playback(PlaybackPanel coroutinesParent, float initialTime)
                 {
+                    var startTime = Time.time;
                     var coroutines = new Coroutine[Trigger.Effectors.Count];
                     for (var i = 0; i < Trigger.Effectors.Count; i++)
                     {
@@ -309,7 +310,7 @@ namespace Simulator.ScenarioEditor.Playback
 
                     for (int i = 0; i < coroutines.Length; i++)
                         yield return coroutines[i];
-                    Duration = Time.time - initialTime;
+                    Duration = Time.time - startTime;
                 }
             }
 

@@ -5,9 +5,10 @@
  *
  */
 
-using UnityEngine;
-using Simulator.Bridge;
 using System.Collections;
+using System;
+using Simulator.Bridge;
+using UnityEngine;
 
 namespace Simulator.Components
 {
@@ -35,10 +36,11 @@ namespace Simulator.Components
             }
 
             Connection = connection;
-        }
 
-        private void OnEnable()
-        {
+            if (watchDog != null)
+            {
+                StopCoroutine(watchDog);
+            }
             watchDog = StartCoroutine(ConnectionWatchDog());
         }
 
@@ -59,7 +61,15 @@ namespace Simulator.Components
         private IEnumerator ConnectionWatchDog()
         {
             yield return new WaitUntil(() => Loader.Instance.Status != SimulatorStatus.Starting);
-            Bridge.Connect(Connection);
+            try
+            {
+                Bridge.Connect(Connection);
+            }
+            catch (Exception e)
+            {
+                Loader.Instance.reportStatus(SimulatorStatus.Error, "Initial connection failed: "+e);
+                throw e;
+            }
 
             // in interactive mode we reconnect to the bridge if it gets disconnected.
             bool reconnect = Loader.Instance.CurrentSimulation.Interactive;

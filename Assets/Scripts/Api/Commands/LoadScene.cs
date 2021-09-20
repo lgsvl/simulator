@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -21,9 +21,9 @@ namespace Simulator.Api.Commands
     class LoadScene : IDistributedCommand, ILockingCommand
     {
         public string Name => "simulator/load_scene";
-        
+
         public string LockingGuid { get; set; }
-        
+
         public float StartRealtime { get; set; }
 
         public event Action<ILockingCommand> Executed;
@@ -50,7 +50,7 @@ namespace Simulator.Api.Commands
                 ZipEntry entry = zip.GetEntry("manifest.json");
                 using (var ms = zip.GetInputStream(entry))
                 {
-                    int streamSize = (int) entry.Size;
+                    int streamSize = (int)entry.Size;
                     byte[] buffer = new byte[streamSize];
                     streamSize = ms.Read(buffer, 0, streamSize);
                     manifest = Newtonsoft.Json.JsonConvert.DeserializeObject<Manifest>(Encoding.UTF8.GetString(buffer));
@@ -58,7 +58,8 @@ namespace Simulator.Api.Commands
 
                 if (manifest.assetFormat != BundleConfig.Versions[BundleConfig.BundleTypes.Environment])
                 {
-                    api.SendError(sourceCommand, 
+                    zip.Close();
+                    api.SendError(sourceCommand,
                         "Out of date Map AssetBundle. Please check content website for updated bundle or rebuild the bundle.");
                     sourceCommand.Executed?.Invoke(sourceCommand);
                     yield break;
@@ -66,7 +67,9 @@ namespace Simulator.Api.Commands
 
                 if (zip.FindEntry($"{manifest.assetGuid}_environment_textures", true) != -1)
                 {
-                    var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.assetGuid}_environment_textures"));
+                    entry = zip.GetEntry($"{manifest.assetGuid}_environment_textures");
+                    var texStream =
+                    VirtualFileSystem.VirtualFileSystem.EnsureSeekable(zip.GetInputStream(entry), entry.Size); textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
                     textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
                 }
 
@@ -145,7 +148,7 @@ namespace Simulator.Api.Commands
             {
                 await LoadMap(args, mapId, seed);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 api.SendError(this, e.Message);
                 // only unlock in error case as map loading continues in coroutine after which we unlock

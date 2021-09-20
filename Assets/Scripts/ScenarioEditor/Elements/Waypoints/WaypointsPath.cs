@@ -472,8 +472,8 @@ namespace Simulator.ScenarioEditor.Elements.Waypoints
             var waypointsNode = elementNode.GetValueOrDefault(JsonNodeName, new JSONArray());
             if (!elementNode.HasKey(JsonNodeName))
                 elementNode.Add(JsonNodeName, waypointsNode);
-            elementNode.Add("waypoints_path_type", new JSONString(pathType.ToString()));
-            elementNode.Add("waypoints_loop", new JSONBool(loop));
+            elementNode.Add("waypointsPathType", new JSONString(pathType.ToString()));
+            elementNode.Add("waypointsLoop", new JSONBool(loop));
 
             for (var i = 0; i < Waypoints.Count; i++)
             {
@@ -509,13 +509,21 @@ namespace Simulator.ScenarioEditor.Elements.Waypoints
             if (waypointsNode == null)
                 return;
             // Try parse the path type, set linear if parsing fails
-            var pathTypeNode = elementNode["waypoints_path_type"];
+            var pathTypeNode = elementNode["waypointsPathType"];
+            if (pathTypeNode == null)
+            {
+                pathTypeNode = elementNode["waypoints_path_type"];
+            }
             if (pathTypeNode == null || !Enum.TryParse(pathTypeNode, true, out pathType))
             {
                 pathType = WaypointsPathType.Linear;
             }
 
-            var loopNode = elementNode["waypoints_loop"] as JSONBool;
+            var loopNode = elementNode["waypointsLoop"] as JSONBool;
+            if (loopNode == null)
+            {
+                loopNode = elementNode["waypoints_loop"] as JSONBool;
+            }
             if (loopNode != null)
             {
                 loop = loopNode;

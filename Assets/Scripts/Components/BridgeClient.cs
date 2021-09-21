@@ -5,8 +5,8 @@
  *
  */
 
-using System.Collections;
 using System;
+using System.Collections;
 using Simulator.Bridge;
 using UnityEngine;
 
@@ -30,6 +30,9 @@ namespace Simulator.Components
 
         public void Connect(string connection)
         {
+            if(string.IsNullOrWhiteSpace(connection))
+                throw new ArgumentException("connection cannot be null or whitespace");
+
             if (BridgeStatus != Status.Disconnected && BridgeStatus != Status.UnexpectedlyDisconnected)
             {
                 Bridge.Disconnect();
@@ -40,8 +43,20 @@ namespace Simulator.Components
             if (watchDog != null)
             {
                 StopCoroutine(watchDog);
+                watchDog = null;
             }
-            watchDog = StartCoroutine(ConnectionWatchDog());
+            if (isActiveAndEnabled)
+            {
+                watchDog = StartCoroutine(ConnectionWatchDog());
+            }
+        }
+
+        private void OnEnable()
+        {
+            if (watchDog == null && !string.IsNullOrWhiteSpace(Connection))
+            {
+                watchDog = StartCoroutine(ConnectionWatchDog());
+            }
         }
 
         private void OnDisable()
@@ -60,14 +75,14 @@ namespace Simulator.Components
 
         private IEnumerator ConnectionWatchDog()
         {
-            yield return new WaitUntil(() => Loader.Instance.Status != SimulatorStatus.Starting);
+            yield return new WaitUntil(() => Loader.Instance.Status != SimulatorStatus.Starting && !string.IsNullOrEmpty(Connection));
             try
             {
                 Bridge.Connect(Connection);
             }
             catch (Exception e)
             {
-                Loader.Instance.reportStatus(SimulatorStatus.Error, "Initial connection failed: "+e);
+                Loader.Instance.reportStatus(SimulatorStatus.Error, "Initial connection failed: " + e);
                 throw e;
             }
 

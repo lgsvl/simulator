@@ -69,7 +69,7 @@ namespace Simulator.Api.Commands
                 {
                     entry = zip.GetEntry($"{manifest.assetGuid}_environment_textures");
                     var texStream =
-                    VirtualFileSystem.VirtualFileSystem.EnsureSeekable(zip.GetInputStream(entry), entry.Size); textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+                    VirtualFileSystem.VirtualFileSystem.EnsureSeekable(zip.GetInputStream(entry), entry.Size);
                     textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
                 }
 

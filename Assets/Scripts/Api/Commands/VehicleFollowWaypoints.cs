@@ -53,23 +53,29 @@ namespace Simulator.Api.Commands
                 }
 
                 var wp = new List<DriveWaypoint>();
+                var previousPosition = npc.transform.position;
                 for (int i=0; i< waypoints.Count; i++)
                 {
                     var deactivate = waypoints[i]["deactivate"];
                     var ts = waypoints[i]["timestamp"];
+                    var position = waypoints[i]["position"].ReadVector3();
+                    var angle = waypoints[i].HasKey("angle") ? 
+                        waypoints[i]["angle"].ReadVector3() : 
+                        Quaternion.LookRotation((position - previousPosition).normalized).eulerAngles;
 
                     wp.Add(new DriveWaypoint()
                     {
-                        Position = waypoints[i]["position"].ReadVector3(),
+                        Position = position,
                         Speed = waypoints[i]["speed"].AsFloat,
                         Acceleration = waypoints[i]["acceleration"].AsFloat,
-                        Angle = waypoints[i]["angle"].ReadVector3(),
+                        Angle = angle,
                         Idle = waypoints[i]["idle"].AsFloat,
                         Deactivate = deactivate.IsBoolean ? deactivate.AsBool : false,
                         TriggerDistance = waypoints[i]["trigger_distance"].AsFloat,
                         TimeStamp = (ts == null) ? -1 : waypoints[i]["timestamp"].AsFloat,
                         Trigger = WaypointTrigger.DeserializeTrigger(waypoints[i]["trigger"])
-                    }); ;
+                    });
+                    previousPosition = position;
                 }
 
                 var loopValue = loop.IsBoolean && loop.AsBool;

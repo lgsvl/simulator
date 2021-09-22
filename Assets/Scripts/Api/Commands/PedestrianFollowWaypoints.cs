@@ -53,16 +53,24 @@ namespace Simulator.Api.Commands
                 }
 
                 var wp = new List<WalkWaypoint>();
+                var previousPosition = ped.transform.position;
                 for (int i = 0; i < waypoints.Count; i++)
                 {
+                    var position = waypoints[i]["position"].ReadVector3();
+                    var angle = waypoints[i].HasKey("angle") ? 
+                            waypoints[i]["angle"].ReadVector3() : 
+                            Quaternion.LookRotation((position - previousPosition).normalized).eulerAngles;
+                    
                     wp.Add(new WalkWaypoint()
                     {
-                        Position = waypoints[i]["position"].ReadVector3(),
+                        Position = position,
+                        Angle = angle,
                         Speed = waypoints[i]["speed"].AsFloat,
                         Idle = waypoints[i]["idle"].AsFloat,
                         TriggerDistance = waypoints[i]["trigger_distance"].AsFloat,
                         Trigger = WaypointTrigger.DeserializeTrigger(waypoints[i]["trigger"])
                     });
+                    previousPosition = position;
                 }
 
                 var waypointBehaviour = ped.SetBehaviour<PedestrianWaypointBehaviour>();

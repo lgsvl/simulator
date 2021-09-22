@@ -19,7 +19,7 @@ public class LightLayerTrigger : MonoBehaviour
         if (agentZoneController != null)
         {
             agentZoneController.PushLightLayerMask();
-            agentZoneController.SetLightLayerMask((uint)LightLayer);
+            agentZoneController.SetLightLayerMask(this);
         }
     }
 

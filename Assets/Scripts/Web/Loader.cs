@@ -639,7 +639,6 @@ namespace Simulator
                     await Network.Deinitialize();
                     ConnectionUI.SetLoaderUIState(ConnectionUI.LoaderUIStateType.START);
                     reportStatus(SimulatorStatus.Idle);
-                    ConnectionUI.UpdateStatus();
                     return;
                 }
 

@@ -169,10 +169,10 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         #endregion
 
-        // === LGSVL (Add members for temporarily locking auto-exposure)
+        // === LGSVL (Add members for exposure behavior modification)
         #region LGSVL
 
-        private int exposureLock; 
+        private int exposureLock;
 
         /// <summary>
         /// If <see cref="ExposureLocked"/> is true, this flag describes whether valid result is already available or not.
@@ -183,6 +183,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// If true, dynamic exposure will not be recalculated for this camera. Instead, single valid result will be used.
         /// </summary>
         public bool ExposureLocked => exposureLock > 0;
+
+        public bool ExposureAdaptationLocked { get; private set; }
 
         /// <summary>
         /// Locks dynamic exposure recalculation until <see cref="UnlockExposure"/> is called.
@@ -207,6 +209,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public void MarkExposureValid()
         {
             LockedExposureValid = true;
+        }
+
+        public void RequestExposureAdaptationLock()
+        {
+            ExposureAdaptationLocked = true;
+        }
+
+        internal void ResetExposureAdaptationLock()
+        {
+            ExposureAdaptationLocked = false;
         }
 
         #endregion

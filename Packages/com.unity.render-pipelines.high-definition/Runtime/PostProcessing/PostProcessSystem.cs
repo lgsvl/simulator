@@ -1453,7 +1453,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var cs = exposureParameters.exposureCS;
             int kernel;
 
-            // === LGSVL (Skip exposure calculations when marked as locked)
+            // === LGSVL (Skip dynamic exposure calculations when marked as locked)
             // Exposure has been locked - first valid result will be kept until it's unlocked
             if (exposureParameters.camera.ExposureLocked)
             {
@@ -1517,6 +1517,30 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var cs = exposureParameters.histogramExposureCS;
             int kernel;
+
+            // === LGSVL (Force fixed adaptation mode for a single frame when requested)
+            if (exposureParameters.camera.ExposureAdaptationLocked)
+            {
+                exposureParameters.exposureVariants[2] = (int)AdaptationMode.Fixed;
+                exposureParameters.camera.ResetExposureAdaptationLock();
+            }
+            // ===
+
+            // === LGSVL (Skip histogram exposure calculations when marked as locked)
+            // Exposure has been locked - first valid result will be kept until it's unlocked
+            if (exposureParameters.camera.ExposureLocked)
+            {
+                // Exposure is valid, as it was calculated at least once since lock - just copy last result directly
+                if (exposureParameters.camera.LockedExposureValid)
+                {
+                    cmd.CopyTexture(prevExposure, nextExposure);
+                    return;
+                }
+
+                // Exposure not yet valid - mark as such and continue with proper calculation
+                exposureParameters.camera.MarkExposureValid();
+            }
+            // ===
 
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ProceduralMaskParams, exposureParameters.proceduralMaskParams);
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ProceduralMaskParams2, exposureParameters.proceduralMaskParams2);

@@ -9,6 +9,7 @@ using System;
 using SimpleJSON;
 using UnityEngine;
 using Simulator.Sensors;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 using Simulator.Web;
 using System.Threading.Tasks;
@@ -135,11 +136,8 @@ namespace Simulator.Api.Commands
                     if (agents.ActiveAgents.Count == 1)
                     {
                         agents.SetCurrentActiveAgent(agentGO);
-
-                        // Camera moved - wait a frame for temporal lighting effects to resolve
-                        SimulatorManager.SetTimeScale(1f);
-                        await Task.Yield();
-                        api.ResetTime();
+                        var hdCamera = HDCamera.GetOrCreate(SimulatorManager.Instance.CameraManager.SimulatorCamera);
+                        hdCamera.RequestExposureAdaptationLock();
                     }
 
                     var rb = agentGO.GetComponent<Rigidbody>();

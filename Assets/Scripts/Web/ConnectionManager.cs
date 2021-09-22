@@ -39,16 +39,37 @@ public class ConnectionManager : MonoBehaviour
         Online
     }
 
-    public static ConnectionStatus Status = ConnectionStatus.Offline;
-    public static string DisconnectReason = null;
+    static ConnectionStatus _status = ConnectionStatus.Offline;
+    public static ConnectionStatus Status
+    {
+        get => _status;
+        private set
+        {
+            _status = value;
+            OnStatusChanged(value, ConnectionMessage);
+        }
+    }
+    public static string ConnectionMessage
+    {
+        get => _disconnectReason;
+        private set
+        {
+            Debug.Log(value);
+            _disconnectReason = value;
+            OnStatusChanged(_status, value);
+        }
+    }
+
+    public static string _disconnectReason = null;
+
     public static ConnectionManager instance;
     public static CloudAPI API;
     public SimulatorInfo simInfo;
-    static int unityThread;
-    static Queue<Action> runInUpdate = new Queue<Action>();
     static int[] timeOutSequence = new[] { 1, 5, 15, 30 };
-    int timeoutAttempts;
     ClientSettingsService service;
+
+    public static Action<ConnectionStatus, string> OnStatusChanged = delegate { };
+
     public string LinkUrl => Config.CloudUrl + "/clusters/link?token=" + simInfo.linkToken;
 
     private void Start()
@@ -61,7 +82,6 @@ public class ConnectionManager : MonoBehaviour
 
         DontDestroyOnLoad(this);
         instance = this;
-        unityThread = Thread.CurrentThread.ManagedThreadId;
         service = new ClientSettingsService();
         ClientSettings settings = service.GetOrMake();
 
@@ -110,82 +130,92 @@ public class ConnectionManager : MonoBehaviour
         {
             simInfo = CloudAPI.GetInfo();
             Status = ConnectionStatus.Connecting;
-            DisconnectReason = null;
-            RunOnUnityThread(() =>
-            {
-                ConnectionUI.instance?.UpdateStatus();
-            });
 
-            foreach (var timeOut in timeOutSequence)
+            int timeOutIndex = 0;
+            while (true)
             {
+                int timeOut = timeOutSequence[timeOutIndex];
+
                 try
                 {
-                    var reader = await API.Connect(simInfo);
-                    await ReadResponseLoop(reader);
+                    ConnectionMessage = "Connecting to " + Config.CloudUrl;
+                    var stream = await API.Connect(simInfo);
+                    await ReadResponseLoop(stream);
                     break;
                 }
                 catch (HttpRequestException ex)
                 {
+                    var message = ex.InnerException?.Message ?? ex.Message;
                     // temporary network issue, we'll retry
-                    Debug.Log(ex.Message + ", reconnecting after " + timeOut + " seconds");
-                    await Task.Delay(1000 * timeOut);
+                    for (int i = 0; i < timeOut; i++)
+                    {
+                        ConnectionMessage = $"{message}, reconnecting after {timeOut - i} seconds";
+                        await Task.Delay(1000);
+                    }
                 }
                 finally
                 {
                     API.Disconnect();
                 }
-                if (Status == ConnectionStatus.Offline)
+
+                if (!Config.RetryForever && Status == ConnectionStatus.Offline)
                 {
-                    Debug.Log("User cancelled connection.");
+                    ConnectionMessage = "Disconnected.";
                     break;
                 }
-            }
 
-            if (Config.RetryForever)
-            {
-                while (true)
+                if (timeOutIndex < timeOutSequence.Length - 1)
                 {
-                    try
-                    {
-                        var stream = await API.Connect(simInfo);
-                        await ReadResponseLoop(stream);
-                        break;
-                    }
-                    catch (CloudAPI.NoSuccessException ex)
-                    {
-                        Debug.Log(ex.Message + ", reconnecting after " + timeOutSequence[timeOutSequence.Length - 1] + " seconds");
-                        DisconnectReason = ex.Message;
-                        await Task.Delay(1000 * timeOutSequence[timeOutSequence.Length - 1]);
-                    }
-                    finally
-                    {
-                        API.Disconnect();
-                    }
+                    timeOutIndex++;
+                }
+                else if (!Config.RetryForever)
+                {
+                    ConnectionMessage = $"Failed to connect to cloud after {timeOutSequence.Length + 1} attempts, giving up.";
+                    break;
                 }
             }
         }
         catch (CloudAPI.NoSuccessException ex)
         {
-            // WISE told us it does not like us, so stop reconnecting
-            DisconnectReason = ex.Message;
-            Debug.Log($"WISE backend reported error: {ex.Message}, will not reconnect");
+            // testcase: cloud_url = https://google.com
+            // testcase: wise in maintenance mode
+            if (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                ConnectionMessage = Config.CloudUrl + ": Cannot found WISE (404), giving up.";
+            }
+            else
+            {
+                // WISE told us it does not like us, so stop reconnecting
+                ConnectionMessage = $"{(int)ex.StatusCode}: {ex.Message}, giving up.";
+            }
         }
         catch (TaskCanceledException)
         {
-            Debug.Log("Linking task canceled.");
-            DisconnectReason = "Linking task canceled.";
+            if (Status == ConnectionStatus.Connecting)
+            {
+                // TaskCancelledException occurs when a connection times out after 100 sec (default HttpClient.Timeout timespan)
+                // FIXME: should this case be part of the the retry loop?
+                // testcase: cloud_url=https://1.2.3.4
+                ConnectionMessage = "Connection to cloud timed out, giving up";
+            }
+            else
+            {
+                // but also when user cancels the connection during tcp connection phase
+                // testcase: cloud_url=https://1.2.3.4 then select online from dropdown within 100s
+                ConnectionMessage = "Connection cancelled.";
+            }
         }
         catch (System.Net.Sockets.SocketException se)
         {
-            Debug.Log($"Could not reach WISE SSE at {Config.CloudUrl}: {se.Message}");
-            DisconnectReason = $"Could not reach WISE SSE at {Config.CloudUrl}: {se.Message}";
+            // FIXME: should this case be part of the the retry loop?
+            ConnectionMessage = $"Could not reach WISE SSE at {Config.CloudUrl}: {se.Message}, giving up";
         }
         catch (Exception ex)
         {
+            ConnectionMessage = $"Connection error: {ex.Message}";
             Debug.LogException(ex);
         }
 
-        Debug.Log("Giving up reconnecting.");
         Disconnect();
     }
 
@@ -201,9 +231,8 @@ public class ConnectionManager : MonoBehaviour
                     await Parse(line);
                 }
             }
-            catch (WebException ex)
+            catch (WebException) when (Status == ConnectionStatus.Offline)
             {
-                if (Status != ConnectionStatus.Offline) throw ex;
                 // when disconnecting, it is expected the task is cancelled.
             }
         }
@@ -217,10 +246,6 @@ public class ConnectionManager : MonoBehaviour
         {
             API.Disconnect();
             Status = ConnectionStatus.Offline;
-            RunOnUnityThread(() =>
-            {
-                ConnectionUI.instance?.UpdateStatus();
-            });
         }
         catch (Exception ex)
         {
@@ -247,24 +272,14 @@ public class ConnectionManager : MonoBehaviour
                         switch (status.ToString())
                         {
                             case "Unrecognized":
-                                RunOnUnityThread(() =>
-                                {
-                                    Status = ConnectionStatus.Connected;
-                                    ConnectionUI.instance?.UpdateStatus();
-                                });
+                                Status = ConnectionStatus.Connected;
                                 break;
                             case "OK":
-                                RunOnUnityThread(() =>
-                                {
-                                    Status = ConnectionStatus.Online;
-                                    ConnectionUI.instance?.UpdateStatus();
-                                });
+                                Status = ConnectionStatus.Online;
                                 break;
                             case "Config":
-                                RunOnUnityThread(() =>
                                 {
                                     Status = ConnectionStatus.Online;
-                                    ConnectionUI.instance?.UpdateStatus();
 
                                     SimulationData simData;
                                     try
@@ -279,39 +294,31 @@ public class ConnectionManager : MonoBehaviour
                                         throw;
                                     }
                                     Loader.Instance.StartSimulation(simData);
-                                });
+                                }
                                 break;
                             case "Disconnect":
-                                RunOnUnityThread(() =>
-                                {
-                                    DisconnectReason = deserialized.GetValue("reason")?.ToString() ?? "unknown reason";
-                                    Disconnect();
-                                });
+                                ConnectionMessage = deserialized.GetValue("reason")?.ToString() ?? "unknown reason";
+                                Disconnect();
                                 break;
                             case "Timeout":
-                                RunOnUnityThread(() =>
-                                {
-                                    DisconnectReason = deserialized.GetValue("reason")?.ToString() ?? "unknown reason";
-                                    Disconnect();
-                                });
+                                ConnectionMessage = deserialized.GetValue("reason")?.ToString() ?? "unknown reason";
+                                Disconnect();
                                 break;
                             case "Stop":
-                                if (Loader.Instance.Status == SimulatorStatus.Idle || Loader.Instance.Status == SimulatorStatus.Stopping)
                                 {
-                                    SimulationData simData = Newtonsoft.Json.JsonConvert.DeserializeObject<SimulationData>(deserialized.GetValue("data").ToString());
-                                    Debug.Log("not running");
-                                    await API.UpdateStatus("Stopping", simData.Id, "stop requested but was not running simulation");
-                                    await API.UpdateStatus("Idle", simData.Id, "");
-                                    return;
+                                    if (Loader.Instance.Status == SimulatorStatus.Idle || Loader.Instance.Status == SimulatorStatus.Stopping)
+                                    {
+                                        SimulationData simData = Newtonsoft.Json.JsonConvert.DeserializeObject<SimulationData>(deserialized.GetValue("data").ToString());
+                                        await API.UpdateStatus("Stopping", simData.Id, "stop requested but was not running simulation");
+                                        await API.UpdateStatus("Idle", simData.Id, "");
+                                        return;
+                                    }
+                                    Loader.Instance.StopAsync();
+                                    break;
                                 }
-                                Loader.Instance.StopAsync();
-                                break;
                             default:
                                 Debug.LogWarning($"Unknown Status '{status.ToString()}'! Disconnecting.");
-                                RunOnUnityThread(() =>
-                                {
-                                    Disconnect();
-                                });
+                                Disconnect();
                                 break;
                         }
                     }
@@ -324,22 +331,6 @@ public class ConnectionManager : MonoBehaviour
         }
     }
 
-    public static void RunOnUnityThread(Action action)
-    {
-        if (unityThread == Thread.CurrentThread.ManagedThreadId)
-        {
-            action();
-        }
-        else
-        {
-            lock (runInUpdate)
-            {
-                runInUpdate.Enqueue(action);
-            }
-
-        }
-    }
-
     public async void UpdateStatus(string status, string simGuid, string message = "")
     {
         try
@@ -349,22 +340,6 @@ public class ConnectionManager : MonoBehaviour
         catch (Exception ex)
         {
             Debug.LogException(ex);
-        }
-    }
-
-    private void Update()
-    {
-        while (runInUpdate.Count > 0)
-        {
-            Action action = null;
-            lock (runInUpdate)
-            {
-                if (runInUpdate.Count > 0)
-                {
-                    action = runInUpdate.Dequeue();
-                }
-            }
-            action?.Invoke();
         }
     }
 

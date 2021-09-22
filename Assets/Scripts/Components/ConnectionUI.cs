@@ -5,11 +5,11 @@
  *
  */
 
+using System.Collections.Generic;
+using System.Linq;
+using Simulator.Database.Services;
 using UnityEngine;
 using UnityEngine.UI;
-using Simulator.Database.Services;
-using System.Linq;
-using System.Collections.Generic;
 
 namespace Simulator.Web
 {
@@ -83,8 +83,9 @@ namespace Simulator.Web
             SettingsButton.onClick.AddListener(OnSettingsButtonClicked);
             UpdateDropdown();
             offlineDropdown.onValueChanged.AddListener(OnDropdownValueChanged);
-            UpdateStatus();
-            TaskProgressManager.Instance.OnUpdate += UpdateDownloadProgress;            
+            UpdateStatus(ConnectionManager.Status, "");
+            TaskProgressManager.Instance.OnUpdate += UpdateDownloadProgress;
+            ConnectionManager.OnStatusChanged += UpdateStatus;
         }
 
         public void UpdateDownloadProgress()
@@ -98,15 +99,15 @@ namespace Simulator.Web
                 statusText.text = text;
         }
 
-        public void UpdateStatus()
+        public void UpdateStatus(ConnectionManager.ConnectionStatus status, string message)
         {
             if (statusText == null || linkButton == null || statusButtonIcon == null || statusButtonText == null || linkButtonText == null || statusButton == null)
                 return; // fix for editor stop playmode null
 
-            switch (ConnectionManager.Status)
+            switch (status)
             {
                 case ConnectionManager.ConnectionStatus.Connecting:
-                    statusText.text = $"Connecting to the cloud...";
+                    statusText.text = message;
                     unlinkButton.interactable = false;
                     linkButton.gameObject.SetActive(false);
                     statusButtonIcon.color = offlineColor;
@@ -129,16 +130,9 @@ namespace Simulator.Web
                     CloudTypeText.text = $"URL: {ConnectionManager.API?.CloudType}";
                     break;
                 case ConnectionManager.ConnectionStatus.Offline:
+                    statusText.text = message ?? "Go Online to start new simulation or run previous simulations while being Offline";
                     statusButtonText.text = "Offline";
                     statusMenuButtonText.text = "Go Online";
-                    if (ConnectionManager.DisconnectReason != null)
-                    {
-                        statusText.text = "Disconnected: " + ConnectionManager.DisconnectReason;
-                    }
-                    else
-                    {
-                        statusText.text = "Go Online to start new simulation or run previous simulations while being Offline";
-                    }
                     statusButtonIcon.color = offlineColor;
                     unlinkButton.interactable = true;
                     linkButton.gameObject.SetActive(false);
@@ -146,7 +140,7 @@ namespace Simulator.Web
                     offlineStartButton.gameObject.SetActive(true);
                     VSEButton.gameObject.SetActive(false);
                     UpdateDropdown();
-                    CloudTypeText.text = "OFFLINE";
+                    CloudTypeText.text = $"OFFLINE ({ConnectionManager.API?.CloudType})";
                     break;
                 case ConnectionManager.ConnectionStatus.Online:
                     statusButtonText.text = "Online";

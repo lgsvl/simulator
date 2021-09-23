@@ -108,12 +108,21 @@ public class PedestrianAutomaticBehaviour : PedestrianBehaviourBase
                 }
             }
         }
-        controller.Targets = closest.mapWorldPositions;
-        controller.MapPath = closest;
 
-        controller.NextTargetIndex = closestIndex;
+        if (closest != null)
+        {
+            controller.Targets = closest.mapWorldPositions;
+            controller.MapPath = closest;
+            controller.NextTargetIndex = closestIndex;
+        }
+        else
+        {
+            controller.SetBehaviour<PedestrianBehaviourBase>();
+            controller.SetPedState(PedestrianController.PedestrianState.Idle);
+            Debug.LogError("No pedestrian annotation found, please create annotation, setting to idle");
+        }
     }
-    
+
     private void PEDTurn()
     {
         if (controller.CurrentTurn != Vector3.zero)

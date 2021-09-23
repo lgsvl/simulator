@@ -183,6 +183,8 @@ namespace Simulator
 
             if (Visible)
             {
+                Debug.developerConsoleVisible = false; // TODO Hack because unity won't disable on dev builds
+
                 bool hasSelection = backlogArea.selectionFocusPosition != backlogArea.selectionAnchorPosition;
 
                 switch (Event.current.keyCode)

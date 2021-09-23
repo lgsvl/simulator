@@ -28,12 +28,19 @@ namespace Simulator.Api.Commands
                 var destinations = new JSONArray();
                 foreach (var dest in spawn.Destinations)
                 {
-                    var DestPosition = dest.transform.position;
-                    var DestRotation = dest.transform.rotation.eulerAngles;
-                    var d = new JSONObject();
-                    d.Add("position", DestPosition);
-                    d.Add("rotation", DestRotation);
-                    destinations.Add(d);
+                    try
+                    {
+                        var DestPosition = dest.transform.position;
+                        var DestRotation = dest.transform.rotation.eulerAngles;
+                        var d = new JSONObject();
+                        d.Add("position", DestPosition);
+                        d.Add("rotation", DestRotation);
+                        destinations.Add(d);
+                    }
+                    catch
+                    {
+                        Debug.LogError("Destination object linked to the spawn point is null or missing data.");
+                    }
                 }
 
                 var s = new JSONObject();

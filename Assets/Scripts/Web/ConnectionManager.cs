@@ -141,6 +141,8 @@ public class ConnectionManager : MonoBehaviour
                     ConnectionMessage = "Connecting to " + Config.CloudUrl;
                     var stream = await API.Connect(simInfo);
                     await ReadResponseLoop(stream);
+                    // WISE closed our connection without any network error
+                    // as of now, maintenance mode also causes this
                     break;
                 }
                 catch (HttpRequestException ex)
@@ -179,15 +181,14 @@ public class ConnectionManager : MonoBehaviour
         {
             // testcase: cloud_url = https://google.com
             // testcase: wise in maintenance mode
-            if (ex.StatusCode == HttpStatusCode.NotFound)
+            ConnectionMessage = ex.StatusCode switch
             {
-                ConnectionMessage = Config.CloudUrl + ": Cannot found WISE (404), giving up.";
-            }
-            else
-            {
-                // WISE told us it does not like us, so stop reconnecting
-                ConnectionMessage = $"{(int)ex.StatusCode}: {ex.Message}, giving up.";
-            }
+                HttpStatusCode.NotFound => "Cannot find cloud (404), giving up.",
+                HttpStatusCode.ServiceUnavailable => "Cloud unavailable, giving up.",
+                // maintenance mode issues 302 redirect on POST
+                HttpStatusCode.Redirect => "Cloud unavailable (302), giving up.",
+                _ => $"{(int)ex.StatusCode}: {ex.Message}, giving up."
+            };
         }
         catch (TaskCanceledException)
         {
@@ -208,7 +209,7 @@ public class ConnectionManager : MonoBehaviour
         catch (System.Net.Sockets.SocketException se)
         {
             // FIXME: should this case be part of the the retry loop?
-            ConnectionMessage = $"Could not reach WISE SSE at {Config.CloudUrl}: {se.Message}, giving up";
+            ConnectionMessage = $"Could not reach cloud at {Config.CloudUrl}: {se.Message}, giving up";
         }
         catch (Exception ex)
         {
@@ -297,11 +298,11 @@ public class ConnectionManager : MonoBehaviour
                                 }
                                 break;
                             case "Disconnect":
-                                ConnectionMessage = deserialized.GetValue("reason")?.ToString() ?? "unknown reason";
+                                ConnectionMessage = "Disconnected: " + deserialized.GetValue("reason")?.ToString() ?? "unknown reason";
                                 Disconnect();
                                 break;
                             case "Timeout":
-                                ConnectionMessage = deserialized.GetValue("reason")?.ToString() ?? "unknown reason";
+                                ConnectionMessage = "Disconnected: " + deserialized.GetValue("reason")?.ToString() ?? "unknown reason";
                                 Disconnect();
                                 break;
                             case "Stop":
@@ -412,6 +413,7 @@ public class CloudAPI
         SimId = simId;
 
         HttpClientHandler handler = new HttpClientHandler();
+        handler.AllowAutoRedirect = false;
         if (proxyURL != null)
         {
             WebProxy webProxy = new WebProxy(new Uri(Config.CloudProxy));

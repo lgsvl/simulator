@@ -128,6 +128,7 @@ namespace Simulator.Web
             }
 
             csservice.SetSimID(SimID);
+            AssetBundle.UnloadAllAssetBundles(false);
         }
 
         public static void RegenerateSimID()

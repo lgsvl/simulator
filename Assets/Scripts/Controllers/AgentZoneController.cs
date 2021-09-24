@@ -62,7 +62,6 @@ public class AgentZoneController : MonoBehaviour
     public void SetLightLayerMask(LightLayerTrigger trigger)
     {
         var renderLightMask = trigger != null ? trigger.LightLayer : LightLayerEnum.LightLayerDefault;
-        Debug.Log("SET MASK " + renderLightMask);
         // Light layer is stored in the first 8 bit of the rendering layer mask.
         Component[] renderers = GetComponentsInChildren<Renderer>();
         foreach (Renderer r in renderers)

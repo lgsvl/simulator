@@ -747,18 +747,20 @@ namespace Simulator
                 if (zip.FindEntry($"{manifest.assetGuid}_environment_textures", false) != -1)
                 {
                     entry = zip.GetEntry($"{manifest.assetGuid}_environment_textures");
-                    var texStream =
-                        VirtualFileSystem.VirtualFileSystem.EnsureSeekable(zip.GetInputStream(entry), entry.Size);
+                    var texStream = VirtualFileSystem.VirtualFileSystem.EnsureSeekable(zip.GetInputStream(entry), entry.Size);
                     textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+                    texStream.Close();
+                    texStream.Dispose();
                 }
 
                 string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows
                     ? "windows"
                     : "linux";
                 entry = zip.GetEntry($"{manifest.assetGuid}_environment_main_{platform}");
-                var mapStream =
-                    VirtualFileSystem.VirtualFileSystem.EnsureSeekable(zip.GetInputStream(entry), entry.Size);
+                var mapStream = VirtualFileSystem.VirtualFileSystem.EnsureSeekable(zip.GetInputStream(entry), entry.Size);
                 mapBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
+                mapStream.Close();
+                mapStream.Dispose();
 
                 if (mapBundle == null)
                 {

@@ -527,6 +527,8 @@ namespace Simulator.Web
             {
                 var texStream = VirtualFileSystem.VirtualFileSystem.EnsureSeekable(texEntry.SeekableStream(), (int)texEntry.Size);
                 textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+                texStream.Close();
+                texStream.Dispose();
             }
 
             string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
@@ -644,6 +646,8 @@ namespace Simulator.Web
             {
                 var texStream = VirtualFileSystem.VirtualFileSystem.EnsureSeekable(texEntry.SeekableStream(), (int)texEntry.Size);
                 textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+                texStream.Close();
+                texStream.Dispose();
             }
 
             string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";

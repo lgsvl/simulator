@@ -68,9 +68,10 @@ namespace Simulator.Api.Commands
                 if (zip.FindEntry($"{manifest.assetGuid}_environment_textures", true) != -1)
                 {
                     entry = zip.GetEntry($"{manifest.assetGuid}_environment_textures");
-                    var texStream =
-                    VirtualFileSystem.VirtualFileSystem.EnsureSeekable(zip.GetInputStream(entry), entry.Size);
+                    var texStream = VirtualFileSystem.VirtualFileSystem.EnsureSeekable(zip.GetInputStream(entry), entry.Size);
                     textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+                    texStream.Close();
+                    texStream.Dispose();
                 }
 
                 string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows

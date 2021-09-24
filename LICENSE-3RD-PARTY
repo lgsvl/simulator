@@ -904,6 +904,9 @@ Group.
         - SharpZipLib, Copyright (c) 2010-2018 SharpZipLib Contributors
         - JsonDotNet, Copyright (c) 2007 James Newton-King
         - streetscape.gl, Copyright (c) 2019 Uber Technologies, Inc.
+        - STL Importer (pb_Stl), Copyright (c) 2016 Karl Henkel
+        - Docker.DotNet, Copyright (c) .NET Foundation and Contributors
+        - websocket-sharp, Copyright (c) 2010-2021 sta.blockhead
 
 -----------------------------------------------------------------------------
 

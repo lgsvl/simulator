@@ -779,16 +779,15 @@ namespace Simulator
 
                 var sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
                 var loader = SceneManager.LoadSceneAsync(sceneName, loadMode);
-                if (callback != null)
-                    loader.completed += op =>
-                    {
-                        callback.Invoke(op.isDone, sceneName, mapBundlePath);
-                        zip.Close();
-                        if (textureBundle != null)
-                            textureBundle.Unload(false);
-                        if (mapBundle != null)
-                            mapBundle.Unload(false);
-                    };
+                loader.completed += op =>
+                {
+                    callback?.Invoke(op.isDone, sceneName, mapBundlePath);
+                    zip.Close();
+                    if (textureBundle != null)
+                        textureBundle.Unload(false);
+                    if (mapBundle != null)
+                        mapBundle.Unload(false);
+                };
             }
             catch (Exception)
             {

@@ -26,12 +26,11 @@ $ docker build --pull --no-cache [--build-arg simulator_version=<VERSION>|simula
 
 ## Launch the container image
 
-Make sure you have installed Docker (19.03 or later preferred) and the [**NVIDIA Container Toolkit**](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html).
+Docker v20.10 or later must be installed on Linux and the [**NVIDIA Container Toolkit**](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#setting-up-nvidia-container-toolkit).
 
 To run the simulator using the host's X Server, first run the simulator outside of the container, link it to the cloud, and exit. Then use the following command:
 
 ```shell
-# Replace "--gpus=all" with "--runtime=nvidia" if you are using Docker < v19.03 or have `nvidia-docker` installed instead of the NVIDIA Container Toolkit.
 $ docker run -ti \
      --gpus=all \
      --net=host \

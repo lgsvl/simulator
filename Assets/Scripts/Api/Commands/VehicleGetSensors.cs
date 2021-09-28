@@ -90,22 +90,24 @@ namespace Simulator.Api.Commands
                             j.Add("type", "imu");
                             j.Add("name", sensorType.Name);
                             break;
-                        case "GPS":
+                        case "GPS": // TODO: check if this sensor type name is still used, remove if not.
+                        case "GPS Device":
                             j = new JSONObject();
                             j.Add("type", "gps");
                             j.Add("name", sensor.Name);
-                            j.Add("frequency", (int)sensor.GetType().GetField("Frequency").GetValue(sensor));
+                            j.Add("frequency", (float)sensor.GetType().GetField("Frequency").GetValue(sensor));
                             break;
                         case "Radar":
                             j = new JSONObject();
                             j.Add("type", "radar");
                             j.Add("name", sensor.Name);
                             break;
-                        case "CanBus":
+                        case "CanBus": // TODO: check if this sensor type name is still used, remove if not.
+                        case "CAN-Bus":
                             j = new JSONObject();
                             j.Add("type", "canbus");
                             j.Add("name", sensor.Name);
-                            j.Add("frequency", (int)sensor.GetType().GetField("Frequency").GetValue(sensor));
+                            j.Add("frequency", (float)sensor.GetType().GetField("Frequency").GetValue(sensor));
                             break;
                         case "Video Recording":
                             j = new JSONObject();

@@ -106,7 +106,7 @@ namespace Simulator.ScenarioEditor.Controllables
                 controllable.Value.Spawned = true;
                 variant.Setup(controllable.Key, controllable.Value);
                 Variants.Add(variant);
-                var assets = Config.ControllableAssets[controllable.Value];
+                var assets = Config.ControllableAssets[controllable.Key];
                 foreach (var asset in assets)
                 {
                     var editPanel = asset.GetComponent<IControllableEditPanel>();

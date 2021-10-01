@@ -49,7 +49,7 @@ namespace Simulator.Web
         public static Dictionary<string, SensorBase> SensorTypeLookup = new Dictionary<string, SensorBase>();
 
         public static Dictionary<string, IControllable> Controllables = new Dictionary<string, IControllable>();
-        public static Dictionary<IControllable, List<GameObject>> ControllableAssets = new Dictionary<IControllable, List<GameObject>>();
+        public static Dictionary<string, List<GameObject>> ControllableAssets = new Dictionary<string, List<GameObject>>();
         public static Dictionary<string, Type> NPCBehaviours = new Dictionary<string, Type>();
         public static Dictionary<Type, GameObject> CustomManagers = new Dictionary<Type, GameObject>();
 
@@ -466,7 +466,7 @@ namespace Simulator.Web
                             continue;
                         controllableAssets.Add(pluginBundle.LoadAsset<GameObject>(pluginAsset));
                     }
-                    ControllableAssets.Add(controllable, controllableAssets);
+                    ControllableAssets.Add(manifest.assetName, controllableAssets);
                     LoadedAssets.Add(manifest);
 
                     return;
@@ -482,7 +482,7 @@ namespace Simulator.Web
                     continue;
                 additionalAssets.Add(pluginBundle.LoadAsset<GameObject>(pluginAsset));
             }
-            ControllableAssets.Add(controllable, additionalAssets);
+            ControllableAssets.Add(manifest.assetName, additionalAssets);
             LoadedAssets.Add(manifest);
         }
 

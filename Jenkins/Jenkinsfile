@@ -46,7 +46,7 @@ pipeline {
   agent {
     node {
       label "gpu-vulkan"
-      customWorkspace "/home/jenkins/workspace/simulator-cloud-2020.3.3f1-unityci"
+      customWorkspace "/home/jenkins/workspace/simulator-cloud-2020.3.19f1-unityci"
     }
   }
 
@@ -88,9 +88,9 @@ pipeline {
     UNITY_USERNAME = credentials("UNITY_USERNAME")
     UNITY_PASSWORD = credentials("UNITY_PASSWORD")
     UNITY_SERIAL = credentials("UNITY_SERIAL")
-    UNITY_VERSION = "2020.3.3f1"
+    UNITY_VERSION = "2020.3.19f1"
     UNITY_DOCKER_IMAGE = "${GITLAB_HOST}:4567/hdrp/unityci/editor-lgsvl"
-    UNITY_DOCKER_IMAGE_TAG = "2020.3.3f1-v0.15-4-g07a8336__build__30"
+    UNITY_DOCKER_IMAGE_TAG = "2020.3.19f1-v0.15-4-g07a8336__build__31"
     CODE_SIGNING_PASSWORD = credentials("LGSVL_CODE_SIGNING_PASSWORD")
     PYTHONUNBUFFERED = "1"
     DISPLAY = ":0"

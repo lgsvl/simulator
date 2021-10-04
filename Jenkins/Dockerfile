@@ -1,11 +1,11 @@
 # To build for multiple different platforms with the same docker image
 # you need to rebuild this image with https://github.com/game-ci/docker/releases/tag/v0.15 or newer (with https://github.com/game-ci/docker/pull/116)
-# e.g. for 2020.3.3f1 version with linux, windows, android and mac support:
-# --build-arg version="2020.3.3f1"
-# --build-arg changeSet="76626098c1c4"                # you can find changeSet value in release announcement, e.g. https://unity3d.com/unity/whats-new/2020.3.3 has "Unity Hub" link unityhub://2020.3.3f1/76626098c1c4
+# e.g. for 2020.3.19f1 version with linux, windows, android and mac support:
+# --build-arg version="2020.3.19f1"
+# --build-arg changeSet="68f137dc9bbe"                # you can find changeSet value in release announcement, e.g. https://unity3d.com/unity/whats-new/2020.3.19 has "Unity Hub" link unityhub://2020.3.19f1/68f137dc9bbe
 # --build-arg module="windows-mono android mac-mono"  # linux support is already included by default
 # use an image with only windows-mono support as an example until the images with multiple modules are available on dockerhub
-ARG EDITOR_DOCKER_IMAGE=unityci/editor:ubuntu-2020.3.3f1-windows-mono-0.15.0
+ARG EDITOR_DOCKER_IMAGE=unityci/editor:ubuntu-2020.3.19f1-windows-mono-0.15.0
 FROM ${EDITOR_DOCKER_IMAGE}
 
 # install dependencies:

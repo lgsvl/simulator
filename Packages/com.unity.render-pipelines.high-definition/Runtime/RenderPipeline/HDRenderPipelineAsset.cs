@@ -36,6 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void Reset() => OnValidate();
 
+        // === LGSVL (Set active frame settings on pipeline creation)
         /// <summary>
         /// CreatePipeline implementation.
         /// </summary>
@@ -45,6 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RenderingActiveCameraFrameSettings = m_RenderingPathDefaultCameraFrameSettings;            
             return new HDRenderPipeline(this, HDRenderPipeline.defaultAsset);
         }
+        // ===
         
         /// <summary>
         /// OnValidate implementation.
@@ -141,7 +143,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         FrameSettings m_RenderingPathDefaultCameraFrameSettings = FrameSettings.NewDefaultCamera();
 
+        // === LGSVL (Add field for active frame settings)
         public FrameSettings m_RenderingActiveCameraFrameSettings = FrameSettings.NewDefaultCamera();
+        // ===
 
         [SerializeField]
         FrameSettings m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings = FrameSettings.NewDefaultCustomOrBakeReflectionProbe();
@@ -154,8 +158,9 @@ namespace UnityEngine.Rendering.HighDefinition
             switch(type)
             {
                 case FrameSettingsRenderType.Camera:
-                    //return ref m_RenderingPathDefaultCameraFrameSettings;
+                    // === LGSVL (Return active frame settings instead of default ones for camera)
                     return ref m_RenderingActiveCameraFrameSettings;
+                    // ===
                 case FrameSettingsRenderType.CustomOrBakedReflection:
                     return ref m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings;
                 case FrameSettingsRenderType.RealtimeReflection:
@@ -360,6 +365,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>HDRP default terrain detail grass billboard shader.</summary>
         public override Shader terrainDetailGrassBillboardShader
             => renderPipelineEditorResources?.shaders.terrainDetailGrassBillboardShader;
+
+        public override Shader defaultSpeedTree8Shader
+            => renderPipelineEditorResources?.shaderGraphs.defaultSpeedTree8Shader;
 
         // Note: This function is HD specific
         /// <summary>HDRP default Decal material.</summary>

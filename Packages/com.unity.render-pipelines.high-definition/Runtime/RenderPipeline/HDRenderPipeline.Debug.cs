@@ -511,13 +511,15 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool decalsEnabled;
             public ComputeBufferHandle perVoxelOffset;
             public DBufferOutput dbuffer;
+            public GBufferOutput gbuffer;
+            public TextureHandle depthBuffer;
 
             public Texture clearColorTexture;
             public RenderTexture clearDepthTexture;
             public bool clearDepth;
         }
 
-        TextureHandle RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, BuildGPULightListOutput lightLists, DBufferOutput dbuffer)
+        TextureHandle RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, BuildGPULightListOutput lightLists, DBufferOutput dbuffer, GBufferOutput gbuffer, TextureHandle depthBuffer)
         {
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
 
@@ -539,12 +541,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     passData.debugGBufferMaterial = m_currentDebugViewMaterialGBuffer;
                     passData.outputColor = builder.WriteTexture(output);
+                    passData.gbuffer = ReadGBuffer(gbuffer, builder);
+                    passData.depthBuffer = builder.ReadTexture(depthBuffer);
 
                     builder.SetRenderFunc(
-                    (DebugViewMaterialData data, RenderGraphContext context) =>
-                    {
-                        HDUtils.DrawFullScreen(context.cmd, data.debugGBufferMaterial, data.outputColor);
-                    });
+                        (DebugViewMaterialData data, RenderGraphContext context) =>
+                        {
+                            var gbufferHandles = data.gbuffer;
+                            for (int i = 0; i < gbufferHandles.gBufferCount; ++i)
+                            {
+                                data.debugGBufferMaterial.SetTexture(HDShaderIDs._GBufferTexture[i], gbufferHandles.mrt[i]);
+                            }
+                            data.debugGBufferMaterial.SetTexture(HDShaderIDs._CameraDepthTexture, data.depthBuffer);
+
+                            HDUtils.DrawFullScreen(context.cmd, data.debugGBufferMaterial, data.outputColor);
+                        });
                 }
             }
             else

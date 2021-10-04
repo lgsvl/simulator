@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             LightingBuffers lightingBuffers = new LightingBuffers();
             lightingBuffers.diffuseLightingBuffer = CreateDiffuseLightingBuffer(m_RenderGraph, msaa);
-            lightingBuffers.sssBuffer = CreateSSSBuffer(m_RenderGraph, msaa);
+            lightingBuffers.sssBuffer = CreateSSSBuffer(m_RenderGraph, hdCamera, msaa);
 
             var prepassOutput = RenderPrepass(m_RenderGraph, colorBuffer, lightingBuffers.sssBuffer, vtFeedbackBuffer, cullingResults, customPassCullingResults, hdCamera, aovRequest, aovBuffers);
 
@@ -85,7 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Stop Single Pass is after post process.
                 StartXRSinglePass(m_RenderGraph, hdCamera);
 
-                colorBuffer = RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, gpuLightListOutput, prepassOutput.dbuffer);
+                colorBuffer = RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, gpuLightListOutput, prepassOutput.dbuffer, prepassOutput.gbuffer, prepassOutput.depthBuffer);
                 colorBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, colorBuffer);
             }
             else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Send all the geometry graphics buffer to client systems if required (must be done after the pyramid and before the transparent depth pre-pass)
                 SendGeometryGraphicsBuffers(m_RenderGraph, prepassOutput.normalBuffer, prepassOutput.depthPyramidTexture, hdCamera);
 
-                m_PostProcessSystem.DoUserAfterOpaqueAndSky(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, prepassOutput.resolvedNormalBuffer);
+                m_PostProcessSystem.DoUserAfterOpaqueAndSky(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, prepassOutput.resolvedNormalBuffer, prepassOutput.resolvedMotionVectorsBuffer);
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects)) // If we don't have opaque objects there is no need to clear.
                 {
@@ -419,12 +419,19 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         using (new ProfilingScope(ctx.cmd, ProfilingSampler.Get(HDProfileId.CopyDepthInTargetTexture)))
                         {
+
                             var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
-                            mpb.SetTexture(HDShaderIDs._InputDepth, data.depthBuffer);
-                            // When we are Main Game View we need to flip the depth buffer ourselves as we are after postprocess / blit that have already flipped the screen
-                            mpb.SetInt("_FlipY", data.flipY ? 1 : 0);
-                            mpb.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
-                            CoreUtils.DrawFullScreen(ctx.cmd, data.copyDepthMaterial, mpb);
+                            RTHandle depth = data.depthBuffer;
+                            // Depth buffer can be invalid if no opaque has been rendered before.
+
+                            if (depth != null)
+                            {
+                                mpb.SetTexture(HDShaderIDs._InputDepth, depth);
+                                // When we are Main Game View we need to flip the depth buffer ourselves as we are after postprocess / blit that have already flipped the screen
+                                mpb.SetInt("_FlipY", data.flipY ? 1 : 0);
+                                mpb.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+                                CoreUtils.DrawFullScreen(ctx.cmd, data.copyDepthMaterial, mpb);
+                            }
                         }
                     }
                 });
@@ -939,9 +946,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // TODO RENDERGRAPH: Remove this when we properly convert custom passes to full render graph with explicit color buffer reads.
             // To allow users to fetch the current color buffer, we temporarily bind the camera color buffer
-            SetGlobalColorForCustomPass(renderGraph, currentColorPyramid);
-
+            SetGlobalColorForCustomPass(renderGraph, colorBuffer);
             RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, CustomPassInjectionPoint.BeforePreRefraction, aovRequest, aovCustomPassBuffers);
+            SetGlobalColorForCustomPass(renderGraph, currentColorPyramid);
 
             // Render pre-refraction objects
             RenderForwardTransparent(renderGraph, hdCamera, colorBuffer, normalBuffer, prepassOutput, vtFeedbackBuffer, volumetricLighting, ssrLightingBuffer, null, lightLists, shadowResult, cullingResults, true);

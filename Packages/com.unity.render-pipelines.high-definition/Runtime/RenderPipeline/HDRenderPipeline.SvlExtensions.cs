@@ -52,6 +52,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        public ref FrameSettings GetDefaultCameraFrameSettings() { return ref m_Asset.m_RenderingActiveCameraFrameSettings; }
+
         /// <summary>
         /// <para>
         /// Event called after each shadow request rendering is done. State is set up to render to proper viewport

@@ -264,7 +264,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         var triggerCollider = go.AddComponent<SphereCollider>();
         if (triggerCollider != null)
         {
-            triggerCollider.radius = 0.3f;
+            triggerCollider.radius = NPCController.Bounds.size.z * 0.25f;
             triggerCollider.isTrigger = true;
         }
         go.AddComponent<AgentZoneController>();

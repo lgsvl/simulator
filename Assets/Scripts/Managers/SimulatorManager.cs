@@ -371,6 +371,13 @@ public class SimulatorManager : MonoBehaviour
                     UpdateSegmentationColors(pedestrianController.gameObject, pedestrianController.GTID);
                 }
             }
+            else if (item.Tag == "Player")
+            {
+                foreach (var controller in AgentManager.ActiveAgents)
+                {
+                    UpdateSegmentationColors(controller.AgentGO, controller.GTID);
+                }
+            }
             else
             {
                 foreach (var obj in GameObject.FindGameObjectsWithTag(item.Tag))
@@ -543,7 +550,7 @@ public class SimulatorManager : MonoBehaviour
         var materials = new List<Material>(8);
         var mapping = new Dictionary<Material, Material>();
 
-        var segId = gtid != null ? SegmentationIdMapping.AddSegmentationId(obj, gtid.Value) : -1;
+        var segId = gtid != null ? SegmentationIdMapping.AddOrGetSegmentationId(obj, gtid.Value) : -1;
 
         foreach (var item in SegmentationColors)
         {

@@ -34,6 +34,14 @@ namespace Simulator.Components
         private Dictionary<int, EntityData> segIdDict = new Dictionary<int, EntityData>();
         private Dictionary<int, Bounds> boundsDict = new Dictionary<int, Bounds>();
 
+        public int AddOrGetSegmentationId(GameObject obj, uint gtid)
+        {
+            if (gtidDict.ContainsKey(gtid))
+                return gtidDict[gtid].segmentationId;
+            else
+                return AddSegmentationId(obj, gtid);
+        }
+
         public int AddSegmentationId(GameObject obj, uint gtid)
         {
             if (gtidDict.ContainsKey(gtid))

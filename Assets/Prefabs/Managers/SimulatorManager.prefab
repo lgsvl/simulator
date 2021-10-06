@@ -89,5 +89,7 @@ MonoBehaviour:
     Color: {r: 0.2901961, g: 0.14509805, b: 0.30980393, a: 1}
   - Tag: LaneLine
     Color: {r: 0.30588233, g: 0.5019143, b: 1, a: 1}
+  - Tag: Player
+    Color: {r: 0, g: 0, b: 0, a: 1}
   IsAPI: 0
   FixedUpdateManager: {fileID: 0}

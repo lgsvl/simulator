@@ -51,6 +51,7 @@ namespace Simulator.Bridge.Data
             if (Points != null)
                 Array.Copy(Points, target.Points, PointCount);
             else if (NativePoints.IsCreated)
+                Array.Resize(ref target.Points, NativePoints.Length);
                 NativePoints.CopyTo(target.Points);
         }
 

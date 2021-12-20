@@ -213,7 +213,7 @@ public class VehicleController : AgentController
         var otherVel = otherRB != null ? otherRB.Velocity : Vector3.zero;
         if ((layerMask & (1 << layer)) != 0)
         {
-            ApiManager.Instance?.AddCollision(gameObject, collision.gameObject);
+            ApiManager.Instance?.AddCollision(gameObject, collision.attachedRigidbody.gameObject);
             SimulatorManager.Instance.AnalysisManager.IncrementEgoCollision(Controller.GTID, transform.position, Dynamics.Velocity, otherVel, otherLayer);
         }
     }

@@ -94,7 +94,7 @@ namespace Simulator.Bridge
         public void AddPublisherCreator<DataType>(PublisherCreator<DataType> publisher)
         {
             var dataType = typeof(DataType);
-            if (Subscribers.ContainsKey(dataType))
+            if (Publishers.ContainsKey(dataType))
             {
                 Debug.LogWarning($"Ignoring duplicate data type {dataType.Name} for publisher");
                 return;

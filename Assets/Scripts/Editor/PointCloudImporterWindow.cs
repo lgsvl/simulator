@@ -46,20 +46,20 @@ namespace Simulator.Editor
 
                 ListStyleA = new GUIStyle
                 {
-                    normal = {background = bgTexA, textColor = textColor},
+                    normal = { background = bgTexA, textColor = textColor },
                     padding = padding,
                     clipping = TextClipping.Clip
                 };
                 ListStyleB = new GUIStyle
                 {
-                    normal = {background = bgTexB, textColor = textColor},
+                    normal = { background = bgTexB, textColor = textColor },
                     padding = padding,
                     clipping = TextClipping.Clip
                 };
             }
 
             public static readonly GUIStyle TitleLabelStyle = new GUIStyle(GUI.skin.label)
-                {alignment = TextAnchor.MiddleCenter, fontSize = 14};
+            { alignment = TextAnchor.MiddleCenter, fontSize = 14 };
 
             public static readonly GUIStyle ListStyleA;
             public static readonly GUIStyle ListStyleB;
@@ -248,7 +248,7 @@ namespace Simulator.Editor
                 EditorGUILayout.PropertyField(maxTreeDepth);
                 EditorGUILayout.PropertyField(minPointDistance);
             }
-            
+
             EditorGUILayout.Space();
             generateMesh.isExpanded = EditorGUILayout.Foldout(generateMesh.isExpanded, "Mesh Settings", EditorStyles.foldoutHeader);
             if (generateMesh.isExpanded)
@@ -259,7 +259,7 @@ namespace Simulator.Editor
                     EditorGUILayout.PropertyField(roadOnlyMesh);
                     if (roadOnlyMesh.boolValue)
                         EditorGUILayout.HelpBox("Road detection is not suitable for all data sets. If you experience problems, try again with this option off.", MessageType.Info);
-                    
+
                     EditorGUILayout.PropertyField(meshDetailLevel);
                     EditorGUILayout.PropertyField(erosionPasses);
                     EditorGUILayout.PropertyField(erosionAngleThreshold);
@@ -280,6 +280,39 @@ namespace Simulator.Editor
                 EditorGUILayout.PropertyField(normalize);
                 EditorGUILayout.PropertyField(lasRGB8BitWorkaround);
                 EditorGUILayout.PropertyField(axes);
+            }
+        }
+
+        private void ReceiveDragAndDropArea(Rect dropRect, System.Action<string[]> dndCallback = null)
+        {
+            var evt = Event.current;
+            int id = GUIUtility.GetControlID(FocusType.Passive);
+            switch (evt.type)
+            {
+                case EventType.DragUpdated:
+                case EventType.DragPerform:
+                    if (!dropRect.Contains(evt.mousePosition))
+                        break;
+
+                    var fullpathArray = DragAndDrop.paths.Where(x => allowedExtensionsList.Contains(Path.GetExtension(x))).Select(p => Path.GetFullPath(p)).ToArray();
+                    if (0 < fullpathArray.Length)
+                    {
+                        DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
+                    }
+
+
+                    if (evt.type == EventType.DragPerform)
+                    {
+                        DragAndDrop.AcceptDrag();
+
+                        if (dndCallback != null)
+                        {
+                            dndCallback(fullpathArray);
+                        }
+                        DragAndDrop.activeControlID = 0;
+                    }
+                    Event.current.Use();
+                    break;
             }
         }
 
@@ -391,6 +424,26 @@ namespace Simulator.Editor
             // View for currently selected files
             //
             var rect = CreateBox(4);
+
+            ReceiveDragAndDropArea(rect, (list) =>
+            {
+                if (list == null || list.Length < 1)
+                {
+                    return;
+                }
+                foreach (var nf in list)
+                {
+                    var newFile = Utility.GetRelativePathIfApplies(nf);
+                    CacheArrayProperty(inputFiles, tmpList);
+                    if (!tmpList.Contains(newFile))
+                    {
+                        var index = inputFiles.arraySize;
+                        inputFiles.InsertArrayElementAtIndex(index);
+                        inputFiles.GetArrayElementAtIndex(index).stringValue = newFile;
+                    }
+                }
+            });
+
 
             // Refresh element count, to include additions/removals
             elementCount = inputFiles.arraySize;
